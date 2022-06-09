@@ -13,12 +13,13 @@ import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
 import com.ngari.recipe.recipe.ChineseMedicineMsgVO;
 import com.ngari.recipe.recipe.constant.RecipeTypeEnum;
 import com.ngari.recipe.recipe.constant.RecipecCheckStatusConstant;
-import com.ngari.recipe.recipe.model.*;
+import com.ngari.recipe.recipe.model.PatientInfoDTO;
+import com.ngari.recipe.recipe.model.RecipeBean;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.vo.*;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
 import ctd.util.BeanUtils;
-import ctd.util.JSONUtils;
 import eh.cdr.api.vo.MedicalDetailBean;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -100,8 +101,6 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     @Autowired
     protected RecipeDetailDAO recipeDetailDAO;
     @Autowired
-    private HisSyncSupervisionService hisSyncSupervisionService;
-    @Autowired
     private EmrRecipeManager emrRecipeManager;
     @Autowired
     private StateManager stateManager;
@@ -111,8 +110,6 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     private ConsultManager consultManager;
     @Autowired
     private RecipeHisService recipeHisService;
-    @Autowired
-    private RecipeExtendService recipeExtendService;
     @Autowired
     DrugsEnterpriseDAO drugsEnterpriseDAO;
     @Autowired
@@ -342,7 +339,8 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             return null;
         }
         List<RegulationRecipeIndicatorsReq> request = new ArrayList<>();
-        hisSyncSupervisionService.splicingBackRecipeData(Collections.singletonList(recipe), request);
+        HisSyncSupervisionService service = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
+        service.splicingBackRecipeData(Collections.singletonList(recipe), request);
         return ObjectCopyUtils.convert(request.get(0), RegulationRecipeIndicatorsDTO.class);
     }
 
@@ -600,25 +598,29 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
 
     @Override
     public List<RecipeDTO> findRelatedRecipeRecordByRegisterNo(Integer recipeId, Integer doctorId) {
+        logger.info("findRelatedRecipeRecordByRegisterNo recipeId={}, doctorId={}", recipeId, doctorId);
         List<RecipeDTO> recipeDTOList = new ArrayList<>();
         Recipe recipe = recipeDAO.get(recipeId);
-        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
-        String registerNo = recipeOrder.getRegisterNo();
-        if (StringUtils.isBlank(registerNo)) {
+        String mpiId = recipe.getMpiid();
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+        String registerId = recipeExtend.getRegisterID();
+        if (StringUtils.isBlank(registerId)) {
             return recipeDTOList;
         }
-        List<RecipeOrder> recipeOrderList = recipeOrderDAO.findByRegisterNoAndMpiId(registerNo, recipeOrder.getMpiId());
-        for (RecipeOrder order : recipeOrderList) {
-            if (registerNo.equals(order.getRegisterNo())) {
+        List<Recipe> recipeList = recipeDAO.findByRecipeCodeAndRegisterIdAndOrganId(recipeExtend.getRegisterID(),
+                recipe.getClinicOrgan());
+        logger.info("findRelatedRecipeRecordByRegisterNo recipeList={}", JSON.toJSONString(recipeList));
+        for (Recipe re : recipeList) {
+            if (recipeId.equals(re.getRecipeId()) || !mpiId.equals(re.getMpiid())) {
                 continue;
             }
-            Recipe recipeRelated = recipeDAO.get(order.getOrderCode());
-            List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipeRelated.getRecipeId());
+            List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(re.getRecipeId());
             RecipeDTO recipeDTO = new RecipeDTO();
-            recipeDTO.setRecipe(recipeRelated);
+            recipeDTO.setRecipe(re);
             recipeDTO.setRecipeDetails(recipeDetailList);
             recipeDTOList.add(recipeDTO);
         }
+        logger.info("findRelatedRecipeRecordByRegisterNo recipeDTOList={}", JSON.toJSONString(recipeDTOList));
         return recipeDTOList;
     }
 }

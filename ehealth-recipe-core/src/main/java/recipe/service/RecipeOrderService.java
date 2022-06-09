@@ -725,12 +725,7 @@ public class RecipeOrderService extends RecipeBaseService {
             }
         }
         //快递费线上支付的需要计算是否满足包邮
-        if (null != order.getExpressFee() && null != order.getEnterpriseId()) {
-            DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
-            if (null != drugsEnterprise && null != drugsEnterprise.getFreeDeliveryMoney() && order.getRecipeFee().compareTo(drugsEnterprise.getFreeDeliveryMoney()) > -1) {
-                order.setExpressFee(BigDecimal.ZERO);
-            }
-        }
+        orderFeeManager.setExpressFee(order);
 
         // 更新处方代缴费用
         orderFeeManager.setRecipePaymentFee(order, recipeList);
