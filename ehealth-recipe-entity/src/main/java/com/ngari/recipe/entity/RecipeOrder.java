@@ -192,6 +192,12 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "药店或者站点距离")
     private Double distance;
 
+    @ItemProperty(alias = "药店所属公司编码")
+    private String companyCode;
+
+    @ItemProperty(alias = "药店所属公司名称")
+    private String companyName;
+
     @ItemProperty(alias = "代煎费")
     private BigDecimal decoctionFee;
 
@@ -1381,5 +1387,23 @@ public class RecipeOrder implements Serializable {
 
     public void setInvoiceRecordId(Integer invoiceRecordId) {
         this.invoiceRecordId = invoiceRecordId;
+    }
+
+    @Column(name = "company_code")
+    public String getCompanyCode() {
+        return companyCode;
+    }
+
+    public void setCompanyCode(String companyCode) {
+        this.companyCode = companyCode;
+    }
+
+    @Column(name = "company_name")
+    public String getCompanyName() {
+        return companyName;
+    }
+
+    public void setCompanyName(String companyName) {
+        this.companyName = companyName;
     }
 }

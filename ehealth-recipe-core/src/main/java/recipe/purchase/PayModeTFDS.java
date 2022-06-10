@@ -198,6 +198,8 @@ public class PayModeTFDS implements IPurchaseService {
         order.setDrugStoreAddr(MapValueUtil.getString(extInfo, "gysAddr"));
         order.setEnterpriseId(MapValueUtil.getInteger(extInfo, "depId"));
         order.setDrugStoreCode(MapValueUtil.getString(extInfo, "pharmacyCode"));
+        order.setCompanyCode(MapValueUtil.getString(extInfo, "companyCode"));
+        order.setCompanyName(MapValueUtil.getString(extInfo, "companyName"));
         order.setTakeMedicineWay(TakeMedicineWayEnum.TAKE_MEDICINE_STORE.getType());
         order.setRecipeIdList(JSONUtils.toString(recipeIdLists));
 
