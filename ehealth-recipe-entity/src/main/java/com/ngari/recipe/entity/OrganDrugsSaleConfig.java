@@ -63,6 +63,9 @@ public class OrganDrugsSaleConfig implements Serializable {
     @ItemProperty(alias = "是否打印用法标签：0不打印，1打印")
     private Integer printUsageLabelFlag;
 
+    @ItemProperty(alias = "是否打开发票申请：0不打开，1打开")
+    private Integer invoiceRequestFlag;
+
     @ItemProperty(alias = "创建时间")
     private Date createTime;
 
@@ -204,5 +207,14 @@ public class OrganDrugsSaleConfig implements Serializable {
 
     public void setModifiedTime(Date modifiedTime) {
         this.modifiedTime = modifiedTime;
+    }
+
+    @Column(name = "invoice_request_flag")
+    public Integer getInvoiceRequestFlag() {
+        return invoiceRequestFlag;
+    }
+
+    public void setInvoiceRequestFlag(Integer invoiceRequestFlag) {
+        this.invoiceRequestFlag = invoiceRequestFlag;
     }
 }
