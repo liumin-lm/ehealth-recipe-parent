@@ -42,6 +42,7 @@ import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.BussSourceTypeEnum;
+import recipe.enumerate.type.DrugBelongTypeEnum;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.manager.ConsultManager;
 import recipe.manager.EmrRecipeManager;
@@ -59,6 +60,7 @@ import recipe.vo.second.EmrConfigVO;
 import recipe.vo.second.MedicalDetailVO;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -138,7 +140,16 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     public List<OutPatientRecipeDTO> queryOutPatientRecipe(OutPatientRecipeReqVO outPatientRecipeReqVO) {
         logger.info("OutPatientRecipeService queryOutPatientRecipe outPatientRecipeReq:{}.", JSON.toJSONString(outPatientRecipeReqVO));
         OutPatientRecipeReq outPatientRecipeReq = ObjectCopyUtil.convert(outPatientRecipeReqVO, OutPatientRecipeReq.class);
-        return offlineRecipeClient.queryOutPatientRecipe(outPatientRecipeReq);
+        List<OutPatientRecipeDTO> outPatientRecipeList = offlineRecipeClient.queryOutPatientRecipe(outPatientRecipeReq);
+        outPatientRecipeList.forEach(outPatientRecipeDTO -> {
+            List<OutPatientRecipeDetailDTO> outPatientRecipeDetails = outPatientRecipeDTO.getOutPatientRecipeDetails();
+            Boolean haveSecrecyDrugFlag = outPatientRecipeDetails.stream().anyMatch(outPatientRecipeDetailDTO -> DrugBelongTypeEnum.SECRECY_DRUG.getType().equals(outPatientRecipeDetailDTO.getType()));
+            if (haveSecrecyDrugFlag) {
+                BigDecimal offlineRecipeTotalPrice = outPatientRecipeDetails.stream().filter(outPatientRecipeDetailDTO -> DrugBelongTypeEnum.SECRECY_DRUG.getType().equals(outPatientRecipeDetailDTO.getType())).map(outPatientRecipeDetailDTO -> new BigDecimal(Double.parseDouble(outPatientRecipeDetailDTO.getTotalPrice()))).reduce(BigDecimal.ZERO, BigDecimal::add);
+                outPatientRecipeDTO.setOfflineRecipeTotalPrice(offlineRecipeTotalPrice);
+            }
+        });
+        return outPatientRecipeList;
     }
 
     /**

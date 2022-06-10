@@ -1,5 +1,6 @@
 package com.ngari.recipe.dto;
 
+import ctd.schema.annotation.ItemProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -101,5 +102,8 @@ public class OutPatientRecipeDetailDTO implements Serializable {
      * 保密标识 0 非保密 1 保密
      */
     private Integer secrecyFlag;
+
+    @ItemProperty(alias = "1:药品，2:诊疗项目，3 保密药品")
+    private Integer type;
 
 }
