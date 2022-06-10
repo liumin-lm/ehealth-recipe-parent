@@ -140,16 +140,16 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     public List<OutPatientRecipeDTO> queryOutPatientRecipe(OutPatientRecipeReqVO outPatientRecipeReqVO) {
         logger.info("OutPatientRecipeService queryOutPatientRecipe outPatientRecipeReq:{}.", JSON.toJSONString(outPatientRecipeReqVO));
         OutPatientRecipeReq outPatientRecipeReq = ObjectCopyUtil.convert(outPatientRecipeReqVO, OutPatientRecipeReq.class);
-        List<OutPatientRecipeDTO> outPatientRecipeList = offlineRecipeClient.queryOutPatientRecipe(outPatientRecipeReq);
-        outPatientRecipeList.forEach(outPatientRecipeDTO -> {
-            List<OutPatientRecipeDetailDTO> outPatientRecipeDetails = outPatientRecipeDTO.getOutPatientRecipeDetails();
-            Boolean haveSecrecyDrugFlag = outPatientRecipeDetails.stream().anyMatch(outPatientRecipeDetailDTO -> DrugBelongTypeEnum.SECRECY_DRUG.getType().equals(outPatientRecipeDetailDTO.getType()));
-            if (haveSecrecyDrugFlag) {
-                BigDecimal offlineRecipeTotalPrice = outPatientRecipeDetails.stream().filter(outPatientRecipeDetailDTO -> DrugBelongTypeEnum.SECRECY_DRUG.getType().equals(outPatientRecipeDetailDTO.getType())).map(outPatientRecipeDetailDTO -> new BigDecimal(Double.parseDouble(outPatientRecipeDetailDTO.getTotalPrice()))).reduce(BigDecimal.ZERO, BigDecimal::add);
-                outPatientRecipeDTO.setOfflineRecipeTotalPrice(offlineRecipeTotalPrice);
-            }
-        });
-        return outPatientRecipeList;
+        return offlineRecipeClient.queryOutPatientRecipe(outPatientRecipeReq);
+    }
+
+    public static void main(String[] args) {
+        List<OutPatientRecipeDetailDTO> outPatientRecipeDetails = new ArrayList<>();
+        OutPatientRecipeDetailDTO outPatientRecipeDetailDTO = new OutPatientRecipeDetailDTO();
+        outPatientRecipeDetailDTO.setType(3);
+        outPatientRecipeDetails.add(outPatientRecipeDetailDTO);
+        Boolean haveSecrecyDrugFlag = outPatientRecipeDetails.stream().anyMatch(outPatientRecipeDetail -> DrugBelongTypeEnum.SECRECY_DRUG.getType().equals(outPatientRecipeDetail.getType()));
+        System.out.println(haveSecrecyDrugFlag);
     }
 
     /**
