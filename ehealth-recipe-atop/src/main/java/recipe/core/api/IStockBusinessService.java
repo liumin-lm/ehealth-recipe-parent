@@ -95,4 +95,7 @@ public interface IStockBusinessService {
      * @return 可以取药站点的列表
      */
     List<MedicineStationVO> getMedicineStationList(MedicineStationVO medicineStationVO);
+
+    OrganDrugsSaleConfig getOrganDrugsSaleConfigOfPatient(Integer organId, Integer drugsEnterpriseId);
+
 }

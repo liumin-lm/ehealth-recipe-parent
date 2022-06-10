@@ -127,4 +127,14 @@ public class DrugEnterprisePatientAtop extends BaseAtop {
         return organDrugsSaleConfigVo;
     }
 
+    /**
+     * 患者端获取机构药企销售配置
+     * @param organId 机构id
+     * @param drugsEnterpriseId 药企id
+     */
+    @RpcService
+    public OrganDrugsSaleConfig getOrganDrugsSaleConfigOfPatient(Integer organId , Integer drugsEnterpriseId){
+        validateAtop(organId,drugsEnterpriseId);
+        return iDrugEnterpriseBusinessService.getOrganDrugsSaleConfigOfPatient(organId,drugsEnterpriseId);
+    }
 }
