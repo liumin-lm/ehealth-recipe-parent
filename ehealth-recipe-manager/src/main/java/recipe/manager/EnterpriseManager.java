@@ -834,6 +834,7 @@ public class EnterpriseManager extends BaseManager {
     }
 
     public OrganDrugsSaleConfig getOrganDrugsSaleConfigOfPatient(Integer organId, Integer drugsEnterpriseId) {
+        logger.info("getOrganDrugsSaleConfigOfPatient organId:{},drugsEnterpriseId:{} ",organId,drugsEnterpriseId );
         return organDrugsSaleConfigDAO.getByOrganIdAndDrugsEnterpriseId(organId,drugsEnterpriseId);
     }
 }
