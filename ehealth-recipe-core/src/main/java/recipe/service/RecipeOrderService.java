@@ -1687,6 +1687,11 @@ public class RecipeOrderService extends RecipeBaseService {
                         } catch (Exception e) {
                             LOGGER.error("计算包装系数错误, recipeId:{},{}.", recipeBean.getRecipeId(), e.getMessage(), e);
                         }
+                        // 如果实际支付单价有值,代表是预结算返回的,直接赋值单价返回前端展示
+                        if(Objects.nonNull(recipedetail.getActualSalePrice())){
+                            recipeDetailBean.setSaleDrugPrice(recipedetail.getActualSalePrice());
+                            recipeDetailBean.setSalePrice(recipedetail.getActualSalePrice());
+                        }
                         detailBeans.add(recipeDetailBean);
                     }
                     //获取处方详情
