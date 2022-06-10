@@ -230,7 +230,7 @@ public class LogisticsOnlineOrderService implements IAfterPayBussService{
      */
     @LogRecord
     private CreateLogisticsOrderDto getCreateLogisticsOrderDto(RecipeOrder order, Recipe recipe, DrugsEnterprise enterprise) {
-        List<OrganLogisticsManageDto>  organLogisticsManageDtos=organLogisticsManageService.findLogisticsManageByOrganIdAndLogisticsCompanyIdAndAccount(enterprise.getId(),order.getLogisticsCompany()+"",DrugEnterpriseConstant.BUSINESS_TYPE,1);
+        List<OrganLogisticsManageDto>  organLogisticsManageDtos=organLogisticsManageService.findLogisticsManageByOrganIdAndLogisticsCompanyIdAndAccount(enterprise.getId(),order.getLogisticsCompany()+"",DrugEnterpriseConstant.BUSINESS_TYPE,0);
         LOGGER.info("getCreateLogisticsOrderDto organLogisticsManageDtos:{}",JSONUtils.toString(organLogisticsManageDtos));
         OrganLogisticsManageDto organLogisticsManageDto=new OrganLogisticsManageDto();
         if(CollectionUtils.isNotEmpty(organLogisticsManageDtos) && organLogisticsManageDtos.get(0)!=null){
