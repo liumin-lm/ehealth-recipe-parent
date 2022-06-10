@@ -4,10 +4,8 @@ import com.alibaba.fastjson.JSON;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.OutPatientRecipeDTO;
-import com.ngari.recipe.recipe.model.OutPatientRecipeVO;
-import com.ngari.recipe.recipe.model.RecipeBean;
-import com.ngari.recipe.recipe.model.RecipeDetailBean;
-import com.ngari.recipe.recipe.model.RecipeExtendBean;
+import com.ngari.recipe.dto.OutPatientRecipeDetailDTO;
+import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.vo.*;
 import ctd.persistence.exception.DAOException;
 import ctd.util.BeanUtils;
@@ -24,12 +22,15 @@ import recipe.core.api.patient.IPatientBusinessService;
 import recipe.enumerate.status.OutRecipeStatusEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.BussSourceTypeEnum;
+import recipe.enumerate.type.DrugBelongTypeEnum;
 import recipe.enumerate.type.OutRecipeGiveModeEnum;
 import recipe.enumerate.type.OutRecipeRecipeTypeEnum;
 import recipe.util.DateConversion;
+import recipe.util.ObjectCopyUtils;
 import recipe.util.ValidateUtil;
 import recipe.vo.doctor.RecipeInfoVO;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
@@ -85,6 +86,13 @@ public class RecipePatientAtop extends BaseAtop {
                 if (StringUtils.isEmpty(outPatientRecipeVO.getOrganName())) {
                     outPatientRecipeVO.setOrganName(outPatientRecipeReqVO.getOrganName());
                 }
+                List<OutPatientRecipeDetailVO> outPatientRecipeDetailVOList = ObjectCopyUtils.convert(outPatientRecipeDTO.getOutPatientRecipeDetails(), OutPatientRecipeDetailVO.class);
+                Boolean haveSecrecyDrugFlag = outPatientRecipeDetailVOList.stream().anyMatch(outPatientRecipeDetail -> DrugBelongTypeEnum.SECRECY_DRUG.getType().equals(outPatientRecipeDetail.getType()));
+                if (haveSecrecyDrugFlag) {
+                    BigDecimal offlineRecipeTotalPrice = outPatientRecipeDetailVOList.stream().filter(outPatientRecipeDetail -> DrugBelongTypeEnum.SECRECY_DRUG.getType().equals(outPatientRecipeDetail.getType())).map(outPatientRecipeDetailDTO -> new BigDecimal(Double.parseDouble(outPatientRecipeDetailDTO.getTotalPrice()))).reduce(BigDecimal.ZERO, BigDecimal::add);
+                    outPatientRecipeVO.setOfflineRecipeTotalPrice(offlineRecipeTotalPrice);
+                }
+                outPatientRecipeVO.setOfflineRecipeName(outPatientRecipeDTO.getOfflineRecipeName());
                 result.add(outPatientRecipeVO);
             });
             logger.info("OutPatientRecipeAtop queryOutPatientRecipe result:{}.", JSON.toJSONString(result));
