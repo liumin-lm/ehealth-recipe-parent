@@ -92,8 +92,6 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         String supportDownloadButton = RecipeSupportGiveModeEnum.getGiveModeName(giveModeButtonBeans, RecipeSupportGiveModeEnum.DOWNLOAD_RECIPE.getText());
         List<Integer> drugIds = recipeDetails.stream().map(Recipedetail::getDrugId).distinct().collect(Collectors.toList());
         Map<String, OrganDrugList> organDrugMap = organDrugListManager.getOrganDrugByIdAndCode(organId, drugIds);
-        //例外支付
-        String supportMedicalPaymentButton = RecipeSupportGiveModeEnum.getGiveModeName(giveModeButtonBeans, RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText());
         //组织 药品 对应的 药企列表库存
         List<DrugEnterpriseStockVO> drugEnterpriseStockList = new LinkedList<>();
         recipeDetails.forEach(a -> {
@@ -106,9 +104,6 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
                 if (null != organDrug && (null == organDrug.getSupportDownloadPrescriptionPad() || organDrug.getSupportDownloadPrescriptionPad())) {
                     stock = true;
                 }
-            }
-            if (StringUtils.isNotEmpty(supportMedicalPaymentButton)) {
-                stock = true;
             }
             List<EnterpriseStockVO> list = enterpriseStockGroup.get(a.getDrugId());
             if (CollectionUtils.isNotEmpty(list)) {
