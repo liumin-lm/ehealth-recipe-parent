@@ -51,10 +51,10 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
      * @param enterpriseId
      */
     @RpcService
-    public List<DrugDistributionPriceBean> findEnterpriseAddressFeeList(Integer enterpriseId) {
+    public DrugDistributionPriceBean findEnterpriseAddressFeeList(Integer enterpriseId,String addrArea) {
         validateAtop(enterpriseId);
-        List<DrugDistributionPriceBean> list = drugDistributionPriceService.findByEnterpriseId(enterpriseId);
-        return list;
+        DrugDistributionPriceBean enterpriseIdAndAddrArea = drugDistributionPriceService.getByEnterpriseIdAndAddrArea(enterpriseId, addrArea);
+        return enterpriseIdAndAddrArea;
     }
 
  /**
