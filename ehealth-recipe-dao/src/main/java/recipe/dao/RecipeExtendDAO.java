@@ -198,6 +198,4 @@ public abstract class RecipeExtendDAO extends HibernateSupportDelegateDAO<Recipe
         return action.getResult();
     }
 
-    @DAOMethod(sql = "from RecipeExtend where registerId =:registerId", limit = 0)
-    public abstract List<RecipeExtend> findByRegisterId(@DAOParam("registerId") String registerId);
 }

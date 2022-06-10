@@ -600,7 +600,6 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     @Override
     public List<RecipeInfoVO> findRelatedRecipeRecordByRegisterNo(Integer recipeId, Integer doctorId,
                                                                   List<Integer> recipeTypeList, List<Integer> organIds) {
-        logger.info("findRelatedRecipeRecordByRegisterNo recipeId={}, doctorId={}", recipeId, doctorId);
         List<RecipeInfoVO> recipeInfoVOS = new ArrayList<>();
         Recipe recipe = recipeDAO.get(recipeId);
         String mpiId = recipe.getMpiid();
@@ -611,19 +610,20 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         }
         List<Recipe> recipeList = recipeDAO.findByRecipeCodeAndRegisterIdAndOrganId(recipeExtend.getRegisterID(),
                 recipe.getClinicOrgan());
-        logger.info("findRelatedRecipeRecordByRegisterNo recipeList={}", JSON.toJSONString(recipeList));
-        for (Recipe re : recipeList) {
-            if (recipeId.equals(re.getRecipeId()) || !mpiId.equals(re.getMpiid()) ||
-                    !Integer.valueOf(1).equals(re.getCheckMode()) || !organIds.contains(re.getClinicOrgan())) {
-                continue;
+        if (CollectionUtils.isNotEmpty(recipeList)) {
+            logger.info("findRelatedRecipeRecordByRegisterNo recipeList={}", JSON.toJSONString(recipeList));
+            for (Recipe re : recipeList) {
+                if (recipeId.equals(re.getRecipeId()) || !mpiId.equals(re.getMpiid()) ||
+                        !Integer.valueOf(1).equals(re.getCheckMode()) || !organIds.contains(re.getClinicOrgan())) {
+                    continue;
+                }
+                List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(re.getRecipeId());
+                RecipeInfoVO recipeInfoVO = new RecipeInfoVO();
+                recipeInfoVO.setRecipeBean(ObjectCopyUtils.convert(re, RecipeBean.class));
+                recipeInfoVO.setRecipeDetails(ObjectCopyUtils.convert(recipeDetailList, RecipeDetailBean.class));
+                recipeInfoVOS.add(recipeInfoVO);
             }
-            List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(re.getRecipeId());
-            RecipeInfoVO recipeInfoVO = new RecipeInfoVO();
-            recipeInfoVO.setRecipeBean(ObjectCopyUtils.convert(re, RecipeBean.class));
-            recipeInfoVO.setRecipeDetails(ObjectCopyUtils.convert(recipeDetailList, RecipeDetailBean.class));
-            recipeInfoVOS.add(recipeInfoVO);
         }
-        logger.info("findRelatedRecipeRecordByRegisterNo recipeInfoVOS={}", JSON.toJSONString(recipeInfoVOS));
         return recipeInfoVOS;
     }
 }
