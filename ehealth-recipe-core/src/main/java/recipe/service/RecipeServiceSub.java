@@ -105,6 +105,7 @@ import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.*;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.sql.Timestamp;
 import java.text.DecimalFormat;
@@ -1966,6 +1967,10 @@ public class RecipeServiceSub {
         }
         recipeBean.setCheckerTel(LocalStringUtil.coverMobile(recipeBean.getCheckerTel()));
         recipeBean.setSubStateText(RecipeStateEnum.getRecipeStateEnum(recipe.getSubState()).getName());
+        BigDecimal offlineRecipeTotalPrice = new BigDecimal(BigInteger.ZERO);
+        //计算保密处方药品走总价
+        offlineRecipeTotalPrice = recipedetails.stream().filter(recipeDetail -> "3".equals(recipeDetail.getType())).map(Recipedetail::getDrugCost).reduce(BigDecimal.ZERO, BigDecimal::add);
+        recipeBean.setOfflineRecipeTotalPrice(offlineRecipeTotalPrice);
         map.put("recipe", recipeBean);
         //20200519 zhangx 是否展示退款按钮(重庆大学城退款流程)，前端调用patientRefundForRecipe
         map.put("showRefund", 0);

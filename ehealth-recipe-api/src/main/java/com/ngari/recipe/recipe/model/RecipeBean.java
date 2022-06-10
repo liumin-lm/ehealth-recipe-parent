@@ -434,6 +434,9 @@ public class RecipeBean implements Serializable {
     @ItemProperty(alias = "线下处方名称")
     private String offlineRecipeName;
 
+    @ItemProperty(alias = "线下处方总价 目前用于保密组方")
+    private BigDecimal offlineRecipeTotalPrice;
+
     public List<Integer> getGroupRecipeIdList() {
         return groupRecipeIdList;
     }
@@ -1590,5 +1593,13 @@ public class RecipeBean implements Serializable {
 
     public void setOfflineRecipeName(String offlineRecipeName) {
         this.offlineRecipeName = offlineRecipeName;
+    }
+
+    public BigDecimal getOfflineRecipeTotalPrice() {
+        return offlineRecipeTotalPrice;
+    }
+
+    public void setOfflineRecipeTotalPrice(BigDecimal offlineRecipeTotalPrice) {
+        this.offlineRecipeTotalPrice = offlineRecipeTotalPrice;
     }
 }
