@@ -78,7 +78,7 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
 
     private static final String COMMON_SERVICE = "commonRemoteService";
 
-    private static final String NO_PUSH_MSG = "当前机构未配置处方流转平台";
+    private static final String NO_PUSH_MSG = "当前机构未配置处方流转平台！";
 
     @Autowired
     DrugListDAO drugListDAO;
