@@ -52,8 +52,6 @@ public class HisRecipeDetailBean implements Serializable {
     private String drugDisplaySplicedName;
     @ItemProperty(alias = "剂型")
     private String drugForm;
-    @ItemProperty(alias = "药品所属类型 3 保密药品")
-    private Integer type;
 
     public String getUseDaysB() {
         return useDaysB;
@@ -229,13 +227,5 @@ public class HisRecipeDetailBean implements Serializable {
 
     public void setDrugForm(String drugForm) {
         this.drugForm = drugForm;
-    }
-
-    public Integer getType() {
-        return type;
-    }
-
-    public void setType(Integer type) {
-        this.type = type;
     }
 }
