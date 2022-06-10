@@ -22,6 +22,7 @@ import recipe.core.api.patient.IOfflineRecipeBusinessService;
 import recipe.core.api.patient.IPatientBusinessService;
 import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.util.ObjectCopyUtils;
+import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.patient.PatientOptionalDrugVo;
 import recipe.vo.second.RevisitRecipeTraceVo;
 
@@ -212,6 +213,18 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
     public List<RecipeDetailBean> findRecipeDetailByRecipeId(Integer recipeId) {
         validateAtop(recipeId);
         return recipeBusinessService.findRecipeDetailByRecipeId(recipeId);
+    }
+
+    /**
+     * 获取某处方单关联处方（同一个患者同一次就诊）
+     *
+     * @param recipeId
+     * @param doctorId
+     * @return
+     */
+    @Override
+    public List<RecipeInfoVO> findRelatedRecipeRecordByRegisterNo(Integer recipeId, Integer doctorId, List<Integer> recipeTypeList) {
+        return recipeBusinessService.findRelatedRecipeRecordByRegisterNo(recipeId, doctorId, recipeTypeList);
     }
 
 }
