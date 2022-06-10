@@ -612,7 +612,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
                 recipe.getClinicOrgan());
         logger.info("findRelatedRecipeRecordByRegisterNo recipeList={}", JSON.toJSONString(recipeList));
         for (Recipe re : recipeList) {
-            if (recipeId.equals(re.getRecipeId()) || !mpiId.equals(re.getMpiid())) {
+            if (recipeId.equals(re.getRecipeId()) || !mpiId.equals(re.getMpiid()) || !"1".equals(re.getRecipeMode())) {
                 continue;
             }
             List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(re.getRecipeId());
