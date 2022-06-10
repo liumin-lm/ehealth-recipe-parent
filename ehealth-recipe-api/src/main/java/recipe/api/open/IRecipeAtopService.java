@@ -177,5 +177,6 @@ public interface IRecipeAtopService {
 
 
     @RpcService
-    List<RecipeInfoVO> findRelatedRecipeRecordByRegisterNo(Integer recipeId, Integer doctorId, List<Integer> recipeTypeList);
+    List<RecipeInfoVO> findRelatedRecipeRecordByRegisterNo(Integer recipeId, Integer doctorId,
+                                                           List<Integer> recipeTypeList, List<Integer> organIds);
 }

@@ -2,6 +2,10 @@ package recipe.service;
 
 import com.ngari.base.organ.model.OrganBean;
 import com.ngari.base.organ.service.IOrganService;
+import com.ngari.opbase.base.service.IBusActionLogService;
+import com.ngari.patient.dto.OrganDTO;
+import com.ngari.patient.service.BasicAPI;
+import com.ngari.patient.service.OrganService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.entity.DrugsEnterprise;
@@ -10,6 +14,7 @@ import com.ngari.recipe.organdrugsep.model.OrganAndDrugsepRelationBean;
 import com.ngari.recipe.organdrugsep.service.IOrganAndDrugsepRelationService;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
+import ctd.spring.AppDomainContext;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import org.apache.commons.logging.Log;
@@ -17,6 +22,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.constant.ErrorCode;
+import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.OrganAndDrugsepRelationDAO;
 
 import java.util.ArrayList;
@@ -62,6 +68,20 @@ public class OrganAndDrugsepRelationService implements IOrganAndDrugsepRelationS
             relation = relationDAO.save(relation);
             retList.add(relation);
         }
+
+        StringBuffer buffer=new StringBuffer()
+                .append("【") .append(organ.getName()).append("】新增配送药企");
+
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        List<DrugsEnterprise> enterprises=drugsEnterpriseDAO.findByIdIn(entpriseIds);
+        for (DrugsEnterprise enterprise : enterprises) {
+            buffer.append("【").append(enterprise.getName()).append("】");
+        }
+
+        IBusActionLogService bean = AppDomainContext.getBean("opbase.busActionLogService", IBusActionLogService.class);
+        bean.recordBusinessLogRpcNew("配置中心", "", "OrganAndDrugsepRelation", buffer.toString(), organ.getName());
+
+
         return ObjectCopyUtils.convert(retList,OrganAndDrugsepRelationBean.class);
     }
 
@@ -77,14 +97,31 @@ public class OrganAndDrugsepRelationService implements IOrganAndDrugsepRelationS
         if (ObjectUtils.isEmpty(organId)) {
             throw new DAOException(DAOException.VALUE_NEEDED, "organId is empty!");
         }
+
+        OrganService organService = BasicAPI.getService(OrganService.class);
+        OrganDTO organDTO = organService.getByOrganId(organId);
+        if (organDTO==null) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "organId is empty!");
+        }
+
         if (ObjectUtils.isEmpty(entId)) {
             throw new DAOException(DAOException.VALUE_NEEDED, "drugsEnterpriseId is empty!");
         }
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(entId);
+        if (drugsEnterprise==null) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "drugsEnterpriseId is empty!");
+        }
+
         OrganAndDrugsepRelationDAO relationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
         OrganAndDrugsepRelation drugsepRelation = relationDAO.getOrganAndDrugsepByOrganIdAndEntId(organId, entId);
         if (null != drugsepRelation) {
             relationDAO.remove(drugsepRelation.getId());
         }
+
+        IBusActionLogService bean = AppDomainContext.getBean("opbase.busActionLogService", IBusActionLogService.class);
+        bean.recordBusinessLogRpcNew("配置中心", "", "OrganAndDrugsepRelation", "【"+organDTO.getName()+"】删除配送药企【"+drugsEnterprise.getName()+"】", organDTO.getName());
+
     }
 
 
