@@ -37,8 +37,6 @@ public class HisRecipeBean implements Serializable {
     private RecipeExtendBean recipeExtend;
     @ItemProperty(alias = "开方时间")
     private Date createDate;
-    @ItemProperty(alias = "线下处方名称")
-    private String offlineRecipeName;
 
     public Date getCreateDate() {
         return createDate;
@@ -190,13 +188,5 @@ public class HisRecipeBean implements Serializable {
 
     public void setRecipeExtend(RecipeExtendBean recipeExtend) {
         this.recipeExtend = recipeExtend;
-    }
-
-    public String getOfflineRecipeName() {
-        return offlineRecipeName;
-    }
-
-    public void setOfflineRecipeName(String offlineRecipeName) {
-        this.offlineRecipeName = offlineRecipeName;
     }
 }
