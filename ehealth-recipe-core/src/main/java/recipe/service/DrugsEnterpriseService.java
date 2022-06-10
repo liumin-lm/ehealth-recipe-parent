@@ -381,7 +381,7 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
                 }
             }
         }
-        List<OrganLogisticsManageDto> organLogisticsManageDtos=iOrganLogisticsManageService.getRecipeLogisticsManageByOrganId(drugsEnterpriseId);
+        List<OrganLogisticsManageDto> organLogisticsManageDtos=iOrganLogisticsManageService.getRecipeLogisticsManageByOrganId(drugsEnterpriseId,0);
         LOGGER.info("getDrugsEnterpriseById organLogisticsManageDtos:{}",JSONUtils.toString(organLogisticsManageDtos));
         List<DrugEnterpriseLogisticsBean> drugEnterpriseLogisticsBeans  =new ArrayList<>();
         if(CollectionUtils.isNotEmpty(organLogisticsManageDtos)){
