@@ -78,4 +78,9 @@ public class OrganDrugsSaleConfigVo implements Serializable {
      */
     private Integer printUsageLabelFlag;
 
+    /**
+     * 是否打开发票申请：0不打开，1打开
+     */
+    private Integer invoiceRequestFlag;
+
 }
