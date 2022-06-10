@@ -35,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import recipe.ApplicationUtils;
 import recipe.aop.LogRecord;
+import recipe.business.StockBusinessService;
 import recipe.bussutil.CreateRecipePdfUtil;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.common.OnsConfig;
@@ -78,6 +79,8 @@ public class RecipeTestService {
     private IDrugBusinessService drugBusinessService;
     @Autowired
     private CreatePdfFactory createPdfFactory;
+    @Autowired
+    private StockBusinessService stockBusinessService;
 
 
 
@@ -437,6 +440,11 @@ public class RecipeTestService {
     public String recipePdfTest(Integer recipeId, Integer type) throws Exception {
         createPdfFactory.updatePdfToImg(recipeId, type);
         return null;
+    }
+
+    @RpcService
+    public void enterpriseStockTest(Integer recipeId){
+        stockBusinessService.enterpriseStock(recipeId);
     }
 
 }
