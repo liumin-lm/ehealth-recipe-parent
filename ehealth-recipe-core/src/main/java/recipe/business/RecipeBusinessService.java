@@ -598,7 +598,8 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     }
 
     @Override
-    public List<RecipeInfoVO> findRelatedRecipeRecordByRegisterNo(Integer recipeId, Integer doctorId, List<Integer> recipeTypeList) {
+    public List<RecipeInfoVO> findRelatedRecipeRecordByRegisterNo(Integer recipeId, Integer doctorId,
+                                                                  List<Integer> recipeTypeList, List<Integer> organIds) {
         logger.info("findRelatedRecipeRecordByRegisterNo recipeId={}, doctorId={}", recipeId, doctorId);
         List<RecipeInfoVO> recipeInfoVOS = new ArrayList<>();
         Recipe recipe = recipeDAO.get(recipeId);
@@ -612,7 +613,8 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
                 recipe.getClinicOrgan());
         logger.info("findRelatedRecipeRecordByRegisterNo recipeList={}", JSON.toJSONString(recipeList));
         for (Recipe re : recipeList) {
-            if (recipeId.equals(re.getRecipeId()) || !mpiId.equals(re.getMpiid()) || !"1".equals(re.getCheckMode())) {
+            if (recipeId.equals(re.getRecipeId()) || !mpiId.equals(re.getMpiid()) ||
+                    !Integer.valueOf(1).equals(re.getCheckMode()) || !organIds.contains(re.getClinicOrgan())) {
                 continue;
             }
             List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(re.getRecipeId());

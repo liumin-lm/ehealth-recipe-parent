@@ -221,5 +221,6 @@ public interface IRecipeBusinessService {
      * @param doctorId
      * @return
      */
-    List<RecipeInfoVO> findRelatedRecipeRecordByRegisterNo(Integer recipeId, Integer doctorId, List<Integer> recipeTypeList);
+    List<RecipeInfoVO> findRelatedRecipeRecordByRegisterNo(Integer recipeId, Integer doctorId,
+                                                           List<Integer> recipeTypeList, List<Integer> organIds);
 }
