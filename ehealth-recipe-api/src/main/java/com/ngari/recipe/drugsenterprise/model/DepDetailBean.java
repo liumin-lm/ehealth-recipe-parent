@@ -1,5 +1,6 @@
 package com.ngari.recipe.drugsenterprise.model;
 
+import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
 import java.math.BigDecimal;
@@ -119,6 +120,12 @@ public class DepDetailBean {
 
     //药店库存(1:有库存 0：无库存)
     private Integer stockFlag;
+
+    @ItemProperty(alias = "药店所属公司编码")
+    private String companyCode;
+
+    @ItemProperty(alias = "药店所属公司名称")
+    private String companyName;
 
     public Integer getStockFlag() {
         return stockFlag;
@@ -363,5 +370,21 @@ public class DepDetailBean {
     @Override
     public int hashCode() {
         return Objects.hash(depId, depName, payMode, giveModeText, payModeText);
+    }
+
+    public String getCompanyCode() {
+        return companyCode;
+    }
+
+    public void setCompanyCode(String companyCode) {
+        this.companyCode = companyCode;
+    }
+
+    public String getCompanyName() {
+        return companyName;
+    }
+
+    public void setCompanyName(String companyName) {
+        this.companyName = companyName;
     }
 }
