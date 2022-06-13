@@ -36,6 +36,7 @@ public class DepartClient extends BaseClient {
      * @return
      */
     public AppointDepartDTO getAppointDepartByOrganIdAndDepart(Integer organId, Integer depart) {
+        logger.info("DepartClient getAppointDepartByOrganIdAndDepart organId:{},depart:{}", organId, depart);
         return appointDepartService.findByOrganIDAndDepartIDAndCancleFlag(organId, depart);
     }
 
