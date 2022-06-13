@@ -148,6 +148,8 @@ public class CommonSelfEnterprisesType implements CommonExtendEnterprisesInterfa
                 detailBean.setBelongDepName(enterprise.getName());
                 // 平台对接默认有库存
                 detailBean.setStockFlag(1);
+                detailBean.setCompanyCode("C0001");
+                detailBean.setCompanyName("华东药业");
                 //记录药店和用户两个经纬度的距离
                 detailBean.setDistance(DistanceUtil.getDistance(Double.parseDouble(ext.get(searchMapLatitude).toString()),
                         Double.parseDouble(ext.get(searchMapLongitude).toString()), Double.parseDouble(pharmacy.getPharmacyLatitude()), Double.parseDouble(pharmacy.getPharmacyLongitude())));
