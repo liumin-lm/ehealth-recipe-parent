@@ -44,10 +44,7 @@ import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.BussSourceTypeEnum;
 import recipe.enumerate.type.DrugBelongTypeEnum;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
-import recipe.manager.ConsultManager;
-import recipe.manager.EmrRecipeManager;
-import recipe.manager.RecipeManager;
-import recipe.manager.StateManager;
+import recipe.manager.*;
 import recipe.service.*;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.util.*;
@@ -60,7 +57,6 @@ import recipe.vo.second.EmrConfigVO;
 import recipe.vo.second.MedicalDetailVO;
 
 import javax.annotation.Resource;
-import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -114,9 +110,11 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     @Autowired
     private RecipeHisService recipeHisService;
     @Autowired
-    DrugsEnterpriseDAO drugsEnterpriseDAO;
+    private DrugsEnterpriseDAO drugsEnterpriseDAO;
     @Autowired
-    RecipeExtendDAO recipeExtendDAO;
+    private RecipeExtendDAO recipeExtendDAO;
+    @Autowired
+    private EnterpriseManager enterpriseManager;
 
 
     /**
@@ -545,13 +543,18 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     @Override
     public DrugUsageLabelResp queryRecipeDrugUsageLabel(Integer recipeId) {
         DrugUsageLabelResp drugUsageLabelResp = new DrugUsageLabelResp();
-        Recipe recipe = recipeDAO.get(recipeId);
-        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+
+        RecipeDTO recipeDTO = recipeManager.getRecipeDTOSimple(recipeId);
+        Recipe recipe = recipeDTO.getRecipe();
+        RecipeExtend recipeExtend = recipeDTO.getRecipeExtend();
+        List<Recipedetail> recipeDetails = recipeDTO.getRecipeDetails();
+        RecipeOrder recipeOrder = recipeDTO.getRecipeOrder();
         Integer enterpriseId = recipe.getEnterpriseId();
+
         if (Objects.isNull(enterpriseId)) {
             throw new DAOException("未查询到对应药企！");
         }
-        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(enterpriseId);
+        DrugsEnterprise drugsEnterprise = enterpriseManager.drugsEnterprise(recipe.getEnterpriseId());
         drugUsageLabelResp.setEnterpriseName(drugsEnterprise.getName());
 
         //患者信息
@@ -562,10 +565,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             drugUsageLabelResp.setPatientSex(patientDTO.getPatientSex());
         }
 
-        List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipeId);
-
         drugUsageLabelResp.setRecipeType(recipe.getRecipeType());
-        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
         drugUsageLabelResp.setDispensingTime(recipeOrder.getDispensingTime());
 
         if (RecipeTypeEnum.RECIPETYPE_WM.getType().equals(recipe.getRecipeType()) ||
