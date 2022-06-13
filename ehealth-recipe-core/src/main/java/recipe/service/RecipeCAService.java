@@ -137,7 +137,7 @@ public class RecipeCAService {
             if(StringUtils.isNotEmpty(recipe.getChemistSignFile())){
                 caRequest.setPdfPath(OnsConfig.fileViewUrl+recipe.getChemistSignFile()+"?:token="+FileAuth.instance().createToken(recipe.getChemistSignFile(),3600));
             }else if(StringUtils.isNotEmpty(recipe.getSignFile())){
-                caRequest.setPdfPath(OnsConfig.fileViewUrl+recipe.getChemistSignFile()+"?:token="+FileAuth.instance().createToken("6246b575b262447d61a58848",3600));
+                caRequest.setPdfPath(OnsConfig.fileViewUrl+recipe.getSignFile()+"?:token="+FileAuth.instance().createToken(recipe.getSignFile(),3600));
             }
             //2.首先组装易签保用的签名签章数据
             esignMap.put("isDoctor", isDoctor);
