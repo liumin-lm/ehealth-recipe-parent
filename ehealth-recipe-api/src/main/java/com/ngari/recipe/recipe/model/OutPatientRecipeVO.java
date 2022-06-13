@@ -1,11 +1,13 @@
 package com.ngari.recipe.recipe.model;
 
+import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -182,6 +184,12 @@ public class OutPatientRecipeVO implements Serializable{
      * 中药煎法文本
      */
     private String decoctionText;
+
+    @ItemProperty(alias = "线下处方名称")
+    private String offlineRecipeName;
+
+    @ItemProperty(alias = "线下处方总价 目前用于保密组方")
+    private BigDecimal offlineRecipeTotalPrice;
 
     /**
      * 门诊处方项目药品明细

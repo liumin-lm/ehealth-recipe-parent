@@ -1654,6 +1654,10 @@ public class RecipeOrderService extends RecipeBaseService {
                     }
                     //药品详情
                     recipedetails = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
+                    BigDecimal offlineRecipeTotalPrice = new BigDecimal(BigInteger.ZERO);
+                    //计算保密处方药品走总价
+                    offlineRecipeTotalPrice = recipedetails.stream().filter(recipeDetail -> DrugBelongTypeEnum.SECRECY_DRUG.getType().equals(recipeDetail.getType())).map(Recipedetail::getDrugCost).reduce(BigDecimal.ZERO, BigDecimal::add);
+                    recipeBean.setOfflineRecipeTotalPrice(offlineRecipeTotalPrice);
                     String className = Thread.currentThread().getStackTrace()[2].getClassName();
                     String methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
                     List<Integer> drugId = recipedetails.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
