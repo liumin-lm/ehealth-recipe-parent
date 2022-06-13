@@ -832,5 +832,10 @@ public class EnterpriseManager extends BaseManager {
     public List<EnterpriseDecoctionAddress> findEnterpriseDecoctionAddressList(Integer organId, Integer enterpriseId, Integer decoctionId) {
         return enterpriseDecoctionAddressDAO.findEnterpriseDecoctionAddressList(organId,enterpriseId,decoctionId);
     }
+
+    public OrganDrugsSaleConfig getOrganDrugsSaleConfigOfPatient(Integer organId, Integer drugsEnterpriseId) {
+        logger.info("getOrganDrugsSaleConfigOfPatient organId:{},drugsEnterpriseId:{} ",organId,drugsEnterpriseId );
+        return organDrugsSaleConfigDAO.getOrganDrugsSaleConfig(drugsEnterpriseId);
+    }
 }
 

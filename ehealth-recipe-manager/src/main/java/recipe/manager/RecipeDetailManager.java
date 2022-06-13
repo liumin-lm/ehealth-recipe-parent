@@ -57,10 +57,13 @@ public class RecipeDetailManager extends BaseManager {
                 Map<Integer, String> recipeCodeMap = recipes.stream().collect(Collectors.toMap(Recipe::getRecipeId, Recipe::getRecipeCode));
                 for (Recipedetail recipeDetail : recipeDetails) {
                     String recipeCode = recipeCodeMap.get(recipeDetail.getRecipeId());
-                    List<RecipePreSettleDrugFeeDTO> recipePreSettleDrugFeeDTO = collect.get(recipeCode + recipeDetail.getOrganDrugCode());
-                    if (CollectionUtils.isNotEmpty(recipePreSettleDrugFeeDTO)) {
-                        recipeDetail.setActualSalePrice(recipePreSettleDrugFeeDTO.get(0).getSalePrice());
-                        recipeDetail.setDrugCost(recipePreSettleDrugFeeDTO.get(0).getDrugCost());
+                    String[] split = recipeCode.split(",");
+                    for (String s : split) {
+                        List<RecipePreSettleDrugFeeDTO> recipePreSettleDrugFeeDTO = collect.get(s + recipeDetail.getOrganDrugCode());
+                        if (CollectionUtils.isNotEmpty(recipePreSettleDrugFeeDTO)) {
+                            recipeDetail.setActualSalePrice(recipePreSettleDrugFeeDTO.get(0).getSalePrice());
+                            recipeDetail.setDrugCost(recipePreSettleDrugFeeDTO.get(0).getDrugCost());
+                        }
                     }
                 }
                 recipeDetailDAO.updateAllRecipeDetail(recipeDetails);

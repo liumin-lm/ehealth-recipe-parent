@@ -353,6 +353,11 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         return medicineStationVOList;
     }
 
+    @Override
+    public OrganDrugsSaleConfig getOrganDrugsSaleConfigOfPatient(Integer organId, Integer drugsEnterpriseId) {
+        return enterpriseManager.getOrganDrugsSaleConfigOfPatient(organId,drugsEnterpriseId);
+    }
+
     /**
      * 保存购药按钮
      *
