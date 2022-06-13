@@ -49,4 +49,8 @@ public class RecipeInfoVO {
      * 快捷购药模板ID
      */
     private Integer mouldId;
+    /**
+     * 审方状态
+     */
+    private Integer auditState;
 }
