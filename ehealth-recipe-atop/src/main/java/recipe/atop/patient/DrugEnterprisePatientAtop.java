@@ -134,7 +134,7 @@ public class DrugEnterprisePatientAtop extends BaseAtop {
      */
     @RpcService
     public OrganDrugsSaleConfig getOrganDrugsSaleConfigOfPatient(Integer organId , Integer drugsEnterpriseId){
-        validateAtop(organId,drugsEnterpriseId);
+        validateAtop(drugsEnterpriseId);
         return iDrugEnterpriseBusinessService.getOrganDrugsSaleConfigOfPatient(organId,drugsEnterpriseId);
     }
 }
