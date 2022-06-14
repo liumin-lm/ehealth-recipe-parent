@@ -3713,7 +3713,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 } else {
                     throw new DAOException(ErrorCode.SERVICE_ERROR, "searchFlag is invalid");
                 }
-                hql.append("and (r.checkDateYs is not null or r.status = 8) " + "and r.clinicOrgan in (:organs) order by r.signDate desc");
+                hql.append("and (r.checkDateYs is not null or r.status = 8) and r.checkMode < 2 " + "and r.clinicOrgan in (:organs) order by r.signDate desc");
 
                 Query q = ss.createQuery(hql.toString());
                 if (3 == searchFlag) {
