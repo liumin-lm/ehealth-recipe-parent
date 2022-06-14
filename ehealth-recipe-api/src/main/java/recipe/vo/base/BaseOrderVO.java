@@ -80,4 +80,10 @@ public class BaseOrderVO implements Serializable {
 
     @ItemProperty(alias = "订单所属配送方式")
     private Integer giveMode;
+
+    @ItemProperty(alias = "药店所属公司编码")
+    private String companyCode;
+
+    @ItemProperty(alias = "药店所属公司名称")
+    private String companyName;
 }
