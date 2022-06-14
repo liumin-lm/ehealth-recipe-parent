@@ -44,7 +44,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * @description： 平台药品 业务类
+ * @description： 药品业务类
  * @author： whf
  * @date： 2021-08-23 18:58
  */
