@@ -1555,9 +1555,9 @@ public class RecipeServiceSub {
         r.setRecipeCode(recipe.getRecipeCode());
         r.setClinicOrgan(recipe.getClinicOrgan());
         r.setDetailData(recipe.getDetailData());
-        if (DrugBelongTypeEnum.SECRECY_DRUG.getType().equals(recipe.getOfflineRecipeType())) {
+        if (DrugBelongTypeEnum.SECRECY_DRUG.getType().equals(recipe.getOfflineRecipeType()) && CollectionUtils.isNotEmpty(r.getDetailData())) {
             r.setOfflineRecipeName(recipe.getOfflineRecipeName());
-            r.getRecipeDetailBeanList().forEach(recipeDetailBean -> {
+            r.getDetailData().forEach(recipeDetailBean -> {
                 recipeDetailBean.setType(DrugBelongTypeEnum.SECRECY_DRUG.getType());
             });
         }
