@@ -554,7 +554,7 @@ public class RecipeService extends RecipeBaseService {
      */
     private void updateRevisitOrConsultInfo(Integer recipeId, Integer bussSource, Integer clinicId) {
         try {
-            if (null == recipeId || null == clinicId || null == bussSource) {
+            if (ValidateUtil.validateObjects(recipeId, clinicId, bussSource)) {
                 return;
             }
             if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(bussSource)) {
