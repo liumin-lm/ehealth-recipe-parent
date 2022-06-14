@@ -510,12 +510,12 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
             return null;
         }
         List<RecipeLabelDTO> list = new LinkedList<>();
+        Recipedetail recipeDetail = recipeDetails.get(0);
         recipeDetails = setSecrecyDrugLabel(list, recipeDetails, recipeInfoDTO.getRecipe());
         for (int i = 0; i < recipeDetails.size(); i++) {
             String drugShowName = RecipeUtil.drugChineShowName(recipeDetails.get(i));
             list.add(new RecipeLabelDTO("药品名称", "recipeDetail.drugName_" + i, drugShowName));
         }
-        Recipedetail recipeDetail = recipeDetails.get(0);
         list.add(new RecipeLabelDTO("药房", "recipeDetail.pharmacyName", recipeDetail.getPharmacyName()));
         list.add(new RecipeLabelDTO("天数", "recipeDetail.useDays", getUseDays(recipeDetail.getUseDaysB(), recipeDetail.getUseDays())));
         list.add(new RecipeLabelDTO("用药途径", "recipeDetail.usePathways", DictionaryUtil.getDictionary("eh.cdr.dictionary.UsePathways", recipeDetail.getUsePathways())));
@@ -546,6 +546,7 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
             return null;
         }
         List<RecipeLabelDTO> list = new LinkedList<>();
+        Recipedetail recipedetail = recipeDetails.get(0);
         recipeDetails = setSecrecyDrugLabel(list, recipeDetails, recipeInfoDTO.getRecipe());
         for (int i = 0; i < recipeDetails.size(); i++) {
             Recipedetail detail = recipeDetails.get(i);
@@ -559,7 +560,6 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
             list.add(new RecipeLabelDTO("用药天数", "recipeDetail.useDays_" + i, getUseDays(detail.getUseDaysB(), detail.getUseDays())));
             list.add(new RecipeLabelDTO("嘱托", "recipeDetail.memo_" + i, StringUtils.isNotEmpty(detail.getMemo()) ? "嘱托：" + detail.getMemo() : ""));
         }
-        Recipedetail recipedetail = recipeDetails.get(0);
         list.add(new RecipeLabelDTO("药房", "recipeDetail.pharmacyName", recipedetail.getPharmacyName()));
         logger.info("CreateRecipePdfUtil createMedicinePDF list :{} ", JSON.toJSONString(list));
         return list.stream().collect(HashMap::new, (m, v) -> m.put(v.getEnglishName(), v.getValue()), HashMap::putAll);
