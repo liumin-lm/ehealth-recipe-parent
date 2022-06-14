@@ -113,4 +113,14 @@ public class ConsultClient extends BaseClient {
         }
         return hisResponseTO;
     }
+
+    /**
+     * 处方开成功回写咨询更改处方id
+     *
+     * @param recipeId
+     * @param clinicId
+     */
+    public void updateRecipeIdByConsultId(Integer recipeId, Integer clinicId) {
+        consultExService.updateRecipeIdByConsultId(recipeId, clinicId);
+    }
 }

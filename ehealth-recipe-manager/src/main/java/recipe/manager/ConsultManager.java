@@ -108,13 +108,19 @@ public class ConsultManager extends BaseManager {
                 outPatientRecordResDTO.setMsgCode(200);
                 logger.info("ConsultManager assembleOutPatientRecord outPatientRecordResDTO={}", JSONUtils.toString(outPatientRecordResDTO));
             }
-//            else {
-//                outPatientRecordResDTO.setMsgCode(609);
-//                outPatientRecordResDTO.setMsg("未完成线下系统对接，无法获取门诊记录");
-//            }
         } catch (Exception e) {
             logger.error("ConsultManager assembleOutPatientRecord error",e);
         }
         return outPatientRecordResDTO;
+    }
+
+    /**
+     * 处方开成功回写咨询更改处方id
+     *
+     * @param recipeId
+     * @param clinicId
+     */
+    public void updateRecipeIdByConsultId(Integer recipeId, Integer clinicId) {
+        consultClient.updateRecipeIdByConsultId(recipeId, clinicId);
     }
 }
