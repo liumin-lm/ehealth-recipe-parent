@@ -431,6 +431,9 @@ public class RecipeBean implements Serializable {
     @ItemProperty(alias = "快捷购药处方标识 0 非快捷处方 1 快捷处方")
     private Integer fastRecipeFlag;
 
+    @ItemProperty(alias = "线下处方类型 3 保密方")
+    private Integer offlineRecipeType;
+
     @ItemProperty(alias = "线下处方名称")
     private String offlineRecipeName;
 
@@ -1601,5 +1604,13 @@ public class RecipeBean implements Serializable {
 
     public void setOfflineRecipeTotalPrice(BigDecimal offlineRecipeTotalPrice) {
         this.offlineRecipeTotalPrice = offlineRecipeTotalPrice;
+    }
+
+    public Integer getOfflineRecipeType() {
+        return offlineRecipeType;
+    }
+
+    public void setOfflineRecipeType(Integer offlineRecipeType) {
+        this.offlineRecipeType = offlineRecipeType;
     }
 }

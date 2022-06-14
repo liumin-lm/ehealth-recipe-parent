@@ -624,8 +624,12 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         if (CollectionUtils.isNotEmpty(recipeList)) {
             logger.info("findRelatedRecipeRecordByRegisterNo recipeList={}", JSON.toJSONString(recipeList));
             for (Recipe re : recipeList) {
+                //只展示有审核权限的处方类型
+                boolean recipeTypeFlag = recipeTypeList.contains(re.getRecipeType());
+                //只展示平台审核单子
+                boolean checkMode = Integer.valueOf(1).equals(re.getCheckMode());
                 if (recipeId.equals(re.getRecipeId()) || !mpiId.equals(re.getMpiid()) ||
-                        !Integer.valueOf(1).equals(re.getCheckMode()) || !organIds.contains(re.getClinicOrgan())) {
+                        !checkMode || !organIds.contains(re.getClinicOrgan()) || !recipeTypeFlag) {
                     continue;
                 }
                 List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(re.getRecipeId());
