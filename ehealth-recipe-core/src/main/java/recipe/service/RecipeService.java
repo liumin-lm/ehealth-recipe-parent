@@ -232,6 +232,8 @@ public class RecipeService extends RecipeBaseService {
     @Autowired
     private RevisitManager revisitManager;
     @Autowired
+    private ConsultManager consultManager;
+    @Autowired
     private RefundClient refundClient;
     @Autowired
     private RecipeAuditClient recipeAuditClient;
@@ -527,6 +529,7 @@ public class RecipeService extends RecipeBaseService {
         recipeBean.setProcessState(RecipeStateEnum.NONE.getType());
         recipeBean.setAuditState(RecipeAuditStateEnum.DEFAULT.getType());
         Integer recipeId = recipeServiceSub.saveRecipeDataImpl(recipeBean, detailBeanList, 1);
+        updateRevisitOrConsultInfo(recipeId, recipeBean.getBussSource(), recipeBean.getClinicId());
         if (RecipeBussConstant.FROMFLAG_HIS_USE.equals(recipeBean.getFromflag())) {
             //生成订单数据，与 HosPrescriptionService 中 createPrescription 方法一致
             HosPrescriptionService service = AppContextHolder.getBean("hosPrescriptionService", HosPrescriptionService.class);
@@ -541,6 +544,27 @@ public class RecipeService extends RecipeBaseService {
         }
         RecipeBusiThreadPool.execute(() -> drugManager.saveCommonDrug(recipeId));
         return recipeId;
+    }
+
+    /**
+     * 暂存时更新复诊或者咨询recipeId
+     * @param recipeId
+     * @param bussSource
+     * @param clinicId
+     */
+    private void updateRevisitOrConsultInfo(Integer recipeId, Integer bussSource, Integer clinicId) {
+        try {
+            if (null == recipeId || null == clinicId || null == bussSource) {
+                return;
+            }
+            if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(bussSource)) {
+                revisitManager.updateRecipeIdByConsultId(recipeId, clinicId);
+            } else if (RecipeBussConstant.BUSS_SOURCE_WZ.equals(bussSource)) {
+                consultManager.updateRecipeIdByConsultId(recipeId, clinicId);
+            }
+        } catch (Exception e) {
+            LOGGER.error("updateRevisitOrConsultInfo error recipeId:{}", recipeId, e);
+        }
     }
 
 
