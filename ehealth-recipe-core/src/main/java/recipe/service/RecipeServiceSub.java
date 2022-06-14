@@ -1556,9 +1556,12 @@ public class RecipeServiceSub {
         r.setRecipeCode(recipe.getRecipeCode());
         r.setClinicOrgan(recipe.getClinicOrgan());
         r.setDetailData(recipe.getDetailData());
-        if (null != recipe.getOfflineRecipeType()) {
+        if (DrugBelongTypeEnum.SECRECY_DRUG.getType().equals(recipe.getOfflineRecipeType())) {
             r.setOfflineRecipeType(recipe.getOfflineRecipeType());
             r.setOfflineRecipeName(recipe.getOfflineRecipeName());
+            r.getRecipeDetailBeanList().forEach(recipeDetailBean -> {
+                recipeDetailBean.setType(DrugBelongTypeEnum.SECRECY_DRUG.getType());
+            });
         }
         //科室
         AppointDepartDTO appointDepartDTO = departClient.getAppointDepartByOrganIdAndAppointDepartCode(recipe.getClinicOrgan(), recipe.getDepartCode());
