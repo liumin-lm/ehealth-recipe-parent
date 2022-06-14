@@ -886,6 +886,11 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
     public DrugEnterpriseResult findSupportDep(List<Integer> recipeIds, Map ext, DrugsEnterprise drugsEnterprise) {
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
         if (drugsEnterprise != null && new Integer(1).equals(drugsEnterprise.getOperationType())) {
+            if(Objects.isNull(ext.get("longitude")) || Objects.isNull(ext.get("latitude"))){
+                // 没有经纬度返回空list
+                result.setObject(new ArrayList<>());
+                return result;
+            }
             //通过前置机调用
             IRecipeEnterpriseService recipeEnterpriseService = AppContextHolder.getBean("his.iRecipeEnterpriseService", IRecipeEnterpriseService.class);
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
