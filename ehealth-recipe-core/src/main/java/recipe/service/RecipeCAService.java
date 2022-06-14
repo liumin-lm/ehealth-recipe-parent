@@ -178,6 +178,7 @@ public class RecipeCAService {
             //4.最后组装业务单独请求的扩展数据
             /*** 这个taskCode是SDK签名的时候的签名原文，之后对接的时候需要根据业务组装成对应业务的签名对象****/
             caRequest.setBussData(JSONUtils.toString(recipe));
+            LOGGER.info("packageCAFromRecipe caRequest：{}", JSONUtils.toString(caRequest));
             if (RecipeServiceSub.isCQOrgan(recipe.getClinicOrgan())) {
                 caRequest.setBussData(getBussDataFromCQ(recipeId, isDoctor));
             }
