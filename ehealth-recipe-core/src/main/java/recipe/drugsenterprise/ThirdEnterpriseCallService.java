@@ -1894,6 +1894,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             orderDetailBean.setDecoctionFee(convertParame(recipeOrder.getDecoctionFee()));
             orderDetailBean.setAuditFee(convertParame(recipeOrder.getAuditFee()));
             orderDetailBean.setRegisterFee(convertParame(recipeOrder.getRegisterFee()));
+            orderDetailBean.setCommunityCode(convertParame(recipeOrder));
             //代煎费
             orderDetailBean.setDecoctionFee(convertParame(recipeOrder.getDecoctionFee()));
             //设置中医辨证论治费
@@ -1962,7 +1963,8 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             orderDetailBean.setMemo(convertParame(recipe.getMemo()));
             orderDetailBean.setStatus(convertParame(recipe.getStatus()));
             orderDetailBean.setPharmNo(convertParame(recipeExtend.getPharmNo()));
-
+            orderDetailBean.setCompanyCode(convertParame(recipeOrder.getCompanyCode()));
+            orderDetailBean.setCompanyName(convertParame(recipeOrder.getCompanyName()));
             List<DrugListForThreeBean> drugLists = new ArrayList<>();
             //设置药品信息
             LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes recipedetails.");

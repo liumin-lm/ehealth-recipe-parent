@@ -1,6 +1,7 @@
 package com.ngari.recipe.recipe.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import ctd.schema.annotation.ItemProperty;
 import lombok.Data;
 import recipe.vo.greenroom.InvoiceRecordVO;
 
@@ -83,6 +84,10 @@ public class RecipeAndOrderDetailBeanNoDs implements Serializable {
     private List<DrugListForThreeBean> drugList;
     private String pharmNo;
     private InvoiceRecordVO invoiceRecord;
+    @ItemProperty(alias = "药店所属公司编码")
+    private String companyCode;
+    @ItemProperty(alias = "药店所属公司名称")
+    private String companyName;
     /**
      * 出生日期
      */
