@@ -23,6 +23,7 @@ import recipe.constant.RecipeMsgEnum;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.manager.EmrRecipeManager;
+import recipe.manager.RecipeDetailManager;
 import recipe.service.DrugsEnterpriseService;
 import recipe.service.HisCallBackService;
 import recipe.service.RecipeLogService;
@@ -30,7 +31,9 @@ import recipe.service.RecipeMsgService;
 import recipe.util.LocalStringUtil;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author yuyun
@@ -50,6 +53,8 @@ public class RecipeToHisCallbackService {
     private DrugsEnterpriseService drugsEnterpriseService;
     @Autowired
     private RecipeExtendDAO recipeExtendDAO;
+    @Autowired
+    private RecipeDetailManager recipeDetailManager;
     /**
      * 上海六院的模式是在患者选择完购药方式后推送处方，所以这里有调用两次
      * 一次是跳过前置机后调用保证流程正常下去，二次是真正推送处方给his之后，如果成功则不需要处理，失败需要标记
@@ -116,6 +121,9 @@ public class RecipeToHisCallbackService {
                 BigDecimal total = new BigDecimal(amount);
                 result.setTotalMoney(total);
             }
+            if (Objects.nonNull(response.getRecipeFee())) {
+                result.setTotalMoney(response.getRecipeFee());
+            }
             String recipeCostNumber = StringUtils.isNotBlank(response.getRecipeCostNumber()) ? response.getRecipeCostNumber() : recipeNo;
             result.setRecipeCostNumber(recipeCostNumber);
             result.setRecipeId(Integer.valueOf(response.getRecipeId()));
@@ -135,6 +143,9 @@ public class RecipeToHisCallbackService {
             Recipe recipe = recipeDAO.getByRecipeId(Integer.valueOf(response.getRecipeId()));
             try {
                 HisCallBackService.checkPassSuccess(result, true);
+                if (CollectionUtils.isNotEmpty(response.getRecipePreSettleDrugFeeDTOS())) {
+                    recipeDetailManager.saveRecipePreSettleDrugFeeDTOS(response.getRecipePreSettleDrugFeeDTOS(), Lists.newArrayList(Integer.valueOf(response.getRecipeId())));
+                }
                 String memo;
                 if (StringUtils.isNotEmpty(sendFlag) && "1".equals(sendFlag)) {
                     LOGGER.info("岳阳模式，不对接HIS直接推送到药企");
