@@ -517,6 +517,10 @@ public class RecipeHisService extends RecipeBaseService {
         if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(recipe.getGiveMode()) || RecipeBussConstant.GIVEMODE_TFDS.equals(recipe.getGiveMode())
             || RecipeBussConstant.GIVEMODE_TO_HOS.equals(recipe.getGiveMode())) {
             LOGGER.info("doRecipeSettle recipeId={}", recipe.getRecipeId());
+            // 重附二个性化处理
+            if (recipe.getClinicOrgan().equals(1003498) && RecipeBussConstant.GIVEMODE_TFDS.equals(recipe.getGiveMode())) {
+                return true;
+            }
             if (StringUtils.isEmpty(recipe.getOrderCode())) {
                 LOGGER.error("doRecipeSettle orderCode is null; recipeId={}", recipe.getRecipeId());
                 return false;
