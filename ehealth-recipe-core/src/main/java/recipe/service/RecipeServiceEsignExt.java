@@ -290,10 +290,12 @@ public class RecipeServiceEsignExt {
         if (isDoctor) {
             if (StringUtils.isEmpty(recipe.getSignFile())) {
                 recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of("signFile", fileId));
+                recipe.setSignFile(fileId);
             }
         } else {
             if (StringUtils.isEmpty(recipe.getChemistSignFile())) {
                 recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of("chemistSignFile", fileId));
+                recipe.setChemistSignFile(fileId);
             }
         }
     }

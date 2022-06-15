@@ -231,6 +231,19 @@ public class RecipeManager extends BaseManager {
     }
 
     /**
+     * 获取处方相关信息 简要数据
+     *
+     * @param recipeId 处方id
+     * @return
+     */
+    public RecipeDTO getRecipeDTOSimple(Integer recipeId) {
+        RecipeDTO recipeDTO = getRecipeDTO(recipeId);
+        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipeDTO.getRecipe().getOrderCode());
+        recipeDTO.setRecipeOrder(recipeOrder);
+        return recipeDTO;
+    }
+
+    /**
      * 获取处方相关信息 补全数据
      *
      * @param recipeId 处方id

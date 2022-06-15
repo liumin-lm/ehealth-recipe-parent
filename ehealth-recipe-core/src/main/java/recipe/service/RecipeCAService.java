@@ -33,6 +33,7 @@ import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
+import ctd.util.FileAuth;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -52,6 +53,7 @@ import recipe.ca.vo.CaSignResultVo;
 import recipe.caNew.AbstractCaProcessType;
 import recipe.caNew.CaAfterProcessType;
 import recipe.caNew.pdf.CreatePdfFactory;
+import recipe.common.OnsConfig;
 import recipe.constant.CARecipeTypeConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.core.api.IStockBusinessService;
@@ -130,6 +132,8 @@ public class RecipeCAService {
             caRequest.setDoctorId(doctorId);
             caRequest.setBussId(recipeId);
             caRequest.setBusstype(isDoctor ? CARecipeTypeConstant.CA_RECIPE_DOC : CARecipeTypeConstant.CA_RECIPE_PHA);
+            caRequest.setMpiid(recipe.getMpiid());
+            caRequest.setCreateTime(recipe.getCreateDate()==null?"":recipe.getCreateDate().getTime()+"");
             //2.首先组装易签保用的签名签章数据
             esignMap.put("isDoctor", isDoctor);
             esignMap.put("checker", doctorId);
@@ -173,17 +177,30 @@ public class RecipeCAService {
             RecipeServiceEsignExt.updateInitRecipePDF(isDoctor, recipe, requestSealTO.getPdfBase64Str());
             //4.最后组装业务单独请求的扩展数据
             /*** 这个taskCode是SDK签名的时候的签名原文，之后对接的时候需要根据业务组装成对应业务的签名对象****/
-            //如果是重庆监管平台，按照固定要求格式上传签名原文
             caRequest.setBussData(JSONUtils.toString(recipe));
+            LOGGER.info("packageCAFromRecipe caRequest：{}", JSONUtils.toString(caRequest));
             if (RecipeServiceSub.isCQOrgan(recipe.getClinicOrgan())) {
                 caRequest.setBussData(getBussDataFromCQ(recipeId, isDoctor));
             }
             caRequest.setExtendMap(obtainExtendMap(recipe));
+            if(StringUtils.isNotEmpty(recipe.getChemistSignFile())){
+                caRequest.setPdfPath(OnsConfig.fileViewUrl+recipe.getChemistSignFile()+"?token="+FileAuth.instance().createToken(recipe.getChemistSignFile(),3600));
+            }else if(StringUtils.isNotEmpty(recipe.getSignFile())){
+                caRequest.setPdfPath(OnsConfig.fileViewUrl+recipe.getSignFile()+"?token="+FileAuth.instance().createToken(recipe.getSignFile(),3600));
+            }
         } catch (Exception e) {
             LOGGER.warn("当前处方CA数据组装失败返回空，{}", e);
         }
         LOGGER.info("packageCAFromRecipe caRequest：{}", JSONUtils.toString(caRequest));
         return caRequest;
+    }
+
+    private String calculationToken(String fileId){
+//        String signStr = "fileid="+fileId+"?e=1571367872";
+//        Sign = hmac_sha1(signStr, 'MY_SECRET_KEY')
+//        EncodedSign = urlsafe_base64_encode(Sign)
+        FileAuth.instance().createToken("6246b575b262447d61a58848",3600);
+        return "";
     }
 
     /**
