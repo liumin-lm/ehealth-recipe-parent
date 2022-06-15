@@ -667,6 +667,7 @@ public class HisRequestInit {
                             requestTO.setRegisterFeeNo(order.getRegisterFeeNo());
                             requestTO.setTcmFee(order.getTcmFee());
                             requestTO.setTcmFeeNo(order.getTcmFeeNo());
+                            requestTO.setOrderCode(order.getOrderCode());
                         }
                     }catch (Exception e){
                         LOGGER.error("MedicalPreSettleService 代缴费用有误");
