@@ -232,7 +232,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     public Recipe getByRecipeId(Integer recipeId) {
         Recipe recipe = recipeManager.getRecipeById(recipeId);
         Map<String, String> tipMap = RecipeServiceSub.getTipsByStatusCopy(recipe.getStatus(), recipe, null, null);
-        recipe.setShowTip(tipMap.get("tips"));
+        recipe.setShowTip(tipMap.get("cancelReason"));
         return recipe;
     }
 
