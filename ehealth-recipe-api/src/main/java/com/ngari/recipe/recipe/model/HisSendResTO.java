@@ -1,5 +1,6 @@
 package com.ngari.recipe.recipe.model;
 
+import com.ngari.his.recipe.mode.RecipePreSettleDrugFeeDTO;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
@@ -58,6 +59,28 @@ public class HisSendResTO implements java.io.Serializable {
             alias = "中药处方辩证论证费id"
     )
     private Integer visitId;
+
+    @ItemProperty(alias = "处方总金额")
+    private BigDecimal recipeFee;
+
+    @ItemProperty(alias = "处方药品价格明细")
+    private List<RecipePreSettleDrugFeeDTO> recipePreSettleDrugFeeDTOS;
+
+    public List<RecipePreSettleDrugFeeDTO> getRecipePreSettleDrugFeeDTOS() {
+        return recipePreSettleDrugFeeDTOS;
+    }
+
+    public void setRecipePreSettleDrugFeeDTOS(List<RecipePreSettleDrugFeeDTO> recipePreSettleDrugFeeDTOS) {
+        this.recipePreSettleDrugFeeDTOS = recipePreSettleDrugFeeDTOS;
+    }
+
+    public BigDecimal getRecipeFee() {
+        return recipeFee;
+    }
+
+    public void setRecipeFee(BigDecimal recipeFee) {
+        this.recipeFee = recipeFee;
+    }
 
     public Integer getVisitPayFlag() {
         return visitPayFlag;

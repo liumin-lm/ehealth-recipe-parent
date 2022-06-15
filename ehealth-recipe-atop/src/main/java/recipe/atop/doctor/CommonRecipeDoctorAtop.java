@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
 import recipe.core.api.doctor.ICommonRecipeBusinessService;
+import recipe.util.ValidateUtil;
 
 import java.sql.Timestamp;
 import java.util.LinkedList;
@@ -206,7 +207,9 @@ public class CommonRecipeDoctorAtop extends BaseAtop {
         recipeBean.setDepartText(hisRecipeInfo.getDepartName());
         recipeBean.setClinicOrgan(commonRecipe.getOrganId());
         recipeBean.setRecipeExtend(ObjectCopyUtils.convert(hisRecipeDTO.getHisRecipeExtDTO(), RecipeExtendBean.class));
-
+        if (StringUtils.isEmpty(recipeBean.getRecipeType()) && !ValidateUtil.integerIsEmpty(commonRecipe.getRecipeType())) {
+            recipeBean.setRecipeType(commonRecipe.getRecipeType().toString());
+        }
         List<HisRecipeDetailBean> hisRecipeDetailBeans = Lists.newArrayList();
         hisRecipeDTO.getHisRecipeDetail().forEach(a -> {
             HisRecipeDetailBean detailBean = ObjectCopyUtils.convert(a, HisRecipeDetailBean.class);
