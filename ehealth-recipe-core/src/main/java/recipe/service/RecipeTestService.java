@@ -29,6 +29,9 @@ import eh.recipeaudit.api.IRecipeCheckService;
 import eh.recipeaudit.model.RecipeCheckBean;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +44,7 @@ import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.common.OnsConfig;
 import recipe.core.api.IDrugBusinessService;
 import recipe.dao.*;
+import recipe.drugTool.service.DrugToolService;
 import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.enumerate.type.SignImageTypeEnum;
 import recipe.manager.EnterpriseManager;
@@ -50,7 +54,7 @@ import recipe.service.recipecancel.RecipeCancelService;
 import recipe.util.DateConversion;
 import recipe.util.RecipeMsgUtils;
 
-import java.io.IOException;
+import java.io.*;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -81,6 +85,8 @@ public class RecipeTestService {
     private CreatePdfFactory createPdfFactory;
     @Autowired
     private StockBusinessService stockBusinessService;
+    @Autowired
+    private DrugToolService drugToolService;
 
 
 
@@ -447,4 +453,27 @@ public class RecipeTestService {
         stockBusinessService.enterpriseStock(recipeId);
     }
 
+    @RpcService
+    public Map<String, Object> readDrugExcelTest(String filePath, int organId, String operator){
+        LOGGER.info("readDrugExcelTest filePath={},organId={},operator={}",filePath,organId,operator);
+        Workbook wb = null;
+        File file = new File(filePath);
+        String fileName = file.getName();
+        String subFileName = fileName.substring(fileName.lastIndexOf("."));
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        try {
+            FileInputStream fileInputStream = new FileInputStream(file);
+            if(".xls".equals(subFileName)){
+                wb = new HSSFWorkbook(fileInputStream);
+            }
+            else if(".xlsx".equals(subFileName)){
+                wb = new XSSFWorkbook(fileInputStream);
+            }else return null;
+            wb.write(os);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        byte[] bytes = os.toByteArray();
+        return drugToolService.readDrugExcel(bytes,fileName,organId,operator);
+    }
 }
