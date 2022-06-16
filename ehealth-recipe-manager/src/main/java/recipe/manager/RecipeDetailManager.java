@@ -18,6 +18,7 @@ import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.dao.PharmacyTcmDAO;
+import recipe.enumerate.status.YesOrNoEnum;
 import recipe.util.JsonUtil;
 import recipe.util.MapValueUtil;
 import recipe.util.ObjectCopyUtils;
@@ -70,6 +71,35 @@ public class RecipeDetailManager extends BaseManager {
             }
         }catch (Exception e){
             logger.error("saveRecipePreSettleDrugFeeDTOS recipeIds={} error", JsonUtil.toString(recipeIds), e);
+        }
+    }
+
+    /**
+     * 开方his回写
+     *
+     * @param recipePreSettleDrugFeeDTOS 预结算返回信息
+     * @return
+     */
+    public void saveRecipeDetailBySendSuccess(List<RecipePreSettleDrugFeeDTO> recipePreSettleDrugFeeDTOS,Integer recipeId) {
+        logger.info("RecipeDetailManager saveRecipePreSettleDrugFeeDTOS  saveRecipeDetailBySendSuccess = {},recipeId={}"
+                , JSON.toJSONString(recipePreSettleDrugFeeDTOS),recipeId);
+
+        try {
+            // 保存开方his返回药品详细信息
+            if (CollectionUtils.isNotEmpty(recipePreSettleDrugFeeDTOS)) {
+                Map<String, List<RecipePreSettleDrugFeeDTO>> collect = recipePreSettleDrugFeeDTOS.stream().collect(Collectors.groupingBy(a -> a.getOrganDrugCode()));
+                List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipeId);
+                for (Recipedetail recipeDetail : recipeDetails) {
+                    List<RecipePreSettleDrugFeeDTO> recipePreSettleDrugFeeDTO = collect.get(recipeDetail.getOrganDrugCode());
+                    if (CollectionUtils.isNotEmpty(recipePreSettleDrugFeeDTO)) {
+                        recipeDetail.setDrugCost(recipePreSettleDrugFeeDTO.get(0).getDrugCost());
+                        recipeDetail.setSalePrice(recipePreSettleDrugFeeDTO.get(0).getSalePrice());
+                    }
+                }
+                recipeDetailDAO.updateAllRecipeDetail(recipeDetails);
+            }
+        }catch (Exception e){
+            logger.error("saveRecipePreSettleDrugFeeDTOS recipeIds={} error", JsonUtil.toString(recipeId), e);
         }
     }
     /**
