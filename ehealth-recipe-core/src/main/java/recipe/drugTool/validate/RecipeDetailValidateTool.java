@@ -107,6 +107,7 @@ public class RecipeDetailValidateTool {
         if (StringUtils.isEmpty(OrganDrugListManager.getUseDoseUnit(recipeDetail.getUseDoseUnit(), organDrug))) {
             recipeDetail.setUseDoseUnit(null);
             recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
+            recipeDetail.setValidateStatusText("机构药品药物使用规格单位或者最小单位错误");
         }
         //开药天数
         useDayValidate(recipeType, recipeDay, recipeDetail);
@@ -115,6 +116,7 @@ public class RecipeDetailValidateTool {
             //每次剂量
             if (ValidateUtil.validateObjects(recipeDetail.getUseDose())) {
                 recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
+                recipeDetail.setValidateStatusText("机构药品每次剂量错误");
             }
             //校验中药嘱托
             entrustValidate(recipeDetail, drugEntrustNameMap);
@@ -125,18 +127,22 @@ public class RecipeDetailValidateTool {
             //超量原因
             if (null != version && drugSuperScalarValidate(organId, recipeDetail)) {
                 recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
+                recipeDetail.setValidateStatusText("机构药品药品超量错误");
             }
             //每次剂量
             if (ValidateUtil.validateObjects(recipeDetail.getUseDose()) && !"适量".equals(recipeDetail.getUseDoseStr())) {
                 recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
+                recipeDetail.setValidateStatusText("机构药品每次剂量错误");
             }
             //开药总数是否为空
             if (ValidateUtil.validateObjects(recipeDetail.getUseTotalDose())) {
                 recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
+                recipeDetail.setValidateStatusText("机构药品开药总数错误");
             }
             //用药频次，用药途径是否在机构字典范围内ecipeDetailService validateDrug organDrug is null OrganDrugCode
             if (medicationsValidate(organDrug.getOrganId(), recipeDetail)) {
                 recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
+                recipeDetail.setValidateStatusText("机构药品频次，用药错误");
             }
         }
     }
@@ -159,6 +165,7 @@ public class RecipeDetailValidateTool {
         boolean useDayValidate = useDayValidate(recipeDay, recipeDetail);
         if (useDayValidate) {
             recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
+            recipeDetail.setValidateStatusText("机构药品开药天数错误");
         }
     }
 
