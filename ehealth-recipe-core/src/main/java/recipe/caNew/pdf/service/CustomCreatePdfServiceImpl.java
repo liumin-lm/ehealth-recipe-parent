@@ -31,6 +31,7 @@ import recipe.constant.ErrorCode;
 import recipe.constant.OperationConstant;
 import recipe.constant.birthdayToAgeConstant;
 import recipe.dao.RecipeExtendDAO;
+import recipe.enumerate.type.DrugBelongTypeEnum;
 import recipe.manager.RecipeDetailManager;
 import recipe.manager.RedisManager;
 import recipe.util.ByteUtils;
@@ -551,6 +552,9 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
         for (int i = 0; i < recipeDetails.size(); i++) {
             Recipedetail detail = recipeDetails.get(i);
             list.add(new RecipeLabelDTO("药品名称", "recipeDetail.drugName_" + i, detail.getDrugName()));
+            if (DrugBelongTypeEnum.SECRECY_DRUG.getType().equals(recipedetail.getType())) {
+                continue;
+            }
             list.add(new RecipeLabelDTO("包装规格", "recipeDetail.drugSpec_" + i, ByteUtils.objValueOfString(detail.getDrugSpec()) + "/" + ByteUtils.objValueOfString(detail.getDrugUnit())));
             list.add(new RecipeLabelDTO("发药数量", "recipeDetail.useTotalDose_" + i, ByteUtils.objValueOfString(detail.getUseTotalDose()) + ByteUtils.objValueOfString(detail.getDrugUnit())));
             String useDose = StringUtils.isNotEmpty(detail.getUseDoseStr()) ? detail.getUseDoseStr() : detail.getUseDose() + detail.getUseDoseUnit();

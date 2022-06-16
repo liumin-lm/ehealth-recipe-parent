@@ -170,6 +170,8 @@ public class RecipeDetailManager extends BaseManager {
         List<Recipedetail> noSecrecyRecipeDetailList = recipeDetailList.stream().filter(recipeDetail -> !DrugBelongTypeEnum.SECRECY_DRUG.getType().equals(recipeDetail.getType())).collect(Collectors.toList());
         Recipedetail secrecyRecipeDetail = new Recipedetail();
         secrecyRecipeDetail.setDrugName(recipe.getOfflineRecipeName());
+        secrecyRecipeDetail.setType(DrugBelongTypeEnum.SECRECY_DRUG.getType());
+        secrecyRecipeDetail.setDrugDisplaySplicedName(recipe.getOfflineRecipeName());
         BigDecimal drugCost = secrecyRecipeDetailList.stream().filter(recipeDetail -> DrugBelongTypeEnum.SECRECY_DRUG.getType().equals(recipeDetail.getType())).map(Recipedetail::getDrugCost).reduce(BigDecimal.ZERO, BigDecimal::add);
         secrecyRecipeDetail.setDrugCost(drugCost);
         recipeDetails.add(secrecyRecipeDetail);
