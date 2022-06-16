@@ -52,6 +52,7 @@ import recipe.enumerate.status.OfflineToOnlineEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.GiveModeTextEnum;
 import recipe.enumerate.type.RecipeDistributionFlagEnum;
+import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.manager.*;
 import recipe.service.*;
 import recipe.util.MapValueUtil;
@@ -560,13 +561,13 @@ public class PurchaseService {
                         if (settlementMode == 0) {
                             //可能取的是药企配送目录里的价格，得重新设置药品总价
                             BigDecimal price = saleDrugList.getPrice();
-                            recipedetail.setActualSalePrice(price);
+                            recipedetail.setActualSalePrice(setRecipeDetailActualSalePrice(recipedetail, price));
                             //线下转线上不处理药品总价
                             if (!RecipeBussConstant.OFFLINE_TO_ONLINE.equals(recipe.getRecipeSourceType())) {
                                 recipedetail.setDrugCost(price.multiply(new BigDecimal(recipedetail.getUseTotalDose())).divide(BigDecimal.ONE, 4, RoundingMode.UP));
                             }
                         } else if (settlementMode == 1) {
-                            recipedetail.setActualSalePrice(recipedetail.getSalePrice());
+                            recipedetail.setActualSalePrice(setRecipeDetailActualSalePrice(recipedetail, recipedetail.getSalePrice()));
                         }
 
 
@@ -582,7 +583,7 @@ public class PurchaseService {
                 recipeDetails.forEach(recipeDetail -> {
                     try {
                         OrganDrugList organDrugList = organDrugListMap.get(recipeDetail.getDrugId());
-                        recipeDetail.setActualSalePrice(organDrugList.getSalePrice());
+                        recipeDetail.setActualSalePrice(setRecipeDetailActualSalePrice(recipeDetail, organDrugList.getSalePrice()));
 
                         recipeDetailDAO.updateNonNullFieldByPrimaryKey(recipeDetail);
                     } catch (Exception e) {
@@ -636,6 +637,19 @@ public class PurchaseService {
         }
 
         return purchaseService;
+    }
+
+    /**
+     * 重新设置实际单价
+     * @param recipeDetail
+     * @param price
+     * @return
+     */
+    private BigDecimal setRecipeDetailActualSalePrice(Recipedetail recipeDetail, BigDecimal price){
+        if (RecipeTypeEnum.RECIPETYPE_TCM.getType().equals(recipeDetail.getDrugType())) {
+            return price.divide(new BigDecimal(recipeDetail.getPack()), 4, BigDecimal.ROUND_HALF_UP);
+        }
+        return price;
     }
 
     /**
