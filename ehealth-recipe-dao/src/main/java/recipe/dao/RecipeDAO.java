@@ -3739,7 +3739,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         return action.getResult();
     }
 
-    @DAOMethod(sql = "from Recipe where recipeId in(:recipeIds) and clinicOrgan in(:organIds)")
+    @DAOMethod(sql = "from Recipe where recipeId in(:recipeIds) and clinicOrgan in(:organIds)", limit = 0)
     public abstract List<Recipe> findByRecipeAndOrganId(@DAOParam("recipeIds") List<Integer> recipeIds, @DAOParam("organIds") Set<Integer> organIds);
 
     /**
