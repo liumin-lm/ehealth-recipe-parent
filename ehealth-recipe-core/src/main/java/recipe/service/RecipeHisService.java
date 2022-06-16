@@ -134,6 +134,8 @@ public class RecipeHisService extends RecipeBaseService {
     private PharmacyManager pharmacyManager;
     @Autowired
     private OrderManager orderManager;
+    @Autowired
+    private RecipeParameterDao recipeParameterDao;
 
     /**
      * 发送处方
@@ -517,6 +519,12 @@ public class RecipeHisService extends RecipeBaseService {
         if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(recipe.getGiveMode()) || RecipeBussConstant.GIVEMODE_TFDS.equals(recipe.getGiveMode())
             || RecipeBussConstant.GIVEMODE_TO_HOS.equals(recipe.getGiveMode())) {
             LOGGER.info("doRecipeSettle recipeId={}", recipe.getRecipeId());
+            String settle_by_givemode_tfds = recipeParameterDao.getByName("settle_by_givemode_tfds");
+            List<Integer> organIds = JSONUtils.parse(settle_by_givemode_tfds, ArrayList.class);
+            if (CollectionUtils.isNotEmpty(organIds) && organIds.contains(recipe.getClinicOrgan()) && RecipeBussConstant.GIVEMODE_TFDS.equals(recipe.getGiveMode())) {
+                return true;
+            }
+
             if (StringUtils.isEmpty(recipe.getOrderCode())) {
                 LOGGER.error("doRecipeSettle orderCode is null; recipeId={}", recipe.getRecipeId());
                 return false;
