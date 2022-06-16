@@ -140,7 +140,7 @@ public class CashPreSettleService implements IRecipePreSettleService {
                         }
                     }
                     List recipeIds = MapValueUtil.getList(extInfo,"recipeIds");
-                    recipeDetailManager.saveRecipePreSettleDrugFeeDTOS(hisResult.getData().getRecipePreSettleDrugFeeDTOS(), recipeIds, YesOrNoEnum.NO.getType());
+                    recipeDetailManager.saveRecipePreSettleDrugFeeDTOS(hisResult.getData().getRecipePreSettleDrugFeeDTOS(), recipeIds);
                     result.put("totalAmount", totalAmount);
                     result.put("cashAmount", cashAmount);
                 }

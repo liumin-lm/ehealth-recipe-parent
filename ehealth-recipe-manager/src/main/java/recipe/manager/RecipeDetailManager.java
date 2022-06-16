@@ -45,7 +45,7 @@ public class RecipeDetailManager extends BaseManager {
      * @param recipePreSettleDrugFeeDTOS 预结算返回信息
      * @return
      */
-    public void saveRecipePreSettleDrugFeeDTOS(List<RecipePreSettleDrugFeeDTO> recipePreSettleDrugFeeDTOS,List<Integer> recipeIds,Integer dbFlag) {
+    public void saveRecipePreSettleDrugFeeDTOS(List<RecipePreSettleDrugFeeDTO> recipePreSettleDrugFeeDTOS,List<Integer> recipeIds) {
         logger.info("RecipeDetailManager saveRecipePreSettleDrugFeeDTOS  recipePreSettleDrugFeeDTOS = {}"
                 , JSON.toJSONString(recipePreSettleDrugFeeDTOS));
 
@@ -64,9 +64,6 @@ public class RecipeDetailManager extends BaseManager {
                         if (CollectionUtils.isNotEmpty(recipePreSettleDrugFeeDTO)) {
                             recipeDetail.setActualSalePrice(recipePreSettleDrugFeeDTO.get(0).getSalePrice());
                             recipeDetail.setDrugCost(recipePreSettleDrugFeeDTO.get(0).getDrugCost());
-                            if(YesOrNoEnum.YES.getType().equals(dbFlag)){
-                                recipeDetail.setSalePrice(recipePreSettleDrugFeeDTO.get(0).getSalePrice());
-                            }
                         }
                     }
                 }
@@ -74,6 +71,35 @@ public class RecipeDetailManager extends BaseManager {
             }
         }catch (Exception e){
             logger.error("saveRecipePreSettleDrugFeeDTOS recipeIds={} error", JsonUtil.toString(recipeIds), e);
+        }
+    }
+
+    /**
+     * 开方his回写
+     *
+     * @param recipePreSettleDrugFeeDTOS 预结算返回信息
+     * @return
+     */
+    public void saveRecipeDetailBySendSuccess(List<RecipePreSettleDrugFeeDTO> recipePreSettleDrugFeeDTOS,Integer recipeId) {
+        logger.info("RecipeDetailManager saveRecipePreSettleDrugFeeDTOS  saveRecipeDetailBySendSuccess = {},recipeId={}"
+                , JSON.toJSONString(recipePreSettleDrugFeeDTOS),recipeId);
+
+        try {
+            // 保存开方his返回药品详细信息
+            if (CollectionUtils.isNotEmpty(recipePreSettleDrugFeeDTOS)) {
+                Map<String, List<RecipePreSettleDrugFeeDTO>> collect = recipePreSettleDrugFeeDTOS.stream().collect(Collectors.groupingBy(a -> a.getOrganDrugCode()));
+                List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipeId);
+                for (Recipedetail recipeDetail : recipeDetails) {
+                    List<RecipePreSettleDrugFeeDTO> recipePreSettleDrugFeeDTO = collect.get(recipeDetail.getOrganDrugCode());
+                    if (CollectionUtils.isNotEmpty(recipePreSettleDrugFeeDTO)) {
+                        recipeDetail.setDrugCost(recipePreSettleDrugFeeDTO.get(0).getDrugCost());
+                        recipeDetail.setSalePrice(recipePreSettleDrugFeeDTO.get(0).getSalePrice());
+                    }
+                }
+                recipeDetailDAO.updateAllRecipeDetail(recipeDetails);
+            }
+        }catch (Exception e){
+            logger.error("saveRecipePreSettleDrugFeeDTOS recipeIds={} error", JsonUtil.toString(recipeId), e);
         }
     }
     /**
