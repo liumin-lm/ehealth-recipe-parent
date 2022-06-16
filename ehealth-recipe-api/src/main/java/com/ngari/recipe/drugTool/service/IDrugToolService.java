@@ -1,6 +1,7 @@
 package com.ngari.recipe.drugTool.service;
 
 import ctd.util.annotation.RpcService;
+import recipe.vo.greenroom.ImportDrugRecordVO;
 
 import java.util.Map;
 
@@ -14,4 +15,7 @@ public interface IDrugToolService {
 
     @RpcService
     Boolean judgePlatformDrugDelete(int drugId);
+
+    @RpcService
+    String saveImportDrugRecord(ImportDrugRecordVO importDrugRecord);
 }

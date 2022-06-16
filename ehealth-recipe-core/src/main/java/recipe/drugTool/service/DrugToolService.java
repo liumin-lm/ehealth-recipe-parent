@@ -80,6 +80,7 @@ import recipe.util.DrugMatchUtil;
 import recipe.util.LocalStringUtil;
 import recipe.util.Md5Utils;
 import recipe.util.RedisClient;
+import recipe.vo.greenroom.ImportDrugRecordVO;
 
 import javax.annotation.Resource;
 import java.io.ByteArrayInputStream;
@@ -155,6 +156,8 @@ public class DrugToolService implements IDrugToolService {
 
     @Autowired
     private DrugsEnterpriseDAO drugsEnterpriseDAO;
+
+
 
 
     private LoadingCache<String, List<DrugList>> drugListCache = CacheBuilder.newBuilder().expireAfterWrite(10, TimeUnit.MINUTES).build(new CacheLoader<String, List<DrugList>>() {
@@ -2881,6 +2884,13 @@ public class DrugToolService implements IDrugToolService {
         } else {
             return false;
         }
+    }
+
+    @Override
+    public String saveImportDrugRecord(ImportDrugRecordVO param) {
+        ImportDrugRecord importDrugRecord=ObjectCopyUtils.convert(param,ImportDrugRecord.class);
+        importDrugRecordDAO.save(importDrugRecord);
+        return null;
     }
 
     /**
