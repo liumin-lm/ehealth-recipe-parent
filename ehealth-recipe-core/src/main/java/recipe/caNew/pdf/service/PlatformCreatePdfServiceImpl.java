@@ -26,6 +26,7 @@ import recipe.bussutil.CreateRecipePdfUtil;
 import recipe.bussutil.SignImgNode;
 import recipe.constant.ErrorCode;
 import recipe.dao.RecipeExtendDAO;
+import recipe.enumerate.type.DrugBelongTypeEnum;
 import recipe.manager.RecipeDetailManager;
 import recipe.manager.RedisManager;
 import recipe.manager.SignManager;
@@ -392,6 +393,9 @@ public class PlatformCreatePdfServiceImpl extends BaseCreatePdf implements Creat
                 stringBuilder.append(d.getDrugDisplaySplicedName());
             } else {
                 stringBuilder.append(d.getDrugName()).append(d.getDrugSpec()).append("/").append(d.getDrugUnit());
+            }
+            if (DrugBelongTypeEnum.SECRECY_DRUG.getType().equals(d.getType())) {
+                continue;
             }
             stringBuilder.append("   ").append("X").append(d.getUseTotalDose()).append(d.getDrugUnit());
             Boolean canShowDrugCost = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "canShowDrugCost", false);
