@@ -1,9 +1,12 @@
 package recipe.vo.base;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import ctd.schema.annotation.ItemProperty;
 import lombok.Getter;
 import lombok.Setter;
 
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
@@ -64,6 +67,7 @@ public class BaseOrderVO implements Serializable {
     private String outTradeNo;
 
     @ItemProperty(alias = "支付时间")
+    @Temporal(TemporalType.DATE)
     private Date payTime;
 
     @ItemProperty(alias = "处方费用支付方式 1 线上支付 2 线下支付")
@@ -86,4 +90,13 @@ public class BaseOrderVO implements Serializable {
 
     @ItemProperty(alias = "药店所属公司名称")
     private String companyName;
+
+    @Temporal(TemporalType.DATE)
+    @JsonFormat(
+            pattern = "yyyy-MM-dd HH:mm:ss",
+            timezone = "Asia/Shanghai"
+    )
+    public Date getPayTime() {
+        return payTime;
+    }
 }
