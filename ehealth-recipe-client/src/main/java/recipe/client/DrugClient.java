@@ -11,7 +11,8 @@ import com.ngari.platform.recipe.mode.HospitalDrugListDTO;
 import com.ngari.platform.recipe.mode.HospitalDrugListReqDTO;
 import com.ngari.recipe.dto.DrugInfoDTO;
 import com.ngari.recipe.dto.PatientDrugWithEsDTO;
-import com.ngari.recipe.entity.*;
+import com.ngari.recipe.entity.DecoctionWay;
+import com.ngari.recipe.entity.DrugMakingMethod;
 import ctd.spring.AppDomainContext;
 import eh.entity.base.UsePathways;
 import eh.entity.base.UsingRate;
@@ -24,6 +25,7 @@ import org.springframework.util.CollectionUtils;
 import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.util.ObjectCopyUtils;
 import recipe.util.RecipeUtil;
+import recipe.util.ValidateUtil;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -140,10 +142,10 @@ public class DrugClient extends BaseClient {
         try {
             com.ngari.patient.service.IUsePathwaysService usePathwaysService = AppDomainContext.getBean("basic.usePathwaysService", com.ngari.patient.service.IUsePathwaysService.class);
             com.ngari.patient.dto.UsePathwaysDTO usePathwaysDTO;
-            if (null != drugType) {
-                usePathwaysDTO = usePathwaysService.getUsePathwaysByOrganAndKeyAndCategory(organId, organUsePathways, drugType.toString());
-            } else {
+            if (ValidateUtil.integerIsEmpty(drugType)) {
                 usePathwaysDTO = usePathwaysService.findUsePathwaysByOrganAndKey(organId, organUsePathways);
+            } else {
+                usePathwaysDTO = usePathwaysService.getUsePathwaysByOrganAndKeyAndCategory(organId, organUsePathways, drugType.toString());
             }
             if (null == usePathwaysDTO) {
                 return null;
