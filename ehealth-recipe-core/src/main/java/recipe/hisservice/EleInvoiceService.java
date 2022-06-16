@@ -386,11 +386,18 @@ public class EleInvoiceService {
 //                map.put("einvoiceNumber", result.getBizCode());
 //                recipeExtendDAO.updateRecipeExInfoByRecipeId(result.getRequestId(), map);
                 Recipe recipe = recipeDAO.getByRecipeId(result.getRequestId());
-                RecipeOrderBill orderBill = new RecipeOrderBill();
-                orderBill.setCreateTime(new Date());
-                orderBill.setBillNumber(result.getBizCode());
-                orderBill.setRecipeOrderCode(recipe.getOrderCode());
-                recipeOrderBillDAO.save(orderBill);
+                RecipeOrderBill recipeOrderBill = recipeOrderBillDAO.getRecipeOrderBillByOrderCode(recipe.getOrderCode());
+                if(null != recipeOrderBill){
+                    recipeOrderBill.setBillNumber(result.getBizCode());
+                    recipeOrderBill.setUpdateTime(new Date());
+                    recipeOrderBillDAO.update(recipeOrderBill);
+                }else{
+                    RecipeOrderBill orderBill = new RecipeOrderBill();
+                    orderBill.setCreateTime(new Date());
+                    orderBill.setBillNumber(result.getBizCode());
+                    orderBill.setRecipeOrderCode(recipe.getOrderCode());
+                    recipeOrderBillDAO.save(orderBill);
+                }
             }
             //复诊(通过bizCode来判断是否开票)
             if (null !=result.getInvoiceType() && "0".equals(result.getInvoiceType()) && StringUtils.isNotEmpty(result.getInvoiceNumber()) && null != result.getRequestId()){
