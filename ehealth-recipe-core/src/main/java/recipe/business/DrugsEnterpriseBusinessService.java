@@ -193,7 +193,9 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
         if (!"eh".equals(manageUnit)) {
             List<Integer> organIds = organService.findOrganIdsByManageUnit(manageUnit + "%");
             logger.info("findOrganAndDrugsepRelationBean manageUnit={},organIds={}", JSONArray.toJSONString(organIds), JSONArray.toJSONString(manageUnit));
-            return organAndDrugsepRelationDAO.findByEntIdAndOrganIds(enterpriseId, organIds);
+            if (CollectionUtils.isNotEmpty(organIds)) {
+                return organAndDrugsepRelationDAO.findByEntIdAndOrganIds(enterpriseId, organIds);
+            }
         }
         return organAndDrugsepRelationDAO.findByEntId(enterpriseId);
     }
