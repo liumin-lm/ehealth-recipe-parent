@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import recipe.ApplicationUtils;
 import recipe.dao.*;
+import recipe.enumerate.status.YesOrNoEnum;
 import recipe.enumerate.type.ForceCashTypeEnum;
 import recipe.hisservice.RecipeToHisService;
 import recipe.manager.RecipeDetailManager;
@@ -194,7 +195,7 @@ public class MedicalPreSettleService implements IRecipePreSettleService {
                         }
                     }
                     List recipeIds = MapValueUtil.getList(extInfo,"recipeIds");
-                    recipeDetailManager.saveRecipePreSettleDrugFeeDTOS(hisResult.getData().getRecipePreSettleDrugFeeDTOS(), recipeIds);
+                    recipeDetailManager.saveRecipePreSettleDrugFeeDTOS(hisResult.getData().getRecipePreSettleDrugFeeDTOS(), recipeIds, YesOrNoEnum.NO.getType());
 
                     result.put("totalAmount", totalAmount);
                     result.put("fundAmount", fundAmount);

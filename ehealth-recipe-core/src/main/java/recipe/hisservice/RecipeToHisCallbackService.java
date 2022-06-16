@@ -22,6 +22,7 @@ import recipe.constant.ErrorCode;
 import recipe.constant.RecipeMsgEnum;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeExtendDAO;
+import recipe.enumerate.status.YesOrNoEnum;
 import recipe.manager.EmrRecipeManager;
 import recipe.manager.RecipeDetailManager;
 import recipe.service.DrugsEnterpriseService;
@@ -144,7 +145,7 @@ public class RecipeToHisCallbackService {
             try {
                 HisCallBackService.checkPassSuccess(result, true);
                 if (CollectionUtils.isNotEmpty(response.getRecipePreSettleDrugFeeDTOS())) {
-                    recipeDetailManager.saveRecipePreSettleDrugFeeDTOS(response.getRecipePreSettleDrugFeeDTOS(), Lists.newArrayList(Integer.valueOf(response.getRecipeId())));
+                    recipeDetailManager.saveRecipePreSettleDrugFeeDTOS(response.getRecipePreSettleDrugFeeDTOS(), Lists.newArrayList(Integer.valueOf(response.getRecipeId())), YesOrNoEnum.YES.getType());
                 }
                 String memo;
                 if (StringUtils.isNotEmpty(sendFlag) && "1".equals(sendFlag)) {

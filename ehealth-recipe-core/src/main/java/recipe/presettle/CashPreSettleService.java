@@ -23,6 +23,7 @@ import recipe.constant.RecipeBussConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
+import recipe.enumerate.status.YesOrNoEnum;
 import recipe.enumerate.type.ForceCashTypeEnum;
 import recipe.hisservice.RecipeToHisService;
 import recipe.manager.RecipeDetailManager;
@@ -139,7 +140,7 @@ public class CashPreSettleService implements IRecipePreSettleService {
                         }
                     }
                     List recipeIds = MapValueUtil.getList(extInfo,"recipeIds");
-                    recipeDetailManager.saveRecipePreSettleDrugFeeDTOS(hisResult.getData().getRecipePreSettleDrugFeeDTOS(), recipeIds);
+                    recipeDetailManager.saveRecipePreSettleDrugFeeDTOS(hisResult.getData().getRecipePreSettleDrugFeeDTOS(), recipeIds, YesOrNoEnum.NO.getType());
                     result.put("totalAmount", totalAmount);
                     result.put("cashAmount", cashAmount);
                 }

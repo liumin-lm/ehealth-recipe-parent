@@ -18,6 +18,7 @@ import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.dao.PharmacyTcmDAO;
+import recipe.enumerate.status.YesOrNoEnum;
 import recipe.util.JsonUtil;
 import recipe.util.MapValueUtil;
 import recipe.util.ObjectCopyUtils;
@@ -44,7 +45,7 @@ public class RecipeDetailManager extends BaseManager {
      * @param recipePreSettleDrugFeeDTOS 预结算返回信息
      * @return
      */
-    public void saveRecipePreSettleDrugFeeDTOS(List<RecipePreSettleDrugFeeDTO> recipePreSettleDrugFeeDTOS,List<Integer> recipeIds) {
+    public void saveRecipePreSettleDrugFeeDTOS(List<RecipePreSettleDrugFeeDTO> recipePreSettleDrugFeeDTOS,List<Integer> recipeIds,Integer dbFlag) {
         logger.info("RecipeDetailManager saveRecipePreSettleDrugFeeDTOS  recipePreSettleDrugFeeDTOS = {}"
                 , JSON.toJSONString(recipePreSettleDrugFeeDTOS));
 
@@ -63,6 +64,9 @@ public class RecipeDetailManager extends BaseManager {
                         if (CollectionUtils.isNotEmpty(recipePreSettleDrugFeeDTO)) {
                             recipeDetail.setActualSalePrice(recipePreSettleDrugFeeDTO.get(0).getSalePrice());
                             recipeDetail.setDrugCost(recipePreSettleDrugFeeDTO.get(0).getDrugCost());
+                            if(YesOrNoEnum.YES.getType().equals(dbFlag)){
+                                recipeDetail.setSalePrice(recipePreSettleDrugFeeDTO.get(0).getSalePrice());
+                            }
                         }
                     }
                 }
