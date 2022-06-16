@@ -25,8 +25,6 @@ public class OnsConfig {
 
     public static String revisitTraceTopic;
 
-    public static String fileViewUrl;
-
     public static String revisitStatusNotify;
 
     public static boolean kafkaSwitch;
@@ -68,10 +66,6 @@ public class OnsConfig {
 
     public void setRevisitTraceTopic(String revisitTraceTopic) {
         OnsConfig.revisitTraceTopic = revisitTraceTopic;
-    }
-
-    public  void setFileViewUrl(String fileViewUrl) {
-        OnsConfig.fileViewUrl = fileViewUrl;
     }
 
     public void setRecipeDelayTopic(String recipeDelayTopic) {
