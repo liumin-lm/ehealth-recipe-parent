@@ -7,6 +7,7 @@ import com.ngari.patient.dto.AppointDepartDTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.recipe.dto.PatientDTO;
 import com.ngari.recipe.dto.RecipeDetailDTO;
+import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.PharmacyTcm;
 import com.ngari.recipe.entity.Recipe;
@@ -19,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.dao.PharmacyTcmDAO;
 import recipe.enumerate.status.YesOrNoEnum;
+import recipe.enumerate.type.DrugBelongTypeEnum;
 import recipe.util.JsonUtil;
 import recipe.util.MapValueUtil;
 import recipe.util.ObjectCopyUtils;
@@ -150,6 +152,30 @@ public class RecipeDetailManager extends BaseManager {
         List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeIdList(recipeIds);
         logger.info("RecipeDetailManager findRecipeDetails recipeDetails:{}", JSON.toJSONString(recipeDetails));
         return recipeDetails;
+    }
+
+    /**
+     * 过滤保密处方，重新设置保密处方信息
+     * @param recipePdfDTO
+     */
+    public void filterSecrecyDrug(RecipeInfoDTO recipePdfDTO){
+        logger.info("RecipeDetailManager filterSecrecyDrug begin recipePdfDTO:{}", JSON.toJSONString(recipePdfDTO));
+        List<Recipedetail> recipeDetailList = recipePdfDTO.getRecipeDetails();
+        List<Recipedetail> secrecyRecipeDetailList = recipeDetailList.stream().filter(recipeDetail -> DrugBelongTypeEnum.SECRECY_DRUG.getType().equals(recipeDetail.getType())).collect(Collectors.toList());
+        if (org.springframework.util.CollectionUtils.isEmpty(secrecyRecipeDetailList)) {
+            return;
+        }
+        List<Recipedetail> recipeDetails = new ArrayList<>();
+        Recipe recipe = recipePdfDTO.getRecipe();
+        List<Recipedetail> noSecrecyRecipeDetailList = recipeDetailList.stream().filter(recipeDetail -> !DrugBelongTypeEnum.SECRECY_DRUG.getType().equals(recipeDetail.getType())).collect(Collectors.toList());
+        Recipedetail secrecyRecipeDetail = new Recipedetail();
+        secrecyRecipeDetail.setDrugName(recipe.getOfflineRecipeName());
+        BigDecimal drugCost = secrecyRecipeDetailList.stream().filter(recipeDetail -> DrugBelongTypeEnum.SECRECY_DRUG.getType().equals(recipeDetail.getType())).map(Recipedetail::getDrugCost).reduce(BigDecimal.ZERO, BigDecimal::add);
+        secrecyRecipeDetail.setDrugCost(drugCost);
+        recipeDetails.add(secrecyRecipeDetail);
+        recipeDetails.addAll(noSecrecyRecipeDetailList);
+        recipePdfDTO.setRecipeDetails(recipeDetails);
+        logger.info("RecipeDetailManager filterSecrecyDrug end recipePdfDTO:{}", JSON.toJSONString(recipePdfDTO));
     }
 
     /**

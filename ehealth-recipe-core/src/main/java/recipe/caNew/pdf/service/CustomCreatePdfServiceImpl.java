@@ -31,7 +31,7 @@ import recipe.constant.ErrorCode;
 import recipe.constant.OperationConstant;
 import recipe.constant.birthdayToAgeConstant;
 import recipe.dao.RecipeExtendDAO;
-import recipe.enumerate.type.DrugBelongTypeEnum;
+import recipe.manager.RecipeDetailManager;
 import recipe.manager.RedisManager;
 import recipe.util.ByteUtils;
 import recipe.util.DictionaryUtil;
@@ -46,7 +46,6 @@ import java.io.InputStream;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static recipe.constant.OperationConstant.*;
 import static recipe.util.ByteUtils.DOT_EN;
@@ -73,6 +72,8 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
     private RecipeExtendDAO recipeExtendDAO;
     @Resource
     private IESignBaseService esignService;
+    @Autowired
+    private RecipeDetailManager recipeDetailManager;
 
 
     @Override
@@ -409,7 +410,7 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
         logger.warn("CustomCreatePdfServiceImpl generatePdfList organId:{}, keySet : {}", organId, JSON.toJSONString(keySet));
         List<WordToPdfBean> generatePdfList = new LinkedList<>();
         Map<String, Object> recipeDetailMap;
-        filterSecrecyDrug(recipePdfDTO);
+        recipeDetailManager.filterSecrecyDrug(recipePdfDTO);
         if (RecipeUtil.isTcmType(recipePdfDTO.getRecipe().getRecipeType())) {
             //中药
             recipeDetailMap = createChineMedicinePDF(recipePdfDTO);
@@ -456,24 +457,6 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
         }
         logger.warn("CustomCreatePdfServiceImpl generatePdfList generatePdfList : {}", JSON.toJSONString(generatePdfList));
         return generatePdfList;
-    }
-
-    private void filterSecrecyDrug(RecipeInfoDTO recipePdfDTO){
-        List<Recipedetail> recipeDetailList = recipePdfDTO.getRecipeDetails();
-        List<Recipedetail> secrecyRecipeDetailList = recipeDetailList.stream().filter(recipeDetail -> DrugBelongTypeEnum.SECRECY_DRUG.getType().equals(recipeDetail.getType())).collect(Collectors.toList());
-        if (CollectionUtils.isEmpty(secrecyRecipeDetailList)) {
-            return;
-        }
-        List<Recipedetail> recipeDetails = new ArrayList<>();
-        Recipe recipe = recipePdfDTO.getRecipe();
-        List<Recipedetail> noSecrecyRecipeDetailList = recipeDetailList.stream().filter(recipeDetail -> !DrugBelongTypeEnum.SECRECY_DRUG.getType().equals(recipeDetail.getType())).collect(Collectors.toList());
-        Recipedetail secrecyRecipeDetail = new Recipedetail();
-        secrecyRecipeDetail.setDrugName(recipe.getOfflineRecipeName());
-        BigDecimal drugCost = secrecyRecipeDetailList.stream().filter(recipeDetail -> DrugBelongTypeEnum.SECRECY_DRUG.getType().equals(recipeDetail.getType())).map(Recipedetail::getDrugCost).reduce(BigDecimal.ZERO, BigDecimal::add);
-        secrecyRecipeDetail.setDrugCost(drugCost);
-        recipeDetails.add(secrecyRecipeDetail);
-        recipeDetails.addAll(noSecrecyRecipeDetailList);
-        recipePdfDTO.setRecipeDetails(recipeDetails);
     }
 
     /**
