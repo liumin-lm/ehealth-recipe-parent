@@ -54,6 +54,7 @@ import recipe.caNew.AbstractCaProcessType;
 import recipe.caNew.CaAfterProcessType;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.common.OnsConfig;
+import recipe.common.UrlConfig;
 import recipe.constant.CARecipeTypeConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.core.api.IStockBusinessService;
@@ -184,14 +185,13 @@ public class RecipeCAService {
             }
             caRequest.setExtendMap(obtainExtendMap(recipe));
             if(StringUtils.isNotEmpty(recipe.getChemistSignFile())){
-                caRequest.setPdfPath(OnsConfig.fileViewUrl+recipe.getChemistSignFile()+"?token="+FileAuth.instance().createToken(recipe.getChemistSignFile(),3600));
+                caRequest.setPdfPath(UrlConfig.fileViewUrl+recipe.getChemistSignFile()+"?token="+FileAuth.instance().createToken(recipe.getChemistSignFile(),3600));
             }else if(StringUtils.isNotEmpty(recipe.getSignFile())){
-                caRequest.setPdfPath(OnsConfig.fileViewUrl+recipe.getSignFile()+"?token="+FileAuth.instance().createToken(recipe.getSignFile(),3600));
+                caRequest.setPdfPath(UrlConfig.fileViewUrl+recipe.getSignFile()+"?token="+FileAuth.instance().createToken(recipe.getSignFile(),3600));
             }
         } catch (Exception e) {
             LOGGER.warn("当前处方CA数据组装失败返回空，{}", e);
-        }
-        LOGGER.info("packageCAFromRecipe caRequest：{}", JSONUtils.toString(caRequest));
+        }LOGGER.info("packageCAFromRecipe caRequest：{}", JSONUtils.toString(caRequest));
         return caRequest;
     }
 

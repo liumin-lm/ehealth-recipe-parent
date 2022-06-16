@@ -1974,8 +1974,14 @@ public class RecipeServiceSub {
         recipeBean.setCheckerTel(LocalStringUtil.coverMobile(recipeBean.getCheckerTel()));
         recipeBean.setSubStateText(RecipeStateEnum.getRecipeStateEnum(recipe.getSubState()).getName());
         BigDecimal offlineRecipeTotalPrice = new BigDecimal(BigInteger.ZERO);
-        //计算保密处方药品走总价
-        offlineRecipeTotalPrice = recipedetails.stream().filter(recipeDetail -> DrugBelongTypeEnum.SECRECY_DRUG.getType().equals(recipeDetail.getType())).map(Recipedetail::getDrugCost).reduce(BigDecimal.ZERO, BigDecimal::add);
+        try {
+            List<RecipeDetailBean> recipeDetailBeanList = (List<RecipeDetailBean>)map.get("recipedetails");
+            //计算保密处方药品走总价
+            offlineRecipeTotalPrice = recipeDetailBeanList.stream().filter(recipeDetail -> DrugBelongTypeEnum.SECRECY_DRUG.getType().equals(recipeDetail.getType())).map(recipeDetailBean -> recipeDetailBean.getSaleDrugPrice().multiply(new BigDecimal(recipeDetailBean.getUseTotalDose()))).reduce(BigDecimal.ZERO, BigDecimal::add);
+        } catch (Exception e) {
+            LOGGER.error("getRecipeAndDetailByIdImpl error 保密处方价格计算错误:{}", e);
+            offlineRecipeTotalPrice = recipedetails.stream().filter(recipeDetail -> DrugBelongTypeEnum.SECRECY_DRUG.getType().equals(recipeDetail.getType())).map(Recipedetail::getDrugCost).reduce(BigDecimal.ZERO, BigDecimal::add);
+        }
         recipeBean.setOfflineRecipeTotalPrice(offlineRecipeTotalPrice);
         map.put("recipe", recipeBean);
         //20200519 zhangx 是否展示退款按钮(重庆大学城退款流程)，前端调用patientRefundForRecipe
