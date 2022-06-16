@@ -96,11 +96,13 @@ public class RecipeDetailBusinessService implements IRecipeDetailBusinessService
             //校验机构药品
             OrganDrugList organDrug = recipeDetailValidateTool.validateOrganDrug(a, organDrugGroup);
             if (null == organDrug || RecipeDetailValidateTool.VALIDATE_STATUS_FAILURE.equals(a.getValidateStatus())) {
+                a.setValidateStatusText("机构药品不存在");
                 return;
             }
             //校验药品药房是否变动
             Integer pharmacyId = PharmacyManager.pharmacyVariation(a.getPharmacyId(), a.getPharmacyCode(), organDrug.getPharmacy(), pharmacyCodeMap);
             if (null == pharmacyId) {
+                a.setValidateStatusText("机构药品药房错误");
                 a.setValidateStatus(RecipeDetailValidateTool.VALIDATE_STATUS_FAILURE);
                 logger.info("RecipeDetailService validateDrug pharmacy OrganDrugCode ：= {}", a.getOrganDrugCode());
                 return;
