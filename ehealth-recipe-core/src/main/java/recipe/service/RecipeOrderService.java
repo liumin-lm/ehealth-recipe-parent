@@ -1677,7 +1677,9 @@ public class RecipeOrderService extends RecipeBaseService {
                         if (CollectionUtils.isNotEmpty(drugList)) {
                             recipeDetailBean.setDrugPic(drugList.get(0).getDrugPic());
                         }
+                        LOGGER.info("getOrderDetailById recipedetail:{}", JSON.toJSONString(recipedetail));
                         if (null != recipedetail.getSaleUseDose() && StringUtils.isNotEmpty(recipedetail.getSaleUnit())) {
+                            LOGGER.info("getOrderDetailById 销售策略 ");
                             recipeDetailBean.setUseTotalDose(recipedetail.getSaleUseDose().doubleValue());
                             recipeDetailBean.setDrugUnit(recipedetail.getSaleUnit());
                             if (RecipeTypeEnum.RECIPETYPE_TCM.getType().equals(recipedetail.getDrugType())) {
