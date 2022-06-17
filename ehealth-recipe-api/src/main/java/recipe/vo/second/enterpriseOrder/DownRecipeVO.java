@@ -10,6 +10,7 @@ import recipe.vo.base.BaseRecipeVO;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
@@ -55,6 +56,9 @@ public class DownRecipeVO extends BaseRecipeVO implements Serializable {
     private String gender;
 
     private String sexName;
+
+    @ItemProperty(alias = "处方费用")
+    private BigDecimal recipeFee;
 
     @Temporal(TemporalType.DATE)
     @JsonFormat(

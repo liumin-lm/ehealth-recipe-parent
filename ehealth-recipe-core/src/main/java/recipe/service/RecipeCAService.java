@@ -191,7 +191,8 @@ public class RecipeCAService {
             }
         } catch (Exception e) {
             LOGGER.warn("当前处方CA数据组装失败返回空，{}", e);
-        }LOGGER.info("packageCAFromRecipe caRequest：{}", JSONUtils.toString(caRequest));
+        }
+        LOGGER.info("packageCAFromRecipe caRequest：{}", JSONUtils.toString(caRequest));
         return caRequest;
     }
 

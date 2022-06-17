@@ -395,6 +395,7 @@ public class PlatformCreatePdfServiceImpl extends BaseCreatePdf implements Creat
                 stringBuilder.append(d.getDrugName()).append(d.getDrugSpec()).append("/").append(d.getDrugUnit());
             }
             if (DrugBelongTypeEnum.SECRECY_DRUG.getType().equals(d.getType())) {
+                list.add(new RecipeLabelDTO("medicine", "drugInfo" + i, stringBuilder.toString()));
                 continue;
             }
             stringBuilder.append("   ").append("X").append(d.getUseTotalDose()).append(d.getDrugUnit());
