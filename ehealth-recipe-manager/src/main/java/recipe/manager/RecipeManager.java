@@ -13,6 +13,7 @@ import com.ngari.recipe.entity.*;
 import com.ngari.revisit.RevisitBean;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import ctd.persistence.exception.DAOException;
+import ctd.util.FileAuth;
 import ctd.util.JSONUtils;
 import eh.base.constant.ErrorCode;
 import eh.recipeaudit.api.IRecipeCheckService;
@@ -24,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.client.*;
 import recipe.common.CommonConstant;
+import recipe.common.UrlConfig;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.DrugsEnterpriseDAO;
@@ -708,6 +710,16 @@ public class RecipeManager extends BaseManager {
         recipeCheckBean.setCheckStatus(1);
         recipeCheckBean.setGrabOrderStatus(0);
         iRecipeCheckService.saveRecipeCheck(recipeCheckBean);
+    }
+
+    /**
+     * 获取处方签名文件地址
+     * @param fileId
+     * @param validTime
+     * @return
+     */
+    public String getRecipeSignFileUrl(String fileId, long validTime){
+        return UrlConfig.fileViewUrl+fileId+"?token="+ FileAuth.instance().createToken(fileId,validTime);
     }
 
     /**
