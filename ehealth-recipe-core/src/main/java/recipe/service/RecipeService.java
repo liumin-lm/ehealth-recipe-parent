@@ -263,6 +263,8 @@ public class RecipeService extends RecipeBaseService {
     private OrderManager orderManager;
     @Resource
     private DrugManager drugManager;
+    @Resource
+    private CaManager caManager;
 
     /**
      * 药师审核不通过
@@ -548,6 +550,7 @@ public class RecipeService extends RecipeBaseService {
 
     /**
      * 暂存时更新复诊或者咨询recipeId
+     *
      * @param recipeId
      * @param bussSource
      * @param clinicId
@@ -797,8 +800,7 @@ public class RecipeService extends RecipeBaseService {
                 DoctorDTO doctorDTO = doctorService.getByDoctorId(recipe.getDoctor());
                 String userAccount = doctorDTO.getIdNumber();
                 //签名时的密码从redis中获取
-                String caPassword = redisClient.get("caPassword");
-                caPassword = null == caPassword ? "" : caPassword;
+                String caPassword = caManager.getCaPassWord(recipe.getClinicOrgan(), recipe.getDoctor());
                 //CA
                 ICaRemoteService iCaRemoteService = AppDomainContext.getBean("ca.iCaRemoteService", ICaRemoteService.class);
                 ca.vo.model.RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, ca.vo.model.RecipeBean.class);
@@ -1499,9 +1501,10 @@ public class RecipeService extends RecipeBaseService {
     public Map<String, Object> doSignRecipeNew(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList, int continueFlag) {
         LOGGER.info("RecipeService.doSignRecipeNew param: recipeBean={} detailBean={} continueFlag={}", JSONUtils.toString(recipeBean), JSONUtils.toString(detailBeanList), continueFlag);
         recipeDetailValidateTool.validateMedicalChineDrugNumber(recipeBean, detailBeanList);
-        //将密码放到redis中
-        redisClient.set("caPassword", recipeBean.getCaPassword());
+        caManager.setCaPassWord(recipeBean.getClinicOrgan(), recipeBean.getDoctor(), recipeBean.getCaPassword());
         Map<String, Object> rMap = new HashMap<String, Object>();
+
+
         rMap.put("signResult", true);
         try {
             recipeBean.setDistributionFlag(continueFlag);
