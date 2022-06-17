@@ -1634,7 +1634,7 @@ public class RecipeServiceSub {
         }
         map.put("patient", patient);
         Map<Integer, List<SaleDrugList>> recipeDetailSalePrice = recipeManager.getRecipeDetailSalePrice(recipeId, depId);
-        map.put("recipedetails", RecipeValidateUtil.covertDrugUnitdoseAndUnit(RecipeValidateUtil.validateDrugsImplForDetail(recipe, recipeDetailSalePrice,recipeOrder), isDoctor, recipe.getClinicOrgan()));
+        map.put("recipedetails", RecipeValidateUtil.covertDrugUnitdoseAndUnit(RecipeValidateUtil.validateDrugsImplForDetail(recipe, recipeDetailSalePrice,depId), isDoctor, recipe.getClinicOrgan()));
         //隐方
         boolean isHiddenRecipeDetail = false;
         if (isDoctor == false) {
