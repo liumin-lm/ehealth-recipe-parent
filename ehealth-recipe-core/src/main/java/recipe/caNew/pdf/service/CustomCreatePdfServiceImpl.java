@@ -552,7 +552,7 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
         for (int i = 0; i < recipeDetails.size(); i++) {
             Recipedetail detail = recipeDetails.get(i);
             list.add(new RecipeLabelDTO("药品名称", "recipeDetail.drugName_" + i, detail.getDrugName()));
-            if (DrugBelongTypeEnum.SECRECY_DRUG.getType().equals(recipedetail.getType())) {
+            if (DrugBelongTypeEnum.SECRECY_DRUG.getType().equals(detail.getType())) {
                 continue;
             }
             list.add(new RecipeLabelDTO("包装规格", "recipeDetail.drugSpec_" + i, ByteUtils.objValueOfString(detail.getDrugSpec()) + "/" + ByteUtils.objValueOfString(detail.getDrugUnit())));
