@@ -1616,7 +1616,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 Boolean isHosDep = false;
                 if(Objects.nonNull(order) && Objects.nonNull(order.getEnterpriseId())){
                     DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
-                    if(Objects.nonNull(drugsEnterprise) && Objects.nonNull(drugsEnterprise.getIsHosDep()) && YesOrNoEnum.YES.getType().equals(drugsEnterprise.getIsHosDep())) {
+                    if(Objects.nonNull(drugsEnterprise) && Objects.nonNull(drugsEnterprise.getSettlementMode()) && YesOrNoEnum.YES.getType().equals(drugsEnterprise.getSettlementMode())) {
                         isHosDep = true;
                     }
                 } else {

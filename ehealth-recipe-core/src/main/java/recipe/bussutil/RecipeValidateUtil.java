@@ -232,7 +232,7 @@ public class RecipeValidateUtil {
         Boolean isHosDep = false;
         if(Objects.nonNull(depId)){
             DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(depId);
-            if(Objects.nonNull(drugsEnterprise) && Objects.nonNull(drugsEnterprise.getIsHosDep()) && YesOrNoEnum.YES.getType().equals(drugsEnterprise.getIsHosDep())) {
+            if(Objects.nonNull(drugsEnterprise) && Objects.nonNull(drugsEnterprise.getSettlementMode()) && YesOrNoEnum.YES.getType().equals(drugsEnterprise.getSettlementMode())) {
                 isHosDep = true;
             }
         } else {
