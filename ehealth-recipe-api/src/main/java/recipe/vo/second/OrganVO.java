@@ -39,5 +39,6 @@ public class OrganVO implements Serializable {
     private Double latitude;
     private String busLine;
     private String hostCode;
+    private String manageUnit;
 }
 

@@ -111,6 +111,7 @@ public class RecipeOrderOpenAtop extends BaseAtop implements IRecipeOrderAtopSer
             return null;
         }
         for(ReimbursementDTO reimbursementDTO : reimbursementList){
+            List<RecipeDetailBean> recipeDetailBeanList = new ArrayList<>();
             ReimbursementListResVO reimbursementListResVO = new ReimbursementListResVO();
             reimbursementListResVO.setRecipeId(reimbursementDTO.getRecipe().getRecipeId());
             PatientDTO patientDTO = reimbursementDTO.getPatientDTO();
@@ -120,11 +121,13 @@ public class RecipeOrderOpenAtop extends BaseAtop implements IRecipeOrderAtopSer
             reimbursementListResVO.setPayTime(reimbursementDTO.getRecipeOrder().getPayTime());
             reimbursementListResVO.setInvoiceNumber(reimbursementDTO.getInvoiceNumber());
             reimbursementListResVO.setMedicalFlag(reimbursementDTO.getRecipeOrder().getFundAmount() == null ? "自费":"医保");
-            Map<String,String> DrugItem = new HashMap<>();
             for(Recipedetail recipedetail : reimbursementDTO.getRecipeDetailList()){
-                DrugItem.put(recipedetail.getOrganDrugCode(),recipedetail.getDrugName());
+                RecipeDetailBean recipeDetailBean = new RecipeDetailBean();
+                recipeDetailBean.setOrganDrugCode(recipedetail.getOrganDrugCode());
+                recipeDetailBean.setDrugName(recipedetail.getDrugName());
+                recipeDetailBeanList.add(recipeDetailBean);
             }
-            reimbursementListResVO.setDrugItem(DrugItem);
+            reimbursementListResVO.setRecipeDetail(recipeDetailBeanList);
             reimbursementListResVOList.add(reimbursementListResVO);
         }
         logger.info("findReimbursementList reimbursementListResVOList={}", JSONUtils.toString(reimbursementListResVOList));

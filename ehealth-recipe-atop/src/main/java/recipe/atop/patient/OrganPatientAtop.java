@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
 import recipe.core.api.IOrganBusinessService;
+import recipe.vo.second.OrganVO;
 
 import java.util.List;
 import java.util.Set;
@@ -70,5 +71,15 @@ public class OrganPatientAtop extends BaseAtop {
             logger.error("OrganAtop getOrganGiveModeConfig error e", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
+    }
+
+    /**
+     * 获取机构信息
+     * @param organId
+     * @return
+     */
+    @RpcService
+    public OrganVO getOrganVOByOrganId(Integer organId){
+        return organBusinessService.getOrganVOByOrganId(organId);
     }
 }
