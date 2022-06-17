@@ -236,6 +236,10 @@ public enum RecipeSupportGiveModeEnum {
             giveModeButtonList.add(giveModeButtonDTO(SUPPORT_TFDS));
             return giveModeButtonList;
         }
+        if(RecipeBussConstant.SUPPORT_MEDICAL_PAYMENT.equals(payModeSupport)){
+            giveModeButtonList.add(giveModeButtonDTO(SUPPORT_MEDICAL_PAYMENT));
+            return giveModeButtonList;
+        }
         if (RecipeDistributionFlagEnum.drugsEnterpriseAll.contains(payModeSupport)) {
             giveModeButtonList.add(giveModeButtonDTO(SUPPORT_TFDS));
         }
@@ -244,9 +248,6 @@ public enum RecipeSupportGiveModeEnum {
             giveModeButtonList.add(giveModeButtonDTO(SHOW_SEND_TO_ENTERPRISES));
         } else {
             giveModeButtonList.add(giveModeButtonDTO(SHOW_SEND_TO_HOS));
-        }
-        if(RecipeBussConstant.SUPPORT_MEDICAL_PAYMENT.equals(payModeSupport)){
-            giveModeButtonList.add(giveModeButtonDTO(SUPPORT_MEDICAL_PAYMENT));
         }
         return giveModeButtonList;
     }
