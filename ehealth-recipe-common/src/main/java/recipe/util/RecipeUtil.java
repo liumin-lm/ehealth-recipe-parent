@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import recipe.constant.RecipeBussConstant;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.type.DrugBelongTypeEnum;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -48,6 +49,9 @@ public class RecipeUtil {
      */
     public static String drugChineShowName(Recipedetail detail) {
         String dTotal;
+        if (DrugBelongTypeEnum.SECRECY_DRUG.getType().equals(detail.getType())) {
+            return detail.getDrugName();
+        }
         if (StringUtils.isNotEmpty(detail.getUseDoseStr())) {
             dTotal = detail.getUseDoseStr();
         } else {
