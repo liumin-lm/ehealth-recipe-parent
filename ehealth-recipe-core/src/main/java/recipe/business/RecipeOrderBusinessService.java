@@ -38,6 +38,7 @@ import recipe.enumerate.type.NeedSendTypeEnum;
 import recipe.factory.status.givemodefactory.GiveModeProxy;
 import recipe.manager.EnterpriseManager;
 import recipe.manager.OrderManager;
+import recipe.manager.RecipeManager;
 import recipe.service.RecipeOrderService;
 import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
@@ -59,6 +60,8 @@ import java.util.stream.Collectors;
 @Service
 public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
+
+    private final static long VALID_TIME_SECOND = 3600 * 24 * 30;
     @Autowired
     private RecipeDAO recipeDAO;
     @Autowired
@@ -82,7 +85,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
     @Autowired
     private OrganClient organClient;
     @Autowired
-    private RecipeParameterDao parameterDao;
+    private RecipeManager recipeManager;
     @Autowired
     private InvoiceRecordService invoiceRecordService;
 
@@ -349,12 +352,15 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                     com.ngari.recipe.dto.OrganDTO organDTO = organClient.organDTO(recipe.getCheckOrgan());
                     downRecipeVO.setCheckOrganName(organDTO.getName());
                 }
-                //设置签名图片的url
-                String fileImgUrl = parameterDao.getByName("fileImgUrl");
+                //设置签名文件的url
                 if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
-                    downRecipeVO.setSignFileUrl(fileImgUrl + recipe.getChemistSignFile());
+                    downRecipeVO.setSignFileUrl(recipeManager.getRecipeSignFileUrl(recipe.getChemistSignFile(), VALID_TIME_SECOND));
                 } else {
-                    downRecipeVO.setSignFileUrl(fileImgUrl + recipe.getSignFile());
+                    downRecipeVO.setSignFileUrl(recipeManager.getRecipeSignFileUrl(recipe.getSignFile(), VALID_TIME_SECOND));
+                }
+                //设置签名图片的url
+                if (StringUtils.isNotEmpty(recipe.getSignImg())) {
+                    downRecipeVO.setSignImg(recipeManager.getRecipeSignFileUrl(recipe.getSignImg(), VALID_TIME_SECOND));
                 }
                 //设置订单的购药方式
                 downOrderVO.setGiveMode(recipe.getGiveMode());
