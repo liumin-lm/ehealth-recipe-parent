@@ -42,6 +42,7 @@ import recipe.drugTool.validate.RecipeDetailValidateTool;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
+import recipe.manager.CaManager;
 import recipe.manager.RevisitManager;
 import recipe.service.*;
 import recipe.thread.CardDataUploadRunable;
@@ -53,6 +54,7 @@ import recipe.util.MapValueUtil;
 import recipe.util.RedisClient;
 import recipe.util.ValidateUtil;
 
+import javax.annotation.Resource;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -86,6 +88,8 @@ public class RecipeSignService {
     private RevisitManager revisitManager;
     @Autowired
     private DocIndexClient docIndexClient;
+    @Resource
+    private CaManager caManager;
 
     /**
      * 武昌模式签名方法
@@ -193,15 +197,15 @@ public class RecipeSignService {
         }
 
         //签名
-        RecipeBusiThreadPool.execute(() ->{
-                RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
-                try {
-                    //生成pdf并签名
-                    recipeService.generateRecipePdfAndSign(recipeId);
-                } catch (Exception e) {
-                    LOG.error("sign 签名服务异常，recipeId={}", recipeId, e);
-                }
-            });
+        RecipeBusiThreadPool.execute(() -> {
+            RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
+            try {
+                //生成pdf并签名
+                recipeService.generateRecipePdfAndSign(recipeId);
+            } catch (Exception e) {
+                LOG.error("sign 签名服务异常，recipeId={}", recipeId, e);
+            }
+        });
 
 
         //修改订单
@@ -380,8 +384,7 @@ public class RecipeSignService {
     public Map<String, Object> doSignRecipeNew(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList, int continueFlag) {
         LOG.info("RecipeSignService.doSignRecipeNew param: recipeBean={} detailBean={} continueFlag={}", JSONUtils.toString(recipeBean), JSONUtils.toString(detailBeanList), continueFlag);
         recipeDetailValidateTool.validateMedicalChineDrugNumber(recipeBean, detailBeanList);
-        //将密码放到redis中
-        redisClient.set("caPassword", recipeBean.getCaPassword());
+        caManager.setCaPassWord(recipeBean.getClinicOrgan(), recipeBean.getDoctor(), recipeBean.getCaPassword());
         Map<String, Object> rMap = new HashMap<String, Object>();
         rMap.put("signResult", true);
         try {
