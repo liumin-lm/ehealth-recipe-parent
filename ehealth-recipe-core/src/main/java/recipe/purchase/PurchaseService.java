@@ -541,8 +541,6 @@ public class PurchaseService {
             Recipe recipe = recipeDAO.getByRecipeId(recipeId);
             List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipeId);
             List<Integer> drugList = recipeDetails.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
-            List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugIdList(recipe.getClinicOrgan(), drugList);
-            Map<Integer, OrganDrugList> organDrugListMap = organDrugLists.stream().collect(Collectors.toMap(OrganDrugList::getDrugId, a->a,(k1,k2)->k1));
             if (recipe.getEnterpriseId() != null) {
                 DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipe.getEnterpriseId());
                 //结算方式 0:药店价格 1:医院价格
@@ -582,8 +580,7 @@ public class PurchaseService {
             } else {
                 recipeDetails.forEach(recipeDetail -> {
                     try {
-                        OrganDrugList organDrugList = organDrugListMap.get(recipeDetail.getDrugId());
-                        recipeDetail.setActualSalePrice(setRecipeDetailActualSalePrice(recipeDetail, organDrugList.getSalePrice()));
+                        recipeDetail.setActualSalePrice(setRecipeDetailActualSalePrice(recipeDetail, recipeDetail.getSalePrice()));
 
                         recipeDetailDAO.updateNonNullFieldByPrimaryKey(recipeDetail);
                     } catch (Exception e) {
