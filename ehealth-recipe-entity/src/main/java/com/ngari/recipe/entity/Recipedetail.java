@@ -276,6 +276,7 @@ public class Recipedetail implements java.io.Serializable {
 	@ItemProperty(alias = "his开方或预结算时返回的药品单价")
 	private BigDecimal hisReturnSalePrice;
 
+	@Column(name = "his_return_sale_price")
 	public BigDecimal getHisReturnSalePrice() {
 		return hisReturnSalePrice;
 	}
