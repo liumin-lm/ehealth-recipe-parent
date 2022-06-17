@@ -64,7 +64,7 @@ public class RecipeDetailManager extends BaseManager {
                     for (String s : split) {
                         List<RecipePreSettleDrugFeeDTO> recipePreSettleDrugFeeDTO = collect.get(s + recipeDetail.getOrganDrugCode());
                         if (CollectionUtils.isNotEmpty(recipePreSettleDrugFeeDTO)) {
-                            recipeDetail.setActualSalePrice(recipePreSettleDrugFeeDTO.get(0).getSalePrice());
+                            recipeDetail.setHisReturnSalePrice(recipePreSettleDrugFeeDTO.get(0).getSalePrice());
                             recipeDetail.setDrugCost(recipePreSettleDrugFeeDTO.get(0).getDrugCost());
                         }
                     }
@@ -95,7 +95,7 @@ public class RecipeDetailManager extends BaseManager {
                     List<RecipePreSettleDrugFeeDTO> recipePreSettleDrugFeeDTO = collect.get(recipeDetail.getOrganDrugCode());
                     if (CollectionUtils.isNotEmpty(recipePreSettleDrugFeeDTO)) {
                         recipeDetail.setDrugCost(recipePreSettleDrugFeeDTO.get(0).getDrugCost());
-                        recipeDetail.setSalePrice(recipePreSettleDrugFeeDTO.get(0).getSalePrice());
+                        recipeDetail.setHisReturnSalePrice(recipePreSettleDrugFeeDTO.get(0).getSalePrice());
                     }
                 }
                 recipeDetailDAO.updateAllRecipeDetail(recipeDetails);
