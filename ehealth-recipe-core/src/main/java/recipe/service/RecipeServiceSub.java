@@ -1581,7 +1581,6 @@ public class RecipeServiceSub {
     public static Map<String, Object> getRecipeAndDetailByIdImpl(int recipeId, boolean isDoctor, Integer depId) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
 
         Map<String, Object> map = Maps.newHashMap();
@@ -1824,11 +1823,10 @@ public class RecipeServiceSub {
             LOGGER.error("RecipeServiceSub.getRecipeAndDetailByIdImpl 获取慢病配置error, recipeId:{}", recipeId, e);
         }
 
-
         //设置订单信息
         RecipeOrder recipeOrder = null;
         if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
-            recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+            recipeOrder = orderDAO.getByOrderCode(recipe.getOrderCode());
             map.put("recipeOrder", recipeOrder);
         }
         //设置签名图片
