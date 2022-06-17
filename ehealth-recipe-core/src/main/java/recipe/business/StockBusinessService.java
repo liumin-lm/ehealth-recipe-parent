@@ -86,34 +86,18 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         //处理库存数据结构 逆转为 药品-药企
         List<EnterpriseStockVO> enterpriseStockList = this.getEnterpriseStockVO(organStock, enterpriseStock);
         Map<Integer, List<EnterpriseStockVO>> enterpriseStockGroup = enterpriseStockList.stream().collect(Collectors.groupingBy(EnterpriseStockVO::getDrugId));
-
-        List<GiveModeButtonDTO> giveModeButtonBeans = operationClient.getOrganGiveModeMap(organId);
-        //下载处方签
-        String supportDownloadButton = RecipeSupportGiveModeEnum.getGiveModeName(giveModeButtonBeans, RecipeSupportGiveModeEnum.DOWNLOAD_RECIPE.getText());
-        List<Integer> drugIds = recipeDetails.stream().map(Recipedetail::getDrugId).distinct().collect(Collectors.toList());
-        Map<String, OrganDrugList> organDrugMap = organDrugListManager.getOrganDrugByIdAndCode(organId, drugIds);
         //组织 药品 对应的 药企列表库存
         List<DrugEnterpriseStockVO> drugEnterpriseStockList = new LinkedList<>();
         recipeDetails.forEach(a -> {
             DrugEnterpriseStockVO drugEnterpriseStock = new DrugEnterpriseStockVO();
             drugEnterpriseStock.setDrugId(a.getDrugId());
-            //默认无库存
-            boolean stock = false;
-            if (StringUtils.isNotEmpty(supportDownloadButton)) {
-                OrganDrugList organDrug = organDrugMap.get(a.getDrugId() + a.getOrganDrugCode());
-                if (null != organDrug && (null == organDrug.getSupportDownloadPrescriptionPad() || organDrug.getSupportDownloadPrescriptionPad())) {
-                    stock = true;
-                }
-            }
+            boolean stockEnterprise = false;
             List<EnterpriseStockVO> list = enterpriseStockGroup.get(a.getDrugId());
             if (CollectionUtils.isNotEmpty(list)) {
                 drugEnterpriseStock.setEnterpriseStockList(list);
-                boolean stockEnterprise = list.stream().anyMatch(EnterpriseStockVO::getStock);
-                if (stock || stockEnterprise) {
-                    stock = true;
-                }
+                stockEnterprise = list.stream().anyMatch(EnterpriseStockVO::getStock);
             }
-            drugEnterpriseStock.setAllStock(stock);
+            drugEnterpriseStock.setAllStock(stockEnterprise);
             drugEnterpriseStockList.add(drugEnterpriseStock);
         });
         return drugEnterpriseStockList;
@@ -147,7 +131,9 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         DoSignRecipeDTO doSignRecipe = new DoSignRecipeDTO(true, false, null, "", recipeId, null);
         //机构配置购药方式
         List<GiveModeButtonDTO> giveModeButtonBeans = operationClient.getOrganGiveModeMap(recipe.getClinicOrgan());
-        if (CollectionUtils.isEmpty(giveModeButtonBeans)) {
+        if (CollectionUtils.isEmpty(giveModeButtonBeans) ||
+                (new Integer(1).equals(giveModeButtonBeans.size())
+                        && Objects.equals(RecipeSupportGiveModeEnum.getGiveModeName(giveModeButtonBeans, RecipeSupportGiveModeEnum.DOWNLOAD_RECIPE.getText()), "下载处方笺"))) {
             enterpriseManager.doSignRecipe(doSignRecipe, "根据药品库存判断，未找到可供药的药房或药企");
             logger.info("StockBusinessService enterpriseStock recipeId:{},reason:没有配置购药方式", recipeId);
             return MapValueUtil.beanToMap(doSignRecipe);
