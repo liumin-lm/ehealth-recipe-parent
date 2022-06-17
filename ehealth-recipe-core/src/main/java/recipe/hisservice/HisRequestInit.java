@@ -590,6 +590,7 @@ public class HisRequestInit {
             requestTO.setMobile(patient.getMobile());
             requestTO.setIsMedicalSettle("0");
             if (recipe.getOrderCode() != null) {
+                requestTO.setOrderCode(recipe.getOrderCode());
                 RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
                 RecipeOrder order = orderDAO.getByOrderCode(recipe.getOrderCode());
 
