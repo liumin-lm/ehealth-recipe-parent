@@ -235,6 +235,8 @@ public class RecipeValidateUtil {
             if(Objects.nonNull(drugsEnterprise) && Objects.nonNull(drugsEnterprise.getIsHosDep()) && YesOrNoEnum.YES.getType().equals(drugsEnterprise.getIsHosDep())) {
                 isHosDep = true;
             }
+        } else {
+            isHosDep = true;
         }
         // TODO: 2020/6/19 很多需要返回药品信息的地方可以让前端根据药品id反查具体的药品信息统一展示；后端涉及返回药品信息的接口太多。返回对象也不一样
         for (RecipeDetailBean recipeDetail : detailBeans) {

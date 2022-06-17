@@ -1619,6 +1619,8 @@ public class RecipeOrderService extends RecipeBaseService {
                     if(Objects.nonNull(drugsEnterprise) && Objects.nonNull(drugsEnterprise.getIsHosDep()) && YesOrNoEnum.YES.getType().equals(drugsEnterprise.getIsHosDep())) {
                         isHosDep = true;
                     }
+                } else {
+                    isHosDep = true;
                 }
                 //设置地址，先取处方单address4的值，没有则取订单地址
                 order.setCompleteAddress(orderManager.getCompleteAddress(order));
