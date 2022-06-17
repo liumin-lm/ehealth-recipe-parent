@@ -1614,7 +1614,7 @@ public class RecipeOrderService extends RecipeBaseService {
             if (CollectionUtils.isNotEmpty(recipeList)) {
                 // 是否医院结算药企
                 Boolean isHosDep = false;
-                if(Objects.nonNull(order.getEnterpriseId())){
+                if(Objects.nonNull(order) && Objects.nonNull(order.getEnterpriseId())){
                     DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
                     if(Objects.nonNull(drugsEnterprise) && Objects.nonNull(drugsEnterprise.getIsHosDep()) && YesOrNoEnum.YES.getType().equals(drugsEnterprise.getIsHosDep())) {
                         isHosDep = true;

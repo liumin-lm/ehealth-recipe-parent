@@ -230,7 +230,7 @@ public class RecipeValidateUtil {
         }
         // 是否医院结算药企
         Boolean isHosDep = false;
-        if(Objects.nonNull(recipeOrder.getEnterpriseId())){
+        if(Objects.nonNull(recipeOrder) && Objects.nonNull(recipeOrder.getEnterpriseId())){
             DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipeOrder.getEnterpriseId());
             if(Objects.nonNull(drugsEnterprise) && Objects.nonNull(drugsEnterprise.getIsHosDep()) && YesOrNoEnum.YES.getType().equals(drugsEnterprise.getIsHosDep())) {
                 isHosDep = true;
