@@ -1,12 +1,11 @@
 package recipe.constant;
 
-import java.util.List;
-
 /**
 * @Description: ThirdChangeStatusMsgEnum 类（或接口）是 第三方修改状态的发送消息枚举
 * @Author: JRK
 * @Date: 2019/9/12
 */
+@Deprecated
 public enum ThirdChangeStatusMsgEnum {
     /**
      * 修改订单状态：无库存可取药
