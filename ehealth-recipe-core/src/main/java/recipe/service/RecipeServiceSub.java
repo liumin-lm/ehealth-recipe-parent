@@ -1581,7 +1581,6 @@ public class RecipeServiceSub {
     public static Map<String, Object> getRecipeAndDetailByIdImpl(int recipeId, boolean isDoctor, Integer depId) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
 
         Map<String, Object> map = Maps.newHashMap();
