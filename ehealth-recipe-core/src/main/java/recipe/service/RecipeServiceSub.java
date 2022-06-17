@@ -1977,7 +1977,7 @@ public class RecipeServiceSub {
         try {
             List<RecipeDetailBean> recipeDetailBeanList = (List<RecipeDetailBean>)map.get("recipedetails");
             //计算保密处方药品走总价
-            offlineRecipeTotalPrice = recipeDetailBeanList.stream().filter(recipeDetail -> DrugBelongTypeEnum.SECRECY_DRUG.getType().equals(recipeDetail.getType())).map(recipeDetailBean -> recipeDetailBean.getSaleDrugPrice().multiply(new BigDecimal(recipeDetailBean.getUseTotalDose()))).reduce(BigDecimal.ZERO, BigDecimal::add);
+            offlineRecipeTotalPrice = recipeDetailBeanList.stream().filter(recipeDetail -> DrugBelongTypeEnum.SECRECY_DRUG.getType().equals(recipeDetail.getType())).map(recipeDetailBean -> recipeDetailBean.getSalePrice().multiply(new BigDecimal(recipeDetailBean.getUseTotalDose()))).reduce(BigDecimal.ZERO, BigDecimal::add);
         } catch (Exception e) {
             LOGGER.error("getRecipeAndDetailByIdImpl error 保密处方价格计算错误:{}", e);
             offlineRecipeTotalPrice = recipedetails.stream().filter(recipeDetail -> DrugBelongTypeEnum.SECRECY_DRUG.getType().equals(recipeDetail.getType())).map(Recipedetail::getDrugCost).reduce(BigDecimal.ZERO, BigDecimal::add);

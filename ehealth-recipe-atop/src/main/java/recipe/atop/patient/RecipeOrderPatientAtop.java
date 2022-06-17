@@ -151,6 +151,7 @@ public class RecipeOrderPatientAtop extends BaseAtop {
      * @param giveModeKey 购药方式key
      */
     @RpcService
+    @Deprecated
     public void submitRecipeHis(List<Integer> recipeIds, Integer organId, String giveModeKey) {
         validateAtop(recipeIds, organId, giveModeKey);
         //过滤按钮
