@@ -36,10 +36,7 @@ import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -304,6 +301,11 @@ public class RecipeValidateUtil {
                 recipeDetail.setSaleDrugPrice(recipeDetail.getSalePrice().divide(new BigDecimal(recipeDetail.getPack()), 4, BigDecimal.ROUND_HALF_UP));
             } catch (Exception e) {
                 LOGGER.error("计算包装系数错误, recipeId:{},{}.", recipeId, e.getMessage(), e);
+            }
+            // 如果实际支付单价有值,代表是预结算返回的,直接赋值单价返回前端展示
+            if(Objects.nonNull(recipeDetail.getHisReturnSalePrice())){
+                recipeDetail.setSaleDrugPrice(recipeDetail.getHisReturnSalePrice());
+                recipeDetail.setSalePrice(recipeDetail.getHisReturnSalePrice());
             }
             backDetailList.add(recipeDetail);
         }
