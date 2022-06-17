@@ -32,6 +32,7 @@ import recipe.client.DrugClient;
 import recipe.constant.ErrorCode;
 import recipe.dao.*;
 import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.status.YesOrNoEnum;
 import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.util.MapValueUtil;
 
@@ -198,11 +199,12 @@ public class RecipeValidateUtil {
      * @param recipe
      * @return
      */
-    public static List<RecipeDetailBean> validateDrugsImplForDetail(Recipe recipe,Map<Integer, List<SaleDrugList>> recipeDetailSalePrice) {
+    public static List<RecipeDetailBean> validateDrugsImplForDetail(Recipe recipe,Map<Integer, List<SaleDrugList>> recipeDetailSalePrice,RecipeOrder recipeOrder) {
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
         DrugSaleStrategyDAO drugSaleStrategyDAO = DAOFactory.getDAO(DrugSaleStrategyDAO.class);
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
 
         Integer recipeId = recipe.getRecipeId();
         List<RecipeDetailBean> backDetailList = new ArrayList<>();
@@ -225,6 +227,14 @@ public class RecipeValidateUtil {
         Map<Integer, DrugSaleStrategy> drugSaleStrategyMap = null;
         if (CollectionUtils.isNotEmpty(drugSaleStrategyList)) {
             drugSaleStrategyMap = drugSaleStrategyList.stream().collect(Collectors.toMap(DrugSaleStrategy::getId, a->a, (k1,k2)->k1));
+        }
+        // 是否医院结算药企
+        Boolean isHosDep = false;
+        if(Objects.nonNull(recipeOrder.getEnterpriseId())){
+            DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipeOrder.getEnterpriseId());
+            if(Objects.nonNull(drugsEnterprise) && Objects.nonNull(drugsEnterprise.getIsHosDep()) && YesOrNoEnum.YES.getType().equals(drugsEnterprise.getIsHosDep())) {
+                isHosDep = true;
+            }
         }
         // TODO: 2020/6/19 很多需要返回药品信息的地方可以让前端根据药品id反查具体的药品信息统一展示；后端涉及返回药品信息的接口太多。返回对象也不一样
         for (RecipeDetailBean recipeDetail : detailBeans) {
@@ -303,7 +313,7 @@ public class RecipeValidateUtil {
                 LOGGER.error("计算包装系数错误, recipeId:{},{}.", recipeId, e.getMessage(), e);
             }
             // 如果实际支付单价有值,代表是预结算返回的,直接赋值单价返回前端展示
-            if(Objects.nonNull(recipeDetail.getHisReturnSalePrice())){
+            if (Objects.nonNull(recipeDetail.getHisReturnSalePrice()) && isHosDep) {
                 recipeDetail.setSaleDrugPrice(recipeDetail.getHisReturnSalePrice());
                 recipeDetail.setSalePrice(recipeDetail.getHisReturnSalePrice());
             }

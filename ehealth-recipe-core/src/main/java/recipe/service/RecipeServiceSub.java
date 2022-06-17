@@ -1581,7 +1581,6 @@ public class RecipeServiceSub {
     public static Map<String, Object> getRecipeAndDetailByIdImpl(int recipeId, boolean isDoctor, Integer depId) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
 
         Map<String, Object> map = Maps.newHashMap();
@@ -1627,9 +1626,15 @@ public class RecipeServiceSub {
                 recipe.setTcmUsingRate(recipedetail.getUsingRate());
             }
         }
+        //设置订单信息
+        RecipeOrder recipeOrder = null;
+        if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
+            recipeOrder = orderDAO.getByOrderCode(recipe.getOrderCode());
+            map.put("recipeOrder", recipeOrder);
+        }
         map.put("patient", patient);
         Map<Integer, List<SaleDrugList>> recipeDetailSalePrice = recipeManager.getRecipeDetailSalePrice(recipeId, depId);
-        map.put("recipedetails", RecipeValidateUtil.covertDrugUnitdoseAndUnit(RecipeValidateUtil.validateDrugsImplForDetail(recipe, recipeDetailSalePrice), isDoctor, recipe.getClinicOrgan()));
+        map.put("recipedetails", RecipeValidateUtil.covertDrugUnitdoseAndUnit(RecipeValidateUtil.validateDrugsImplForDetail(recipe, recipeDetailSalePrice,recipeOrder), isDoctor, recipe.getClinicOrgan()));
         //隐方
         boolean isHiddenRecipeDetail = false;
         if (isDoctor == false) {
@@ -1822,14 +1827,6 @@ public class RecipeServiceSub {
             map.put("recipeChooseChronicDisease", recipeChooseChronicDisease);
         } catch (Exception e) {
             LOGGER.error("RecipeServiceSub.getRecipeAndDetailByIdImpl 获取慢病配置error, recipeId:{}", recipeId, e);
-        }
-
-
-        //设置订单信息
-        RecipeOrder recipeOrder = null;
-        if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
-            recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
-            map.put("recipeOrder", recipeOrder);
         }
         //设置签名图片
         Map<String, String> signInfo = attachSealPic(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getChecker(), recipeId);
