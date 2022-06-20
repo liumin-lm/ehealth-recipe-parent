@@ -30,6 +30,7 @@ cancelOrder 订单取消
 updateRecipeOrderStatus 运营平台订单编辑接口
 updateRecipeTrannckingInfo 基础服务更新处方物流状态
 updateRecipeStatus 浙江省互联网定时将确认中处方修改为审核中或者待处理 
-
+getOrderDetail 订单页获取订单详情
+eh.recipeService  findPatientRecipesByIdsAndDepId 确认订单获取处方详情
 ```
 ### End

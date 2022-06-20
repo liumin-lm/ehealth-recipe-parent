@@ -1685,9 +1685,7 @@ public class RecipeOrderService extends RecipeBaseService {
                         if (CollectionUtils.isNotEmpty(drugList)) {
                             recipeDetailBean.setDrugPic(drugList.get(0).getDrugPic());
                         }
-                        LOGGER.info("getOrderDetailById recipedetail:{}", JSON.toJSONString(recipedetail));
                         if (null != recipedetail.getSaleUseDose() && StringUtils.isNotEmpty(recipedetail.getSaleUnit())) {
-                            LOGGER.info("getOrderDetailById 销售策略 ");
                             recipeDetailBean.setUseTotalDose(recipedetail.getSaleUseDose().doubleValue());
                             recipeDetailBean.setDrugUnit(recipedetail.getSaleUnit());
                             if (RecipeTypeEnum.RECIPETYPE_TCM.getType().equals(recipedetail.getDrugType())) {
@@ -1697,7 +1695,7 @@ public class RecipeOrderService extends RecipeBaseService {
                             }
                         }
                         try {
-                            recipeDetailBean.setSaleDrugPrice(recipedetail.getSalePrice().divide(new BigDecimal(recipedetail.getPack()), 2, BigDecimal.ROUND_HALF_UP));
+                            recipeDetailBean.setSaleDrugPrice(recipedetail.getSalePrice().divide(new BigDecimal(recipedetail.getPack()), 4, BigDecimal.ROUND_HALF_UP));
                         } catch (Exception e) {
                             LOGGER.error("计算包装系数错误, recipeId:{},{}.", recipeBean.getRecipeId(), e.getMessage(), e);
                         }

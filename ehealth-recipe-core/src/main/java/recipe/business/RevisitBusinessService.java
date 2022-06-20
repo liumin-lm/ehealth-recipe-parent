@@ -22,16 +22,14 @@ import recipe.client.RecipeAuditClient;
 import recipe.core.api.IRevisitBusinessService;
 import recipe.dao.*;
 import recipe.easypay.IEasyPayService;
-import recipe.manager.OrderManager;
-import recipe.manager.RecipeManager;
-import recipe.manager.RevisitManager;
-import recipe.manager.SignManager;
+import recipe.manager.*;
 import recipe.util.ValidateUtil;
 import recipe.vo.second.RevisitRecipeTraceVo;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -77,7 +75,8 @@ public class RevisitBusinessService extends BaseService implements IRevisitBusin
     private IEasyPayService iEasyPayService;
     @Autowired
     private IConfigurationClient configurationClient;
-
+    @Autowired
+    private EnterpriseManager enterpriseManager;
 
     @Override
     public List<RevisitRecipeTraceVo> revisitRecipeTrace(Integer recipeId, Integer clinicId) {
@@ -117,7 +116,7 @@ public class RevisitBusinessService extends BaseService implements IRevisitBusin
                     }
                     revisitRecipeTraceVo.setRecipe(innerRecipe);
                     //Rp
-                    obtainRevisitTraceRecipeDetailInfo(revisitRecipeTraceVo, recipeDetailsMap, recipe, recipeDetails);
+                    obtainRevisitTraceRecipeDetailInfo(revisitRecipeTraceVo, recipeDetailsMap, recipe, recipeDetails, ordersMap);
                     //审方药师审核
                     RevisitRecipeTraceVo.AuditCheck innerAudit = new RevisitRecipeTraceVo.AuditCheck();
                     RecipeCheckBean recipeCheck = recipeAuditClient.getByRecipeId(recipe.getRecipeId());
@@ -292,8 +291,14 @@ public class RevisitBusinessService extends BaseService implements IRevisitBusin
      * @param recipe
      * @param recipeDetails
      */
-    private void obtainRevisitTraceRecipeDetailInfo(RevisitRecipeTraceVo revisitRecipeTraceVo, Map<Integer, List<Recipedetail>> recipeDetailsMap, Recipe recipe, List<Recipedetail> recipeDetails) {
+    private void obtainRevisitTraceRecipeDetailInfo(RevisitRecipeTraceVo revisitRecipeTraceVo, Map<Integer, List<Recipedetail>> recipeDetailsMap, Recipe recipe, List<Recipedetail> recipeDetails, Map<String, RecipeOrder> ordersMap) {
         logger.info("RecipeBusinessService obtainRevisitTraceRecipeDetailInfo param:[{},{},{},{}]", JSONUtils.toString(revisitRecipeTraceVo), JSONUtils.toString(recipeDetailsMap), JSONUtils.toString(recipe), JSONUtils.toString(recipeDetails));
+        // 是否医院结算药企
+        RecipeOrder recipeOrder = null;
+        if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
+            recipeOrder = ordersMap.get(recipe.getOrderCode());
+        }
+        Boolean isHosSettle = enterpriseManager.getIsHosSettle(recipeOrder);
         try {
             List<Recipedetail> recipedetails = recipeDetailsMap.get(recipe.getRecipeId());
             if (CollectionUtils.isNotEmpty(recipeDetails)) {
@@ -304,6 +309,9 @@ public class RevisitBusinessService extends BaseService implements IRevisitBusin
                         List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(drugId, organId);
                         if (CollectionUtils.isNotEmpty(organDrugLists)) {
                             recipedetail.setDrugForm(organDrugLists.get(0).getDrugForm());
+                        }
+                        if (Objects.nonNull(recipedetail.getHisReturnSalePrice()) && isHosSettle) {
+                            recipedetail.setSalePrice(recipedetail.getHisReturnSalePrice());
                         }
                     } catch (Exception e) {
                         logger.info("obtainRevisitTraceRecipeDetailInfo error recipe:{},{}.", JSONUtils.toString(recipe), e.getMessage(), e);
