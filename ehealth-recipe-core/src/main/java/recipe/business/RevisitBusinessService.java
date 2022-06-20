@@ -311,7 +311,7 @@ public class RevisitBusinessService extends BaseService implements IRevisitBusin
                             recipedetail.setDrugForm(organDrugLists.get(0).getDrugForm());
                         }
                         if (Objects.nonNull(recipedetail.getHisReturnSalePrice()) && isHosSettle) {
-                            recipedetail.setSalePrice(recipedetail.getHisReturnSalePrice());
+                            recipedetail.setActualSalePrice(recipedetail.getHisReturnSalePrice());
                         }
                     } catch (Exception e) {
                         logger.info("obtainRevisitTraceRecipeDetailInfo error recipe:{},{}.", JSONUtils.toString(recipe), e.getMessage(), e);
