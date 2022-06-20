@@ -42,7 +42,7 @@ public class DownRecipeVO extends BaseRecipeVO implements Serializable {
     private String mpiid;
 
     @ItemProperty(alias = "处方签名图片")
-    private String signImg;
+    private String recipeSignImgUrl;
 
     @ItemProperty(alias = "出生日期")
     @Temporal(TemporalType.DATE)
@@ -68,5 +68,8 @@ public class DownRecipeVO extends BaseRecipeVO implements Serializable {
     public Date getBirthday() {
         return this.birthday;
     }
+
+    @ItemProperty(alias = "处方签（Base64图片编码）")
+    private String recipeSignImg;
 
 }
