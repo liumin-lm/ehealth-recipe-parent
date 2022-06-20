@@ -40,6 +40,7 @@ import recipe.manager.EnterpriseManager;
 import recipe.manager.OrderManager;
 import recipe.manager.RecipeManager;
 import recipe.service.RecipeOrderService;
+import recipe.third.IFileDownloadService;
 import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
 import recipe.util.ObjectCopyUtils;
@@ -49,6 +50,8 @@ import recipe.vo.base.BaseRecipeDetailVO;
 import recipe.vo.greenroom.InvoiceRecordVO;
 import recipe.vo.second.enterpriseOrder.*;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -360,22 +363,41 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                 }
                 //设置签名图片的url
                 if (StringUtils.isNotEmpty(recipe.getSignImg())) {
-                    downRecipeVO.setSignImg(recipeManager.getRecipeSignFileUrl(recipe.getSignImg(), VALID_TIME_SECOND));
+                    downRecipeVO.setRecipeSignImgUrl(recipeManager.getRecipeSignFileUrl(recipe.getSignImg(), VALID_TIME_SECOND));
+                }
+                //设置base64位图片
+                String ossId = recipe.getSignImg();
+                if (StringUtils.isNotEmpty(ossId)) {
+                    try {
+                        IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
+                        String imgStr = "data:image/jpeg;base64," + fileDownloadService.downloadImg(ossId);
+                        downRecipeVO.setRecipeSignImg(imgStr);
+                    } catch (Exception e) {
+                        logger.error("findOrderAndRecipes recipeId{}处方，下载处方笺服务异常：{}.", recipe.getRecipeId(), e.getMessage(), e);
+                    }
                 }
                 //设置订单的购药方式
                 downOrderVO.setGiveMode(recipe.getGiveMode());
                 //处方患者信息
                 PatientDTO patient = patientClient.getPatientBeanByMpiId(recipe.getMpiid());
-                logger.info("ThirdEnterpriseCallService.downLoadRecipes patient:{} .", JSONUtils.toString(patient));
+                logger.info("findOrderAndRecipes patient:{} .", JSONUtils.toString(patient));
                 downRecipeVO.setBirthday(patient.getBirthday());
                 downRecipeVO.setSexCode("1".equals(patient.getPatientSex())?"M":"F");
                 downRecipeVO.setGender(patient.getPatientSex());
                 try {
                     downRecipeVO.setSexName(DictionaryController.instance().get("eh.base.dictionary.Gender").getText(patient.getPatientSex()));
                 } catch (ControllerException e) {
-                    e.printStackTrace();
+                    logger.error("findOrderAndRecipes recipeId:{}, error ",recipe.getRecipeId(), e);
                 }
-
+                //设置处方费用
+                downRecipeVO.setRecipeFee(null);
+                BigDecimal recipeFee = new BigDecimal(BigInteger.ZERO);
+                if (null != recipe.getEnterpriseId()){
+                    DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipe.getEnterpriseId());
+                    if (null != drugsEnterprise && drugsEnterprise.getSettlementMode() == 1) {
+                        downRecipeVO.setRecipeFee(recipe.getTotalMoney());
+                    }
+                }
                 RecipeExtend recipeExtend = recipeExtendMap.get(recipe.getRecipeId());
                 ObjectCopyUtils.copyProperties(downRecipeVO, recipeExtend);
                 List<Recipedetail> recipeDetailListFromMap = recipeDetailListMap.get(recipe.getRecipeId());
@@ -387,8 +409,14 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                     if (null != saleDrugList) {
                         baseRecipeDetailVO.setSaleDrugCode(saleDrugList.getSaleDrugCode());
                     }
+                    if (null != recipeDetail.getActualSalePrice()) {
+                        recipeFee.add(recipeDetail.getActualSalePrice().multiply(new BigDecimal(recipeDetail.getUseTotalDose())).setScale(4,BigDecimal.ROUND_HALF_UP));
+                    }
                     baseRecipeDetailVOList.add(baseRecipeDetailVO);
                 });
+                if (null == downRecipeVO.getRecipeFee()) {
+                    downRecipeVO.setRecipeFee(recipeFee);
+                }
                 downRecipeVO.setRecipeDetailList(baseRecipeDetailVOList);
                 downRecipeVOList.add(downRecipeVO);
             });
