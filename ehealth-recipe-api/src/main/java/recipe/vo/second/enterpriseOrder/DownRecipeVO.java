@@ -72,4 +72,44 @@ public class DownRecipeVO extends BaseRecipeVO implements Serializable {
     @ItemProperty(alias = "处方签（Base64图片编码）")
     private String recipeSignImg;
 
+
+    @ItemProperty(alias = "开方时间")
+    @Temporal(TemporalType.DATE)
+    private Date createDate;
+
+    @ItemProperty(alias = "审核日期")
+    @Temporal(TemporalType.DATE)
+    private Date checkDate;
+
+    @ItemProperty(alias = "失效时间")
+    @Temporal(TemporalType.DATE)
+    private Date invalidTime;
+
+    @Temporal(TemporalType.DATE)
+    @JsonFormat(
+            pattern = "yyyy-MM-dd HH:mm:ss",
+            timezone = "Asia/Shanghai"
+    )
+    public Date getCreateDate() {
+        return createDate;
+    }
+
+    @Temporal(TemporalType.DATE)
+    @JsonFormat(
+            pattern = "yyyy-MM-dd HH:mm:ss",
+            timezone = "Asia/Shanghai"
+    )
+    public Date getCheckDate() {
+        return checkDate;
+    }
+
+    @Temporal(TemporalType.DATE)
+    @JsonFormat(
+            pattern = "yyyy-MM-dd HH:mm:ss",
+            timezone = "Asia/Shanghai"
+    )
+    public Date getInvalidTime() {
+        return invalidTime;
+    }
+
 }
