@@ -148,9 +148,23 @@ public interface IDrugsEnterpriseBusinessService {
     EnterpriseResultBean confirmOrder (EnterpriseConfirmOrderVO enterpriseConfirmOrderVO);
 
     /**
+     * 准备发货
+     * @param enterpriseSendOrderVO
+     * @return
+     */
+    EnterpriseResultBean readySendOrder(EnterpriseSendOrderVO enterpriseSendOrderVO);
+
+    /**
      * 订单发货接口
      * @param enterpriseSendOrderVO
      * @return
      */
     EnterpriseResultBean sendOrder(EnterpriseSendOrderVO enterpriseSendOrderVO);
+
+    /**
+     * 订单完成接口
+     * @param enterpriseSendOrderVO
+     * @return
+     */
+    EnterpriseResultBean finishOrder(EnterpriseSendOrderVO enterpriseSendOrderVO);
 }
