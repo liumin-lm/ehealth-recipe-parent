@@ -765,6 +765,6 @@ public class RecipeManager extends BaseManager {
      * @param finishDate
      */
     public void finishRecipes(List<Integer> recipeIdList, Date finishDate){
-        recipeDAO.finishRecipes(recipeIdList, finishDate);
+        recipeDAO.updateRecipeByRecipeIds(recipeIdList, finishDate);
     }
 }
