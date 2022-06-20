@@ -60,6 +60,9 @@ public class RecipeDetailExportDTO implements Serializable {
 //
 //    @ItemProperty(alias = "医保药品编码")
 //    private String medicalDrugCode;
+    @ItemProperty(alias = "his开方或预结算时返回的药品单价")
+    private BigDecimal hisReturnSalePrice;
+
 
     @Column(name = "drugId")
     public String getDrugId() {
@@ -223,4 +226,12 @@ public class RecipeDetailExportDTO implements Serializable {
         this.saleDrugCode = saleDrugCode;
     }
 
+    @Column(name = "his_return_sale_price")
+    public BigDecimal getHisReturnSalePrice() {
+        return hisReturnSalePrice;
+    }
+
+    public void setHisReturnSalePrice(BigDecimal hisReturnSalePrice) {
+        this.hisReturnSalePrice = hisReturnSalePrice;
+    }
 }
