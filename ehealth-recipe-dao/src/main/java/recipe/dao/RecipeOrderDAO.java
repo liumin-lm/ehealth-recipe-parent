@@ -694,9 +694,9 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 StringBuilder hql = new StringBuilder();
 
                 if (recipeId != null) {
-                    hql.append("SELECT d.saleDrugCode, d.drugName, d.producer, d.drugSpec, d.DrugUnit, IF(d.settlementMode = 1,d.salePrice,ifnull(d.actualSalePrice, s.price)) as price, sum(d.useTotalDose) as dose, sum(IF(d.settlementMode = 1,d.salePrice,ifnull(d.actualSalePrice, s.price)) * d.useTotalDose) as totalPrice, s.organId, s.DrugId ");
+                    hql.append("SELECT d.saleDrugCode, d.drugName, d.producer, d.drugSpec, d.DrugUnit, IF(d.settlementMode = 1,ifnull( d.his_return_sale_price, d.salePrice ),ifnull(d.actualSalePrice, s.price)) as price, sum(d.useTotalDose) as dose, sum(IF(d.settlementMode = 1,d.salePrice,ifnull(d.actualSalePrice, s.price)) * d.useTotalDose) as totalPrice, s.organId, s.DrugId ");
                 } else {
-                    hql.append("SELECT d.saleDrugCode, d.drugName, d.producer, d.drugSpec, d.DrugUnit, IF(d.settlementMode = 1,d.salePrice,ifnull(d.actualSalePrice, s.price)) as price, sum(d.useTotalDose) as dose, sum(if(o.refundFlag=1,0,IF(d.settlementMode = 1,d.salePrice,ifnull(d.actualSalePrice, s.price))) * d.useTotalDose) as totalPrice, s.organId, s.DrugId ");
+                    hql.append("SELECT d.saleDrugCode, d.drugName, d.producer, d.drugSpec, d.DrugUnit, IF(d.settlementMode = 1,ifnull( d.his_return_sale_price, d.salePrice ),ifnull(d.actualSalePrice, s.price)) as price, sum(d.useTotalDose) as dose, sum(if(o.refundFlag=1,0,IF(d.settlementMode = 1,d.salePrice,ifnull(d.actualSalePrice, s.price))) * d.useTotalDose) as totalPrice, s.organId, s.DrugId ");
                 }
                 hql.append(" FROM cdr_recipe r INNER JOIN cdr_recipedetail d ON r.recipeId = d.recipeId INNER JOIN cdr_recipeorder o ON o.OrderCode = r.OrderCode ");
                 hql.append("  LEFT JOIN base_saledruglist s ON d.drugId = s.drugId and o.EnterpriseId = s.OrganID ");
