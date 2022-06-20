@@ -758,4 +758,13 @@ public class RecipeManager extends BaseManager {
         });
         return recipes;
     }
+
+    /**
+     * 完成处方
+     * @param recipeIdList
+     * @param finishDate
+     */
+    public void finishRecipes(List<Integer> recipeIdList, Date finishDate){
+        recipeDAO.finishRecipes(recipeIdList, finishDate);
+    }
 }

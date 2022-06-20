@@ -35,6 +35,7 @@ import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.status.YesOrNoEnum;
 import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.util.MapValueUtil;
+import recipe.util.ValidateUtil;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -178,10 +179,10 @@ public class RecipeValidateUtil {
                     mapDetail.setUsingRateId(String.valueOf(usingRateDTO.getId()));
                 }
                 com.ngari.patient.dto.UsePathwaysDTO usePathwaysDTO;
-                if (null != recipedetail.getDrugType()) {
-                    usePathwaysDTO = usePathwaysService.getUsePathwaysByOrganAndKeyAndCategory(organDrug.getOrganId(), mapDetail.getOrganUsePathways(), recipedetail.getDrugType().toString());
-                } else {
+                if (ValidateUtil.integerIsEmpty(recipedetail.getDrugType())) {
                     usePathwaysDTO = usePathwaysService.findUsePathwaysByOrganAndKey(organDrug.getOrganId(), mapDetail.getOrganUsePathways());
+                } else {
+                    usePathwaysDTO = usePathwaysService.getUsePathwaysByOrganAndKeyAndCategory(organDrug.getOrganId(), mapDetail.getOrganUsePathways(), recipedetail.getDrugType().toString());
                 }
                 if (usePathwaysDTO != null) {
                     mapDetail.setUsePathwaysId(String.valueOf(usePathwaysDTO.getId()));
