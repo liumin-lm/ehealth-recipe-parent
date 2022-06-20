@@ -1,9 +1,12 @@
 package recipe.vo.base;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import ctd.schema.annotation.ItemProperty;
 import lombok.Getter;
 import lombok.Setter;
 
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 import java.io.Serializable;
 import java.util.Date;
 
@@ -53,6 +56,7 @@ public class BaseRecipeVO implements Serializable {
     private String appointDepartName;
 
     @ItemProperty(alias = "开方时间")
+    @Temporal(TemporalType.DATE)
     private Date createDate;
 
     @ItemProperty(alias = "中药贴数")
@@ -65,6 +69,7 @@ public class BaseRecipeVO implements Serializable {
     private String organDiseaseId;
 
     @ItemProperty(alias = "审核日期")
+    @Temporal(TemporalType.DATE)
     private Date checkDate;
 
     @ItemProperty(alias = "医生签名的处方PDF")
@@ -80,6 +85,7 @@ public class BaseRecipeVO implements Serializable {
     private String recipeMemo;
 
     @ItemProperty(alias = "失效时间")
+    @Temporal(TemporalType.DATE)
     private Date invalidTime;
 
     @ItemProperty(alias = "制法")
@@ -120,4 +126,31 @@ public class BaseRecipeVO implements Serializable {
 
     @ItemProperty(alias = "病历号")
     private String medicalRecordNumber;
+
+    @Temporal(TemporalType.DATE)
+    @JsonFormat(
+            pattern = "yyyy-MM-dd HH:mm:ss",
+            timezone = "Asia/Shanghai"
+    )
+    public Date getCreateDate() {
+        return createDate;
+    }
+
+    @Temporal(TemporalType.DATE)
+    @JsonFormat(
+            pattern = "yyyy-MM-dd HH:mm:ss",
+            timezone = "Asia/Shanghai"
+    )
+    public Date getCheckDate() {
+        return checkDate;
+    }
+
+    @Temporal(TemporalType.DATE)
+    @JsonFormat(
+            pattern = "yyyy-MM-dd HH:mm:ss",
+            timezone = "Asia/Shanghai"
+    )
+    public Date getInvalidTime() {
+        return invalidTime;
+    }
 }
