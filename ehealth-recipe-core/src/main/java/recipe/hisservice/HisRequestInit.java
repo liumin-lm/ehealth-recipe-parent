@@ -517,6 +517,7 @@ public class HisRequestInit {
                 orderItem.setDosageDay(dos.toString());
 
                 orderItem.setRemark(detail.getMemo());
+                orderItem.setType(detail.getType());
                 orderItem.setPack(detail.getPack());
                 //用药天数
                 orderItem.setUseDays(detail.getUseDays());

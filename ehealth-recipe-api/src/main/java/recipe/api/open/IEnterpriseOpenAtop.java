@@ -25,10 +25,26 @@ public interface IEnterpriseOpenAtop {
     EnterpriseResultBean confirmOrder (EnterpriseConfirmOrderVO enterpriseConfirmOrderVO);
 
     /**
+     * 准备发货
+     * @param enterpriseSendOrderVO
+     * @return
+     */
+    @RpcService
+    EnterpriseResultBean readySendOrder(EnterpriseSendOrderVO enterpriseSendOrderVO);
+
+    /**
      * 订单发货接口
      * @param enterpriseSendOrderVO
      * @return
      */
     @RpcService
     EnterpriseResultBean sendOrder(EnterpriseSendOrderVO enterpriseSendOrderVO);
+
+    /**
+     * 订单完成接口
+     * @param enterpriseSendOrderVO
+     * @return
+     */
+    @RpcService
+    EnterpriseResultBean finishOrder(EnterpriseSendOrderVO enterpriseSendOrderVO);
 }
