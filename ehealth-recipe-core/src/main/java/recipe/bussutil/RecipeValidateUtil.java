@@ -200,7 +200,7 @@ public class RecipeValidateUtil {
      * @param recipe
      * @return
      */
-    public static List<RecipeDetailBean> validateDrugsImplForDetail(Recipe recipe,Map<Integer, List<SaleDrugList>> recipeDetailSalePrice,RecipeOrder recipeOrder) {
+    public static List<RecipeDetailBean> validateDrugsImplForDetail(Recipe recipe,Map<Integer, List<SaleDrugList>> recipeDetailSalePrice,Integer depId) {
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
@@ -231,11 +231,13 @@ public class RecipeValidateUtil {
         }
         // 是否医院结算药企
         Boolean isHosDep = false;
-        if(Objects.nonNull(recipeOrder.getEnterpriseId())){
-            DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipeOrder.getEnterpriseId());
-            if(Objects.nonNull(drugsEnterprise) && Objects.nonNull(drugsEnterprise.getIsHosDep()) && YesOrNoEnum.YES.getType().equals(drugsEnterprise.getIsHosDep())) {
+        if(Objects.nonNull(depId)){
+            DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(depId);
+            if(Objects.nonNull(drugsEnterprise) && Objects.nonNull(drugsEnterprise.getSettlementMode()) && YesOrNoEnum.YES.getType().equals(drugsEnterprise.getSettlementMode())) {
                 isHosDep = true;
             }
+        } else {
+            isHosDep = true;
         }
         // TODO: 2020/6/19 很多需要返回药品信息的地方可以让前端根据药品id反查具体的药品信息统一展示；后端涉及返回药品信息的接口太多。返回对象也不一样
         for (RecipeDetailBean recipeDetail : detailBeans) {
