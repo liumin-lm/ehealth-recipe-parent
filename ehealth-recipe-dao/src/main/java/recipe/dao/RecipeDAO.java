@@ -260,6 +260,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     @DAOMethod(sql = "update Recipe set orderCode=:orderCode where recipeId in :recipeIds")
     public abstract void updateOrderCodeByRecipeIds(@DAOParam("recipeIds") List<Integer> recipeIds, @DAOParam("orderCode") String orderCode);
 
+    @DAOMethod(sql = "update Recipe set giveDate=:finishDate,status=6,giveFlag=1 where recipeId in :recipeIds")
+    public abstract void updateRecipeByRecipeIds(@DAOParam("recipeIds") List<Integer> recipeIds, @DAOParam("finishDate") Date finishDate);
+
     @DAOMethod(sql = "from Recipe where groupCode=:groupCode")
     public abstract List<Recipe> findRecipeByGroupCode(@DAOParam("groupCode") String groupCode);
 
@@ -4419,7 +4422,4 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
-
-    @DAOMethod(sql = "update Recipe set giveDate=:finishDate,status=6,giveFlag=1 where recipeId in :recipeIds")
-    public abstract void finishRecipes(@DAOParam("recipeIds") List<Integer> recipeIds, @DAOParam("finishDate") Date finishDate);
 }
