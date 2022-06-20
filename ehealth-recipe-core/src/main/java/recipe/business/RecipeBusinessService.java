@@ -434,18 +434,18 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         logger.info("RecipeBusinessService getByRecipeCodeAndRegisterIdAndOrganId recipeList:{}", JSON.toJSONString(recipeList));
         //查看recipeCode是否在recipeCodeList中，这里可能存在这种数据["1212","1222,1211","2312"]
         List<Recipe> result = new ArrayList<>();
-        recipeList.forEach(a->{
+        recipeList.forEach(a -> {
             if (a.getRecipeCode().contains(",")) {
                 String[] codes = a.getRecipeCode().split(",");
-                if (Arrays.asList(codes).contains(recipeCode)){
+                if (Arrays.asList(codes).contains(recipeCode)) {
                     result.add(a);
                     return;
                 }
             } else {
-               if (recipeCode.equals(a.getRecipeCode())) {
-                   result.add(a);
-                   return;
-               }
+                if (recipeCode.equals(a.getRecipeCode())) {
+                    result.add(a);
+                    return;
+                }
             }
         });
         if (CollectionUtils.isNotEmpty(result)) {
@@ -571,8 +571,15 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         if (RecipeTypeEnum.RECIPETYPE_WM.getType().equals(recipe.getRecipeType()) ||
                 RecipeTypeEnum.RECIPETYPE_CPM.getType().equals(recipe.getRecipeType())) {
             //西药，中成药
+            // 是否医院结算药企
+            Boolean isHosSettle = enterpriseManager.getIsHosSettle(recipeOrder);
             if (CollectionUtils.isNotEmpty(recipeDetails)) {
                 List<RecipeDetailBean> recipeDetailBeans = ObjectCopyUtils.convert(recipeDetails, RecipeDetailBean.class);
+                for (RecipeDetailBean recipeDetailBean : recipeDetailBeans) {
+                    if (Objects.nonNull(recipeDetailBean.getHisReturnSalePrice()) && isHosSettle) {
+                        recipeDetailBean.setActualSalePrice(recipeDetailBean.getHisReturnSalePrice());
+                    }
+                }
                 drugUsageLabelResp.setDrugUsageLabelList(recipeDetailBeans);
             }
         } else if (RecipeTypeEnum.RECIPETYPE_TCM.getType().equals(recipe.getRecipeType()) ||
