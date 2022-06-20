@@ -1212,6 +1212,9 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             reqDetail.setRecipeDetailId(detail.getRecipeDetailId());
             //单价
             reqDetail.setPrice(detail.getSalePrice());
+            if(Objects.nonNull(detail.getHisReturnSalePrice())){
+                reqDetail.setPrice(detail.getHisReturnSalePrice());
+            }
             //总价
             reqDetail.setTotalPrice(detail.getDrugCost());
 
