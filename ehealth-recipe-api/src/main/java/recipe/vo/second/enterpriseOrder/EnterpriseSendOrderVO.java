@@ -17,6 +17,8 @@ public class EnterpriseSendOrderVO implements Serializable {
     private String sendDate;
     @ItemProperty(alias = "发货人")
     private String sender;
+    @ItemProperty(alias = "完成时间")
+    private String finishDate;
     @ItemProperty(alias = "物流公司")
     private String logisticsCompany;
     @ItemProperty(alias = "快递单号")

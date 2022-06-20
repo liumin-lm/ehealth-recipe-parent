@@ -2283,9 +2283,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     @DAOMethod(sql = "update Recipe set patientStatus=0 where mpiId =:mpiId")
     public abstract void updatePatientStatusByMpiId(@DAOParam("mpiId") String mpiId);
 
-    @DAOMethod(sql = "update Recipe set sendDate=:sendDate,sender=:sender,remindFlag=1 where mpiId in (:recipeIds)")
+    @DAOMethod(sql = "update Recipe set status=:status,sendDate=:sendDate,sender=:sender,remindFlag=1 where recipeId in (:recipeIds)")
     public abstract void updateSendInfoByRecipeIds(@DAOParam("recipeIds") List<Integer> recipeIds, @DAOParam("sendDate") String sendDate,
-                                                   @DAOParam("sender") String sender);
+                                                   @DAOParam("sender") String sender, @DAOParam("status") Integer status);
 
     /**
      * 获取HOS历史处方
@@ -4420,5 +4420,6 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         return action.getResult();
     }
 
-
+    @DAOMethod(sql = "update Recipe set giveDate=:finishDate,status=6,giveFlag=1 where recipeId in :recipeIds")
+    public abstract void finishRecipes(@DAOParam("recipeIds") List<Integer> recipeIds, @DAOParam("finishDate") Date finishDate);
 }

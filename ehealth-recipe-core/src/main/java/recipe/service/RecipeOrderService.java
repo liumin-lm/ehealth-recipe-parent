@@ -1612,6 +1612,16 @@ public class RecipeOrderService extends RecipeBaseService {
             Map<Integer, String> enterpriseAccountMap = Maps.newHashMap();
             boolean tcmFlag = false;
             if (CollectionUtils.isNotEmpty(recipeList)) {
+                // 是否医院结算药企
+                Boolean isHosDep = false;
+                if(Objects.nonNull(order) && Objects.nonNull(order.getEnterpriseId())){
+                    DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
+                    if(Objects.nonNull(drugsEnterprise) && Objects.nonNull(drugsEnterprise.getSettlementMode()) && YesOrNoEnum.YES.getType().equals(drugsEnterprise.getSettlementMode())) {
+                        isHosDep = true;
+                    }
+                } else {
+                    isHosDep = true;
+                }
                 //设置地址，先取处方单address4的值，没有则取订单地址
                 order.setCompleteAddress(orderManager.getCompleteAddress(order));
 
@@ -1694,7 +1704,7 @@ public class RecipeOrderService extends RecipeBaseService {
                             LOGGER.error("计算包装系数错误, recipeId:{},{}.", recipeBean.getRecipeId(), e.getMessage(), e);
                         }
                         // 如果实际支付单价有值,代表是预结算返回的,直接赋值单价返回前端展示
-                        if(Objects.nonNull(recipedetail.getHisReturnSalePrice())){
+                        if (Objects.nonNull(recipedetail.getHisReturnSalePrice()) && isHosDep) {
                             recipeDetailBean.setSaleDrugPrice(recipedetail.getHisReturnSalePrice());
                             recipeDetailBean.setSalePrice(recipedetail.getHisReturnSalePrice());
                         }
