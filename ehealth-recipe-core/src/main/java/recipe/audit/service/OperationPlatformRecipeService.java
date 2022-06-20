@@ -46,9 +46,11 @@ import recipe.client.DoctorClient;
 import recipe.client.RecipeAuditClient;
 import recipe.constant.*;
 import recipe.dao.*;
+import recipe.enumerate.status.YesOrNoEnum;
 import recipe.enumerate.type.TakeMedicineWayEnum;
 import recipe.manager.ButtonManager;
 import recipe.manager.DepartManager;
+import recipe.manager.EnterpriseManager;
 import recipe.manager.OrderManager;
 import recipe.service.RecipeService;
 import recipe.util.ChinaIDNumberUtil;
@@ -88,6 +90,8 @@ public class OperationPlatformRecipeService {
     private RecipeAuditClient recipeAuditClient;
     @Autowired
     private OrderManager orderManager;
+    @Autowired
+    private EnterpriseManager enterpriseManager;
 
     /**
      * 审核平台 获取处方单详情
@@ -284,7 +288,34 @@ public class OperationPlatformRecipeService {
         if (recipe.getStatus() == RecipeStatusConstant.SIGN_ING_CODE_PHA || recipe.getStatus() == RecipeStatusConstant.SIGN_ERROR_CODE_PHA) {
             map.put("cancelReason", getSignReasonForChecker(recipe.getRecipeId(), recipe.getStatus()));
         }
+        RecipeOrderBean order = null;
+        RecipeOrder recipeOrder = null;
+        String orderCode = recipe.getOrderCode();
+        if (!StringUtils.isEmpty(orderCode)) {
+            recipeOrder = recipeOrderDAO.getByOrderCode(orderCode);
+            order = ObjectCopyUtils.convert(recipeOrder, RecipeOrderBean.class);
+            if (order == null) {
+                order = new RecipeOrderBean();
+                //跟前端约定好这个字段一定会给的，所以定义了-1作为无支付类型
+                order.setOrderType(-1);
+            }
+
+            Integer effective = order.getEffective() == null ? Integer.valueOf(1) : order.getEffective();
+            Integer orderType = order.getOrderType() == null ? Integer.valueOf(0) : order.getOrderType();
+            //老数据处理
+            if (Integer.valueOf(0).equals(effective)) {
+                order.setOrderType(-1);
+            } else {
+                order.setOrderType(orderType);
+            }
+            if ((null != order.getAddressID() || TakeMedicineWayEnum.TAKE_MEDICINE_STATION.getType().equals(order.getTakeMedicineWay()))) {
+                order.setCompleteAddress(orderManager.getCompleteAddress(recipeOrder));
+            }
+        }
+
         List<Recipedetail> details = detailDAO.findByRecipeId(recipeId);
+        // 是否医院结算药企
+        Boolean isHosSettle = enterpriseManager.getIsHosSettle(recipeOrder);
         try {
             Integer organId = recipe.getClinicOrgan();
             for (Recipedetail recipedetail : details) {
@@ -292,6 +323,9 @@ public class OperationPlatformRecipeService {
                 List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(drugId, organId);
                 if (CollectionUtils.isNotEmpty(organDrugLists)) {
                     recipedetail.setDrugForm(organDrugLists.get(0).getDrugForm());
+                }
+                if(Objects.nonNull(recipedetail.getHisReturnSalePrice()) && isHosSettle){
+                    recipedetail.setActualSalePrice(recipedetail.getHisReturnSalePrice());
                 }
             }
         } catch (Exception e) {
@@ -319,29 +353,6 @@ public class OperationPlatformRecipeService {
                 e.setName(drugsEnterprise.getName());
                 e.setPayModeSupport(drugsEnterprise.getPayModeSupport());
                 e.setCreateType(drugsEnterprise.getCreateType());
-            }
-        }
-        RecipeOrderBean order = null;
-        String orderCode = recipe.getOrderCode();
-        if (!StringUtils.isEmpty(orderCode)) {
-            RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(orderCode);
-            order = ObjectCopyUtils.convert(recipeOrder, RecipeOrderBean.class);
-            if (order == null) {
-                order = new RecipeOrderBean();
-                //跟前端约定好这个字段一定会给的，所以定义了-1作为无支付类型
-                order.setOrderType(-1);
-            }
-
-            Integer effective = order.getEffective() == null ? Integer.valueOf(1) : order.getEffective();
-            Integer orderType = order.getOrderType() == null ? Integer.valueOf(0) : order.getOrderType();
-            //老数据处理
-            if (Integer.valueOf(0).equals(effective)) {
-                order.setOrderType(-1);
-            } else {
-                order.setOrderType(orderType);
-            }
-            if ((null != order.getAddressID() || TakeMedicineWayEnum.TAKE_MEDICINE_STATION.getType().equals(order.getTakeMedicineWay()))) {
-                order.setCompleteAddress(orderManager.getCompleteAddress(recipeOrder));
             }
         }
 

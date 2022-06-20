@@ -32,6 +32,7 @@ import recipe.constant.DrugEnterpriseConstant;
 import recipe.dao.*;
 import recipe.enumerate.status.GiveModeEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.status.YesOrNoEnum;
 import recipe.enumerate.type.*;
 import recipe.third.IFileDownloadService;
 import recipe.util.LocalStringUtil;
@@ -94,6 +95,26 @@ public class EnterpriseManager extends BaseManager {
     private RecipeDAO recipeDAO;
     @Autowired
     private PatientClient patientClient;
+
+    /**
+     * 获取是否医院结算的药企
+     *
+     * @param recipeOrder recipeOrder
+     * @return
+     */
+    public Boolean getIsHosSettle(RecipeOrder recipeOrder) {
+        // 是否医院结算药企
+        Boolean isHosDep = false;
+        if(Objects.nonNull(recipeOrder) && Objects.nonNull(recipeOrder.getEnterpriseId())){
+            DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipeOrder.getEnterpriseId());
+            if(Objects.nonNull(drugsEnterprise) && Objects.nonNull(drugsEnterprise.getSettlementMode()) && YesOrNoEnum.YES.getType().equals(drugsEnterprise.getSettlementMode())) {
+                isHosDep = true;
+            }
+        } else {
+            isHosDep = true;
+        }
+        return isHosDep;
+    }
 
     /**
      * 到院取药获取取药点
