@@ -410,7 +410,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                         baseRecipeDetailVO.setSaleDrugCode(saleDrugList.getSaleDrugCode());
                     }
                     if (null != recipeDetail.getActualSalePrice()) {
-                        recipeFee.add(recipeDetail.getActualSalePrice().multiply(new BigDecimal(recipeDetail.getUseTotalDose())).setScale(4,BigDecimal.ROUND_HALF_UP));
+                        recipeFee.add(recipeDetail.getActualSalePrice().multiply(new BigDecimal(recipeDetail.getUseTotalDose())).setScale(4,BigDecimal.ROUND_HALF_UP)).setScale(2,BigDecimal.ROUND_HALF_UP);
                     }
                     baseRecipeDetailVOList.add(baseRecipeDetailVO);
                 });
