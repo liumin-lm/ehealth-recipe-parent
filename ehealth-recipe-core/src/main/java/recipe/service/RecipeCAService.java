@@ -82,6 +82,8 @@ public class RecipeCAService {
 
     private static final Integer CA_NEW_TYPE = new Integer(1);
 
+    private final static long VALID_TIME_SECOND = 3600 * 24 * 30;
+
     @Autowired
     private RedisClient redisClient;
     @Autowired
@@ -188,9 +190,9 @@ public class RecipeCAService {
             }
             caRequest.setExtendMap(obtainExtendMap(recipe));
             if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
-                caRequest.setPdfPath(UrlConfig.fileViewUrl + recipe.getChemistSignFile() + "?token=" + FileAuth.instance().createToken(recipe.getChemistSignFile(), 3600));
+                caRequest.setPdfPath(UrlConfig.fileViewUrl + recipe.getChemistSignFile() + "?token=" + FileAuth.instance().createToken(recipe.getChemistSignFile(), VALID_TIME_SECOND));
             } else if (StringUtils.isNotEmpty(recipe.getSignFile())) {
-                caRequest.setPdfPath(UrlConfig.fileViewUrl + recipe.getSignFile() + "?token=" + FileAuth.instance().createToken(recipe.getSignFile(), 3600));
+                caRequest.setPdfPath(UrlConfig.fileViewUrl + recipe.getSignFile() + "?token=" + FileAuth.instance().createToken(recipe.getSignFile(), VALID_TIME_SECOND));
             }
         } catch (Exception e) {
             LOGGER.warn("当前处方CA数据组装失败返回空，{}", e);
