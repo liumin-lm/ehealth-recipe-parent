@@ -26,11 +26,9 @@ import recipe.constant.RecipeRefundRoleConstant;
 import recipe.constant.RefundNodeStatusConstant;
 import recipe.core.api.greenroom.IRecipeOrderRefundService;
 import recipe.dao.*;
-import recipe.enumerate.status.OrderStateEnum;
-import recipe.enumerate.status.PayModeEnum;
-import recipe.enumerate.status.RecipeOrderStatusEnum;
-import recipe.enumerate.status.RefundNodeStatusEnum;
+import recipe.enumerate.status.*;
 import recipe.enumerate.type.PayFlagEnum;
+import recipe.manager.EnterpriseManager;
 import recipe.manager.OrderManager;
 import recipe.manager.RecipeManager;
 import recipe.manager.RecipeRefundManage;
@@ -39,10 +37,7 @@ import recipe.util.DateConversion;
 import recipe.util.ObjectCopyUtils;
 import recipe.vo.greenroom.*;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -76,6 +71,8 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
     private RecipeManager recipeManager;
     @Autowired
     private InvoiceRecordService invoiceRecordService;
+    @Autowired
+    private EnterpriseManager enterpriseManager;
 
     @Override
     public RecipeOrderRefundPageVO findRefundRecipeOrder(RecipeOrderRefundReqVO recipeOrderRefundReqVO) {
@@ -189,7 +186,14 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
         }
         List<RecipeExtend> recipeExtendList = recipeExtendDAO.queryRecipeExtendByRecipeIds(recipeIdList);
         Map<Integer, RecipeExtend> recipeExtendMap = recipeExtendList.stream().collect(Collectors.toMap(RecipeExtend::getRecipeId, a -> a, (k1, k2) -> k1));
+        // 是否医院结算药企
+        Boolean isHosSettle = enterpriseManager.getIsHosSettle(recipeOrder);
         List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeIds(recipeIdList);
+        for (Recipedetail recipedetail : recipeDetailList) {
+            if(Objects.nonNull(recipedetail.getHisReturnSalePrice()) && isHosSettle){
+                recipedetail.setActualSalePrice(recipedetail.getHisReturnSalePrice());
+            }
+        }
         Map<Integer, List<Recipedetail>> detailMap = recipeDetailList.stream().collect(Collectors.groupingBy(Recipedetail::getRecipeId));
         List<RecipeBean> recipeBeanList = new ArrayList<>();
         recipeList.forEach(recipe -> {
