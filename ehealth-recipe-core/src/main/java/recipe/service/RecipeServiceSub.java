@@ -484,6 +484,7 @@ public class RecipeServiceSub {
         for (Recipedetail detail : recipedetails) {
             //设置药品详情基础数据
             detail.setStatus(1);
+            detail.setHisReturnSalePrice(null);
             detail.setRecipeId(recipe.getRecipeId());
             detail.setCreateDt(nowDate);
             detail.setLastModify(nowDate);
