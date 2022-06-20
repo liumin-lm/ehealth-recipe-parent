@@ -55,10 +55,6 @@ public class BaseRecipeVO implements Serializable {
     @ItemProperty(alias = "挂号科室名称")
     private String appointDepartName;
 
-    @ItemProperty(alias = "开方时间")
-    @Temporal(TemporalType.DATE)
-    private Date createDate;
-
     @ItemProperty(alias = "中药贴数")
     private Integer copyNum;
 
@@ -67,10 +63,6 @@ public class BaseRecipeVO implements Serializable {
 
     @ItemProperty(alias = "机构疾病编码")
     private String organDiseaseId;
-
-    @ItemProperty(alias = "审核日期")
-    @Temporal(TemporalType.DATE)
-    private Date checkDate;
 
     @ItemProperty(alias = "医生签名的处方PDF")
     private String signFile;
@@ -83,10 +75,6 @@ public class BaseRecipeVO implements Serializable {
 
     @ItemProperty(alias = "处方备注")
     private String recipeMemo;
-
-    @ItemProperty(alias = "失效时间")
-    @Temporal(TemporalType.DATE)
-    private Date invalidTime;
 
     @ItemProperty(alias = "制法")
     private String makeMethodId;
@@ -126,31 +114,4 @@ public class BaseRecipeVO implements Serializable {
 
     @ItemProperty(alias = "病历号")
     private String medicalRecordNumber;
-
-    @Temporal(TemporalType.DATE)
-    @JsonFormat(
-            pattern = "yyyy-MM-dd HH:mm:ss",
-            timezone = "Asia/Shanghai"
-    )
-    public Date getCreateDate() {
-        return createDate;
-    }
-
-    @Temporal(TemporalType.DATE)
-    @JsonFormat(
-            pattern = "yyyy-MM-dd HH:mm:ss",
-            timezone = "Asia/Shanghai"
-    )
-    public Date getCheckDate() {
-        return checkDate;
-    }
-
-    @Temporal(TemporalType.DATE)
-    @JsonFormat(
-            pattern = "yyyy-MM-dd HH:mm:ss",
-            timezone = "Asia/Shanghai"
-    )
-    public Date getInvalidTime() {
-        return invalidTime;
-    }
 }
