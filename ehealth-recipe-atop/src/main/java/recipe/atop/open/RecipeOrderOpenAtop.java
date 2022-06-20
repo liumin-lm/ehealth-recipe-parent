@@ -140,6 +140,7 @@ public class RecipeOrderOpenAtop extends BaseAtop implements IRecipeOrderAtopSer
         ReimbursementDetailResVO reimbursementDetailVO = new ReimbursementDetailResVO();
         ReimbursementDTO reimbursementDetailDTO = recipeOrderService.findReimbursementDetail(recipeId);
         if(reimbursementDetailDTO != null){
+            reimbursementDetailVO.setRecipeType(reimbursementDetailDTO.getRecipe().getRecipeType());
             reimbursementDetailVO.setInvoiceNumber(reimbursementDetailDTO.getInvoiceNumber());
             reimbursementDetailVO.setPatientId(reimbursementDetailDTO.getRecipe().getPatientID());
             RecipeOrder recipeOrder = reimbursementDetailDTO.getRecipeOrder();
