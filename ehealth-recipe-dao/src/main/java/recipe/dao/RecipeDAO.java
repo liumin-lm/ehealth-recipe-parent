@@ -1902,7 +1902,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         StringBuilder hql = new StringBuilder("select ");
         hql.append("o.orderId,o.address1,o.address2,o.address3,o.address4,address5Text,o.streetAddress,o.receiver,o.send_type,o.RecMobile,o.CreateTime,o.ExpressFee,o.OrderCode,o.Status,o.ActualPrice,o.TotalFee,o.EnterpriseId,o.ExpectSendDate,o.ExpectSendTime,o.PayFlag,o.PayTime,o.TradeNo,o.RecipeIdList,o.dispensingTime,o.drugStoreName, ");
         hql.append("r.recipeId,r.mpiid,r.patientID,r.doctor,r.organName,r.organDiseaseName,r.doctorName,r.patientName,r.status,r.depart,r.fromflag,r.giveMode,r.recipeType,r.giveUser,r.bussSource,r.recipeCode,ce.recipe_business_type as recipeBusinessType,r.clinicOrgan , ");
-        hql.append("d.recipeDetailId,d.drugName,d.drugSpec,d.drugUnit,d.salePrice,d.actualSalePrice,d.saleDrugCode,d.producer,d.licenseNumber,d.useDose,d.useDoseUnit,d.usePathways,d.usingRate,d.useTotalDose,d.drugId ,d.organDrugCode ");
+        hql.append("d.recipeDetailId,d.drugName,d.drugSpec,d.drugUnit,d.salePrice,d.actualSalePrice,d.saleDrugCode,d.producer,d.licenseNumber,d.useDose,d.useDoseUnit,d.usePathways,d.usingRate,d.useTotalDose,d.drugId ,d.organDrugCode,d.his_return_sale_price ");
         hql.append(" ,ce.decoctionId,ce.decoctionText ");
 //        hql.append(" ,drug.organDrugCode,drug.medicalDrugCode  ");
 
