@@ -60,14 +60,13 @@ public class RecipeRetryService {
                 return settleService.recipeSettle(req);
             });
         } catch (Exception e) {
-            LOGGER.info("三次后还是异常");
-            throw new DAOException(609, "重试三次后还是接口异常");
+            return retrySettle(req);
         }
         return resTO;
     }
 
 
-    private PayNotifyResTO retrySettle(PayNotifyReqTO req) throws Exception {
+    private PayNotifyResTO retrySettle(PayNotifyReqTO req) {
         // 根据机构配置获取是否调用结算反查接口
         Boolean isRetrySettle = configurationClient.getValueBooleanCatch(Integer.valueOf(req.getOrganID()), "isRetrySettle", false);
         if (!isRetrySettle) {
@@ -75,7 +74,7 @@ public class RecipeRetryService {
             throw new DAOException(609, "重试三次后还是接口异常");
         }
         CashSettleResultReqTo cashSettleResultReqTo = CashSettleResultReqTo.builder().orderCode(req.getOrderCode()).organId(Integer.valueOf(req.getOrganID())).recipeCode(req.getRecipeCodeS()).build();
-        Retryer<HisResponseTO> retryer = RetryerBuilder.<HisResponseTO>newBuilder()
+        Retryer<PayNotifyResTO> retryer = RetryerBuilder.<PayNotifyResTO>newBuilder()
                 //抛出指定异常重试
                 .retryIfExceptionOfType(Exception.class)
                 //停止重试策略
@@ -89,16 +88,15 @@ public class RecipeRetryService {
         resTO.setMsgCode(0);
         try {
 
+            PayNotifyResTO finalResTO = resTO;
             resTO = retryer.call(() -> {
                 LOGGER.info("RecipeSettleRetryService.retrySettle retry");
                 HisResponseTO hisResponseTO = hisService.cashSettleResult(cashSettleResultReqTo);
-                PayNotifyResTO resTO1 = new PayNotifyResTO();
                 if("-1".equals(hisResponseTO.getMsgCode())){
-
-                    resTO1.setMsgCode(-1);
+                    finalResTO.setMsgCode(-1);
                 }
 
-                return resTO1;
+                return finalResTO;
             });
         } catch (Exception e) {
             LOGGER.info("RecipeSettleRetryService.retrySettle retry Exception OrderCode={}",req.getOrderCode());
