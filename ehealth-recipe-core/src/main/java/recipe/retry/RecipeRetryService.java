@@ -88,17 +88,17 @@ public class RecipeRetryService {
         PayNotifyResTO resTO = new PayNotifyResTO();
         resTO.setMsgCode(0);
         try {
-            PayNotifyResTO finalResTO = resTO;
+
             resTO = retryer.call(() -> {
                 LOGGER.info("RecipeSettleRetryService.retrySettle retry");
                 HisResponseTO hisResponseTO = hisService.cashSettleResult(cashSettleResultReqTo);
-                PayNotifyResTO finalResTO1 = finalResTO;
+                PayNotifyResTO resTO1 = new PayNotifyResTO();
                 if("-1".equals(hisResponseTO.getMsgCode())){
 
-                    finalResTO1.setMsgCode(-1);
+                    resTO1.setMsgCode(-1);
                 }
 
-                return finalResTO1;
+                return resTO1;
             });
         } catch (Exception e) {
             LOGGER.info("RecipeSettleRetryService.retrySettle retry Exception OrderCode={}",req.getOrderCode());
