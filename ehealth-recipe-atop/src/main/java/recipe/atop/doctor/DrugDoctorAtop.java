@@ -34,7 +34,6 @@ import recipe.core.api.IStockBusinessService;
 import recipe.util.ByteUtils;
 import recipe.util.ObjectCopyUtils;
 import recipe.util.RecipeUtil;
-import recipe.vo.doctor.*;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -49,7 +48,7 @@ import java.util.stream.Collectors;
 public class DrugDoctorAtop extends BaseAtop {
 
     @Autowired
-    private IStockBusinessService iDrugEnterpriseBusinessService;
+    private IStockBusinessService iStockBusinessService;
     @Autowired
     private IRecipeBusinessService recipeBusinessService;
     @Autowired
@@ -67,7 +66,7 @@ public class DrugDoctorAtop extends BaseAtop {
     @RpcService
     public List<DrugForGiveModeListVO>  drugForGiveMode(DrugQueryVO drugQueryVO) {
         validateAtop(drugQueryVO, drugQueryVO.getRecipeDetails(), drugQueryVO.getOrganId());
-        List<DrugForGiveModeVO> list = iDrugEnterpriseBusinessService.drugForGiveMode(drugQueryVO);
+        List<DrugForGiveModeVO> list = iStockBusinessService.drugForGiveMode(drugQueryVO);
         Map<String, List<DrugForGiveModeVO>> returnMap = list.stream().collect(Collectors.groupingBy(DrugForGiveModeVO::getGiveModeKey));
         Set<String> strings = returnMap.keySet();
         List<DrugForGiveModeListVO> result = Lists.newArrayList();
@@ -99,7 +98,7 @@ public class DrugDoctorAtop extends BaseAtop {
             recipedetail.setUseTotalDose(1D);
             detailList.add(recipedetail);
         });
-        return iDrugEnterpriseBusinessService.stockList(drugQueryVO.getOrganId(), drugQueryVO.getRecipeType(), drugQueryVO.getDecoctionId(), detailList);
+        return iStockBusinessService.stockList(drugQueryVO.getOrganId(), drugQueryVO.getRecipeType(), drugQueryVO.getDecoctionId(), detailList);
     }
 
     /**
@@ -134,7 +133,7 @@ public class DrugDoctorAtop extends BaseAtop {
             recipedetail.setPharmacyId(drugQueryVO.getPharmacyId());
             detailList.add(recipedetail);
         });
-        List<EnterpriseStock> result = iDrugEnterpriseBusinessService.drugRecipeStock(drugQueryVO.getOrganId(), drugQueryVO.getRecipeType(), drugQueryVO.getDecoctionId(), detailList);
+        List<EnterpriseStock> result = iStockBusinessService.drugRecipeStock(drugQueryVO.getOrganId(), drugQueryVO.getRecipeType(), drugQueryVO.getDecoctionId(), detailList);
         logger.info("DrugDoctorAtop drugRecipeStock result={}", JSONArray.toJSONString(result));
         if (CollectionUtils.isEmpty(result)) {
             return false;
@@ -173,7 +172,7 @@ public class DrugDoctorAtop extends BaseAtop {
         if (null == recipeExtendBean) {
             recipeExtendBean = new RecipeExtendBean();
         }
-        List<EnterpriseStock> result = iDrugEnterpriseBusinessService.stockList(recipe, recipeExtendBean.getDecoctionId(), detailList);
+        List<EnterpriseStock> result = iStockBusinessService.stockList(recipe, recipeExtendBean.getDecoctionId(), detailList);
         result.forEach(a -> {
             a.setDrugsEnterprise(null);
             a.setDrugInfoList(null);
