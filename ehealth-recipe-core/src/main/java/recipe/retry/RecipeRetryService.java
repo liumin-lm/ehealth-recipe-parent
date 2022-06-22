@@ -19,6 +19,7 @@ import recipe.client.IConfigurationClient;
 import recipe.presettle.settle.IRecipeSettleService;
 
 import javax.annotation.Resource;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -66,7 +67,7 @@ public class RecipeRetryService {
     }
 
 
-    private PayNotifyResTO retrySettle(PayNotifyReqTO req) {
+    public PayNotifyResTO retrySettle(PayNotifyReqTO req) {
         // 根据机构配置获取是否调用结算反查接口
         Boolean isRetrySettle = configurationClient.getValueBooleanCatch(Integer.valueOf(req.getOrganID()), "isRetrySettle", false);
         if (!isRetrySettle) {
@@ -80,7 +81,7 @@ public class RecipeRetryService {
                 //停止重试策略
                 .withStopStrategy(StopStrategies.stopAfterAttempt(2))
                 //每次等待重试时间间隔
-                .withWaitStrategy(WaitStrategies.fixedWait(1, TimeUnit.SECONDS))
+                .withWaitStrategy(WaitStrategies.fixedWait(6000, TimeUnit.MILLISECONDS))
                 .build();
 
 
