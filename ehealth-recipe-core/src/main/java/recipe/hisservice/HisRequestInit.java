@@ -591,6 +591,7 @@ public class HisRequestInit {
             requestTO.setMobile(patient.getMobile());
             requestTO.setIsMedicalSettle("0");
             if (recipe.getOrderCode() != null) {
+                requestTO.setOrderCode(recipe.getOrderCode());
                 RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
                 RecipeOrder order = orderDAO.getByOrderCode(recipe.getOrderCode());
 
@@ -668,6 +669,7 @@ public class HisRequestInit {
                             requestTO.setRegisterFeeNo(order.getRegisterFeeNo());
                             requestTO.setTcmFee(order.getTcmFee());
                             requestTO.setTcmFeeNo(order.getTcmFeeNo());
+                            requestTO.setOrderCode(order.getOrderCode());
                         }
                     }catch (Exception e){
                         LOGGER.error("MedicalPreSettleService 代缴费用有误");

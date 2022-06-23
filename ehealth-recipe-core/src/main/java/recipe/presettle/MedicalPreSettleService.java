@@ -158,6 +158,7 @@ public class MedicalPreSettleService implements IRecipePreSettleService {
                     request.setRegisterFeeNo(recipeOrder.getRegisterFeeNo());
                     request.setTcmFee(recipeOrder.getTcmFee());
                     request.setTcmFeeNo(recipeOrder.getTcmFeeNo());
+                    request.setOrderCode(recipeOrder.getOrderCode());
                 }
             } catch (Exception e) {
                 LOGGER.error("MedicalPreSettleService 代缴费用有误");
