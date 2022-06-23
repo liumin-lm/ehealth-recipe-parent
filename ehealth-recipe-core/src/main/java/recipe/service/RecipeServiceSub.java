@@ -189,10 +189,7 @@ public class RecipeServiceSub {
         }
         Recipe recipe = ObjectCopyUtils.convert(recipeBean, Recipe.class);
         List<Recipedetail> details = ObjectCopyUtils.convert(detailBeanList, Recipedetail.class);
-
         setRecipeMoreInfo(recipe, details, recipeBean, flag);
-        // 不用审核
-        recipe.setAuditState(0);
         // 保存接方状态
         recipe.setSupportMode(this.getSupportMode(recipe.getOriginClinicOrgan()));
         Integer recipeId = recipeDAO.updateOrSaveRecipeAndDetail(recipe, details, false);
@@ -2830,9 +2827,6 @@ public class RecipeServiceSub {
         if (!cancelFlag && Integer.valueOf(1).equals(recipe.getPayFlag())) {
             msg = "该处方单用户已支付，不能进行撤销操作";
         }
-        /*if (!cancelFlag && Integer.valueOf(1).equals(recipe.getChooseFlag())) {
-            msg = "患者已选择购药方式，不能进行撤销操作";
-        }*/
         if (1 == flag) {
             if (StringUtils.isEmpty(name)) {
                 msg = "姓名不能为空";
@@ -2858,33 +2852,37 @@ public class RecipeServiceSub {
         boolean result = true;
         //HIS消息发送
         StringBuilder memo = new StringBuilder();
-        if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipeMode)) {
-            boolean succFlag = hisService.cancelRecipeImpl(recipeId, null, CommonConstant.RECIPE_CANCEL_TYPE.toString());
-            if (succFlag) {
-                memo.append("HIS推送成功");
-            } else {
-                memo.append("HIS不允许撤销");
-                result = false;
-            }
-        } else if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipeMode)) {
-            memo.append("aldyf推送成功");
-            hisMqService.recipeStatusToHis(HisMqRequestInit.initRecipeStatusToHisReq(recipe, HisBussConstant.TOHIS_RECIPE_STATUS_REVOKE));
-            OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
-            List<DrugsEnterprise> drugsEnterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(recipe.getClinicOrgan(), 1);
-            for (DrugsEnterprise drugsEnterprise : drugsEnterprises) {
-                if ("aldyf".equals(drugsEnterprise.getCallSys())) {
-                    //向阿里大药房推送处方撤销通知
-                    DrugEnterpriseResult drugEnterpriseResult = null;
-                    try {
-                        AldyfRemoteService aldyfRemoteService = ApplicationUtils.getRecipeService(AldyfRemoteService.class);
-                        drugEnterpriseResult = aldyfRemoteService.updatePrescriptionStatus(recipe.getRecipeCode(), AlDyfRecipeStatusConstant.RETREAT);
-                        LOGGER.info("向阿里大药房推送处方撤销通知,{}", JSONUtils.toString(drugEnterpriseResult));
-                    } catch (Exception e) {
-                        LOGGER.warn("cancelRecipeImpl  向阿里大药房推送处方撤销通知,{}", JSONUtils.toString(drugEnterpriseResult), e);
+
+        if (Integer.valueOf(1).equals(recipe.getWriteHisState()) || Integer.valueOf(3).equals(recipe.getWriteHisState())) {
+            if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipeMode)) {
+                boolean succFlag = hisService.cancelRecipeImpl(recipeId, null, CommonConstant.RECIPE_CANCEL_TYPE.toString());
+                if (succFlag) {
+                    memo.append("HIS推送成功");
+                } else {
+                    memo.append("HIS不允许撤销");
+                    result = false;
+                }
+            } else if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipeMode)) {
+                memo.append("aldyf推送成功");
+                hisMqService.recipeStatusToHis(HisMqRequestInit.initRecipeStatusToHisReq(recipe, HisBussConstant.TOHIS_RECIPE_STATUS_REVOKE));
+                OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
+                List<DrugsEnterprise> drugsEnterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(recipe.getClinicOrgan(), 1);
+                for (DrugsEnterprise drugsEnterprise : drugsEnterprises) {
+                    if ("aldyf".equals(drugsEnterprise.getCallSys())) {
+                        //向阿里大药房推送处方撤销通知
+                        DrugEnterpriseResult drugEnterpriseResult = null;
+                        try {
+                            AldyfRemoteService aldyfRemoteService = ApplicationUtils.getRecipeService(AldyfRemoteService.class);
+                            drugEnterpriseResult = aldyfRemoteService.updatePrescriptionStatus(recipe.getRecipeCode(), AlDyfRecipeStatusConstant.RETREAT);
+                            LOGGER.info("向阿里大药房推送处方撤销通知,{}", JSONUtils.toString(drugEnterpriseResult));
+                        } catch (Exception e) {
+                            LOGGER.warn("cancelRecipeImpl  向阿里大药房推送处方撤销通知,{}", JSONUtils.toString(drugEnterpriseResult), e);
+                        }
                     }
                 }
             }
         }
+
         //通知his失败
         if (!result) {
             rMap.put("result", false);

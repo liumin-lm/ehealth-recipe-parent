@@ -6,6 +6,8 @@ import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.HisSendResTO;
 import com.ngari.recipe.recipe.model.OrderRepTO;
+import com.ngari.revisit.RevisitAPI;
+import com.ngari.revisit.process.service.IRecipeOnLineRevisitService;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
@@ -22,7 +24,7 @@ import recipe.constant.ErrorCode;
 import recipe.constant.RecipeMsgEnum;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeExtendDAO;
-import recipe.enumerate.status.YesOrNoEnum;
+import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.manager.EmrRecipeManager;
 import recipe.manager.RecipeDetailManager;
 import recipe.service.DrugsEnterpriseService;
@@ -32,7 +34,6 @@ import recipe.service.RecipeMsgService;
 import recipe.util.LocalStringUtil;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -54,6 +55,8 @@ public class RecipeToHisCallbackService {
     private DrugsEnterpriseService drugsEnterpriseService;
     @Autowired
     private RecipeExtendDAO recipeExtendDAO;
+    @Autowired
+    private RecipeDAO recipeDAO;
     @Autowired
     private RecipeDetailManager recipeDetailManager;
     /**
@@ -124,6 +127,9 @@ public class RecipeToHisCallbackService {
             }
             if (Objects.nonNull(response.getRecipeFee())) {
                 result.setTotalMoney(response.getRecipeFee());
+            }
+            if (null == response.getWriteHisState()) {
+                result.setWriteHisState(3);
             }
             String recipeCostNumber = StringUtils.isNotBlank(response.getRecipeCostNumber()) ? response.getRecipeCostNumber() : recipeNo;
             result.setRecipeCostNumber(recipeCostNumber);
@@ -199,7 +205,30 @@ public class RecipeToHisCallbackService {
     @LogRecord
     public void sendFail(HisSendResTO response) {
         LOGGER.error("recipeSend recive fail. recipeId={}, response={}", response.getRecipeId(), JSONUtils.toString(response));
-        // 给申请医生，患者发送推送消息
-        HisCallBackService.checkPassFail(Integer.valueOf(response.getRecipeId()), response.getMsgCode(), response.getMsg());
+        if (StringUtils.isEmpty(response.getRecipeId())) {
+            return;
+        }
+        Integer recipeId = Integer.valueOf(response.getRecipeId());
+        //日志记录
+        RecipeLogService.saveRecipeLog(recipeId, RecipeStatusEnum.RECIPE_STATUS_CHECKING_HOS.getType(), RecipeStatusEnum.RECIPE_STATUS_HIS_FAIL.getType()
+                , "HIS审核返回：写入his失败[" + response.getMsgCode() + ":|" + response.getMsg() + "]");
+        Recipe updateRecipe = new Recipe();
+        updateRecipe.setRecipeId(recipeId);
+        updateRecipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_HIS_FAIL.getType());
+        updateRecipe.setWriteHisState(2);
+        recipeDAO.updateNonNullFieldByPrimaryKey(updateRecipe);
+        RecipeExtend recipeExtend = new RecipeExtend();
+        recipeExtend.setRecipeId(recipeId);
+        recipeExtend.setCancellation(response.getMsg());
+        recipeExtendDAO.updateNonNullFieldByPrimaryKey(recipeExtend);
+        //发送消息
+        RecipeMsgService.batchSendMsg(recipeId, RecipeStatusEnum.RECIPE_STATUS_HIS_FAIL.getType());
+        //复诊开方HIS确认失败 发送环信消息
+        Recipe recipe = recipeDAO.get(recipeId);
+        if (null != recipe && new Integer(2).equals(recipe.getBussSource())) {
+            LOGGER.info("checkPassFail 复诊开方HIS确认失败 发送环信消息 recipeId:{}", recipeId);
+            IRecipeOnLineRevisitService recipeOnLineRevisitService = RevisitAPI.getService(IRecipeOnLineRevisitService.class);
+            recipeOnLineRevisitService.sendRecipeDefeat(recipe.getRecipeId(), recipe.getClinicId());
+        }
     }
 }

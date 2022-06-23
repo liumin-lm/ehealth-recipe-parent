@@ -527,11 +527,9 @@ public class RecipeService extends RecipeBaseService {
     @RpcService
     @LogRecord
     public Integer saveRecipeData(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList) {
-        recipeBean.setSubState(RecipeStateEnum.NONE.getType());
-        recipeBean.setProcessState(RecipeStateEnum.NONE.getType());
-        recipeBean.setAuditState(RecipeAuditStateEnum.DEFAULT.getType());
         Integer recipeId = recipeServiceSub.saveRecipeDataImpl(recipeBean, detailBeanList, 1);
         updateRevisitOrConsultInfo(recipeId, recipeBean.getBussSource(), recipeBean.getClinicId());
+        RecipeBusiThreadPool.execute(() -> drugManager.saveCommonDrug(recipeId));
         if (RecipeBussConstant.FROMFLAG_HIS_USE.equals(recipeBean.getFromflag())) {
             //生成订单数据，与 HosPrescriptionService 中 createPrescription 方法一致
             HosPrescriptionService service = AppContextHolder.getBean("hosPrescriptionService", HosPrescriptionService.class);
@@ -544,7 +542,6 @@ public class RecipeService extends RecipeBaseService {
             recipeBean.setPayFlag(PayConstant.PAY_FLAG_NOT_PAY);
             service.createBlankOrderForHos(recipeBean, hospitalRecipeDTO);
         }
-        RecipeBusiThreadPool.execute(() -> drugManager.saveCommonDrug(recipeId));
         return recipeId;
     }
 

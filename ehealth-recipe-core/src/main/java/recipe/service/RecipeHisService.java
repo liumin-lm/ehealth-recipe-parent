@@ -71,6 +71,7 @@ import recipe.dao.bean.DrugInfoHisBean;
 import recipe.drugsenterprise.AccessDrugEnterpriseService;
 import recipe.drugsenterprise.CommonRemoteService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
+import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.hisservice.HisRequestInit;
 import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.hisservice.RecipeToHisService;
@@ -117,7 +118,7 @@ public class RecipeHisService extends RecipeBaseService {
     @Autowired
     private IRevisitService consultService;
     @Resource
-    RecipeRetryService recipeRetryService;
+    private RecipeRetryService recipeRetryService;
     @Resource
     private PharmacyTcmDAO pharmacyTcmDAO;
     @Autowired
@@ -136,6 +137,8 @@ public class RecipeHisService extends RecipeBaseService {
     private OrderManager orderManager;
     @Autowired
     private RecipeParameterDao recipeParameterDao;
+    @Autowired
+    private RecipeDAO recipeDAO;
 
     /**
      * 发送处方
@@ -146,20 +149,22 @@ public class RecipeHisService extends RecipeBaseService {
     @LogRecord
     public boolean recipeSendHis(Integer recipeId, Integer otherOrganId) {
         boolean result = true;
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         LOGGER.info("recipeSendHis recipe={}", JSONUtils.toString(recipe));
         if (null == recipe) {
             return false;
         }
+        Recipe updateRecipe = new Recipe();
+        updateRecipe.setRecipeId(recipeId);
+        updateRecipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_CHECKING_HOS.getType());
+        updateRecipe.setWriteHisState(1);
+        recipeDAO.updateNonNullFieldByPrimaryKey(updateRecipe);
         //中药处方由于不需要跟HIS交互，故读写分离后有可能查询不到数据
         if (skipHis(recipe)) {
             LOGGER.info("skip his!!! recipeId={}", recipeId);
             doHisReturnSuccess(recipe);
             return true;
         }
-
         Integer sendOrganId = (null == otherOrganId) ? recipe.getClinicOrgan() : otherOrganId;
         if (isHisEnable(sendOrganId)) {
             //推送处方
@@ -210,19 +215,6 @@ public class RecipeHisService extends RecipeBaseService {
             }
         }
         request.setOrganID(sendOrganId.toString());
-        LOGGER.info("recipeHisService recipeId:{} request:{}", recipeId, JSONUtils.toString(request));
-        // 处方独立出来后,his根据域名来判断回调模块
-        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-        // 传输煎发
-        if (StringUtils.isNotBlank(recipeExtend.getDecoctionId())) {
-            DrugDecoctionWayDao drugDecoctionWayDao = DAOFactory.getDAO(DrugDecoctionWayDao.class);
-            DecoctionWay decoctionWay = drugDecoctionWayDao.get(Integer.parseInt(recipeExtend.getDecoctionId()));
-            if (null != decoctionWay) {
-                request.setDecoctionCode(decoctionWay.getDecoctionCode());
-                request.setDecoctionText(decoctionWay.getDecoctionText());
-            }
-        }
         service.recipeSend(request);
     }
 
@@ -250,13 +242,11 @@ public class RecipeHisService extends RecipeBaseService {
                 orderRepTO.setPatientID(DateConversion.getDateFormatter(now, "yyMMdd") + str);
                 orderRepTO.setRegisterID(orderRepTO.getPatientID());
             }
-//            //生成处方编号，不需要通过HIS去产生
-//            String recipeCodeStr = DigestUtil.md5For16(recipe.getClinicOrgan() + recipe.getMpiid() + Calendar.getInstance().getTimeInMillis());
-//            orderRepTO.setRecipeNo(recipeCodeStr);
         }
         orderRepTO.setRecipeNo(String.valueOf(recipe.getRecipeId()));
         repList.add(orderRepTO);
         response.setData(repList);
+        response.setWriteHisState(0);
         service.sendSuccess(response);
         LOGGER.info("skip his success!!! recipeId={}", recipe.getRecipeId());
     }
@@ -569,9 +559,6 @@ public class RecipeHisService extends RecipeBaseService {
         }
         return true;
     }
-
-    @Autowired
-    private RecipeDAO recipeDAO;
 
     /**
      * 处方批量查询

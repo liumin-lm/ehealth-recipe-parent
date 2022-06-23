@@ -163,6 +163,7 @@ public class OrganDrugListManager extends BaseManager {
                 .stream().collect(Collectors.groupingBy(OrganDrugList::getOrganDrugCode));
     }
 
+
     /**
      * 根据 drugId 查询药品，用drugId+organDrugCode为key
      *
@@ -178,6 +179,26 @@ public class OrganDrugListManager extends BaseManager {
         logger.info("OrganDrugListManager getOrganDrugByIdAndCode organDrugList= {}", JSON.toJSONString(organDrugList));
         return Optional.ofNullable(organDrugList).orElseGet(Collections::emptyList)
                 .stream().collect(Collectors.toMap(k -> k.getDrugId() + k.getOrganDrugCode(), a -> a, (k1, k2) -> k1));
+    }
+
+    /**
+     * 替换RecipeDetail中的机构药品编号
+     *
+     * @param organId          机构id
+     * @param recipeDetailList 处方明细
+     */
+    public void setDrugItemCode(int organId, List<Recipedetail> recipeDetailList) {
+        if (CollectionUtils.isEmpty(recipeDetailList)) {
+            return;
+        }
+        List<Integer> drugIds = recipeDetailList.stream().map(Recipedetail::getDrugId).distinct().collect(Collectors.toList());
+        Map<String, OrganDrugList> map = this.getOrganDrugByIdAndCode(organId, drugIds);
+        recipeDetailList.forEach(a -> {
+            OrganDrugList organDrug = map.get(a.getDrugId() + a.getOrganDrugCode());
+            if (null != organDrug) {
+                a.setDrugItemCode(organDrug.getDrugItemCode());
+            }
+        });
     }
 
     /**

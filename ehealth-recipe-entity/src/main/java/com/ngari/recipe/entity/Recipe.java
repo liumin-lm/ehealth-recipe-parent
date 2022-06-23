@@ -339,6 +339,19 @@ public class Recipe implements Serializable {
     @ItemProperty(alias = "线下处方名称")
     private String offlineRecipeName;
 
+
+    @ItemProperty(alias = "0：默认(未写入)，1：写入中，2：写入失败，3：写入成功")
+    private Integer writeHisState;
+
+    @Column(name = "write_his_state")
+    public Integer getWriteHisState() {
+        return writeHisState;
+    }
+
+    public void setWriteHisState(Integer writeHisState) {
+        this.writeHisState = writeHisState;
+    }
+
     @Column(name = "medical_flag")
     public Integer getMedicalFlag() {
         return medicalFlag;
