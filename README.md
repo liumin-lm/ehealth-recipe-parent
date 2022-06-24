@@ -32,5 +32,9 @@ updateRecipeTrannckingInfo 基础服务更新处方物流状态
 updateRecipeStatus 浙江省互联网定时将确认中处方修改为审核中或者待处理 
 getOrderDetail 订单页获取订单详情
 eh.recipeService  findPatientRecipesByIdsAndDepId 确认订单获取处方详情
+互联网处方新增接口流程：
+sendRecipeToHIS->recipeStatusToHis(MQ发送消息)->HisMQService.recordRecipeTmpByOns(MQ接收消息)->noticeHisRecipeInfo(接口通知his平台新增了处方)
+->his通过QueryRecipe反查平台处方信息新增到his
+->RecipeStatusFromHisObserver his将处方状态通知平台
 ```
 ### End

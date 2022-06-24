@@ -19,7 +19,7 @@ import static javax.persistence.GenerationType.IDENTITY;
 @Schema
 @Table(name = "recipe_rules_drugcorrelation")
 @Access(AccessType.PROPERTY)
-public class RecipeRulesDrugcorrelation implements Serializable {
+public class RecipeRulesDrugCorrelation implements Serializable {
 
     private static final long serialVersionUID = -6170665419368031590L;
 

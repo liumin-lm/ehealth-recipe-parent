@@ -578,12 +578,13 @@ public class HisRecipeManager extends BaseManager {
      * @return
      * @throws Exception
      */
-    public RecipeInfoDTO pushRecipe(RecipeInfoDTO recipePdfDTO, Integer pushType, Map<Integer, PharmacyTcm> pharmacyIdMap, Integer sysType) throws Exception {
+    public RecipeInfoDTO pushRecipe(RecipeInfoDTO recipePdfDTO, Integer pushType, Map<Integer, PharmacyTcm> pharmacyIdMap,
+                                    Integer sysType, String giveModeKey) throws Exception {
         EmrDetailDTO emrDetail = emrDetail(recipePdfDTO);
         if (CommonConstant.RECIPE_DOCTOR_TYPE.equals(sysType)) {
-            return offlineRecipeClient.pushRecipe(pushType, recipePdfDTO, emrDetail, pharmacyIdMap);
+            return offlineRecipeClient.pushRecipe(pushType, recipePdfDTO, emrDetail, pharmacyIdMap, giveModeKey);
         } else {
-            return offlineRecipeClient.patientPushRecipe(pushType, recipePdfDTO, emrDetail, pharmacyIdMap);
+            return offlineRecipeClient.patientPushRecipe(pushType, recipePdfDTO, emrDetail, pharmacyIdMap, giveModeKey);
         }
     }
 
