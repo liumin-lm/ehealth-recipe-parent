@@ -52,7 +52,7 @@ public class DrugManager extends BaseManager {
     @Autowired
     private DispensatoryDAO dispensatoryDAO;
     @Autowired
-    private RecipeRulesDrugcorrelationDao recipeRulesDrugcorrelationDao;
+    private RecipeRulesDrugCorrelationDAO recipeRulesDrugcorrelationDao;
     @Autowired
     private DrugCommonDAO drugCommonDAO;
     @Autowired
@@ -416,9 +416,9 @@ public class DrugManager extends BaseManager {
      * @param ruleId
      * @return
      */
-    public List<RecipeRulesDrugcorrelation> getListDrugRules(List<Integer> list, Integer ruleId) {
+    public List<RecipeRulesDrugCorrelation> getListDrugRules(List<Integer> list, Integer ruleId) {
         logger.info("DrugManager.getListDrugRules req list={} ruleId={}", JSON.toJSONString(list), ruleId);
-        List<RecipeRulesDrugcorrelation> result = new ArrayList<>();
+        List<RecipeRulesDrugCorrelation> result = new ArrayList<>();
         if (CollectionUtils.isEmpty(list)) {
             return result;
         }
@@ -541,5 +541,9 @@ public class DrugManager extends BaseManager {
         });
         logger.info("DrugManager saveCommonDrug end recipe={}", recipe.getRecipeId());
         return recipe.getRecipeId();
+    }
+
+    public List<RecipeRulesDrugCorrelation> findRulesByDrugIdAndRuleId(Integer drugId, Integer ruleId) {
+        return recipeRulesDrugcorrelationDao.findRulesByDrugIdAndRuleId(drugId, ruleId);
     }
 }
