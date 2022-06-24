@@ -260,22 +260,6 @@ public class OrganDrugListManager extends BaseManager {
         return null;
     }
 
-    /***
-     * 比对获取开药单位
-     * @param drugUnit 开药单位
-     * @param organDrug 机构药品
-     * @return 药品单位
-     */
-    public static String getDrugUnit(String drugUnit, OrganDrugList organDrug) {
-        if (StringUtils.isEmpty(drugUnit)) {
-            return null;
-        }
-        if (drugUnit.equals(organDrug.getUnit())) {
-            return organDrug.getUnit();
-        }
-        return null;
-    }
-
     /**
      * 校验his 药品规则，靶向药
      *
