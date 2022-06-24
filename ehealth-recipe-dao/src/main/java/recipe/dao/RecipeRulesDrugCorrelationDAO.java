@@ -22,12 +22,12 @@ public abstract class RecipeRulesDrugCorrelationDAO extends HibernateSupportDele
         this.setKeyField("id");
     }
 
-    @DAOMethod(sql = "From RecipeRulesDrugcorrelation where drugId in (:drugIds) and medicationRulesId=:ruleId ")
+    @DAOMethod(sql = "From RecipeRulesDrugCorrelation where drugId in (:drugIds) and medicationRulesId=:ruleId ")
     public abstract List<RecipeRulesDrugCorrelation> findListRules(@DAOParam("drugIds") List<Integer> drugIds,
                                                                    @DAOParam("ruleId") Integer ruleId);
 
 
-    @DAOMethod(sql = "From RecipeRulesDrugcorrelation where drugId = :drugId and medicationRulesId = :ruleId ")
-    public abstract List<RecipeRulesDrugCorrelation> findRulesByDrugIdAndRuleId(@DAOParam("drugIds") Integer drugId,
+    @DAOMethod(sql = "From RecipeRulesDrugCorrelation where drugId = :drugId and medicationRulesId = :ruleId ")
+    public abstract List<RecipeRulesDrugCorrelation> findRulesByDrugIdAndRuleId(@DAOParam("drugId") Integer drugId,
                                                                                 @DAOParam("ruleId") Integer ruleId);
 }
