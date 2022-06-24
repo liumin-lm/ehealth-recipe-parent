@@ -36,5 +36,7 @@ eh.recipeService  findPatientRecipesByIdsAndDepId 确认订单获取处方详情
 sendRecipeToHIS->recipeStatusToHis(MQ发送消息)->HisMQService.recordRecipeTmpByOns(MQ接收消息)->noticeHisRecipeInfo(接口通知his平台新增了处方)
 ->his通过QueryRecipe反查平台处方信息新增到his
 ->RecipeStatusFromHisObserver his将处方状态通知平台
+findRecipesForPatientAndTabStatusNew 患者端列表展示
+getPatientRecipeById 患者端处方详情
 ```
 ### End
