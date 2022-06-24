@@ -698,6 +698,9 @@ public class OfflineRecipeClient extends BaseClient {
             });
         }
         recipeDTO.setRecipeDetails(detailList);
+        RecipeOrderBean recipeOrderBean = new RecipeOrderBean();
+        recipeOrderBean.setGiveModeKey(giveModeKey);
+        recipeDTO.setRecipeOrderBean(recipeOrderBean);
         return recipeDTO;
     }
 
