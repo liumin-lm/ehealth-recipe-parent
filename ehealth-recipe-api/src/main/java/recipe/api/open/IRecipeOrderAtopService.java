@@ -5,6 +5,7 @@ import com.ngari.common.dto.SyncOrderVO;
 import com.ngari.platform.recipe.mode.RecipeBean;
 import com.ngari.platform.recipe.mode.RecipeOrderBean;
 import com.ngari.recipe.common.RecipeResultBean;
+import com.ngari.recipe.recipe.model.MedicalSettleInfoVO;
 import com.ngari.recipe.recipe.model.ReimbursementDetailResVO;
 import com.ngari.recipe.recipe.model.ReimbursementListReqVO;
 import com.ngari.recipe.recipe.model.ReimbursementListResVO;
@@ -89,4 +90,12 @@ public interface IRecipeOrderAtopService {
      */
     @RpcService
     ReimbursementDetailResVO findReimbursementDetail(Integer recipeId);
+
+    /**
+     * 医保预结算/结算所需业务入参查询（基础服务调用）
+     * @param recipeId
+     * @return
+     */
+    @RpcService
+    MedicalSettleInfoVO getMedicalSettleInfo(Integer recipeId);
 }

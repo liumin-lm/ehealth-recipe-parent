@@ -476,4 +476,11 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
         return orderManager.findReimbursementDetail(recipeId);
     }
 
+    @Override
+    public MedicalSettleInfoVO getMedicalSettleInfo(Integer recipeId) {
+        MedicalSettleInfoDTO medicalSettleInfoDTO = orderManager.getMedicalSettleInfo(recipeId);
+        return ObjectCopyUtils.convert(medicalSettleInfoDTO, MedicalSettleInfoVO.class);
+    }
+
+
 }
