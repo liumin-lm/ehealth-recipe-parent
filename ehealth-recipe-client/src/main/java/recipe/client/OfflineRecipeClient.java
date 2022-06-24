@@ -134,7 +134,7 @@ public class OfflineRecipeClient extends BaseClient {
      * @throws Exception
      */
     public Boolean cancelRecipeImpl(RecipeStatusUpdateReqTO request, RecipeInfoDTO recipePdfDTO, EmrDetailDTO emrDetail, Map<Integer, PharmacyTcm> pharmacyIdMap) throws Exception {
-        com.ngari.platform.recipe.mode.RecipeDTO recipeDTO = recipeDTO(CommonConstant.RECIPE_CANCEL_TYPE, recipePdfDTO, emrDetail, pharmacyIdMap);
+        com.ngari.platform.recipe.mode.RecipeDTO recipeDTO = packageRecipeDTO(CommonConstant.RECIPE_CANCEL_TYPE, recipePdfDTO, emrDetail, pharmacyIdMap, null);
         request.setRecipeDTO(recipeDTO);
         logger.info("cancelRecipeImpl request={}", JSONUtils.toString(request));
         try {
@@ -160,8 +160,9 @@ public class OfflineRecipeClient extends BaseClient {
      * @return 诊疗处方出参处理
      * @throws Exception
      */
-    public RecipeInfoDTO pushRecipe(Integer pushType, RecipeInfoDTO recipePdfDTO, EmrDetailDTO emrDetail, Map<Integer, PharmacyTcm> pharmacyIdMap) throws Exception {
-        com.ngari.platform.recipe.mode.RecipeDTO recipeDTO = recipeDTO(pushType, recipePdfDTO, emrDetail, pharmacyIdMap);
+    public RecipeInfoDTO pushRecipe(Integer pushType, RecipeInfoDTO recipePdfDTO, EmrDetailDTO emrDetail,
+                                    Map<Integer, PharmacyTcm> pharmacyIdMap, String giveModeKey) throws Exception {
+        com.ngari.platform.recipe.mode.RecipeDTO recipeDTO = packageRecipeDTO(pushType, recipePdfDTO, emrDetail, pharmacyIdMap, giveModeKey);
         logger.info("OfflineRecipeClient patientPushRecipe recipeDTO：{}", JSON.toJSONString(recipeDTO));
         try {
             HisResponseTO<com.ngari.platform.recipe.mode.RecipeDTO> hisResponse = recipeHisService.pushRecipe(recipeDTO);
@@ -182,8 +183,9 @@ public class OfflineRecipeClient extends BaseClient {
      * @return 诊疗处方出参处理
      * @throws Exception
      */
-    public RecipeInfoDTO patientPushRecipe(Integer pushType, RecipeInfoDTO recipePdfDTO, EmrDetailDTO emrDetail, Map<Integer, PharmacyTcm> pharmacyIdMap) throws Exception {
-        com.ngari.platform.recipe.mode.RecipeDTO recipeDTO = recipeDTO(pushType, recipePdfDTO, emrDetail, pharmacyIdMap);
+    public RecipeInfoDTO patientPushRecipe(Integer pushType, RecipeInfoDTO recipePdfDTO, EmrDetailDTO emrDetail,
+                                           Map<Integer, PharmacyTcm> pharmacyIdMap, String giveModeKey) throws Exception {
+        com.ngari.platform.recipe.mode.RecipeDTO recipeDTO = packageRecipeDTO(pushType, recipePdfDTO, emrDetail, pharmacyIdMap, giveModeKey);
         logger.info("OfflineRecipeClient patientPushRecipe recipeDTO：{}", JSON.toJSONString(recipeDTO));
         try {
             HisResponseTO<com.ngari.platform.recipe.mode.RecipeDTO> hisResponse = recipeHisService.patientPushRecipe(recipeDTO);
@@ -654,7 +656,9 @@ public class OfflineRecipeClient extends BaseClient {
      * @return
      * @throws Exception
      */
-    private com.ngari.platform.recipe.mode.RecipeDTO recipeDTO(Integer pushType, RecipeInfoDTO recipePdfDTO, EmrDetailDTO emrDetail, Map<Integer, PharmacyTcm> pharmacyIdMap) throws Exception {
+    private com.ngari.platform.recipe.mode.RecipeDTO packageRecipeDTO(Integer pushType, RecipeInfoDTO recipePdfDTO,
+                                                               EmrDetailDTO emrDetail, Map<Integer, PharmacyTcm> pharmacyIdMap,
+                                                               String giveModeKey) throws Exception {
         com.ngari.platform.recipe.mode.RecipeDTO recipeDTO = new com.ngari.platform.recipe.mode.RecipeDTO();
         recipeDTO.setPushType(pushType);
         recipeDTO.setOrganId(recipePdfDTO.getRecipe().getClinicOrgan());

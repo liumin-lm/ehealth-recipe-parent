@@ -162,7 +162,7 @@ public class RecipeOrderPatientAtop extends BaseAtop {
         }
         //推送his
         recipeIds.forEach(a -> {
-            offlineToOnlineService.pushRecipe(a, CommonConstant.RECIPE_PUSH_TYPE, CommonConstant.RECIPE_PATIENT_TYPE, null, null);
+            offlineToOnlineService.pushRecipe(a, CommonConstant.RECIPE_PUSH_TYPE, CommonConstant.RECIPE_PATIENT_TYPE, null, null, null);
             recipeOrderService.updatePdfForSubmitOrderAfter(a);
         });
 
@@ -187,9 +187,10 @@ public class RecipeOrderPatientAtop extends BaseAtop {
             return;
         }
         //推送his
-        patientSubmitRecipeVO.getRecipeIds().forEach(a -> {
-            offlineToOnlineService.pushRecipe(a, CommonConstant.RECIPE_PUSH_TYPE, CommonConstant.RECIPE_PATIENT_TYPE, patientSubmitRecipeVO.getExpressFeePayType(), patientSubmitRecipeVO.getExpressFee());
-            recipeOrderService.updatePdfForSubmitOrderAfter(a);
+        patientSubmitRecipeVO.getRecipeIds().forEach(recipeId -> {
+            offlineToOnlineService.pushRecipe(recipeId, CommonConstant.RECIPE_PUSH_TYPE, CommonConstant.RECIPE_PATIENT_TYPE,
+                    patientSubmitRecipeVO.getExpressFeePayType(), patientSubmitRecipeVO.getExpressFee(), patientSubmitRecipeVO.getGiveModeKey());
+            recipeOrderService.updatePdfForSubmitOrderAfter(recipeId);
         });
     }
 
@@ -211,7 +212,8 @@ public class RecipeOrderPatientAtop extends BaseAtop {
 
         //推送his
         try {
-            recipeIds.forEach(a -> offlineToOnlineService.pushRecipe(a, CommonConstant.RECIPE_CANCEL_TYPE, CommonConstant.RECIPE_PATIENT_TYPE, null, null));
+            recipeIds.forEach(recipeId -> offlineToOnlineService.pushRecipe(recipeId, CommonConstant.RECIPE_CANCEL_TYPE,
+                    CommonConstant.RECIPE_PATIENT_TYPE, null, null, null));
         } catch (Exception e) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "当前处方撤销失败");
         }

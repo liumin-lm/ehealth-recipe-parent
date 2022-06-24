@@ -868,7 +868,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         recipeManager.saveRecipeCheck(recipe);
         recipeLogManage.saveRecipeLog(recipe.getRecipeId(), RecipeStatusEnum.RECIPE_STATUS_READY_CHECK_YS.getType(), RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType(), "药师审核通过，等待患者处理");
         //将处方写入HIS
-        offlineRecipeBusinessService.pushRecipe(recipe.getRecipeId(), CommonConstant.RECIPE_PUSH_TYPE, CommonConstant.RECIPE_PATIENT_TYPE, null, null);
+        offlineRecipeBusinessService.pushRecipe(recipe.getRecipeId(), CommonConstant.RECIPE_PUSH_TYPE, CommonConstant.RECIPE_PATIENT_TYPE, null, null, null);
         recipeLogManage.saveRecipeLog(recipe.getRecipeId(), RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType(), RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType(), "处方写入HIS成功");
         try {
             //设置处方的失效时间
@@ -937,7 +937,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
     /**
      * @desc 做一个疾病类型的适配
      * @author 毛泽
-     * @param organId 
+     * @param organId
      * @return
      */
     private HashMap<String,String> getRedisChronicDiseaseMap(Integer organId){
