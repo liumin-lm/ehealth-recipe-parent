@@ -58,7 +58,7 @@ public interface IDrugBusinessService {
      * @param ruleId
      * @return
      */
-    List<RecipeRulesDrugcorrelation> getListDrugRules(List<Integer> list, Integer ruleId);
+    List<RecipeRulesDrugCorrelation> getListDrugRules(List<Integer> list, Integer ruleId);
 
     /**
      * 查询his 药品说明书
@@ -165,4 +165,6 @@ public interface IDrugBusinessService {
      * @param doctorId
      */
     void saveCommonDrug(Integer recipeId, Integer doctorId);
+
+    List<RecipeRulesDrugCorrelation> findRulesByDrugIdAndRuleId(Integer drugId, Integer ruleId);
 }

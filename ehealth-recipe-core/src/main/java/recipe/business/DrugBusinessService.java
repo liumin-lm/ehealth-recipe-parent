@@ -94,7 +94,7 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
     }
 
     @Override
-    public List<RecipeRulesDrugcorrelation> getListDrugRules(List<Integer> list, Integer ruleId) {
+    public List<RecipeRulesDrugCorrelation> getListDrugRules(List<Integer> list, Integer ruleId) {
         return drugManager.getListDrugRules(list, ruleId);
     }
 
@@ -286,6 +286,11 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
             recipeId = recipeList.get(recipeList.size() - 1).getRecipeId();
             logger.info("DrugBusinessService saveCommonDrug recipeId={}", recipeId);
         }
+    }
+
+    @Override
+    public List<RecipeRulesDrugCorrelation> findRulesByDrugIdAndRuleId(Integer drugId, Integer ruleId) {
+        return drugManager.findRulesByDrugIdAndRuleId(drugId, ruleId);
     }
 
 

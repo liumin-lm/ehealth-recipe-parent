@@ -26,7 +26,7 @@ public interface IDrugAtopService {
     DrugBookVo getDrugBook(Integer organId, String organDrugCode);
 
     /**
-     * 获取药品规则
+     * 获取药品规则列表
      *
      * @param list
      * @param ruleId
@@ -43,4 +43,14 @@ public interface IDrugAtopService {
      */
     @RpcService
     List<ListOrganDrugRes> listOrganDrug(ListOrganDrugReq listOrganDrugReq);
+
+    /**
+     * 获取药品规则
+     *
+     * @param drugId
+     * @param ruleId
+     * @return
+     */
+    @RpcService(mvcDisabled = true)
+    List<RecipeDrugRelationRuleVO> findRulesByDrugIdAndRuleId(Integer drugId, Integer ruleId);
 }
