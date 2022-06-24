@@ -360,7 +360,7 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
     }
 
     @Override
-    public HisResponseTO abolishOffLineRecipe(Integer organId, String recipeCode) {
-        return hisRecipeManager.abolishOffLineRecipe(organId, recipeCode);
+    public HisResponseTO abolishOffLineRecipe(Integer organId, List<String> recipeCodes) {
+        return hisRecipeManager.abolishOffLineRecipe(organId, recipeCodes);
     }
 }

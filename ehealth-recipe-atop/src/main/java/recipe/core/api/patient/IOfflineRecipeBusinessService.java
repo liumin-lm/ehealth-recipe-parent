@@ -89,5 +89,5 @@ public interface IOfflineRecipeBusinessService {
      * @param recipeCode
      * @return
      */
-    HisResponseTO abolishOffLineRecipe(Integer organId, String recipeCode);
+    HisResponseTO abolishOffLineRecipe(Integer organId, List<String> recipeCode);
 }

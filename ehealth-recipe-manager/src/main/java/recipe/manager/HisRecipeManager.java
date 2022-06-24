@@ -645,57 +645,68 @@ public class HisRecipeManager extends BaseManager {
      * 撤销线下处方
      *
      * @param organId
-     * @param recipeCode
+     * @param recipeCodes
      * @return
      */
     @LogRecord
-    public HisResponseTO abolishOffLineRecipe(Integer organId, String recipeCode) {
+    public HisResponseTO abolishOffLineRecipe(Integer organId, List<String> recipeCodes) {
         HisResponseTO hisResponseTO = new HisResponseTO();
+        List<String> errorMsg = new ArrayList<>();
         hisResponseTO.setMsgCode(ErrorCode.SERVICE_SUCCEED + "");
-        try {
-            List<Recipe> recipes = recipeDAO.findByRecipeCodeAndClinicOrgan(Lists.newArrayList(recipeCode), organId);
-            if (CollectionUtils.isEmpty(recipes)) {
-                hisResponseTO.setMsgCode(ErrorCode.SERVICE_FAIL + "");
-                hisResponseTO.setMsg("处方" + recipeCode + "撤销失败,原因是：该处方还未转到线上不允许撤销" );
-                logger.info("该处方还未转到线上:{}", JSONUtils.toString(recipeCode));
-                return hisResponseTO;
-            }
-            recipes.forEach(recipe -> {
-                logger.info("recipe:{}", JSONUtils.toString(recipe));
-                //修改处方状态
-                if (PayFlagEnum.PAYED.getType().equals(recipe.getPayFlag())) {
-                    hisResponseTO.setMsgCode(ErrorCode.SERVICE_FAIL + "");
-                    hisResponseTO.setMsg("处方已经支付，则不允许取消");
-                } else {
-                    RecipeOrder order = recipeOrderDAO.getOrderByRecipeId(recipe.getRecipeId());
-                    if (order != null) {
-                        List<Integer> recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
-                        //合并处方订单取消
-                        List<Recipe> mergrRecipes = recipeDAO.findByRecipeIds(recipeIdList);
-                        mergrRecipes.forEach(mergeRecipe -> {
-                            recipeDAO.updateOrderCodeToNullByOrderCodeAndClearChoose(order.getOrderCode(), mergeRecipe, 1);
-                        });
-
-                        //修改订单状态
-                        Map<String, Object> orderAttrMap = Maps.newHashMap();
-                        orderAttrMap.put("effective", 0);
-                        orderAttrMap.put("status", OrderStatusConstant.CANCEL_MANUAL);
-                        recipeOrderDAO.updateByOrdeCode(order.getOrderCode(), orderAttrMap);
-                        stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION, OrderStateEnum.SUB_CANCELLATION_DOCTOR_REPEAL);
-                    }
-
-                    Map<String, Integer> recipeMap = Maps.newHashMap();
-                    recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), RecipeStatusEnum.RECIPE_STATUS_REVOKE.getType(), recipeMap);
-                    StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
-                    stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_DOCTOR);
-                }
-            });
-
-        } catch (Exception e) {
+        if (CollectionUtils.isEmpty(recipeCodes)) {
             hisResponseTO.setMsgCode(ErrorCode.SERVICE_FAIL + "");
-            hisResponseTO.setMsg("处方" + recipeCode + "撤销失败,原因是：" + e.getMessage());
-            e.printStackTrace();
-            logger.error("abolishOffLineRecipe error", e);
+            hisResponseTO.setMsg("处方" + JsonUtil.toString(recipeCodes) + "撤销失败,原因是：处方号为空");
+            logger.info("recipeCodes不存在:{}", JSONUtils.toString(recipeCodes));
+            return hisResponseTO;
+        }
+        recipeCodes.forEach(recipeCode -> {
+            try {
+                List<Recipe> recipes = recipeDAO.findByRecipeCodeAndClinicOrgan(Lists.newArrayList(recipeCode), organId);
+                if (CollectionUtils.isEmpty(recipes)) {
+                    errorMsg.add("处方" + recipeCode + "撤销失败,原因是：该处方还未转到线上不允许撤销");
+                    logger.info("该处方还未转到线上:{}", JSONUtils.toString(recipeCode));
+                    return;
+                }
+                recipes.forEach(recipe -> {
+                    logger.info("recipe:{}", JSONUtils.toString(recipe));
+                    //修改处方状态
+                    if (PayFlagEnum.PAYED.getType().equals(recipe.getPayFlag())) {
+                        errorMsg.add("处方" + recipeCode + "撤销失败,原因是：处方已经支付，则不允许取消");
+                        return;
+                    } else {
+                        RecipeOrder order = recipeOrderDAO.getOrderByRecipeId(recipe.getRecipeId());
+                        if (order != null) {
+                            List<Integer> recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
+                            //合并处方订单取消
+                            List<Recipe> mergrRecipes = recipeDAO.findByRecipeIds(recipeIdList);
+                            mergrRecipes.forEach(mergeRecipe -> {
+                                recipeDAO.updateOrderCodeToNullByOrderCodeAndClearChoose(order.getOrderCode(), mergeRecipe, 1);
+                            });
+
+                            //修改订单状态
+                            Map<String, Object> orderAttrMap = Maps.newHashMap();
+                            orderAttrMap.put("effective", 0);
+                            orderAttrMap.put("status", OrderStatusConstant.CANCEL_MANUAL);
+                            recipeOrderDAO.updateByOrdeCode(order.getOrderCode(), orderAttrMap);
+                            stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION, OrderStateEnum.SUB_CANCELLATION_DOCTOR_REPEAL);
+                        }
+
+                        Map<String, Integer> recipeMap = Maps.newHashMap();
+                        recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), RecipeStatusEnum.RECIPE_STATUS_REVOKE.getType(), recipeMap);
+                        StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
+                        stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_DOCTOR);
+                    }
+                });
+
+            } catch (Exception e) {
+                errorMsg.add("处方" + recipeCode + "撤销失败,原因是：" + e.getMessage());
+                e.printStackTrace();
+                logger.error("abolishOffLineRecipe error", e);
+            }
+        });
+        if (CollectionUtils.isNotEmpty(errorMsg)) {
+            hisResponseTO.setMsgCode(ErrorCode.SERVICE_FAIL + "");
+            hisResponseTO.setMsg(JSONUtils.toString(errorMsg));
         }
         return hisResponseTO;
     }
