@@ -109,6 +109,14 @@ public class RecipeDetailValidateTool {
             recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
             recipeDetail.setValidateStatusText("机构药品药物使用规格单位或者最小单位错误");
         }
+
+        //开药单位是否与机构药品目录单位一致，不一致，重新填写开具数量
+        if (StringUtils.isEmpty(OrganDrugListManager.getDrugUnit(recipeDetail.getDrugUnit(), organDrug))) {
+            recipeDetail.setUseTotalDose(null);
+            recipeDetail.setPack(null);
+            recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
+        }
+
         //开药天数
         useDayValidate(recipeType, recipeDay, recipeDetail);
         /**校验中药 数据是否完善*/
