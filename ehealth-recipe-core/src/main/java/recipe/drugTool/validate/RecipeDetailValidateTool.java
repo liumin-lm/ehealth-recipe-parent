@@ -115,6 +115,7 @@ public class RecipeDetailValidateTool {
             recipeDetail.setUseTotalDose(null);
             recipeDetail.setPack(null);
             recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
+            recipeDetail.setValidateStatusText("机构药品药物单位错误");
         }
 
         //开药天数
