@@ -15,7 +15,7 @@ import recipe.constant.ErrorCode;
 import recipe.core.api.IDrugBusinessService;
 import recipe.util.ObjectCopyUtils;
 import recipe.vo.doctor.DrugBookVo;
-import recipe.vo.second.RecipeRulesDrugcorrelationVo;
+import recipe.vo.second.RecipeDrugRelationRuleVO;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
@@ -51,9 +51,9 @@ public class DrugOpenAtop extends BaseAtop implements IDrugAtopService {
     }
 
     @Override
-    public List<RecipeRulesDrugcorrelationVo> getListDrugRules(List<Integer> list, Integer ruleId) {
+    public List<RecipeDrugRelationRuleVO> getListDrugRules(List<Integer> list, Integer ruleId) {
         List<RecipeRulesDrugcorrelation> result = drugBusinessService.getListDrugRules(list, ruleId);
-        return CollectionUtils.isEmpty(result) ? new ArrayList<>() : ObjectCopyUtils.convert(result, RecipeRulesDrugcorrelationVo.class);
+        return CollectionUtils.isEmpty(result) ? new ArrayList<>() : ObjectCopyUtils.convert(result, RecipeDrugRelationRuleVO.class);
     }
 
     @Override

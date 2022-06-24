@@ -4,7 +4,7 @@ import com.ngari.platform.recipe.mode.ListOrganDrugReq;
 import com.ngari.platform.recipe.mode.ListOrganDrugRes;
 import ctd.util.annotation.RpcService;
 import recipe.vo.doctor.DrugBookVo;
-import recipe.vo.second.RecipeRulesDrugcorrelationVo;
+import recipe.vo.second.RecipeDrugRelationRuleVO;
 
 import java.util.List;
 
@@ -33,7 +33,7 @@ public interface IDrugAtopService {
      * @return
      */
     @RpcService(mvcDisabled = true)
-    List<RecipeRulesDrugcorrelationVo> getListDrugRules(List<Integer> list, Integer ruleId);
+    List<RecipeDrugRelationRuleVO> getListDrugRules(List<Integer> list, Integer ruleId);
 
     /**
      * 获取机构药品目录

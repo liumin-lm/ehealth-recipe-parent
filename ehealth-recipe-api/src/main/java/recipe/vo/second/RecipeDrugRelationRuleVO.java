@@ -13,7 +13,7 @@ import java.util.Date;
  * @date 2021年10月12日 15:48
  */
 @Data
-public class RecipeRulesDrugcorrelationVo implements Serializable {
+public class RecipeDrugRelationRuleVO implements Serializable {
     private static final long serialVersionUID = -6604988044493266204L;
 
     @ItemProperty(alias = "主键ID")
@@ -41,12 +41,12 @@ public class RecipeRulesDrugcorrelationVo implements Serializable {
     private BigDecimal minimumDosageRange;
 
     @ItemProperty(alias = "最大规则药品 用量范围")
-    private BigDecimal MaximumDosageRange;
+    private BigDecimal maximumDosageRange;
 
     @ItemProperty(alias = "创建时间")
     private Date createDt;
 
     @ItemProperty(alias = "最后修改时间")
-    private Date LastModify;
+    private Date lastModify;
 
 }
