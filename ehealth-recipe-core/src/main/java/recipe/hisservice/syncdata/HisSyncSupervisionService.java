@@ -160,7 +160,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         List<RegulationRecipeIndicatorsReq> request = new ArrayList<>(recipeList.size());
         splicingBackRecipeData(recipeList, request);
 
-        
+
         try {
             IRegulationService hisService = AppDomainContext.getBean("his.regulationService", IRegulationService.class);
             LOGGER.info("uploadRecipeIndicators request={}", JSONUtils.toString(request));
@@ -650,6 +650,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             } else {
                 LOGGER.warn("recipeId file is null  recipeId={}", recipe.getRecipeId());
             }
+            req.setRecipeSignImgId(recipe.getSignImg());
+
             //详情处理
             detailList = detailDAO.findByRecipeId(recipe.getRecipeId());
             if (CollectionUtils.isEmpty(detailList)) {
