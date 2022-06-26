@@ -398,48 +398,48 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         return RecipeListResTO.getSuccessResponse(recipeList);
     }
 
-    @RpcService
-    @Override
-    @Deprecated
-    public QueryResult<Map> findRecipesByInfo(Integer organId, Integer status,
-                                              Integer doctor, String patientName,
-                                              Date bDate, Date eDate, Integer dateType,
-                                              Integer depart, int start, int limit, List<Integer> organIds,
-                                              Integer giveMode, Integer sendType, Integer fromflag,
-                                              Integer recipeId, Integer enterpriseId, Integer checkStatus,
-                                              Integer payFlag, Integer orderType, Integer refundNodeStatus, Integer recipeType) {
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        PatientService patientService = BasicAPI.getService(PatientService.class);
-        QueryResult<Map> result = recipeDAO.findRecipesByInfo(organId, status, doctor, patientName,
-                bDate, eDate, dateType, depart, start, limit, organIds,
-                giveMode, sendType, fromflag, recipeId, enterpriseId,
-                checkStatus, payFlag, orderType, refundNodeStatus, recipeType, null, null);
-        List<Map> records = result.getItems();
-        for (Map record : records) {
-            Recipe recipe = recipeDAO.getByRecipeId((int) record.get("recipeId"));
-            record.put("giveModeText", buttonManager.getGiveModeTextByRecipe(recipe));
-            RecipeOrder recipeOrder = (RecipeOrder) record.get("recipeOrder");
-            if (recipeOrder.getDispensingTime() != null) {
-                ApothecaryDTO giveUserDefault = doctorClient.getGiveUserDefault(recipe);
-                recipeOrder.setDispensingApothecaryName(giveUserDefault.getGiveUserName());
-            } else {
-                recipeOrder.setDispensingApothecaryName("");
-            }
-            PatientDTO patientBean;
-            try {
-                patientBean = patientService.get(recipe.getMpiid());
-            } catch (Exception e) {
-                patientBean = new PatientDTO();
-            }
-            record.put("patient", patientBean);
-        }
-        return result;
-    }
+//    @RpcService
+//    @Override
+//    @Deprecated
+//    public QueryResult<Map> findRecipesByInfo(Integer organId, Integer status,
+//                                              Integer doctor, String patientName,
+//                                              Date bDate, Date eDate, Integer dateType,
+//                                              Integer depart, int start, int limit, List<Integer> organIds,
+//                                              Integer giveMode, Integer sendType, Integer fromflag,
+//                                              Integer recipeId, Integer enterpriseId, Integer checkStatus,
+//                                              Integer payFlag, Integer orderType, Integer refundNodeStatus, Integer recipeType) {
+//        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+//        PatientService patientService = BasicAPI.getService(PatientService.class);
+//        QueryResult<Map> result = recipeDAO.findRecipesByInfo(organId, status, doctor, patientName,
+//                bDate, eDate, dateType, depart, start, limit, organIds,
+//                giveMode, sendType, fromflag, recipeId, enterpriseId,
+//                checkStatus, payFlag, orderType, refundNodeStatus, recipeType, null, null);
+//        List<Map> records = result.getItems();
+//        for (Map record : records) {
+//            Recipe recipe = recipeDAO.getByRecipeId((int) record.get("recipeId"));
+//            record.put("giveModeText", buttonManager.getGiveModeTextByRecipe(recipe));
+//            RecipeOrder recipeOrder = (RecipeOrder) record.get("recipeOrder");
+//            if (recipeOrder.getDispensingTime() != null) {
+//                ApothecaryDTO giveUserDefault = doctorClient.getGiveUserDefault(recipe);
+//                recipeOrder.setDispensingApothecaryName(giveUserDefault.getGiveUserName());
+//            } else {
+//                recipeOrder.setDispensingApothecaryName("");
+//            }
+//            PatientDTO patientBean;
+//            try {
+//                patientBean = patientService.get(recipe.getMpiid());
+//            } catch (Exception e) {
+//                patientBean = new PatientDTO();
+//            }
+//            record.put("patient", patientBean);
+//        }
+//        return result;
+//    }
 
     @LogRecord
     @RpcService
-    @Override
-    public QueryResult<Map> findRecipesByInfo2(RecipesQueryVO recipesQueryVO) {
+//    @Override
+    public QueryResult<RecipesQueryResVO> findRecipesByInfo2(RecipesQueryVO recipesQueryVO) {
         if (recipesQueryVO.getOrganId() != null) {
             if (!OpSecurityUtil.isAuthorisedOrgan(recipesQueryVO.getOrganId())) {
                 return null;
@@ -453,34 +453,125 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             OrganService organService = AppContextHolder.getBean("basic.organService", OrganService.class);
             organIds = organService.queryOrganByManageUnitList(manageUnit, organIds);
         }
+
+        //查询数据
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        QueryResult<Map> result = recipeDAO.findRecipesByInfo(recipesQueryVO.getOrganId(), recipesQueryVO.getStatus(), recipesQueryVO.getDoctor()
-                , recipesQueryVO.getPatientName(), recipesQueryVO.getBDate(), recipesQueryVO.getEDate(), recipesQueryVO.getDateType()
-                , recipesQueryVO.getDepart(), recipesQueryVO.getStart(), recipesQueryVO.getLimit(), organIds
-                , recipesQueryVO.getGiveMode(), recipesQueryVO.getSendType(), recipesQueryVO.getFromFlag(), recipesQueryVO.getRecipeId()
-                , recipesQueryVO.getEnterpriseId(), recipesQueryVO.getCheckStatus(), recipesQueryVO.getPayFlag(), recipesQueryVO.getOrderType()
-                , recipesQueryVO.getRefundNodeStatus(), recipesQueryVO.getRecipeType(), recipesQueryVO.getBussSource(), recipesQueryVO.getRecipeBusinessType());
-        List<Map> records = result.getItems();
-        for (Map record : records) {
-            Recipe recipe = recipeDAO.getByRecipeId((int) record.get("recipeId"));
-            record.put("giveModeText", buttonManager.getGiveModeTextByRecipe(recipe));
-            RecipeOrder recipeOrder = (RecipeOrder) record.get("recipeOrder");
-            if (recipeOrder.getDispensingTime() != null) {
-                ApothecaryDTO giveUserDefault = doctorClient.getGiveUserDefault(recipe);
-                recipeOrder.setDispensingApothecaryName(giveUserDefault.getGiveUserName());
-            } else {
-                recipeOrder.setDispensingApothecaryName("");
+        QueryResult<Recipe> recipeListResult = recipeDAO.findRecipesByInfoV2(recipesQueryVO);
+        List<Recipe> recipeList=recipeListResult.getItems();
+        LOGGER.info("findRecipesByInfo recipeListResult:{}", JSONUtils.toString(recipeListResult));
+
+
+        //组装返回参数
+        List<RecipesQueryResVO> resList = Lists.newArrayList();
+        if (recipeList != null) {
+            RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+            DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+            for (Recipe recipe : recipeList) {
+
+                RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+                RecipeOrder order = recipeOrderDAO.getRecipeOrderByRecipeId(recipe.getRecipeId());
+                if (order == null) {
+                    order = new RecipeOrder();
+                    //跟前端约定好这个字段一定会给的，所以定义了-1作为无支付类型
+                    order.setOrderType(-1);
+                    order.setPayFlag(recipe.getPayFlag());
+                }
+                if (order != null && order.getOrderType() == null) {
+                    order.setOrderType(0);
+                    recipe.setPayFlag(order.getPayFlag());
+                }
+                //处方审核状态处理
+                recipe.setCheckStatus(recipe.getCheckFlag());
+                RecipesQueryResVO resVo = ObjectCopyUtils.convert(recipe, RecipesQueryResVO.class);
+
+
+                resVo.setGiveModeText(buttonManager.getGiveModeTextByRecipe(recipe));
+                if (recipe.getBussSource() == null || new Integer(0).equals(recipe.getBussSource())) {
+                    resVo.setBussSourceText("无诊疗");
+                } else {
+                    try {
+                        resVo.setBussSourceText(DictionaryController.instance()
+                                .get("eh.cdr.dictionary.BussSourceType")
+                                .getText(recipe.getBussSource()));
+                    } catch (ControllerException e){
+                        LOGGER.error("findRecipesByInfo2 error, recipeId:{},{}.", recipe.getRecipeId(), e.getMessage(), e);
+                    }
+                }
+
+                resVo.setDetailCount(recipeDetailDAO.getCountByRecipeId(recipe.getRecipeId()));
+
+                Integer enterpriseId = recipe.getEnterpriseId();
+                if (enterpriseId != null) {
+                    DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.get(enterpriseId);
+                    if (null != drugsEnterprise) {
+                        resVo.setDrugsEnterprise(drugsEnterprise.getName());
+                    }
+                }
+                if (null != order) {
+                    resVo.setPayDate(order.getPayTime());
+                }
+
+                RecipeOrderBean recipeOrder = ObjectCopyUtils.convert(order, RecipeOrderBean.class);
+                if (recipeOrder.getDispensingTime() != null) {
+                    ApothecaryDTO giveUserDefault = doctorClient.getGiveUserDefault(recipe);
+                    recipeOrder.setDispensingApothecaryName(giveUserDefault.getGiveUserName());
+                } else {
+                    recipeOrder.setDispensingApothecaryName("");
+                }
+                resVo.setRecipeOrder(recipeOrder);
+
+
+                // 处方退费状态
+                // 经过表结构讨论，当前不做大修改，因此将退费状态字段RefundNodeStatus放在了RecipeExtend表
+                RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+                RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+
+                // 注意：若不使用BeanUtils.map转换，而直接放对象，
+                // 会造成opbase QueryResult<Map>端枚举值的Text字段不会自动生成
+                // 还有一种方式是在opbase QueryResult<Map>端循环读取然后重新设置（张宪强的回答）
+                if (recipeExtend != null) {
+                    RecipeExtendBean recipeExtendBean = ObjectCopyUtils.convert(recipeExtend, RecipeExtendBean.class);
+                    if (null != recipeExtend.getRecipeBusinessType()) {
+                        switch (recipeExtend.getRecipeBusinessType()) {
+                            case 1:
+                                recipeExtendBean.setRecipeBusinessText("门诊处方");
+                                break;
+                            case 2:
+                                recipeExtendBean.setRecipeBusinessText("复诊处方");
+                                break;
+                            case 3:
+                                recipeExtendBean.setRecipeBusinessText("其他处方");
+                                break;
+                        }
+                    }
+                    resVo.setRecipeExtend(recipeExtendBean);
+                }
+
+                //患者信息
+                PatientDTO patientDTO;
+                try {
+                    patientDTO = patientService.get(recipe.getMpiid());
+                } catch (Exception e) {
+                    patientDTO = new PatientDTO();
+                }
+                resVo.setPatient(patientDTO);
+
+                resList.add(resVo);
             }
-            PatientDTO patientBean;
-            try {
-                patientBean = patientService.get(recipe.getMpiid());
-            } catch (Exception e) {
-                patientBean = new PatientDTO();
-            }
-            record.put("patient", patientBean);
         }
-        return result;
+
+
+        QueryResult<RecipesQueryResVO>  queryResVOList
+                = new QueryResult<RecipesQueryResVO>(
+                    recipeListResult.getTotal(),
+                    recipesQueryVO.getStart(),
+                    recipesQueryVO.getLimit(),
+                    resList);
+
+        return queryResVOList;
     }
+
+
 
     @RpcService
     @Override
@@ -727,48 +818,48 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         return recipeDAO.getCountByHourAreaGroupByOrgan(startDate, endDate);
     }
 
-    /**
-     * @param organId
-     * @param status
-     * @param doctor
-     * @param patientName
-     * @param bDate
-     * @param eDate
-     * @param dateType
-     * @param depart
-     * @param organIds
-     * @param giveMode
-     * @param fromflag
-     * @return
-     */
-    @RpcService(timeout = 600000)
-    @Override
-    @Deprecated
-    public List<Object[]> findRecipesByInfoForExcel(final Integer organId, final Integer status, final Integer doctor, final String patientName, final Date bDate,
-                                                    final Date eDate, final Integer dateType, final Integer depart, List<Integer> organIds, Integer giveMode,
-                                                    Integer fromflag, Integer recipeId, Integer enterpriseId, Integer checkStatus, Integer payFlag, Integer orderType, Integer sendType) {
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        RecipesQueryVO recipesQueryVO = new RecipesQueryVO();
-        recipesQueryVO.setOrganIds(organIds);
-        recipesQueryVO.setOrganId(organId);
-        recipesQueryVO.setBDate(bDate);
-        recipesQueryVO.setCheckStatus(checkStatus);
-        recipesQueryVO.setDateType(dateType);
-        recipesQueryVO.setDepart(depart);
-        recipesQueryVO.setDoctor(doctor);
-        recipesQueryVO.setEDate(eDate);
-        recipesQueryVO.setEnterpriseId(enterpriseId);
-        recipesQueryVO.setFromFlag(fromflag);
-        recipesQueryVO.setGiveMode(giveMode);
-        recipesQueryVO.setRecipeId(recipeId);
-        recipesQueryVO.setPayFlag(payFlag);
-        recipesQueryVO.setOrderType(orderType);
-        recipesQueryVO.setStatus(status);
-        recipesQueryVO.setPatientName(patientName);
-        recipesQueryVO.setSendType(sendType);
-        List<Object[]> result = recipeDAO.findRecipesByInfoForExcel(recipesQueryVO);
-        return result;
-    }
+//    /**
+//     * @param organId
+//     * @param status
+//     * @param doctor
+//     * @param patientName
+//     * @param bDate
+//     * @param eDate
+//     * @param dateType
+//     * @param depart
+//     * @param organIds
+//     * @param giveMode
+//     * @param fromflag
+//     * @return
+//     */
+//    @RpcService(timeout = 600000)
+//    @Override
+//    @Deprecated
+//    public List<Object[]> findRecipesByInfoForExcel(final Integer organId, final Integer status, final Integer doctor, final String patientName, final Date bDate,
+//                                                    final Date eDate, final Integer dateType, final Integer depart, List<Integer> organIds, Integer giveMode,
+//                                                    Integer fromflag, Integer recipeId, Integer enterpriseId, Integer checkStatus, Integer payFlag, Integer orderType, Integer sendType) {
+//        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+//        RecipesQueryVO recipesQueryVO = new RecipesQueryVO();
+//        recipesQueryVO.setOrganIds(organIds);
+//        recipesQueryVO.setOrganId(organId);
+//        recipesQueryVO.setBDate(bDate);
+//        recipesQueryVO.setCheckStatus(checkStatus);
+//        recipesQueryVO.setDateType(dateType);
+//        recipesQueryVO.setDepart(depart);
+//        recipesQueryVO.setDoctor(doctor);
+//        recipesQueryVO.setEDate(eDate);
+//        recipesQueryVO.setEnterpriseId(enterpriseId);
+//        recipesQueryVO.setFromFlag(fromflag);
+//        recipesQueryVO.setGiveMode(giveMode);
+//        recipesQueryVO.setRecipeId(recipeId);
+//        recipesQueryVO.setPayFlag(payFlag);
+//        recipesQueryVO.setOrderType(orderType);
+//        recipesQueryVO.setStatus(status);
+//        recipesQueryVO.setPatientName(patientName);
+//        recipesQueryVO.setSendType(sendType);
+//        List<Object[]> result = recipeDAO.findRecipesByInfoForExcel(recipesQueryVO);
+//        return result;
+//    }
 
     @RpcService(timeout = 600000)
     @Override
