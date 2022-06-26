@@ -57,7 +57,7 @@ public class GiveModeProxy implements ApplicationContextAware {
         IBusActionLogService busActionLogService = AppDomainContext.getBean("opbase.busActionLogService", IBusActionLogService.class);
         busActionLogService.recordBusinessLogRpcNew("电子处方详情页-编辑订单", orderStatus.getOrderId() + "", "recipeOrder",
                 "电子处方订单【" + orderStatus.getRecipeId() + "】状态由【" + RecipeOrderStatusEnum.getOrderStatus(orderStatus.getSourceRecipeOrderStatus()) + "】调整为【" +
-                        RecipeOrderStatusEnum.getOrderStatus(orderStatus.getTargetRecipeOrderStatus()) + "】", "平台");
+                        RecipeOrderStatusEnum.getOrderStatus(orderStatus.getTargetRecipeOrderStatus()) + "】", orderStatus.getOrganName());
     }
 
 
