@@ -194,25 +194,22 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
      */
     @RpcService
     public RecipeInfoVO therapyRecipeInfo(Integer recipeId) {
-        logger.info("TherapyRecipeDoctorAtop therapyRecipeInfo  recipeId = {}", recipeId);
-        try {
-            RecipeInfoDTO result = therapyRecipeBusinessService.therapyRecipeInfo(recipeId);
-            RecipeInfoVO recipeInfoVO = new RecipeInfoVO();
-            recipeInfoVO.setPatientVO(ObjectCopyUtils.convert(result.getPatientBean(), PatientVO.class));
-            recipeInfoVO.setRecipeBean(ObjectCopyUtils.convert(result.getRecipe(), RecipeBean.class));
-            recipeInfoVO.setRecipeExtendBean(ObjectCopyUtils.convert(result.getRecipeExtend(), RecipeExtendBean.class));
-            recipeInfoVO.setRecipeDetails(ObjectCopyUtils.convert(result.getRecipeDetails(), RecipeDetailBean.class));
-            recipeInfoVO.setRecipeTherapyVO(ObjectCopyUtils.convert(result.getRecipeTherapy(), RecipeTherapyVO.class));
-            recipeInfoVO.setOrganVO(ObjectCopyUtils.convert(result.getOrgan(), OrganVO.class));
-            logger.info("TherapyRecipeDoctorAtop therapyRecipeInfo  recipeInfoVO = {}", JSON.toJSONString(recipeInfoVO));
-            return recipeInfoVO;
-        } catch (DAOException e1) {
-            logger.warn("TherapyRecipeDoctorAtop therapyRecipeInfo  error", e1);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
-        } catch (Exception e) {
-            logger.error("TherapyRecipeDoctorAtop therapyRecipeInfo  error e", e);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
-        }
+        logger.info("therapyRecipeInfo = {}", recipeId);
+
+        RecipeInfoDTO result = therapyRecipeBusinessService.therapyRecipeInfo(recipeId);
+        //越权校验
+        OrganVO organVO=ObjectCopyUtils.convert(result.getOrgan(), OrganVO.class);
+        isAuthorisedOrgan(organVO==null?null:organVO.getOrganId());
+
+        RecipeInfoVO recipeInfoVO = new RecipeInfoVO();
+        recipeInfoVO.setPatientVO(ObjectCopyUtils.convert(result.getPatientBean(), PatientVO.class));
+        recipeInfoVO.setRecipeBean(ObjectCopyUtils.convert(result.getRecipe(), RecipeBean.class));
+        recipeInfoVO.setRecipeExtendBean(ObjectCopyUtils.convert(result.getRecipeExtend(), RecipeExtendBean.class));
+        recipeInfoVO.setRecipeDetails(ObjectCopyUtils.convert(result.getRecipeDetails(), RecipeDetailBean.class));
+        recipeInfoVO.setRecipeTherapyVO(ObjectCopyUtils.convert(result.getRecipeTherapy(), RecipeTherapyVO.class));
+        recipeInfoVO.setOrganVO(organVO);
+
+        return recipeInfoVO;
     }
 
     /**

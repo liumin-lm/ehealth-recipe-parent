@@ -9,6 +9,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.client.IConfigurationClient;
+import recipe.client.OperationClient;
 import recipe.client.OrganClient;
 import recipe.core.api.IOrganBusinessService;
 import recipe.dao.RecipeParameterDao;
@@ -29,6 +30,9 @@ public class OrganBusinessService extends BaseService implements IOrganBusinessS
     private OrderManager orderManager;
     @Autowired
     private RecipeParameterDao recipeParameterDao;
+    @Autowired
+    private OperationClient operationClient;
+
 
     @Override
     public List<Integer> getOrganForWeb() {
@@ -83,5 +87,8 @@ public class OrganBusinessService extends BaseService implements IOrganBusinessS
         return ObjectCopyUtils.convert(organDTO, OrganVO.class);
     }
 
-
+    @Override
+    public Boolean isAuthorisedOrgan(Integer organId) {
+        return operationClient.isAuthorisedOrgan(organId);
+    }
 }
