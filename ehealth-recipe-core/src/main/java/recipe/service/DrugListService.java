@@ -108,11 +108,6 @@ public class DrugListService extends BaseService<DrugListBean> {
         DrugList d = ObjectCopyUtils.convert(drugListBean, DrugList.class);
         logger.info("新增药品服务[addDrugList]:" + JSONUtils.toString(drugListBean));
 
-        String drugName= drugListBean.getDrugName();
-        if(ByteUtils.validateHtml(drugName)){
-            throw new DAOException(DAOException.VALUE_NEEDED, "药品名包含html关键字，不能进行新增");
-        }
-
         if (null == d) {
             throw new DAOException(DAOException.VALUE_NEEDED, "drugList is null");
         }
@@ -229,11 +224,6 @@ public class DrugListService extends BaseService<DrugListBean> {
     public DrugListBean updateDrugList(DrugListBean drugListBean) {
         DrugList drugList = ObjectCopyUtils.convert(drugListBean, DrugList.class);
         logger.info("修改药品服务[updateDrugList]:" + JSONUtils.toString(drugList));
-
-        String drugName= drugListBean.getDrugName();
-        if(ByteUtils.validateHtml(drugName)){
-            throw new DAOException(DAOException.VALUE_NEEDED, "药品名包含html关键字，不能进行更新");
-        }
 
         DrugListDAO dao = getDAO(DrugListDAO.class);
         if (null == drugList.getDrugId()) {
