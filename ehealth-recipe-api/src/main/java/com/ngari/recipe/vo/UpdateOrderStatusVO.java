@@ -68,6 +68,11 @@ public class UpdateOrderStatusVO implements Serializable {
      * 机构名称
      */
     private String organName;
+
+    /**
+     * 发药药师
+     */
+    private Integer giveUser;
 }
 
 

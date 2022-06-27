@@ -6,8 +6,10 @@ import com.ngari.his.recipe.mode.WriteDrugRecipeTO;
 import com.ngari.his.visit.mode.WriteDrugRecipeReqTO;
 import com.ngari.his.visit.service.IVisitService;
 import com.ngari.revisit.RevisitBean;
+import com.ngari.revisit.common.model.RevisitBussNoticeDTO;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.request.ValidRevisitRequest;
+import com.ngari.revisit.common.service.IRevisitBusNoticeService;
 import com.ngari.revisit.common.service.IRevisitExService;
 import com.ngari.revisit.common.service.IRevisitService;
 import com.ngari.revisit.dto.response.RevisitBeanVO;
@@ -40,6 +42,9 @@ public class RevisitClient extends BaseClient {
 
     @Autowired
     private IVisitService iVisitService;
+
+    @Autowired
+    private IRevisitBusNoticeService revisitBusNoticeService;
 
 
     /**
@@ -159,6 +164,14 @@ public class RevisitClient extends BaseClient {
 
     public RevisitBeanVO revisitBean(Integer clinicId) {
         return revisitService.getRevisitBeanVOByConsultId(clinicId);
+    }
+
+    /**
+     * 用药提醒复诊
+     * @param revisitBussNoticeDTO
+     */
+    public void remindDrugRevisit(RevisitBussNoticeDTO revisitBussNoticeDTO){
+        revisitBusNoticeService.saveSendBussNotice(revisitBussNoticeDTO);
     }
 
 }

@@ -11,7 +11,7 @@ import java.io.Serializable;
  * @date 2022/6/27 10:41
  */
 @Data
-public class DrugStatusNum implements Serializable {
+public class DrugStatusNumRes implements Serializable {
 
     @ItemProperty(alias = "新增条数")
     private Long addStatusNum;

@@ -859,6 +859,7 @@ public class DrugToolService implements IDrugToolService {
                                 for (DrugListMatch drugListMatch : dataByOrganDrugCode) {
                                     try {
                                         automaticDrugMatch(drugListMatch, operator);
+                                        drugListMatch.setDrugStatus(0);
                                         drugListMatch.setStatus(DrugMatchConstant.ALREADY_MATCH);
                                         drugListMatchDAO.updateData(drugListMatch);
                                     } catch (Exception e) {
@@ -3027,13 +3028,13 @@ public class DrugToolService implements IDrugToolService {
     }
 
     @RpcService
-    public DrugStatusNum getDrugStatusNum(){
-        Long addStatusNum = drugListMatchDAO.getByDrugStatus(0);
-        Long updateStatusNum = drugListMatchDAO.getByDrugStatus(1);
-        DrugStatusNum drugStatusNum = new DrugStatusNum();
-        drugStatusNum.setAddStatusNum(addStatusNum);
-        drugStatusNum.setUpdateStatusNum(updateStatusNum);
-        return drugStatusNum;
+    public DrugStatusNumRes getDrugStatusNum(DrugStatusNumReq drugStatusNumReq){
+        Long addStatusNum = drugListMatchDAO.getByDrugStatus(drugStatusNumReq.getOrganId(),0);
+        Long updateStatusNum = drugListMatchDAO.getByDrugStatus(drugStatusNumReq.getOrganId(),1);
+        DrugStatusNumRes drugStatusNumRes = new DrugStatusNumRes();
+        drugStatusNumRes.setAddStatusNum(addStatusNum);
+        drugStatusNumRes.setUpdateStatusNum(updateStatusNum);
+        return drugStatusNumRes;
     }
 
 }
