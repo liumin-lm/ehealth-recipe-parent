@@ -54,6 +54,9 @@ public class RecipeOrderRefundVO implements Serializable {
     @ItemProperty(alias = "订单状态")
     private String orderStatusText;
 
+    @ItemProperty(alias = "订单类型 便捷购药标识：0普通订单，1便捷购药订单")
+    private Integer fastRecipeFlag;
+
     @ItemProperty(alias = "退货状态")
     private String refundStatusText;
 
