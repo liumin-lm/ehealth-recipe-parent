@@ -217,6 +217,8 @@ public class OperationClient extends BaseClient {
             giveModeButtonBean.setShowButtonKey(giveModeButton.getBoxLink());
             giveModeButtonBean.setShowButtonName(giveModeButton.getBoxTxt());
             giveModeButtonBean.setButtonSkipType(giveModeButton.getRecipeskip());
+            giveModeButtonBean.setAppId("appid");
+            giveModeButtonBean.setSkipUrl("thisisskipUrl");
             if (!"listItem".equals(giveModeButtonBean.getShowButtonKey())) {
                 giveModeButtonBeans.add(giveModeButtonBean);
             } else {
