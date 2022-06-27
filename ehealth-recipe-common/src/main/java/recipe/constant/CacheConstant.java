@@ -136,10 +136,6 @@ public class CacheConstant {
      * pdf补充数据坐标key
      */
     public static final String KEY_RECIPE_LABEL = "KEY_RECIPE_LABEL_";
-    /**
-     * 咨询挂号序号数据
-     */
-    public static final String KEY_CONSULT_REGISTER_ID = "CONSULT_REGISTER_ID";
 
     /**
      * 支付退款回调分布式锁
