@@ -128,9 +128,7 @@ public class RecipeToHisCallbackService {
             if (Objects.nonNull(response.getRecipeFee())) {
                 result.setTotalMoney(response.getRecipeFee());
             }
-            if (null == response.getWriteHisState()) {
-                result.setWriteHisState(3);
-            }
+            result.setWriteHisState(null == response.getWriteHisState() ? 3 : response.getWriteHisState());
             String recipeCostNumber = StringUtils.isNotBlank(response.getRecipeCostNumber()) ? response.getRecipeCostNumber() : recipeNo;
             result.setRecipeCostNumber(recipeCostNumber);
             result.setRecipeId(Integer.valueOf(response.getRecipeId()));
