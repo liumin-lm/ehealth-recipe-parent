@@ -730,7 +730,7 @@ public class DrugsEnterprise implements java.io.Serializable {
         this.showLogisticsLink = showLogisticsLink;
     }
 
-    @Column(name = "merchant_Type")
+    @Column(name = "merchant_type")
     public Integer getMerchantType() {
         return merchantType;
     }
