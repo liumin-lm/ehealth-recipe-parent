@@ -40,6 +40,7 @@ import recipe.ApplicationUtils;
 import recipe.business.StockBusinessService;
 import recipe.client.DepartClient;
 import recipe.client.RevisitClient;
+import recipe.constant.HisRecipeConstant;
 import recipe.dao.*;
 import recipe.dao.bean.HisRecipeListBean;
 import recipe.enumerate.status.OfflineToOnlineEnum;
@@ -131,10 +132,6 @@ public class BaseOfflineToOnlineService {
     private RevisitManager revisitManager;
 
     final String BY_REGISTERID = "e.registerId";
-
-    private static final Integer HISRECIPESTATUS_NOIDEAL = 1;
-
-    private static final Integer HISRECIPESTATUS_ALREADYIDEAL = 2;
 
     @Autowired
     private ButtonManager buttonManager;
@@ -475,11 +472,16 @@ public class BaseOfflineToOnlineService {
         Map<String, Object> recipeDetailMap;
         Recipe recipe = recipeDAO.get(recipeId);
         HisRecipe hisRecipe = hisRecipeDao.get(hisRecipeId);
+
+        if (!UserRoleToken.getCurrent().getOwnMpiId().equals(recipe.getMpiid())
+                && HisRecipeConstant.HISRECIPESTATUS_ALREADYIDEAL.equals(hisRecipe.getStatus())) {
+            throw new DAOException(609, "该处方单已被他人处理！");
+        }
         List<HisRecipeExt> hisRecipeExts = hisRecipeExtDAO.findByHisRecipeId(hisRecipeId);
         if (recipe == null) {
             throw new DAOException(DAOException.DAO_NOT_FOUND, "没有查询到来自医院的处方单,请刷新页面！");
         }
-        if (HISRECIPESTATUS_ALREADYIDEAL.equals(hisRecipe.getStatus())) {
+        if (HisRecipeConstant.HISRECIPESTATUS_ALREADYIDEAL.equals(hisRecipe.getStatus())) {
             recipeDetailMap = recipeService.getPatientRecipeByIdForOfflineRecipe(recipeId);
         } else {
             recipeDetailMap = recipeService.getPatientRecipeById(recipeId);
@@ -632,7 +634,7 @@ public class BaseOfflineToOnlineService {
         recipe.setTotalMoney(hisRecipe.getRecipeFee());
         recipe.setActualPrice(hisRecipe.getRecipeFee());
         recipe.setMemo(hisRecipe.getMemo() == null ? "无" : hisRecipe.getMemo());
-        if (HISRECIPESTATUS_ALREADYIDEAL.equals(hisRecipe.getStatus())) {
+        if (HisRecipeConstant.HISRECIPESTATUS_ALREADYIDEAL.equals(hisRecipe.getStatus())) {
             recipe.setPayFlag(1);
             //已完成
             recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_FINISH.getType());

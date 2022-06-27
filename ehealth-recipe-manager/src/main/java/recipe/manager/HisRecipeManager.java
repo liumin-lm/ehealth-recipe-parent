@@ -22,12 +22,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.aop.LogRecord;
-import recipe.client.DocIndexClient;
-import recipe.client.OfflineRecipeClient;
-import recipe.client.PatientClient;
-import recipe.client.RevisitClient;
+import recipe.client.*;
 import recipe.common.CommonConstant;
 import recipe.constant.ErrorCode;
+import recipe.constant.HisRecipeConstant;
 import recipe.constant.OrderStatusConstant;
 import recipe.dao.*;
 import recipe.enumerate.status.OfflineToOnlineEnum;
@@ -78,8 +76,8 @@ public class HisRecipeManager extends BaseManager {
     private StateManager stateManager;
     @Autowired
     private RecipeParameterDao recipeParameterDao;
-//    @Autowired
-//    private PayClient payClient;
+    @Autowired
+    private PayClient payClient;
 
     /**
      * SUCCESS（交易支付成功）
@@ -450,11 +448,14 @@ public class HisRecipeManager extends BaseManager {
      */
     private String obtainPayStatus(String recipeCode, Integer clinicOrgan) {
         String realPayFlag = "";
-//        Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeCode, clinicOrgan);
-//        if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
-//            RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
-//            realPayFlag = payClient.orderQuery(recipeOrder);
-//        }
+        Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeCode, clinicOrgan);
+        if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
+            RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+            realPayFlag = payClient.orderQuery(recipeOrder);
+        }
+        if (PAY_SUCCESS.equals(realPayFlag)) {
+            hisRecipeDao.updateHisRecieStatus(clinicOrgan, recipeCode, HisRecipeConstant.HISRECIPESTATUS_ALREADYIDEAL);
+        }
         return realPayFlag;
 
     }
