@@ -347,5 +347,5 @@ public abstract class DrugListMatchDAO extends HibernateSupportDelegateDAO<DrugL
     public abstract void updatePlatformDrugIdByDrugId(@DAOParam("platformDrugId") Integer platformDrugId, @DAOParam("drugId") Integer drugId);
 
     @DAOMethod(sql = "SELECT COUNT(*) from DrugListMatch where drug_status =:drugStatus and status !=2 ")
-    public abstract long findByDrugStatus(@DAOParam("drugStatus") Integer drugStatus);
+    public abstract long getByDrugStatus(@DAOParam("drugStatus") Integer drugStatus);
 }
