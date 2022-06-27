@@ -3026,4 +3026,14 @@ public class DrugToolService implements IDrugToolService {
         return dao.save(saveData);
     }
 
+    @RpcService
+    public DrugStatusNum getDrugStatusNum(){
+        Long addStatusNum = drugListMatchDAO.findByDrugStatus(0);
+        Long updateStatusNum = drugListMatchDAO.findByDrugStatus(1);
+        DrugStatusNum drugStatusNum = new DrugStatusNum();
+        drugStatusNum.setAddStatusNum(addStatusNum);
+        drugStatusNum.setUpdateStatusNum(updateStatusNum);
+        return drugStatusNum;
+    }
+
 }
