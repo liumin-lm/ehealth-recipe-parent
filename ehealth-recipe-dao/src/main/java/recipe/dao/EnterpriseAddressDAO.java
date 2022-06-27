@@ -72,45 +72,6 @@ public abstract class EnterpriseAddressDAO extends HibernateSupportDelegateDAO<E
     }
 
     /**
-     * 批量写入
-     * @param allEnterpriseAddress
-     * @return
-     */
-    public Boolean addAllEnterpriseAddress(List<EnterpriseAddress> allEnterpriseAddress) {
-        if (CollectionUtils.isEmpty(allEnterpriseAddress)) {
-            return true;
-        }
-
-        HibernateStatelessResultAction<Boolean> action = new AbstractHibernateStatelessResultAction<Boolean>() {
-            @Override
-            public void execute(StatelessSession ss) throws Exception {
-                Transaction transaction = ss.beginTransaction();
-                allEnterpriseAddress.forEach(enterpriseAddress -> {
-
-                    if (ObjectUtils.isEmpty(enterpriseAddress.getEnterpriseId())) {
-                        throw new DAOException(DAOException.VALUE_NEEDED, "EnterpriseId is null");
-                    }
-
-                    if (ObjectUtils.isEmpty(enterpriseAddress.getAddress())) {
-                        throw new DAOException(DAOException.VALUE_NEEDED, "Address is null");
-                    }
-                    Long size = getCountByEnterpriseIdAndAddress(enterpriseAddress.getEnterpriseId(), enterpriseAddress.getAddress());
-                    if (null != size && size > 0) {
-                        throw new DAOException(DAOException.VALUE_NEEDED, "Enterprise Address exist");
-                    }
-                    enterpriseAddress.setCreateTime(new Date());
-                    enterpriseAddress.setLastModify(new Date());
-                    ss.insert(enterpriseAddress);
-
-                });
-                transaction.commit();
-            }
-        };
-        HibernateSessionTemplate.instance().execute(action);
-        return action.getResult();
-
-    }
-    /**
      * 更新药企配送地址
      *
      * @param addressList
