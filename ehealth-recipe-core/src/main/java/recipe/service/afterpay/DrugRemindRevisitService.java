@@ -1,9 +1,12 @@
 package recipe.service.afterpay;
 
+import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
@@ -23,6 +26,8 @@ import java.util.stream.Collectors;
 @Component("drugRemindRevisitService")
 public class DrugRemindRevisitService {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(DrugRemindRevisitService.class);
+
     @Autowired
     private RecipeExtendDAO recipeExtendDAO;
     @Autowired
@@ -31,6 +36,7 @@ public class DrugRemindRevisitService {
     private RevisitManager revisitManager;
 
     public void drugRemind(RecipeOrder recipeOrder, List<Recipe> recipes){
+        LOGGER.info("DrugRemindRevisitService drugRemind recipeOrder:{},recipes:{}", JSON.toJSONString(recipeOrder), JSON.toJSONString(recipes));
         //订单支付日期
         Date payTime = recipeOrder.getPayTime();
         List<Integer> recipeIds = recipes.stream().map(Recipe::getRecipeId).collect(Collectors.toList());

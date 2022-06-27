@@ -259,6 +259,7 @@ public class RevisitManager extends BaseManager {
             revisitBussNoticeDTO.setBusType(1);
             revisitBussNoticeDTO.setSendTime(Date.from(date.atZone(ZoneId.systemDefault()).toInstant()));
             revisitBussNoticeDTO.setRequestDate(recipe.getCreateDate());
+            logger.info("remindDrugForRevisit revisitBussNoticeDTO:{}", JSON.toJSONString(revisitBussNoticeDTO));
             revisitClient.remindDrugRevisit(revisitBussNoticeDTO);
         });
     }
