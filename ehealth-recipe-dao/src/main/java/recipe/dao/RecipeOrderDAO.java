@@ -1787,6 +1787,16 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 hql.append(" AND a.invoice_record_id is null ");
             }
         }
+
+        if (null != recipeOrderRefundReqDTO.getFastRecipeFlag()) {
+            if(Integer.valueOf(1).equals(recipeOrderRefundReqDTO.getFastRecipeFlag())){
+                hql.append(" AND b.fast_recipe_flag = 1 ");
+            }else{
+                hql.append(" AND (b.fast_recipe_flag = 0 or b.fast_recipe_flag is null) ");
+            }
+
+
+        }
         return hql;
     }
 

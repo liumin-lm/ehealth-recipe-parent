@@ -182,4 +182,7 @@ public class DrugsEnterpriseVO implements Serializable {
 
     @ItemProperty(alias = "第三方物流页面链接")
     private String showLogisticsLink;
+
+    @ItemProperty(alias = "药企所属商户： 0：普通药企, 1:印象智能, 2:金投云药房")
+    private Integer merchantType;
 }

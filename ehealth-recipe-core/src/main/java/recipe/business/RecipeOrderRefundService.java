@@ -133,6 +133,10 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
             recipeOrderRefundVO.setChannel(patientClient.getClientNameById(recipeOrder.getMpiId()));
             recipeOrderRefundVO.setPayModeText(PayModeEnum.getPayModeEnumName(recipeOrder.getPayMode()));
             recipeOrderRefundVO.setGiveModeText(recipeOrder.getGiveModeText());
+
+            Integer fastRecipeFlag=recipeOrderCodeMap.get(recipeOrder.getOrderCode()).getFastRecipeFlag();
+            recipeOrderRefundVO.setFastRecipeFlag(fastRecipeFlag==null?Integer.valueOf(0):fastRecipeFlag);
+
             RecipeExtend recipeExtend = recipeExtendMap.get(recipeOrderCodeMap.get(recipeOrder.getOrderCode()).getRecipeId());
             if (null != recipeExtend) {
                 recipeOrderRefundVO.setRefundStatusText(RefundNodeStatusEnum.getRefundStatus(recipeExtend.getRefundNodeStatus()));

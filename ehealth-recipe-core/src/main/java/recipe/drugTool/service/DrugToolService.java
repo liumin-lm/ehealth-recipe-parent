@@ -841,6 +841,7 @@ public class DrugToolService implements IDrugToolService {
                 } else {
                     try {
                         AutoMatch(drug);
+                        drug.setDrugStatus(1);//药品状态为更新
                         boolean isSuccess = drugListMatchDAO.updateData(drug);
                         if (!isSuccess) {
                             //自动匹配功能暂无法提供
@@ -859,7 +860,6 @@ public class DrugToolService implements IDrugToolService {
                                     try {
                                         automaticDrugMatch(drugListMatch, operator);
                                         drugListMatch.setStatus(DrugMatchConstant.ALREADY_MATCH);
-                                        drugListMatch.setDrugStatus(1);//药品状态为更新
                                         drugListMatchDAO.updateData(drugListMatch);
                                     } catch (Exception e) {
                                         LOGGER.error("readDrugExcel.updateMatchAutomatic fail,", e);
@@ -3028,8 +3028,8 @@ public class DrugToolService implements IDrugToolService {
 
     @RpcService
     public DrugStatusNum getDrugStatusNum(){
-        Long addStatusNum = drugListMatchDAO.findByDrugStatus(0);
-        Long updateStatusNum = drugListMatchDAO.findByDrugStatus(1);
+        Long addStatusNum = drugListMatchDAO.getByDrugStatus(0);
+        Long updateStatusNum = drugListMatchDAO.getByDrugStatus(1);
         DrugStatusNum drugStatusNum = new DrugStatusNum();
         drugStatusNum.setAddStatusNum(addStatusNum);
         drugStatusNum.setUpdateStatusNum(updateStatusNum);
