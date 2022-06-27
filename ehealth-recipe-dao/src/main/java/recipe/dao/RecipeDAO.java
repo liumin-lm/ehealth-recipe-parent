@@ -2030,12 +2030,21 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 List<Map> maps = new ArrayList<Map>();
                 if (recipeList != null) {
                     RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+                    RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
                     for (Recipe recipe : recipeList) {
                         Map<String, Object> map = Maps.newHashMap();
                         BeanUtils.map(recipe, map);
                         //map.putAll(JSONObject.parseObject(JSON.toJSONString(recipe)));
                         map.put("detailCount", recipeDetailDAO.getCountByRecipeId(recipe.getRecipeId()));
                         //map.put("patient",patientService.get(recipe.getMpiid()));
+
+                        if(recipe.getOrderCode()!=null){
+                            RecipeOrder order=recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+                            if(order!=null){
+                                map.put("payTime",order.getPayTime());
+                            }
+                        }
+
                         maps.add(map);
                     }
                 }
