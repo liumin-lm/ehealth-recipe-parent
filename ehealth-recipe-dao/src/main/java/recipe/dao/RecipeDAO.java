@@ -1344,7 +1344,8 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 sqlQuery.setParameter("endTime", sdf.format(eDate));
                 Long total = Long.valueOf(String.valueOf((sqlQuery.uniqueResult())));
                 // 查询结果
-                Query query = ss.createSQLQuery(sbHql.append(" order by recipeId DESC").toString()).addEntity(Recipe.class);
+                Query query = ss.createSQLQuery(sbHql.append(" order by recipeId DESC").toString())
+                        .addEntity(Recipe.class);
                 query.setParameter("startTime", sdf.format(bDate));
                 query.setParameter("endTime", sdf.format(eDate));
                 query.setFirstResult(recipesQueryVO.getStart());
@@ -1956,8 +1957,11 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
             hql.append(" and re.recipe_business_type= ").append(recipesQueryVO.getRecipeBusinessType());
         }
         if (null != recipesQueryVO.getFastRecipeFlag()) {
-            hql.append(" and (r.fast_recipe_flag = ").append(recipesQueryVO.getFastRecipeFlag())
-            .append("r.fast_recipe_flag is null )");
+            if(Integer.valueOf(1).equals(recipesQueryVO.getFastRecipeFlag())){
+                hql.append(" and r.fast_recipe_flag = 1");
+            }else {
+                hql.append(" and (r.fast_recipe_flag = 0 or r.fast_recipe_flag is null)");
+            }
         }
         return hql;
     }
