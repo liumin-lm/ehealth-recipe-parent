@@ -426,7 +426,7 @@ public class DrugManager extends BaseManager {
             return result;
         }
         result = recipeRulesDrugCorrelationDAO.findListRules(list, ruleId);
-        logger.info("DrugManager.getDrugBook res result={} drugId={}", JSON.toJSONString(result));
+        logger.info("DrugManager.getDrugBook res result={} ruleId={}", JSON.toJSONString(result), ruleId);
         return result;
     }
 
@@ -543,7 +543,4 @@ public class DrugManager extends BaseManager {
         return recipe.getRecipeId();
     }
 
-    public List<RecipeRulesDrugCorrelation> findRulesByDrugIdAndRuleId(Integer drugId, Integer ruleId) {
-        return recipeRulesDrugCorrelationDAO.findRulesByDrugIdAndRuleId(drugId, ruleId);
-    }
 }

@@ -28,6 +28,7 @@ import recipe.constant.RecipeBussConstant;
 import recipe.core.api.IDrugBusinessService;
 import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeDAO;
+import recipe.dao.RecipeRulesDrugCorrelationDAO;
 import recipe.enumerate.status.YesOrNoEnum;
 import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.manager.DrugManager;
@@ -62,6 +63,8 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
     private DrugClient drugClient;
     @Autowired
     private OrganDrugListDAO organDrugListDAO;
+    @Autowired
+    private RecipeRulesDrugCorrelationDAO recipeRulesDrugCorrelationDAO;
 
     @Override
     public List<PatientDrugWithEsDTO> findDrugWithEsByPatient(SearchDrugReqVO searchDrugReqVo) {
@@ -290,7 +293,12 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
 
     @Override
     public List<RecipeRulesDrugCorrelation> findRulesByDrugIdAndRuleId(Integer drugId, Integer ruleId) {
-        return drugManager.findRulesByDrugIdAndRuleId(drugId, ruleId);
+        return recipeRulesDrugCorrelationDAO.findRulesByDrugIdAndRuleId(drugId, ruleId);
+    }
+
+    @Override
+    public List<RecipeRulesDrugCorrelation> findRulesByCorrelationDrugIdAndRuleId(Integer correlationDrugId, Integer ruleId) {
+        return recipeRulesDrugCorrelationDAO.findRulesByCorrelationDrugIdAndRuleId(correlationDrugId, ruleId);
     }
 
 

@@ -45,7 +45,7 @@ public interface IDrugAtopService {
     List<ListOrganDrugRes> listOrganDrug(ListOrganDrugReq listOrganDrugReq);
 
     /**
-     * 获取药品规则
+     * 根据drugId获取药品规则
      *
      * @param drugId
      * @param ruleId
@@ -53,4 +53,15 @@ public interface IDrugAtopService {
      */
     @RpcService(mvcDisabled = true)
     List<RecipeDrugRelationRuleVO> findRulesByDrugIdAndRuleId(Integer drugId, Integer ruleId);
+
+
+    /**
+     * 根据correlationDrugId获取药品规则
+     *
+     * @param correlationDrugId
+     * @param ruleId
+     * @return
+     */
+    @RpcService(mvcDisabled = true)
+    List<RecipeDrugRelationRuleVO> findRulesByCorrelationDrugIdAndRuleId(Integer correlationDrugId, Integer ruleId);
 }

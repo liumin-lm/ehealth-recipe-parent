@@ -30,4 +30,8 @@ public abstract class RecipeRulesDrugCorrelationDAO extends HibernateSupportDele
     @DAOMethod(sql = "From RecipeRulesDrugCorrelation where drugId = :drugId and medicationRulesId = :ruleId ")
     public abstract List<RecipeRulesDrugCorrelation> findRulesByDrugIdAndRuleId(@DAOParam("drugId") Integer drugId,
                                                                                 @DAOParam("ruleId") Integer ruleId);
+
+    @DAOMethod(sql = "From RecipeRulesDrugCorrelation where correlationDrugId = :correlationDrugId and medicationRulesId = :ruleId ")
+    public abstract List<RecipeRulesDrugCorrelation> findRulesByCorrelationDrugIdAndRuleId(@DAOParam("correlationDrugId") Integer correlationDrugId,
+                                                                                           @DAOParam("ruleId") Integer ruleId);
 }
