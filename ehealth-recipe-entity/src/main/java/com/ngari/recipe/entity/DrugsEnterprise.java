@@ -202,6 +202,9 @@ public class DrugsEnterprise implements java.io.Serializable {
     @ItemProperty(alias = "第三方物流页面链接")
     private String showLogisticsLink;
 
+    @ItemProperty(alias = "药企所属商户： 0：普通药企, 1:印象智能, 2:金投云药房")
+    private Integer merchantType;
+
     @Column(name = "enterprise_phone")
     public String getEnterprisePhone() {
         return enterprisePhone;
@@ -725,5 +728,14 @@ public class DrugsEnterprise implements java.io.Serializable {
 
     public void setShowLogisticsLink(String showLogisticsLink) {
         this.showLogisticsLink = showLogisticsLink;
+    }
+
+    @Column(name = "merchant_Type")
+    public Integer getMerchantType() {
+        return merchantType;
+    }
+
+    public void setMerchantType(Integer merchantType) {
+        this.merchantType = merchantType;
     }
 }

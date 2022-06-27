@@ -168,6 +168,9 @@ public class DrugsEnterpriseDTO implements Serializable {
     @ItemProperty(alias = "到院取药日期是否展示今天 0 否 1 是")
     private Integer isShowToday;
 
+    @ItemProperty(alias = "药企所属商户： 0：普通药企, 1:印象智能, 2:金投云药房")
+    private Integer merchantType;
+
     private List<DrugEnterpriseLogistics> drugEnterpriseLogisticsList;
 
     public Integer getIsShowToday() {
@@ -568,5 +571,13 @@ public class DrugsEnterpriseDTO implements Serializable {
 
     public void setCollectMode(Integer collectMode) {
         this.collectMode = collectMode;
+    }
+
+    public Integer getMerchantType() {
+        return merchantType;
+    }
+
+    public void setMerchantType(Integer merchantType) {
+        this.merchantType = merchantType;
     }
 }
