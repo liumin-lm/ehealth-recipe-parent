@@ -11,7 +11,6 @@ import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import ctd.util.event.GlobalEventExecFactory;
-import eh.utils.BeanCopyUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,35 +63,30 @@ public class RemoteEnterpriseAddressService extends BaseService<EnterpriseAddres
         if (CollectionUtils.isEmpty(enterpriseAddressDTOList)) {
             return;
         }
-        long l = System.currentTimeMillis();
-        enterpriseAddressDAO.addAllEnterpriseAddress(BeanCopyUtils.copyList(enterpriseAddressDTOList,EnterpriseAddress::new));
-        long end = System.currentTimeMillis();
-        LOGGER.info("addEnterpriseAddressList 运行时间={}", end-l);
+        List<FutureTask<String>> futureTasks = new LinkedList<>();
+        List<List<EnterpriseAddressDTO>> groupList = Lists.partition(enterpriseAddressDTOList, 500);
+        groupList.forEach(a -> {
+            FutureTask<String> ft = new FutureTask<>(() -> batchAddEnterpriseAddress(a));
+            futureTasks.add(ft);
+            GlobalEventExecFactory.instance().getExecutor().submit(ft);
+        });
+        String result = "";
+        try {
+            for (FutureTask<String> futureTask : futureTasks) {
+                String str = futureTask.get();
+                if (!"200".equals(str)) {
+                    result = str;
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.error("addEnterpriseAddressList error ", e);
+            throw new DAOException(DAOException.VALUE_NEEDED, "address error");
+        }
 
-        //        List<FutureTask<String>> futureTasks = new LinkedList<>();
-//        List<List<EnterpriseAddressDTO>> groupList = Lists.partition(enterpriseAddressDTOList, 500);
-//        groupList.forEach(a -> {
-//            FutureTask<String> ft = new FutureTask<>(() -> batchAddEnterpriseAddress(a));
-//            futureTasks.add(ft);
-//            GlobalEventExecFactory.instance().getExecutor().submit(ft);
-//        });
-//        String result = "";
-//        try {
-//            for (FutureTask<String> futureTask : futureTasks) {
-//                String str = futureTask.get();
-//                if (!"200".equals(str)) {
-//                    result = str;
-//                    break;
-//                }
-//            }
-//        } catch (Exception e) {
-//            LOGGER.error("addEnterpriseAddressList error ", e);
-//            throw new DAOException(DAOException.VALUE_NEEDED, "address error");
-//        }
-//
-//        if (!StringUtils.isEmpty(result)) {
-//            throw new DAOException(DAOException.VALUE_NEEDED, result);
-//        }
+        if (!StringUtils.isEmpty(result)) {
+            throw new DAOException(DAOException.VALUE_NEEDED, result);
+        }
     }
 
     private String batchAddEnterpriseAddress(List<EnterpriseAddressDTO> enterpriseAddressDTOList) {
