@@ -859,6 +859,7 @@ public class DrugToolService implements IDrugToolService {
                                 for (DrugListMatch drugListMatch : dataByOrganDrugCode) {
                                     try {
                                         automaticDrugMatch(drugListMatch, operator);
+                                        drugListMatch.setDrugStatus(0);
                                         drugListMatch.setStatus(DrugMatchConstant.ALREADY_MATCH);
                                         drugListMatchDAO.updateData(drugListMatch);
                                     } catch (Exception e) {
