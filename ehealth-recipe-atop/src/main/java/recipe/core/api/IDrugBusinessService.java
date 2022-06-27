@@ -167,4 +167,6 @@ public interface IDrugBusinessService {
     void saveCommonDrug(Integer recipeId, Integer doctorId);
 
     List<RecipeRulesDrugCorrelation> findRulesByDrugIdAndRuleId(Integer drugId, Integer ruleId);
+
+    List<RecipeRulesDrugCorrelation> findRulesByCorrelationDrugIdAndRuleId(Integer correlationDrugId, Integer ruleId);
 }
