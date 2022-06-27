@@ -1520,7 +1520,8 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         HibernateStatelessResultAction<List<Object[]>> action = new AbstractHibernateStatelessResultAction<List<Object[]>>() {
             @Override
             public void execute(StatelessSession ss) {
-                Query query = ss.createSQLQuery(sbHql.append(" GROUP BY r.recipeId order by r.recipeId DESC").toString()).addEntity(RecipeInfoExportDTO.class);
+                Query query = ss.createSQLQuery(sbHql.append(" GROUP BY r.recipeId order by r.recipeId DESC").toString())
+                        .addEntity(RecipeInfoExportDTO.class);
                 LOGGER.info("RecipeDAO findRecipesByInfoForExcel sbHql = {} ", sbHql);
 
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -1954,6 +1955,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         if (null != recipesQueryVO.getRecipeBusinessType()) {
             hql.append(" and re.recipe_business_type= ").append(recipesQueryVO.getRecipeBusinessType());
         }
+        if (null != recipesQueryVO.getFastRecipeFlag()) {
+            hql.append(" and (r.fast_recipe_flag = ").append(recipesQueryVO.getFastRecipeFlag())
+            .append("r.fast_recipe_flag is null )");
+        }
         return hql;
     }
 
@@ -2113,12 +2118,12 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 "o.recipeFee,r.totalMoney,r.checker,r.checkDateYs,r.fromflag,r.status,o.payTime, r.doctorName, r.giveUser, o.dispensingTime, " +
                 "sum(cr.useTotalDose) sumDose ,o.send_type sendType ,o.outTradeNo ,o.cashAmount,o.fundAmount,o.orderType,r.recipeType,r.bussSource," +
                 "r.recipeCode,re.recipe_business_type as recipeBusinessType, " +
-                "o.drugStoreName,o.enterpriseId " +
-                "from cdr_recipe r " +
-                "LEFT JOIN cdr_recipeorder o on r.orderCode=o.orderCode " +
-                "left join cdr_recipedetail cr on cr.recipeId = r.recipeId  and cr.status =1 " +
-                "left join cdr_recipe_ext re on re.recipeId = r.recipeId " +
-                "where r.recipeSourceType!=3 ");
+                "o.drugStoreName,o.enterpriseId,r.fast_recipe_flag as fastRecipeFlag " +
+                " from cdr_recipe r " +
+                " LEFT JOIN cdr_recipeorder o on r.orderCode=o.orderCode " +
+                " left join cdr_recipedetail cr on cr.recipeId = r.recipeId  and cr.status =1 " +
+                " left join cdr_recipe_ext re on re.recipeId = r.recipeId " +
+                " where r.recipeSourceType!=3 ");
 
         return generateRecipeOderWhereHQLforStatistics(hql,recipesQueryVO);
     }

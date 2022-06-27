@@ -74,6 +74,9 @@ public class RecipeInfoExportDTO implements Serializable {
     @ItemProperty(alias = "药店或者站点名称")
     private String drugStoreName;
 
+    @ItemProperty(alias ="复诊类别")
+    private Integer fastRecipeFlag;
+
     public String getEnterpriseId() {
         return enterpriseId;
     }
@@ -306,5 +309,13 @@ public class RecipeInfoExportDTO implements Serializable {
 
     public void setRecipeBusinessType(Integer recipeBusinessType) {
         this.recipeBusinessType = recipeBusinessType;
+    }
+
+    public Integer getFastRecipeFlag() {
+        return fastRecipeFlag;
+    }
+
+    public void setFastRecipeFlag(Integer fastRecipeFlag) {
+        this.fastRecipeFlag = fastRecipeFlag;
     }
 }
