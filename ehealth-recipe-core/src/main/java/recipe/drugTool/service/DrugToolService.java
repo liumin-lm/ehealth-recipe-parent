@@ -844,6 +844,7 @@ public class DrugToolService implements IDrugToolService {
                         boolean isSuccess = drugListMatchDAO.updateData(drug);
                         if (!isSuccess) {
                             //自动匹配功能暂无法提供
+                            drug.setDrugStatus(0);//药品状态为新增
                             DrugListMatch save = drugListMatchDAO.save(drug);
                             try {
                                 automaticDrugMatch(save, operator);
@@ -858,6 +859,7 @@ public class DrugToolService implements IDrugToolService {
                                     try {
                                         automaticDrugMatch(drugListMatch, operator);
                                         drugListMatch.setStatus(DrugMatchConstant.ALREADY_MATCH);
+                                        drugListMatch.setDrugStatus(1);//药品状态为更新
                                         drugListMatchDAO.updateData(drugListMatch);
                                     } catch (Exception e) {
                                         LOGGER.error("readDrugExcel.updateMatchAutomatic fail,", e);

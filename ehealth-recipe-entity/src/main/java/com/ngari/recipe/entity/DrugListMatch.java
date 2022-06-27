@@ -221,6 +221,18 @@ public class DrugListMatch implements java.io.Serializable {
     @ItemProperty(alias = "最小销售倍数")
     private Integer smallestSaleMultiple;
 
+    @ItemProperty(alias = "新增或更新标识 0 新增 1 更新 2 删除")
+    private Integer drugStatus;
+
+    @Column(name = "drug_status")
+    public Integer getDrugStatus() {
+        return drugStatus;
+    }
+
+    public void setDrugStatus(Integer drugStatus) {
+        this.drugStatus = drugStatus;
+    }
+
     @Column(name = "smallest_sale_multiple")
     public Integer getSmallestSaleMultiple() {
         return smallestSaleMultiple;
