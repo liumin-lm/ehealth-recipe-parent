@@ -78,7 +78,13 @@ public class HisRecipeManager extends BaseManager {
     private StateManager stateManager;
     @Autowired
     private RecipeParameterDao recipeParameterDao;
+//    @Autowired
+//    private PayClient payClient;
 
+    /**
+     * SUCCESS（交易支付成功）
+     */
+    private String PAY_SUCCESS = "SUCCESS";
 
     /**
      * 获取患者信息
@@ -436,6 +442,24 @@ public class HisRecipeManager extends BaseManager {
     }
 
     /**
+     * 根据处方号回查支付状态
+     *
+     * @param recipeCode
+     * @param clinicOrgan
+     * @return
+     */
+    private String obtainPayStatus(String recipeCode, Integer clinicOrgan) {
+        String realPayFlag = "";
+//        Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeCode, clinicOrgan);
+//        if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
+//            RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+//            realPayFlag = payClient.orderQuery(recipeOrder);
+//        }
+        return realPayFlag;
+
+    }
+
+    /**
      * 获取需要删除的recipeCodes
      * 判断药品详情发生变化、数据不是由本人生成的未支付处方、中药tcmFee变更
      *
@@ -452,6 +476,11 @@ public class HisRecipeManager extends BaseManager {
         hisRecipeTO.forEach(a -> {
             String recipeCode = a.getRecipeCode();
             HisRecipe hisRecipe = hisRecipeMap.get(recipeCode);
+            //如果已经支付，则不允许删除（场景：a操作用户绑定就诊人支付，且支付成功，但是支付平台回调慢，导致处方支付状态未更改   所以需要回查，是否已支付 如果已经支付，则不允许更改数据）
+            String payFlag = obtainPayStatus(recipeCode, hisRecipe.getClinicOrgan());
+            if (PAY_SUCCESS.equals(payFlag)) {
+                return;
+            }
             if (null == hisRecipe) {
                 return;
             } else {
