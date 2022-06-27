@@ -11,7 +11,6 @@ import easypay.entity.vo.param.CommonParam;
 import easypay.entity.vo.param.OrderQueryParam;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.service.spi.ServiceException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.aop.LogRecord;
 import recipe.constant.PayServiceConstant;
@@ -31,8 +30,8 @@ import java.util.Objects;
 @Service
 public class PayClient extends BaseClient {
 
-    @Autowired
-    private IEasyPayServiceInterface payService;
+//    @Autowired
+//    private IEasyPayServiceInterface payService;
 
     /**
      * 获取订单支付状态
