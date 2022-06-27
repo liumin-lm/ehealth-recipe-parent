@@ -1,6 +1,7 @@
 package recipe.dao;
 
 import com.ngari.recipe.entity.EnterpriseAddress;
+import com.ngari.recipe.entity.EnterpriseDecoctionAddress;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;
 import ctd.persistence.bean.QueryResult;
@@ -10,10 +11,12 @@ import ctd.persistence.support.hibernate.template.AbstractHibernateStatelessResu
 import ctd.persistence.support.hibernate.template.HibernateSessionTemplate;
 import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction;
 import ctd.util.annotation.RpcSupportDAO;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Query;
 import org.hibernate.StatelessSession;
+import org.hibernate.Transaction;
 import org.springframework.util.ObjectUtils;
 
 import java.util.ArrayList;
@@ -68,6 +71,45 @@ public abstract class EnterpriseAddressDAO extends HibernateSupportDelegateDAO<E
         return this.save(enterpriseAddress);
     }
 
+    /**
+     * 批量写入
+     * @param allEnterpriseAddress
+     * @return
+     */
+    public Boolean addAllEnterpriseAddress(List<EnterpriseAddress> allEnterpriseAddress) {
+        if (CollectionUtils.isEmpty(allEnterpriseAddress)) {
+            return true;
+        }
+
+        HibernateStatelessResultAction<Boolean> action = new AbstractHibernateStatelessResultAction<Boolean>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                Transaction transaction = ss.beginTransaction();
+                allEnterpriseAddress.forEach(enterpriseAddress -> {
+
+                    if (ObjectUtils.isEmpty(enterpriseAddress.getEnterpriseId())) {
+                        throw new DAOException(DAOException.VALUE_NEEDED, "EnterpriseId is null");
+                    }
+
+                    if (ObjectUtils.isEmpty(enterpriseAddress.getAddress())) {
+                        throw new DAOException(DAOException.VALUE_NEEDED, "Address is null");
+                    }
+                    Long size = getCountByEnterpriseIdAndAddress(enterpriseAddress.getEnterpriseId(), enterpriseAddress.getAddress());
+                    if (null != size && size > 0) {
+                        throw new DAOException(DAOException.VALUE_NEEDED, "Enterprise Address exist");
+                    }
+                    enterpriseAddress.setCreateTime(new Date());
+                    enterpriseAddress.setLastModify(new Date());
+                    ss.insert(enterpriseAddress);
+
+                });
+                transaction.commit();
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+
+    }
     /**
      * 更新药企配送地址
      *
