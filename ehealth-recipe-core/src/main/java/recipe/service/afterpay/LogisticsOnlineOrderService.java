@@ -55,9 +55,7 @@ import static ctd.persistence.DAOFactory.getDAO;
  * @date 2021\4\13 0013 09:15
  */
 @Component("logisticsOnlineOrderService")
-//@RpcBean("logisticsOnlineOrderService")
 public class LogisticsOnlineOrderService implements IAfterPayBussService{
-
     private static final Logger LOGGER = LoggerFactory.getLogger(LogisticsOnlineOrderService.class);
 
     //基础物流快递已支付

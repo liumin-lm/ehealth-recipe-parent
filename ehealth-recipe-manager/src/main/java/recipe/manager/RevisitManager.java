@@ -13,6 +13,7 @@ import com.ngari.recipe.dto.ConsultDTO;
 import com.ngari.recipe.dto.WriteDrugRecipeBean;
 import com.ngari.recipe.dto.WriteDrugRecipeDTO;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.revisit.common.model.RevisitBussNoticeDTO;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import ctd.dictionary.DictionaryController;
 import ctd.net.broadcast.MQHelper;
@@ -28,10 +29,9 @@ import recipe.constant.RecipeSystemConstant;
 import recipe.util.ObjectCopyUtils;
 import recipe.util.ValidateUtil;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.*;
 
 /**
  * 复诊处理通用类
@@ -237,6 +237,30 @@ public class RevisitManager extends BaseManager {
             return null;
         }
         return revisitExDTO.getMedicalFlag();
+    }
+
+    /**
+     * 用药提醒复诊
+     * @param recipe
+     * @param remindDates
+     */
+    public void remindDrugForRevisit(Recipe recipe, List<LocalDateTime> remindDates){
+        if (null == recipe || CollectionUtils.isEmpty(remindDates)) {
+            return;
+        }
+        remindDates.forEach(date -> {
+            RevisitBussNoticeDTO revisitBussNoticeDTO = new RevisitBussNoticeDTO();
+            revisitBussNoticeDTO.setOrganId(recipe.getClinicOrgan());
+            revisitBussNoticeDTO.setDeptId(recipe.getDepart());
+            revisitBussNoticeDTO.setDoctorId(recipe.getDoctor());
+            revisitBussNoticeDTO.setBusId(recipe.getRecipeId().toString());
+            revisitBussNoticeDTO.setLastConsultId(recipe.getClinicId());
+            revisitBussNoticeDTO.setMpiId(recipe.getMpiid());
+            revisitBussNoticeDTO.setBusType(1);
+            revisitBussNoticeDTO.setSendTime(Date.from(date.atZone(ZoneId.systemDefault()).toInstant()));
+            revisitBussNoticeDTO.setRequestDate(recipe.getCreateDate());
+            revisitClient.remindDrugRevisit(revisitBussNoticeDTO);
+        });
     }
 
 
