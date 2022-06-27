@@ -143,6 +143,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
         orderStatus.setSourceRecipeOrderStatus(recipeOrder.getStatus());
         orderStatus.setOrderId(recipeOrder.getOrderId());
         orderStatus.setSourceRecipeStatus(recipe.getStatus());
+        orderStatus.setOrganName(recipe.getOrganName());
         giveModeProxy.updateOrderByGiveMode(recipe.getGiveMode(), orderStatus);
         if (NeedSendTypeEnum.NO_NEED_SEND_TYPE.getType().equals(orderStatus.getNeedSendType())) {
             orderStatus.setTargetRecipeOrderStatus(RecipeOrderStatusEnum.ORDER_STATUS_DONE.getType());

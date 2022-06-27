@@ -58,6 +58,16 @@ public class UpdateOrderStatusVO implements Serializable {
      * 需要配送类型 0 无需配送 1 需要配送
      */
     private Integer needSendType;
+
+    /**
+     * 机构id
+     */
+    private Integer organId;
+
+    /**
+     * 机构名称
+     */
+    private String organName;
 }
 
 
