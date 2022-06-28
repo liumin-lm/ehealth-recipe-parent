@@ -62,6 +62,7 @@ import recipe.bussutil.UsingRateFilter;
 import recipe.client.DocIndexClient;
 import recipe.client.IConfigurationClient;
 import recipe.client.OfflineRecipeClient;
+import recipe.client.RecipeSettleClient;
 import recipe.constant.CacheConstant;
 import recipe.constant.ErrorCode;
 import recipe.constant.RecipeBussConstant;
@@ -84,10 +85,7 @@ import recipe.presettle.settle.IRecipeSettleService;
 import recipe.retry.RecipeRetryService;
 import recipe.thread.CardDataUploadRunable;
 import recipe.thread.RecipeBusiThreadPool;
-import recipe.util.ByteUtils;
-import recipe.util.DateConversion;
-import recipe.util.MapValueUtil;
-import recipe.util.RedisClient;
+import recipe.util.*;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -139,6 +137,8 @@ public class RecipeHisService extends RecipeBaseService {
     private RecipeParameterDao recipeParameterDao;
     @Autowired
     private RecipeDAO recipeDAO;
+    @Autowired
+    private RecipeSettleClient recipeSettleClient;
 
     /**
      * 发送处方
@@ -549,6 +549,15 @@ public class RecipeHisService extends RecipeBaseService {
             try {
                 //如果异常重试处理
                 response = recipeRetryService.doRecipeSettle(settleService, payNotifyReq);
+                LOGGER.info("doRecipeSettle settleService  response={}", JsonUtil.toString(response));
+                // 前置机返回结算异常码 99 启动结算重试
+                if(new Integer(99).equals(response.getMsgCode())) {
+                    HisResponseTO hisResponseTO = recipeSettleClient.retrySettle(payNotifyReq);
+                    // 反查成功或异常都算结算成功
+                    if ("99".equals(hisResponseTO.getMsgCode()) || "200".equals(hisResponseTO.getMsgCode())) {
+                        response.setMsgCode(0);
+                    }
+                }
             } catch (Exception e) {
                 LOGGER.error("doRecipeSettle error", e);
                 //三次重试后还是异常当做失败处理
