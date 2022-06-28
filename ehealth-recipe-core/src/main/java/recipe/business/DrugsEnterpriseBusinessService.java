@@ -44,10 +44,10 @@ import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.hisservice.syncdata.SyncExecutorService;
 import recipe.manager.EnterpriseManager;
 import recipe.manager.RecipeDetailManager;
-import recipe.manager.RecipeLogManage;
 import recipe.manager.RecipeManager;
 import recipe.purchase.CommonOrder;
 import recipe.service.RecipeHisService;
+import recipe.service.RecipeLogService;
 import recipe.service.RecipeMsgService;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.ByteUtils;
@@ -98,8 +98,6 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
     private DrugsEnterpriseDAO drugsEnterpriseDAO;
     @Autowired
     private RecipeDAO recipeDAO;
-    @Autowired
-    private RecipeLogManage recipeLogManage;
     @Autowired
     private RecipeDetailManager recipeDetailManager;
     @Autowired
@@ -386,7 +384,7 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
         recipeDAO.updateSendInfoByRecipeIds(recipeIdList, enterpriseSendOrderVO.getSendDate(), enterpriseSendOrderVO.getSender(), RecipeStatusEnum.RECIPE_STATUS_WAIT_SEND.getType());
         //记录日志
         recipeIdList.forEach(recipeId->{
-            recipeLogManage.saveRecipeLog(recipeId, RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType(), RecipeStatusEnum.RECIPE_STATUS_WAIT_SEND.getType(), "待配送,配送人：" + enterpriseSendOrderVO.getSender());
+            RecipeLogService.saveRecipeLog(recipeId, RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType(), RecipeStatusEnum.RECIPE_STATUS_WAIT_SEND.getType(), "待配送,配送人：" + enterpriseSendOrderVO.getSender());
         });
         //上传监管平台
         recipeIdList.forEach(recipeId -> {
@@ -472,11 +470,11 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
                     CommonResponse response = hisSyncService.uploadFinishMedicine(recipe.getRecipeId());
                     if (CommonConstant.SUCCESS.equals(response.getCode())) {
                         //记录日志
-                        recipeLogManage.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), RecipeStatusEnum.RECIPE_STATUS_FINISH.getType(),
+                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), RecipeStatusEnum.RECIPE_STATUS_FINISH.getType(),
                                 "监管平台配送信息[配送到家-处方完成]上传成功");
                     } else {
                         //记录日志
-                        recipeLogManage.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), RecipeStatusEnum.RECIPE_STATUS_FINISH.getType(),
+                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), RecipeStatusEnum.RECIPE_STATUS_FINISH.getType(),
                                 "监管平台配送信息[配送到家-处方完成]上传失败：" + response.getMsg());
                     }
                 } else {
@@ -520,11 +518,11 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
                     CommonResponse response = hisSyncService.uploadSendMedicine(recipe.getRecipeId());
                     if (CommonConstant.SUCCESS.equals(response.getCode())) {
                         //记录日志
-                        recipeLogManage.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), RecipeOrderStatusEnum.ORDER_STATUS_PROCEED_SHIPPING.getType(),
+                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), RecipeOrderStatusEnum.ORDER_STATUS_PROCEED_SHIPPING.getType(),
                                 "监管平台配送信息[派药]上传成功");
                     } else {
                         //记录日志
-                        recipeLogManage.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), RecipeOrderStatusEnum.ORDER_STATUS_PROCEED_SHIPPING.getType(),
+                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), RecipeOrderStatusEnum.ORDER_STATUS_PROCEED_SHIPPING.getType(),
                                 "监管平台配送信息[派药]上传失败：" + response.getMsg());
                     }
                 });
