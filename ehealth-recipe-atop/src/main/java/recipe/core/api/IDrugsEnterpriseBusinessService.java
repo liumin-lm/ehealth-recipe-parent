@@ -167,4 +167,11 @@ public interface IDrugsEnterpriseBusinessService {
      * @return
      */
     EnterpriseResultBean finishOrder(EnterpriseSendOrderVO enterpriseSendOrderVO);
+
+    /**
+     * 根据订单id调用发药机接口
+     * @param orderId
+     * @return
+     */
+    Boolean pushDrugDispenserByOrder(Integer orderId);
 }

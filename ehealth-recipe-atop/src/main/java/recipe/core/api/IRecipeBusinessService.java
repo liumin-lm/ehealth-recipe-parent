@@ -226,6 +226,13 @@ public interface IRecipeBusinessService {
     List<RecipeInfoVO> findRelatedRecipeRecordByRegisterNo(Integer recipeId, Integer doctorId,
                                                            List<Integer> recipeTypeList, List<Integer> organIds);
 
+    /**
+     * 根据订单的维度查询药品用量标签
+     * @param orderId
+     * @return
+     */
+    List<DrugUsageLabelResp> queryRecipeDrugUsageLabelByOrder(Integer orderId);
+
     AdvanceWarningResVO getAdvanceWarning(AdvanceWarningReqVO advanceWarningReqDTO);
 
 }

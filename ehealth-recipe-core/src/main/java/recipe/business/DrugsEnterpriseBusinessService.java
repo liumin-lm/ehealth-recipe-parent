@@ -457,6 +457,16 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
         return EnterpriseResultBean.getSuccess("成功");
     }
 
+    @Override
+    public Boolean pushDrugDispenserByOrder(Integer orderId) {
+        RecipeOrder recipeOrder = recipeOrderDAO.get(orderId);
+        List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
+        recipeIdList.forEach(recipeId->{
+            pushDrugDispenser(recipeId);
+        });
+        return true;
+    }
+
     private void syncFinishOrderHandle(List<Integer> recipeIdList, RecipeOrder recipeOrder, boolean isSendFlag) {
         logger.info("syncFinishOrderHandle recipeIdList:{}, recipeOrder:{}", recipeIdList, JSON.toJSONString(recipeOrder));
         RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);

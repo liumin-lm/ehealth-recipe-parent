@@ -18,8 +18,10 @@ import com.ngari.recipe.vo.*;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
 import ctd.util.BeanUtils;
+import ctd.util.JSONUtils;
 import eh.cdr.api.vo.MedicalDetailBean;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -645,6 +647,90 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             }
         }
         return recipeInfoVOS;
+    }
+
+    @Override
+    public List<DrugUsageLabelResp> queryRecipeDrugUsageLabelByOrder(Integer orderId) {
+        RecipeOrder recipeOrder = recipeOrderDAO.get(orderId);
+        List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
+        List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIdList);
+        List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeIdList(recipeIdList);
+        Map<Integer, List<Recipedetail>> recipeDetailMap = recipeDetails.stream().collect(Collectors.groupingBy(Recipedetail::getRecipeId));
+        List<RecipeExtend> recipeExtends = recipeExtendDAO.queryRecipeExtendByRecipeIds(recipeIdList);
+        Map<Integer, List<RecipeExtend>> recipeExtendsMap = recipeExtends.stream().collect(Collectors.groupingBy(RecipeExtend::getRecipeId));
+        Integer enterpriseId = recipeOrder.getEnterpriseId();
+
+        if (Objects.isNull(enterpriseId)) {
+            throw new DAOException("未查询到对应药企！");
+        }
+        DrugsEnterprise drugsEnterprise = enterpriseManager.drugsEnterprise(enterpriseId);
+        PatientDTO patientDTO = patientClient.getPatientDTOByMpiId(recipeOrder.getMpiId());
+        List<DrugUsageLabelResp> deploy = recipeList.stream().map(recipe -> {
+            DrugUsageLabelResp drugUsageLabelResp = new DrugUsageLabelResp();
+            drugUsageLabelResp.setEnterpriseName(drugsEnterprise.getName());
+            //患者信息
+            if (Objects.nonNull(patientDTO)) {
+                drugUsageLabelResp.setPatientName(patientDTO.getPatientName());
+                drugUsageLabelResp.setPatientAge(patientDTO.getAgeString());
+                drugUsageLabelResp.setPatientSex(patientDTO.getPatientSex());
+            }
+            drugUsageLabelResp.setRecipeType(recipe.getRecipeType());
+            drugUsageLabelResp.setDispensingTime(recipeOrder.getDispensingTime());
+            if(MapUtils.isEmpty(recipeDetailMap) || CollectionUtils.isEmpty(recipeDetailMap.get(recipe.getRecipeId()))){
+                throw new DAOException("药品信息为空！");
+            }
+            List<Recipedetail> recipedetails = recipeDetailMap.get(recipe.getRecipeId());
+            if (RecipeTypeEnum.RECIPETYPE_WM.getType().equals(recipe.getRecipeType()) ||
+                    RecipeTypeEnum.RECIPETYPE_CPM.getType().equals(recipe.getRecipeType())) {
+                //西药，中成药
+                // 是否医院结算药企
+                Boolean isHosSettle = enterpriseManager.getIsHosSettle(recipeOrder);
+                if (CollectionUtils.isNotEmpty(recipedetails)) {
+                    List<RecipeDetailBean> recipeDetailBeans = ObjectCopyUtils.convert(recipedetails, RecipeDetailBean.class);
+                    for (RecipeDetailBean recipeDetailBean : recipeDetailBeans) {
+                        if (Objects.nonNull(recipeDetailBean.getHisReturnSalePrice()) && isHosSettle) {
+                            recipeDetailBean.setActualSalePrice(recipeDetailBean.getHisReturnSalePrice());
+                        }
+                    }
+                    drugUsageLabelResp.setDrugUsageLabelList(recipeDetailBeans);
+                }
+            } else if (RecipeTypeEnum.RECIPETYPE_TCM.getType().equals(recipe.getRecipeType()) ||
+                    RecipeTypeEnum.RECIPETYPE_HP.getType().equals(recipe.getRecipeType())) {
+                //中药, 膏方
+                ChineseMedicineMsgVO chineseMedicineMsg = new ChineseMedicineMsgVO();
+                chineseMedicineMsg.setCopyNum(recipe.getCopyNum());
+                chineseMedicineMsg.setTotalFee(recipeOrder.getTotalFee());
+                if (MapUtils.isNotEmpty(recipeExtendsMap) && CollectionUtils.isNotEmpty(recipeExtendsMap.get(recipe.getRecipeId()))) {
+                    List<RecipeExtend> recipeExtends1 = recipeExtendsMap.get(recipe.getRecipeId());
+                    chineseMedicineMsg.setMakeMethodText(recipeExtends1.get(0).getMakeMethodText());
+                    chineseMedicineMsg.setDecoctionText(recipeExtends1.get(0).getDecoctionText());
+
+                    Boolean ecoctionFlag;
+                    String decoctionDeploy = configurationClient.getValueEnumCatch(recipe.getClinicOrgan(), "decoctionDeploy", "0");
+                    if ("0".equals(decoctionDeploy)) {
+                        ecoctionFlag = false;
+                    } else if ("1".equals(decoctionDeploy)) {
+                        ecoctionFlag = "1".equals(recipeExtends1.get(0).getDoctorIsDecoction());
+                    } else {
+                        ecoctionFlag = "1".equals(recipeOrder.getPatientIsDecoction());
+                    }
+                    chineseMedicineMsg.setJuice(recipeExtends1.get(0).getJuice());
+
+                    chineseMedicineMsg.setDecoctionFlag(ecoctionFlag);
+                    if (CollectionUtils.isNotEmpty(recipedetails)) {
+                        chineseMedicineMsg.setUsePathways(recipedetails.get(0).getUsePathways());
+                        chineseMedicineMsg.setUsingRate(recipedetails.get(0).getUsingRate());
+                        chineseMedicineMsg.setMemo(recipe.getRecipeMemo());
+                    }
+                    chineseMedicineMsg.setMinor(recipeExtends1.get(0).getMinor());
+                    chineseMedicineMsg.setUseDays(recipedetails.get(0).getUseDays());
+                    drugUsageLabelResp.setChineseMedicineMsg(chineseMedicineMsg);
+                }
+            }
+            return drugUsageLabelResp;
+        }).collect(Collectors.toList());
+
+        return deploy;
     }
 
     @Override

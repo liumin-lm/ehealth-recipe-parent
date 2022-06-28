@@ -42,6 +42,17 @@ public class RecipeGmAtop extends BaseAtop {
         return recipeBusinessService.queryRecipeDrugUsageLabel(recipeId);
     }
 
+    /**
+     * 运营平台查询处方单用法标签
+     *
+     * @param orderId
+     * @return
+     */
+    @RpcService
+    public List<DrugUsageLabelResp> queryRecipeDrugUsageLabelByOrder(Integer orderId) {
+        validateAtop(orderId);
+        return recipeBusinessService.queryRecipeDrugUsageLabelByOrder(orderId);
+    }
 
     /**
      * 订单状态更新

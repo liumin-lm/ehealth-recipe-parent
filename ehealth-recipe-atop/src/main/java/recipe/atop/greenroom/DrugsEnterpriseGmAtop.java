@@ -247,4 +247,15 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
     public Boolean pushDrugDispenser(Integer recipeId) {
         return drugsEnterpriseBusinessService.pushDrugDispenser(recipeId);
     }
+
+    /**
+     * 运营平台调用发药机发药根据订单
+     *
+     * @param orderId
+     * @return
+     */
+    @RpcService
+    public Boolean pushDrugDispenserByOrder(Integer orderId) {
+        return drugsEnterpriseBusinessService.pushDrugDispenserByOrder(orderId);
+    }
 }
