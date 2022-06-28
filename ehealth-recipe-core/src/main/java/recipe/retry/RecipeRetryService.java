@@ -11,11 +11,13 @@ import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.platform.recipe.CashSettleResultReqTo;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
+import org.apache.curator.shaded.com.google.common.base.Predicates;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.client.IConfigurationClient;
+import recipe.client.RecipeSettleClient;
 import recipe.presettle.settle.IRecipeSettleService;
 
 import javax.annotation.Resource;
@@ -32,9 +34,7 @@ public class RecipeRetryService {
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipeRetryService.class);
 
     @Autowired
-    private IConfigurationClient configurationClient;
-    @Resource
-    private IRecipeHisService hisService;
+    private RecipeSettleClient recipeSettleClient;
 
 
     /**
@@ -54,54 +54,22 @@ public class RecipeRetryService {
                 //每次等待重试时间间隔
                 .withWaitStrategy(WaitStrategies.fixedWait(300, TimeUnit.MILLISECONDS))
                 .build();
-        PayNotifyResTO resTO;
+        PayNotifyResTO resTO = new PayNotifyResTO();
         try {
             resTO = retryer.call(() -> {
                 LOGGER.info("RecipeSettleRetryService.doRecipeSettle retry");
                 return settleService.recipeSettle(req);
             });
         } catch (Exception e) {
-            return retrySettle(req);
+            // 异常启动结算反查机制
+            HisResponseTO hisResponseTO = recipeSettleClient.retrySettle(req);
+            // 反查成功或异常都算结算成功
+            if("99".equals(hisResponseTO.getMsgCode()) || "200".equals(hisResponseTO.getMsgCode())){
+                resTO.setMsgCode(0);
+            }
+            return resTO;
         }
         return resTO;
     }
 
-
-    public PayNotifyResTO retrySettle(PayNotifyReqTO req) {
-        // 根据机构配置获取是否调用结算反查接口
-        Boolean isRetrySettle = configurationClient.getValueBooleanCatch(Integer.valueOf(req.getOrganID()), "isRetrySettle", false);
-        if (!isRetrySettle) {
-            LOGGER.info("三次后还是异常");
-            throw new DAOException(609, "重试三次后还是接口异常");
-        }
-        CashSettleResultReqTo cashSettleResultReqTo = CashSettleResultReqTo.builder().orderCode(req.getOrderCode()).organId(Integer.valueOf(req.getOrganID())).recipeCode(req.getRecipeCodeS()).build();
-        Retryer<PayNotifyResTO> retryer = RetryerBuilder.<PayNotifyResTO>newBuilder()
-                //抛出指定异常重试
-                .retryIfExceptionOfType(Exception.class)
-                //停止重试策略
-                .withStopStrategy(StopStrategies.stopAfterAttempt(2))
-                //每次等待重试时间间隔
-                .withWaitStrategy(WaitStrategies.fixedWait(6000, TimeUnit.MILLISECONDS))
-                .build();
-
-
-        PayNotifyResTO resTO = new PayNotifyResTO();
-        resTO.setMsgCode(0);
-        try {
-
-            PayNotifyResTO finalResTO = resTO;
-            resTO = retryer.call(() -> {
-                LOGGER.info("RecipeSettleRetryService.retrySettle retry");
-                HisResponseTO hisResponseTO = hisService.cashSettleResult(cashSettleResultReqTo);
-                if("-1".equals(hisResponseTO.getMsgCode())){
-                    finalResTO.setMsgCode(-1);
-                }
-
-                return finalResTO;
-            });
-        } catch (Exception e) {
-            LOGGER.info("RecipeSettleRetryService.retrySettle retry Exception OrderCode={}",req.getOrderCode());
-        }
-        return resTO;
-    }
 }
