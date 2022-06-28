@@ -1515,10 +1515,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      * @param dateType    时间类型（0：开方时间，1：审核时间，2：支付时间，3：发药时间）
      * @return QueryResult<Map>
      */
-    public List<Object[]> findRecipesByInfoForExcel(RecipesQueryVO recipesQueryVO) {
+    public List<RecipeInfoExportDTO> findRecipesByInfoForExcel(RecipesQueryVO recipesQueryVO) {
         this.validateOptionForStatistics(recipesQueryVO);
         final StringBuilder sbHql = this.generateRecipeMsgHQLforStatisticsV1(recipesQueryVO);
-        HibernateStatelessResultAction<List<Object[]>> action = new AbstractHibernateStatelessResultAction<List<Object[]>>() {
+        HibernateStatelessResultAction<List<RecipeInfoExportDTO>> action = new AbstractHibernateStatelessResultAction<List<RecipeInfoExportDTO>>() {
             @Override
             public void execute(StatelessSession ss) {
                 Query query = ss.createSQLQuery(sbHql.append(" GROUP BY r.recipeId order by r.recipeId DESC").toString())
@@ -1528,7 +1528,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                 query.setParameter("startTime", sdf.format(recipesQueryVO.getBDate()));
                 query.setParameter("endTime", sdf.format(recipesQueryVO.getEDate()));
-                List<Object[]> list = query.list();
+                List<RecipeInfoExportDTO> list = query.list();
                 setResult(list);
             }
         };
