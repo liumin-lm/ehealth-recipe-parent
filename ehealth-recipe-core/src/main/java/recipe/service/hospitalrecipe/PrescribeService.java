@@ -383,6 +383,7 @@ public class PrescribeService {
 
             Integer recipeId = dbRecipe.getRecipeId();
             Map<String, Object> attrMap = Maps.newHashMap();
+            attrMap.put("writeHisState", 3);
             String trackingNo = otherInfo.get("trackingNo");
             String companyId = otherInfo.get("companyId");
             switch (status) {
