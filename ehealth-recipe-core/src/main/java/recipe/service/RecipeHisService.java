@@ -324,6 +324,7 @@ public class RecipeHisService extends RecipeBaseService {
                 request.setRecipeID(recipeId);
                 request.setDoctorNumber(jobNumber);
                 request.setDoctorName(recipe.getDoctorName());
+                request.setTakeMedicine(recipe.getTakeMedicine());
                 if (recipeExtend != null) {
                     request.setHisDiseaseSerial(recipeExtend.getHisDiseaseSerial());
                 }
