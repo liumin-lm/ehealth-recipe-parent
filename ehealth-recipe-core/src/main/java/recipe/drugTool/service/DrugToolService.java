@@ -1395,9 +1395,11 @@ public class DrugToolService implements IDrugToolService {
 
     /**
      * 药品提交(将匹配完成的数据提交更新)----互联网六期改为人工提交
+     * addFlag 0 不新增  1 新增
+     * updateFlag 0 不更新 1 更新
      */
     @RpcService(timeout = 120)
-    public Map<String, Integer> drugCommit(List<DrugListMatch> lists, Integer organ) {
+    public Map<String, Integer> drugCommit(List<DrugListMatch> lists, Integer organ,Integer addFlag,Integer updateFlag) {
         List<DrugListMatch> lists1 = new ArrayList<>();
         Map<String, Integer> map = new HashMap<>();
         Integer result = 0;
@@ -1418,7 +1420,7 @@ public class DrugToolService implements IDrugToolService {
                     }
                 }
                 if (lists1.size() > 0) {
-                    List<OrganDrugList> organDrugLists = this.drugManualCommitNew(lists1);
+                    List<OrganDrugList> organDrugLists = this.drugManualCommitNew(lists1,addFlag,updateFlag);
                     result = organDrugLists.size();
                     //同步药品到监管备案
                     RecipeBusiThreadPool.submit(() -> {
@@ -1466,7 +1468,7 @@ public class DrugToolService implements IDrugToolService {
                     }
                 }
                 if (lists1.size() > 0) {
-                    List<OrganDrugList> organDrugLists = this.drugManualCommitNew(lists1);
+                    List<OrganDrugList> organDrugLists = this.drugManualCommitNew(lists1,1,1);
                     result = organDrugLists.size();
                     //同步药品到监管备案
                     RecipeBusiThreadPool.submit(() -> {
@@ -1489,7 +1491,7 @@ public class DrugToolService implements IDrugToolService {
 
     }
 
-    private List<OrganDrugList> drugManualCommitNew(List<DrugListMatch> lists) {
+    private List<OrganDrugList> drugManualCommitNew(List<DrugListMatch> lists,Integer addFlag,Integer updateFlag) {
         IBusActionLogService busActionLogService = AppDomainContext.getBean("opbase.busActionLogService", IBusActionLogService.class);
         DrugListMatch drugListMatch = lists.get(0);
         OrganService organService = BasicAPI.getService(OrganService.class);
@@ -1592,15 +1594,9 @@ public class DrugToolService implements IDrugToolService {
                         }
                         organDrugList.setTargetedDrugType(drugListMatch.getTargetedDrugType());
                         organDrugList.setSmallestSaleMultiple(drugListMatch.getSmallestSaleMultiple());
-
-                        Boolean isSuccess = organDrugListDAO.updateData(organDrugList);
-                        if (!isSuccess) {
-                            OrganDrugList save = organDrugListDAO.save(organDrugList);
-                            organDrugSync(save);
-                            saveMsg.append("【" + organDrugList.getDrugId() + "-" + organDrugList.getDrugName() + "】");
-                            organDrugLists.add(save);
-                            num = num + 1;
-                        } else {
+                        //updateFlag为1时更新药品信息，否则不更新
+                        if(new Integer(1).equals(updateFlag)){
+                            organDrugListDAO.updateData(organDrugList);
                             List<OrganDrugList> byDrugIdAndOrganId = organDrugListDAO.findByOrganDrugCodeAndOrganId(organDrugList.getOrganDrugCode(), organDrugList.getOrganId());
                             if (byDrugIdAndOrganId != null && byDrugIdAndOrganId.size() > 0) {
                                 for (OrganDrugList drugList : byDrugIdAndOrganId) {
@@ -1609,6 +1605,14 @@ public class DrugToolService implements IDrugToolService {
                             }
                             //更新
                             updateMsg.append("【" + organDrugList.getDrugId() + "-" + organDrugList.getDrugName() + "】");
+                        }
+                        //addFlag为1时新增药品信息，否则不新增
+                        if(new Integer(1).equals(addFlag)){
+                            OrganDrugList save = organDrugListDAO.save(organDrugList);
+                            organDrugSync(save);
+                            saveMsg.append("【" + organDrugList.getDrugId() + "-" + organDrugList.getDrugName() + "】");
+                            organDrugLists.add(save);
+                            num = num + 1;
                         }
                     }
                 }
