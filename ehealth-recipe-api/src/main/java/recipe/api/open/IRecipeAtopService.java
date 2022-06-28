@@ -180,7 +180,7 @@ public interface IRecipeAtopService {
     List<RecipeDetailBean> findRecipeDetailByRecipeId(Integer recipeId);
 
 
-    @RpcService
+    @RpcService(mvcDisabled = true)
     List<RecipeInfoVO> findRelatedRecipeRecordByRegisterNo(Integer recipeId, Integer doctorId,
                                                            List<Integer> recipeTypeList, List<Integer> organIds);
 }

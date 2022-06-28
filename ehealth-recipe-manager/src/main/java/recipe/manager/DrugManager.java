@@ -419,10 +419,7 @@ public class DrugManager extends BaseManager {
     public List<RecipeRulesDrugCorrelation> getListDrugRules(List<Integer> list, Integer ruleId) {
         logger.info("DrugManager.getListDrugRules req list={} ruleId={}", JSON.toJSONString(list), ruleId);
         List<RecipeRulesDrugCorrelation> result = new ArrayList<>();
-        if (CollectionUtils.isEmpty(list)) {
-            return result;
-        }
-        if (ruleId == null) {
+        if (CollectionUtils.isEmpty(list) || Objects.isNull(ruleId)) {
             return result;
         }
         result = recipeRulesDrugCorrelationDAO.findListRules(list, ruleId);
