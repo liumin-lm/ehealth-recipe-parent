@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
+import recipe.constant.CacheConstant;
 import recipe.dao.RecipeParameterDao;
 import recipe.util.RedisClient;
 
@@ -27,8 +28,6 @@ public class RecipeCacheService {
 
     @Autowired
     private RedisClient redisClient;
-
-    private final String RECIPE_CACHE_KEY = "RECIPE_CACHE_KEY";
 
     @RpcService
     public String getParam(String field) {
@@ -50,13 +49,13 @@ public class RecipeCacheService {
         }
 
         //先从缓存获取
-        String val = redisClient.hget(RECIPE_CACHE_KEY, field);
+        String val = redisClient.hget(CacheConstant.RECIPE_CACHE_KEY, field);
         if (StringUtils.isEmpty(val)) {
             //从RPC接口获取
             ISysParamterService iSysParamterService = ApplicationUtils.getBaseService(ISysParamterService.class);
             val = iSysParamterService.getParam(field, null);
             if (StringUtils.isNotEmpty(val)) {
-                redisClient.hsetEx(RECIPE_CACHE_KEY, field, val, 7 * 24 * 3600L);
+                redisClient.hsetEx(CacheConstant.RECIPE_CACHE_KEY, field, val, 7 * 24 * 3600L);
             } else {
                 //返回默认值
                 val = defaultStr;
@@ -80,12 +79,12 @@ public class RecipeCacheService {
         }
 
         //先从缓存获取
-        String val = redisClient.hget(RECIPE_CACHE_KEY, field);
+        String val = redisClient.hget(CacheConstant.RECIPE_CACHE_KEY, field);
         if (StringUtils.isEmpty(val)) {
             RecipeParameterDao parameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
             val = parameterDao.getByName(field);
             if (StringUtils.isNotEmpty(val)) {
-                redisClient.hsetEx(RECIPE_CACHE_KEY, field, val, 7 * 24 * 3600L);
+                redisClient.hsetEx(CacheConstant.RECIPE_CACHE_KEY, field, val, 7 * 24 * 3600L);
             } else {
                 //返回默认值
                 val = defaultStr;
@@ -112,7 +111,7 @@ public class RecipeCacheService {
      */
     @RpcService
     public Long deleteCacheKey() {
-        return redisClient.del(RECIPE_CACHE_KEY);
+        return redisClient.del(CacheConstant.RECIPE_CACHE_KEY);
     }
 
     @RpcService
