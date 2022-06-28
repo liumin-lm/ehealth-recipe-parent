@@ -29,8 +29,6 @@ public class AfterPayBusService{
     private KeepAccountService keepAccountService;
     @Autowired
     private PaySendMsgService paySendMsgService;
-    @Autowired
-    private DrugRemindRevisitService drugRemindRevisitService;
 
     public void handle(RecipeResultBean result, RecipeOrder recipeOrder, List<Recipe> recipes, Integer payFlag) {
         LOGGER.info("AfterPayBusService handle recipeOrder:{}.", JSONUtils.toString(recipeOrder));
