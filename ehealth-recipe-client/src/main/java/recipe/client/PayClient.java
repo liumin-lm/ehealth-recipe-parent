@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.ngari.recipe.entity.RecipeOrder;
 import ctd.account.UserRoleToken;
+import ctd.util.AppContextHolder;
 import ctd.util.context.Context;
 import ctd.util.context.ContextUtils;
 import easypay.entity.vo.param.CommonParam;
@@ -30,8 +31,8 @@ import java.util.Objects;
 @Service
 public class PayClient extends BaseClient {
 
-    @Autowired
-    private IEasyPayServiceInterface payService;
+    //@Autowired
+    //private IEasyPayServiceInterface payService;
 
     /**
      * 获取订单支付状态
@@ -88,6 +89,7 @@ public class PayClient extends BaseClient {
         // 3.调用2.2.订单状态查询(order.query)
         try {
             logger.info("order.query commonParam={}", JSON.toJSONString(commonParam));
+            IEasyPayServiceInterface payService = AppContextHolder.getBean("easypay.payService", IEasyPayServiceInterface.class);
             result = payService.gateWay(commonParam);
             logger.info("order.query result={}", JsonUtil.toString(result));
             JSONObject jsonObject = JSONObject.parseObject(result);
