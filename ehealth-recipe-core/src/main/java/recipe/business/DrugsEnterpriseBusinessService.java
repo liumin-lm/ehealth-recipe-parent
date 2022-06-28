@@ -24,6 +24,7 @@ import org.joda.time.DateTime;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.client.PatientClient;
@@ -464,6 +465,17 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
         recipeIdList.forEach(recipeId->{
             pushDrugDispenser(recipeId);
         });
+        return true;
+    }
+
+    @Override
+    public Boolean updateEnterprisePriorityLevel(Integer depId, Integer level) {
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(depId);
+        if (ObjectUtils.isEmpty(drugsEnterprise)) {
+            throw new DAOException("药企不存在");
+        }
+        drugsEnterprise.setPriorityLevel(level);
+        drugsEnterpriseDAO.update(drugsEnterprise);
         return true;
     }
 
