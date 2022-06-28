@@ -1,6 +1,5 @@
 package recipe.drugsenterprise;
 
-import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.ngari.base.patient.model.PatientBean;
@@ -9,8 +8,6 @@ import com.ngari.his.recipe.mode.DrugTakeChangeReqTO;
 import com.ngari.infra.invoice.mode.InvoiceRecordDto;
 import com.ngari.infra.invoice.service.InvoiceRecordService;
 import com.ngari.infra.logistics.mode.OrganLogisticsManageDto;
-import com.ngari.infra.logistics.mode.WriteBackLogisticsOrderDto;
-import com.ngari.infra.logistics.service.ILogisticsOrderService;
 import com.ngari.infra.logistics.service.IOrganLogisticsManageService;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.DoctorDTO;
@@ -24,9 +21,6 @@ import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.DrugListForThreeBean;
 import com.ngari.recipe.recipe.model.RecipeAndOrderDetailBeanNoDs;
-import com.ngari.revisit.RevisitAPI;
-import com.ngari.revisit.common.model.RevisitExDTO;
-import com.ngari.revisit.common.service.IRevisitExService;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -61,10 +55,7 @@ import recipe.hisservice.HisRequestInit;
 import recipe.hisservice.RecipeToHisService;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.hisservice.syncdata.SyncExecutorService;
-import recipe.manager.EmrRecipeManager;
-import recipe.manager.GroupRecipeManager;
-import recipe.manager.OrderManager;
-import recipe.manager.StateManager;
+import recipe.manager.*;
 import recipe.presettle.RecipeOrderTypeEnum;
 import recipe.purchase.CommonOrder;
 import recipe.service.*;
@@ -137,6 +128,8 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
     private RecipeExtendDAO recipeExtendDAO;
     @Autowired
     private SaleDrugListDAO saleDrugListDAO;
+    @Autowired
+    private EnterpriseManager enterpriseManager;
 
     /**
      * 待配送状态
@@ -383,16 +376,12 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         }
         //此处为配送人
         String sender = MapValueUtil.getString(paramMap, "sender");
-
+        RecipeOrder order = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
         Map<String, Object> attrMap = Maps.newHashMap();
         attrMap.put("sendDate", sendDate);
         attrMap.put("sender", sender);
         //以免进行处方失效前提醒
         attrMap.put("remindFlag", 1);
-        /*String recipeFeeStr = MapValueUtil.getString(paramMap, "recipeFee");
-        if (StringUtils.isNotEmpty(recipeFeeStr)) {
-            attrMap.put("totalMoney", new BigDecimal(recipeFeeStr));
-        }*/
         //更新处方信息
         Boolean rs = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.IN_SEND, attrMap);
         List<Recipe> recipes = orderManager.getRecipesByOrderCode(recipe.getOrderCode());
@@ -432,7 +421,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             LOGGER.info("toSend 订单更新 result={}", JSONUtils.toString(resultBean));
             try {
                 // 更新处方、处方订单成功：药企对接物流的运单信息同步基础服务
-                sendLogisticsInfoToBase(recipeId, logisticsCompany, trackingNumber);
+                enterpriseManager.sendLogisticsInfoToBase(order, recipeId, logisticsCompany, trackingNumber);
             } catch (Exception e) {
                 LOGGER.error("药企对接物流通知处方运单号，同步运单信息至基础服务异常=", e);
             }
@@ -451,22 +440,16 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             //将快递公司快递单号信息用更新配送方式接口更新至his
             if (StringUtils.isNotEmpty(logisticsCompany) && StringUtils.isNotEmpty(trackingNumber)) {
                 RecipeBusiThreadPool.submit(() -> {
-                    LOGGER.info("sendImpl start");
-                    long start = System.currentTimeMillis();
                     RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
                     RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
                     List<Recipedetail> details = recipeDetailDAO.findByRecipeId(recipeId);
                     PatientBean patientBean = iPatientService.get(recipe.getMpiid());
                     DrugTakeChangeReqTO request = HisRequestInit.initDrugTakeChangeReqTO(recipe, details, patientBean, null);
                     service.drugTakeChange(request);
-                    long elapsedTime = System.currentTimeMillis() - start;
-                    LOGGER.info("RecipeBusiThreadPool sendImpl 将配送信息同步到HIS 执行时间:{}.", elapsedTime);
                     return null;
                 });
                 //监管平台上传配送信息(派药)
                 RecipeBusiThreadPool.submit(() -> {
-                    LOGGER.info("sendImpl start");
-                    long start = System.currentTimeMillis();
                     HisSyncSupervisionService hisSyncService = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
                     CommonResponse response = hisSyncService.uploadSendMedicine(recipeId);
                     if (CommonConstant.SUCCESS.equals(response.getCode())) {
@@ -478,8 +461,6 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                         RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusConstant.IN_SEND,
                                 "监管平台配送信息[派药]上传失败：" + response.getMsg());
                     }
-                    long elapsedTime = System.currentTimeMillis() - start;
-                    LOGGER.info("RecipeBusiThreadPool sendImpl 监管平台上传配送信息(派药) 执行时间:{}.", elapsedTime);
                     return null;
                 });
             }
@@ -487,94 +468,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             thirdResultBean.setCode(ErrorCode.SERVICE_ERROR);
             thirdResultBean.setMsg("电子处方更新失败");
         }
-
         thirdResultBean.setRecipe(null);
-    }
-
-    /**
-     * 药企对接物流，同步运单信息至基础服务
-     *
-     * @param recipeId
-     * @param logisticsCompany
-     * @param trackingNumber
-     */
-    public static void sendLogisticsInfoToBase(Integer recipeId, String logisticsCompany, String trackingNumber) {
-        try {
-            RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-            Recipe recipeInfo = recipeDAO.getByRecipeId(recipeId);
-            if (StringUtils.isNotBlank(recipeInfo.getOrderCode())) {
-                RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-                RecipeOrder order = orderDAO.getByOrderCode(recipeInfo.getOrderCode());
-                if (null != order && order.getEnterpriseId() != null) {
-                    DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-                    DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
-                    if (null != enterprise && enterprise.getLogisticsType() != null && enterprise.getLogisticsType().equals(DrugEnterpriseConstant.LOGISTICS_ENT)) {
-                        WriteBackLogisticsOrderDto logisticsOrder = new WriteBackLogisticsOrderDto();
-                        // 机构id
-                        logisticsOrder.setOrganId(recipeInfo.getClinicOrgan());
-                        // 平台用户id
-                        logisticsOrder.setUserId(recipeInfo.getMpiid());
-                        // 业务类型
-                        logisticsOrder.setBusinessType(DrugEnterpriseConstant.BUSINESS_TYPE);
-                        // 业务编码
-                        logisticsOrder.setBusinessNo(order.getOrderCode());
-                        // 快递编码
-                        logisticsOrder.setLogisticsCode(logisticsCompany);
-                        // 运单号
-                        logisticsOrder.setWaybillNo(trackingNumber);
-                        // 运单费
-                        logisticsOrder.setWaybillFee(order.getExpressFee());
-                        // 收件人名称
-                        logisticsOrder.setAddresseeName(order.getReceiver());
-                        // 收件人手机号
-                        logisticsOrder.setAddresseePhone(order.getRecMobile());
-                        // 收件省份
-                        logisticsOrder.setAddresseeProvince(LocalStringUtil.getAddressDic(order.getAddress1()));
-                        // 收件城市
-                        logisticsOrder.setAddresseeCity(LocalStringUtil.getAddressDic(order.getAddress2()));
-                        // 收件镇/区
-                        logisticsOrder.setAddresseeDistrict(LocalStringUtil.getAddressDic(order.getAddress3()));
-                        // 收件人街道
-                        logisticsOrder.setAddresseeStreet(LocalStringUtil.getAddressDic(order.getStreetAddress()));
-                        // 收件详细地址
-                        logisticsOrder.setAddresseeAddress(order.getAddress4());
-                        // 寄托物名称
-                        logisticsOrder.setDepositumName(DrugEnterpriseConstant.DEPOSITUM_NAME);
-                        if (LOGISTICS_COMPANY_SF.equals(logisticsCompany)) {
-                            logisticsOrder.setSfType(2);
-                        }
-                        IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
-                        PatientBean patientBean = iPatientService.get(recipeInfo.getMpiid());
-                        if (patientBean != null) {
-                            // 就诊人名称
-                            logisticsOrder.setPatientName(patientBean.getPatientName());
-                            // 就诊人手机号
-                            logisticsOrder.setPatientPhone(patientBean.getMobile());
-                            // 就诊人身份证
-                            String cardNo = StringUtils.isNotBlank(patientBean.getIdcard()) ? patientBean.getIdcard() : patientBean.getIdcard2();
-                            if (StringUtils.isNotBlank(cardNo) && cardNo.length() > 18) {
-                                cardNo = null;
-                            }
-                            logisticsOrder.setPatientIdentityCardNo(cardNo);
-                        }
-                        // 挂号序号
-                        if (recipeInfo.getClinicId() != null) {
-                            IRevisitExService iRevisitExService = RevisitAPI.getService(IRevisitExService.class);
-                            RevisitExDTO consultExDTO = iRevisitExService.getByConsultId(recipeInfo.getClinicId());
-                            if (consultExDTO != null) {
-                                logisticsOrder.setOutpatientNumber(consultExDTO.getRegisterNo());
-                            }
-                        }
-                        LOGGER.info("药企对接物流运单信息回写基础服务，入参={}", JSONObject.toJSONString(logisticsOrder));
-                        ILogisticsOrderService logisticsOrderService = AppContextHolder.getBean("infra.logisticsOrderService", ILogisticsOrderService.class);
-                        String writeResult = logisticsOrderService.writeBackLogisticsOrder(logisticsOrder);
-                        LOGGER.info("药企对接物流运单信息回写基础服务，结果={}", writeResult);
-                    }
-                }
-            }
-        } catch (Exception e) {
-            LOGGER.error("sendLogisticsInfoToBase error ", e);
-        }
     }
 
     /**
@@ -632,9 +526,6 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             updateRecipeDetainInfo(recipe, paramMap);
             Map<String, Object> orderAttr = getOrderInfoMap(recipe, paramMap);
             orderService.finishOrder(recipe.getOrderCode(), orderAttr);
-            //保存至电子病历
-//            RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
-//            recipeService.saveRecipeDocIndex(recipe);
             //记录日志
             RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.IN_SEND, RecipeStatusConstant.FINISH, "配送到家处方单完成,配送人：" + sender);
             //HIS消息发送
@@ -847,10 +738,6 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             errorMsg = "";
         }
 
-//        if (null != recipeId) {
-//            RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.UNKNOW, RecipeStatusConstant.UNKNOW, "updateRecipeInfo info=" + JSONUtils.toString(paramMap));
-//        }
-
         String recipeCodeStr = MapValueUtil.getString(paramMap, "recipeCode");
         if (StringUtils.isNotEmpty(recipeCodeStr)) {
             //钥世圈采用该字段协议
@@ -975,8 +862,6 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                 Map<String, Object> orderAttr = getOrderInfoMap(recipe, paramMap);
                 //完成订单，不需要检查订单有效性，就算失效的订单也直接变成已完成
                 orderService.finishOrder(recipe.getOrderCode(), orderAttr);
-                //保存至电子病历
-//                recipeService.saveRecipeDocIndex(recipe);
                 //记录日志
                 RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusConstant.FINISH, "到店取药订单完成");
                 //HIS消息发送
@@ -1108,7 +993,6 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                             IWXServiceInterface wxService = AppContextHolder.getBean("wx.wxService", IWXServiceInterface.class);
                             Map<String, String> paramsMap = Maps.newHashMap();
                             paramsMap.put("module", "orderList");
-//                            paramsMap.put("cid", order.getOrderId().toString());
                             String wxUrl = wxService.getSinglePageUrl(appid, paramsMap);
 
                             if (StringUtils.isNotEmpty(wxUrl)) {
