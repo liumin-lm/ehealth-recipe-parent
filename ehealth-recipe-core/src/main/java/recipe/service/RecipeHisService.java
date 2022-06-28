@@ -549,7 +549,7 @@ public class RecipeHisService extends RecipeBaseService {
             try {
                 //如果异常重试处理
                 response = recipeRetryService.doRecipeSettle(settleService, payNotifyReq);
-                LOGGER.info("doRecipeSettle settleService  response={}", JsonUtil.toString(response));
+                LOGGER.info("doRecipeSettle settleService recipeId={}. response={}", recipe.getRecipeId(),JsonUtil.toString(response));
                 // 前置机返回结算异常码 99 启动结算重试
                 if(new Integer(99).equals(response.getMsgCode())) {
                     HisResponseTO hisResponseTO = recipeSettleClient.retrySettle(payNotifyReq);
