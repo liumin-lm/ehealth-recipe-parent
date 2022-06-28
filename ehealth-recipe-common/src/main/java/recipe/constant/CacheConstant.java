@@ -146,4 +146,6 @@ public class CacheConstant {
      * 慢病病种的查询
      */
     public static final String KEY_CHRONIC_DISEASE_FLAG = "KEY_CHRONIC_DISEASE_FLAG_";
+
+    public static final String RECIPE_CACHE_KEY = "RECIPE_CACHE_KEY";
 }
