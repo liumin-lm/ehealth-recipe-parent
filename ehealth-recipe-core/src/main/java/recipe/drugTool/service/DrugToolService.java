@@ -3033,10 +3033,10 @@ public class DrugToolService implements IDrugToolService {
 
     @RpcService
     public DrugStatusNumRes getDrugStatusNum(DrugStatusNumReq drugStatusNumReq){
-        Long addStatusNum = drugListMatchDAO.getByDrugStatus(drugStatusNumReq.getOrganId(),0);
-        Long updateStatusNum = drugListMatchDAO.getByDrugStatus(drugStatusNumReq.getOrganId(),1);
+        Long sum = drugListMatchDAO.getNumBySourceOrgan(drugStatusNumReq.getOrganId());
+        Long updateStatusNum = drugListMatchDAO.getBySourceOrgan(drugStatusNumReq.getOrganId());
         DrugStatusNumRes drugStatusNumRes = new DrugStatusNumRes();
-        drugStatusNumRes.setAddStatusNum(addStatusNum);
+        drugStatusNumRes.setAddStatusNum(sum-updateStatusNum);
         drugStatusNumRes.setUpdateStatusNum(updateStatusNum);
         return drugStatusNumRes;
     }

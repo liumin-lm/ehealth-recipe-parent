@@ -346,6 +346,20 @@ public abstract class DrugListMatchDAO extends HibernateSupportDelegateDAO<DrugL
     @DAOMethod(sql = "update DrugListMatch set platformDrugId=:platformDrugId where drugId = :drugId")
     public abstract void updatePlatformDrugIdByDrugId(@DAOParam("platformDrugId") Integer platformDrugId, @DAOParam("drugId") Integer drugId);
 
-    @DAOMethod(sql = "SELECT COUNT(*) from DrugListMatch where sourceOrgan =:organId drug_status =:drugStatus and status !=2 ")
-    public abstract long getByDrugStatus(@DAOParam("organId")int organId,@DAOParam("drugStatus") Integer drugStatus);
+    public long getBySourceOrgan(Integer organId){
+        HibernateStatelessResultAction<Long> action = new AbstractHibernateStatelessResultAction<Long>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder();
+                hql.append("select count(a.organDrugId) from OrganDrugList a, DrugListMatch b where a.organDrugCode=b.organDrugCode and b.sourceOrgan=a.organId ");
+                hql.append("and b.sourceOrgan=:organId ");
+                hql.append("and b.status != 2");
+                Query q = ss.createQuery(hql.toString());
+                q.setParameter("organId", organId);
+                setResult((Long) q.uniqueResult());
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
 }
