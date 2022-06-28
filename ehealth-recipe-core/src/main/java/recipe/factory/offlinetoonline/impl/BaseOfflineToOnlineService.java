@@ -638,10 +638,14 @@ public class BaseOfflineToOnlineService {
             recipe.setPayFlag(1);
             //已完成
             recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_FINISH.getType());
-        } else {
+        } else if (HisRecipeConstant.HISRECIPESTATUS_NOIDEAL.equals(hisRecipe.getStatus())) {
             recipe.setPayFlag(0);
             //待处理
             recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType());
+        } else if (HisRecipeConstant.HISRECIPESTATUS_EXPIRED.equals(hisRecipe.getStatus())) {
+            recipe.setPayFlag(0);
+            //已失效
+            recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_NO_PAY.getType());
         }
         recipe.setReviewType(0);
         recipe.setChooseFlag(0);
