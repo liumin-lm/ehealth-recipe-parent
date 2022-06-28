@@ -11,7 +11,6 @@ import easypay.entity.vo.param.CommonParam;
 import easypay.entity.vo.param.OrderQueryParam;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.service.spi.ServiceException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.aop.LogRecord;
 import recipe.constant.PayServiceConstant;
@@ -103,9 +102,9 @@ public class PayClient extends BaseClient {
                 //支付平台异常，调用失败
                 logger.info("order.query 掉用失败");
             }
-
             logger.info("返回支付平台查询结果：" + resultMap);
         } catch (Exception e) {
+            tradeStatus = "ERROR";
             logger.error("order.query 请求支付平台服务异常！", e);
         }
         return tradeStatus;

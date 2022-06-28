@@ -41,6 +41,7 @@ import recipe.business.StockBusinessService;
 import recipe.client.DepartClient;
 import recipe.client.RevisitClient;
 import recipe.constant.HisRecipeConstant;
+import recipe.constant.PayConstant;
 import recipe.dao.*;
 import recipe.dao.bean.HisRecipeListBean;
 import recipe.enumerate.status.OfflineToOnlineEnum;
@@ -473,10 +474,25 @@ public class BaseOfflineToOnlineService {
         Recipe recipe = recipeDAO.get(recipeId);
         HisRecipe hisRecipe = hisRecipeDao.get(hisRecipeId);
 
-        if (!UserRoleToken.getCurrent().getOwnMpiId().equals(recipe.getMpiid())
-                && HisRecipeConstant.HISRECIPESTATUS_ALREADYIDEAL.equals(hisRecipe.getStatus())) {
-            throw new DAOException(609, "该处方单已被他人处理！");
+//        if (!UserRoleToken.getCurrent().getOwnMpiId().equals(recipe.getMpiid())
+//                && HisRecipeConstant.HISRECIPESTATUS_ALREADYIDEAL.equals(hisRecipe.getStatus())) {
+//            throw new DAOException(609, "该处方单已被他人处理！");
+//        }
+        //TODO lium
+        if (!UserRoleToken.getCurrent().getOwnMpiId().equals(recipe.getMpiid())) {
+            String payFlag = hisRecipeManager.obtainPayStatus(hisRecipe.getRecipeCode(), hisRecipe.getClinicOrgan());
+            if (PayConstant.RESULT_SUCCESS.equals(payFlag)) {
+                throw new DAOException(609, "该处方单已被他人支付！");
+            }
+            if (PayConstant.RESULT_WAIT.equals(payFlag)) {
+                throw new DAOException(609, "该处方单已被他人正在处理！");
+            }
+            if (PayConstant.ERROR.equals(payFlag)) {
+                throw new DAOException(609, "掉用支付平台异常！");
+            }
         }
+
+
         List<HisRecipeExt> hisRecipeExts = hisRecipeExtDAO.findByHisRecipeId(hisRecipeId);
         if (recipe == null) {
             throw new DAOException(DAOException.DAO_NOT_FOUND, "没有查询到来自医院的处方单,请刷新页面！");

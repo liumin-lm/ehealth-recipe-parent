@@ -28,6 +28,7 @@ import recipe.common.CommonConstant;
 import recipe.constant.ErrorCode;
 import recipe.constant.HisRecipeConstant;
 import recipe.constant.OrderStatusConstant;
+import recipe.constant.PayConstant;
 import recipe.dao.*;
 import recipe.enumerate.status.OfflineToOnlineEnum;
 import recipe.enumerate.status.OrderStateEnum;
@@ -496,16 +497,17 @@ public class HisRecipeManager extends BaseManager {
      * @param clinicOrgan
      * @return
      */
-    private String obtainPayStatus(String recipeCode, Integer clinicOrgan) {
+    public String obtainPayStatus(String recipeCode, Integer clinicOrgan) {
         String realPayFlag = "";
         Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeCode, clinicOrgan);
         if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
             RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
             realPayFlag = payClient.orderQuery(recipeOrder);
         }
-        if (PAY_SUCCESS.equals(realPayFlag)) {
-            hisRecipeDao.updateHisRecieStatus(clinicOrgan, recipeCode, HisRecipeConstant.HISRECIPESTATUS_ALREADYIDEAL);
-        }
+//        if (PAY_SUCCESS.equals(realPayFlag)) {
+//            hisRecipeDao.updateHisRecieStatus(clinicOrgan, recipeCode, HisRecipeConstant.HISRECIPESTATUS_ALREADYIDEAL);
+//        }
+
         return realPayFlag;
 
     }
@@ -529,7 +531,7 @@ public class HisRecipeManager extends BaseManager {
             HisRecipe hisRecipe = hisRecipeMap.get(recipeCode);
             //如果已经支付，则不允许删除（场景：a操作用户绑定就诊人支付，且支付成功，但是支付平台回调慢，导致处方支付状态未更改   所以需要回查，是否已支付 如果已经支付，则不允许更改数据）
             String payFlag = obtainPayStatus(recipeCode, hisRecipe.getClinicOrgan());
-            if (PAY_SUCCESS.equals(payFlag)) {
+            if (PayConstant.RESULT_SUCCESS.equals(payFlag) || PayConstant.RESULT_WAIT.equals(payFlag) || PayConstant.ERROR.equals(payFlag)) {
                 return;
             }
             if (null == hisRecipe) {
