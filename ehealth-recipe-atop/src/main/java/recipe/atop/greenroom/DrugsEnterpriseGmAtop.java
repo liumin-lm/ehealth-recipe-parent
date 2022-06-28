@@ -251,7 +251,7 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
     /**
      * 运营平台调用发药机发药根据订单
      *
-     * @param recipeId
+     * @param orderId
      * @return
      */
     @RpcService
