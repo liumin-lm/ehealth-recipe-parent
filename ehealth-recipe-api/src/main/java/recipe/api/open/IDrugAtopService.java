@@ -22,7 +22,7 @@ public interface IDrugAtopService {
      * @param organDrugCode 机构药品编码
      * @returno
      */
-    @RpcService
+    @RpcService(mvcDisabled = true)
     DrugBookVo getDrugBook(Integer organId, String organDrugCode);
 
     /**
@@ -41,7 +41,7 @@ public interface IDrugAtopService {
      * @param listOrganDrugReq
      * @return
      */
-    @RpcService
+    @RpcService(mvcDisabled = true)
     List<ListOrganDrugRes> listOrganDrug(ListOrganDrugReq listOrganDrugReq);
 
     /**
