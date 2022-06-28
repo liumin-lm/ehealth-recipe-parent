@@ -4,9 +4,13 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.dto.UsingRateDTO;
+import com.ngari.common.mode.HisResponseTO;
 import com.ngari.consult.common.model.ConsultExDTO;
 import com.ngari.follow.utils.ObjectCopyUtil;
+import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.patient.dto.DoctorDTO;
+import com.ngari.platform.recipe.mode.AdvanceInfoReqTO;
+import com.ngari.platform.recipe.mode.AdvanceInfoResTO;
 import com.ngari.platform.recipe.mode.RecipeDetailBean;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
@@ -20,6 +24,7 @@ import eh.recipeaudit.api.IRecipeCheckService;
 import eh.recipeaudit.model.RecipeCheckBean;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -78,6 +83,8 @@ public class RecipeManager extends BaseManager {
     private SaleDrugListDAO saleDrugListDAO;
     @Autowired
     private IRecipeCheckService iRecipeCheckService;
+    @Autowired
+    private IRecipeHisService iRecipeHisService;
 
     /**
      * 保存处方信息
@@ -766,5 +773,19 @@ public class RecipeManager extends BaseManager {
      */
     public void finishRecipes(List<Integer> recipeIdList, Date finishDate){
         recipeDAO.updateRecipeFinishInfoByRecipeIds(recipeIdList, finishDate);
+    }
+
+    public AdvanceWarningResDTO getAdvanceWarning(AdvanceWarningReqDTO advanceWarningReqDTO) {
+        AdvanceInfoReqTO advanceInfoReqTO = new AdvanceInfoReqTO();
+        advanceInfoReqTO.setOrganId(advanceWarningReqDTO.getOrganId());
+        advanceInfoReqTO.setSyscode("ngari_recipe");
+        advanceInfoReqTO.setMdtrtSn("123456");
+        advanceInfoReqTO.setAppId("123456");
+        advanceInfoReqTO.setServerFlag(advanceWarningReqDTO.getServerFlag());
+        HisResponseTO<AdvanceInfoResTO> advanceInfo = iRecipeHisService.getAdvanceInfo(advanceInfoReqTO);
+        AdvanceInfoResTO advanceInfoData = advanceInfo.getData();
+        AdvanceWarningResDTO advanceWarningResDTO = new AdvanceWarningResDTO();
+        advanceWarningResDTO.setPopUrl(advanceInfoData.getPopUrl());
+        return advanceWarningResDTO;
     }
 }

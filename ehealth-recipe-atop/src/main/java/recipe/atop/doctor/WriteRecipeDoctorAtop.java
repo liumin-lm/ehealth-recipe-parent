@@ -1,6 +1,8 @@
 package recipe.atop.doctor;
 
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.recipe.recipe.model.AdvanceWarningReqVO;
+import com.ngari.recipe.recipe.model.AdvanceWarningResVO;
 import com.ngari.recipe.dto.OutPatientRecordResDTO;
 import com.ngari.recipe.dto.WriteDrugRecipeDTO;
 import com.ngari.recipe.entity.Recipe;
@@ -137,5 +139,13 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
         return recipeBean;
     }
 
+    /**
+     * 获取事前提醒
+     * @param advanceWarningReqDTO
+     */
+    @RpcService
+    public AdvanceWarningResVO getAdvanceWarning(AdvanceWarningReqVO advanceWarningReqDTO){
+        return recipeBusinessService.getAdvanceWarning(advanceWarningReqDTO);
+    }
 
 }

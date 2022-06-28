@@ -13,9 +13,7 @@ import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
 import com.ngari.recipe.recipe.ChineseMedicineMsgVO;
 import com.ngari.recipe.recipe.constant.RecipeTypeEnum;
 import com.ngari.recipe.recipe.constant.RecipecCheckStatusConstant;
-import com.ngari.recipe.recipe.model.PatientInfoDTO;
-import com.ngari.recipe.recipe.model.RecipeBean;
-import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.vo.*;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
@@ -647,6 +645,13 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             }
         }
         return recipeInfoVOS;
+    }
+
+    @Override
+    public AdvanceWarningResVO getAdvanceWarning(AdvanceWarningReqVO advanceWarningReqVO) {
+        AdvanceWarningResDTO advanceWarningResDTO = recipeManager.getAdvanceWarning(ObjectCopyUtils.convert(advanceWarningReqVO, AdvanceWarningReqDTO.class));
+        return ObjectCopyUtils.convert(advanceWarningResDTO, AdvanceWarningResVO.class);
+
     }
 }
 
