@@ -68,6 +68,12 @@ public class DrugOpenAtop extends BaseAtop implements IDrugAtopService {
         return ObjectCopyUtils.convert(recipeRulesDrugCorrelations, RecipeDrugRelationRuleVO.class);
     }
 
+    @Override
+    public List<RecipeDrugRelationRuleVO> findRulesByCorrelationDrugIdAndRuleId(Integer correlationDrugId, Integer ruleId) {
+        List<RecipeRulesDrugCorrelation> recipeRulesDrugCorrelations = drugBusinessService.findRulesByCorrelationDrugIdAndRuleId(correlationDrugId, ruleId);
+        return ObjectCopyUtils.convert(recipeRulesDrugCorrelations, RecipeDrugRelationRuleVO.class);
+    }
+
     /**
      * 定时 获取用药提醒的线下处方
      */

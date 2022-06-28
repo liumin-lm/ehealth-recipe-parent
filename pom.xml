@@ -33,6 +33,7 @@
         <ngari.followup.version>4.2.2.4.master-SNAPSHOT</ngari.followup.version>
         <ngari.cdr.version>4.1.1.9.master-SNAPSHOT</ngari.cdr.version>
         <ngari.pay.version>4.2.1.4.master-SNAPSHOT</ngari.pay.version>
+        <ngari.easypay.version>4.2.1.4.master-SNAPSHOT</ngari.easypay.version>
         <ngari.recipeaudit.version>4.4.1.4.master-SNAPSHOT</ngari.recipeaudit.version>
         <ngari.consult.version>4.4.2.7.master-SNAPSHOT</ngari.consult.version>
         <ngari.networkclinic.version>4.1.1.9.master-SNAPSHOT</ngari.networkclinic.version>
@@ -47,7 +48,7 @@
         <ngari.message.version>4.1.1.9.master-SNAPSHOT</ngari.message.version>
         <ngari.bill.version>4.1.1.9.master-SNAPSHOT</ngari.bill.version>
         <ngari.account.version>4.1.1.9.master-SNAPSHOT</ngari.account.version>
-        <ngari.revisit.version>4.5.3.1.master-SNAPSHOT</ngari.revisit.version>
+        <ngari.revisit.version>4.7.0.7.master-SNAPSHOT</ngari.revisit.version>
         <ngari.entity.version>4.1.1.9.master-SNAPSHOT</ngari.entity.version>
     </properties>
 

@@ -1860,4 +1860,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
+
+    @DAOMethod(sql = "from RecipeOrder where mpiId =:mpiId and createTime>:date ")
+    public abstract List<RecipeOrder> findByMpiIdAndDate(@DAOParam("mpiId")String mpiId, @DAOParam("date")Date date);
 }

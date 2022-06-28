@@ -19,8 +19,10 @@ import ctd.dictionary.DictionaryController;
 import ctd.persistence.bean.QueryResult;
 import ctd.util.JSONUtils;
 import eh.entity.bus.pay.BusTypeEnum;
+import eh.utils.BeanCopyUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -481,6 +483,13 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
     public MedicalSettleInfoVO getMedicalSettleInfo(Integer recipeId) {
         MedicalSettleInfoDTO medicalSettleInfoDTO = orderManager.getMedicalSettleInfo(recipeId);
         return ObjectCopyUtils.convert(medicalSettleInfoDTO, MedicalSettleInfoVO.class);
+    }
+
+    @Override
+    public List<RecipeOrderWaybillDTO> findOrderByMpiId(String mpiId) {
+        Date date = DateUtils.addDays(new Date(), -1);
+        List<RecipeOrder> orders = recipeOrderDAO.findByMpiIdAndDate(mpiId, date);
+        return BeanCopyUtils.copyList(orders, RecipeOrderWaybillDTO::new);
     }
 
 
