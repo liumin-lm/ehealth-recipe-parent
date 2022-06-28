@@ -1,6 +1,5 @@
 package recipe.factory.offlinetoonline.impl;
 
-import com.alibaba.fastjson.JSON;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
@@ -22,10 +21,8 @@ import com.ngari.recipe.recipe.model.HisRecipeVO;
 import com.ngari.recipe.recipe.model.MergeRecipeVO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.revisit.RevisitAPI;
-import com.ngari.revisit.RevisitBean;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.service.IRevisitExService;
-import com.ngari.revisit.common.service.IRevisitService;
 import ctd.account.UserRoleToken;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
@@ -43,6 +40,7 @@ import recipe.ApplicationUtils;
 import recipe.business.StockBusinessService;
 import recipe.client.DepartClient;
 import recipe.client.RevisitClient;
+import recipe.constant.HisRecipeConstant;
 import recipe.dao.*;
 import recipe.dao.bean.HisRecipeListBean;
 import recipe.enumerate.status.OfflineToOnlineEnum;
@@ -134,10 +132,6 @@ public class BaseOfflineToOnlineService {
     private RevisitManager revisitManager;
 
     final String BY_REGISTERID = "e.registerId";
-
-    private static final Integer HISRECIPESTATUS_NOIDEAL = 1;
-
-    private static final Integer HISRECIPESTATUS_ALREADYIDEAL = 2;
 
     @Autowired
     private ButtonManager buttonManager;
@@ -478,11 +472,16 @@ public class BaseOfflineToOnlineService {
         Map<String, Object> recipeDetailMap;
         Recipe recipe = recipeDAO.get(recipeId);
         HisRecipe hisRecipe = hisRecipeDao.get(hisRecipeId);
+
+        if (!UserRoleToken.getCurrent().getOwnMpiId().equals(recipe.getMpiid())
+                && HisRecipeConstant.HISRECIPESTATUS_ALREADYIDEAL.equals(hisRecipe.getStatus())) {
+            throw new DAOException(609, "该处方单已被他人处理！");
+        }
         List<HisRecipeExt> hisRecipeExts = hisRecipeExtDAO.findByHisRecipeId(hisRecipeId);
         if (recipe == null) {
             throw new DAOException(DAOException.DAO_NOT_FOUND, "没有查询到来自医院的处方单,请刷新页面！");
         }
-        if (HISRECIPESTATUS_ALREADYIDEAL.equals(hisRecipe.getStatus())) {
+        if (HisRecipeConstant.HISRECIPESTATUS_ALREADYIDEAL.equals(hisRecipe.getStatus())) {
             recipeDetailMap = recipeService.getPatientRecipeByIdForOfflineRecipe(recipeId);
         } else {
             recipeDetailMap = recipeService.getPatientRecipeById(recipeId);
@@ -567,14 +566,14 @@ public class BaseOfflineToOnlineService {
                 recipe.setBussSource(2);
                 recipe.setClinicId(consultExDTO.getConsultId());
                 //优先级his->复诊->默认自费
-                if(null==hisRecipe.getMedicalFlag()){
-                    if(null==consultExDTO.getMedicalFlag()){
+                if (null == hisRecipe.getMedicalFlag()) {
+                    if (null == consultExDTO.getMedicalFlag()) {
                         recipe.setMedicalFlag(0);
-                    }else{
+                    } else {
                         recipe.setMedicalFlag(consultExDTO.getMedicalFlag());
                     }
                 }
-            }else {
+            } else {
                 recipe.setMedicalFlag(0);
             }
         } catch (Exception e) {
@@ -635,7 +634,7 @@ public class BaseOfflineToOnlineService {
         recipe.setTotalMoney(hisRecipe.getRecipeFee());
         recipe.setActualPrice(hisRecipe.getRecipeFee());
         recipe.setMemo(hisRecipe.getMemo() == null ? "无" : hisRecipe.getMemo());
-        if (HISRECIPESTATUS_ALREADYIDEAL.equals(hisRecipe.getStatus())) {
+        if (HisRecipeConstant.HISRECIPESTATUS_ALREADYIDEAL.equals(hisRecipe.getStatus())) {
             recipe.setPayFlag(1);
             //已完成
             recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_FINISH.getType());
@@ -685,12 +684,12 @@ public class BaseOfflineToOnlineService {
         if (CollectionUtils.isNotEmpty(recipedetails)) {
             return;
         }
-        Integer targetedDrugType=0;
+        Integer targetedDrugType = 0;
         for (HisRecipeDetail hisRecipeDetail : hisRecipeDetails) {
             LOGGER.info("hisRecipe.getClinicOrgan(): " + hisRecipe.getClinicOrgan() + "");
             LOGGER.info("Arrays.asList(hisRecipeDetail.getDrugCode()):" + hisRecipeDetail.getDrugCode());
             List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugCodes(hisRecipe.getClinicOrgan(), Arrays.asList(hisRecipeDetail.getDrugCode()));
-            LOGGER.info("hisRecipe.organDrugLists:{}",JSONUtils.toString(organDrugLists));
+            LOGGER.info("hisRecipe.organDrugLists:{}", JSONUtils.toString(organDrugLists));
             if (CollectionUtils.isEmpty(organDrugLists)) {
                 LOGGER.info("处方中的药品信息未维护到线上平台药品目录:{},{},{}", hisRecipe.getRecipeCode(), hisRecipeDetail.getDrugCode(), hisRecipeDetail.getDrugCode());
                 Set<String> recipeCodes = new HashSet<>();
@@ -698,8 +697,8 @@ public class BaseOfflineToOnlineService {
                 hisRecipeManager.deleteSetRecipeCode(hisRecipe.getClinicOrgan(), recipeCodes);
                 throw new DAOException(ErrorCode.SERVICE_ERROR, "处方中的药品信息未维护到线上平台药品目录");
             }
-            if (new Integer("1").equals(organDrugLists.get(0).getTargetedDrugType())){
-                targetedDrugType=1;
+            if (new Integer("1").equals(organDrugLists.get(0).getTargetedDrugType())) {
+                targetedDrugType = 1;
             }
             Recipedetail recipedetail = new Recipedetail();
             recipedetail.setRecipeId(recipeId);
@@ -1222,6 +1221,9 @@ public class BaseOfflineToOnlineService {
         if (CollectionUtils.isEmpty(hisRecipeList)) {
             return;
         }
+        //剔除在支付平台已经支付过的处方
+
+
         //获取一个key为未处理recipeCode,值为未处理HisRecipe的map对象
         Map<String, HisRecipe> hisRecipeMap = hisRecipeList.stream().collect(Collectors.toMap(HisRecipe::getRecipeCode, a -> a, (k1, k2) -> k1));
         //获取未处理的线下处方Ids，用来获取线下处方详情
