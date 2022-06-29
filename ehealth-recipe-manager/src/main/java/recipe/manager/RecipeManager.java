@@ -9,10 +9,10 @@ import com.ngari.consult.common.model.ConsultExDTO;
 import com.ngari.follow.utils.ObjectCopyUtil;
 import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.patient.dto.DoctorDTO;
-import com.ngari.platform.recipe.mode.AdvanceInfoReqTO;
-import com.ngari.platform.recipe.mode.AdvanceInfoResTO;
-import com.ngari.platform.recipe.mode.RecipeDetailBean;
+import com.ngari.platform.recipe.mode.*;
 import com.ngari.recipe.dto.*;
+import com.ngari.recipe.dto.EmrDetailDTO;
+import com.ngari.recipe.dto.RecipeDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.revisit.RevisitBean;
 import com.ngari.revisit.common.model.RevisitExDTO;
@@ -84,7 +84,7 @@ public class RecipeManager extends BaseManager {
     @Autowired
     private IRecipeCheckService iRecipeCheckService;
     @Autowired
-    private IRecipeHisService iRecipeHisService;
+    private RecipeClient recipeClient;
 
     /**
      * 保存处方信息
@@ -776,16 +776,72 @@ public class RecipeManager extends BaseManager {
     }
 
     public AdvanceWarningResDTO getAdvanceWarning(AdvanceWarningReqDTO advanceWarningReqDTO) {
+        logger.info("getAdvanceWarning advanceWarningReqDTO={}",JSONUtils.toString(advanceWarningReqDTO));
         AdvanceInfoReqTO advanceInfoReqTO = new AdvanceInfoReqTO();
-        advanceInfoReqTO.setOrganId(advanceWarningReqDTO.getOrganId());
-        advanceInfoReqTO.setSyscode("ngari_recipe");
-        advanceInfoReqTO.setMdtrtSn("123456");
-        advanceInfoReqTO.setAppId("123456");
-        advanceInfoReqTO.setServerFlag(advanceWarningReqDTO.getServerFlag());
-        HisResponseTO<AdvanceInfoResTO> advanceInfo = iRecipeHisService.getAdvanceInfo(advanceInfoReqTO);
-        AdvanceInfoResTO advanceInfoData = advanceInfo.getData();
+        AdvanceInfoPatientDTO patientDTO = new AdvanceInfoPatientDTO();
+        List<EncounterDTO> encounterDTOList = new ArrayList<>();
         AdvanceWarningResDTO advanceWarningResDTO = new AdvanceWarningResDTO();
-        advanceWarningResDTO.setPopUrl(advanceInfoData.getPopUrl());
+        Recipe recipe = recipeDAO.get(advanceWarningReqDTO.getRecipeId());
+        if(null == recipe){
+            return advanceWarningResDTO;
+        }
+        advanceInfoReqTO.setOrganId(recipe.getClinicOrgan());
+        //系统编码
+        advanceInfoReqTO.setSyscode("recipe");
+        //就诊流水号
+        advanceInfoReqTO.setMdtrtSn("123456");
+        //触发场景
+        advanceInfoReqTO.setTrigScen("2");
+        //app必传
+        if(new Integer(1).equals(advanceWarningReqDTO.getServerFlag())){
+            //应用的appId
+            advanceInfoReqTO.setAppId("123456");
+            //签名
+            advanceInfoReqTO.setSign(advanceInfoReqTO.getAppId() + "&" + advanceInfoReqTO.getMdtrtSn() + "&" + advanceInfoReqTO.getSyscode());
+            //app端传身份证号
+            com.ngari.patient.dto.PatientDTO patient = patientClient.getPatientBeanByMpiId(recipe.getMpiid());
+            patientDTO.setPatnId(patient.getIdcard());
+        }else{
+            //pc端传patientId
+            patientDTO.setPatnId(recipe.getPatientID());
+        }
+        patientDTO.setPatnName(recipe.getPatientName());
+        patientDTO.setCurrMdtrtId(String.valueOf(recipe.getRecipeId()));
+        //端标识
+        advanceInfoReqTO.setServerFlag(advanceWarningReqDTO.getServerFlag());
+        //业务类型:处方
+        advanceInfoReqTO.setBusinessType(0);
+        EncounterDTO encounterDTO = new EncounterDTO();
+        //就诊标识
+        encounterDTO.setMdtrtId(String.valueOf(recipe.getRecipeId()));
+        //医疗服务机构标识
+        encounterDTO.setMedinsId(String.valueOf(recipe.getClinicOrgan()));
+        //医疗机构名称
+        encounterDTO.setMedinsName(recipe.getOrganName());
+        //入院日期
+        encounterDTO.setAdmDate(recipe.getCreateDate());
+        //主诊断编码
+        encounterDTO.setDscgMainDiseCodg(recipe.getOrganDiseaseId());
+        //主诊断名称
+        encounterDTO.setDscgMainDiseName(recipe.getOrganDiseaseName());
+        //医师标识
+        encounterDTO.setDrCodg(String.valueOf(recipe.getDoctor()));
+        //入院科室标识
+        encounterDTO.setAdmDeptCodg(recipe.getAppointDepart());
+        //入院科室名称
+        encounterDTO.setAdmDeptName(recipe.getAppointDepartName());
+        //就诊类型：门诊
+        encounterDTO.setMedMdtrtType("1");
+        //就医疗类型：普通门诊
+        encounterDTO.setMedType("11");
+        //总费用
+        encounterDTO.setMedfeeSumamt(recipe.getActualPrice().doubleValue());
+        encounterDTOList.add(encounterDTO);
+        patientDTO.setEncounterDtos(encounterDTOList);
+        advanceInfoReqTO.setPatientDTO(patientDTO);
+        AdvanceInfoResTO advanceInfo = recipeClient.getAdvanceInfo(advanceInfoReqTO);
+        advanceWarningResDTO.setPopUrl(advanceInfo.getPopUrl());
+        logger.info("getAdvanceWarning advanceWarningResDTO={}",JSONUtils.toString(advanceWarningResDTO));
         return advanceWarningResDTO;
     }
 }

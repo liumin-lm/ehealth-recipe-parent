@@ -145,6 +145,7 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
      */
     @RpcService
     public AdvanceWarningResVO getAdvanceWarning(AdvanceWarningReqVO advanceWarningReqDTO){
+        validateAtop(advanceWarningReqDTO.getRecipeId());
         return recipeBusinessService.getAdvanceWarning(advanceWarningReqDTO);
     }
 
