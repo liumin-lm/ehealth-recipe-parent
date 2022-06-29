@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.audit.auditmode.AuditModeContext;
 import recipe.bean.DrugEnterpriseResult;
+import recipe.client.IConfigurationClient;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.OrganAndDrugsepRelationDAO;
@@ -52,7 +53,7 @@ import static ctd.persistence.DAOFactory.getDAO;
 public abstract class AbstractCaProcessType {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractCaProcessType.class);
-
+    protected static IConfigurationClient configurationClient = AppContextHolder.getBean("IConfigurationClient", IConfigurationClient.class);
     private static final Integer CA_OLD_TYPE = new Integer(0);
 
     private static final Integer CA_NEW_TYPE = new Integer(1);
@@ -65,21 +66,14 @@ public abstract class AbstractCaProcessType {
     //因为拿到CA结果的时机不同，流程3中：前置是在推his前拿到的，所以在拿到结果后需要将处方做推his的相关操作;
     //后置则是在his新增回调的时候返回CA结果的，所以拿到结果会需要将处方向下流
 
-    public static AbstractCaProcessType getCaProcessFactory(Integer organId){
+    public static AbstractCaProcessType getCaProcessFactory(Integer organId) {
         //根据机构配置的CA模式获取具体的实现
-        IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
-        //添加按钮配置项key
-        Object caFromHisCallBackOrder = configService.getConfiguration(organId, "CAFromHisCallBackOrder");
-        //先给个默认值
-        Integer CAType = CA_BEFORE;
-        if(null != caFromHisCallBackOrder){
-            CAType = Integer.parseInt(caFromHisCallBackOrder.toString());
-        }
-        AbstractCaProcessType beanFactory = CARecipeTypeEnum.getCaProcessType(CAType);
-        if(null != beanFactory){
+        Integer frontOrBack = configurationClient.getValueCatchReturnInteger(organId, "CAFromHisCallBackOrder", 0);
+        AbstractCaProcessType beanFactory = CARecipeTypeEnum.getCaProcessType(frontOrBack);
+        if (null != beanFactory) {
             return beanFactory;
-        }else{
-            LOGGER.warn("当前CA实现为空，默认实现后置！");
+        } else {
+            LOGGER.error("当前CA实现为空，默认实现后置！organId={}", organId);
             return new CaAfterProcessType();
         }
 
@@ -96,23 +90,20 @@ public abstract class AbstractCaProcessType {
 
     public void recipeHisResultBeforeCAFunction(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList) {
         LOGGER.info("AbstractCaProcessType recipeHisResultBeforeCAFunction start recipeBean={}", JSON.toJSONString(recipeBean));
-
-        Map<String, Object> rMap = new HashMap<>();
-        rMap.put("signResult", true);
-        rMap.put("recipeId", recipeBean.getRecipeId());
-
         //先将处方状态设置成【医院确认中】
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         recipeDAO.updateRecipeInfoByRecipeId(recipeBean.getRecipeId(), RecipeStatusConstant.CHECKING_HOS, null);
         //前置签名，CA后操作，通过CA的结果做判断，通过则将处方推his
         //HIS消息发送--异步处理
         RecipeBusiThreadPool.execute(new PushRecipeToHisCallable(recipeBean.getRecipeId()));
-
         //非可使用省医保的处方立即发送处方卡片，使用省医保的处方需要在药师审核通过后显示
         if (!recipeBean.canMedicalPay()) {
             //发送卡片
             Recipe recipe = ObjectCopyUtils.convert(recipeBean, Recipe.class);
             List<Recipedetail> details = ObjectCopyUtils.convert(detailBeanList, Recipedetail.class);
+            Map<String, Object> rMap = new HashMap<>();
+            rMap.put("signResult", true);
+            rMap.put("recipeId", recipeBean.getRecipeId());
             RecipeServiceSub.sendRecipeTagToPatient(recipe, details, rMap, false);
         }
         LOGGER.info("AbstractCaProcessType recipeHisResultBeforeCAFunction end recipeBean={}", JSON.toJSONString(recipeBean));

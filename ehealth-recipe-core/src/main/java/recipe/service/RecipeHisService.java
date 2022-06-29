@@ -453,9 +453,6 @@ public class RecipeHisService extends RecipeBaseService {
             result.setError("处方不存在");
             return result;
         }
-//        if (skipHis(recipe)) {
-//            return result;
-//        }
 
         Integer status = recipe.getStatus();
         if (isHisEnable(recipe.getClinicOrgan())) {

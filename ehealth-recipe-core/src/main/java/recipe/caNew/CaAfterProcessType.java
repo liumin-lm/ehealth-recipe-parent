@@ -59,10 +59,6 @@ public class CaAfterProcessType extends AbstractCaProcessType {
         //后置CA:首先组装CA请求 =》请求CA =》封装一个异步请求CA结果
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        //如果处方单已经撤销，则直接跳出
-        if (recipe.getStatus() == RecipeStatusConstant.REVOKE) {
-            return null;
-        }
         //设置处方状态为：签名中
         recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of("status", RecipeStatusConstant.SIGN_ING_CODE_DOC));
         LOGGER.info("当前处方{}设置成CA签名中", recipeId);

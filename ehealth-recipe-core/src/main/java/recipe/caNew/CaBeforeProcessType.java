@@ -11,7 +11,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.caNew.pdf.CreatePdfFactory;
-import recipe.client.IConfigurationClient;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDAO;
 
@@ -48,22 +47,16 @@ public class CaBeforeProcessType extends AbstractCaProcessType {
     public RecipeResultBean hisCallBackCARecipeFunction(Integer recipeId) {
         LOGGER.info("Before---当前CA执行his回调之后组装CA响应特应性行为，入参：recipeId：{}", recipeId);
         //这里前置，触发CA时机在推送之前,这里判定his之后的为签名成功
-        RecipeResultBean recipeResultBean = new RecipeResultBean();
-        recipeResultBean.setCode(RecipeResultBean.SUCCESS);
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        IConfigurationClient configurationClient = AppContextHolder.getBean("IConfigurationClient", IConfigurationClient.class);
         List<String> recipeTypes = configurationClient.getValueListCatch(recipe.getClinicOrgan(), "patientRecipeUploadHis", null);
-        try {
-            if (CollectionUtils.isEmpty(recipeTypes)) {
-                CreatePdfFactory createPdfFactory = AppContextHolder.getBean("createPdfFactory", CreatePdfFactory.class);
-                createPdfFactory.updateCodePdfExecute(recipeId);
-            }
-        } catch (Exception e) {
-            LOGGER.error("addRecipeCodeAndPatientForRecipePdf error recipeId={}", recipeId, e);
+        if (CollectionUtils.isEmpty(recipeTypes)) {
+            CreatePdfFactory createPdfFactory = AppContextHolder.getBean("createPdfFactory", CreatePdfFactory.class);
+            createPdfFactory.updateCodePdfExecute(recipeId);
         }
-        LOGGER.info("Before---当前CA执行his回调之后组装CA响应特应性行为，出参：recipeId：{}，{}", recipeId, JSON.toJSONString(recipeResultBean));
         //将返回的CA结果给处方，设置处方流转
+        RecipeResultBean recipeResultBean = new RecipeResultBean();
+        recipeResultBean.setCode(RecipeResultBean.SUCCESS);
         return recipeResultBean;
     }
 }

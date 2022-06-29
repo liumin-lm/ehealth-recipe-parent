@@ -12,6 +12,7 @@ import java.util.List;
  */
 @Setter
 @Getter
+@Deprecated
 public class ResultBean<T> {
 
     @Deprecated

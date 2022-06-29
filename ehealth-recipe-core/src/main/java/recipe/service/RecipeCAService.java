@@ -487,6 +487,7 @@ public class RecipeCAService {
     }
 
     //TODO 这个方法给哪个机构做的个性华？？
+    @Deprecated
     @RpcService
     public Map<String, Object> doSignRecipeCABefore(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList, int continueFlag) {
         if (null == recipeBean) {

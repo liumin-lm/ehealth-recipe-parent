@@ -276,18 +276,6 @@ public class RecipeSignService {
         }
         recipeDAO.updateRecipeInfoByRecipeId(recipeId, status, attrMap);
 
-        //HIS同步处理
-        if (!RecipeBussConstant.GIVEMODE_FREEDOM.equals(giveMode)) {
-            RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
-            RecipeResultBean hisResult = hisService.recipeDrugTake(recipeId, PayConstant.PAY_FLAG_NOT_PAY, null);
-            //TODO HIS处理失败暂时略过
-//        if (RecipeResultBean.FAIL.equals(hisResult.getCode())) {
-//            LOG.warn("sign recipeId=[{}]更改取药方式失败，error={}", recipeId, hisResult.getError());
-//            response.setMsg("HIS更改取药方式失败");
-//            return response;
-//        }
-        }
-
         //根据配置判断是否需要人工审核, 配送到家处理在支付完成后回调 RecipeOrderService finishOrderPay
         if (RecipeBussConstant.GIVEMODE_TFDS.equals(giveMode) || RecipeBussConstant.GIVEMODE_FREEDOM.equals(giveMode)) {
             Set<String> organIdList = redisClient.sMembers(CacheConstant.KEY_SKIP_YSCHECK_LIST);
