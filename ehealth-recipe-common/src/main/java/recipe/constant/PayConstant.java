@@ -2,6 +2,7 @@ package recipe.constant;
 
 /**
  * company: ngarihealth
+ *
  * @author: 0184/yu_yun
  */
 public interface PayConstant {
@@ -18,6 +19,7 @@ public interface PayConstant {
     String RESULT_FAIL = "FAIL";
     String RESULT_WAIT = "WAIT_BUYER_PAY";
     String RESULT_SUCCESS = "SUCCESS";
+    String ERROR = "ERROR";
 
     /**
      * 微信跨平台支付，付款目标机构未开通在线支付时的提示语

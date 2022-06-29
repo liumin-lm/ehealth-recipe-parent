@@ -174,4 +174,12 @@ public interface IDrugsEnterpriseBusinessService {
      * @return
      */
     Boolean pushDrugDispenserByOrder(Integer orderId);
+
+    /**
+     * 更新药企的优先级
+     * @param depId
+     * @param level
+     * @return
+     */
+    Boolean updateEnterprisePriorityLevel(Integer depId, Integer level);
 }

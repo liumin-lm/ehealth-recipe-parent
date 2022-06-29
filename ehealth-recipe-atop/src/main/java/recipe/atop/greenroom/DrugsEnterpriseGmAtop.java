@@ -258,4 +258,15 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
     public Boolean pushDrugDispenserByOrder(Integer orderId) {
         return drugsEnterpriseBusinessService.pushDrugDispenserByOrder(orderId);
     }
+
+    /**
+     * 更新药企的优先级
+     * @param depId
+     * @param level
+     * @return
+     */
+    @RpcService
+    public Boolean updateEnterprisePriorityLevel(Integer depId, Integer level){
+        return drugsEnterpriseBusinessService.updateEnterprisePriorityLevel(depId, level);
+    }
 }

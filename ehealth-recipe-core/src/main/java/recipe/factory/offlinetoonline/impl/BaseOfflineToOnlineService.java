@@ -41,6 +41,7 @@ import recipe.business.StockBusinessService;
 import recipe.client.DepartClient;
 import recipe.client.RevisitClient;
 import recipe.constant.HisRecipeConstant;
+import recipe.constant.PayConstant;
 import recipe.dao.*;
 import recipe.dao.bean.HisRecipeListBean;
 import recipe.enumerate.status.OfflineToOnlineEnum;
@@ -473,10 +474,25 @@ public class BaseOfflineToOnlineService {
         Recipe recipe = recipeDAO.get(recipeId);
         HisRecipe hisRecipe = hisRecipeDao.get(hisRecipeId);
 
-        if (!UserRoleToken.getCurrent().getOwnMpiId().equals(recipe.getMpiid())
-                && HisRecipeConstant.HISRECIPESTATUS_ALREADYIDEAL.equals(hisRecipe.getStatus())) {
-            throw new DAOException(609, "该处方单已被他人处理！");
+//        if (!UserRoleToken.getCurrent().getOwnMpiId().equals(recipe.getMpiid())
+//                && HisRecipeConstant.HISRECIPESTATUS_ALREADYIDEAL.equals(hisRecipe.getStatus())) {
+//            throw new DAOException(609, "该处方单已被他人处理！");
+//        }
+        //TODO lium
+        if (!UserRoleToken.getCurrent().getOwnMpiId().equals(recipe.getMpiid())) {
+            String payFlag = hisRecipeManager.obtainPayStatus(hisRecipe.getRecipeCode(), hisRecipe.getClinicOrgan());
+            if (PayConstant.RESULT_SUCCESS.equals(payFlag)) {
+                throw new DAOException(609, "该处方单已被他人支付！");
+            }
+            if (PayConstant.RESULT_WAIT.equals(payFlag)) {
+                throw new DAOException(609, "该处方单已被他人正在处理！");
+            }
+            if (PayConstant.ERROR.equals(payFlag)) {
+                throw new DAOException(609, "掉用支付平台异常！");
+            }
         }
+
+
         List<HisRecipeExt> hisRecipeExts = hisRecipeExtDAO.findByHisRecipeId(hisRecipeId);
         if (recipe == null) {
             throw new DAOException(DAOException.DAO_NOT_FOUND, "没有查询到来自医院的处方单,请刷新页面！");
@@ -638,10 +654,14 @@ public class BaseOfflineToOnlineService {
             recipe.setPayFlag(1);
             //已完成
             recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_FINISH.getType());
-        } else {
+        } else if (HisRecipeConstant.HISRECIPESTATUS_NOIDEAL.equals(hisRecipe.getStatus())) {
             recipe.setPayFlag(0);
             //待处理
             recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType());
+        } else if (HisRecipeConstant.HISRECIPESTATUS_EXPIRED.equals(hisRecipe.getStatus())) {
+            recipe.setPayFlag(0);
+            //已失效
+            recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_NO_PAY.getType());
         }
         recipe.setReviewType(0);
         recipe.setChooseFlag(0);

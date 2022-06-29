@@ -13,6 +13,7 @@ import com.ngari.recipe.entity.*;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
+import ctd.util.event.GlobalEventExecFactory;
 import eh.entity.base.UsePathways;
 import eh.entity.base.UsingRate;
 import org.apache.commons.collections.CollectionUtils;
@@ -27,6 +28,7 @@ import recipe.common.CommonConstant;
 import recipe.constant.ErrorCode;
 import recipe.constant.HisRecipeConstant;
 import recipe.constant.OrderStatusConstant;
+import recipe.constant.PayConstant;
 import recipe.dao.*;
 import recipe.enumerate.status.OfflineToOnlineEnum;
 import recipe.enumerate.status.OrderStateEnum;
@@ -38,6 +40,8 @@ import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -107,6 +111,53 @@ public class HisRecipeManager extends BaseManager {
     public HisResponseTO<List<QueryHisRecipResTO>> queryData(Integer organId, PatientDTO patientDTO, Integer timeQuantum, Integer flag, String recipeCode) {
         LOGGER.info("HisRecipeManager queryData param organId:{},patientDTO:{},timeQuantum:{},flag:{},recipeCode:{}", organId, JSONUtils.toString(patientDTO), timeQuantum, flag, recipeCode);
         HisResponseTO<List<QueryHisRecipResTO>> responseTo = offlineRecipeClient.queryData(organId, patientDTO, timeQuantum, flag, recipeCode);
+        //过滤数据
+        HisResponseTO<List<QueryHisRecipResTO>> res = filterData(responseTo, recipeCode, flag);
+        logger.info("HisRecipeManager res:{}.", JSONUtils.toString(res));
+        return res;
+    }
+
+    /**
+     * 列表查询线下处方
+     *
+     * @param organId
+     * @param patientDTO
+     * @param timeQuantum
+     * @param flag
+     * @param recipeCode
+     * @return
+     */
+    @LogRecord
+    public HisResponseTO<List<QueryHisRecipResTO>> queryHisRecipeData(Integer organId, PatientDTO patientDTO, Integer timeQuantum, Integer flag, String recipeCode) {
+        LOGGER.info("HisRecipeManager queryHisRecipeData param organId:{},patientDTO:{},timeQuantum:{},flag:{},recipeCode:{}", organId, JSONUtils.toString(patientDTO), timeQuantum, flag, recipeCode);
+        HisResponseTO<List<QueryHisRecipResTO>> responseTo = new HisResponseTO<List<QueryHisRecipResTO>>();
+        if (HisRecipeConstant.HISRECIPESTATUS_NOIDEAL.equals(flag)) {
+            responseTo = offlineRecipeClient.queryData(organId, patientDTO, timeQuantum, flag, recipeCode);
+        } else if (HisRecipeConstant.HISRECIPESTATUS_ALREADYIDEAL.equals(flag)) {
+            List<QueryHisRecipResTO> queryHisRecipResToList = new ArrayList<>();
+            Future<HisResponseTO<List<QueryHisRecipResTO>>> hisTask1 = GlobalEventExecFactory.instance().getExecutor().submit(() -> {
+                return offlineRecipeClient.queryData(organId, patientDTO, timeQuantum, HisRecipeConstant.HISRECIPESTATUS_ALREADYIDEAL, recipeCode);
+            });
+            Future<HisResponseTO<List<QueryHisRecipResTO>>> hisTask2 = GlobalEventExecFactory.instance().getExecutor().submit(() -> {
+                return offlineRecipeClient.queryData(organId, patientDTO, timeQuantum, HisRecipeConstant.HISRECIPESTATUS_EXPIRED, recipeCode);
+            });
+            try {
+                HisResponseTO<List<QueryHisRecipResTO>> hisResponseTO1 = hisTask1.get(60000, TimeUnit.MILLISECONDS);
+                queryHisRecipResToList.addAll(hisResponseTO1.getData());
+            } catch (Exception e) {
+                logger.error("queryHisRecipeData hisTask1 error ", e);
+                e.printStackTrace();
+            }
+            try {
+                HisResponseTO<List<QueryHisRecipResTO>> hisResponseTO2 = hisTask2.get(60000, TimeUnit.MILLISECONDS);
+                queryHisRecipResToList.addAll(hisResponseTO2.getData());
+            } catch (Exception e) {
+                logger.error("queryHisRecipeData hisTask2 error ", e);
+                e.printStackTrace();
+            }
+            responseTo.setData(queryHisRecipResToList);
+
+        }
         //过滤数据
         HisResponseTO<List<QueryHisRecipResTO>> res = filterData(responseTo, recipeCode, flag);
         logger.info("HisRecipeManager res:{}.", JSONUtils.toString(res));
@@ -446,16 +497,17 @@ public class HisRecipeManager extends BaseManager {
      * @param clinicOrgan
      * @return
      */
-    private String obtainPayStatus(String recipeCode, Integer clinicOrgan) {
+    public String obtainPayStatus(String recipeCode, Integer clinicOrgan) {
         String realPayFlag = "";
         Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeCode, clinicOrgan);
         if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
             RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
             realPayFlag = payClient.orderQuery(recipeOrder);
         }
-        if (PAY_SUCCESS.equals(realPayFlag)) {
-            hisRecipeDao.updateHisRecieStatus(clinicOrgan, recipeCode, HisRecipeConstant.HISRECIPESTATUS_ALREADYIDEAL);
-        }
+//        if (PAY_SUCCESS.equals(realPayFlag)) {
+//            hisRecipeDao.updateHisRecieStatus(clinicOrgan, recipeCode, HisRecipeConstant.HISRECIPESTATUS_ALREADYIDEAL);
+//        }
+
         return realPayFlag;
 
     }
@@ -479,7 +531,7 @@ public class HisRecipeManager extends BaseManager {
             HisRecipe hisRecipe = hisRecipeMap.get(recipeCode);
             //如果已经支付，则不允许删除（场景：a操作用户绑定就诊人支付，且支付成功，但是支付平台回调慢，导致处方支付状态未更改   所以需要回查，是否已支付 如果已经支付，则不允许更改数据）
             String payFlag = obtainPayStatus(recipeCode, hisRecipe.getClinicOrgan());
-            if (PAY_SUCCESS.equals(payFlag)) {
+            if (PayConstant.RESULT_SUCCESS.equals(payFlag) || PayConstant.RESULT_WAIT.equals(payFlag) || PayConstant.ERROR.equals(payFlag)) {
                 return;
             }
             if (null == hisRecipe) {
