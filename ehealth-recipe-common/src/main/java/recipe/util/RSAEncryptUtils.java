@@ -1,4 +1,4 @@
-package recipe.drugsenterprise.bean.yd.utils;
+package recipe.util;
 
 import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.pkcs.RSAPrivateKeyStructure;

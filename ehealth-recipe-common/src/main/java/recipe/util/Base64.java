@@ -4,7 +4,7 @@
  * author: shiqun.shi@alipay.com
  */
 
-package recipe.drugsenterprise.bean.yd.utils;
+package recipe.util;
 
 public final class Base64 {
 
