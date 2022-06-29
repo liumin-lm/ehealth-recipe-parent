@@ -3684,6 +3684,7 @@ public class RecipeService extends RecipeBaseService {
                 StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
                 RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
                 RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
+                HisRecipeDAO hisRecipeDAO = getDAO(HisRecipeDAO.class);
                 StringBuilder memo = new StringBuilder();
                 RecipeOrder order;
                 List<Integer> recipeIds = new ArrayList<>();
@@ -3740,6 +3741,9 @@ public class RecipeService extends RecipeBaseService {
                         Integer updateStatus = status == RecipeStatusConstant.RECIPE_ORDER_CACEL ? RecipeStatusConstant.NO_OPERATOR : status;
                         recipeDAO.updateRecipeInfoByRecipeId(recipeId, updateStatus, ImmutableMap.of("chooseFlag", 1));
                         stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_TIMEOUT_NOT_ORDER);
+                        if (new Integer("2").equals(recipe.getRecipeSourceType()) && new Integer(RecipeStatusConstant.NO_OPERATOR).equals(updateStatus)) {
+                            hisRecipeDAO.updateHisRecieStatus(recipe.getClinicOrgan(), recipe.getRecipeCode(), HisRecipeConstant.HISRECIPESTATUS_EXPIRED);
+                        }
                         RecipeMsgService.batchSendMsg(recipe, status);
                         if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
                             //药师首页待处理任务---取消未结束任务
