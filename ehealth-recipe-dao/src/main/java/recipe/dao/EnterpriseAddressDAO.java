@@ -1,6 +1,7 @@
 package recipe.dao;
 
 import com.ngari.recipe.entity.EnterpriseAddress;
+import com.ngari.recipe.entity.EnterpriseDecoctionAddress;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;
 import ctd.persistence.bean.QueryResult;
@@ -10,10 +11,12 @@ import ctd.persistence.support.hibernate.template.AbstractHibernateStatelessResu
 import ctd.persistence.support.hibernate.template.HibernateSessionTemplate;
 import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction;
 import ctd.util.annotation.RpcSupportDAO;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Query;
 import org.hibernate.StatelessSession;
+import org.hibernate.Transaction;
 import org.springframework.util.ObjectUtils;
 
 import java.util.ArrayList;
@@ -206,4 +209,19 @@ public abstract class EnterpriseAddressDAO extends HibernateSupportDelegateDAO<E
 
     @DAOMethod(sql = "From EnterpriseAddress where enterpriseId in (:enterpriseIds) and status=1", limit = 0)
     public abstract List<EnterpriseAddress> findByEnterPriseIds(@DAOParam("enterpriseIds")List<Integer> enterpriseIds);
+
+    public List<EnterpriseAddress> findByEnterPriseIdAndArea(Integer enterpriseId, String area){
+        HibernateStatelessResultAction<List<EnterpriseAddress>> action = new AbstractHibernateStatelessResultAction<List<EnterpriseAddress>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder("from EnterpriseAddress where enterpriseId =:enterpriseId and status = 1 and address like :area");
+                Query q = ss.createQuery(hql.toString());
+                q.setParameter("enterpriseId", enterpriseId);
+                q.setParameter("area", area + "%");
+                setResult(q.list());
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
 }

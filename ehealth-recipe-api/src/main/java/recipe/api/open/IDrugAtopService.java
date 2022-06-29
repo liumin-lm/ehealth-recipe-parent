@@ -4,7 +4,7 @@ import com.ngari.platform.recipe.mode.ListOrganDrugReq;
 import com.ngari.platform.recipe.mode.ListOrganDrugRes;
 import ctd.util.annotation.RpcService;
 import recipe.vo.doctor.DrugBookVo;
-import recipe.vo.second.RecipeRulesDrugcorrelationVo;
+import recipe.vo.second.RecipeDrugRelationRuleVO;
 
 import java.util.List;
 
@@ -22,18 +22,18 @@ public interface IDrugAtopService {
      * @param organDrugCode 机构药品编码
      * @returno
      */
-    @RpcService
+    @RpcService(mvcDisabled = true)
     DrugBookVo getDrugBook(Integer organId, String organDrugCode);
 
     /**
-     * 获取药品规则
+     * 获取药品规则列表
      *
      * @param list
      * @param ruleId
      * @return
      */
     @RpcService(mvcDisabled = true)
-    List<RecipeRulesDrugcorrelationVo> getListDrugRules(List<Integer> list, Integer ruleId);
+    List<RecipeDrugRelationRuleVO> getListDrugRules(List<Integer> list, Integer ruleId);
 
     /**
      * 获取机构药品目录
@@ -41,6 +41,27 @@ public interface IDrugAtopService {
      * @param listOrganDrugReq
      * @return
      */
-    @RpcService
+    @RpcService(mvcDisabled = true)
     List<ListOrganDrugRes> listOrganDrug(ListOrganDrugReq listOrganDrugReq);
+
+    /**
+     * 根据drugId获取药品规则
+     *
+     * @param drugId
+     * @param ruleId
+     * @return
+     */
+    @RpcService(mvcDisabled = true)
+    List<RecipeDrugRelationRuleVO> findRulesByDrugIdAndRuleId(Integer drugId, Integer ruleId);
+
+
+    /**
+     * 根据correlationDrugId获取药品规则
+     *
+     * @param correlationDrugId
+     * @param ruleId
+     * @return
+     */
+    @RpcService(mvcDisabled = true)
+    List<RecipeDrugRelationRuleVO> findRulesByCorrelationDrugIdAndRuleId(Integer correlationDrugId, Integer ruleId);
 }

@@ -29,6 +29,7 @@ import recipe.ApplicationUtils;
 import recipe.bussutil.RecipeUtil;
 import recipe.dao.*;
 import recipe.serviceprovider.BaseService;
+import recipe.util.ByteUtils;
 
 import java.util.*;
 
@@ -106,6 +107,7 @@ public class DrugListService extends BaseService<DrugListBean> {
     public DrugListBean addDrugList(DrugListBean drugListBean) {
         DrugList d = ObjectCopyUtils.convert(drugListBean, DrugList.class);
         logger.info("新增药品服务[addDrugList]:" + JSONUtils.toString(drugListBean));
+
         if (null == d) {
             throw new DAOException(DAOException.VALUE_NEEDED, "drugList is null");
         }
@@ -222,6 +224,7 @@ public class DrugListService extends BaseService<DrugListBean> {
     public DrugListBean updateDrugList(DrugListBean drugListBean) {
         DrugList drugList = ObjectCopyUtils.convert(drugListBean, DrugList.class);
         logger.info("修改药品服务[updateDrugList]:" + JSONUtils.toString(drugList));
+
         DrugListDAO dao = getDAO(DrugListDAO.class);
         if (null == drugList.getDrugId()) {
             throw new DAOException(DAOException.VALUE_NEEDED, "drugId is required");

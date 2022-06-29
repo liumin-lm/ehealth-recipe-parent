@@ -28,6 +28,7 @@ import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.hisservice.HisRequestInit;
 import recipe.hisservice.RecipeToHisService;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
+import recipe.manager.EnterpriseManager;
 import recipe.manager.OrderManager;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeMsgService;
@@ -53,6 +54,9 @@ public class HomeDeliveryImpl extends AbstractGiveMode {
 
     @Autowired
     private OrderManager orderManager;
+
+    @Autowired
+    private EnterpriseManager enterpriseManager;
 
     @Override
     public Integer getGiveMode() {
@@ -102,7 +106,7 @@ public class HomeDeliveryImpl extends AbstractGiveMode {
             RecipeOrder recipeOrder = orderManager.getRecipeOrderById(orderStatus.getOrderId());
             orderManager.updateOrderLogisticsInfo(orderStatus.getOrderId(), orderStatus.getLogisticsCompany(), orderStatus.getTrackingNumber());
             //同步运单信息至基础服务
-            ThirdEnterpriseCallService.sendLogisticsInfoToBase(orderStatus.getRecipeId(), orderStatus.getLogisticsCompany() + "", orderStatus.getTrackingNumber());
+            enterpriseManager.sendLogisticsInfoToBase(recipeOrder, orderStatus.getRecipeId(), orderStatus.getLogisticsCompany() + "", orderStatus.getTrackingNumber());
             if (StringUtils.isEmpty(recipeOrder.getTrackingNumber())) {
                 //更新快递信息后，发送消息
                 RecipeMsgService.batchSendMsg(orderStatus.getRecipeId(), RecipeMsgEnum.EXPRESSINFO_REMIND.getStatus());

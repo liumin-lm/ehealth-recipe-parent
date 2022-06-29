@@ -7,6 +7,7 @@ import com.ngari.base.scratchable.model.ScratchableBean;
 import com.ngari.base.scratchable.service.IScratchableService;
 import com.ngari.opbase.base.mode.OrganDictionaryItemDTO;
 import com.ngari.opbase.base.service.IOrganDictionaryItemService;
+import com.ngari.opbase.util.OpSecurityUtil;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
@@ -216,6 +217,8 @@ public class OperationClient extends BaseClient {
             giveModeButtonBean.setShowButtonKey(giveModeButton.getBoxLink());
             giveModeButtonBean.setShowButtonName(giveModeButton.getBoxTxt());
             giveModeButtonBean.setButtonSkipType(giveModeButton.getRecipeskip());
+            giveModeButtonBean.setAppId("appid");
+            giveModeButtonBean.setSkipUrl("thisisskipUrl");
             if (!"listItem".equals(giveModeButtonBean.getShowButtonKey())) {
                 giveModeButtonBeans.add(giveModeButtonBean);
             } else {
@@ -308,5 +311,14 @@ public class OperationClient extends BaseClient {
             }
         }
         return "";
+    }
+
+    /**
+     *  鉴权不通过抛出DAOException
+     * @param organId
+     * @return
+     */
+    public Boolean isAuthorisedOrgan(Integer organId){
+        return OpSecurityUtil.isAuthorisedOrgan(organId);
     }
 }

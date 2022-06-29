@@ -101,7 +101,8 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
         validateAtop(recipeInfoVO, recipeInfoVO.getRecipeDetails());
         Integer recipeId = saveTherapyRecipe(recipeInfoVO);
         //推送his
-        RecipeInfoDTO recipeInfoDTO = offlineToOnlineService.pushRecipe(recipeId, CommonConstant.RECIPE_PUSH_TYPE, CommonConstant.RECIPE_DOCTOR_TYPE, null, null);
+        RecipeInfoDTO recipeInfoDTO = offlineToOnlineService.pushRecipe(recipeId, CommonConstant.RECIPE_PUSH_TYPE,
+                CommonConstant.RECIPE_DOCTOR_TYPE, null, null, null);
         therapyRecipeBusinessService.updatePushTherapyRecipe(recipeId, recipeInfoDTO.getRecipeTherapy(), CommonConstant.RECIPE_PUSH_TYPE);
         return recipeId;
     }
@@ -193,25 +194,22 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
      */
     @RpcService
     public RecipeInfoVO therapyRecipeInfo(Integer recipeId) {
-        logger.info("TherapyRecipeDoctorAtop therapyRecipeInfo  recipeId = {}", recipeId);
-        try {
-            RecipeInfoDTO result = therapyRecipeBusinessService.therapyRecipeInfo(recipeId);
-            RecipeInfoVO recipeInfoVO = new RecipeInfoVO();
-            recipeInfoVO.setPatientVO(ObjectCopyUtils.convert(result.getPatientBean(), PatientVO.class));
-            recipeInfoVO.setRecipeBean(ObjectCopyUtils.convert(result.getRecipe(), RecipeBean.class));
-            recipeInfoVO.setRecipeExtendBean(ObjectCopyUtils.convert(result.getRecipeExtend(), RecipeExtendBean.class));
-            recipeInfoVO.setRecipeDetails(ObjectCopyUtils.convert(result.getRecipeDetails(), RecipeDetailBean.class));
-            recipeInfoVO.setRecipeTherapyVO(ObjectCopyUtils.convert(result.getRecipeTherapy(), RecipeTherapyVO.class));
-            recipeInfoVO.setOrganVO(ObjectCopyUtils.convert(result.getOrgan(), OrganVO.class));
-            logger.info("TherapyRecipeDoctorAtop therapyRecipeInfo  recipeInfoVO = {}", JSON.toJSONString(recipeInfoVO));
-            return recipeInfoVO;
-        } catch (DAOException e1) {
-            logger.warn("TherapyRecipeDoctorAtop therapyRecipeInfo  error", e1);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
-        } catch (Exception e) {
-            logger.error("TherapyRecipeDoctorAtop therapyRecipeInfo  error e", e);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
-        }
+        logger.info("therapyRecipeInfo = {}", recipeId);
+
+        RecipeInfoDTO result = therapyRecipeBusinessService.therapyRecipeInfo(recipeId);
+        //越权校验
+        OrganVO organVO=ObjectCopyUtils.convert(result.getOrgan(), OrganVO.class);
+        isAuthorisedOrgan(organVO==null?null:organVO.getOrganId());
+
+        RecipeInfoVO recipeInfoVO = new RecipeInfoVO();
+        recipeInfoVO.setPatientVO(ObjectCopyUtils.convert(result.getPatientBean(), PatientVO.class));
+        recipeInfoVO.setRecipeBean(ObjectCopyUtils.convert(result.getRecipe(), RecipeBean.class));
+        recipeInfoVO.setRecipeExtendBean(ObjectCopyUtils.convert(result.getRecipeExtend(), RecipeExtendBean.class));
+        recipeInfoVO.setRecipeDetails(ObjectCopyUtils.convert(result.getRecipeDetails(), RecipeDetailBean.class));
+        recipeInfoVO.setRecipeTherapyVO(ObjectCopyUtils.convert(result.getRecipeTherapy(), RecipeTherapyVO.class));
+        recipeInfoVO.setOrganVO(organVO);
+
+        return recipeInfoVO;
     }
 
     /**
@@ -226,7 +224,8 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
         validateAtop(recipeTherapyVO, recipeTherapyVO.getTherapyCancellationType(), recipeTherapyVO.getRecipeId());
         try {
             //异步推送his
-            offlineToOnlineService.pushRecipe(recipeTherapyVO.getRecipeId(), CommonConstant.RECIPE_CANCEL_TYPE, CommonConstant.RECIPE_DOCTOR_TYPE, null, null);
+            offlineToOnlineService.pushRecipe(recipeTherapyVO.getRecipeId(), CommonConstant.RECIPE_CANCEL_TYPE,
+                    CommonConstant.RECIPE_DOCTOR_TYPE, null, null, null);
             RecipeTherapy recipeTherapy = ObjectCopyUtils.convert(recipeTherapyVO, RecipeTherapy.class);
             therapyRecipeBusinessService.updatePushTherapyRecipe(recipeTherapyVO.getRecipeId(), recipeTherapy, CommonConstant.RECIPE_CANCEL_TYPE);
             return true;

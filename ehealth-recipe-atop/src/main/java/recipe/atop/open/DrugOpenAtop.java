@@ -4,7 +4,7 @@ import com.ngari.platform.recipe.mode.ListOrganDrugReq;
 import com.ngari.platform.recipe.mode.ListOrganDrugRes;
 import com.ngari.recipe.entity.Dispensatory;
 import com.ngari.recipe.entity.OrganDrugList;
-import com.ngari.recipe.entity.RecipeRulesDrugcorrelation;
+import com.ngari.recipe.entity.RecipeRulesDrugCorrelation;
 import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -15,7 +15,7 @@ import recipe.constant.ErrorCode;
 import recipe.core.api.IDrugBusinessService;
 import recipe.util.ObjectCopyUtils;
 import recipe.vo.doctor.DrugBookVo;
-import recipe.vo.second.RecipeRulesDrugcorrelationVo;
+import recipe.vo.second.RecipeDrugRelationRuleVO;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
@@ -51,15 +51,27 @@ public class DrugOpenAtop extends BaseAtop implements IDrugAtopService {
     }
 
     @Override
-    public List<RecipeRulesDrugcorrelationVo> getListDrugRules(List<Integer> list, Integer ruleId) {
-        List<RecipeRulesDrugcorrelation> result = drugBusinessService.getListDrugRules(list, ruleId);
-        return CollectionUtils.isEmpty(result) ? new ArrayList<>() : ObjectCopyUtils.convert(result, RecipeRulesDrugcorrelationVo.class);
+    public List<RecipeDrugRelationRuleVO> getListDrugRules(List<Integer> list, Integer ruleId) {
+        List<RecipeRulesDrugCorrelation> result = drugBusinessService.getListDrugRules(list, ruleId);
+        return CollectionUtils.isEmpty(result) ? new ArrayList<>() : ObjectCopyUtils.convert(result, RecipeDrugRelationRuleVO.class);
     }
 
     @Override
     public List<ListOrganDrugRes> listOrganDrug(ListOrganDrugReq listOrganDrugReq) {
         List<OrganDrugList> listOrganDrugRes = drugBusinessService.listOrganDrug(listOrganDrugReq);
         return ObjectCopyUtils.convert(listOrganDrugRes, ListOrganDrugRes.class);
+    }
+
+    @Override
+    public List<RecipeDrugRelationRuleVO> findRulesByDrugIdAndRuleId(Integer drugId, Integer ruleId) {
+        List<RecipeRulesDrugCorrelation> recipeRulesDrugCorrelations = drugBusinessService.findRulesByDrugIdAndRuleId(drugId, ruleId);
+        return ObjectCopyUtils.convert(recipeRulesDrugCorrelations, RecipeDrugRelationRuleVO.class);
+    }
+
+    @Override
+    public List<RecipeDrugRelationRuleVO> findRulesByCorrelationDrugIdAndRuleId(Integer correlationDrugId, Integer ruleId) {
+        List<RecipeRulesDrugCorrelation> recipeRulesDrugCorrelations = drugBusinessService.findRulesByCorrelationDrugIdAndRuleId(correlationDrugId, ruleId);
+        return ObjectCopyUtils.convert(recipeRulesDrugCorrelations, RecipeDrugRelationRuleVO.class);
     }
 
     /**

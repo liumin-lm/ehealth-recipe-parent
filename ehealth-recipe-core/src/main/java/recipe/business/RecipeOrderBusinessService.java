@@ -19,8 +19,10 @@ import ctd.dictionary.DictionaryController;
 import ctd.persistence.bean.QueryResult;
 import ctd.util.JSONUtils;
 import eh.entity.bus.pay.BusTypeEnum;
+import eh.utils.BeanCopyUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -143,6 +145,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
         orderStatus.setSourceRecipeOrderStatus(recipeOrder.getStatus());
         orderStatus.setOrderId(recipeOrder.getOrderId());
         orderStatus.setSourceRecipeStatus(recipe.getStatus());
+        orderStatus.setOrganName(recipe.getOrganName());
         giveModeProxy.updateOrderByGiveMode(recipe.getGiveMode(), orderStatus);
         if (NeedSendTypeEnum.NO_NEED_SEND_TYPE.getType().equals(orderStatus.getNeedSendType())) {
             orderStatus.setTargetRecipeOrderStatus(RecipeOrderStatusEnum.ORDER_STATUS_DONE.getType());
@@ -475,5 +478,19 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
         logger.info("findReimbursementDetail recipeId={}",JSONUtils.toString(recipeId));
         return orderManager.findReimbursementDetail(recipeId);
     }
+
+    @Override
+    public MedicalSettleInfoVO getMedicalSettleInfo(Integer recipeId) {
+        MedicalSettleInfoDTO medicalSettleInfoDTO = orderManager.getMedicalSettleInfo(recipeId);
+        return ObjectCopyUtils.convert(medicalSettleInfoDTO, MedicalSettleInfoVO.class);
+    }
+
+    @Override
+    public List<RecipeOrderWaybillDTO> findOrderByMpiId(String mpiId) {
+        Date date = DateUtils.addDays(new Date(), -1);
+        List<RecipeOrder> orders = recipeOrderDAO.findByMpiIdAndDate(mpiId, date);
+        return BeanCopyUtils.copyList(orders, RecipeOrderWaybillDTO::new);
+    }
+
 
 }

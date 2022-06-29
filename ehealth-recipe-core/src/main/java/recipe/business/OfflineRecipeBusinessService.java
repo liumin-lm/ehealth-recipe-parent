@@ -96,7 +96,7 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
             // 1、公共参数获取
             PatientDTO patientDTO = obtainPatientInfo(request);
             // 2、获取his数据
-            HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos = hisRecipeManager.queryData(request.getOrganId(), patientDTO, request.getTimeQuantum(), OfflineToOnlineEnum.getOfflineToOnlineType(request.getStatus()), null);
+            HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos = hisRecipeManager.queryHisRecipeData(request.getOrganId(), patientDTO, request.getTimeQuantum(), OfflineToOnlineEnum.getOfflineToOnlineType(request.getStatus()), null);
             // 3、待处理、进行中、已处理线下处方列表服务差异化实现
             IOfflineToOnlineStrategy offlineToOnlineStrategy = offlineToOnlineFactory.getFactoryService(request.getStatus());
             List<MergeRecipeVO> res = offlineToOnlineStrategy.findHisRecipeList(hisRecipeInfos, patientDTO, request);
@@ -195,7 +195,11 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
                 }
             }
         }
-        request.setTimeQuantum(6);
+        if (null != request.getTimeQuantum()) {
+            request.getTimeQuantum();
+        } else {
+            request.setTimeQuantum(6);
+        }
         logger.info("OfflineToOnlineService obtainFindHisRecipeDetailParam req:{}", JSONUtils.toString(request));
         return request;
     }
@@ -313,7 +317,7 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
 
 
     @Override
-    public RecipeInfoDTO pushRecipe(Integer recipeId, Integer pushType, Integer sysType, Integer expressFeePayType, Double expressFee) {
+    public RecipeInfoDTO pushRecipe(Integer recipeId, Integer pushType, Integer sysType, Integer expressFeePayType, Double expressFee, String giveModeKey) {
         logger.info("RecipeBusinessService pushRecipe recipeId={}", recipeId);
         RecipeInfoDTO recipePdfDTO = recipeTherapyManager.getRecipeTherapyDTO(recipeId);
         ChargeItemDTO chargeItemDTO = new ChargeItemDTO(expressFeePayType, expressFee);
@@ -328,7 +332,7 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
                 }
             }
             Map<Integer, PharmacyTcm> pharmacyIdMap = pharmacyManager.pharmacyIdMap(recipe.getClinicOrgan());
-            RecipeInfoDTO result = hisRecipeManager.pushRecipe(recipePdfDTO, pushType, pharmacyIdMap, sysType);
+            RecipeInfoDTO result = hisRecipeManager.pushRecipe(recipePdfDTO, pushType, pharmacyIdMap, sysType, giveModeKey);
             logger.info("RecipeBusinessService pushRecipe result={}", JSONUtils.toString(result));
             result.getRecipe().setBussSource(recipe.getBussSource());
             result.getRecipe().setClinicId(recipe.getClinicId());
@@ -360,7 +364,7 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
     }
 
     @Override
-    public HisResponseTO abolishOffLineRecipe(Integer organId, String recipeCode) {
-        return hisRecipeManager.abolishOffLineRecipe(organId, recipeCode);
+    public HisResponseTO abolishOffLineRecipe(Integer organId, List<String> recipeCodes) {
+        return hisRecipeManager.abolishOffLineRecipe(organId, recipeCodes);
     }
 }

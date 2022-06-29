@@ -55,4 +55,11 @@ public interface IOrganBusinessService {
      * @return
      */
     OrganVO getOrganVOByOrganId(Integer organId);
+
+    /**
+     * 判断运营平台账户越权校验
+     * @param key
+     * @return
+     */
+    Boolean isAuthorisedOrgan(Integer organId);
 }

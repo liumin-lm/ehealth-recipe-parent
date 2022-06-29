@@ -225,6 +225,9 @@ public class RecipeOrderBean implements Serializable {
     @ItemProperty(alias = "购药方式")
     private Integer giveMode;
 
+    @ItemProperty(alias = "订单所属配送方式")
+    private String giveModeKey;
+
     @ItemProperty(alias = "药企名称")
     private String enterpriseName;
 
@@ -1318,5 +1321,13 @@ public class RecipeOrderBean implements Serializable {
 
     public void setInvoiceRecordId(Integer invoiceRecordId) {
         this.invoiceRecordId = invoiceRecordId;
+    }
+
+    public String getGiveModeKey() {
+        return giveModeKey;
+    }
+
+    public void setGiveModeKey(String giveModeKey) {
+        this.giveModeKey = giveModeKey;
     }
 }

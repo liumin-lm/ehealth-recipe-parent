@@ -1787,6 +1787,16 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 hql.append(" AND a.invoice_record_id is null ");
             }
         }
+
+        if (null != recipeOrderRefundReqDTO.getFastRecipeFlag()) {
+            if(Integer.valueOf(1).equals(recipeOrderRefundReqDTO.getFastRecipeFlag())){
+                hql.append(" AND b.fast_recipe_flag = 1 ");
+            }else{
+                hql.append(" AND (b.fast_recipe_flag = 0 or b.fast_recipe_flag is null) ");
+            }
+
+
+        }
         return hql;
     }
 
@@ -1850,4 +1860,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
+
+    @DAOMethod(sql = "from RecipeOrder where mpiId =:mpiId and createTime >:date ")
+    public abstract List<RecipeOrder> findByMpiIdAndDate(@DAOParam("mpiId")String mpiId, @DAOParam("date")Date date);
 }

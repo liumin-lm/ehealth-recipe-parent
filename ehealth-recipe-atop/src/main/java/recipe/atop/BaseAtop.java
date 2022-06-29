@@ -4,7 +4,9 @@ import ctd.persistence.exception.DAOException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import recipe.constant.ErrorCode;
+import recipe.core.api.IOrganBusinessService;
 import recipe.util.ValidateUtil;
 
 /**
@@ -14,6 +16,9 @@ import recipe.util.ValidateUtil;
  */
 public class BaseAtop {
     protected final Logger logger = LoggerFactory.getLogger(this.getClass());
+
+    @Autowired
+    IOrganBusinessService organBusinessService;
 
     /**
      * Atop层 入参参数校验：自定义msg
@@ -39,5 +44,19 @@ public class BaseAtop {
         if (ValidateUtil.validateObjects(args)) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "入参错误");
         }
+    }
+
+
+    /**
+     * Atop层 入参参数校验：默认报错
+     *
+     * @param args 入参
+     */
+    protected void isAuthorisedOrgan(Integer organId) {
+        if (ValidateUtil.validateObjects(organId)) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "入参错误");
+        }
+
+        organBusinessService.isAuthorisedOrgan(organId);
     }
 }

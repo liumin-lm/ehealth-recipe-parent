@@ -322,7 +322,7 @@ public abstract class AccessDrugEnterpriseService {
                     smsInfo.setBusType("RecipeOrderCreate");
                     smsInfo.setSmsType("RecipeOrderCreate");
                     smsInfo.setBusId(recipeId);
-                    smsInfo.setOrganId(0);
+                    smsInfo.setOrganId(nowRecipe.getClinicOrgan());
 
                     Map<String, Object> smsMap = Maps.newHashMap();
 

@@ -2,10 +2,7 @@ package recipe.atop.greenroom;
 
 import com.ngari.recipe.drugdistributionprice.model.DrugDistributionPriceBean;
 import com.ngari.recipe.drugdistributionprice.service.IDrugDistributionPriceService;
-import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
-import com.ngari.recipe.drugsenterprise.model.EnterpriseDecoctionAddressDTO;
-import com.ngari.recipe.drugsenterprise.model.EnterpriseDecoctionAddressReq;
-import com.ngari.recipe.drugsenterprise.model.EnterpriseDecoctionList;
+import com.ngari.recipe.drugsenterprise.model.*;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.EnterpriseDecoctionAddress;
 import com.ngari.recipe.entity.OrganAndDrugsepRelation;
@@ -42,6 +39,7 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
 
     @Autowired
     private IDrugsEnterpriseBusinessService enterpriseBusinessService;
+
     @Autowired
     private IDrugDistributionPriceService drugDistributionPriceService;
 
@@ -69,10 +67,6 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
         return list;
     }
 
-    @Autowired
-    private IDrugsEnterpriseBusinessService drugsEnterpriseBusinessService;
-
-
     /**
      * 根据药企机构查询煎法
      *
@@ -82,6 +76,18 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
     public List<EnterpriseDecoctionList> findEnterpriseDecoctionList(Integer enterpriseId,Integer organId) {
         validateAtop(enterpriseId,organId);
         List<EnterpriseDecoctionList> list = enterpriseBusinessService.findEnterpriseDecoctionList(enterpriseId,organId);
+        return list;
+    }
+
+    /**
+     * 获取药企的配送地址以及费用
+     *
+     * @param enterpriseId
+     */
+    @RpcService
+    public List<EnterpriseAddressAndPrice> findEnterpriseAddressAndPrice(Integer enterpriseId,String area) {
+        validateAtop(enterpriseId);
+        List<EnterpriseAddressAndPrice> list = enterpriseBusinessService.findEnterpriseAddressAndPrice(enterpriseId,area);
         return list;
     }
 
@@ -245,6 +251,28 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
      */
     @RpcService
     public Boolean pushDrugDispenser(Integer recipeId) {
-        return drugsEnterpriseBusinessService.pushDrugDispenser(recipeId);
+        return enterpriseBusinessService.pushDrugDispenser(recipeId);
+    }
+
+    /**
+     * 运营平台调用发药机发药根据订单
+     *
+     * @param orderId
+     * @return
+     */
+    @RpcService
+    public Boolean pushDrugDispenserByOrder(Integer orderId) {
+        return enterpriseBusinessService.pushDrugDispenserByOrder(orderId);
+    }
+
+    /**
+     * 更新药企的优先级
+     * @param depId
+     * @param level
+     * @return
+     */
+    @RpcService
+    public Boolean updateEnterprisePriorityLevel(Integer depId, Integer level){
+        return enterpriseBusinessService.updateEnterprisePriorityLevel(depId, level);
     }
 }

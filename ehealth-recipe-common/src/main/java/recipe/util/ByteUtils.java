@@ -26,6 +26,9 @@ public class ByteUtils {
 	private final static String[] hexDigits = {"0", "1", "2", "3", "4", "5",
 			"6", "7", "8", "9", "A", "B", "C", "D", "E", "F"};
 
+	private final static String htmlKeywordsReg = "(\\b(form|onclick|alert|javascript|img|button|formaction|script|video|input|onfocus|write|autofocus|onblur|poster|onscroll|onforminput|onformchange|onerror|svg|oninput|href|\n" +
+			"document.cookie|onmouseover|onload|iframe|srcdoc|ontoggle|onreadystatechange)\\b)";
+
 	/**
 	 * 转换字节数组为16进制字串
 	 *
@@ -172,5 +175,16 @@ public class ByteUtils {
 			list.add(m.group().trim());
 		}
 		return list;
+	}
+
+	/**
+	 * 用正则判断字符串是否含有html关键字
+	 * @param str
+	 * @return true 含关键字;false不含关键字
+     */
+	public static boolean validateHtml(String str) {
+		str=str==null?"":str;
+		Pattern sqlPattern = Pattern.compile(htmlKeywordsReg, Pattern.CASE_INSENSITIVE);
+		return sqlPattern.matcher(str).find();
 	}
 }

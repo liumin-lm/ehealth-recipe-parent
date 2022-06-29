@@ -10,10 +10,7 @@ import com.ngari.recipe.dto.RecipeOrderDto;
 import com.ngari.recipe.dto.ReimbursementDTO;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
-import com.ngari.recipe.recipe.model.RecipeDetailBean;
-import com.ngari.recipe.recipe.model.ReimbursementDetailResVO;
-import com.ngari.recipe.recipe.model.ReimbursementListReqVO;
-import com.ngari.recipe.recipe.model.ReimbursementListResVO;
+import com.ngari.recipe.recipe.model.*;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import eh.utils.BeanCopyUtils;
@@ -159,5 +156,10 @@ public class RecipeOrderOpenAtop extends BaseAtop implements IRecipeOrderAtopSer
         }
         logger.info("findReimbursementDetail reimbursementDetailVO={}", JSONUtils.toString(reimbursementDetailVO));
         return reimbursementDetailVO;
+    }
+
+    @Override
+    public MedicalSettleInfoVO getMedicalSettleInfo(Integer recipeId) {
+        return recipeOrderService.getMedicalSettleInfo(recipeId);
     }
 }

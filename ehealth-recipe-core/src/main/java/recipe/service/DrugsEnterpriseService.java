@@ -23,6 +23,7 @@ import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import eh.utils.EscapeUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -120,6 +121,11 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
         }
         // 药企物流信息校验：平台对接物流，物流公司、寄件人信息不能为空
         checkEnterpriseLogisticsInfo(drugsEnterpriseBean);
+
+        //处理xxs漏洞
+        String  enterpriseName=drugsEnterpriseBean.getName()==null?"":drugsEnterpriseBean.getName();
+        drugsEnterpriseBean.setName(EscapeUtil.escapeHtml(enterpriseName));
+
         drugsEnterpriseBean.setSort(100);
         drugsEnterpriseBean.setCreateDate(new Date());
         drugsEnterpriseBean.setLastModify(new Date());
@@ -225,6 +231,10 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "DrugsEnterprise is null");
         }
         LOGGER.info("updateDrugsEnterprise params={}", JSONUtils.toString(drugsEnterpriseBean));
+        //处理xxs漏洞
+        String  enterpriseName=drugsEnterpriseBean.getName()==null?"":drugsEnterpriseBean.getName();
+        drugsEnterpriseBean.setName(EscapeUtil.escapeHtml(enterpriseName));
+
         // 药企物流信息校验：平台对接物流，物流公司、寄件人信息不能为空
         checkEnterpriseLogisticsInfo(drugsEnterpriseBean);
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);

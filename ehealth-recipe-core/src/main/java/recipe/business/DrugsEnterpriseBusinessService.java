@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.his.recipe.mode.DrugTakeChangeReqTO;
 import com.ngari.patient.service.OrganService;
+import com.ngari.recipe.drugsenterprise.model.EnterpriseAddressAndPrice;
 import com.ngari.recipe.drugsenterprise.model.EnterpriseDecoctionAddressReq;
 import com.ngari.recipe.drugsenterprise.model.EnterpriseDecoctionList;
 import com.ngari.recipe.dto.PatientDTO;
@@ -24,6 +25,7 @@ import org.joda.time.DateTime;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.client.PatientClient;
@@ -106,6 +108,8 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
     private PatientClient patientClient;
     @Autowired
     private RecipeManager recipeManager;
+    @Autowired
+    private DrugDistributionPriceDAO drugDistributionPriceDAO;
 
     @Override
     public Boolean existEnterpriseByName(String name) {
@@ -455,6 +459,50 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
         recipeOrderDAO.updateNonNullFieldByPrimaryKey(recipeOrder);
         syncFinishOrderHandle(recipeIdList, recipeOrder, isSendFlag);
         return EnterpriseResultBean.getSuccess("成功");
+    }
+
+    @Override
+    public Boolean pushDrugDispenserByOrder(Integer orderId) {
+        RecipeOrder recipeOrder = recipeOrderDAO.get(orderId);
+        List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
+        recipeIdList.forEach(recipeId->{
+            pushDrugDispenser(recipeId);
+        });
+        return true;
+    }
+
+    @Override
+    public Boolean updateEnterprisePriorityLevel(Integer depId, Integer level) {
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(depId);
+        if (ObjectUtils.isEmpty(drugsEnterprise)) {
+            throw new DAOException("药企不存在");
+        }
+        drugsEnterprise.setPriorityLevel(level);
+        drugsEnterpriseDAO.update(drugsEnterprise);
+        return true;
+    }
+
+    @Override
+    public List<EnterpriseAddressAndPrice> findEnterpriseAddressAndPrice(Integer enterpriseId,String area) {
+        List<EnterpriseAddress> enterpriseAddresses = enterpriseAddressDAO.findByEnterPriseIdAndArea(enterpriseId,area);
+        if (CollectionUtils.isEmpty(enterpriseAddresses)) {
+            throw new DAOException("药企配送地址为空");
+        }
+        List<DrugDistributionPrice> drugDistributionPrices = drugDistributionPriceDAO.findByEnterpriseId(enterpriseId);
+        if (CollectionUtils.isEmpty(drugDistributionPrices)){
+            return BeanCopyUtils.copyList(enterpriseAddresses,EnterpriseAddressAndPrice::new);
+        }
+        Map<String, List<DrugDistributionPrice>> listMap = drugDistributionPrices.stream().collect(Collectors.groupingBy(DrugDistributionPrice::getAddrArea));
+        List<EnterpriseAddressAndPrice> collect = enterpriseAddresses.stream().map(enterpriseAddress -> {
+            EnterpriseAddressAndPrice enterpriseAddressAndPrice = BeanCopyUtils.copyProperties(enterpriseAddress, EnterpriseAddressAndPrice::new);
+            if (MapUtils.isNotEmpty(listMap) && CollectionUtils.isNotEmpty(listMap.get(enterpriseAddress.getAddress()))) {
+                List<DrugDistributionPrice> prices = listMap.get(enterpriseAddress.getAddress());
+                enterpriseAddressAndPrice.setDistributionPrice(prices.get(0).getDistributionPrice());
+                enterpriseAddressAndPrice.setBuyFreeShipping(prices.get(0).getBuyFreeShipping());
+            }
+            return enterpriseAddressAndPrice;
+        }).collect(Collectors.toList());
+        return collect;
     }
 
     private void syncFinishOrderHandle(List<Integer> recipeIdList, RecipeOrder recipeOrder, boolean isSendFlag) {

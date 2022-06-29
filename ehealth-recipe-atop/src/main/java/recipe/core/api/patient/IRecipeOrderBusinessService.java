@@ -9,6 +9,8 @@ import com.ngari.recipe.dto.RecipeOrderDto;
 import com.ngari.recipe.dto.ReimbursementDTO;
 import com.ngari.recipe.dto.SkipThirdDTO;
 import com.ngari.recipe.entity.RecipeOrder;
+import com.ngari.recipe.recipe.model.MedicalSettleInfoVO;
+import com.ngari.recipe.recipe.model.RecipeOrderWaybillDTO;
 import com.ngari.recipe.recipe.model.ReimbursementListReqVO;
 import com.ngari.recipe.recipe.model.SkipThirdReqVO;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
@@ -122,4 +124,13 @@ public interface IRecipeOrderBusinessService {
      * @return
      */
     ReimbursementDTO findReimbursementDetail(Integer recipeId);
+
+    MedicalSettleInfoVO getMedicalSettleInfo(Integer recipeId);
+
+    /**
+     * 获取当前订单用户下历史订单的运单信息
+     * @param mpiId
+     * @return
+     */
+    List<RecipeOrderWaybillDTO> findOrderByMpiId(String mpiId);
 }

@@ -13,6 +13,7 @@ import com.ngari.recipe.entity.*;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
+import ctd.util.event.GlobalEventExecFactory;
 import eh.entity.base.UsePathways;
 import eh.entity.base.UsingRate;
 import org.apache.commons.collections.CollectionUtils;
@@ -22,13 +23,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.aop.LogRecord;
-import recipe.client.DocIndexClient;
-import recipe.client.OfflineRecipeClient;
-import recipe.client.PatientClient;
-import recipe.client.RevisitClient;
+import recipe.client.*;
 import recipe.common.CommonConstant;
 import recipe.constant.ErrorCode;
+import recipe.constant.HisRecipeConstant;
 import recipe.constant.OrderStatusConstant;
+import recipe.constant.PayConstant;
 import recipe.dao.*;
 import recipe.enumerate.status.OfflineToOnlineEnum;
 import recipe.enumerate.status.OrderStateEnum;
@@ -40,6 +40,8 @@ import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -78,7 +80,13 @@ public class HisRecipeManager extends BaseManager {
     private StateManager stateManager;
     @Autowired
     private RecipeParameterDao recipeParameterDao;
+    @Autowired
+    private PayClient payClient;
 
+    /**
+     * SUCCESS（交易支付成功）
+     */
+    private String PAY_SUCCESS = "SUCCESS";
 
     /**
      * 获取患者信息
@@ -107,6 +115,56 @@ public class HisRecipeManager extends BaseManager {
         HisResponseTO<List<QueryHisRecipResTO>> res = filterData(responseTo, recipeCode, flag);
         logger.info("HisRecipeManager res:{}.", JSONUtils.toString(res));
         return res;
+    }
+
+    /**
+     * 列表查询--线下处方
+     *
+     * @param organId
+     * @param patientDTO
+     * @param timeQuantum
+     * @param flag
+     * @param recipeCode
+     * @return
+     */
+    @LogRecord
+    public HisResponseTO<List<QueryHisRecipResTO>> queryHisRecipeData(Integer organId, PatientDTO patientDTO, Integer timeQuantum, Integer flag, String recipeCode) {
+        LOGGER.info("HisRecipeManager queryHisRecipeData param organId:{},patientDTO:{},timeQuantum:{},flag:{},recipeCode:{}", organId, JSONUtils.toString(patientDTO), timeQuantum, flag, recipeCode);
+        HisResponseTO<List<QueryHisRecipResTO>> responseTo = new HisResponseTO<List<QueryHisRecipResTO>>();
+        if (HisRecipeConstant.HISRECIPESTATUS_NOIDEAL.equals(flag)) {
+            responseTo = offlineRecipeClient.queryData(organId, patientDTO, timeQuantum, flag, recipeCode);
+        } else if (HisRecipeConstant.HISRECIPESTATUS_ALREADYIDEAL.equals(flag)) {
+            List<QueryHisRecipResTO> queryHisRecipResToList = new ArrayList<>();
+            Future<HisResponseTO<List<QueryHisRecipResTO>>> hisTask1 = GlobalEventExecFactory.instance().getExecutor().submit(() -> {
+                return offlineRecipeClient.queryData(organId, patientDTO, timeQuantum, HisRecipeConstant.HISRECIPESTATUS_ALREADYIDEAL, recipeCode);
+            });
+            Future<HisResponseTO<List<QueryHisRecipResTO>>> hisTask2 = GlobalEventExecFactory.instance().getExecutor().submit(() -> {
+                return offlineRecipeClient.queryData(organId, patientDTO, timeQuantum, HisRecipeConstant.HISRECIPESTATUS_EXPIRED, recipeCode);
+            });
+            try {
+                HisResponseTO<List<QueryHisRecipResTO>> hisResponseTO1 = hisTask1.get(60000, TimeUnit.MILLISECONDS);
+                //过滤数据
+                HisResponseTO<List<QueryHisRecipResTO>> res = filterData(hisResponseTO1, recipeCode, HisRecipeConstant.HISRECIPESTATUS_ALREADYIDEAL);
+                queryHisRecipResToList.addAll(res.getData());
+            } catch (Exception e) {
+                logger.error("queryHisRecipeData hisTask1 error ", e);
+                e.printStackTrace();
+            }
+            try {
+                HisResponseTO<List<QueryHisRecipResTO>> hisResponseTO2 = hisTask2.get(60000, TimeUnit.MILLISECONDS);
+                //过滤数据
+                HisResponseTO<List<QueryHisRecipResTO>> res = filterData(hisResponseTO2, recipeCode, HisRecipeConstant.HISRECIPESTATUS_EXPIRED);
+                queryHisRecipResToList.addAll(res.getData());
+            } catch (Exception e) {
+                logger.error("queryHisRecipeData hisTask2 error ", e);
+                e.printStackTrace();
+            }
+            responseTo.setData(queryHisRecipResToList);
+
+        }
+
+        logger.info("HisRecipeManager res:{}.", JSONUtils.toString(responseTo));
+        return responseTo;
     }
 
     /**
@@ -436,6 +494,28 @@ public class HisRecipeManager extends BaseManager {
     }
 
     /**
+     * 根据处方号回查支付状态
+     *
+     * @param recipeCode
+     * @param clinicOrgan
+     * @return
+     */
+    public String obtainPayStatus(String recipeCode, Integer clinicOrgan) {
+        String realPayFlag = "";
+        Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeCode, clinicOrgan);
+        if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
+            RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+            realPayFlag = payClient.orderQuery(recipeOrder);
+        }
+//        if (PAY_SUCCESS.equals(realPayFlag)) {
+//            hisRecipeDao.updateHisRecieStatus(clinicOrgan, recipeCode, HisRecipeConstant.HISRECIPESTATUS_ALREADYIDEAL);
+//        }
+
+        return realPayFlag;
+
+    }
+
+    /**
      * 获取需要删除的recipeCodes
      * 判断药品详情发生变化、数据不是由本人生成的未支付处方、中药tcmFee变更
      *
@@ -452,6 +532,11 @@ public class HisRecipeManager extends BaseManager {
         hisRecipeTO.forEach(a -> {
             String recipeCode = a.getRecipeCode();
             HisRecipe hisRecipe = hisRecipeMap.get(recipeCode);
+            //如果已经支付，则不允许删除（场景：a操作用户绑定就诊人支付，且支付成功，但是支付平台回调慢，导致处方支付状态未更改   所以需要回查，是否已支付 如果已经支付，则不允许更改数据）
+            String payFlag = obtainPayStatus(recipeCode, hisRecipe.getClinicOrgan());
+            if (PayConstant.RESULT_SUCCESS.equals(payFlag) || PayConstant.RESULT_WAIT.equals(payFlag) || PayConstant.ERROR.equals(payFlag)) {
+                return;
+            }
             if (null == hisRecipe) {
                 return;
             } else {
@@ -578,12 +663,13 @@ public class HisRecipeManager extends BaseManager {
      * @return
      * @throws Exception
      */
-    public RecipeInfoDTO pushRecipe(RecipeInfoDTO recipePdfDTO, Integer pushType, Map<Integer, PharmacyTcm> pharmacyIdMap, Integer sysType) throws Exception {
+    public RecipeInfoDTO pushRecipe(RecipeInfoDTO recipePdfDTO, Integer pushType, Map<Integer, PharmacyTcm> pharmacyIdMap,
+                                    Integer sysType, String giveModeKey) throws Exception {
         EmrDetailDTO emrDetail = emrDetail(recipePdfDTO);
         if (CommonConstant.RECIPE_DOCTOR_TYPE.equals(sysType)) {
-            return offlineRecipeClient.pushRecipe(pushType, recipePdfDTO, emrDetail, pharmacyIdMap);
+            return offlineRecipeClient.pushRecipe(pushType, recipePdfDTO, emrDetail, pharmacyIdMap, giveModeKey);
         } else {
-            return offlineRecipeClient.patientPushRecipe(pushType, recipePdfDTO, emrDetail, pharmacyIdMap);
+            return offlineRecipeClient.patientPushRecipe(pushType, recipePdfDTO, emrDetail, pharmacyIdMap, giveModeKey);
         }
     }
 
@@ -645,57 +731,68 @@ public class HisRecipeManager extends BaseManager {
      * 撤销线下处方
      *
      * @param organId
-     * @param recipeCode
+     * @param recipeCodes
      * @return
      */
     @LogRecord
-    public HisResponseTO abolishOffLineRecipe(Integer organId, String recipeCode) {
+    public HisResponseTO abolishOffLineRecipe(Integer organId, List<String> recipeCodes) {
         HisResponseTO hisResponseTO = new HisResponseTO();
+        List<String> errorMsg = new ArrayList<>();
         hisResponseTO.setMsgCode(ErrorCode.SERVICE_SUCCEED + "");
-        try {
-            List<Recipe> recipes = recipeDAO.findByRecipeCodeAndClinicOrgan(Lists.newArrayList(recipeCode), organId);
-            if (CollectionUtils.isEmpty(recipes)) {
-                hisResponseTO.setMsgCode(ErrorCode.SERVICE_FAIL + "");
-                hisResponseTO.setMsg("处方" + recipeCode + "撤销失败,原因是：该处方还未转到线上不允许撤销" );
-                logger.info("该处方还未转到线上:{}", JSONUtils.toString(recipeCode));
-                return hisResponseTO;
-            }
-            recipes.forEach(recipe -> {
-                logger.info("recipe:{}", JSONUtils.toString(recipe));
-                //修改处方状态
-                if (PayFlagEnum.PAYED.getType().equals(recipe.getPayFlag())) {
-                    hisResponseTO.setMsgCode(ErrorCode.SERVICE_FAIL + "");
-                    hisResponseTO.setMsg("处方已经支付，则不允许取消");
-                } else {
-                    RecipeOrder order = recipeOrderDAO.getOrderByRecipeId(recipe.getRecipeId());
-                    if (order != null) {
-                        List<Integer> recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
-                        //合并处方订单取消
-                        List<Recipe> mergrRecipes = recipeDAO.findByRecipeIds(recipeIdList);
-                        mergrRecipes.forEach(mergeRecipe -> {
-                            recipeDAO.updateOrderCodeToNullByOrderCodeAndClearChoose(order.getOrderCode(), mergeRecipe, 1);
-                        });
-
-                        //修改订单状态
-                        Map<String, Object> orderAttrMap = Maps.newHashMap();
-                        orderAttrMap.put("effective", 0);
-                        orderAttrMap.put("status", OrderStatusConstant.CANCEL_MANUAL);
-                        recipeOrderDAO.updateByOrdeCode(order.getOrderCode(), orderAttrMap);
-                        stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION, OrderStateEnum.SUB_CANCELLATION_DOCTOR_REPEAL);
-                    }
-
-                    Map<String, Integer> recipeMap = Maps.newHashMap();
-                    recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), RecipeStatusEnum.RECIPE_STATUS_REVOKE.getType(), recipeMap);
-                    StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
-                    stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_DOCTOR);
-                }
-            });
-
-        } catch (Exception e) {
+        if (CollectionUtils.isEmpty(recipeCodes)) {
             hisResponseTO.setMsgCode(ErrorCode.SERVICE_FAIL + "");
-            hisResponseTO.setMsg("处方" + recipeCode + "撤销失败,原因是：" + e.getMessage());
-            e.printStackTrace();
-            logger.error("abolishOffLineRecipe error", e);
+            hisResponseTO.setMsg("处方" + JsonUtil.toString(recipeCodes) + "撤销失败,原因是：处方号为空");
+            logger.info("recipeCodes不存在:{}", JSONUtils.toString(recipeCodes));
+            return hisResponseTO;
+        }
+        recipeCodes.forEach(recipeCode -> {
+            try {
+                List<Recipe> recipes = recipeDAO.findByRecipeCodeAndClinicOrgan(Lists.newArrayList(recipeCode), organId);
+                if (CollectionUtils.isEmpty(recipes)) {
+                    errorMsg.add("处方" + recipeCode + "撤销失败,原因是：该处方还未转到线上不允许撤销");
+                    logger.info("该处方还未转到线上:{}", JSONUtils.toString(recipeCode));
+                    return;
+                }
+                recipes.forEach(recipe -> {
+                    logger.info("recipe:{}", JSONUtils.toString(recipe));
+                    //修改处方状态
+                    if (PayFlagEnum.PAYED.getType().equals(recipe.getPayFlag())) {
+                        errorMsg.add("处方" + recipeCode + "撤销失败,原因是：处方已经支付，则不允许取消");
+                        return;
+                    } else {
+                        RecipeOrder order = recipeOrderDAO.getOrderByRecipeId(recipe.getRecipeId());
+                        if (order != null) {
+                            List<Integer> recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
+                            //合并处方订单取消
+                            List<Recipe> mergrRecipes = recipeDAO.findByRecipeIds(recipeIdList);
+                            mergrRecipes.forEach(mergeRecipe -> {
+                                recipeDAO.updateOrderCodeToNullByOrderCodeAndClearChoose(order.getOrderCode(), mergeRecipe, 1);
+                            });
+
+                            //修改订单状态
+                            Map<String, Object> orderAttrMap = Maps.newHashMap();
+                            orderAttrMap.put("effective", 0);
+                            orderAttrMap.put("status", OrderStatusConstant.CANCEL_MANUAL);
+                            recipeOrderDAO.updateByOrdeCode(order.getOrderCode(), orderAttrMap);
+                            stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION, OrderStateEnum.SUB_CANCELLATION_DOCTOR_REPEAL);
+                        }
+
+                        Map<String, Integer> recipeMap = Maps.newHashMap();
+                        recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), RecipeStatusEnum.RECIPE_STATUS_REVOKE.getType(), recipeMap);
+                        StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
+                        stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_DOCTOR);
+                    }
+                });
+
+            } catch (Exception e) {
+                errorMsg.add("处方" + recipeCode + "撤销失败,原因是：" + e.getMessage());
+                e.printStackTrace();
+                logger.error("abolishOffLineRecipe error", e);
+            }
+        });
+        if (CollectionUtils.isNotEmpty(errorMsg)) {
+            hisResponseTO.setMsgCode(ErrorCode.SERVICE_FAIL + "");
+            hisResponseTO.setMsg(JSONUtils.toString(errorMsg));
         }
         return hisResponseTO;
     }

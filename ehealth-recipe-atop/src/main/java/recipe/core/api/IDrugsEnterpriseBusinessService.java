@@ -1,6 +1,7 @@
 package recipe.core.api;
 
 import com.ngari.recipe.drugdistributionprice.model.DrugDistributionPriceBean;
+import com.ngari.recipe.drugsenterprise.model.EnterpriseAddressAndPrice;
 import com.ngari.recipe.drugsenterprise.model.EnterpriseDecoctionAddressDTO;
 import com.ngari.recipe.drugsenterprise.model.EnterpriseDecoctionAddressReq;
 import com.ngari.recipe.drugsenterprise.model.EnterpriseDecoctionList;
@@ -167,4 +168,26 @@ public interface IDrugsEnterpriseBusinessService {
      * @return
      */
     EnterpriseResultBean finishOrder(EnterpriseSendOrderVO enterpriseSendOrderVO);
+
+    /**
+     * 根据订单id调用发药机接口
+     * @param orderId
+     * @return
+     */
+    Boolean pushDrugDispenserByOrder(Integer orderId);
+
+    /**
+     * 更新药企的优先级
+     * @param depId
+     * @param level
+     * @return
+     */
+    Boolean updateEnterprisePriorityLevel(Integer depId, Integer level);
+
+    /**
+     * 获取药企配送地址以及费用
+     * @param enterpriseId
+     * @return
+     */
+    List<EnterpriseAddressAndPrice> findEnterpriseAddressAndPrice(Integer enterpriseId,String area);
 }

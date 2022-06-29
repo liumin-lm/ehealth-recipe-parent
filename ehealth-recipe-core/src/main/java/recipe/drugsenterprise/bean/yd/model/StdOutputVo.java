@@ -4,7 +4,7 @@ package recipe.drugsenterprise.bean.yd.model;
 import recipe.drugsenterprise.bean.yd.utils.EncrypterUtils;
 import recipe.drugsenterprise.bean.yd.utils.GsonUtils;
 import recipe.drugsenterprise.bean.yd.utils.Md5Utils;
-import recipe.drugsenterprise.bean.yd.utils.RSAEncryptUtils;
+import recipe.util.RSAEncryptUtils;
 
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
