@@ -505,7 +505,7 @@ public class BaseOfflineToOnlineService {
                 throw new DAOException(609, "该处方单已被他人正在处理！");
             }
             if (PayConstant.ERROR.equals(payFlag)) {
-                throw new DAOException(609, "掉用支付平台异常！");
+                throw new DAOException(609, "调用支付平台异常！");
             }
         }
 

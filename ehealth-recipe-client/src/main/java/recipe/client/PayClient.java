@@ -30,8 +30,8 @@ import java.util.Objects;
 @Service
 public class PayClient extends BaseClient {
 
-    //@Autowired
-    //private IEasyPayServiceInterface payService;
+//    @Autowired
+////    private IEasyPayServiceInterface payService;
 
     /**
      * 获取订单支付状态
@@ -45,7 +45,7 @@ public class PayClient extends BaseClient {
 
         // 1.获取参数
         // 1.1获取payWay
-        PayWayEnum payWayEnum = PayWayEnum.fromCode(recipeOrder.getWnPayWay());
+        PayWayEnum payWayEnum = PayWayEnum.fromCode(recipeOrder.getWxPayWay());
         if (Objects.isNull(payWayEnum)) {
             throw new ServiceException("当前订单无法获取到支付方式！");
         }
