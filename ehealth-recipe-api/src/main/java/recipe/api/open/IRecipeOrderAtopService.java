@@ -90,12 +90,4 @@ public interface IRecipeOrderAtopService {
      */
     @RpcService
     ReimbursementDetailResVO findReimbursementDetail(Integer recipeId);
-
-    /**
-     * 医保预结算/结算所需业务入参查询（基础服务调用）
-     * @param recipeId
-     * @return
-     */
-    @RpcService
-    MedicalSettleInfoVO getMedicalSettleInfo(Integer recipeId);
 }

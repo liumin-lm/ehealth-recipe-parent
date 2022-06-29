@@ -763,8 +763,4 @@ public class OrderManager extends BaseManager {
         logger.info("findReimbursementDetail reimbursementDetailDTO={}",JSONUtils.toString(reimbursementDetailDTO));
         return reimbursementDetailDTO;
     }
-
-    public MedicalSettleInfoDTO getMedicalSettleInfo(Integer recipeId) {
-        return null;
-    }
 }

@@ -125,8 +125,6 @@ public interface IRecipeOrderBusinessService {
      */
     ReimbursementDTO findReimbursementDetail(Integer recipeId);
 
-    MedicalSettleInfoVO getMedicalSettleInfo(Integer recipeId);
-
     /**
      * 获取当前订单用户下历史订单的运单信息
      * @param mpiId
