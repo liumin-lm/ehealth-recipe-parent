@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.his.recipe.mode.DrugTakeChangeReqTO;
+import com.ngari.patient.service.AddrAreaService;
 import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.drugsenterprise.model.EnterpriseAddressAndPrice;
 import com.ngari.recipe.drugsenterprise.model.EnterpriseDecoctionAddressReq;
@@ -21,6 +22,7 @@ import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.commons.lang3.time.DateUtils;
+import org.apache.curator.shaded.com.google.common.collect.Lists;
 import org.joda.time.DateTime;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -486,7 +488,7 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
     public List<EnterpriseAddressAndPrice> findEnterpriseAddressAndPrice(Integer enterpriseId,String area) {
         List<EnterpriseAddress> enterpriseAddresses = enterpriseAddressDAO.findByEnterPriseIdAndArea(enterpriseId,area);
         if (CollectionUtils.isEmpty(enterpriseAddresses)) {
-            throw new DAOException("药企配送地址为空");
+            return Lists.newArrayList();
         }
         List<DrugDistributionPrice> drugDistributionPrices = drugDistributionPriceDAO.findByEnterpriseId(enterpriseId);
         if (CollectionUtils.isEmpty(drugDistributionPrices)){
@@ -503,6 +505,19 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
             return enterpriseAddressAndPrice;
         }).collect(Collectors.toList());
         return collect;
+    }
+
+    @Override
+    public List<EnterpriseAddressAndPrice> findEnterpriseAddressProvince(Integer enterpriseId) {
+        AddrAreaService addrAreaService = AppContextHolder.getBean("basic.addrAreaService", AddrAreaService.class);
+        HashMap<String, String> provinceHash = addrAreaService.getProvinceHash();
+        Set<String> strings = provinceHash.keySet();
+        List<String> collect = strings.stream().collect(Collectors.toList());
+        List<EnterpriseAddress> enterpriseAddresses = enterpriseAddressDAO.findEnterpriseAddressProvince(enterpriseId,collect);
+        if(CollectionUtils.isEmpty(enterpriseAddresses)){
+            return Lists.newArrayList();
+        }
+        return BeanCopyUtils.copyList(enterpriseAddresses,EnterpriseAddressAndPrice::new);
     }
 
     private void syncFinishOrderHandle(List<Integer> recipeIdList, RecipeOrder recipeOrder, boolean isSendFlag) {

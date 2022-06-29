@@ -30,4 +30,5 @@
     <reference id="basic.thirdPartyMappingService" interface="com.ngari.patient.service.ThirdPartyMappingService"/>
     <reference id="basic.usingRateService" interface="com.ngari.patient.service.IUsingRateService"/>
     <reference id="basic.usePathwaysService" interface="com.ngari.patient.service.IUsePathwaysService"/>
+    <reference id="basic.addrAreaService" interface="com.ngari.patient.service.AddrAreaService"/>
 </s:beans>

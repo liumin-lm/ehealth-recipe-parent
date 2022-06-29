@@ -19,9 +19,7 @@ import org.hibernate.StatelessSession;
 import org.hibernate.Transaction;
 import org.springframework.util.ObjectUtils;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 /**
  * 药企配送地址DAO
@@ -224,4 +222,7 @@ public abstract class EnterpriseAddressDAO extends HibernateSupportDelegateDAO<E
         HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
+
+    @DAOMethod(sql = "From EnterpriseAddress where enterpriseId =:enterpriseId and status=1 and address in (:strings)", limit = 0)
+    public abstract List<EnterpriseAddress> findEnterpriseAddressProvince(@DAOParam("enterpriseId")Integer enterpriseId, @DAOParam("strings") List<String> strings);
 }

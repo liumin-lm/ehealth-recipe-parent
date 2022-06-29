@@ -92,6 +92,18 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
     }
 
     /**
+     * 获取药企的配送地址以及费用
+     *
+     * @param enterpriseId
+     */
+    @RpcService
+    public List<EnterpriseAddressAndPrice> findEnterpriseAddressProvince(Integer enterpriseId) {
+        validateAtop(enterpriseId);
+        List<EnterpriseAddressAndPrice> list = enterpriseBusinessService.findEnterpriseAddressProvince(enterpriseId);
+        return list;
+    }
+
+    /**
      * 根据药企查询机构
      *
      * @param enterpriseId

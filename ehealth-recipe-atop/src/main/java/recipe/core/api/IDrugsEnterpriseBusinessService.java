@@ -190,4 +190,11 @@ public interface IDrugsEnterpriseBusinessService {
      * @return
      */
     List<EnterpriseAddressAndPrice> findEnterpriseAddressAndPrice(Integer enterpriseId,String area);
+
+    /**
+     * 获取有配置的省
+     * @param enterpriseId
+     * @return
+     */
+    List<EnterpriseAddressAndPrice> findEnterpriseAddressProvince(Integer enterpriseId);
 }
