@@ -41,10 +41,12 @@ import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.AppointEnterpriseTypeEnum;
 import recipe.enumerate.type.RecipeShowQrConfigEnum;
 import recipe.util.DictionaryUtil;
+import recipe.util.RSAEncryptUtils;
 import recipe.util.ValidateUtil;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.security.interfaces.RSAPublicKey;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -797,7 +799,14 @@ public class RecipeManager extends BaseManager {
             //应用的appId
             advanceInfoReqTO.setAppId("123456");
             //签名
-            advanceInfoReqTO.setSign(advanceInfoReqTO.getAppId() + "&" + advanceInfoReqTO.getMdtrtSn() + "&" + advanceInfoReqTO.getSyscode());
+            try {
+                String str = advanceInfoReqTO.getAppId() + "&" + advanceInfoReqTO.getMdtrtSn() + "&" + advanceInfoReqTO.getSyscode();
+                RSAPublicKey publicKey = RSAEncryptUtils.loadPublicKeyByFile(null);
+                String string = RSAEncryptUtils.encryptToHexString(publicKey, str);
+                advanceInfoReqTO.setSign(string);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             //app端传身份证号
             com.ngari.patient.dto.PatientDTO patient = patientClient.getPatientBeanByMpiId(recipe.getMpiid());
             patientDTO.setPatnId(patient.getIdcard());
@@ -836,6 +845,12 @@ public class RecipeManager extends BaseManager {
         encounterDTO.setMedType("11");
         //总费用
         encounterDTO.setMedfeeSumamt(recipe.getActualPrice().doubleValue());
+        //生育状态
+        encounterDTO.setMatnStas("0");
+        //险种
+        encounterDTO.setInsutype("310");
+        //异地结算标志
+        encounterDTO.setOutSetlFlag("0");
         encounterDTOList.add(encounterDTO);
         patientDTO.setEncounterDtos(encounterDTOList);
         advanceInfoReqTO.setPatientDTO(patientDTO);
