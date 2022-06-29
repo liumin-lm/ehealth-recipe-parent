@@ -483,8 +483,8 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
     }
 
     @Override
-    public List<EnterpriseAddressAndPrice> findEnterpriseAddressAndPrice(Integer enterpriseId) {
-        List<EnterpriseAddress> enterpriseAddresses = enterpriseAddressDAO.findByEnterPriseId(enterpriseId);
+    public List<EnterpriseAddressAndPrice> findEnterpriseAddressAndPrice(Integer enterpriseId,String area) {
+        List<EnterpriseAddress> enterpriseAddresses = enterpriseAddressDAO.findByEnterPriseIdAndArea(enterpriseId,area);
         if (CollectionUtils.isEmpty(enterpriseAddresses)) {
             throw new DAOException("药企配送地址为空");
         }
