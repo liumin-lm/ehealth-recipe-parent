@@ -67,10 +67,12 @@ import recipe.vo.patient.CheckAddressReq;
 import recipe.vo.patient.CheckAddressRes;
 import recipe.vo.second.CheckAddressVo;
 import recipe.vo.second.enterpriseOrder.EnterpriseConfirmOrderVO;
+import recipe.vo.second.enterpriseOrder.EnterpriseDrugVO;
 import recipe.vo.second.enterpriseOrder.EnterpriseResultBean;
 import recipe.vo.second.enterpriseOrder.EnterpriseSendOrderVO;
 
 import java.util.*;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 /**
@@ -112,6 +114,8 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
     private RecipeManager recipeManager;
     @Autowired
     private DrugDistributionPriceDAO drugDistributionPriceDAO;
+    @Autowired
+    private SaleDrugListDAO saleDrugListDAO;
 
     @Override
     public Boolean existEnterpriseByName(String name) {
@@ -524,6 +528,44 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
             return Lists.newArrayList();
         }
         return BeanCopyUtils.copyList(enterpriseAddresses,EnterpriseAddressAndPrice::new);
+    }
+
+    @Override
+    public EnterpriseResultBean renewDrugInfo(List<EnterpriseDrugVO> enterpriseDrugVOList) {
+        Map<String, List<EnterpriseDrugVO>> enterpriseDrugVOListMap = enterpriseDrugVOList.stream().collect(Collectors.groupingBy(EnterpriseDrugVO::getAppKey));
+        final List<String> count = new ArrayList<>();
+        for (Map.Entry<String, List<EnterpriseDrugVO>> entry : enterpriseDrugVOListMap.entrySet()) {
+            String appKey = entry.getKey();
+            DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getByAppKey(appKey);
+            if (null == drugsEnterprise) {
+                continue;
+            }
+            List<EnterpriseDrugVO> enterpriseDrugVOS = entry.getValue();
+            List<String> drugCodeList = enterpriseDrugVOS.stream().map(EnterpriseDrugVO::getDrugCode).collect(Collectors.toList());
+            Map<String, EnterpriseDrugVO> enterpriseDrugVOMap = enterpriseDrugVOS.stream().collect(Collectors.toMap(EnterpriseDrugVO::getDrugCode,a->a,(k1,k2)->k1));
+            List<SaleDrugList> saleDrugListList = saleDrugListDAO.findByOrganIdAndDrugCodes(drugsEnterprise.getId(), drugCodeList);
+            saleDrugListList.forEach(saleDrugList -> {
+                EnterpriseDrugVO enterpriseDrugVO = enterpriseDrugVOMap.get(saleDrugList.getOrganDrugCode());
+                if (StringUtils.isNotEmpty(enterpriseDrugVO.getDrugName())) {
+                    saleDrugList.setDrugName(enterpriseDrugVO.getDrugName());
+                }
+                if (StringUtils.isNotEmpty(enterpriseDrugVO.getSaleName())) {
+                    saleDrugList.setSaleName(enterpriseDrugVO.getSaleName());
+                }
+                if (StringUtils.isNotEmpty(enterpriseDrugVO.getDrugSpec())) {
+                    saleDrugList.setDrugSpec(enterpriseDrugVO.getDrugSpec());
+                }
+                saleDrugList.setPrice(enterpriseDrugVO.getPrice());
+                saleDrugList.setInventory(enterpriseDrugVO.getInventory());
+                if (saleDrugListDAO.updateNonNullFieldByPrimaryKey(saleDrugList)){
+                    count.add(saleDrugList.getOrganDrugCode());
+                }
+            });
+        }
+        EnterpriseResultBean resultBean = new EnterpriseResultBean();
+        resultBean.setCode(EnterpriseResultBean.SUCCESS);
+        resultBean.setMsg("传入条数:" + enterpriseDrugVOList.size() + ",更新条数:"+ count.size());
+        return resultBean;
     }
 
     private void syncFinishOrderHandle(List<Integer> recipeIdList, RecipeOrder recipeOrder, boolean isSendFlag) {
