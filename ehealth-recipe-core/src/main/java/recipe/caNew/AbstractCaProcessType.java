@@ -68,7 +68,7 @@ public abstract class AbstractCaProcessType {
 
     public static AbstractCaProcessType getCaProcessFactory(Integer organId) {
         //根据机构配置的CA模式获取具体的实现
-        Integer frontOrBack = configurationClient.getValueCatchReturnInteger(organId, "CAFromHisCallBackOrder", 0);
+        Integer frontOrBack = configurationClient.getValueCatchReturnInteger(organId, "CAFromHisCallBackOrder", CA_BEFORE);
         AbstractCaProcessType beanFactory = CARecipeTypeEnum.getCaProcessType(frontOrBack);
         if (null != beanFactory) {
             return beanFactory;
@@ -90,9 +90,6 @@ public abstract class AbstractCaProcessType {
 
     public void recipeHisResultBeforeCAFunction(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList) {
         LOGGER.info("AbstractCaProcessType recipeHisResultBeforeCAFunction start recipeBean={}", JSON.toJSONString(recipeBean));
-        //先将处方状态设置成【医院确认中】
-        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
-        recipeDAO.updateRecipeInfoByRecipeId(recipeBean.getRecipeId(), RecipeStatusConstant.CHECKING_HOS, null);
         //前置签名，CA后操作，通过CA的结果做判断，通过则将处方推his
         //HIS消息发送--异步处理
         RecipeBusiThreadPool.execute(new PushRecipeToHisCallable(recipeBean.getRecipeId()));

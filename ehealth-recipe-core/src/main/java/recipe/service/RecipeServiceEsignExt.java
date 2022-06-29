@@ -157,7 +157,6 @@ public class RecipeServiceEsignExt {
                                              String signRecipeCode, Boolean isDoctor, String fileId) {
         LOGGER.info("saveSignRecipePDFCA start in pdfBase64={}, recipeId={}, loginId={},signCADate={},signRecipeCode={},isDoctor={}",
                 pdfBase64, recipeId, loginId, signCADate, signRecipeCode, isDoctor);
-//        String fileId = null;
         try {
             if (null != pdfBase64) {
                 //组装生成pdf的参数
