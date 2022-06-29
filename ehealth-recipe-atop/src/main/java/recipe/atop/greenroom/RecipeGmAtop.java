@@ -2,6 +2,7 @@ package recipe.atop.greenroom;
 
 import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.recipe.model.RecipeOrderWaybillDTO;
+import com.ngari.recipe.vo.CodeEnum;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
@@ -61,21 +62,27 @@ public class RecipeGmAtop extends BaseAtop {
      */
     @RpcService
     public ResultBean updateRecipeOrderStatusAndGiveUser(UpdateOrderStatusVO updateOrderStatusVO) {
-        validateAtop(updateOrderStatusVO.getRecipeId());
-
+        validateAtop(updateOrderStatusVO,updateOrderStatusVO.getRecipeId());
+        ResultBean resultBean1 = new ResultBean();
         if (Objects.nonNull(updateOrderStatusVO.getGiveUser())) {
             // 更改发药人
-            recipeOrderService.updateRecipeGiveUser(updateOrderStatusVO.getRecipeId(), updateOrderStatusVO.getGiveUser());
+            ResultBean resultBean = recipeOrderService.updateRecipeGiveUser(updateOrderStatusVO.getRecipeId(), updateOrderStatusVO.getGiveUser());
+            if(CodeEnum.SERVICE_ERROR.getCode().equals(resultBean.getCode())){
+                resultBean1.setCode(resultBean.getCode());
+            }
         }
         if (Objects.nonNull(updateOrderStatusVO.getTargetRecipeOrderStatus())) {
             // 更改状态
-            recipeOrderService.updateRecipeOrderStatus(updateOrderStatusVO);
+            ResultBean resultBean = recipeOrderService.updateRecipeOrderStatus(updateOrderStatusVO);
+            if(CodeEnum.SERVICE_ERROR.getCode().equals(resultBean.getCode())){
+                resultBean1.setCode(resultBean.getCode());
+            }
         }
         if(Objects.nonNull(updateOrderStatusVO.getLogisticsCompany()) && StringUtils.isNotEmpty(updateOrderStatusVO.getTrackingNumber())){
             // 更改物流信息
             recipeOrderService.updateTrackingNumberByOrderId(updateOrderStatusVO);
         }
-        return new ResultBean();
+        return resultBean1;
 
     }
 
