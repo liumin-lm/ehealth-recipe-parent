@@ -505,6 +505,8 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
                 List<DrugDistributionPrice> prices = listMap.get(enterpriseAddress.getAddress());
                 enterpriseAddressAndPrice.setDistributionPrice(prices.get(0).getDistributionPrice());
                 enterpriseAddressAndPrice.setBuyFreeShipping(prices.get(0).getBuyFreeShipping());
+                enterpriseAddressAndPrice.setDrugDistributionPriceId(prices.get(0).getId());
+
             }
             return enterpriseAddressAndPrice;
         }).collect(Collectors.toList());
