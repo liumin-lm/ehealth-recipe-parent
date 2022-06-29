@@ -298,4 +298,36 @@ public class DateConversion
 		return result;
 	}
 
+	/***
+	 * 获取某一时间 所在 月份 的第一天
+	 * 比如 ： 2022-06-29
+	 * 结果为： 2022-06-01 00:00:00
+	 * */
+	public static String getFirstDateOfMonth(String year, String month) {
+		String dateStr = year + "-" + month + "-01 00:00:00";
+		Calendar firstDate = Calendar.getInstance();
+		firstDate.setTime(DateConversion.parseDate(dateStr, DateConversion.DEFAULT_DATE_TIME));
+		final int last = firstDate.getActualMinimum(Calendar.DAY_OF_MONTH);
+		firstDate.set(Calendar.DAY_OF_MONTH, last);
+		//当前日期 的 月份的 第一天)
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+		return sdf.format(firstDate.getTime()) + " 00:00:00";
+	}
+
+	/***
+	 * 获取某一时间 所在 月份 的最后一天
+	 * 比如 ： 2022-06-29
+	 * 结果为： 2022-06-30 23:59:59
+	 * */
+	public static String getEndDayOfMonth(String year, String month){
+		String dateStr = year + "-" + month + "-01 00:00:00";
+		Calendar lastDateMonth = Calendar.getInstance();
+		lastDateMonth.setTime(DateConversion.parseDate(dateStr, DateConversion.DEFAULT_DATE_TIME));
+		final int lastDay = lastDateMonth.getActualMaximum(Calendar.DAY_OF_MONTH);
+		lastDateMonth.set(Calendar.DAY_OF_MONTH, lastDay);
+		//当前日期 的月份的最后一天
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+		return sdf.format(lastDateMonth.getTime()) + " 23:59:59";
+	}
+
 }

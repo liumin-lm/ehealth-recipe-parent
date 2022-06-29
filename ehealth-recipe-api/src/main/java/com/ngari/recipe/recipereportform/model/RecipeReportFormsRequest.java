@@ -52,4 +52,8 @@ public class RecipeReportFormsRequest implements Serializable{
      * 订单退款标识 0未退费 1已退费
      */
     private Integer refundFlag;
+
+    private Date firstDate;
+
+    private Date endDate;
 }
