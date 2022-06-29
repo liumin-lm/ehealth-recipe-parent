@@ -118,7 +118,7 @@ public class HisRecipeManager extends BaseManager {
     }
 
     /**
-     * 列表查询线下处方
+     * 列表查询--线下处方
      *
      * @param organId
      * @param patientDTO
@@ -143,14 +143,18 @@ public class HisRecipeManager extends BaseManager {
             });
             try {
                 HisResponseTO<List<QueryHisRecipResTO>> hisResponseTO1 = hisTask1.get(60000, TimeUnit.MILLISECONDS);
-                queryHisRecipResToList.addAll(hisResponseTO1.getData());
+                //过滤数据
+                HisResponseTO<List<QueryHisRecipResTO>> res = filterData(hisResponseTO1, recipeCode, HisRecipeConstant.HISRECIPESTATUS_ALREADYIDEAL);
+                queryHisRecipResToList.addAll(res.getData());
             } catch (Exception e) {
                 logger.error("queryHisRecipeData hisTask1 error ", e);
                 e.printStackTrace();
             }
             try {
                 HisResponseTO<List<QueryHisRecipResTO>> hisResponseTO2 = hisTask2.get(60000, TimeUnit.MILLISECONDS);
-                queryHisRecipResToList.addAll(hisResponseTO2.getData());
+                //过滤数据
+                HisResponseTO<List<QueryHisRecipResTO>> res = filterData(hisResponseTO2, recipeCode, HisRecipeConstant.HISRECIPESTATUS_EXPIRED);
+                queryHisRecipResToList.addAll(res.getData());
             } catch (Exception e) {
                 logger.error("queryHisRecipeData hisTask2 error ", e);
                 e.printStackTrace();
@@ -158,10 +162,9 @@ public class HisRecipeManager extends BaseManager {
             responseTo.setData(queryHisRecipResToList);
 
         }
-        //过滤数据
-        HisResponseTO<List<QueryHisRecipResTO>> res = filterData(responseTo, recipeCode, flag);
-        logger.info("HisRecipeManager res:{}.", JSONUtils.toString(res));
-        return res;
+
+        logger.info("HisRecipeManager res:{}.", JSONUtils.toString(responseTo));
+        return responseTo;
     }
 
     /**
