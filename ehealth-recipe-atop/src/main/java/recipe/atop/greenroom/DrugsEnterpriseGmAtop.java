@@ -55,7 +55,7 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
         return enterpriseIdAndAddrArea;
     }
 
- /**
+    /**
      * 添加药企配送地址快递费
      *
      * @param list

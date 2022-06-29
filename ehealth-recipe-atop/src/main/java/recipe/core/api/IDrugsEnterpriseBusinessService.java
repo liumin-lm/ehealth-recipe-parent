@@ -18,6 +18,7 @@ import recipe.vo.patient.CheckAddressReq;
 import recipe.vo.patient.CheckAddressRes;
 import recipe.vo.second.CheckAddressVo;
 import recipe.vo.second.enterpriseOrder.EnterpriseConfirmOrderVO;
+import recipe.vo.second.enterpriseOrder.EnterpriseDrugVO;
 import recipe.vo.second.enterpriseOrder.EnterpriseResultBean;
 import recipe.vo.second.enterpriseOrder.EnterpriseSendOrderVO;
 
@@ -197,4 +198,11 @@ public interface IDrugsEnterpriseBusinessService {
      * @return
      */
     List<EnterpriseAddressAndPrice> findEnterpriseAddressProvince(Integer enterpriseId);
+
+    /**
+     * 药企药品信息同步接口
+     * @param enterpriseDrugVOList
+     * @return
+     */
+    EnterpriseResultBean renewDrugInfo(List<EnterpriseDrugVO> enterpriseDrugVOList);
 }
