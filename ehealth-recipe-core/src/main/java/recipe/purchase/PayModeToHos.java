@@ -337,11 +337,11 @@ public class PayModeToHos implements IPurchaseService {
             resultBean.setMsg("抱歉，未获取到相关药房信息，您可以选择其他方式购药");
             return resultBean;
         }
-
+        drugsEnterprises = enterpriseManager.enterprisePriorityLevel(dbRecipe.getClinicOrgan(), drugsEnterprises);
         //判断药企是否不展示药店
         boolean showStoreFlag = drugsEnterprises.stream().anyMatch(drugsEnterprise -> 0 == drugsEnterprise.getShowStoreFlag());
         List<DepDetailBean> depDetailBeans = new ArrayList<>();
-        List<DrugsEnterprise> noShowStoreEnterprises = new ArrayList<>();
+        List<DrugsEnterprise> noShowStoreEnterprises;
         if (showStoreFlag) {
             noShowStoreEnterprises = drugsEnterprises.stream().filter(drugsEnterprise -> 0 == drugsEnterprise.getShowStoreFlag()).collect(Collectors.toList());
             List<Integer> depIdList = noShowStoreEnterprises.stream().map(DrugsEnterprise::getId).collect(Collectors.toList());

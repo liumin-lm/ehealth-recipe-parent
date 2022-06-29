@@ -15,9 +15,7 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.*;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
-import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.common.model.RevisitExDTO;
-import com.ngari.revisit.common.service.IRevisitExService;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
@@ -553,6 +551,27 @@ public class EnterpriseManager extends BaseManager {
     public DrugsEnterprise drugsEnterprise(Integer enterpriseId) {
         DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(enterpriseId);
         return drugsEnterprise;
+    }
+
+    /**
+     * 处理药企优先级
+     * @param subDepList
+     */
+    public List<DrugsEnterprise> enterprisePriorityLevel(Integer organId, List<DrugsEnterprise> subDepList){
+        Boolean openEnterprisePriorityFlag = configurationClient.getValueBooleanCatch(organId, "openEnterprisePriorityFlag", false);
+        if (!openEnterprisePriorityFlag) {
+            return subDepList;
+        }
+        //对药企等级进行处理
+        Map<Integer, List<DrugsEnterprise>> drugsEnterpriseListMap = subDepList.stream().collect(Collectors.groupingBy(drugsEnterprise -> Optional.ofNullable(drugsEnterprise.getPriorityLevel()).orElse(0)));
+        logger.info("enterprisePriorityLevel drugsEnterpriseListMap:{}", JSON.toJSONString(drugsEnterpriseListMap));
+        //获取最大等级
+        DrugsEnterprise drugsEnterprise = subDepList.stream().max(Comparator.comparing(enterprise->Optional.ofNullable(enterprise.getPriorityLevel()).orElse(0))).orElseGet(null);
+        logger.info("enterprisePriorityLevel drugsEnterprise:{}", JSON.toJSONString(drugsEnterprise));
+        if (null == drugsEnterprise) {
+            return subDepList;
+        }
+        return drugsEnterpriseListMap.get(drugsEnterprise.getPriorityLevel());
     }
 
     /**
