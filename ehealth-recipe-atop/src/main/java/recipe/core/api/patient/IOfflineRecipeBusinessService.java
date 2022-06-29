@@ -43,12 +43,6 @@ public interface IOfflineRecipeBusinessService {
      */
     List<RecipeGiveModeButtonRes> settleForOfflineToOnline(SettleForOfflineToOnlineVO request);
 
-    /**
-     * 获取实现类 类型
-     *
-     * @return
-     */
-    String getHandlerMode();
 
     /**
      * 获取卡类型

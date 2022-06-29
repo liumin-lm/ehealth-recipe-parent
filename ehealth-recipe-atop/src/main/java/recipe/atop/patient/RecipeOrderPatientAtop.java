@@ -165,7 +165,11 @@ public class RecipeOrderPatientAtop extends BaseAtop {
             offlineToOnlineService.pushRecipe(a, CommonConstant.RECIPE_PUSH_TYPE, CommonConstant.RECIPE_PATIENT_TYPE, null, null, null);
             recipeOrderService.updatePdfForSubmitOrderAfter(a);
         });
-
+        PatientSubmitRecipeVO patientSubmitRecipeVO = new PatientSubmitRecipeVO();
+        patientSubmitRecipeVO.setRecipeIds(recipeIds);
+        patientSubmitRecipeVO.setOrganId(organId);
+        patientSubmitRecipeVO.setGiveModeKey(giveModeKey);
+        this.submitRecipeHisNew(patientSubmitRecipeVO);
     }
 
     /**

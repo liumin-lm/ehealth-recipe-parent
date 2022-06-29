@@ -40,6 +40,7 @@ import recipe.core.api.IStockBusinessService;
 import recipe.dao.*;
 import recipe.drugTool.validate.RecipeDetailValidateTool;
 import recipe.enumerate.status.RecipeStateEnum;
+import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
 import recipe.manager.CaManager;
@@ -401,9 +402,6 @@ public class RecipeSignService {
             }
             //更新审方信息
             RecipeBusiThreadPool.execute(new SaveAutoReviewRunnable(recipeBean, detailBeanList));
-
-            recipeDAO.updateRecipeInfoByRecipeId(recipeBean.getRecipeId(), RecipeStatusConstant.CHECKING_HOS, null);
-
             //发送HIS处方开具消息
             sendRecipeToHIS(recipeBean);
             //处方开完后发送聊天界面消息 -医院确认中
@@ -510,14 +508,6 @@ public class RecipeSignService {
 
     @RpcService
     public boolean hisRecipeCheck(Map<String, Object> rMap, RecipeBean recipeBean) {
-        //判断机构是否需要his处方检查 ---运营平台机构配置
-//        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeBean.getRecipeId());
-//        Recipe recipeNew = new Recipe();
-//        BeanUtils.copy(recipeBean, recipeNew);
-//        EmrRecipeManager.getMedicalInfo(recipeNew, recipeExtend);
-//        recipeBean.setOrganDiseaseName(recipeNew.getOrganDiseaseName());
-//        recipeBean.setOrganDiseaseId(recipeNew.getOrganDiseaseId());
-
         try {
             IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
             Boolean hisRecipeCheckFlag = (Boolean) configurationService.getConfiguration(recipeBean.getClinicOrgan(), "hisRecipeCheckFlag");
@@ -557,10 +547,14 @@ public class RecipeSignService {
     }
 
     private void sendRecipeToHIS(RecipeBean recipeBean) {
+        Recipe recipe = new Recipe();
+        recipe.setRecipeId(recipeBean.getRecipeId());
+        recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_CHECKING_HOS.getType());
+        recipe.setWriteHisState(1);
+        recipeDAO.updateNonNullFieldByPrimaryKey(recipe);
         //可通过缓存控制是互联网方式发送处方(his来查)还是平台模式发送处方(平台推送)
         Set<String> organIdList = redisClient.sMembers(CacheConstant.KEY_NGARI_SENDRECIPETOHIS_LIST);
         if (CollectionUtils.isNotEmpty(organIdList) && organIdList.contains(recipeBean.getClinicOrgan().toString())) {
-            //推送处方给his---recipesend
             RecipeBusiThreadPool.execute(new PushRecipeToHisCallable(recipeBean.getRecipeId()));
         } else {
             //MQ推送处方开成功消息
@@ -596,8 +590,6 @@ public class RecipeSignService {
 
         //更新审方信息
         RecipeBusiThreadPool.execute(new SaveAutoReviewRunnable(recipeBeanDb, details));
-        recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.CHECKING_HOS, ImmutableMap.of("distributionFlag", 1));
-
         //发送HIS处方开具消息
         sendRecipeToHIS(recipeBean);
         //健康卡数据上传

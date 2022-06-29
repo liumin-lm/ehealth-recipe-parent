@@ -32,6 +32,8 @@ import recipe.constant.ReviewTypeConstant;
 import recipe.dao.DrugListDAO;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.OrganDrugListDAO;
+import recipe.enumerate.status.RecipeAuditStateEnum;
+import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.type.BussSourceTypeEnum;
 import recipe.manager.DepartManager;
 import recipe.util.ByteUtils;
@@ -240,6 +242,11 @@ public class RecipeUtil {
      * 处方单设置默认值
      */
     public static void setDefaultData(Recipe recipe) {
+        // 不用审核
+        recipe.setSubState(RecipeStateEnum.NONE.getType());
+        recipe.setProcessState(RecipeStateEnum.NONE.getType());
+        recipe.setAuditState(RecipeAuditStateEnum.DEFAULT.getType());
+        recipe.setWriteHisState(0);
         if (null == recipe.getRecipeType()) {
             recipe.setRecipeId(0);
         }

@@ -455,9 +455,9 @@ public class CreatePdfFactory {
         RecipeBusiThreadPool.execute(() -> {
             long start = System.currentTimeMillis();
             Recipe recipe = validate(recipeId);
-            if (RecipeUtil.isTcmType(recipe.getRecipeType())) {
-                return;
-            }
+//            if (RecipeUtil.isTcmType(recipe.getRecipeType())) {
+//                return;
+//            }
             try {
                 String signFile = "";
                 if (SignImageTypeEnum.SIGN_IMAGE_TYPE_DOCTOR.getType().equals(signImageType)) {

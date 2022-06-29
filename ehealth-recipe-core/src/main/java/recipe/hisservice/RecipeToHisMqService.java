@@ -30,12 +30,8 @@ public class RecipeToHisMqService {
      */
     @RpcService
     public void recipeStatusToHis(NoticeHisRecipeInfoReq notice) {
-        log(OnsConfig.hisCdrinfo, MqConstant.HIS_CDRINFO_TAG_TO_HIS, notice);
+        LOGGER.info("topic={}, tag={}, msg={}", OnsConfig.hisCdrinfo, MqConstant.HIS_CDRINFO_TAG_TO_HIS, JSONUtils.toString(notice));
         MQHelper.getMqPublisher().publish(OnsConfig.hisCdrinfo, notice, MqConstant.HIS_CDRINFO_TAG_TO_HIS,
                 notice.getOrganizeCode() + "-" + notice.getRecipeID());
-    }
-
-    public void log(String topic, String tag, Object obj) {
-        LOGGER.info("topic={}, tag={}, msg={}", topic, tag, JSONUtils.toString(obj));
     }
 }

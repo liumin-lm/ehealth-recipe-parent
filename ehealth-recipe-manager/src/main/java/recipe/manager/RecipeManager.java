@@ -414,17 +414,15 @@ public class RecipeManager extends BaseManager {
         Recipe updateRecipe = new Recipe();
         updateRecipe.setRecipeId(recipeId);
         //如果处方来源是复诊，则patientID取复诊的
+        updateRecipe.setPatientID(recipeResult.getPatientID());
         if (new Integer(2).equals(recipeResult.getBussSource())) {
             RevisitExDTO revisitExDTO = revisitClient.getByClinicId(recipeResult.getClinicId());
             if (null != revisitExDTO && StringUtils.isNotEmpty(revisitExDTO.getPatId())) {
                 updateRecipe.setPatientID(revisitExDTO.getPatId());
-            } else {
-                updateRecipe.setPatientID(recipeResult.getPatientID());
             }
-        } else {
-            updateRecipe.setPatientID(recipeResult.getPatientID());
         }
         updateRecipe.setRecipeCode(recipeResult.getRecipeCode());
+        updateRecipe.setWriteHisState(3);
         recipeDAO.updateNonNullFieldByPrimaryKey(updateRecipe);
         logger.info("RecipeManager updatePushHisRecipe updateRecipe:{}.", JSON.toJSONString(updateRecipe));
     }
