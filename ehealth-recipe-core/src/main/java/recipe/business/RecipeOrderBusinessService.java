@@ -492,5 +492,10 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
         return BeanCopyUtils.copyList(orders, RecipeOrderWaybillDTO::new);
     }
 
+    @Override
+    public void updateTrackingNumberByOrderId(UpdateOrderStatusVO updateOrderStatusVO) {
+        recipeOrderDAO.updateTrackingNumberByOrderId(updateOrderStatusVO.getOrderId(),updateOrderStatusVO.getLogisticsCompany(),updateOrderStatusVO.getTrackingNumber());
+    }
+
 
 }

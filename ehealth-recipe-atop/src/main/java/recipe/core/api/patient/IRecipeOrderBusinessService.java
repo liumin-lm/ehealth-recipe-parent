@@ -133,4 +133,10 @@ public interface IRecipeOrderBusinessService {
      * @return
      */
     List<RecipeOrderWaybillDTO> findOrderByMpiId(String mpiId);
+
+    /**
+     * 更改订单物流信息
+     * @param updateOrderStatusVO
+     */
+    void updateTrackingNumberByOrderId(UpdateOrderStatusVO updateOrderStatusVO);
 }
