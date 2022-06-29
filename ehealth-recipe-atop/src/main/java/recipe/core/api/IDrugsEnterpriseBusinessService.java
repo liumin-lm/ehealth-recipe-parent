@@ -189,5 +189,5 @@ public interface IDrugsEnterpriseBusinessService {
      * @param enterpriseId
      * @return
      */
-    List<EnterpriseAddressAndPrice> findEnterpriseAddressAndPrice(Integer enterpriseId);
+    List<EnterpriseAddressAndPrice> findEnterpriseAddressAndPrice(Integer enterpriseId,String area);
 }
