@@ -133,6 +133,8 @@ public class HisRecipeManager extends BaseManager {
         HisResponseTO<List<QueryHisRecipResTO>> responseTo = new HisResponseTO<List<QueryHisRecipResTO>>();
         if (HisRecipeConstant.HISRECIPESTATUS_NOIDEAL.equals(flag)) {
             responseTo = offlineRecipeClient.queryData(organId, patientDTO, timeQuantum, flag, recipeCode);
+            //过滤数据
+            responseTo = filterData(responseTo, recipeCode, flag);
         } else if (HisRecipeConstant.HISRECIPESTATUS_ALREADYIDEAL.equals(flag)) {
             List<QueryHisRecipResTO> queryHisRecipResToList = new ArrayList<>();
             Future<HisResponseTO<List<QueryHisRecipResTO>>> hisTask1 = GlobalEventExecFactory.instance().getExecutor().submit(() -> {

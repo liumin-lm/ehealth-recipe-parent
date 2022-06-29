@@ -480,12 +480,6 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
     }
 
     @Override
-    public MedicalSettleInfoVO getMedicalSettleInfo(Integer recipeId) {
-        MedicalSettleInfoDTO medicalSettleInfoDTO = orderManager.getMedicalSettleInfo(recipeId);
-        return ObjectCopyUtils.convert(medicalSettleInfoDTO, MedicalSettleInfoVO.class);
-    }
-
-    @Override
     public List<RecipeOrderWaybillDTO> findOrderByMpiId(String mpiId) {
         Date date = DateUtils.addDays(new Date(), -1);
         List<RecipeOrder> orders = recipeOrderDAO.findByMpiIdAndDate(mpiId, date);
