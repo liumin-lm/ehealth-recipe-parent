@@ -42,6 +42,7 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
 
     @Autowired
     private IDrugsEnterpriseBusinessService enterpriseBusinessService;
+
     @Autowired
     private IDrugDistributionPriceService drugDistributionPriceService;
 
@@ -68,10 +69,6 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
         drugDistributionPriceService.savePriceList(list);
         return list;
     }
-
-    @Autowired
-    private IDrugsEnterpriseBusinessService drugsEnterpriseBusinessService;
-
 
     /**
      * 根据药企机构查询煎法
@@ -245,7 +242,7 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
      */
     @RpcService
     public Boolean pushDrugDispenser(Integer recipeId) {
-        return drugsEnterpriseBusinessService.pushDrugDispenser(recipeId);
+        return enterpriseBusinessService.pushDrugDispenser(recipeId);
     }
 
     /**
@@ -256,7 +253,7 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
      */
     @RpcService
     public Boolean pushDrugDispenserByOrder(Integer orderId) {
-        return drugsEnterpriseBusinessService.pushDrugDispenserByOrder(orderId);
+        return enterpriseBusinessService.pushDrugDispenserByOrder(orderId);
     }
 
     /**
@@ -267,6 +264,6 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
      */
     @RpcService
     public Boolean updateEnterprisePriorityLevel(Integer depId, Integer level){
-        return drugsEnterpriseBusinessService.updateEnterprisePriorityLevel(depId, level);
+        return enterpriseBusinessService.updateEnterprisePriorityLevel(depId, level);
     }
 }
