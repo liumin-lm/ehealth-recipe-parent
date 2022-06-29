@@ -282,11 +282,15 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
         List<EnterpriseDecoctionAddress> enterpriseDecoctionAddressList = enterpriseDecoctionAddressDAO.findEnterpriseDecoctionAddressList(checkAddressReq.getOrganId(),
                 checkAddressReq.getEnterpriseId(),
                 checkAddressReq.getDecoctionId());
+        String checkAddress = checkAddressReq.getAddress3();
+        if (StringUtils.isNotEmpty(checkAddressReq.getAddress4())) {
+            checkAddress = checkAddressReq.getAddress4();
+        }
         if (CollectionUtils.isEmpty(enterpriseDecoctionAddressList)) {
             List<EnterpriseAddress> list = enterpriseAddressDAO.findByEnterPriseId(checkAddressReq.getEnterpriseId());
             if (CollectionUtils.isNotEmpty(list)) {
                 List<EnterpriseDecoctionAddress> enterpriseDecoctionAddresses = BeanCopyUtils.copyList(list, EnterpriseDecoctionAddress::new);
-                if (addressCanSend(enterpriseDecoctionAddresses, checkAddressReq.getAddress3())) {
+                if (addressCanSend(enterpriseDecoctionAddresses, checkAddress)) {
                     sendFlag = true;
                     checkAddressRes.setSendFlag(sendFlag);
                     return checkAddressRes;
@@ -303,7 +307,7 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
         }).filter(Objects::nonNull).collect(Collectors.toList());
         checkAddressRes.setAreaList(list);
         // 配送地址精确到区域,区域可以配送就可以配送
-        if (addressCanSend(enterpriseDecoctionAddressList, checkAddressReq.getAddress3())) {
+        if (addressCanSend(enterpriseDecoctionAddressList, checkAddress)) {
             sendFlag = true;
         }
         checkAddressRes.setSendFlag(sendFlag);
