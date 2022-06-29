@@ -267,19 +267,6 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
 
     @Override
     public List<EnterpriseStock> drugRecipeStock(Integer organId, Integer recipeType, String decoctionId, List<Recipedetail> recipeDetails) {
-        EnterpriseStock result = new EnterpriseStock();
-        result.setStock(true);
-        //下载处方签
-        String supportDownloadButton = organDrugListManager.organStockDownload(organId, recipeDetails);
-        if (StringUtils.isNotEmpty(supportDownloadButton)) {
-            return Collections.singletonList(result);
-        }
-        //例外支付
-        List<GiveModeButtonDTO> giveModeButtonBeans = operationClient.getOrganGiveModeMap(organId);
-        String supportMedicalPaymentButton = RecipeSupportGiveModeEnum.getGiveModeName(giveModeButtonBeans, RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText());
-        if (StringUtils.isNotEmpty(supportMedicalPaymentButton)) {
-            return Collections.singletonList(result);
-        }
         //机构库存
         EnterpriseStock organStock = organDrugListManager.organStock(organId, recipeDetails);
         //药企库存
