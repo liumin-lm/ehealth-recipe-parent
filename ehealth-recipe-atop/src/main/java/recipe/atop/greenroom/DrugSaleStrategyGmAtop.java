@@ -7,7 +7,7 @@ import ctd.util.annotation.RpcService;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.aop.LogRecord;
 import recipe.atop.BaseAtop;
-import recipe.core.api.IDrugSaleStrategyBusinessService;
+import recipe.core.api.IDrugBusinessService;
 
 import java.util.List;
 
@@ -15,7 +15,7 @@ import java.util.List;
 public class DrugSaleStrategyGmAtop extends BaseAtop {
 
     @Autowired
-    private IDrugSaleStrategyBusinessService drugSaleStrategyBusinessService;
+    private IDrugBusinessService drugBusinessService;
 
     /**
      * 操作药品销售策略
@@ -25,7 +25,7 @@ public class DrugSaleStrategyGmAtop extends BaseAtop {
     @RpcService
     @LogRecord
     public void operationDrugSaleStrategy(DrugSaleStrategyVO drugSaleStrategy) {
-        drugSaleStrategyBusinessService.operationDrugSaleStrategy(drugSaleStrategy);
+        drugBusinessService.operationDrugSaleStrategy(drugSaleStrategy);
     }
 
     /**
@@ -36,7 +36,7 @@ public class DrugSaleStrategyGmAtop extends BaseAtop {
     @RpcService
     @LogRecord
     public List<DrugSaleStrategy> findDrugSaleStrategy(DrugSaleStrategyVO drugSaleStrategy) {
-        return drugSaleStrategyBusinessService.findDrugSaleStrategy(drugSaleStrategy);
+        return drugBusinessService.findDrugSaleStrategy(drugSaleStrategy);
     }
 
     /**
@@ -47,7 +47,7 @@ public class DrugSaleStrategyGmAtop extends BaseAtop {
      */
     @RpcService
     public List<DrugSaleStrategyVO> findDrugSaleStrategyByDepIdAndDrugId(Integer depId, Integer drugId) {
-        return drugSaleStrategyBusinessService.findDrugSaleStrategy(depId, drugId);
+        return drugBusinessService.findDrugSaleStrategy(depId, drugId);
     }
 
     /**
@@ -58,7 +58,7 @@ public class DrugSaleStrategyGmAtop extends BaseAtop {
      */
     @RpcService
     public void saveDrugSaleStrategy(Integer depId, Integer drugId, Integer strategyId){
-        drugSaleStrategyBusinessService.saveDrugSaleStrategy(depId, drugId, strategyId);
+        drugBusinessService.saveDrugSaleStrategy(depId, drugId, strategyId);
     }
 
 }
