@@ -439,6 +439,7 @@ public class HisRecipeService {
                     hisRecipeVO.setFromFlag(1);
                     hisRecipeVO.setJumpPageType(0);
                     hisRecipeVO.setOrganDiseaseName(hisRecipeListBean.getDiseaseName());
+                    //TODO liumin
                     hisRecipeVO.setStatusText(getRecipeStatusTabText(hisRecipeListBean.getStatus()));
                     list.add(hisRecipeVO);
                     recipeIds.add(hisRecipeListBean.getHisRecipeID());

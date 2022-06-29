@@ -131,6 +131,8 @@ public class PayModeOnline implements IPurchaseService {
         LOG.info("findSupportDepList subDepList:{}", JSONUtils.toString(subDepList));
         //这里是为了同一个药企下能显示在线支付和货到付款
         subDepList = getAllSubDepList(subDepList);
+        //对药企优先级进行处理
+        subDepList = enterpriseManager.enterprisePriorityLevel(dbRecipe.getClinicOrgan(), subDepList);
         //处理详情
         //为了计算药品费
         List<Integer> recipeIdList = Arrays.asList(recipeId);

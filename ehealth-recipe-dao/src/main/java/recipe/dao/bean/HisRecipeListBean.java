@@ -39,7 +39,7 @@ public class HisRecipeListBean implements Serializable {
     /**
      * 开方机构
      */
-    private  Integer clinicOrgan;
+    private Integer clinicOrgan;
     /**
      * 开方科室
      */
@@ -106,7 +106,7 @@ public class HisRecipeListBean implements Serializable {
     @Dictionary(id = "eh.cdr.dictionary.RecipeStatus")
     private Integer status;
     private String statusText;
-
+    private Integer hisRecipeStatus;
 
     /**
      * 处方来源
@@ -126,7 +126,7 @@ public class HisRecipeListBean implements Serializable {
     @ItemProperty(alias = "诊断名称")
     private String organDiseaseName;
 
-    public HisRecipeListBean(String diseaseName,Integer hisRecipeID,String registeredId, String mpiId, String recipeCode, Integer clinicOrgan, String departCode, String departName, Date createDate, String doctorCode, String doctorName, String chronicDiseaseCode, String chronicDiseaseName, String patientName, String memo,Integer recipeType,Integer fromFlag, Integer recipeId, String orderCode, Integer status) {
+    public HisRecipeListBean(String diseaseName, Integer hisRecipeID, String registeredId, String mpiId, String recipeCode, Integer clinicOrgan, String departCode, String departName, Date createDate, String doctorCode, String doctorName, String chronicDiseaseCode, String chronicDiseaseName, String patientName, String memo, Integer recipeType, Integer fromFlag, Integer recipeId, String orderCode, Integer status) {
         this.diseaseName = diseaseName;
         this.hisRecipeID = hisRecipeID;
         this.registeredId = registeredId;
@@ -148,7 +148,8 @@ public class HisRecipeListBean implements Serializable {
         this.orderCode = orderCode;
         this.status = status;
     }
-    public HisRecipeListBean(String diseaseName,Integer hisRecipeID,String registeredId, String mpiId, String recipeCode, Integer clinicOrgan, String departCode, String departName, Date createDate, String doctorCode, String doctorName, String chronicDiseaseCode, String chronicDiseaseName, String patientName, String memo, Integer recipeId, String orderCode, Integer status) {
+
+    public HisRecipeListBean(String diseaseName, Integer hisRecipeID, String registeredId, String mpiId, String recipeCode, Integer clinicOrgan, String departCode, String departName, Date createDate, String doctorCode, String doctorName, String chronicDiseaseCode, String chronicDiseaseName, String patientName, String memo, Integer recipeId, String orderCode, Integer status) {
         this.diseaseName = diseaseName;
         this.hisRecipeID = hisRecipeID;
         this.registeredId = registeredId;
