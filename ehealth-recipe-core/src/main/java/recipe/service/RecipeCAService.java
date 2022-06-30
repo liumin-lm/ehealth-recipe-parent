@@ -1,5 +1,6 @@
 package recipe.service;
 
+import ca.vo.CaSignResultVo;
 import ca.vo.CommonSignRequest;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
@@ -49,7 +50,6 @@ import recipe.bean.cqjgptbussdata.Drug;
 import recipe.bean.cqjgptbussdata.RecipeDocSignatureXML;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.XstreamUtil;
-import recipe.ca.vo.CaSignResultVo;
 import recipe.caNew.AbstractCaProcessType;
 import recipe.caNew.CaAfterProcessType;
 import recipe.caNew.pdf.CreatePdfFactory;
@@ -563,6 +563,7 @@ public class RecipeCAService {
     }
 
     @RpcService
+    @Deprecated
     //这里因为是签名的回调函数，前端暂时不捕捉回调的返 回，就算捕捉了是否要添加交互
     public void signRecipeCAAfterCallBack(CaSignResultVo resultVo) {
         //当前方法提供CA改造后的签名成功后的回调方法

@@ -526,7 +526,7 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     DrugsEnterpriseBean getDrugsEnterpriseBeanById(Integer depId);
 
     /**
-     * CA异步回调接口
+     *上海 CA异步回调接口
      *
      * @return
      */

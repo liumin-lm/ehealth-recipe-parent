@@ -1,6 +1,7 @@
 package recipe.serviceprovider.recipe.service;
 
 
+import ca.vo.CaSignResultVo;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.ImmutableMap;
@@ -35,7 +36,10 @@ import com.ngari.opbase.util.OpSecurityUtil;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.PatientDTO;
-import com.ngari.patient.service.*;
+import com.ngari.patient.service.DepartmentService;
+import com.ngari.patient.service.DoctorService;
+import com.ngari.patient.service.OrganService;
+import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.ca.mode.CaSignResultTo;
 import com.ngari.platform.recipe.mode.HospitalReqTo;
@@ -86,9 +90,6 @@ import recipe.audit.auditmode.AuditModeContext;
 import recipe.audit.service.OperationPlatformRecipeService;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bussutil.RecipeUtil;
-import recipe.ca.CAInterface;
-import recipe.ca.factory.CommonCAFactory;
-import recipe.ca.vo.CaSignResultVo;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.DoctorClient;
 import recipe.client.PatientClient;
@@ -1699,10 +1700,14 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
     @Override
     public CaSignResultBean commonCASignAndSealOrganId(CaSealRequestTO requestSealTO, RecipeBean recipe, Integer organId, String userAccount, String caPassword) {
-        CommonCAFactory commonCAFactory = ApplicationUtils.getRecipeService(CommonCAFactory.class);
-        CAInterface caInterface = commonCAFactory.useCAFunction(organId);
-        Recipe recipe1 = ObjectCopyUtils.convert(recipe, Recipe.class);
-        CaSignResultVo resultVo = caInterface.commonCASignAndSeal(requestSealTO, recipe1, organId, userAccount, caPassword);
+//        CommonCAFactory commonCAFactory = ApplicationUtils.getRecipeService(CommonCAFactory.class);
+//        CAInterface caInterface = commonCAFactory.useCAFunction(organId);
+//        Recipe recipe1 = ObjectCopyUtils.convert(recipe, Recipe.class);
+//        CaSignResultVo resultVo = caInterface.commonCASignAndSeal(requestSealTO, recipe1, organId, userAccount, caPassword);
+//
+        ca.service.ICaRemoteService iCaRemoteService = AppDomainContext.getBean("ca.iCaRemoteService", ca.service.ICaRemoteService.class);
+        ca.vo.model.RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, ca.vo.model.RecipeBean.class);
+        ca.vo.CaSignResultVo resultVo = iCaRemoteService.commonCASignAndSealForRecipe(requestSealTO, recipeBean, organId, userAccount, caPassword);
         return ObjectCopyUtils.convert(resultVo, CaSignResultBean.class);
     }
 
@@ -1718,10 +1723,14 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
      */
     @Override
     public CaSignResultBean commonSealOrganId(CaSealRequestTO requestSealTO, RecipeBean recipe, Integer organId, String userAccount, String caPassword) {
-        CommonCAFactory commonCAFactory = ApplicationUtils.getRecipeService(CommonCAFactory.class);
-        CAInterface caInterface = commonCAFactory.useCAFunction(organId);
-        Recipe recipe1 = ObjectCopyUtils.convert(recipe, Recipe.class);
-        CaSignResultVo resultVo = caInterface.commonSeal(requestSealTO, recipe1, organId, userAccount, caPassword);
+//        CommonCAFactory commonCAFactory = ApplicationUtils.getRecipeService(CommonCAFactory.class);
+//        CAInterface caInterface = commonCAFactory.useCAFunction(organId);
+//        Recipe recipe1 = ObjectCopyUtils.convert(recipe, Recipe.class);
+//        CaSignResultVo resultVo = caInterface.commonSeal(requestSealTO, recipe1, organId, userAccount, caPassword);
+
+        ca.service.ICaRemoteService iCaRemoteService = AppDomainContext.getBean("ca.iCaRemoteService", ca.service.ICaRemoteService.class);
+        ca.vo.model.RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, ca.vo.model.RecipeBean.class);
+        ca.vo.CaSignResultVo resultVo = iCaRemoteService.commonCASignAndSealForRecipe(requestSealTO, recipeBean, organId, userAccount, caPassword);
         return ObjectCopyUtils.convert(resultVo, CaSignResultBean.class);
     }
 

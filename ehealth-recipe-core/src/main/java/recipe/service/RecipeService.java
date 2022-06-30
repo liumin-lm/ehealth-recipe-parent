@@ -2,6 +2,7 @@ package recipe.service;
 
 import ca.service.ICaRemoteService;
 import ca.service.ISignRecipeInfoService;
+import ca.vo.CaSignResultVo;
 import ca.vo.model.SignDoctorRecipeInfoDTO;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
@@ -98,7 +99,6 @@ import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.RecipeInvalidDTO;
 import recipe.bussutil.CreateRecipePdfUtil;
 import recipe.bussutil.RecipeValidateUtil;
-import recipe.ca.vo.CaSignResultVo;
 import recipe.caNew.AbstractCaProcessType;
 import recipe.caNew.CaAfterProcessType;
 import recipe.caNew.pdf.CreatePdfFactory;
@@ -1063,7 +1063,6 @@ public class RecipeService extends RecipeBaseService {
         if (null == resultVo) {
             return;
         }
-        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         Integer recipeId = resultVo.getRecipeId();
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         if (recipe.getStatus() == 9) {
