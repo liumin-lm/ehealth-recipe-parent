@@ -353,6 +353,7 @@ public abstract class DrugListMatchDAO extends HibernateSupportDelegateDAO<DrugL
                 StringBuilder hql = new StringBuilder();
                 hql.append("select count(a.organDrugId) from OrganDrugList a, DrugListMatch b where a.organDrugCode=b.organDrugCode and b.sourceOrgan=a.organId ");
                 hql.append("and b.sourceOrgan=:organId ");
+                hql.append("and b.status != 2 ");
                 Query q = ss.createQuery(hql.toString());
                 q.setParameter("organId", organId);
                 setResult((Long) q.uniqueResult());

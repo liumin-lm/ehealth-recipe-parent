@@ -10,6 +10,7 @@ import ctd.persistence.support.hibernate.template.AbstractHibernateStatelessResu
 import ctd.persistence.support.hibernate.template.HibernateSessionTemplate;
 import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction;
 import ctd.util.annotation.RpcSupportDAO;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Query;
 import org.hibernate.StatelessSession;
 
@@ -58,7 +59,7 @@ public abstract class RecipeRulesDrugCorrelationDAO extends HibernateSupportDele
                 if (Objects.nonNull(drugId)) {
                     hql.append(" AND (drugId = :drugId or correlationDrugId = :drugId) ");
                 }
-                if (Objects.nonNull(input)) {
+                if (StringUtils.isNotBlank(input)) {
                     hql.append(" AND (drugName LIKE :input or correlationDrugName LIKE :input) ");
                 }
                 if (Objects.nonNull(rulesId)) {
@@ -67,7 +68,7 @@ public abstract class RecipeRulesDrugCorrelationDAO extends HibernateSupportDele
                 hql.append(" order by createDt desc ");
 
                 Query countQuery = ss.createQuery("select count(*) " + hql.toString());
-                if (Objects.nonNull(input)) {
+                if (StringUtils.isNotBlank(input)) {
                     countQuery.setParameter("input", "%" + input + "%");
                 }
                 if (Objects.nonNull(drugId)) {
@@ -78,20 +79,20 @@ public abstract class RecipeRulesDrugCorrelationDAO extends HibernateSupportDele
                 }
                 Long total = (Long) countQuery.uniqueResult();
 
-                Query q = ss.createQuery(hql.toString());
+                Query query = ss.createQuery(hql.toString());
                 if (Objects.nonNull(input)) {
-                    countQuery.setParameter("input", "%" + input + "%");
+                    query.setParameter("input", "%" + input + "%");
                 }
                 if (Objects.nonNull(drugId)) {
-                    countQuery.setParameter("drugId", drugId);
+                    query.setParameter("drugId", drugId);
                 }
                 if (Objects.nonNull(rulesId)) {
                     countQuery.setParameter("rulesId", rulesId);
                 }
-                q.setFirstResult(start);
-                q.setMaxResults(limit);
-                List<RulesDrugCorrelationDTO> lists = q.list();
-                setResult(new QueryResult<>(total, q.getFirstResult(), q.getMaxResults(), lists));
+                query.setFirstResult(start);
+                query.setMaxResults(limit);
+                List<RulesDrugCorrelationDTO> lists = query.list();
+                setResult(new QueryResult<>(total, query.getFirstResult(), query.getMaxResults(), lists));
             }
         };
         HibernateSessionTemplate.instance().execute(action);
