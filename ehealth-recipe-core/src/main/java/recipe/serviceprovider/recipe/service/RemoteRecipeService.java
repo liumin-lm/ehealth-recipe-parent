@@ -2688,6 +2688,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                 departChargeReportResult.setWestMedFee(departChargeReportResult.getWestMedFee().subtract(refundResult.getWestMedFee()));
                 departChargeReportResult.setChineseMedFee(departChargeReportResult.getChineseMedFee().subtract(refundResult.getChineseMedFee()));
                 departChargeReportResult.setChinesePatentMedFee(departChargeReportResult.getChinesePatentMedFee().subtract(refundResult.getChinesePatentMedFee()));
+                departChargeReportResult.setMedicalFee(departChargeReportResult.getMedicalFee().subtract(refundResult.getMedicalFee()));
+                departChargeReportResult.setPersonalFee(departChargeReportResult.getPersonalFee().subtract(refundResult.getPersonalFee()));
             }
         });
         LOGGER.info("getRecipeFeeDetail RecipeOrderFeeVO.voList is {},voList.size={}", JSONUtils.toString(voList), voList.size());

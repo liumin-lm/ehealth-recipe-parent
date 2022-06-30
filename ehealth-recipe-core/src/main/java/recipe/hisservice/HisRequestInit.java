@@ -352,17 +352,20 @@ public class HisRequestInit {
             try {
                 //制法Code 煎法Code 中医证候Code
                 DrugDecoctionWayDao drugDecoctionWayDao = DAOFactory.getDAO(DrugDecoctionWayDao.class);
-                DrugMakingMethodDao drugMakingMethodDao = DAOFactory.getDAO(DrugMakingMethodDao.class);
                 if (StringUtils.isNotBlank(recipeExtend.getDecoctionId())) {
                     DecoctionWay decoctionWay = drugDecoctionWayDao.get(Integer.parseInt(recipeExtend.getDecoctionId()));
-                    requestTO.getRecipeExtend().setDecoctionCode(decoctionWay.getDecoctionCode());
-                    //是否代煎
-                    requestTO.setGenerationisOfDecoction(decoctionWay.getGenerationisOfDecoction());
+                    if (null != decoctionWay) {
+                        requestTO.getRecipeExtend().setDecoctionCode(decoctionWay.getDecoctionCode());
+                        requestTO.setGenerationisOfDecoction(decoctionWay.getGenerationisOfDecoction());
+                        requestTO.setDecoctionCode(decoctionWay.getDecoctionCode());
+                        requestTO.setDecoctionText(decoctionWay.getDecoctionText());
+                    }
                 }
                 if(StringUtils.isNotBlank(recipeExtend.getDoctorIsDecoction())){
                     requestTO.setGenerationisOfDecoction(recipeExtend.getDoctorIsDecoction().equals("1"));
                 }
                 if (StringUtils.isNotBlank(recipeExtend.getMakeMethodId())) {
+                    DrugMakingMethodDao drugMakingMethodDao = DAOFactory.getDAO(DrugMakingMethodDao.class);
                     DrugMakingMethod drugMakingMethod = drugMakingMethodDao.get(Integer.parseInt(recipeExtend.getMakeMethodId()));
                     requestTO.getRecipeExtend().setMakeMethod(drugMakingMethod.getMethodCode());
                 }
@@ -591,6 +594,7 @@ public class HisRequestInit {
             requestTO.setMobile(patient.getMobile());
             requestTO.setIsMedicalSettle("0");
             if (recipe.getOrderCode() != null) {
+                requestTO.setOrderCode(recipe.getOrderCode());
                 RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
                 RecipeOrder order = orderDAO.getByOrderCode(recipe.getOrderCode());
 
@@ -668,6 +672,7 @@ public class HisRequestInit {
                             requestTO.setRegisterFeeNo(order.getRegisterFeeNo());
                             requestTO.setTcmFee(order.getTcmFee());
                             requestTO.setTcmFeeNo(order.getTcmFeeNo());
+                            requestTO.setOrderCode(order.getOrderCode());
                         }
                     }catch (Exception e){
                         LOGGER.error("MedicalPreSettleService 代缴费用有误");

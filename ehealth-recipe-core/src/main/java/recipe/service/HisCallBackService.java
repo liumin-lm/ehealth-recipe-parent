@@ -11,7 +11,6 @@ import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.service.IRevisitExService;
-import com.ngari.revisit.process.service.IRecipeOnLineRevisitService;
 import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
@@ -35,7 +34,6 @@ import recipe.enumerate.status.OrderStateEnum;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.hisservice.syncdata.SyncExecutorService;
-import recipe.manager.DepartManager;
 import recipe.manager.StateManager;
 import recipe.purchase.CommonOrder;
 
@@ -57,8 +55,6 @@ import java.util.Objects;
 public class HisCallBackService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HisCallBackService.class);
-
-    private static DepartManager departManager = AppContextHolder.getBean("departManager", DepartManager.class);
     private static StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
 
     /**
@@ -136,7 +132,9 @@ public class HisCallBackService {
         } else {
             memo = "HIS审核返回：写入his成功，审核未通过";
         }
-        //date 20200526
+
+        Integer writeHisState = null == result.getWriteHisState() ? 3 : result.getWriteHisState();
+        attrMap.put("writeHisState", writeHisState);
         //添加医院审方后保存审核日志
         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), memo);
         LOGGER.info("checkPassSuccess recipeId:{} attrMap{}", recipe.getRecipeId(), JSONUtils.toString(attrMap));
@@ -148,7 +146,6 @@ public class HisCallBackService {
         LOGGER.info("checkPassSuccess updateRecipeRegisterID before recipe:{}", JSONUtils.toString(recipe));
         updateRecipeRegisterID(recipe, result);
         LOGGER.info("checkPassSuccess updateRecipeRegisterID after recipe:{}", JSONUtils.toString(recipe));
-        //updateRecipepatientType(recipe);
 
         OrganDrugListService organDrugListService = ApplicationUtils.getRecipeService(OrganDrugListService.class);
         List<Recipedetail> recipedetails = result.getDetailList();
@@ -260,45 +257,6 @@ public class HisCallBackService {
             if (StringUtils.isNotEmpty(recipeExtend.getRegisterID())) {
                 recipeExtendDAO.saveRecipeExtend(recipeExtend);
             }
-        }
-    }
-
-    /**
-     * 处方HIS审核通过失败
-     *
-     * @param recipeId
-     */
-    public static void checkPassFail(Integer recipeId, Integer errCode, String errMsg) {
-        if (null == recipeId) {
-            return;
-        }
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        Map<String, Object> paramMap = Maps.newHashMap();
-        //612: 表示无库存
-        //614: 表示指定产地的没有库存
-        boolean b = null != errCode && (612 == errCode || 614 == errCode);
-        if (b) {
-            paramMap.put("distributionFlag", 1);
-        }
-        recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.HIS_FAIL, paramMap);
-        //日志记录
-        RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.CHECKING_HOS, RecipeStatusConstant.HIS_FAIL, "HIS审核返回：写入his失败[" + errCode + ":|" + errMsg + "]");
-        //发送消息
-        RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.HIS_FAIL);
-        //复诊开方HIS确认失败 发送环信消息
-        Recipe recipe = recipeDAO.get(recipeId);
-        if (recipe == null) {
-            return;
-        }
-        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-        RecipeExtend recipeExtend = new RecipeExtend();
-        recipeExtend.setRecipeId(recipeId);
-        recipeExtend.setCancellation(errMsg);
-        recipeExtendDAO.updateNonNullFieldByPrimaryKey(recipeExtend);
-        if (new Integer(2).equals(recipe.getBussSource())) {
-            LOGGER.info("checkPassFail 复诊开方HIS确认失败 发送环信消息 recipeId:{}", recipeId);
-            IRecipeOnLineRevisitService recipeOnLineRevisitService = RevisitAPI.getService(IRecipeOnLineRevisitService.class);
-            recipeOnLineRevisitService.sendRecipeDefeat(recipe.getRecipeId(), recipe.getClinicId());
         }
     }
 
