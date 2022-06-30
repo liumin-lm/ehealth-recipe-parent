@@ -509,7 +509,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
         String mpiId = getOwnMpiId();
         List<Recipe> recipeList = recipeDAO.findByRecipeIds(thirdCreateOrderReqDTO.getRecipeIds());
 
-        List<String> orderCodes = recipeList.stream().map(Recipe::getOrderCode).collect(Collectors.toList());
+        List<String> orderCodes = recipeList.stream().map(Recipe::getOrderCode).filter(Objects::nonNull).collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(orderCodes)) {
             logger.info("thirdCreateOrder orderCode is not null orderCode = {}", JsonUtil.toString(orderCodes));
             throw new DAOException(609, "处方单已存在订单");
@@ -565,13 +565,17 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
         order.setSendTime(new Date());
         order.setLastModifyTime(new Date());
         order.setOrderType(0);
+        order.setExpectEndTakeTime("");
+        order.setExpectStartTakeTime("");
         RecipeOrder recipeOrder = recipeOrderDAO.save(order);
         logger.info("RecipeOrderBusinessService thirdCreateOrder recipeOrder:{}.", JSONUtils.toString(recipeOrder));
         if (recipeOrder != null) {
             Map<String, Object> map = new HashMap<>();
             map.put("orderCode", recipeOrder.getOrderCode());
             map.put("enterpriseId", recipeOrder.getEnterpriseId());
-            recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), map);
+            recipeList.forEach(recipe1 -> {
+                recipeDAO.updateRecipeInfoByRecipeId(recipe1.getRecipeId(), map);
+            });
             return recipeOrder.getOrderId();
         }
         return 0;
@@ -613,7 +617,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
         if (thirdCreateOrderReqDTO.getRecipeFee() != null && thirdCreateOrderReqDTO.getRecipeFee().compareTo(BigDecimal.ZERO) > 0) {
             order.setRecipeFee(thirdCreateOrderReqDTO.getRecipeFee());
         } else {
-            List<BigDecimal> totalMoneys = recipeList.stream().map(Recipe::getTotalMoney).collect(Collectors.toList());
+            List<BigDecimal> totalMoneys = recipeList.stream().map(Recipe::getTotalMoney).filter(Objects::nonNull).collect(Collectors.toList());
             if (CollectionUtils.isNotEmpty(totalMoneys)) {
                 BigDecimal totalMoney = BigDecimal.ZERO;
                 totalMoneys.forEach(t -> {
