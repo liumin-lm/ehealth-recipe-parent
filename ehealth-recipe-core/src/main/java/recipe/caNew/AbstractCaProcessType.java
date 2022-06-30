@@ -27,11 +27,11 @@ import recipe.audit.auditmode.AuditModeContext;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.client.IConfigurationClient;
 import recipe.constant.RecipeBussConstant;
-import recipe.constant.RecipeStatusConstant;
 import recipe.dao.OrganAndDrugsepRelationDAO;
-import recipe.dao.RecipeDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
+import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.RecipeDistributionFlagEnum;
+import recipe.manager.CaManager;
 import recipe.service.DrugDistributionService;
 import recipe.service.RecipeHisService;
 import recipe.service.RecipeServiceSub;
@@ -44,14 +44,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static ctd.persistence.DAOFactory.getDAO;
-
 //JRK
 //将CA流程上的特异点抽象出来
 public abstract class AbstractCaProcessType {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractCaProcessType.class);
     protected static IConfigurationClient configurationClient = AppContextHolder.getBean("IConfigurationClient", IConfigurationClient.class);
+    protected static CaManager caManager = AppContextHolder.getBean("caManager", CaManager.class);
     private static final Integer CA_OLD_TYPE = new Integer(0);
 
     private static final Integer CA_NEW_TYPE = new Integer(1);
@@ -102,40 +101,23 @@ public abstract class AbstractCaProcessType {
             RecipeServiceSub.sendRecipeTagToPatient(recipe, details, rMap, false);
         }
         LOGGER.info("AbstractCaProcessType recipeHisResultBeforeCAFunction end recipeBean={}", JSON.toJSONString(recipeBean));
-     }
-    
+    }
 
-    public void recipeHisResultAfterCAFunction(Integer recipeId){
-        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
-        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        if (null == recipe) {
-            LOGGER.warn("当前处方{}信息为空！", recipeId);
-            return;
-        }
-        //处方签名中 点击撤销按钮 如果处方单状态处于已取消 则不走下面逻辑
-        if (recipe.getStatus() == 9) {
-            LOGGER.info("retryDoctorSignCheck 处方单已经撤销，recipeid：{}", recipe.getRecipeId());
-            return;
-        }
 
-        Integer status = RecipeStatusConstant.CHECK_PASS;
+    /**
+     * 签名成功后续操作
+     *
+     * @param recipe
+     * @param memo
+     */
+    public void caComplete(Recipe recipe, String memo) {
+        //设置处方签名成功后的处方的状态
+        Integer status = RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType();
         //其他平台处方状态不变
         if (0 == recipe.getFromflag()) {
             status = recipe.getStatus();
         }
-
-        Integer caType = configurationClient.getValueCatchReturnInteger(recipe.getClinicOrgan(), "CAProcessType", CA_OLD_TYPE);
-        LOGGER.info("AbstractCaProcessType recipeHisResultAfterCAFunction caType = {}", caType);
-        String memo;
-        if (CA_OLD_TYPE.equals(caType)) {
-            memo = "HIS审核返回：写入his成功，审核通过";
-        } else {
-            memo = "HIS审核返回：写入his成功，审核通过---CA后置操作完成回调";
-        }
-
-        //TODO 根据审方模式改变状态
-        //设置处方签名成功后的处方的状态
-        //修改后这些CA签名后进行的所有处方流转的操作只有【后置】ca才会触发
+        //根据审方模式改变状态
         AuditModeContext auditModeContext = AppContextHolder.getBean("auditModeContext", AuditModeContext.class);
         auditModeContext.getAuditModes(recipe.getReviewType()).afterHisCallBackChange(status, recipe, memo);
 
@@ -164,7 +146,7 @@ public abstract class AbstractCaProcessType {
             }
         }
         //推送处方到监管平台
-        RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(Collections.singletonList(recipeId), 1));
+        RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(Collections.singletonList(recipe.getRecipeId()), 1));
 
         //将原先互联网回调修改处方的推送的逻辑移到这里
         //判断是否是阿里药企，是阿里大药房就推送处方给药企
@@ -182,7 +164,7 @@ public abstract class AbstractCaProcessType {
             if (drugDistributionService.authorization(loginId)) {
                 //推送阿里处方推片和信息
                 RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
-                DrugEnterpriseResult deptResult = remoteDrugEnterpriseService.pushSingleRecipeInfoWithDepId(recipeId, drugsEnterprise.getId());
+                DrugEnterpriseResult deptResult = remoteDrugEnterpriseService.pushSingleRecipeInfoWithDepId(recipe.getRecipeId(), drugsEnterprise.getId());
                 LOGGER.info("updateRecipeStatus 推送药企处方，result={}", JSONUtils.toString(deptResult));
             }
         }

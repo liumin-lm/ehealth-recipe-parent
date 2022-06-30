@@ -2,9 +2,11 @@ package recipe.manager;
 
 import com.ngari.base.BaseAPI;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
+import com.ngari.recipe.entity.Recipe;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.aop.LogRecord;
+import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.util.RedisClient;
 
 /**
@@ -17,7 +19,7 @@ import recipe.util.RedisClient;
 public class CaManager extends BaseManager {
     @Autowired
     private RedisClient redisClient;
-
+    private static final Integer CA_OLD_TYPE = new Integer(0);
     /**
      * 运营平台机构CA配置
      */
@@ -74,5 +76,20 @@ public class CaManager extends BaseManager {
         return caPassword;
     }
 
+
+    public Integer caProcessType(Recipe recipe) {
+        if (null == recipe) {
+            logger.warn("当前处方不存在!");
+            return null;
+        }
+        //处方签名中 点击撤销按钮 如果处方单状态处于已取消 则不走下面逻辑
+        if (RecipeStatusEnum.RECIPE_STATUS_REVOKE.getType().equals(recipe.getStatus())) {
+            logger.info("retryDoctorSignCheck 处方单已经撤销，recipeid：{}", recipe.getRecipeId());
+            return null;
+        }
+        Integer caType = configurationClient.getValueCatchReturnInteger(recipe.getClinicOrgan(), "CAProcessType", CA_OLD_TYPE);
+        logger.info("RecipeService retryDoctorSignCheck CANewOldWay = {}", caType);
+        return caType;
+    }
 
 }

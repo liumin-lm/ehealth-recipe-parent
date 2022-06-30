@@ -46,7 +46,14 @@ public class CaAfterProcessType extends AbstractCaProcessType {
     public void signCAAfterRecipeCallBackFunction(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList) {
         LOGGER.info("After---signCAAfterRecipeCallBackFunction 当前CA执行签名之后回调特应性行为，入参：recipeBean：{}，detailBeanList：{} ", JSONUtils.toString(recipeBean), JSONUtils.toString(detailBeanList));
         try {
-            recipeHisResultAfterCAFunction(recipeBean.getRecipeId());
+            RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
+            Recipe recipe = recipeDAO.getByRecipeId(recipeBean.getRecipeId());
+            Integer caType = caManager.caProcessType(recipe);
+            if (null == caType) {
+                return;
+            }
+            String memo = "HIS审核返回：写入his成功，审核通过---" + caType;
+            super.caComplete(recipe, memo);
         } catch (Exception e) {
             LOGGER.error("CaAfterProcessType signCAAfterRecipeCallBackFunction recipeBean= {}", JSON.toJSONString(recipeBean), e);
         }
