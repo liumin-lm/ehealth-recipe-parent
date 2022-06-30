@@ -12,7 +12,6 @@ import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction
 import ctd.util.annotation.RpcSupportDAO;
 import org.hibernate.Query;
 import org.hibernate.StatelessSession;
-import org.springframework.util.ObjectUtils;
 
 import java.util.List;
 import java.util.Objects;
@@ -63,7 +62,7 @@ public abstract class RecipeRulesDrugCorrelationDAO extends HibernateSupportDele
                     hql.append(" AND (drugName LIKE :input or correlationDrugName LIKE :input) ");
                 }
                 if (Objects.nonNull(rulesId)) {
-                    hql.append(" AND a.medicationRulesId = :rulesId ");
+                    hql.append(" AND medicationRulesId = :rulesId ");
                 }
                 hql.append(" order by createDt desc ");
 
