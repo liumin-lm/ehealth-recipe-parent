@@ -541,7 +541,7 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
     @Override
     public EnterpriseResultBean renewDrugInfo(List<EnterpriseDrugVO> enterpriseDrugVOList) {
         Map<String, List<EnterpriseDrugVO>> enterpriseDrugVOListMap = enterpriseDrugVOList.stream().collect(Collectors.groupingBy(EnterpriseDrugVO::getAppKey));
-        final List<String> count = new ArrayList<>();
+        final List<String> updateData = new ArrayList<>();
         for (Map.Entry<String, List<EnterpriseDrugVO>> entry : enterpriseDrugVOListMap.entrySet()) {
             String appKey = entry.getKey();
             DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getByAppKey(appKey);
@@ -563,16 +563,20 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
                 if (StringUtils.isNotEmpty(enterpriseDrugVO.getDrugSpec())) {
                     saleDrugList.setDrugSpec(enterpriseDrugVO.getDrugSpec());
                 }
-                saleDrugList.setPrice(enterpriseDrugVO.getPrice());
-                saleDrugList.setInventory(enterpriseDrugVO.getInventory());
+                if (null != enterpriseDrugVO.getPrice()) {
+                    saleDrugList.setPrice(enterpriseDrugVO.getPrice());
+                }
+                if (null != enterpriseDrugVO.getInventory()) {
+                    saleDrugList.setInventory(enterpriseDrugVO.getInventory());
+                }
                 if (saleDrugListDAO.updateNonNullFieldByPrimaryKey(saleDrugList)){
-                    count.add(saleDrugList.getOrganDrugCode());
+                    updateData.add(saleDrugList.getOrganDrugCode());
                 }
             });
         }
         EnterpriseResultBean resultBean = new EnterpriseResultBean();
         resultBean.setCode(EnterpriseResultBean.SUCCESS);
-        resultBean.setMsg("传入条数:" + enterpriseDrugVOList.size() + ",更新条数:"+ count.size());
+        resultBean.setMsg("传入条数:" + enterpriseDrugVOList.size() + ",更新条数:"+ updateData.size());
         return resultBean;
     }
 
