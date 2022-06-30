@@ -536,15 +536,15 @@ public class HisRecipeManager extends BaseManager {
         hisRecipeTO.forEach(a -> {
             String recipeCode = a.getRecipeCode();
             HisRecipe hisRecipe = hisRecipeMap.get(recipeCode);
-            //如果已经支付，则不允许删除（场景：a操作用户绑定就诊人支付，且支付成功，但是支付平台回调慢，导致处方支付状态未更改   所以需要回查，是否已支付 如果已经支付，则不允许更改数据）
-            String payFlag = obtainPayStatus(recipeCode, hisRecipe.getClinicOrgan());
-            if (PayConstant.RESULT_SUCCESS.equals(payFlag) || PayConstant.RESULT_WAIT.equals(payFlag) || PayConstant.ERROR.equals(payFlag)) {
-                return;
-            }
             if (null == hisRecipe) {
                 return;
             } else {
                 if (!hisRecipe.getMpiId().equals(mpiId)) {
+                    //如果已经支付，则不允许删除（场景：a操作用户绑定就诊人支付，且支付成功，但是支付平台回调慢，导致处方支付状态未更改   所以需要回查，是否已支付 如果已经支付，则不允许更改数据）
+                    String payFlag = obtainPayStatus(recipeCode, hisRecipe.getClinicOrgan());
+                    if (PayConstant.RESULT_SUCCESS.equals(payFlag) || PayConstant.RESULT_WAIT.equals(payFlag) || PayConstant.ERROR.equals(payFlag)) {
+                        return;
+                    }
                     deleteSetRecipeCode.add(recipeCode);
                     LOGGER.info("deleteSetRecipeCode cause mpiid recipeCode:{}", recipeCode);
                     return;
