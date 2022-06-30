@@ -470,4 +470,10 @@ public class RecipeTestService {
         byte[] bytes = os.toByteArray();
         return drugToolService.readDrugExcel(bytes,fileName,organId,operator);
     }
+
+    @RpcService
+    public String getParameterValue(String name){
+        RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
+        return recipeParameterDao.getByName(name);
+    }
 }
