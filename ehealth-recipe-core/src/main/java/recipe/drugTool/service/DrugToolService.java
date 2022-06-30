@@ -1605,8 +1605,9 @@ public class DrugToolService implements IDrugToolService {
                         organDrugList.setTargetedDrugType(drugListMatch.getTargetedDrugType());
                         organDrugList.setSmallestSaleMultiple(drugListMatch.getSmallestSaleMultiple());
                         //updateFlag为1时更新药品信息，否则不更新
+                        boolean updateStatus = false;
                         if (new Integer(1).equals(updateFlag)) {
-                            organDrugListDAO.updateData(organDrugList);
+                            updateStatus = organDrugListDAO.updateData(organDrugList);
                             List<OrganDrugList> byDrugIdAndOrganId = organDrugListDAO.findByOrganDrugCodeAndOrganId(organDrugList.getOrganDrugCode(), organDrugList.getOrganId());
                             if (byDrugIdAndOrganId != null && byDrugIdAndOrganId.size() > 0) {
                                 for (OrganDrugList drugList : byDrugIdAndOrganId) {
@@ -1618,11 +1619,13 @@ public class DrugToolService implements IDrugToolService {
                         }
                         //addFlag为1时新增药品信息，否则不新增
                         if (new Integer(1).equals(addFlag)) {
-                            OrganDrugList save = organDrugListDAO.save(organDrugList);
-                            organDrugSync(save);
-                            saveMsg.append("【" + organDrugList.getDrugId() + "-" + organDrugList.getDrugName() + "】");
-                            organDrugLists.add(save);
-                            num = num + 1;
+                            if(!updateStatus){
+                                OrganDrugList save = organDrugListDAO.save(organDrugList);
+                                organDrugSync(save);
+                                saveMsg.append("【" + organDrugList.getDrugId() + "-" + organDrugList.getDrugName() + "】");
+                                organDrugLists.add(save);
+                                num = num + 1;
+                            }
                         }
                     }
                 }
