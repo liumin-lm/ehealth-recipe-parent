@@ -24,9 +24,7 @@ import recipe.vo.greenroom.OrganDrugsSaleConfigVo;
 import recipe.vo.greenroom.OrganEnterpriseRelationVo;
 import recipe.vo.greenroom.PharmacyVO;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -155,6 +153,7 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
             return organEnterpriseRelationVo;
         }
         List<DrugsEnterpriseBean> drugsEnterpriseList = ObjectCopyUtils.convert(queryResult.getItems(), DrugsEnterpriseBean.class);
+        drugsEnterpriseList = drugsEnterpriseList.stream().sorted(Comparator.comparing(drugsEnterpriseBean -> Optional.ofNullable(drugsEnterpriseBean.getPriorityLevel()).orElse(0),Comparator.reverseOrder())).collect(Collectors.toList());
         List<PharmacyVO> pharmacyList = enterpriseBusinessService.pharmacy();
         Map<Integer, PharmacyVO> map = pharmacyList.stream().collect(Collectors.toMap(PharmacyVO::getDrugsenterpriseId, a -> a, (k1, k2) -> k1));
         drugsEnterpriseList.forEach(a -> {

@@ -6,7 +6,9 @@ import com.ngari.common.dto.CheckRequestCommonOrderPageDTO;
 import com.ngari.common.dto.SyncOrderVO;
 import com.ngari.infra.invoice.mode.InvoiceRecordDto;
 import com.ngari.infra.invoice.service.InvoiceRecordService;
+import com.ngari.patient.dto.AddressDTO;
 import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.service.AddressService;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.common.RecipeResultBean;
@@ -53,10 +55,7 @@ import recipe.manager.RecipeManager;
 import recipe.openapi.business.request.ThirdSaveOrderRequest;
 import recipe.service.RecipeOrderService;
 import recipe.third.IFileDownloadService;
-import recipe.util.DateConversion;
-import recipe.util.LocalStringUtil;
-import recipe.util.ObjectCopyUtils;
-import recipe.util.ValidateUtil;
+import recipe.util.*;
 import recipe.vo.ResultBean;
 import recipe.vo.base.BaseRecipeDetailVO;
 import recipe.vo.greenroom.InvoiceRecordVO;
@@ -103,6 +102,8 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
     private RecipeManager recipeManager;
     @Autowired
     private InvoiceRecordService invoiceRecordService;
+    @Autowired
+    private RecipeOrderService orderService;
 
     @Override
     public ResultBean updateRecipeGiveUser(Integer recipeId, Integer giveUser) {
@@ -508,7 +509,132 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
         String mpiId = getOwnMpiId();
         List<Recipe> recipeList = recipeDAO.findByRecipeIds(thirdCreateOrderReqDTO.getRecipeIds());
 
-        return null;
+        List<String> orderCodes = recipeList.stream().map(Recipe::getOrderCode).filter(Objects::nonNull).collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(orderCodes)) {
+            logger.info("thirdCreateOrder orderCode is not null orderCode = {}", JsonUtil.toString(orderCodes));
+            throw new DAOException(609, "处方单已存在订单");
+        }
+        Recipe recipe = recipeList.get(0);
+        RecipeOrder order = new RecipeOrder();
+        order.setMpiId(mpiId);
+        order.setOrganId(recipe.getClinicOrgan());
+        order.setOrderCode(orderService.getOrderCode(order.getMpiId()));
+        if ("1".equals(thirdCreateOrderReqDTO.getSendMethod())) {
+            //设置配送到家的待配送状态
+            order.setStatus(3);
+        } else if ("2".equals(thirdCreateOrderReqDTO.getSendMethod())) {
+            //设置到院取药的状态
+            order.setStatus(2);
+        } else if ("3".equals(thirdCreateOrderReqDTO.getSendMethod())) {
+            //设置到店取药的待取药状态
+            order.setStatus(12);
+        } else {
+            //设置到院取药的状态
+            order.setStatus(2);
+        }
+        //设置配送信息
+        if (StringUtils.isNotEmpty(thirdCreateOrderReqDTO.getAddressId())) {
+            order.setAddressID(Integer.parseInt(thirdCreateOrderReqDTO.getAddressId()));
+            AddressService addressService = BasicAPI.getService(AddressService.class);
+            AddressDTO addressDTO = addressService.getByAddressId(Integer.parseInt(thirdCreateOrderReqDTO.getAddressId()));
+            if (addressDTO != null) {
+                order.setAddress1(addressDTO.getAddress1());
+                order.setAddress2(addressDTO.getAddress2());
+                order.setAddress3(addressDTO.getAddress3());
+                order.setAddress4(addressDTO.getAddress4());
+                order.setReceiver(addressDTO.getReceiver());
+                order.setRecMobile(addressDTO.getRecMobile());
+            }
+        }
+        order.setWxPayWay(thirdCreateOrderReqDTO.getPayway());
+        if (StringUtils.isNotEmpty(thirdCreateOrderReqDTO.getDepId())) {
+            order.setEnterpriseId(Integer.parseInt(thirdCreateOrderReqDTO.getDepId()));
+        }
+        if (StringUtils.isNotEmpty(thirdCreateOrderReqDTO.getGysCode())) {
+            order.setDrugStoreCode(thirdCreateOrderReqDTO.getGysCode());
+        }
+        order.setEffective(1);
+        order.setRecipeIdList(JSONUtils.toString(Arrays.asList(recipe.getRecipeId())));
+        order.setPayFlag(0);
+        //设置订单各个费用
+        thirdOrderSetFee(order, recipeList, thirdCreateOrderReqDTO);
+        order.setWxPayWay(thirdCreateOrderReqDTO.getPayway());
+        order.setCreateTime(new Date());
+        order.setPayTime(new Date());
+        order.setPushFlag(1);
+        order.setSendTime(new Date());
+        order.setLastModifyTime(new Date());
+        order.setOrderType(0);
+        order.setExpectEndTakeTime("");
+        order.setExpectStartTakeTime("");
+        RecipeOrder recipeOrder = recipeOrderDAO.save(order);
+        logger.info("RecipeOrderBusinessService thirdCreateOrder recipeOrder:{}.", JSONUtils.toString(recipeOrder));
+        if (recipeOrder != null) {
+            Map<String, Object> map = new HashMap<>();
+            map.put("orderCode", recipeOrder.getOrderCode());
+            map.put("enterpriseId", recipeOrder.getEnterpriseId());
+            recipeList.forEach(recipe1 -> {
+                recipeDAO.updateRecipeInfoByRecipeId(recipe1.getRecipeId(), map);
+            });
+            return recipeOrder.getOrderId();
+        }
+        return 0;
+    }
+
+    /**
+     * 第三方设置订单费用
+     *
+     * @param order
+     * @param recipeList
+     * @param thirdCreateOrderReqDTO
+     */
+    private void thirdOrderSetFee(RecipeOrder order, List<Recipe> recipeList, ThirdCreateOrderReqDTO thirdCreateOrderReqDTO) {
+        //设置挂号费
+        if (thirdCreateOrderReqDTO.getRegisterFee() != null && thirdCreateOrderReqDTO.getRegisterFee().compareTo(BigDecimal.ZERO) > 0) {
+            order.setRegisterFee(thirdCreateOrderReqDTO.getRegisterFee());
+        } else {
+            order.setRegisterFee(BigDecimal.ZERO);
+        }
+        //设置快递费
+        if (thirdCreateOrderReqDTO.getExpressFee() != null && thirdCreateOrderReqDTO.getRecipeFee().compareTo(BigDecimal.ZERO) > 0) {
+            order.setExpressFee(thirdCreateOrderReqDTO.getExpressFee());
+        } else {
+            order.setExpressFee(BigDecimal.ZERO);
+        }
+        //设置代煎费
+        if (thirdCreateOrderReqDTO.getDecoctionFee() != null && thirdCreateOrderReqDTO.getRecipeFee().compareTo(BigDecimal.ZERO) > 0) {
+            order.setDecoctionFee(thirdCreateOrderReqDTO.getDecoctionFee());
+        } else {
+            order.setDecoctionFee(BigDecimal.ZERO);
+        }
+        //设置审方费
+        if (thirdCreateOrderReqDTO.getAuditFee() != null && thirdCreateOrderReqDTO.getRecipeFee().compareTo(BigDecimal.ZERO) > 0) {
+            order.setAuditFee(thirdCreateOrderReqDTO.getAuditFee());
+        } else {
+            order.setAuditFee(BigDecimal.ZERO);
+        }
+        //设置处方费
+        if (thirdCreateOrderReqDTO.getRecipeFee() != null && thirdCreateOrderReqDTO.getRecipeFee().compareTo(BigDecimal.ZERO) > 0) {
+            order.setRecipeFee(thirdCreateOrderReqDTO.getRecipeFee());
+        } else {
+            List<BigDecimal> totalMoneys = recipeList.stream().map(Recipe::getTotalMoney).filter(Objects::nonNull).collect(Collectors.toList());
+            if (CollectionUtils.isNotEmpty(totalMoneys)) {
+                BigDecimal totalMoney = BigDecimal.ZERO;
+                totalMoneys.forEach(t -> {
+                    totalMoney.add(t);
+                });
+                order.setRecipeFee(totalMoney);
+            } else {
+                order.setRecipeFee(BigDecimal.ZERO);
+            }
+        }
+        //设置优惠费用
+        order.setCouponId(0);
+        order.setCouponFee(BigDecimal.ZERO);
+        //设置总费用
+        order.setTotalFee(order.getRegisterFee().add(order.getExpressFee()).add(order.getDecoctionFee()).add(order.getAuditFee().add(order.getRecipeFee())));
+        //设置实际支付
+        order.setActualPrice(order.getTotalFee().doubleValue());
     }
 
     /**
@@ -517,7 +643,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
      */
     private String getOwnMpiId(){
         UserRoleToken userRoleToken = UserRoleToken.getCurrent();
-        logger.info("ThirdRecipeService.getOwnMpiId userRoleToken:{}.", JSONUtils.toString(userRoleToken));
+        logger.info("RecipeOrderBusinessService.getOwnMpiId userRoleToken:{}.", JSONUtils.toString(userRoleToken));
         return userRoleToken.getOwnMpiId();
     }
 
