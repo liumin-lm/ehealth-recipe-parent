@@ -502,7 +502,7 @@ public class BaseOfflineToOnlineService {
                 throw new DAOException(609, "该处方单已被他人支付！");
             }
             if (PayConstant.RESULT_WAIT.equals(payFlag)) {
-                throw new DAOException(609, "该处方单已被他人正在处理！");
+                throw new DAOException(609, "该处方单被他人正在处理中！");
             }
             if (PayConstant.ERROR.equals(payFlag)) {
                 throw new DAOException(609, "调用支付平台异常！");

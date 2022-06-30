@@ -505,9 +505,11 @@ public class HisRecipeManager extends BaseManager {
     public String obtainPayStatus(String recipeCode, Integer clinicOrgan) {
         String realPayFlag = "";
         Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeCode, clinicOrgan);
-        if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
+        if (recipe != null && StringUtils.isNotEmpty(recipe.getOrderCode())) {
             RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
-            realPayFlag = payClient.orderQuery(recipeOrder);
+            if (recipeOrder != null) {
+                realPayFlag = payClient.orderQuery(recipeOrder);
+            }
         }
 //        if (PAY_SUCCESS.equals(realPayFlag)) {
 //            hisRecipeDao.updateHisRecieStatus(clinicOrgan, recipeCode, HisRecipeConstant.HISRECIPESTATUS_ALREADYIDEAL);

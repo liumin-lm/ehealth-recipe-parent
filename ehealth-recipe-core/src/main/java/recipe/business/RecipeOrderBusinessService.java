@@ -12,7 +12,9 @@ import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
-import com.ngari.recipe.recipe.model.*;
+import com.ngari.recipe.recipe.model.RecipeOrderWaybillDTO;
+import com.ngari.recipe.recipe.model.ReimbursementListReqVO;
+import com.ngari.recipe.recipe.model.SkipThirdReqVO;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
@@ -33,7 +35,10 @@ import recipe.client.DoctorClient;
 import recipe.client.OrganClient;
 import recipe.client.PatientClient;
 import recipe.core.api.patient.IRecipeOrderBusinessService;
-import recipe.dao.*;
+import recipe.dao.ConfigStatusCheckDAO;
+import recipe.dao.DrugsEnterpriseDAO;
+import recipe.dao.RecipeDAO;
+import recipe.dao.RecipeOrderDAO;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.type.GiveModeTextEnum;
 import recipe.enumerate.type.NeedSendTypeEnum;
@@ -335,8 +340,8 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
             receiverInfo.setStreet(street);
             receiverInfo.setAddress(recipeOrder.getAddress4());
             if (StringUtils.isNotEmpty(recipeOrder.getAddress1())) {
-                receiverInfo.setProvinceCode(StringUtils.isNotEmpty(recipeOrder.getAddress1())?recipeOrder.getAddress1()+"0000":"");
-                receiverInfo.setCityCode(StringUtils.isNotEmpty(recipeOrder.getAddress2())?recipeOrder.getAddress2()+"00":"");
+                receiverInfo.setProvinceCode(StringUtils.isNotEmpty(recipeOrder.getAddress1()) ? recipeOrder.getAddress1() + "0000" : "");
+                receiverInfo.setCityCode(StringUtils.isNotEmpty(recipeOrder.getAddress2()) ? recipeOrder.getAddress2() + "00" : "");
             }
             receiverInfo.setCommunityCode(ValidateUtil.isEmpty(recipeOrder.getAddress5()));
             receiverInfo.setCommunityName(ValidateUtil.isEmpty(recipeOrder.getAddress5Text()));
@@ -385,17 +390,17 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                 PatientDTO patient = patientClient.getPatientBeanByMpiId(recipe.getMpiid());
                 logger.info("findOrderAndRecipes patient:{} .", JSONUtils.toString(patient));
                 downRecipeVO.setBirthday(patient.getBirthday());
-                downRecipeVO.setSexCode("1".equals(patient.getPatientSex())?"M":"F");
+                downRecipeVO.setSexCode("1".equals(patient.getPatientSex()) ? "M" : "F");
                 downRecipeVO.setGender(patient.getPatientSex());
                 try {
                     downRecipeVO.setSexName(DictionaryController.instance().get("eh.base.dictionary.Gender").getText(patient.getPatientSex()));
                 } catch (ControllerException e) {
-                    logger.error("findOrderAndRecipes recipeId:{}, error ",recipe.getRecipeId(), e);
+                    logger.error("findOrderAndRecipes recipeId:{}, error ", recipe.getRecipeId(), e);
                 }
                 //设置处方费用
                 downRecipeVO.setRecipeFee(null);
                 BigDecimal recipeFee = new BigDecimal(BigInteger.ZERO);
-                if (null != recipe.getEnterpriseId()){
+                if (null != recipe.getEnterpriseId()) {
                     DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipe.getEnterpriseId());
                     if (null != drugsEnterprise && drugsEnterprise.getSettlementMode() == 1) {
                         downRecipeVO.setRecipeFee(recipe.getTotalMoney());
@@ -413,7 +418,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                         baseRecipeDetailVO.setSaleDrugCode(saleDrugList.getSaleDrugCode());
                     }
                     if (null != recipeDetail.getActualSalePrice()) {
-                        recipeFee.add(recipeDetail.getActualSalePrice().multiply(new BigDecimal(recipeDetail.getUseTotalDose())).setScale(4,BigDecimal.ROUND_HALF_UP)).setScale(2,BigDecimal.ROUND_HALF_UP);
+                        recipeFee.add(recipeDetail.getActualSalePrice().multiply(new BigDecimal(recipeDetail.getUseTotalDose())).setScale(4, BigDecimal.ROUND_HALF_UP)).setScale(2, BigDecimal.ROUND_HALF_UP);
                     }
                     baseRecipeDetailVOList.add(baseRecipeDetailVO);
                 });
@@ -475,7 +480,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
 
     @Override
     public ReimbursementDTO findReimbursementDetail(Integer recipeId) {
-        logger.info("findReimbursementDetail recipeId={}",JSONUtils.toString(recipeId));
+        logger.info("findReimbursementDetail recipeId={}", JSONUtils.toString(recipeId));
         return orderManager.findReimbursementDetail(recipeId);
     }
 
@@ -488,7 +493,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
 
     @Override
     public void updateTrackingNumberByOrderId(UpdateOrderStatusVO updateOrderStatusVO) {
-        recipeOrderDAO.updateTrackingNumberByOrderId(updateOrderStatusVO.getOrderId(),updateOrderStatusVO.getLogisticsCompany(),updateOrderStatusVO.getTrackingNumber());
+        recipeOrderDAO.updateTrackingNumberByOrderId(updateOrderStatusVO.getOrderId(), updateOrderStatusVO.getLogisticsCompany(), updateOrderStatusVO.getTrackingNumber());
     }
 
 
