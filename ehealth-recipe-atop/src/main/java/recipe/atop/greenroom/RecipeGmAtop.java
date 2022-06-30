@@ -2,10 +2,12 @@ package recipe.atop.greenroom;
 
 import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.recipe.model.RecipeOrderWaybillDTO;
+import com.ngari.recipe.vo.CodeEnum;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
@@ -16,6 +18,7 @@ import recipe.vo.ResultBean;
 import recipe.vo.greenroom.DrugUsageLabelResp;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @Description
@@ -59,13 +62,27 @@ public class RecipeGmAtop extends BaseAtop {
      */
     @RpcService
     public ResultBean updateRecipeOrderStatusAndGiveUser(UpdateOrderStatusVO updateOrderStatusVO) {
-        validateAtop(updateOrderStatusVO.getRecipeId(), updateOrderStatusVO.getGiveUser(),updateOrderStatusVO.getTargetRecipeOrderStatus());
-        ResultBean result = recipeOrderService.updateRecipeGiveUser(updateOrderStatusVO.getRecipeId(), updateOrderStatusVO.getGiveUser());
-        if(!new Integer(200).equals(result.getData())){
-            return result;
+        validateAtop(updateOrderStatusVO,updateOrderStatusVO.getRecipeId());
+        ResultBean resultBean1 = new ResultBean();
+        if (Objects.nonNull(updateOrderStatusVO.getGiveUser())) {
+            // 更改发药人
+            ResultBean resultBean = recipeOrderService.updateRecipeGiveUser(updateOrderStatusVO.getRecipeId(), updateOrderStatusVO.getGiveUser());
+            if(CodeEnum.SERVICE_ERROR.getCode().equals(resultBean.getCode())){
+                resultBean1.setCode(resultBean.getCode());
+            }
         }
-        ResultBean result1 = recipeOrderService.updateRecipeOrderStatus(updateOrderStatusVO);
-        return result1;
+        if (Objects.nonNull(updateOrderStatusVO.getTargetRecipeOrderStatus())) {
+            // 更改状态
+            ResultBean resultBean = recipeOrderService.updateRecipeOrderStatus(updateOrderStatusVO);
+            if(CodeEnum.SERVICE_ERROR.getCode().equals(resultBean.getCode())){
+                resultBean1.setCode(resultBean.getCode());
+            }
+        }
+        if(Objects.nonNull(updateOrderStatusVO.getLogisticsCompany()) && StringUtils.isNotEmpty(updateOrderStatusVO.getTrackingNumber())){
+            // 更改物流信息
+            recipeOrderService.updateTrackingNumberByOrderId(updateOrderStatusVO);
+        }
+        return resultBean1;
 
     }
 

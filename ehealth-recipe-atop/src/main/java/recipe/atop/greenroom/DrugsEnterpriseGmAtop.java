@@ -55,7 +55,7 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
         return enterpriseIdAndAddrArea;
     }
 
- /**
+    /**
      * 添加药企配送地址快递费
      *
      * @param list
@@ -88,6 +88,18 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
     public List<EnterpriseAddressAndPrice> findEnterpriseAddressAndPrice(Integer enterpriseId,String area) {
         validateAtop(enterpriseId);
         List<EnterpriseAddressAndPrice> list = enterpriseBusinessService.findEnterpriseAddressAndPrice(enterpriseId,area);
+        return list;
+    }
+
+    /**
+     * 获取药企的配送地址以及费用
+     *
+     * @param enterpriseId
+     */
+    @RpcService
+    public List<EnterpriseAddressAndPrice> findEnterpriseAddressProvince(Integer enterpriseId) {
+        validateAtop(enterpriseId);
+        List<EnterpriseAddressAndPrice> list = enterpriseBusinessService.findEnterpriseAddressProvince(enterpriseId);
         return list;
     }
 

@@ -139,7 +139,7 @@ public abstract class HisRecipeDAO extends HibernateSupportDelegateDAO<HisRecipe
                         "select " +
                                 " h.diseaseName diseaseName,h.hisRecipeID hisRecipeID,h.registeredId registeredId, h.mpiId mpiId, h.recipeCode recipeCode, h.clinicOrgan clinicOrgan" +
                                 " , h.departCode departCode, h.departName departName, h.createDate createDate, h.doctorCode doctorCode, h.doctorName doctorName" +
-                                " , h.chronicDiseaseCode chronicDiseaseCode, h.chronicDiseaseName chronicDiseaseName, h.patientName patientName,h.memo memo,h.recipeType recipeType" +
+                                " , h.chronicDiseaseCode chronicDiseaseCode, h.chronicDiseaseName chronicDiseaseName, h.patientName patientName,h.memo memo,h.recipeType recipeType,h.status hisRecipeStatus " +
                                 " ,r.fromflag fromFlag" +
                                 "  ,r.recipeId recipeId" +
                                 ", r.orderCode orderCode, r.status status" +
@@ -166,6 +166,7 @@ public abstract class HisRecipeDAO extends HibernateSupportDelegateDAO<HisRecipe
                         .addScalar("patientName", StandardBasicTypes.STRING)
                         .addScalar("memo", StandardBasicTypes.STRING)
                         .addScalar("recipeType", StandardBasicTypes.INTEGER)
+                        .addScalar("hisRecipeStatus", StandardBasicTypes.INTEGER)
 
                         .addScalar("fromFlag", StandardBasicTypes.INTEGER)
                         .addScalar("recipeId", StandardBasicTypes.INTEGER)

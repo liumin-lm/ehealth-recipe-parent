@@ -157,9 +157,4 @@ public class RecipeOrderOpenAtop extends BaseAtop implements IRecipeOrderAtopSer
         logger.info("findReimbursementDetail reimbursementDetailVO={}", JSONUtils.toString(reimbursementDetailVO));
         return reimbursementDetailVO;
     }
-
-    @Override
-    public MedicalSettleInfoVO getMedicalSettleInfo(Integer recipeId) {
-        return recipeOrderService.getMedicalSettleInfo(recipeId);
-    }
 }

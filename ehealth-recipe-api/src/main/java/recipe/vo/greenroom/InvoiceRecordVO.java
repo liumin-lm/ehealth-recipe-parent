@@ -1,8 +1,11 @@
 package recipe.vo.greenroom;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import ctd.schema.annotation.ItemProperty;
 import lombok.Data;
 
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
@@ -45,9 +48,11 @@ public class InvoiceRecordVO implements Serializable {
     private String receiverEmail;
 
     @ItemProperty(alias="创建时间")
+    @Temporal(TemporalType.DATE)
     private Date createtime;
 
     @ItemProperty(alias="修改时间")
+    @Temporal(TemporalType.DATE)
     private Date updatetime;
 
     @ItemProperty(alias = "模板ID")
@@ -73,4 +78,22 @@ public class InvoiceRecordVO implements Serializable {
 
     @ItemProperty(alias="银行账号")
     private String bankAccountNumber;
+
+    @Temporal(TemporalType.DATE)
+    @JsonFormat(
+            pattern = "yyyy-MM-dd HH:mm:ss",
+            timezone = "Asia/Shanghai"
+    )
+    public Date getCreatetime() {
+        return createtime;
+    }
+
+    @Temporal(TemporalType.DATE)
+    @JsonFormat(
+            pattern = "yyyy-MM-dd HH:mm:ss",
+            timezone = "Asia/Shanghai"
+    )
+    public Date getUpdatetime() {
+        return updatetime;
+    }
 }

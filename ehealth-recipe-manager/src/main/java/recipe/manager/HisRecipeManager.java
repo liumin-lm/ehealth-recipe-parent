@@ -133,6 +133,8 @@ public class HisRecipeManager extends BaseManager {
         HisResponseTO<List<QueryHisRecipResTO>> responseTo = new HisResponseTO<List<QueryHisRecipResTO>>();
         if (HisRecipeConstant.HISRECIPESTATUS_NOIDEAL.equals(flag)) {
             responseTo = offlineRecipeClient.queryData(organId, patientDTO, timeQuantum, flag, recipeCode);
+            //过滤数据
+            responseTo = filterData(responseTo, recipeCode, flag);
         } else if (HisRecipeConstant.HISRECIPESTATUS_ALREADYIDEAL.equals(flag)) {
             List<QueryHisRecipResTO> queryHisRecipResToList = new ArrayList<>();
             Future<HisResponseTO<List<QueryHisRecipResTO>>> hisTask1 = GlobalEventExecFactory.instance().getExecutor().submit(() -> {
@@ -503,9 +505,11 @@ public class HisRecipeManager extends BaseManager {
     public String obtainPayStatus(String recipeCode, Integer clinicOrgan) {
         String realPayFlag = "";
         Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeCode, clinicOrgan);
-        if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
+        if (recipe != null && StringUtils.isNotEmpty(recipe.getOrderCode())) {
             RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
-            realPayFlag = payClient.orderQuery(recipeOrder);
+            if (recipeOrder != null) {
+                realPayFlag = payClient.orderQuery(recipeOrder);
+            }
         }
 //        if (PAY_SUCCESS.equals(realPayFlag)) {
 //            hisRecipeDao.updateHisRecieStatus(clinicOrgan, recipeCode, HisRecipeConstant.HISRECIPESTATUS_ALREADYIDEAL);
@@ -532,15 +536,15 @@ public class HisRecipeManager extends BaseManager {
         hisRecipeTO.forEach(a -> {
             String recipeCode = a.getRecipeCode();
             HisRecipe hisRecipe = hisRecipeMap.get(recipeCode);
-            //如果已经支付，则不允许删除（场景：a操作用户绑定就诊人支付，且支付成功，但是支付平台回调慢，导致处方支付状态未更改   所以需要回查，是否已支付 如果已经支付，则不允许更改数据）
-            String payFlag = obtainPayStatus(recipeCode, hisRecipe.getClinicOrgan());
-            if (PayConstant.RESULT_SUCCESS.equals(payFlag) || PayConstant.RESULT_WAIT.equals(payFlag) || PayConstant.ERROR.equals(payFlag)) {
-                return;
-            }
             if (null == hisRecipe) {
                 return;
             } else {
                 if (!hisRecipe.getMpiId().equals(mpiId)) {
+                    //如果已经支付，则不允许删除（场景：a操作用户绑定就诊人支付，且支付成功，但是支付平台回调慢，导致处方支付状态未更改   所以需要回查，是否已支付 如果已经支付，则不允许更改数据）
+                    String payFlag = obtainPayStatus(recipeCode, hisRecipe.getClinicOrgan());
+                    if (PayConstant.RESULT_SUCCESS.equals(payFlag) || PayConstant.RESULT_WAIT.equals(payFlag) || PayConstant.ERROR.equals(payFlag)) {
+                        return;
+                    }
                     deleteSetRecipeCode.add(recipeCode);
                     LOGGER.info("deleteSetRecipeCode cause mpiid recipeCode:{}", recipeCode);
                     return;

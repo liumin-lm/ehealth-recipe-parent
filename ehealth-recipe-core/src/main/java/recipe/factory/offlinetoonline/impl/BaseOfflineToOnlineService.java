@@ -37,6 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
+import recipe.aop.LogRecord;
 import recipe.business.StockBusinessService;
 import recipe.client.DepartClient;
 import recipe.client.RevisitClient;
@@ -401,10 +402,26 @@ public class BaseOfflineToOnlineService {
      * @param recipeCode  recipeCode
      * @param clinicOrgan clinicOrgan
      */
+    @LogRecord
     void setOtherInfo(HisRecipeVO hisRecipeVO, String mpiId, String recipeCode, Integer clinicOrgan) {
         Recipe recipe = recipeDAO.getByHisRecipeCodeAndClinicOrganAndMpiid(mpiId, recipeCode, clinicOrgan);
+        List<HisRecipe> hisRecipes = hisRecipeDao.findHisRecipeByRecipeCodeAndClinicOrgan(clinicOrgan, Arrays.asList(recipeCode));
+        HisRecipe hisRecipe = new HisRecipe();
+        if (CollectionUtils.isNotEmpty(hisRecipes)) {
+            hisRecipe = hisRecipes.get(0);
+        }
         if (recipe == null) {
-            hisRecipeVO.setStatusText("待处理");
+            if (hisRecipe != null && null != hisRecipe.getStatus()) {
+                if (HisRecipeConstant.HISRECIPESTATUS_ALREADYIDEAL.equals(hisRecipe.getStatus())) {
+                    hisRecipeVO.setStatusText("已处理");
+                } else if (HisRecipeConstant.HISRECIPESTATUS_EXPIRED.equals(hisRecipe.getStatus())) {
+                    hisRecipeVO.setStatusText("已失效");
+                } else {
+                    hisRecipeVO.setStatusText("待处理");
+                }
+            } else {
+                hisRecipeVO.setStatusText("待处理");
+            }
             hisRecipeVO.setFromFlag(1);
             hisRecipeVO.setJumpPageType(0);
         } else {
@@ -485,10 +502,10 @@ public class BaseOfflineToOnlineService {
                 throw new DAOException(609, "该处方单已被他人支付！");
             }
             if (PayConstant.RESULT_WAIT.equals(payFlag)) {
-                throw new DAOException(609, "该处方单已被他人正在处理！");
+                throw new DAOException(609, "该处方单被他人正在处理中！");
             }
             if (PayConstant.ERROR.equals(payFlag)) {
-                throw new DAOException(609, "掉用支付平台异常！");
+                throw new DAOException(609, "调用支付平台异常！");
             }
         }
 

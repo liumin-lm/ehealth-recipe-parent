@@ -39,6 +39,7 @@ import ctd.util.Base64;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import easypay.entity.vo.param.bus.MedicalPreSettleQueryReq;
 import eh.base.constant.ErrorCode;
 import eh.cdr.constant.OrderStatusConstant;
 import eh.entity.bus.Order;
@@ -60,6 +61,8 @@ import recipe.client.DepartClient;
 import recipe.client.IConfigurationClient;
 import recipe.client.RevisitClient;
 import recipe.dao.DrugsEnterpriseDAO;
+import recipe.dao.RecipeDAO;
+import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.enumerate.status.GiveModeEnum;
 import recipe.enumerate.type.ForceCashTypeEnum;
@@ -73,6 +76,7 @@ import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.serviceprovider.recipeorder.service.RemoteRecipeOrderService;
 import recipe.third.HztServiceInterface;
 import recipe.util.ObjectCopyUtils;
+import com.ngari.pay.api.service.bus.IBusPayService;
 
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
@@ -84,7 +88,7 @@ import java.util.stream.Collectors;
  * base里的处方业务支付信息放到recipe里处理
  */
 @RpcBean
-public class RecipeBusPayInfoService implements IRecipeBusPayService {
+public class RecipeBusPayInfoService implements IRecipeBusPayService,IBusPayService {
 
     private static final Logger log = LoggerFactory.getLogger(RecipeBusPayInfoService.class);
 
@@ -126,6 +130,11 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
 
     @Autowired
     private HealthCardService healthCardService;
+
+    @Autowired
+    private RecipeDAO recipeDAO;
+    @Autowired
+    private RecipeExtendDAO recipeExtendDAO;
 
 
     private IConfigurationCenterUtilsService utils = BaseAPI.getService(IConfigurationCenterUtilsService.class);
@@ -945,5 +954,44 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
             wnExtBusCdrRecipe.setYbrc(res.getYbrc());
 
         }
+    }
+
+    /**
+     * 医保预结算/结算所需业务入参查询（基础服务调用）
+     * @param recipeId
+     * @return
+     */
+    @Override
+    @RpcService
+    public MedicalPreSettleQueryReq medicalPreSettleQueryInfo(Integer recipeId) {
+        log.info("RecipeBusPayInfoService medicalPreSettleQueryInfo recipeId={}", recipeId);
+        MedicalPreSettleQueryReq medicalPreSettleQueryReq = new MedicalPreSettleQueryReq();
+        Recipe recipe = recipeDAO.get(recipeId);
+        if(Objects.isNull(recipe)){
+            throw new DAOException("未获取到处方信息！");
+        }
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+        if(Objects.isNull(recipeExtend)){
+            throw new DAOException("未获取到处方扩展信息！");
+        }
+        try {
+            medicalPreSettleQueryReq.setOrganId(recipe.getClinicOrgan());
+            medicalPreSettleQueryReq.setMrn(recipeExtend.getMedicalRecordNumber());
+            medicalPreSettleQueryReq.setClinicNo(recipeExtend.getRegisterID());
+            if(StringUtils.isNotEmpty(recipe.getOrderCode())){
+                RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+                if(Objects.isNull(recipeOrder)){
+                    throw new DAOException("未获取到处方订单信息！");
+                }
+                medicalPreSettleQueryReq.setHisSettlementNo(recipeOrder.getHisSettlementNo());
+                medicalPreSettleQueryReq.setTotalAmount(recipeOrder.getTotalFee());
+                String recipeIdList = recipeOrder.getRecipeIdList();
+                String recipeNos = recipeIdList.replace(",", "|");
+                medicalPreSettleQueryReq.setRecipeNos(recipeNos);
+            }
+        }catch (Exception e){
+            log.error("RecipeBusPayInfoService medicalPreSettleQueryInfo error", e);
+        }
+        return medicalPreSettleQueryReq;
     }
 }

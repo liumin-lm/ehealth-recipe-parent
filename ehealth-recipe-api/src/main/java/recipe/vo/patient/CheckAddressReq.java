@@ -28,4 +28,6 @@ public class CheckAddressReq implements Serializable {
     private String address2;
     //区
     private String address3;
+    //街道
+    private String address4;
 }

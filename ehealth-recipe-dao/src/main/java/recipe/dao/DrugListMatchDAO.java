@@ -362,4 +362,29 @@ public abstract class DrugListMatchDAO extends HibernateSupportDelegateDAO<DrugL
         HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
+
+    public List<DrugListMatch> getBySourceOrganAndStatus(Integer organId,Integer status){
+        HibernateStatelessResultAction<List<DrugListMatch>> action = new AbstractHibernateStatelessResultAction<List<DrugListMatch>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder();
+                hql.append("select b.* from OrganDrugList a, DrugListMatch b where a.organDrugCode=b.organDrugCode and b.sourceOrgan=a.organId ");
+                hql.append("and b.sourceOrgan=:organId ");
+                hql.append("and b.status != 2");
+                //0表示只新增不更新
+                if(new Integer(0).equals(status)){
+                    hql.append("and a.organDrugId is null ");
+                }
+                //1表示只更新不新增
+                if(new Integer(1).equals(status)){
+                    hql.append("and a.organDrugId is not null ");
+                }
+                Query q = ss.createQuery(hql.toString());
+                q.setParameter("organId", organId);
+                setResult(q.list());
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
 }

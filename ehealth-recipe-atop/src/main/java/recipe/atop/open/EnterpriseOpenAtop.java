@@ -1,6 +1,7 @@
 package recipe.atop.open;
 
 import ctd.util.annotation.RpcBean;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.api.open.IEnterpriseOpenAtop;
@@ -9,10 +10,12 @@ import recipe.core.api.IDrugsEnterpriseBusinessService;
 import recipe.util.DateConversion;
 import recipe.vo.second.CheckAddressVo;
 import recipe.vo.second.enterpriseOrder.EnterpriseConfirmOrderVO;
+import recipe.vo.second.enterpriseOrder.EnterpriseDrugVO;
 import recipe.vo.second.enterpriseOrder.EnterpriseResultBean;
 import recipe.vo.second.enterpriseOrder.EnterpriseSendOrderVO;
 
 import java.util.Date;
+import java.util.List;
 
 /**
  * @description： 药企openatop
@@ -61,6 +64,14 @@ public class EnterpriseOpenAtop  extends BaseAtop implements IEnterpriseOpenAtop
             return EnterpriseResultBean.getFail("订单编号为空");
         }
         return enterpriseBusinessService.finishOrder(enterpriseSendOrderVO);
+    }
+
+    @Override
+    public EnterpriseResultBean renewDrugInfo(List<EnterpriseDrugVO> enterpriseDrugVOList){
+        if (CollectionUtils.isEmpty(enterpriseDrugVOList)) {
+            return EnterpriseResultBean.getFail("入参为空");
+        }
+        return enterpriseBusinessService.renewDrugInfo(enterpriseDrugVOList);
     }
 
 }
