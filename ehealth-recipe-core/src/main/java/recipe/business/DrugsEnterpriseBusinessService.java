@@ -2,6 +2,8 @@ package recipe.business;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.his.recipe.mode.DrugTakeChangeReqTO;
 import com.ngari.patient.service.AddrAreaService;
@@ -72,6 +74,7 @@ import recipe.vo.second.enterpriseOrder.EnterpriseResultBean;
 import recipe.vo.second.enterpriseOrder.EnterpriseSendOrderVO;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
@@ -519,16 +522,21 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
 
     @Override
     public List<EnterpriseAddressAndPrice> findEnterpriseAddressProvince(Integer enterpriseId) {
-        AddrAreaService addrAreaService = AppContextHolder.getBean("basic.addrAreaService", AddrAreaService.class);
-        HashMap<String, String> provinceHash = addrAreaService.getProvinceHash();
-        Set<String> strings = provinceHash.keySet();
-        List<String> collect = strings.stream().collect(Collectors.toList());
-        List<EnterpriseAddress> enterpriseAddresses = enterpriseAddressDAO.findEnterpriseAddressProvince(enterpriseId,collect);
+        List<EnterpriseAddress> enterpriseAddresses = enterpriseAddressDAO.findByEnterPriseId(enterpriseId);
         if(CollectionUtils.isEmpty(enterpriseAddresses)){
             return Lists.newArrayList();
         }
-        return BeanCopyUtils.copyList(enterpriseAddresses,EnterpriseAddressAndPrice::new);
+
+        List<EnterpriseAddressAndPrice> list = enterpriseAddresses.stream().map(enterpriseAddress -> {
+            EnterpriseAddressAndPrice enterpriseAddressAndPrice = new EnterpriseAddressAndPrice();
+            enterpriseAddressAndPrice.setEnterpriseId(enterpriseAddress.getEnterpriseId());
+            enterpriseAddressAndPrice.setAddress(enterpriseAddress.getAddress().substring(0, 2));
+
+            return enterpriseAddressAndPrice;
+        }).filter(distinctByKey(e -> e.getAddress())).collect(Collectors.toList());
+        return list;
     }
+
 
     @Override
     public EnterpriseResultBean renewDrugInfo(List<EnterpriseDrugVO> enterpriseDrugVOList) {
@@ -669,5 +677,11 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
             }
         }
         return flag;
+    }
+
+
+    private static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {
+        Map<Object, Boolean> seen = new ConcurrentHashMap<>();
+        return t -> seen.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
     }
 }
