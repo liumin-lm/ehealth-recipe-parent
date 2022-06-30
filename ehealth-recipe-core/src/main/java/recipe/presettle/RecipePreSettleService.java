@@ -9,7 +9,6 @@ import com.ngari.recipe.entity.RecipeOrder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
-import jdk.nashorn.internal.ir.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
