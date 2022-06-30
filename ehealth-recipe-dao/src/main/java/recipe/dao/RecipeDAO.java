@@ -5,10 +5,11 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.common.dto.DepartChargeReportResult;
 import com.ngari.common.dto.HosBusFundsReportResult;
-import com.ngari.patient.utils.ObjectCopyUtils;
-import com.ngari.recipe.entity.*;
+import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeOrder;
+import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.entity.Symptom;
 import com.ngari.recipe.recipe.model.*;
-import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.annotation.DAOMethod;
@@ -880,12 +881,14 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
 
     /**
      * 根据处方ID修改处方状态，最后更新时间和自定义需要修改的字段
+     * todo map更新方式作废 新方法 updateNonNullFieldByPrimaryKey
      *
      * @param status
      * @param recipeId
      * @param changeAttr 需要级联修改的其他字段
      * @return
      */
+    @Deprecated
     public Boolean updateRecipeInfoByRecipeId(final int recipeId, final int status, final Map<String, ?> changeAttr) {
         HibernateStatelessResultAction<Boolean> action = new AbstractHibernateStatelessResultAction<Boolean>() {
             @Override
