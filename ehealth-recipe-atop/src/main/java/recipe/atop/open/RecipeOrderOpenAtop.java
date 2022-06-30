@@ -157,4 +157,10 @@ public class RecipeOrderOpenAtop extends BaseAtop implements IRecipeOrderAtopSer
         logger.info("findReimbursementDetail reimbursementDetailVO={}", JSONUtils.toString(reimbursementDetailVO));
         return reimbursementDetailVO;
     }
+
+    @Override
+    public Integer thirdCreateOrder(ThirdCreateOrderReqDTO thirdCreateOrderReqDTO) {
+        logger.info("RecipeOrderOpenAtop thirdCreateOrder thirdCreateOrderReqDTO:{}.", JSONUtils.toString(thirdCreateOrderReqDTO));
+        return recipeOrderService.thirdCreateOrder(thirdCreateOrderReqDTO);
+    }
 }

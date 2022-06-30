@@ -9,10 +9,7 @@ import com.ngari.recipe.dto.RecipeOrderDto;
 import com.ngari.recipe.dto.ReimbursementDTO;
 import com.ngari.recipe.dto.SkipThirdDTO;
 import com.ngari.recipe.entity.RecipeOrder;
-import com.ngari.recipe.recipe.model.MedicalSettleInfoVO;
-import com.ngari.recipe.recipe.model.RecipeOrderWaybillDTO;
-import com.ngari.recipe.recipe.model.ReimbursementListReqVO;
-import com.ngari.recipe.recipe.model.SkipThirdReqVO;
+import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
 import ctd.util.annotation.RpcService;
 import recipe.vo.ResultBean;
@@ -137,4 +134,11 @@ public interface IRecipeOrderBusinessService {
      * @param updateOrderStatusVO
      */
     void updateTrackingNumberByOrderId(UpdateOrderStatusVO updateOrderStatusVO);
+
+    /**
+     * 第三方创建订单
+     * @param thirdCreateOrderReqDTO
+     * @return
+     */
+    Integer thirdCreateOrder(ThirdCreateOrderReqDTO thirdCreateOrderReqDTO);
 }
