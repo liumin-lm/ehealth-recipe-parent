@@ -15,10 +15,14 @@ import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RecipeOrderWaybillDTO;
 import com.ngari.recipe.recipe.model.ReimbursementListReqVO;
 import com.ngari.recipe.recipe.model.SkipThirdReqVO;
+import com.ngari.recipe.recipe.model.ThirdCreateOrderReqDTO;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
+import ctd.account.UserRoleToken;
+import ctd.account.thirdparty.ThirdPartyMappingController;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.bean.QueryResult;
+import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import eh.entity.bus.pay.BusTypeEnum;
 import eh.utils.BeanCopyUtils;
@@ -46,6 +50,7 @@ import recipe.factory.status.givemodefactory.GiveModeProxy;
 import recipe.manager.EnterpriseManager;
 import recipe.manager.OrderManager;
 import recipe.manager.RecipeManager;
+import recipe.openapi.business.request.ThirdSaveOrderRequest;
 import recipe.service.RecipeOrderService;
 import recipe.third.IFileDownloadService;
 import recipe.util.DateConversion;
@@ -494,6 +499,51 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
     @Override
     public void updateTrackingNumberByOrderId(UpdateOrderStatusVO updateOrderStatusVO) {
         recipeOrderDAO.updateTrackingNumberByOrderId(updateOrderStatusVO.getOrderId(), updateOrderStatusVO.getLogisticsCompany(), updateOrderStatusVO.getTrackingNumber());
+    }
+
+    @Override
+    public Integer thirdCreateOrder(ThirdCreateOrderReqDTO thirdCreateOrderReqDTO) {
+        checkOrderParams(thirdCreateOrderReqDTO);
+        setUrtToContext(thirdCreateOrderReqDTO.getAppkey(), thirdCreateOrderReqDTO.getTid());
+        String mpiId = getOwnMpiId();
+        List<Recipe> recipeList = recipeDAO.findByRecipeIds(thirdCreateOrderReqDTO.getRecipeIds());
+
+        return null;
+    }
+
+    /**
+     * 获取当前登录用户的MPIID
+     * @return 当前用户的MPIID
+     */
+    private String getOwnMpiId(){
+        UserRoleToken userRoleToken = UserRoleToken.getCurrent();
+        logger.info("ThirdRecipeService.getOwnMpiId userRoleToken:{}.", JSONUtils.toString(userRoleToken));
+        return userRoleToken.getOwnMpiId();
+    }
+
+    /**
+     * 模拟登录
+     * @param thirdParty 第三方标识
+     * @param tid 第三方唯一标识
+     */
+    private void setUrtToContext(String thirdParty, String tid){
+        ThirdPartyMappingController.instance().setUrtToContext(thirdParty, tid);
+    }
+
+    /**
+     * 参数校验
+     * @param request
+     */
+    private void checkOrderParams(ThirdCreateOrderReqDTO request){
+        if (StringUtils.isEmpty(request.getTid())) {
+            throw new DAOException(609, "用户为空");
+        }
+        if (Objects.isNull(request.getRecipeIds())) {
+            throw new DAOException(609, "处方单ID为空");
+        }
+        if (StringUtils.isEmpty(request.getPayway())) {
+            throw new DAOException(609, "支付类型为空");
+        }
     }
 
 

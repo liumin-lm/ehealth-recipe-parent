@@ -290,9 +290,9 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
                 checkAddressReq.getEnterpriseId(),
                 checkAddressReq.getDecoctionId());
         String checkAddress = checkAddressReq.getAddress3();
-        if (StringUtils.isNotEmpty(checkAddressReq.getAddress4())) {
-            checkAddress = checkAddressReq.getAddress4();
-        }
+//        if (StringUtils.isNotEmpty(checkAddressReq.getAddress4())) {
+//            checkAddress = checkAddressReq.getAddress4();
+//        }
         if (CollectionUtils.isEmpty(enterpriseDecoctionAddressList)) {
             List<EnterpriseAddress> list = enterpriseAddressDAO.findByEnterPriseId(checkAddressReq.getEnterpriseId());
             if (CollectionUtils.isNotEmpty(list)) {
