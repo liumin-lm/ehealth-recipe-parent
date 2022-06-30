@@ -1404,6 +1404,7 @@ public class DrugToolService implements IDrugToolService {
         Map<String, Integer> map = new HashMap<>();
         Integer result = 0;
         try {
+            LOGGER.info("drugCommit getBySourceOrganAndStatus start");
             if (CollectionUtils.isEmpty(lists)) {
                 if(new Integer(1).equals(addFlag) && new Integer(0).equals(updateFlag)){
                     lists = drugListMatchDAO.getBySourceOrganAndStatus(organ,0);
@@ -1417,6 +1418,7 @@ public class DrugToolService implements IDrugToolService {
                     return map;
                 }
             }
+            LOGGER.info("drugCommit getBySourceOrganAndStatus end");
             if (lists.size() > 0) {
                 for (DrugListMatch drugListMatch : lists) {
                     DrugListMatch db = drugListMatchDAO.get(drugListMatch.getDrugId());
