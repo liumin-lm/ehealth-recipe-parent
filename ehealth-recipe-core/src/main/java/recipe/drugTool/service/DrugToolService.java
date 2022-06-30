@@ -1608,16 +1608,18 @@ public class DrugToolService implements IDrugToolService {
                         //防止既更新又新增的时候把更新的数据又保存一编
                         boolean handleFlag = false; //数据操作标识
                         if (new Integer(1).equals(updateFlag)) {
-                            organDrugListDAO.updateData(organDrugList);
-                            List<OrganDrugList> byDrugIdAndOrganId = organDrugListDAO.findByOrganDrugCodeAndOrganId(organDrugList.getOrganDrugCode(), organDrugList.getOrganId());
-                            if (byDrugIdAndOrganId != null && byDrugIdAndOrganId.size() > 0) {
-                                for (OrganDrugList drugList : byDrugIdAndOrganId) {
-                                    organDrugSync(drugList);
+                            handleFlag = organDrugListDAO.updateData(organDrugList);
+                            //更新失败则直接去保存
+                            if(handleFlag){
+                                List<OrganDrugList> byDrugIdAndOrganId = organDrugListDAO.findByOrganDrugCodeAndOrganId(organDrugList.getOrganDrugCode(), organDrugList.getOrganId());
+                                if (byDrugIdAndOrganId != null && byDrugIdAndOrganId.size() > 0) {
+                                    for (OrganDrugList drugList : byDrugIdAndOrganId) {
+                                        organDrugSync(drugList);
+                                    }
                                 }
+                                //更新
+                                updateMsg.append("【" + organDrugList.getDrugId() + "-" + organDrugList.getDrugName() + "】");
                             }
-                            handleFlag = true;
-                            //更新
-                            updateMsg.append("【" + organDrugList.getDrugId() + "-" + organDrugList.getDrugName() + "】");
                         }
                         //addFlag为1时新增药品信息，否则不新增
                         if (new Integer(1).equals(addFlag)) {
