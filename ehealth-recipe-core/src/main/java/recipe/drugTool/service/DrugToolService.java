@@ -1406,15 +1406,13 @@ public class DrugToolService implements IDrugToolService {
         try {
             LOGGER.info("drugCommit getBySourceOrganAndStatus start");
             if (CollectionUtils.isEmpty(lists)) {
-                if(new Integer(1).equals(addFlag) && new Integer(0).equals(updateFlag)){
-                    lists = drugListMatchDAO.getBySourceOrganAndStatus(organ,0);
-                }
-                else if(new Integer(0).equals(addFlag) && new Integer(1).equals(updateFlag)){
-                    lists = drugListMatchDAO.getBySourceOrganAndStatus(organ,1);
-                }
-                else if(new Integer(1).equals(addFlag) && new Integer(1).equals(updateFlag)){
+                if (new Integer(1).equals(addFlag) && new Integer(0).equals(updateFlag)) {
+                    lists = drugListMatchDAO.getBySourceOrganAndStatus(organ, 0);
+                } else if (new Integer(0).equals(addFlag) && new Integer(1).equals(updateFlag)) {
+                    lists = drugListMatchDAO.getBySourceOrganAndStatus(organ, 1);
+                } else if (new Integer(1).equals(addFlag) && new Integer(1).equals(updateFlag)) {
                     lists = drugListMatchDAO.findMatchDataByOrganAndStatus(organ);
-                }else{
+                } else {
                     return map;
                 }
             }
@@ -1610,19 +1608,20 @@ public class DrugToolService implements IDrugToolService {
                         //防止既更新又新增的时候把更新的数据又保存一编
                         boolean handleFlag = false; //数据操作标识
                         if (new Integer(1).equals(updateFlag)) {
-                            handleFlag = organDrugListDAO.updateData(organDrugList);
+                            organDrugListDAO.updateData(organDrugList);
                             List<OrganDrugList> byDrugIdAndOrganId = organDrugListDAO.findByOrganDrugCodeAndOrganId(organDrugList.getOrganDrugCode(), organDrugList.getOrganId());
                             if (byDrugIdAndOrganId != null && byDrugIdAndOrganId.size() > 0) {
                                 for (OrganDrugList drugList : byDrugIdAndOrganId) {
                                     organDrugSync(drugList);
                                 }
                             }
+                            handleFlag = true;
                             //更新
                             updateMsg.append("【" + organDrugList.getDrugId() + "-" + organDrugList.getDrugName() + "】");
                         }
                         //addFlag为1时新增药品信息，否则不新增
                         if (new Integer(1).equals(addFlag)) {
-                            if(!handleFlag){
+                            if (!handleFlag) {
                                 OrganDrugList save = organDrugListDAO.save(organDrugList);
                                 organDrugSync(save);
                                 saveMsg.append("【" + organDrugList.getDrugId() + "-" + organDrugList.getDrugName() + "】");
