@@ -557,7 +557,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
         order.setRecipeIdList(JSONUtils.toString(Arrays.asList(recipe.getRecipeId())));
         order.setPayFlag(0);
         //设置订单各个费用
-        setOrderFee(order, recipeList, thirdCreateOrderReqDTO);
+        thirdOrderSetFee(order, recipeList, thirdCreateOrderReqDTO);
         order.setWxPayWay(thirdCreateOrderReqDTO.getPayway());
         order.setCreateTime(new Date());
         order.setPayTime(new Date());
@@ -584,7 +584,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
      * @param recipeList
      * @param thirdCreateOrderReqDTO
      */
-    private void setOrderFee(RecipeOrder order, List<Recipe> recipeList, ThirdCreateOrderReqDTO thirdCreateOrderReqDTO) {
+    private void thirdOrderSetFee(RecipeOrder order, List<Recipe> recipeList, ThirdCreateOrderReqDTO thirdCreateOrderReqDTO) {
         //设置挂号费
         if (thirdCreateOrderReqDTO.getRegisterFee() != null && thirdCreateOrderReqDTO.getRegisterFee().compareTo(BigDecimal.ZERO) > 0) {
             order.setRegisterFee(thirdCreateOrderReqDTO.getRegisterFee());
