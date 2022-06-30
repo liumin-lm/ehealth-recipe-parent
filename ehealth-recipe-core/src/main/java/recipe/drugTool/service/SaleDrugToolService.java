@@ -447,7 +447,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                     if (detail.getStatus().equals(1)){
                         SaleDrugList saleDrugList1 = byOrganIdAndDrugCode.get(0);
                         //更新药品的时候同时更新价格
-                        if(syncTypeList.contains("4")){
+                        if(!syncTypeList.contains("4")){
                             saleDrugList1.setPrice(detail.getSalePrice());
                         }
                         saleDrugList1.setDrugId(detail.getDrugId());
