@@ -80,14 +80,14 @@ public abstract class RecipeRulesDrugCorrelationDAO extends HibernateSupportDele
                 Long total = (Long) countQuery.uniqueResult();
 
                 Query query = ss.createQuery(hql.toString());
-                if (Objects.nonNull(input)) {
+                if (StringUtils.isNotBlank(input)) {
                     query.setParameter("input", "%" + input + "%");
                 }
                 if (Objects.nonNull(drugId)) {
                     query.setParameter("drugId", drugId);
                 }
                 if (Objects.nonNull(rulesId)) {
-                    countQuery.setParameter("rulesId", rulesId);
+                    query.setParameter("rulesId", rulesId);
                 }
                 query.setFirstResult(start);
                 query.setMaxResults(limit);

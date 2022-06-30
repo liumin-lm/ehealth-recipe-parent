@@ -11,12 +11,12 @@ import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 import recipe.dao.RecipeRulesDrugCorrelationDAO;
 
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * 合理用药规则 药品关系 服务类
@@ -70,16 +70,15 @@ public class RecipeRulesDrugCorrelationService implements IRulesDrugCorrelationS
      */
     @Override
     @RpcService
-    public void addRulesDrugCorrelation(List<RulesDrugCorrelationDTO> rulesList, Integer rulesId) {
-        if (Objects.isNull(rulesId) || CollectionUtils.isEmpty(rulesList)) {
+    public void addRulesDrugCorrelation(List<RulesDrugCorrelationDTO> list, Integer rulesId) {
+        if (Objects.isNull(rulesId) || CollectionUtils.isEmpty(list)) {
             throw new DAOException(DAOException.VALUE_NEEDED, "param is required!");
         }
-        for (RulesDrugCorrelationDTO rule : rulesList) {
-            if (Objects.isNull(rule.getDrugId()) || StringUtils.isEmpty(rule.getDrugName())) {
-                throw new DAOException(DAOException.VALUE_NEEDED, "药品信息不完善！");
-            }
+        //前端目前空的RulesDrugCorrelationDTO对象也会传过来，每个字段都是"", 临时处理下
+        List<RulesDrugCorrelationDTO> rulesList = list.stream().filter(x -> Objects.nonNull(x.getDrugId())).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(list)) {
+            return;
         }
-
         if (OVER.equals(rulesId)) {
             //超量
             for (RulesDrugCorrelationDTO rule : rulesList) {
