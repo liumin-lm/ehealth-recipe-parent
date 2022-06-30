@@ -3,6 +3,7 @@ package com.ngari.recipe.recipe.model;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -38,23 +39,23 @@ public class ThirdCreateOrderReqDTO implements Serializable {
 
     private String depId;
 
-    private Double expressFee;
+    private BigDecimal expressFee;
 
     private String gysCode;
 
     private String sendMethod;
 
-    private Double calculateFee;
+    private BigDecimal calculateFee;
 
     private String pharmacyCode;
 
-    private Double registerFee;
+    private BigDecimal registerFee;
 
-    private Double decoctionFee;
+    private BigDecimal decoctionFee;
 
-    private Double auditFee;
+    private BigDecimal auditFee;
 
-    private Double recipeFee;
+    private BigDecimal recipeFee;
 
-    private Double totalFee;
+    private BigDecimal totalFee;
 }
