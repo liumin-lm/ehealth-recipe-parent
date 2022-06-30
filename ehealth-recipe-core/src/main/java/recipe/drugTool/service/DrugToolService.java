@@ -1405,7 +1405,17 @@ public class DrugToolService implements IDrugToolService {
         Integer result = 0;
         try {
             if (CollectionUtils.isEmpty(lists)) {
-                lists = drugListMatchDAO.findMatchDataByOrganAndStatus(organ);
+                if(new Integer(1).equals(addFlag) && new Integer(0).equals(updateFlag)){
+                    lists = drugListMatchDAO.getBySourceOrganAndStatus(organ,0);
+                }
+                else if(new Integer(0).equals(addFlag) && new Integer(1).equals(updateFlag)){
+                    lists = drugListMatchDAO.getBySourceOrganAndStatus(organ,1);
+                }
+                else if(new Integer(1).equals(addFlag) && new Integer(1).equals(updateFlag)){
+                    lists = drugListMatchDAO.findMatchDataByOrganAndStatus(organ);
+                }else{
+                    return map;
+                }
             }
             if (lists.size() > 0) {
                 for (DrugListMatch drugListMatch : lists) {
