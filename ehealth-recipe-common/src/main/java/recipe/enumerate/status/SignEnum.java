@@ -21,8 +21,12 @@ public enum SignEnum {
         this.name = name;
         this.desc = desc;
     }
+
     public Integer getType() {
         return type;
     }
 
+    public String getName() {
+        return name;
+    }
 }

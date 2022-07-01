@@ -763,7 +763,9 @@ public class RecipeService extends RecipeBaseService {
         if (null == recipeId) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "recipeId is null");
         }
-        recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of("status", RecipeStatusConstant.SIGN_ING_CODE_DOC));
+        stateManager.updateStatus(recipeId, RecipeStatusEnum.RECIPE_STATUS_SIGN_ING_CODE_DOC, SignEnum.sign_STATE_SUBMIT);
+        stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_SUBMIT, RecipeStateEnum.NONE);
+
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         String memo;
         String thirdCASign = configurationClient.getValueCatch(recipe.getClinicOrgan(), "thirdCASign", "");
@@ -888,54 +890,54 @@ public class RecipeService extends RecipeBaseService {
         //根据审方模式改变--审核未通过处理
         auditModeContext.getAuditModes(dbRecipe.getReviewType()).afterCheckNotPassYs(dbRecipe);
     }
-
-    //医生端二次审核签名重试
-    @Deprecated
-    @RpcService
-    public void retryDoctorSecondSignCheck(Integer recipeId) {
-        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
-        RecipeLogDAO recipeLogDAO = getDAO(RecipeLogDAO.class);
-        Recipe dbRecipe = recipeDAO.getByRecipeId(recipeId);
-        //date 20200507
-        //设置处方的状态为医生签名中
-        if (null == dbRecipe) {
-            LOGGER.warn("当前处方{}不存在!", recipeId);
-            return;
-        }
-        try {
-            //写入his成功后，生成pdf并签名
-            RecipeResultBean recipeSignResult = generateRecipePdfAndSign(dbRecipe.getRecipeId());
-            if (RecipeResultBean.FAIL == recipeSignResult.getCode()) {
-                //说明处方签名失败
-                LOGGER.info("当前签名处方{}签名失败！", recipeId);
-                recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.SIGN_ERROR_CODE_DOC, null);
-                recipeLogDAO.saveRecipeLog(recipeId, dbRecipe.getStatus(), dbRecipe.getStatus(), recipeSignResult.getMsg());
-                return;
-            } else {
-                //说明处方签名成功，记录日志，走签名成功逻辑
-                LOGGER.info("当前签名处方{}签名成功！", recipeId);
-                //更新审方checkFlag为待审核
-                Map<String, Object> attrMap = Maps.newHashMap();
-                attrMap.put("checkFlag", 0);
-                recipeDAO.updateRecipeInfoByRecipeId(recipeId, attrMap);
-                LOGGER.info("checkFlag {} 更新为待审核", recipeId);
-                recipeLogDAO.saveRecipeLog(recipeId, dbRecipe.getStatus(), dbRecipe.getStatus(), "当前签名处方签名成功");
-            }
-
-
-        } catch (Exception e) {
-            LOGGER.error("checkPassSuccess 签名服务或者发送卡片异常. ", e);
-        }
-
-        //根据处方单判断处方二次审核通过原因，判断是否通过
-        //说明是二次审核不通过
-        if (StringUtils.isEmpty(dbRecipe.getSupplementaryMemo())) {
-            retryDoctorSecondCheckNoPass(dbRecipe);
-        } else {
-            //说明是二次审核通过
-            retryDoctorSecondCheckPass(dbRecipe);
-        }
-    }
+//
+//    //医生端二次审核签名重试
+//    @Deprecated
+//    @RpcService
+//    public void retryDoctorSecondSignCheck(Integer recipeId) {
+//        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
+//        RecipeLogDAO recipeLogDAO = getDAO(RecipeLogDAO.class);
+//        Recipe dbRecipe = recipeDAO.getByRecipeId(recipeId);
+//        //date 20200507
+//        //设置处方的状态为医生签名中
+//        if (null == dbRecipe) {
+//            LOGGER.warn("当前处方{}不存在!", recipeId);
+//            return;
+//        }
+//        try {
+//            //写入his成功后，生成pdf并签名
+//            RecipeResultBean recipeSignResult = generateRecipePdfAndSign(dbRecipe.getRecipeId());
+//            if (RecipeResultBean.FAIL == recipeSignResult.getCode()) {
+//                //说明处方签名失败
+//                LOGGER.info("当前签名处方{}签名失败！", recipeId);
+//                recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.SIGN_ERROR_CODE_DOC, null);
+//                recipeLogDAO.saveRecipeLog(recipeId, dbRecipe.getStatus(), dbRecipe.getStatus(), recipeSignResult.getMsg());
+//                return;
+//            } else {
+//                //说明处方签名成功，记录日志，走签名成功逻辑
+//                LOGGER.info("当前签名处方{}签名成功！", recipeId);
+//                //更新审方checkFlag为待审核
+//                Map<String, Object> attrMap = Maps.newHashMap();
+//                attrMap.put("checkFlag", 0);
+//                recipeDAO.updateRecipeInfoByRecipeId(recipeId, attrMap);
+//                LOGGER.info("checkFlag {} 更新为待审核", recipeId);
+//                recipeLogDAO.saveRecipeLog(recipeId, dbRecipe.getStatus(), dbRecipe.getStatus(), "当前签名处方签名成功");
+//            }
+//
+//
+//        } catch (Exception e) {
+//            LOGGER.error("checkPassSuccess 签名服务或者发送卡片异常. ", e);
+//        }
+//
+//        //根据处方单判断处方二次审核通过原因，判断是否通过
+//        //说明是二次审核不通过
+//        if (StringUtils.isEmpty(dbRecipe.getSupplementaryMemo())) {
+//            retryDoctorSecondCheckNoPass(dbRecipe);
+//        } else {
+//            //说明是二次审核通过
+//            retryDoctorSecondCheckPass(dbRecipe);
+//        }
+//    }
 
     /**
      * his回调签名处理
@@ -965,7 +967,8 @@ public class RecipeService extends RecipeBaseService {
         }
         if (RecipeResultBean.FAIL.equals(recipeSignResult.getCode())) {
             //说明处方签名失败
-            recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.SIGN_ERROR_CODE_DOC, null);
+            stateManager.updateStatus(recipeId, RecipeStatusEnum.RECIPE_STATUS_SIGN_ERROR_CODE_DOC, SignEnum.sign_STATE_AUDIT);
+            stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_SUBMIT, RecipeStateEnum.NONE);
             RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "说明处方签名失败:" + recipeSignResult.getMsg());
             //CA同步回调的接口 发送环信消息
             if (new Integer(2).equals(recipe.getBussSource())) {
@@ -991,12 +994,8 @@ public class RecipeService extends RecipeBaseService {
      *
      * @param resultVo
      */
-    @RpcService
     public void retryCaDoctorCallBackToRecipe(CaSignResultVo resultVo) {
         LOGGER.info("当前ca异步接口返回：{}", JSONUtils.toString(resultVo));
-        if (null == resultVo) {
-            return;
-        }
         Integer recipeId = resultVo.getRecipeId();
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         Integer caType = caManager.caProcessType(recipe);
@@ -1045,7 +1044,15 @@ public class RecipeService extends RecipeBaseService {
         }
 
         try {
-            if (!Integer.valueOf(200).equals(resultVo.getCode())) {
+            if (Integer.valueOf(200).equals(resultVo.getCode())) {
+                //说明处方签名成功，记录日志，走签名成功逻辑 /更新审方checkFlag为待审核
+                RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "当前签名处方签名成功");
+                Recipe updateRecipe = new Recipe();
+                updateRecipe.setRecipeId(recipeId);
+                updateRecipe.setCheckFlag(0);
+                recipeDAO.updateNonNullFieldByPrimaryKey(updateRecipe);
+                LOGGER.info("checkFlag {} 更新为待审核", recipe.getRecipeId());
+            } else {
                 //说明处方签名失败
                 RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "说明处方签名失败:" + resultVo.getMsg());
                 RecipeExtend recipeExtend = new RecipeExtend();
@@ -1060,14 +1067,6 @@ public class RecipeService extends RecipeBaseService {
                     recipeOnLineRevisitService.sendRecipeDefeat(recipe.getRecipeId(), recipe.getClinicId());
                 }
                 return;
-            } else {
-                //说明处方签名成功，记录日志，走签名成功逻辑 /更新审方checkFlag为待审核
-                RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "当前签名处方签名成功");
-                Recipe updateRecipe = new Recipe();
-                updateRecipe.setRecipeId(recipeId);
-                updateRecipe.setCheckFlag(0);
-                recipeDAO.updateNonNullFieldByPrimaryKey(updateRecipe);
-                LOGGER.info("checkFlag {} 更新为待审核", recipe.getRecipeId());
             }
         } catch (Exception e) {
             LOGGER.error("checkPassSuccess 签名服务或者发送卡片异常. ", e);
