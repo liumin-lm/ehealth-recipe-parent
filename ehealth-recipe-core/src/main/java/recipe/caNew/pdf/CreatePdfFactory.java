@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.ngari.base.esign.model.CoOrdinateVO;
 import com.ngari.base.esign.model.SignRecipePdfVO;
 import com.ngari.his.ca.model.CaSealRequestTO;
+import com.ngari.patient.dto.DoctorExtendDTO;
 import com.ngari.recipe.dto.ApothecaryDTO;
 import com.ngari.recipe.dto.AttachSealPicDTO;
 import com.ngari.recipe.entity.Recipe;
@@ -19,6 +20,7 @@ import recipe.bussutil.CreateRecipePdfUtil;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.SignImgNode;
 import recipe.caNew.pdf.service.CreatePdfService;
+import recipe.client.DoctorClient;
 import recipe.client.IConfigurationClient;
 import recipe.constant.ErrorCode;
 import recipe.constant.OperationConstant;
@@ -57,6 +59,8 @@ public class CreatePdfFactory {
     private RecipeOrderDAO orderDAO;
     @Autowired
     private SignManager signManager;
+    @Autowired
+    protected DoctorClient doctorClient;
 
     /**
      * 获取pdf oss id
@@ -120,13 +124,15 @@ public class CreatePdfFactory {
         logger.info("CreatePdfFactory updateDoctorNamePdfV1 recipe:{}", recipe.getRecipeId());
         CreatePdfService createPdfService = createPdfService(recipe);
         byte[] data = createPdfService.queryPdfByte(recipe);
-        try {
-            updateDoctorNamePdf(recipe, data, createPdfService);
-        } catch (Exception e) {
-            logger.error("CreatePdfFactory updateDoctorNamePdfV1 使用平台医生部分pdf的,生成失败 recipe:{}", recipe.getRecipeId(), e);
-            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "医生部分pdf的生成失败V1");
+        updateDoctorNamePdf(recipe, data, createPdfService);
+        CaSealRequestTO requestSealTO = createPdfService.queryPdfBase64(data, recipe.getRecipeId());
+        requestSealTO.setSealBase64Str("");
+        //获取签章图片
+        DoctorExtendDTO doctorExtendDTO = doctorClient.getDoctorExtendDTO(recipe.getDoctor());
+        if (null != doctorExtendDTO && null != doctorExtendDTO.getSealData()) {
+            requestSealTO.setSealBase64Str(doctorExtendDTO.getSealData());
         }
-        return createPdfService.queryPdfBase64(data, recipe.getRecipeId());
+        return requestSealTO;
     }
 
     /**

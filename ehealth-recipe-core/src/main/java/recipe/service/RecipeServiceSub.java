@@ -81,8 +81,8 @@ import recipe.bussutil.RecipeValidateUtil;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.client.ConsultClient;
 import recipe.client.DepartClient;
+import recipe.client.PayClient;
 import recipe.client.RecipeAuditClient;
-import recipe.client.RefundClient;
 import recipe.common.CommonConstant;
 import recipe.constant.*;
 import recipe.dao.*;
@@ -120,7 +120,7 @@ import java.util.stream.Collectors;
  */
 @Service
 public class RecipeServiceSub {
-    private static final RefundClient refundClient = AppContextHolder.getBean("refundClient", RefundClient.class);
+    private static final PayClient payClient = AppContextHolder.getBean("payClient", PayClient.class);
     private static final OrderManager orderManager = AppContextHolder.getBean("orderManager", OrderManager.class);
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipeServiceSub.class);
@@ -2927,7 +2927,7 @@ public class RecipeServiceSub {
         recipeExtend.setCancellation(cancellation);
         recipeExtendDAO.updateNonNullFieldByPrimaryKey(recipeExtend);
         if (null != order && order.getActualPrice() > 0 && RecipeOrderStatusEnum.ORDER_STATUS_READY_GET_DRUG.getType().equals(order.getStatus())) {
-            refundClient.refund(order.getOrderId(), PayBusTypeEnum.RECIPE_BUS_TYPE.getName());
+            payClient.refund(order.getOrderId(), PayBusTypeEnum.RECIPE_BUS_TYPE.getName());
             orderManager.recipeRefundMsg(recipeId);
         }
         //记录日志

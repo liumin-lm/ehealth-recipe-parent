@@ -7,6 +7,7 @@ import com.ngari.his.patient.service.IPatientHisService;
 import com.ngari.his.recipe.mode.DrugInfoTO;
 import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.his.recipe.service.IRecipeToTestService;
+import com.ngari.patient.service.DoctorService;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.PharmacyTcm;
 import com.ngari.recipe.entity.Recipedetail;
@@ -38,7 +39,8 @@ public class BaseClient {
     protected ICurrentUserInfoService currentUserInfoService;
     @Autowired
     protected IRecipeToTestService recipeToTestService;
-
+    @Autowired
+    protected DoctorService doctorService;
 
     /**
      * 解析前置机 出参

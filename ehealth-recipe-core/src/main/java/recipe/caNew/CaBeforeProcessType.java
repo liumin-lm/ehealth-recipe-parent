@@ -11,8 +11,10 @@ import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.caNew.pdf.CreatePdfFactory;
-import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDAO;
+import recipe.enumerate.status.RecipeStateEnum;
+import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.status.SignEnum;
 
 import java.util.List;
 
@@ -28,9 +30,9 @@ public class CaBeforeProcessType extends AbstractCaProcessType {
     @Override
     public void signCABeforeRecipeFunction(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList) {
         LOGGER.info("Before---signCABeforeRecipeFunction 当前CA执行签名之前特应性行为，入参：recipeBean：{}，detailBeanList：{} ", JSONUtils.toString(recipeBean), JSONUtils.toString(detailBeanList));
-        //前置签名，CA前操作，将处方设置成【医生签名中】
-        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
-        recipeDAO.updateRecipeInfoByRecipeId(recipeBean.getRecipeId(), RecipeStatusConstant.SIGN_ING_CODE_DOC, null);
+        //设置处方状态为：签名中
+        stateManager.updateStatus(recipeBean.getRecipeId(), RecipeStatusEnum.RECIPE_STATUS_SIGN_ING_CODE_DOC, SignEnum.sign_STATE_SUBMIT);
+        stateManager.updateRecipeState(recipeBean.getRecipeId(), RecipeStateEnum.PROCESS_STATE_SUBMIT, RecipeStateEnum.NONE);
     }
 
     @Override

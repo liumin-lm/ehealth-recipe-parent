@@ -59,8 +59,10 @@ import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipe.service.IRecipeService;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import com.ngari.recipe.recipereportform.model.*;
+import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.RevisitBean;
 import com.ngari.revisit.common.model.RevisitExDTO;
+import com.ngari.revisit.process.service.IRecipeOnLineRevisitService;
 import ctd.account.Client;
 import ctd.account.UserRoleToken;
 import ctd.controller.exception.ControllerException;
@@ -90,10 +92,13 @@ import recipe.audit.auditmode.AuditModeContext;
 import recipe.audit.service.OperationPlatformRecipeService;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bussutil.RecipeUtil;
+import recipe.caNew.AbstractCaProcessType;
+import recipe.caNew.CaAfterProcessType;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.DoctorClient;
 import recipe.client.PatientClient;
 import recipe.client.RevisitClient;
+import recipe.client.SmsClient;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.dao.sign.SignDoctorRecipeInfoDAO;
@@ -101,10 +106,7 @@ import recipe.drugsenterprise.CommonRemoteService;
 import recipe.drugsenterprise.StandardEnterpriseCallService;
 import recipe.drugsenterprise.ThirdEnterpriseCallService;
 import recipe.drugsenterprise.TmdyfRemoteService;
-import recipe.enumerate.status.GiveModeEnum;
-import recipe.enumerate.status.RecipeOrderStatusEnum;
-import recipe.enumerate.status.RecipeStateEnum;
-import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.status.*;
 import recipe.enumerate.type.BussSourceTypeEnum;
 import recipe.enumerate.type.PayFlagEnum;
 import recipe.enumerate.type.RecipeRefundConfigEnum;
@@ -121,11 +123,14 @@ import recipe.thread.RecipeSendSuccessRunnable;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 
+import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
+import static ctd.persistence.DAOFactory.getDAO;
 
 
 /**
@@ -145,12 +150,15 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     private static final Integer PAGESIZE = 50;
     //初始页码
     private static final Integer PAGENUM = 0;
+    private static final Integer CA_NEW_TYPE = Integer.valueOf(1);
     @Autowired
     private RecipeRefundDAO recipeRefundDAO;
     @Autowired
     private DoctorService doctorService;
     @Autowired
     private RecipeOrderDAO recipeOrderDAO;
+    @Autowired
+    private RecipeExtendDAO recipeExtendDAO;
     @Autowired
     private RecipeDAO recipeDAO;
     @Autowired
@@ -189,8 +197,12 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     private RecipeParameterDao recipeParameterDao;
     @Autowired
     private EnterpriseManager enterpriseManager;
+    @Resource
+    private CaManager caManager;
     @Autowired
-    private RecipeDetailDAO recipeDetailDAO;
+    private SmsClient smsClient;
+    @Resource
+    private CaAfterProcessType caAfterProcessType;
 
     @RpcService
     @Override
@@ -1615,58 +1627,52 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         thirdResultBean.setMsg(resultBean.getMsg());
     }
 
-    @Autowired
-    RecipeService recipeService;
-
-
     @Override
     public Boolean saveSignRecipePDF(CaSignResultTo caSignResultTo) {
         LOGGER.info("saveSignRecipePDF caSignResultTo:{}", JSONUtils.toString(caSignResultTo));
-        CaSignResultVo signResultVo = new CaSignResultVo();
+        CaSignResultUpgradeBean signResultVo = new CaSignResultUpgradeBean();
         Integer recipeId = caSignResultTo.getRecipeId();
         String errorMsg = caSignResultTo.getMsg();
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        signResultVo.setRecipeId(recipeId);
+        signResultVo.setBussId(recipeId);
         boolean isDoctor = false;
         // 注意这里根据是否有药师的信息，有则为药师签章，没有则为医生签章
         if (null == recipe.getChecker()) {
             isDoctor = true;
         }
-
         try {
             if (null == recipe) {
-                signResultVo.setCode(0);
-                signResultVo.setResultCode(0);
+                signResultVo.setMsgCode(0);
+                signResultVo.setResultStatus(0);
                 signResultVo.setMsg("未找到处方信息");
                 return false;
             }
             if (!StringUtils.isEmpty(errorMsg)) {
                 LOGGER.info("当前审核处方{}签名失败！errorMsg: {}", recipeId, errorMsg);
-                signResultVo.setCode(0);
-                signResultVo.setResultCode(0);
+                signResultVo.setMsgCode(0);
+                signResultVo.setResultStatus(0);
                 signResultVo.setMsg(errorMsg);
                 return true;
             }
-
             signResultVo.setPdfBase64(caSignResultTo.getPdfBase64());
-            signResultVo.setSignRecipeCode(caSignResultTo.getSignRecipeCode());
-            signResultVo.setCode(200);
+            signResultVo.setSignCode(caSignResultTo.getSignRecipeCode());
+            signResultVo.setMsgCode(200);
             // 如果签章数据为空，则表示CA未结束。目前只有上海胸科有签名签章，
             // 如果有异步的签名签章不全的，可以另外实现一个只有签名或只要签章的回调接口
             if (StringUtils.isEmpty(caSignResultTo.getPdfBase64())) {
-                signResultVo.setResultCode(-1);
+                signResultVo.setResultStatus(-1);
             } else {
-                signResultVo.setResultCode(1);
+                signResultVo.setResultStatus(1);
             }
         } catch (Exception e) {
             LOGGER.error("saveSignRecipePDF error", e);
             return false;
         } finally {
-            LOGGER.error("saveSignRecipePDF finally callback signResultVo={}", JSONUtils.toString(signResultVo));
+            LOGGER.info("saveSignRecipePDF finally callback signResultVo={}", JSONUtils.toString(signResultVo));
             if (isDoctor) {
-                recipeService.retryCaDoctorCallBackToRecipe(signResultVo);
+                this.retryCaDoctorCallBackToRecipe(signResultVo);
             } else {
-                recipeService.retryCaPharmacistCallBackToRecipe(signResultVo);
+                this.retryCaPharmacistCallBackToRecipe(signResultVo);
             }
         }
         return true;
@@ -2124,16 +2130,91 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         return recipeParameterDao.getByName(paramName);
     }
 
+    /**
+     * ca回调
+     *
+     * @param caSignResultVo
+     */
+    @LogRecord
     @RpcService
     @Override
-    public void retryCaDoctorCallBackToRecipe(CaSignResultUpgradeBean resultVo) {
-        LOGGER.info("当前医生ca异步接口返回：{}", JSONUtils.toString(resultVo));
-        if (null == resultVo) {
+    public void retryCaDoctorCallBackToRecipe(CaSignResultUpgradeBean caSignResultVo) {
+        LOGGER.info("当前医生ca异步接口返回：{}", JSONUtils.toString(caSignResultVo));
+        if (null == caSignResultVo) {
             return;
         }
-        CaSignResultVo caSignResultVo = makeCaSignResultVoFromCABean(resultVo);
-        RecipeService service = ApplicationUtils.getRecipeService(RecipeService.class);
-        service.retryCaDoctorCallBackToRecipe(caSignResultVo);
+        CaSignResultVo resultVo = makeCaSignResultVoFromCABean(caSignResultVo);
+        Integer recipeId = resultVo.getRecipeId();
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        Integer caType = caManager.caProcessType(recipe);
+        if (null == caType) {
+            return;
+        }
+        RecipeDetailDAO recipeDetailDAO = getDAO(RecipeDetailDAO.class);
+        List<Recipedetail> details = recipeDetailDAO.findByRecipeId(recipeId);
+        try {
+            if (Integer.valueOf(200).equals(resultVo.getCode())) {
+                //非使用平台CA模式的使用返回中的PdfBase64生成pdf文件
+                String fileId = null;
+                RecipeServiceEsignExt.saveSignRecipePDFCA(resultVo.getPdfBase64(), recipeId, null, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), true, fileId);
+                resultVo.setFileId(fileId);
+                if (CA_NEW_TYPE.equals(caType)) {
+                    createPdfFactory.updateDoctorNamePdf(recipe);
+                } else {
+                    //老流程保存sign，新流程已经移动至CA保存 /保存签名值、时间戳、电子签章文件
+                    caManager.oldCaCallBack(recipe, details, resultVo, true);
+                }
+            } else {
+                smsClient.pushMsgData2OnsExtendValue(recipe.getRecipeId(), recipe.getDoctor());
+            }
+        } catch (Exception e) {
+            LOGGER.error("retryCaDoctorCallBackToRecipe 标准化CA签章报错 recipeId={} ,doctor={} ,e==============", recipeId, recipe.getDoctor(), e);
+        }
+
+        // 上海胸科 调用到这里 首先判断当前ca是否是有结束结果的
+        if (-1 == resultVo.getResultCode()) {
+            LOGGER.info("当期处方{}医生ca签名异步调用接口返回：未触发处方业务结果", recipeId);
+            return;
+        }
+
+        try {
+            if (Integer.valueOf(200).equals(resultVo.getCode())) {
+                //说明处方签名成功，记录日志，走签名成功逻辑 /更新审方checkFlag为待审核
+                RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "当前签名处方签名成功");
+                Recipe updateRecipe = new Recipe();
+                updateRecipe.setRecipeId(recipeId);
+                updateRecipe.setCheckFlag(0);
+                recipeDAO.updateNonNullFieldByPrimaryKey(updateRecipe);
+                LOGGER.info("checkFlag {} 更新为待审核", recipe.getRecipeId());
+            } else {
+                //说明处方签名失败
+                RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "说明处方签名失败:" + resultVo.getMsg());
+                RecipeExtend recipeExtend = new RecipeExtend();
+                recipeExtend.setRecipeId(recipeId);
+                recipeExtend.setSignFailReason(resultVo.getMsg());
+                recipeExtendDAO.updateNonNullFieldByPrimaryKey(recipeExtend);
+                stateManager.updateStatus(recipeId, RecipeStatusEnum.RECIPE_STATUS_SIGN_ERROR_CODE_DOC, SignEnum.sign_STATE_AUDIT);
+                stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_SUBMIT, RecipeStateEnum.NONE);
+                //CA异步回调的接口 发送环信消息
+                if (Integer.valueOf(2).equals(recipe.getBussSource())) {
+                    IRecipeOnLineRevisitService recipeOnLineRevisitService = RevisitAPI.getService(IRecipeOnLineRevisitService.class);
+                    recipeOnLineRevisitService.sendRecipeDefeat(recipe.getRecipeId(), recipe.getClinicId());
+                }
+                return;
+            }
+        } catch (Exception e) {
+            LOGGER.error("checkPassSuccess 签名服务或者发送卡片异常. ", e);
+        }
+
+        /**设置处方的状态，如果失败不走下面逻辑************/
+        RecipeBean recipeBean = getByRecipeId(recipeId);
+        List<RecipeDetailBean> detailBeanList = ObjectCopyUtils.convert(details, RecipeDetailBean.class);
+        if (CA_NEW_TYPE.equals(caType)) {
+            AbstractCaProcessType.getCaProcessFactory(recipeBean.getClinicOrgan()).signCAAfterRecipeCallBackFunction(recipeBean, detailBeanList);
+        } else {
+            //老版默认走后置的逻辑，直接将处方向下流
+            caAfterProcessType.signCAAfterRecipeCallBackFunction(recipeBean, detailBeanList);
+        }
     }
 
     @RpcService

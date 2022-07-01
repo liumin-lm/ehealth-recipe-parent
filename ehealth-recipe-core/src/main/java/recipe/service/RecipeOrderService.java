@@ -67,7 +67,7 @@ import recipe.bean.RecipePayModeSupportBean;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.client.IConfigurationClient;
-import recipe.client.RefundClient;
+import recipe.client.PayClient;
 import recipe.common.CommonConstant;
 import recipe.common.ResponseUtils;
 import recipe.constant.*;
@@ -160,7 +160,7 @@ public class RecipeOrderService extends RecipeBaseService {
     @Autowired
     private RecipeOrderPayFlowManager recipeOrderPayFlowManager;
     @Autowired
-    private RefundClient refundClient;
+    private PayClient payClient;
     @Autowired
     private ButtonManager buttonManager;
     @Autowired
@@ -1467,7 +1467,7 @@ public class RecipeOrderService extends RecipeBaseService {
                                 recipeOrderPayFlowManager.updateNonNullFieldByPrimaryKey(recipeOrderPayFlow);
                             } else {
                                 //说明需要正常退审方费
-                                refundClient.refund(order.getOrderId(), PayBusTypeEnum.OTHER_BUS_TYPE.getName());
+                                payClient.refund(order.getOrderId(), PayBusTypeEnum.OTHER_BUS_TYPE.getName());
                             }
                         }
                     }

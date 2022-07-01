@@ -1,13 +1,18 @@
 package recipe.manager;
 
+import ca.vo.CaSignResultVo;
 import com.ngari.base.BaseAPI;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.Recipedetail;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.aop.LogRecord;
+import recipe.client.CaClient;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.util.RedisClient;
+
+import java.util.List;
 
 /**
  * 处方
@@ -17,9 +22,11 @@ import recipe.util.RedisClient;
  */
 @Service
 public class CaManager extends BaseManager {
+    private static final Integer CA_OLD_TYPE = new Integer(0);
     @Autowired
     private RedisClient redisClient;
-    private static final Integer CA_OLD_TYPE = new Integer(0);
+    @Autowired
+    private CaClient caClient;
     /**
      * 运营平台机构CA配置
      */
@@ -76,7 +83,12 @@ public class CaManager extends BaseManager {
         return caPassword;
     }
 
-
+    /**
+     * 获取ca新老流程状态
+     *
+     * @param recipe
+     * @return
+     */
     public Integer caProcessType(Recipe recipe) {
         if (null == recipe) {
             logger.warn("当前处方不存在!");
@@ -92,4 +104,27 @@ public class CaManager extends BaseManager {
         return caType;
     }
 
+    /**
+     * 老流程保存sign，新流程已经移动至CA保存
+     *
+     * @param recipe
+     * @param resultVo
+     * @param isDoctor
+     */
+    public void signRecipeInfoSave(Recipe recipe, CaSignResultVo resultVo, boolean isDoctor) {
+        caClient.signRecipeInfoSave(recipe.getRecipeId(), isDoctor, resultVo, recipe.getClinicOrgan());
+    }
+
+    /**
+     * 老流程保存sign，
+     *
+     * @param recipe
+     * @param details
+     * @param resultVo
+     * @param isDoctor
+     */
+    public void oldCaCallBack(Recipe recipe, List<Recipedetail> details, CaSignResultVo resultVo, boolean isDoctor) {
+        caClient.signRecipeInfoSave(recipe.getRecipeId(), isDoctor, resultVo, recipe.getClinicOrgan());
+        caClient.signUpdate(recipe, details);
+    }
 }

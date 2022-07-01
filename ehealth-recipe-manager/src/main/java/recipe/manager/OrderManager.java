@@ -69,9 +69,7 @@ public class OrderManager extends BaseManager {
     @Autowired
     private DoctorService doctorService;
     @Autowired
-    private RefundClient refundClient;
-    @Autowired
-    private RecipeParameterDao recipeParameterDao;
+    private PayClient payClient;
     @Autowired
     private InfraClient infraClient;
     @Autowired
@@ -409,7 +407,7 @@ public class OrderManager extends BaseManager {
         List<Recipedetail> details = recipeDetailDAO.findByRecipeId(recipeId);
         com.ngari.recipe.dto.PatientDTO patientBean = patientClient.getPatientDTO(recipe.getMpiid());
         HealthCardBean cardBean = patientClient.getCardBean(recipe.getMpiid(), recipe.getClinicOrgan());
-        String backInfo = refundClient.recipeRefund(recipe, details, patientBean, cardBean);
+        String backInfo = payClient.recipeRefund(recipe, details, patientBean, cardBean);
         recipeLogDAO.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), RecipeStatusEnum.NONE.getType(), "同步HIS退款返回：" + backInfo);
         return backInfo;
     }
@@ -529,7 +527,7 @@ public class OrderManager extends BaseManager {
                     recipeOrderPayFlowDao.updateNonNullFieldByPrimaryKey(recipeOrderPayFlow);
                 } else {
                     //说明需要正常退审方费
-                    refundClient.refund(order.getOrderId(), PayBusTypeEnum.OTHER_BUS_TYPE.getName());
+                    payClient.refund(order.getOrderId(), PayBusTypeEnum.OTHER_BUS_TYPE.getName());
                 }
             }
         }
