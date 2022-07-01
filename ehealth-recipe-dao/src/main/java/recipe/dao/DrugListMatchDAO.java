@@ -404,7 +404,7 @@ public abstract class DrugListMatchDAO extends HibernateSupportDelegateDAO<DrugL
                 q.setParameter("organDrugCode", drug.getOrganDrugCode());
                 q.setParameter("sourceOrgan", drug.getSourceOrgan());
                 for (String key : map.keySet()) {
-                    if (key.equals("status")||key.equals("isNew")||key.equals("matchDrugId")){
+                    if (key.equals("isNew")||key.equals("matchDrugId")){
                         continue;
                     }
                     if (!key.endsWith("Text")){
