@@ -135,6 +135,8 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
     private AuditDrugListDAO auditDrugListDAO;
     @Autowired
     private RecipeParameterDao recipeParameterDao;
+    @Autowired
+    private StateManager stateManager;
 
     /**
      * 待配送状态
@@ -515,6 +517,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         }
         //更新处方信息
         Boolean rs = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.FINISH, attrMap);
+        stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_DONE, RecipeStateEnum.SUB_DONE_SEND);
 
         if (rs) {
             //完成订单
@@ -524,6 +527,8 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             updateRecipeDetainInfo(recipe, paramMap);
             Map<String, Object> orderAttr = getOrderInfoMap(recipe, paramMap);
             orderService.finishOrder(recipe.getOrderCode(), orderAttr);
+            stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_DISPENSING, OrderStateEnum.SUB_DONE_SEND);
+
             //记录日志
             RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.IN_SEND, RecipeStatusConstant.FINISH, "配送到家处方单完成,配送人：" + sender);
             //HIS消息发送
