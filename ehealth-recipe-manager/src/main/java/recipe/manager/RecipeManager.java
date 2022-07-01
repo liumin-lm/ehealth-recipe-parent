@@ -48,6 +48,8 @@ import recipe.util.ValidateUtil;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.security.interfaces.RSAPublicKey;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -787,30 +789,23 @@ public class RecipeManager extends BaseManager {
         List<EncounterDTO> encounterDTOList = new ArrayList<>();
         AdvanceWarningResDTO advanceWarningResDTO = new AdvanceWarningResDTO();
         Recipe recipe = recipeDAO.get(advanceWarningReqDTO.getRecipeId());
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(advanceWarningReqDTO.getRecipeId());
         if(null == recipe){
             return advanceWarningResDTO;
         }
         advanceInfoReqTO.setOrganId(recipe.getClinicOrgan());
         //系统编码
         advanceInfoReqTO.setSyscode("recipe");
-        //就诊流水号
-        advanceInfoReqTO.setMdtrtSn("123456");
+        if(Objects.nonNull(recipeExtend)){
+            //就诊流水号
+            advanceInfoReqTO.setMdtrtSn(recipeExtend.getRegisterID());
+        }
         //触发场景
         advanceInfoReqTO.setTrigScen("2");
         //app必传
         if(new Integer(1).equals(advanceWarningReqDTO.getServerFlag())){
             //应用的appId
             advanceInfoReqTO.setAppId("202206291421");
-            //签名
-            try {
-                String publicKeyStr = recipeParameterDao.getByName("tianjing_public_key");
-                String str = advanceInfoReqTO.getAppId() + "&" + advanceInfoReqTO.getMdtrtSn() + "&" + advanceInfoReqTO.getSyscode();
-                RSAPublicKey publicKey = RSAEncryptUtils.loadPublicKeyByFile(publicKeyStr);
-                String string = RSAEncryptUtils.encryptToHexString(publicKey, str);
-                advanceInfoReqTO.setSign(string);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
             //app端传身份证号
             com.ngari.patient.dto.PatientDTO patient = patientClient.getPatientBeanByMpiId(recipe.getMpiid());
             patientDTO.setPatnId(patient.getIdcard());
@@ -830,9 +825,14 @@ public class RecipeManager extends BaseManager {
         //医疗服务机构标识
         encounterDTO.setMedinsId("H12010500650");
         //医疗机构名称
-        encounterDTO.setMedinsName(recipe.getOrganName());
+        encounterDTO.setMedinsName(String.valueOf(recipe.getClinicOrgan()));
         //入院日期
-        encounterDTO.setAdmDate(recipe.getCreateDate());
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        try {
+            encounterDTO.setAdmDate(sdf.parse(String.valueOf(recipe.getCreateDate())));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
         //主诊断编码
         encounterDTO.setDscgMainDiseCodg(recipe.getOrganDiseaseId());
         //主诊断名称

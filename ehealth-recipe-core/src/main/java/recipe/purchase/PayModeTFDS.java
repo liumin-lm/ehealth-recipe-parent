@@ -59,6 +59,8 @@ public class PayModeTFDS implements IPurchaseService {
     private RecipeDetailDAO detailDAO;
     @Autowired
     private IConfigurationClient configurationClient;
+    @Autowired
+    private OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO;
 
     public PayModeTFDS() {
 
@@ -429,7 +431,6 @@ public class PayModeTFDS implements IPurchaseService {
                         depDetailBean.setPayModeText("药店支付");
                     }
                     depDetailBean.setOrderType(dep.getOrderType());
-                    depDetailBean.setPriorityLevel(dep.getPriorityLevel());
                 }
                 depDetailList.addAll(ysqList);
                 LOGGER.info("获取到的药店列表:{}.", JSONUtils.toString(depDetailList));
@@ -443,6 +444,9 @@ public class PayModeTFDS implements IPurchaseService {
         if (!openEnterprisePriorityFlag) {
             return depDetailBeans;
         }
+        List<OrganAndDrugsepRelation> organAndDrugsDepRelationList = organAndDrugsepRelationDAO.findByOrganId(organId);
+        Map<Integer, OrganAndDrugsepRelation> organAndDrugsDepRelationMap = organAndDrugsDepRelationList.stream().collect(Collectors.toMap(OrganAndDrugsepRelation::getDrugsEnterpriseId,a->a,(k1,k2)->k1));
+        depDetailBeans.forEach(depDetailBean -> depDetailBean.setPriorityLevel(organAndDrugsDepRelationMap.get(depDetailBean.getDepId()).getPriorityLevel()));
         Map<Integer, List<DepDetailBean>> depDetailBeanListMap = depDetailBeans.stream().collect(Collectors.groupingBy(depDetailBean -> Optional.ofNullable(depDetailBean.getPriorityLevel()).orElse(0)));
         DepDetailBean detailBean = depDetailBeans.stream().max(Comparator.comparing(depDetailBean -> Optional.ofNullable(depDetailBean.getPriorityLevel()).orElse(0))).orElse(null);
         if (null == detailBean) {

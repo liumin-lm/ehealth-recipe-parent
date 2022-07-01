@@ -562,6 +562,9 @@ public class EnterpriseManager extends BaseManager {
         if (!openEnterprisePriorityFlag) {
             return subDepList;
         }
+        List<OrganAndDrugsepRelation> organAndDrugsDepRelationList = organAndDrugsepRelationDAO.findByOrganId(organId);
+        Map<Integer, OrganAndDrugsepRelation> organAndDrugsDepRelationMap = organAndDrugsDepRelationList.stream().collect(Collectors.toMap(OrganAndDrugsepRelation::getDrugsEnterpriseId,a->a,(k1,k2)->k1));
+        subDepList.stream().forEach(drugsEnterprise -> drugsEnterprise.setPriorityLevel(organAndDrugsDepRelationMap.get(drugsEnterprise.getId()).getPriorityLevel()));
         //对药企等级进行处理
         Map<Integer, List<DrugsEnterprise>> drugsEnterpriseListMap = subDepList.stream().collect(Collectors.groupingBy(drugsEnterprise -> Optional.ofNullable(drugsEnterprise.getPriorityLevel()).orElse(0)));
         logger.info("enterprisePriorityLevel drugsEnterpriseListMap:{}", JSON.toJSONString(drugsEnterpriseListMap));
