@@ -48,6 +48,8 @@ import recipe.util.ValidateUtil;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.security.interfaces.RSAPublicKey;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -799,16 +801,6 @@ public class RecipeManager extends BaseManager {
         if(new Integer(1).equals(advanceWarningReqDTO.getServerFlag())){
             //应用的appId
             advanceInfoReqTO.setAppId("202206291421");
-            //签名
-            try {
-                String publicKeyStr = recipeParameterDao.getByName("tianjing_public_key");
-                String str = advanceInfoReqTO.getAppId() + "&" + advanceInfoReqTO.getMdtrtSn() + "&" + advanceInfoReqTO.getSyscode();
-                RSAPublicKey publicKey = RSAEncryptUtils.loadPublicKeyByFile(publicKeyStr);
-                String string = RSAEncryptUtils.encryptToHexString(publicKey, str);
-                advanceInfoReqTO.setSign(string);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
             //app端传身份证号
             com.ngari.patient.dto.PatientDTO patient = patientClient.getPatientBeanByMpiId(recipe.getMpiid());
             patientDTO.setPatnId(patient.getIdcard());
@@ -830,7 +822,12 @@ public class RecipeManager extends BaseManager {
         //医疗机构名称
         encounterDTO.setMedinsName(recipe.getOrganName());
         //入院日期
-        encounterDTO.setAdmDate(recipe.getCreateDate());
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        try {
+            encounterDTO.setAdmDate(sdf.parse(String.valueOf(recipe.getCreateDate())));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
         //主诊断编码
         encounterDTO.setDscgMainDiseCodg(recipe.getOrganDiseaseId());
         //主诊断名称
