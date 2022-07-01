@@ -644,7 +644,7 @@ public class DrugsEnterprise implements java.io.Serializable {
         this.merchantType = merchantType;
     }
 
-    @Column(name = "priority_level")
+    @Transient
     public Integer getPriorityLevel() {
         return priorityLevel;
     }

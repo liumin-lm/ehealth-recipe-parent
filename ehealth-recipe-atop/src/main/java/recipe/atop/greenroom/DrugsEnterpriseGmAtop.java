@@ -153,14 +153,17 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
             return organEnterpriseRelationVo;
         }
         List<DrugsEnterpriseBean> drugsEnterpriseList = ObjectCopyUtils.convert(queryResult.getItems(), DrugsEnterpriseBean.class);
-        drugsEnterpriseList = drugsEnterpriseList.stream().sorted(Comparator.comparing(drugsEnterpriseBean -> Optional.ofNullable(drugsEnterpriseBean.getPriorityLevel()).orElse(0),Comparator.reverseOrder())).collect(Collectors.toList());
+        List<OrganAndDrugsepRelation> organAndDrugsDepRelationList = enterpriseBusinessService.findOrganAndDrugsDepRelationBeanByOrganId(organEnterpriseRelationVo.getOrganId());
+        Map<Integer, OrganAndDrugsepRelation> organAndDrugsDepRelationMap = organAndDrugsDepRelationList.stream().collect(Collectors.toMap(OrganAndDrugsepRelation::getDrugsEnterpriseId,a->a,(k1,k2)->k1));
         List<PharmacyVO> pharmacyList = enterpriseBusinessService.pharmacy();
         Map<Integer, PharmacyVO> map = pharmacyList.stream().collect(Collectors.toMap(PharmacyVO::getDrugsenterpriseId, a -> a, (k1, k2) -> k1));
         drugsEnterpriseList.forEach(a -> {
             if (ValidateUtil.integerIsEmpty(a.getCreateType())) {
                 a.setPharmacy(map.get(a.getId()));
             }
+            a.setPriorityLevel(organAndDrugsDepRelationMap.get(a.getId()).getPriorityLevel());
         });
+        drugsEnterpriseList = drugsEnterpriseList.stream().sorted(Comparator.comparing(drugsEnterpriseBean -> Optional.ofNullable(drugsEnterpriseBean.getPriorityLevel()).orElse(0),Comparator.reverseOrder())).collect(Collectors.toList());
         organEnterpriseRelationVo.setDrugsEnterpriseList(drugsEnterpriseList);
         organEnterpriseRelationVo.setTotal((int) queryResult.getTotal());
         return organEnterpriseRelationVo;
@@ -283,7 +286,7 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
      * @return
      */
     @RpcService
-    public Boolean updateEnterprisePriorityLevel(Integer depId, Integer level){
-        return enterpriseBusinessService.updateEnterprisePriorityLevel(depId, level);
+    public Boolean updateEnterprisePriorityLevel(Integer organId, Integer depId, Integer level){
+        return enterpriseBusinessService.updateEnterprisePriorityLevel(organId, depId, level);
     }
 }
