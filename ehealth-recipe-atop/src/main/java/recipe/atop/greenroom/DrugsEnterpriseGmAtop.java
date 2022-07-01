@@ -1,5 +1,6 @@
 package recipe.atop.greenroom;
 
+import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.drugdistributionprice.model.DrugDistributionPriceBean;
 import com.ngari.recipe.drugdistributionprice.service.IDrugDistributionPriceService;
 import com.ngari.recipe.drugsenterprise.model.*;
@@ -155,11 +156,15 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
         List<DrugsEnterpriseBean> drugsEnterpriseList = ObjectCopyUtils.convert(queryResult.getItems(), DrugsEnterpriseBean.class);
         List<OrganAndDrugsepRelation> organAndDrugsDepRelationList = enterpriseBusinessService.findOrganAndDrugsDepRelationBeanByOrganId(organEnterpriseRelationVo.getOrganId());
         Map<Integer, OrganAndDrugsepRelation> organAndDrugsDepRelationMap = organAndDrugsDepRelationList.stream().collect(Collectors.toMap(OrganAndDrugsepRelation::getDrugsEnterpriseId,a->a,(k1,k2)->k1));
+        logger.info("drugsEnterpriseLimit organAndDrugsDepRelationMap:{}", JSON.toJSONString(organAndDrugsDepRelationMap));
         List<PharmacyVO> pharmacyList = enterpriseBusinessService.pharmacy();
         Map<Integer, PharmacyVO> map = pharmacyList.stream().collect(Collectors.toMap(PharmacyVO::getDrugsenterpriseId, a -> a, (k1, k2) -> k1));
         drugsEnterpriseList.forEach(a -> {
             if (ValidateUtil.integerIsEmpty(a.getCreateType())) {
                 a.setPharmacy(map.get(a.getId()));
+            }
+            if (null == organAndDrugsDepRelationMap.get(a.getId())) {
+                return;
             }
             a.setPriorityLevel(organAndDrugsDepRelationMap.get(a.getId()).getPriorityLevel());
         });
