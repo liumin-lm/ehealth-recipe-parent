@@ -1977,6 +1977,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                         case "1":
                             //处方已核销
                             recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("status", RecipeStatusConstant.FINISH));
+                            stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_DONE_UPLOAD_THIRD);
                             stringBuilder.append("[处方状态]该处方已核销;");
                             break;
                         case "2":
