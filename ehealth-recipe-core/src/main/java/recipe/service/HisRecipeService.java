@@ -1506,12 +1506,10 @@ public class HisRecipeService {
                     }
 
                 } else if (RecipeBussConstant.GIVEMODE_TFDS.equals(giveMode) && StringUtils.isNotEmpty(recipe.getOrderCode())) {
-                    if (OrderStatusConstant.HAS_DRUG.equals(orderStatus)) {
-                        if (payFlag == 0) {
-                            tips = "待支付";
-                        } else {
-                            tips = "待取药";
-                        }
+                    if (payFlag == 0) {
+                        tips = "待支付";
+                    } else {
+                        tips = "待取药";
                     }
                 } else if (RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE.equals(giveMode)) {
                     tips = "已完成";

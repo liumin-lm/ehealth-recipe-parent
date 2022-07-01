@@ -163,12 +163,10 @@ public class RecipeUtil {
                     }
 
                 } else if (RecipeBussConstant.GIVEMODE_TFDS.equals(giveMode) && StringUtils.isNotEmpty(recipe.getOrderCode())) {
-                    if (RecipeOrderStatusEnum.ORDER_STATUS_HAS_DRUG.getType().equals(orderStatus)) {
-                        if (payFlag == 0) {
-                            tips = "待支付";
-                        } else {
-                            tips = "待取药";
-                        }
+                    if (payFlag == 0) {
+                        tips = "待支付";
+                    } else {
+                        tips = "待取药";
                     }
                 } else if (RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE.equals(giveMode)) {
                     tips = "已完成";
