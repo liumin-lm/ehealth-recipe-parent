@@ -430,7 +430,17 @@ public class BaseOfflineToOnlineService {
             if (RecipeSourceTypeEnum.OFFLINE_RECIPE.getType().equals(recipe.getRecipeSourceType())) {
                 //表示该处方来源于HIS
                 if (StringUtils.isEmpty(recipe.getOrderCode())) {
-                    hisRecipeVO.setStatusText("待处理");
+                    if (hisRecipe != null && null != hisRecipe.getStatus()) {
+                        if (HisRecipeConstant.HISRECIPESTATUS_ALREADYIDEAL.equals(hisRecipe.getStatus())) {
+                            hisRecipeVO.setStatusText("已处理");
+                        } else if (HisRecipeConstant.HISRECIPESTATUS_EXPIRED.equals(hisRecipe.getStatus())) {
+                            hisRecipeVO.setStatusText("已失效");
+                        } else {
+                            hisRecipeVO.setStatusText("待处理");
+                        }
+                    } else {
+                        hisRecipeVO.setStatusText("待处理");
+                    }
                     hisRecipeVO.setJumpPageType(0);
                 } else {
                     RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
