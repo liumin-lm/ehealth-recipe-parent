@@ -787,14 +787,17 @@ public class RecipeManager extends BaseManager {
         List<EncounterDTO> encounterDTOList = new ArrayList<>();
         AdvanceWarningResDTO advanceWarningResDTO = new AdvanceWarningResDTO();
         Recipe recipe = recipeDAO.get(advanceWarningReqDTO.getRecipeId());
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(advanceWarningReqDTO.getRecipeId());
         if(null == recipe){
             return advanceWarningResDTO;
         }
         advanceInfoReqTO.setOrganId(recipe.getClinicOrgan());
         //系统编码
         advanceInfoReqTO.setSyscode("recipe");
-        //就诊流水号
-        advanceInfoReqTO.setMdtrtSn("123456");
+        if(Objects.nonNull(recipeExtend)){
+            //就诊流水号
+            advanceInfoReqTO.setMdtrtSn(recipeExtend.getRegisterID());
+        }
         //触发场景
         advanceInfoReqTO.setTrigScen("2");
         //app必传
@@ -820,7 +823,7 @@ public class RecipeManager extends BaseManager {
         //医疗服务机构标识
         encounterDTO.setMedinsId("H12010500650");
         //医疗机构名称
-        encounterDTO.setMedinsName(recipe.getOrganName());
+        encounterDTO.setMedinsName(String.valueOf(recipe.getClinicOrgan()));
         //入院日期
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         try {
