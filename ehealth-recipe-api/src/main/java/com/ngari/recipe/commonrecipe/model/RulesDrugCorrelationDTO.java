@@ -4,6 +4,7 @@ import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
+import java.math.BigDecimal;
 import java.util.Date;
 
 /**
@@ -40,10 +41,10 @@ public class RulesDrugCorrelationDTO  implements java.io.Serializable {
     private String correlationDrugName;
 
     @ItemProperty(alias = "最小规则药品 用量范围  中药药品超量规则 用")
-    private Double minimumDosageRange;
+    private BigDecimal minimumDosageRange;
 
     @ItemProperty(alias = "最大规则药品 用量范围  中药药品超量规则 用")
-    private Double maximumDosageRange;
+    private BigDecimal maximumDosageRange;
 
     @ItemProperty(alias = "创建时间")
     private Date createDt;
@@ -108,11 +109,11 @@ public class RulesDrugCorrelationDTO  implements java.io.Serializable {
         this.correlationDrugName = correlationDrugName;
     }
 
-    public Double getMinimumDosageRange() {
+    public BigDecimal getMinimumDosageRange() {
         return minimumDosageRange;
     }
 
-    public void setMinimumDosageRange(Double minimumDosageRange) {
+    public void setMinimumDosageRange(BigDecimal minimumDosageRange) {
         this.minimumDosageRange = minimumDosageRange;
     }
 
@@ -125,11 +126,11 @@ public class RulesDrugCorrelationDTO  implements java.io.Serializable {
         this.createDt = createDt;
     }
 
-    public Double getMaximumDosageRange() {
+    public BigDecimal getMaximumDosageRange() {
         return maximumDosageRange;
     }
 
-    public void setMaximumDosageRange(Double maximumDosageRange) {
+    public void setMaximumDosageRange(BigDecimal maximumDosageRange) {
         this.maximumDosageRange = maximumDosageRange;
     }
 
