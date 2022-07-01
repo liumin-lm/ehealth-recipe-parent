@@ -6,6 +6,7 @@ import ctd.schema.annotation.Schema;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Date;
 
 import static javax.persistence.GenerationType.IDENTITY;
@@ -41,10 +42,10 @@ public class RecipeRulesDrugCorrelation implements Serializable {
     private String correlationDrugName;
 
     @ItemProperty(alias = "最小规则药品用量范围, 中药药品超量规则用")
-    private Double minimumDosageRange;
+    private BigDecimal minimumDosageRange;
 
     @ItemProperty(alias = "最大规则药品用量范围, 中药药品超量规则用")
-    private Double maximumDosageRange;
+    private BigDecimal maximumDosageRange;
 
     @ItemProperty(alias = "创建时间")
     private Date createDt;
@@ -119,20 +120,20 @@ public class RecipeRulesDrugCorrelation implements Serializable {
     }
 
     @Column(name = "minimumDosageRange")
-    public Double getMinimumDosageRange() {
+    public BigDecimal getMinimumDosageRange() {
         return minimumDosageRange;
     }
 
-    public void setMinimumDosageRange(Double minimumDosageRange) {
+    public void setMinimumDosageRange(BigDecimal minimumDosageRange) {
         this.minimumDosageRange = minimumDosageRange;
     }
 
     @Column(name = "MaximumDosageRange")
-    public Double getMaximumDosageRange() {
+    public BigDecimal getMaximumDosageRange() {
         return maximumDosageRange;
     }
 
-    public void setMaximumDosageRange(Double maximumDosageRange) {
+    public void setMaximumDosageRange(BigDecimal maximumDosageRange) {
         this.maximumDosageRange = maximumDosageRange;
     }
 

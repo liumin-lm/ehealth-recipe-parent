@@ -242,6 +242,7 @@ public enum RecipeSupportGiveModeEnum {
         }
         if (RecipeDistributionFlagEnum.drugsEnterpriseAll.contains(payModeSupport)) {
             giveModeButtonList.add(giveModeButtonDTO(SUPPORT_TFDS));
+            giveModeButtonList.add(giveModeButtonDTO(SUPPORT_MEDICAL_PAYMENT));
         }
         //配送判断
         if (ValidateUtil.integerIsEmpty(sendType) || RecipeSendTypeEnum.NO_PAY.getSendType().equals(sendType)) {

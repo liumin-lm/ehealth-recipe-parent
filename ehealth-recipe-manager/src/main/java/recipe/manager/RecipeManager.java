@@ -800,7 +800,7 @@ public class RecipeManager extends BaseManager {
         //app必传
         if(new Integer(1).equals(advanceWarningReqDTO.getServerFlag())){
             //应用的appId
-            advanceInfoReqTO.setAppId("123456");
+            advanceInfoReqTO.setAppId("202206291421");
             //签名
             try {
                 String publicKeyStr = recipeParameterDao.getByName("tianjing_public_key");
@@ -828,7 +828,7 @@ public class RecipeManager extends BaseManager {
         //就诊标识
         encounterDTO.setMdtrtId(String.valueOf(recipe.getRecipeId()));
         //医疗服务机构标识
-        encounterDTO.setMedinsId(String.valueOf(recipe.getClinicOrgan()));
+        encounterDTO.setMedinsId("H12010500650");
         //医疗机构名称
         encounterDTO.setMedinsName(recipe.getOrganName());
         //入院日期

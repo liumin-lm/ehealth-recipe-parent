@@ -1,7 +1,6 @@
 package recipe.dao;
 
 import com.ngari.recipe.entity.DrugListMatch;
-import com.ngari.recipe.entity.OrganDrugList;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;
 import ctd.persistence.bean.QueryResult;
@@ -367,19 +366,17 @@ public abstract class DrugListMatchDAO extends HibernateSupportDelegateDAO<DrugL
         HibernateStatelessResultAction<List<DrugListMatch>> action = new AbstractHibernateStatelessResultAction<List<DrugListMatch>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                StringBuilder hql = new StringBuilder();
-                hql.append("select b.* from OrganDrugList a, DrugListMatch b where a.organDrugCode=b.organDrugCode and b.sourceOrgan=a.organId ");
-                hql.append("and b.sourceOrgan=:organId ");
-                hql.append("and b.status != 2");
+                StringBuilder hql = new StringBuilder("select * from ( ");
+                hql.append("SELECT a.organDrugId,b.* FROM base_DrugList_Matching b LEFT JOIN base_OrganDrugList a on a.organDrugCode = b.organDrugCode AND b.sourceOrgan = a.organId where b. STATUS != 2 AND b.sourceOrgan =:organId) c ");
                 //0表示只新增不更新
                 if(new Integer(0).equals(status)){
-                    hql.append("and a.organDrugId is null ");
+                    hql.append("where c.organDrugId is null ");
                 }
                 //1表示只更新不新增
                 if(new Integer(1).equals(status)){
-                    hql.append("and a.organDrugId is not null ");
+                    hql.append("where c.organDrugId is not null ");
                 }
-                Query q = ss.createQuery(hql.toString());
+                Query q = ss.createSQLQuery(hql.toString()).addEntity(DrugListMatch.class);;
                 q.setParameter("organId", organId);
                 setResult(q.list());
             }
