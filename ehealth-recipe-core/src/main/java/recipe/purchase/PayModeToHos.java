@@ -319,6 +319,7 @@ public class PayModeToHos implements IPurchaseService {
      */
     private RecipeResultBean newModeFindSupportDepList(Recipe dbRecipe, Map<String, String> extInfo) {
         Integer recipeId = dbRecipe.getRecipeId();
+        RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         RecipeResultBean resultBean = RecipeResultBean.getSuccess();
         DepListBean depListBean = new DepListBean();
         String sort = extInfo.get("sort");
@@ -331,13 +332,15 @@ public class PayModeToHos implements IPurchaseService {
         }
         List<Integer> depIds = relation.stream().map(OrganAndDrugsepRelation::getDrugsEnterpriseId).collect(Collectors.toList());
         List<DrugsEnterprise> drugsEnterprises = drugsEnterpriseDAO.findByIds(depIds);
-        if (CollectionUtils.isEmpty(drugsEnterprises)) {
-            LOG.warn("findSupportDepList 处方[{}]没有任何药企可以进行到院取药！", recipeId);
-            resultBean.setCode(5);
-            resultBean.setMsg("抱歉，未获取到相关药房信息，您可以选择其他方式购药");
-            return resultBean;
+        List<DrugsEnterprise> subDepList = new ArrayList<>(drugsEnterprises.size());
+        List<Recipedetail> detailList = detailDAO.findByRecipeId(recipeId);
+        for (DrugsEnterprise dep : drugsEnterprises) {
+            EnterpriseStock enterpriseStock = stockBusinessService.enterpriseStockCheck(dbRecipe, detailList, dep.getId());
+            if (null != enterpriseStock && enterpriseStock.getStock()) {
+                subDepList.add(dep);
+            }
         }
-        drugsEnterprises = enterpriseManager.enterprisePriorityLevel(dbRecipe.getClinicOrgan(), drugsEnterprises);
+        drugsEnterprises = enterpriseManager.enterprisePriorityLevel(dbRecipe.getClinicOrgan(), subDepList);
         //判断药企是否不展示药店
         boolean showStoreFlag = drugsEnterprises.stream().anyMatch(drugsEnterprise -> 0 == drugsEnterprise.getShowStoreFlag());
         List<DepDetailBean> depDetailBeans = new ArrayList<>();
