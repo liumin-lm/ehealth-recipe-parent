@@ -48,6 +48,8 @@ import recipe.util.ValidateUtil;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.security.interfaces.RSAPublicKey;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -822,7 +824,12 @@ public class RecipeManager extends BaseManager {
         //医疗机构名称
         encounterDTO.setMedinsName(recipe.getOrganName());
         //入院日期
-        encounterDTO.setAdmDate(recipe.getCreateDate());
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        try {
+            encounterDTO.setAdmDate(sdf.parse(String.valueOf(recipe.getCreateDate())));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
         //主诊断编码
         encounterDTO.setDscgMainDiseCodg(recipe.getOrganDiseaseId());
         //主诊断名称
