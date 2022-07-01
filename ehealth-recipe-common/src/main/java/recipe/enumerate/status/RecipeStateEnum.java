@@ -24,6 +24,15 @@ public enum RecipeStateEnum {
     PROCESS_STATE_CANCELLATION(9, "已作废", ""),
 
     /**
+     * 处方子状态:已完成
+     */
+    SUB_DONE_DOWNLOAD(71,"下载处方签",""),
+    SUB_DONE_OD_PAYMENT(72,"门诊缴费下单",""),
+    SUB_DONE_UPLOAD_THIRD(73,"上传到第三方",""),
+    SUB_DONE_SELF_TAKE(74,"自取核销",""),
+    SUB_DONE_SEND(75,"发药签收",""),
+
+    /**
      * 处方子状态:删除
      */
     SUB_DELETED_REVISIT_END(81, "复诊结束", ""),
@@ -38,6 +47,7 @@ public enum RecipeStateEnum {
     SUB_CANCELLATION_RETURN_DRUG(94, "售药方退药", "已退药"),
     SUB_CANCELLATION_TIMEOUT_NOT_MEDICINE(95, "患者超时未取药", "患者未取药"),
     SUB_CANCELLATION_TIMEOUT_NOT_ORDER(96, "已过有效期未下单", "过期处方（未支付过期 /未处理过期）"),
+
 
     ;
 
