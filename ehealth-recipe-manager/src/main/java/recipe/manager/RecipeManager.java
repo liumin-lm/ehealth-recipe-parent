@@ -801,16 +801,6 @@ public class RecipeManager extends BaseManager {
         if(new Integer(1).equals(advanceWarningReqDTO.getServerFlag())){
             //应用的appId
             advanceInfoReqTO.setAppId("202206291421");
-            //签名
-            try {
-                String publicKeyStr = recipeParameterDao.getByName("tianjing_public_key");
-                String str = advanceInfoReqTO.getAppId() + "&" + advanceInfoReqTO.getMdtrtSn() + "&" + advanceInfoReqTO.getSyscode();
-                RSAPublicKey publicKey = RSAEncryptUtils.loadPublicKeyByFile(publicKeyStr);
-                String string = RSAEncryptUtils.encryptToHexString(publicKey, str);
-                advanceInfoReqTO.setSign(string);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
             //app端传身份证号
             com.ngari.patient.dto.PatientDTO patient = patientClient.getPatientBeanByMpiId(recipe.getMpiid());
             patientDTO.setPatnId(patient.getIdcard());
