@@ -32,6 +32,7 @@ import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.RecipeDistributionFlagEnum;
 import recipe.manager.CaManager;
+import recipe.manager.StateManager;
 import recipe.service.DrugDistributionService;
 import recipe.service.RecipeHisService;
 import recipe.service.RecipeServiceSub;
@@ -51,6 +52,7 @@ public abstract class AbstractCaProcessType {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractCaProcessType.class);
     protected static IConfigurationClient configurationClient = AppContextHolder.getBean("IConfigurationClient", IConfigurationClient.class);
     protected static CaManager caManager = AppContextHolder.getBean("caManager", CaManager.class);
+    protected static StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
     private static final Integer CA_OLD_TYPE = new Integer(0);
 
     private static final Integer CA_NEW_TYPE = new Integer(1);

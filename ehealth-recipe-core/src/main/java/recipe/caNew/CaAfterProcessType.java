@@ -3,7 +3,6 @@ package recipe.caNew;
 import ca.service.ICaSignService;
 import ca.vo.CommonSignRequest;
 import com.alibaba.fastjson.JSON;
-import com.google.common.collect.ImmutableMap;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.recipe.model.RecipeBean;
@@ -14,8 +13,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import recipe.ApplicationUtils;
-import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDAO;
+import recipe.enumerate.status.RecipeStateEnum;
+import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.status.SignEnum;
 import recipe.service.RecipeCAService;
 
 import java.util.List;
@@ -66,14 +67,13 @@ public class CaAfterProcessType extends AbstractCaProcessType {
         //后置CA:首先组装CA请求 =》请求CA =》封装一个异步请求CA结果
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        //设置处方状态为：签名中
-        recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of("status", RecipeStatusConstant.SIGN_ING_CODE_DOC));
-        LOGGER.info("当前处方{}设置成CA签名中", recipeId);
-
-        if(null == recipe){
+        if (null == recipe) {
             LOGGER.warn("当前处方{}信息不存在，无法进行签名操作!", recipeId);
             return recipeResultBean;
         }
+        //设置处方状态为：签名中
+        stateManager.updateStatus(recipeId, RecipeStatusEnum.RECIPE_STATUS_SIGN_ING_CODE_DOC, SignEnum.sign_STATE_SUBMIT);
+        stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_SUBMIT, RecipeStateEnum.NONE);
         //1.调用组装CA请求
         RecipeCAService recipeCAService = ApplicationUtils.getRecipeService(RecipeCAService.class);
         CommonSignRequest commonSignRequest = recipeCAService.packageCAFromRecipe(recipeId, recipe.getDoctor(), true);
@@ -81,7 +81,7 @@ public class CaAfterProcessType extends AbstractCaProcessType {
         //2.请求后台的CA
         try {
             caSignService.commonCaSignAndSeal(commonSignRequest);
-        }catch (Exception e){
+        } catch (Exception e) {
             LOGGER.warn("请求CA异常{}！", e);
         }
         //3.返回一个异步操作的CA,中断状态

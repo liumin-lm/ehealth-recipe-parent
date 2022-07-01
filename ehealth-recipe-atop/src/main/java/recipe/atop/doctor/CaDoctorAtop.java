@@ -20,6 +20,7 @@ public class CaDoctorAtop extends BaseAtop {
     private ICaBusinessService caBusinessService;
 
     /**
+     * 新模式，签名失败走此接口
      * 医生签名失败后，将处方状态设置成签名失败
      *
      * @param recipeId
@@ -31,6 +32,7 @@ public class CaDoctorAtop extends BaseAtop {
     }
 
     /**
+     * 新模式，签名失败走此接口
      * 药师签名失败后，将处方状态设置成签名失败
      *
      * @param recipeId
