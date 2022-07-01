@@ -825,7 +825,7 @@ public class RecipeManager extends BaseManager {
         //医疗服务机构标识
         encounterDTO.setMedinsId("H12010500650");
         //医疗机构名称
-        encounterDTO.setMedinsName("天津中医药大学第二附属医院");
+        encounterDTO.setMedinsName(String.valueOf(recipe.getClinicOrgan()));
         //入院日期
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         try {
