@@ -114,6 +114,7 @@ public class RecipeDetailValidateTool {
         if (StringUtils.isEmpty(OrganDrugListManager.getDrugUnit(recipeDetail.getDrugUnit(), organDrug))) {
             recipeDetail.setUseTotalDose(null);
             recipeDetail.setPack(null);
+            recipeDetail.setUseDose(null);
             recipeDetail.setDrugUnit(organDrug.getUnit());
             recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
             recipeDetail.setValidateStatusText("机构药品药物单位错误");

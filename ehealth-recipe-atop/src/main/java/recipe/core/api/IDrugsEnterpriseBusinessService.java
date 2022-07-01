@@ -100,6 +100,13 @@ public interface IDrugsEnterpriseBusinessService {
     List<OrganAndDrugsepRelation> findOrganAndDrugsepRelationBean(Integer enterpriseId);
 
     /**
+     * 根据机构id获取流转关系列表
+     * @param organId
+     * @return
+     */
+    List<OrganAndDrugsepRelation> findOrganAndDrugsDepRelationBeanByOrganId(Integer organId);
+
+    /**
      * 获取机构药企煎法 信息
      * @param enterpriseId
      * @param organId
@@ -179,11 +186,12 @@ public interface IDrugsEnterpriseBusinessService {
 
     /**
      * 更新药企的优先级
+     * @param organId
      * @param depId
      * @param level
      * @return
      */
-    Boolean updateEnterprisePriorityLevel(Integer depId, Integer level);
+    Boolean updateEnterprisePriorityLevel(Integer organId, Integer depId, Integer level);
 
     /**
      * 获取药企配送地址以及费用

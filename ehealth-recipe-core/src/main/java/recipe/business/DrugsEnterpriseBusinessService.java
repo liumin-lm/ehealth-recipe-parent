@@ -243,6 +243,11 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
     }
 
     @Override
+    public List<OrganAndDrugsepRelation> findOrganAndDrugsDepRelationBeanByOrganId(Integer organId){
+        return organAndDrugsepRelationDAO.findByOrganId(organId);
+    }
+
+    @Override
     public List<EnterpriseDecoctionList> findEnterpriseDecoctionList(Integer enterpriseId, Integer organId) {
         OrganAndDrugsepRelation relation = organAndDrugsepRelationDAO.getOrganAndDrugsepByOrganIdAndEntId(organId, enterpriseId);
         if (Objects.isNull(relation)) {
@@ -485,13 +490,13 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
     }
 
     @Override
-    public Boolean updateEnterprisePriorityLevel(Integer depId, Integer level) {
-        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(depId);
-        if (ObjectUtils.isEmpty(drugsEnterprise)) {
+    public Boolean updateEnterprisePriorityLevel(Integer organId, Integer depId, Integer level) {
+        OrganAndDrugsepRelation organAndDrugsepRelation = organAndDrugsepRelationDAO.getOrganAndDrugsepByOrganIdAndEntId(organId, depId);
+        if (ObjectUtils.isEmpty(organAndDrugsepRelation)) {
             throw new DAOException("药企不存在");
         }
-        drugsEnterprise.setPriorityLevel(level);
-        drugsEnterpriseDAO.update(drugsEnterprise);
+        organAndDrugsepRelation.setPriorityLevel(level);
+        organAndDrugsepRelationDAO.update(organAndDrugsepRelation);
         return true;
     }
 

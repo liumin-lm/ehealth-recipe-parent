@@ -1,6 +1,5 @@
 package recipe.dao;
 
-import com.ngari.recipe.commonrecipe.model.RulesDrugCorrelationDTO;
 import com.ngari.recipe.entity.RecipeRulesDrugCorrelation;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;
@@ -13,6 +12,7 @@ import ctd.util.annotation.RpcSupportDAO;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Query;
 import org.hibernate.StatelessSession;
+import recipe.vo.second.RecipeRulesDrugCorrelationVO;
 
 import java.util.List;
 import java.util.Objects;
@@ -51,8 +51,8 @@ public abstract class RecipeRulesDrugCorrelationDAO extends HibernateSupportDele
                                                                                   @DAOParam("correlationDrugId") Integer correlationDrugId);
 
 
-    public QueryResult<RulesDrugCorrelationDTO> queryMedicationRulesByNameAndRecipeType(Integer drugId, String input, Integer rulesId, int start, int limit) {
-        HibernateStatelessResultAction<QueryResult<RulesDrugCorrelationDTO>> action = new AbstractHibernateStatelessResultAction<QueryResult<RulesDrugCorrelationDTO>>() {
+    public QueryResult<RecipeRulesDrugCorrelationVO> queryMedicationRulesByNameAndRecipeType(Integer drugId, String input, Integer rulesId, int start, int limit) {
+        HibernateStatelessResultAction<QueryResult<RecipeRulesDrugCorrelationVO>> action = new AbstractHibernateStatelessResultAction<QueryResult<RecipeRulesDrugCorrelationVO>>() {
             @Override
             public void execute(StatelessSession ss) {
                 StringBuilder hql = new StringBuilder("FROM RecipeRulesDrugCorrelation  WHERE 1=1 ");
@@ -91,7 +91,7 @@ public abstract class RecipeRulesDrugCorrelationDAO extends HibernateSupportDele
                 }
                 query.setFirstResult(start);
                 query.setMaxResults(limit);
-                List<RulesDrugCorrelationDTO> lists = query.list();
+                List<RecipeRulesDrugCorrelationVO> lists = query.list();
                 setResult(new QueryResult<>(total, query.getFirstResult(), query.getMaxResults(), lists));
             }
         };

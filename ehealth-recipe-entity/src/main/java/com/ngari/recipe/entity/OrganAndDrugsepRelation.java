@@ -43,6 +43,8 @@ public class OrganAndDrugsepRelation implements java.io.Serializable {
     @ItemProperty(alias = "药企支持的可流转中药煎法 全部：-1")
     private String enterpriseDecoctionIds;
 
+    @ItemProperty(alias = "优先级")
+    private Integer priorityLevel;
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
@@ -98,5 +100,14 @@ public class OrganAndDrugsepRelation implements java.io.Serializable {
 
     public void setEnterpriseDecoctionIds(String enterpriseDecoctionIds) {
         this.enterpriseDecoctionIds = enterpriseDecoctionIds;
+    }
+
+    @Column(name = "priority_level")
+    public Integer getPriorityLevel() {
+        return priorityLevel;
+    }
+
+    public void setPriorityLevel(Integer priorityLevel) {
+        this.priorityLevel = priorityLevel;
     }
 }
