@@ -115,10 +115,7 @@ import recipe.drugsenterprise.HdRemoteService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.drugsenterprise.YtRemoteService;
 import recipe.drugsenterprise.bean.YdUrlPatient;
-import recipe.enumerate.status.GiveModeEnum;
-import recipe.enumerate.status.OrderStateEnum;
-import recipe.enumerate.status.RecipeAuditStateEnum;
-import recipe.enumerate.status.RecipeStateEnum;
+import recipe.enumerate.status.*;
 import recipe.enumerate.type.*;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.hisservice.syncdata.SyncExecutorService;
@@ -1051,10 +1048,12 @@ public class RecipeService extends RecipeBaseService {
             if (!Integer.valueOf(200).equals(resultVo.getCode())) {
                 //说明处方签名失败
                 RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "说明处方签名失败:" + resultVo.getMsg());
-                RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+                RecipeExtend recipeExtend = new RecipeExtend();
+                recipeExtend.setRecipeId(recipeId);
                 recipeExtend.setSignFailReason(resultVo.getMsg());
                 recipeExtendDAO.updateNonNullFieldByPrimaryKey(recipeExtend);
-                recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.SIGN_ERROR_CODE_DOC, null);
+                stateManager.updateStatus(recipeId, RecipeStatusEnum.RECIPE_STATUS_SIGN_ERROR_CODE_DOC, SignEnum.sign_STATE_AUDIT);
+                stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_SUBMIT, RecipeStateEnum.NONE);
                 //CA异步回调的接口 发送环信消息
                 if (Integer.valueOf(2).equals(recipe.getBussSource())) {
                     IRecipeOnLineRevisitService recipeOnLineRevisitService = RevisitAPI.getService(IRecipeOnLineRevisitService.class);
@@ -1064,9 +1063,10 @@ public class RecipeService extends RecipeBaseService {
             } else {
                 //说明处方签名成功，记录日志，走签名成功逻辑 /更新审方checkFlag为待审核
                 RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "当前签名处方签名成功");
-                Map<String, Object> attrMap1 = Maps.newHashMap();
-                attrMap1.put("checkFlag", 0);
-                recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), attrMap1);
+                Recipe updateRecipe = new Recipe();
+                updateRecipe.setRecipeId(recipeId);
+                updateRecipe.setCheckFlag(0);
+                recipeDAO.updateNonNullFieldByPrimaryKey(updateRecipe);
                 LOGGER.info("checkFlag {} 更新为待审核", recipe.getRecipeId());
             }
         } catch (Exception e) {

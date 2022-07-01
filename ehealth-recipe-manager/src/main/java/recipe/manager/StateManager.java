@@ -8,10 +8,7 @@ import ctd.persistence.exception.DAOException;
 import eh.base.constant.ErrorCode;
 import org.springframework.stereotype.Service;
 import recipe.aop.LogRecord;
-import recipe.enumerate.status.OrderStateEnum;
-import recipe.enumerate.status.RecipeAuditStateEnum;
-import recipe.enumerate.status.RecipeStateEnum;
-import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.status.*;
 
 /**
  * 状态处理通用类：处方状态 ，订单状态，审方状态
@@ -65,6 +62,9 @@ public class StateManager extends BaseManager {
         }
         boolean result;
         switch (processState) {
+            case PROCESS_STATE_SUBMIT:
+                result = this.submit(recipe, processState);
+                break;
             case PROCESS_STATE_DELETED:
             case PROCESS_STATE_CANCELLATION:
                 result = this.cancellation(recipe, processState, subState);
@@ -77,6 +77,13 @@ public class StateManager extends BaseManager {
         return result;
     }
 
+    /**
+     * 更新审核状态
+     *
+     * @param recipeId
+     * @param state
+     * @return
+     */
     @LogRecord
     public Boolean updateAuditState(Integer recipeId, RecipeAuditStateEnum state) {
         Recipe updateRecipe = new Recipe();
@@ -86,11 +93,21 @@ public class StateManager extends BaseManager {
         return true;
     }
 
+    /**
+     * 兼容修改老状态
+     *
+     * @param recipeId
+     * @param status
+     * @return
+     */
     @LogRecord
-    public Boolean updateStatus(Integer recipeId, RecipeStatusEnum status) {
+    public Boolean updateStatus(Integer recipeId, RecipeStatusEnum status, SignEnum sign) {
         Recipe updateRecipe = new Recipe();
         updateRecipe.setRecipeId(recipeId);
         updateRecipe.setStatus(status.getType());
+        if (null != sign) {
+            updateRecipe.setDoctorSignState(sign.getType());
+        }
         recipeDAO.updateNonNullFieldByPrimaryKey(updateRecipe);
         return true;
     }
@@ -131,8 +148,8 @@ public class StateManager extends BaseManager {
         }
 
         Recipe updateRecipe = new Recipe();
-        //  药师审核未通过 只要不是审核不通过
-        if (  RecipeStateEnum.SUB_CANCELLATION_AUDIT_NOT_PASS != subState
+        //药师审核未通过 只要不是审核不通过
+        if (RecipeStateEnum.SUB_CANCELLATION_AUDIT_NOT_PASS != subState
                 && RecipeAuditStateEnum.PENDING_REVIEW.getType().equals(recipe.getAuditState())) {
             updateRecipe.setAuditState(RecipeAuditStateEnum.NO_REVIEW.getType());
         }
@@ -140,6 +157,23 @@ public class StateManager extends BaseManager {
         updateRecipe.setRecipeId(recipe.getRecipeId());
         updateRecipe.setProcessState(processState.getType());
         updateRecipe.setSubState(subState.getType());
+        recipeDAO.updateNonNullFieldByPrimaryKey(updateRecipe);
+        return true;
+    }
+
+    /**
+     * 代提交处方
+     *
+     * @param recipe
+     * @param processState
+     * @param
+     * @return
+     */
+    private Boolean submit(Recipe recipe, RecipeStateEnum processState) {
+        Recipe updateRecipe = new Recipe();
+        updateRecipe.setRecipeId(recipe.getRecipeId());
+        updateRecipe.setProcessState(processState.getType());
+        //    updateRecipe.setSubState(subState.getType());
         recipeDAO.updateNonNullFieldByPrimaryKey(updateRecipe);
         return true;
     }
