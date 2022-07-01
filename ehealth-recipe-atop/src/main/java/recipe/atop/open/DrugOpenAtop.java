@@ -15,7 +15,7 @@ import recipe.constant.ErrorCode;
 import recipe.core.api.IDrugBusinessService;
 import recipe.util.ObjectCopyUtils;
 import recipe.vo.doctor.DrugBookVo;
-import recipe.vo.second.RecipeDrugRelationRuleVO;
+import recipe.vo.second.RecipeRulesDrugCorrelationVO;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
@@ -51,9 +51,9 @@ public class DrugOpenAtop extends BaseAtop implements IDrugAtopService {
     }
 
     @Override
-    public List<RecipeDrugRelationRuleVO> getListDrugRules(List<Integer> list, Integer ruleId) {
+    public List<RecipeRulesDrugCorrelationVO> getListDrugRules(List<Integer> list, Integer ruleId) {
         List<RecipeRulesDrugCorrelation> result = drugBusinessService.getListDrugRules(list, ruleId);
-        return CollectionUtils.isEmpty(result) ? new ArrayList<>() : ObjectCopyUtils.convert(result, RecipeDrugRelationRuleVO.class);
+        return CollectionUtils.isEmpty(result) ? new ArrayList<>() : ObjectCopyUtils.convert(result, RecipeRulesDrugCorrelationVO.class);
     }
 
     @Override
@@ -63,15 +63,15 @@ public class DrugOpenAtop extends BaseAtop implements IDrugAtopService {
     }
 
     @Override
-    public List<RecipeDrugRelationRuleVO> findRulesByDrugIdAndRuleId(Integer drugId, Integer ruleId) {
+    public List<RecipeRulesDrugCorrelationVO> findRulesByDrugIdAndRuleId(Integer drugId, Integer ruleId) {
         List<RecipeRulesDrugCorrelation> recipeRulesDrugCorrelations = drugBusinessService.findRulesByDrugIdAndRuleId(drugId, ruleId);
-        return ObjectCopyUtils.convert(recipeRulesDrugCorrelations, RecipeDrugRelationRuleVO.class);
+        return ObjectCopyUtils.convert(recipeRulesDrugCorrelations, RecipeRulesDrugCorrelationVO.class);
     }
 
     @Override
-    public List<RecipeDrugRelationRuleVO> findRulesByCorrelationDrugIdAndRuleId(Integer correlationDrugId, Integer ruleId) {
+    public List<RecipeRulesDrugCorrelationVO> findRulesByCorrelationDrugIdAndRuleId(Integer correlationDrugId, Integer ruleId) {
         List<RecipeRulesDrugCorrelation> recipeRulesDrugCorrelations = drugBusinessService.findRulesByCorrelationDrugIdAndRuleId(correlationDrugId, ruleId);
-        return ObjectCopyUtils.convert(recipeRulesDrugCorrelations, RecipeDrugRelationRuleVO.class);
+        return ObjectCopyUtils.convert(recipeRulesDrugCorrelations, RecipeRulesDrugCorrelationVO.class);
     }
 
     /**

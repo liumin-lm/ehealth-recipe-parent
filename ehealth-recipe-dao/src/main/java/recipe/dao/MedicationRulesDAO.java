@@ -1,7 +1,6 @@
 package recipe.dao;
 
 import com.ngari.recipe.commonrecipe.model.MedicationRulesDTO;
-import com.ngari.recipe.commonrecipe.model.RulesDrugCorrelationDTO;
 import com.ngari.recipe.entity.MedicationRules;
 import ctd.persistence.support.hibernate.HibernateSupportDelegateDAO;
 import ctd.persistence.support.hibernate.template.AbstractHibernateStatelessResultAction;
