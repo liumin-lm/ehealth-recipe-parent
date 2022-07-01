@@ -442,20 +442,20 @@ public class HisCallBackService {
                     // 已支付,只对到院取药的数据更新 未支付,全部都更新
                     String orderCode = recipe.getOrderCode();
                     if (Objects.isNull(orderCode)) {
-                        finishForHis(recipe, attrMap, recipeDAO);
+                        finishForHis(recipe, attrMap, recipeDAO,null);
                         continue;
                     }
                     RecipeOrder byOrderCode = recipeOrderDAO.getByOrderCode(orderCode);
                     if (Objects.isNull(byOrderCode)) {
-                        finishForHis(recipe, attrMap, recipeDAO);
+                        finishForHis(recipe, attrMap, recipeDAO,null);
                         continue;
                     }
                     if (Integer.valueOf(1).equals(byOrderCode.getPayFlag()) && RecipeBussConstant.GIVEMODE_TO_HOS.equals(recipe.getGiveMode())) {
-                        finishForHis(recipe, attrMap, recipeDAO);
+                        finishForHis(recipe, attrMap, recipeDAO,byOrderCode);
                         continue;
                     }
                     if (Integer.valueOf(0).equals(byOrderCode.getPayFlag())) {
-                        finishForHis(recipe, attrMap, recipeDAO);
+                        finishForHis(recipe, attrMap, recipeDAO,byOrderCode);
                         continue;
                     }
 
@@ -464,7 +464,7 @@ public class HisCallBackService {
         }
     }
 
-    private static void finishForHis(Recipe recipe, Map<String, Object> attrMap, RecipeDAO recipeDAO) {
+    private static void finishForHis(Recipe recipe, Map<String, Object> attrMap, RecipeDAO recipeDAO,RecipeOrder order) {
         Integer recipeId = recipe.getRecipeId();
         Integer beforeStatus = recipe.getStatus();
 
@@ -494,6 +494,12 @@ public class HisCallBackService {
                 //监管平台核销上传
                 SyncExecutorService syncExecutorService = ApplicationUtils.getRecipeService(SyncExecutorService.class);
                 syncExecutorService.uploadRecipeVerificationIndicators(recipe.getRecipeId());
+
+                // 更新处方新状态
+                stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_DONE, RecipeStateEnum.SUB_DONE_DOWNLOAD);
+                if(Objects.nonNull(order)) {
+                    stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_DISPENSING, OrderStateEnum.SUB_DONE_DOWNLOAD);
+                }
             }
         }
     }
