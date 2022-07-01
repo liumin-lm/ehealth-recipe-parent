@@ -262,6 +262,7 @@ public class RecipeDetailBusinessService implements IRecipeDetailBusinessService
         recipeDetailBean.setStatus(organDrug.getStatus());
         recipeDetailBean.setDrugId(organDrug.getDrugId());
         recipeDetailBean.setUseDoseAndUnitRelation(RecipeUtil.defaultUseDose(organDrug));
+        recipeDetailBean.setSalePrice(organDrug.getSalePrice());
         //续方也会走这里但是 续方要用药品名实时配置
         recipeDetailBean.setDrugDisplaySplicedName(DrugDisplayNameProducer.getDrugName(recipeDetailBean, configDrugNameMap, DrugNameDisplayUtil.getDrugNameConfigKey(recipeType)));
         if (!ValidateUtil.integerIsEmpty(pharmacyId)) {

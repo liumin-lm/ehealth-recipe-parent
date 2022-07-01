@@ -30,6 +30,7 @@ import recipe.dao.*;
 import recipe.util.LocalStringUtil;
 import recipe.util.ValidateUtil;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -369,6 +370,14 @@ public class DrugManager extends BaseManager {
         }
         Map<Integer, List<DrugList>> collect = byDrugIds.stream().collect(Collectors.groupingBy(DrugList::getDrugId));
         drugWithEsByPatient.forEach(patientDrugWithEsDTO -> {
+            BigDecimal salePrice = patientDrugWithEsDTO.getSalePrice();
+            int numberOfDecimalPlaces = getNumberOfDecimalPlaces(salePrice);
+            if (numberOfDecimalPlaces <= 2) {
+                salePrice = salePrice.setScale(2, BigDecimal.ROUND_HALF_UP);
+            } else {
+                salePrice = salePrice.setScale(4, BigDecimal.ROUND_HALF_UP);
+            }
+            patientDrugWithEsDTO.setSalePrice(salePrice);
             List<DrugList> drugLists = collect.get(patientDrugWithEsDTO.getDrugId());
             if (CollectionUtils.isNotEmpty(drugLists)) {
                 patientDrugWithEsDTO.setDrugPic(drugLists.get(0).getDrugPic());
@@ -377,6 +386,18 @@ public class DrugManager extends BaseManager {
         logger.info("DrugManager findDrugWithEsByPatient res drugWithEsByPatient:{}", JSON.toJSONString(drugWithEsByPatient));
         return drugWithEsByPatient;
     }
+
+    /**
+     * 获取 bigDecimal 的小数位数
+     * @param bigDecimal
+     * @return
+     */
+    private int getNumberOfDecimalPlaces(BigDecimal bigDecimal) {
+        String string = bigDecimal.stripTrailingZeros().toPlainString();
+        int index = string.indexOf(".");
+        return index < 0 ? 0 : string.length() - index - 1;
+    }
+
 
     /**
      * 查询es 药品数据
