@@ -384,4 +384,38 @@ public abstract class DrugListMatchDAO extends HibernateSupportDelegateDAO<DrugL
         HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
+
+    public boolean updateDrugListMatch(final DrugListMatch drug){
+        final HashMap<String,Object> map = BeanUtils.map(drug, HashMap.class);
+        HibernateStatelessResultAction<Boolean> action = new AbstractHibernateStatelessResultAction<Boolean>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder("update DrugListMatch set lastModify=current_timestamp() ");
+                for (String key : map.keySet()) {
+                    if (key.equals("isNew")||key.equals("matchDrugId")){
+                        continue;
+                    }
+                    if (!key.endsWith("Text")){
+                        hql.append("," + key + "=:" + key);
+                    }
+                }
+                hql.append(" where organDrugCode=:organDrugCode and sourceOrgan=:sourceOrgan");
+                Query q = ss.createQuery(hql.toString());
+                q.setParameter("organDrugCode", drug.getOrganDrugCode());
+                q.setParameter("sourceOrgan", drug.getSourceOrgan());
+                for (String key : map.keySet()) {
+                    if (key.equals("status")||key.equals("isNew")||key.equals("matchDrugId")){
+                        continue;
+                    }
+                    if (!key.endsWith("Text")){
+                        q.setParameter(key, map.get(key));
+                    }
+                }
+                int flag = q.executeUpdate();
+                setResult(flag == 1);
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
 }
