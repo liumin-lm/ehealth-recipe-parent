@@ -1,5 +1,7 @@
 package recipe.atop.greenroom;
 
+import com.ngari.recipe.entity.ImportDrugRecord;
+import com.ngari.recipe.entity.ImportDrugRecordMsg;
 import com.ngari.upload.service.IFileUploadService;
 import ctd.account.UserRoleToken;
 import ctd.mvc.controller.OutputSupportMVCController;
@@ -18,7 +20,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import recipe.atop.BaseAtop;
+import recipe.core.api.IFileBusinessService;
 import recipe.core.api.ISaleDrugBusinessService;
+import recipe.vo.greenroom.ImportDrugRecordVO;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -29,7 +33,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * @description： 运营平台机构药品
+ * @description： 文件
  * @author： 刘敏
  * @date： 2022-05-23 9:45
  */
@@ -43,99 +47,120 @@ public class FileGmAtop extends OutputSupportMVCController {
     @Autowired
     private IFileUploadService fileUploadService;
 
-    @RpcService
-    public void getRpc(){
-
-    }
+    @Autowired
+    private IFileBusinessService fileBusinessService;
 
     /**
-     * 文件上传至oss服务器
-     * @param request
-     * @param response
-     * @return
-     */
-    @RequestMapping(value = "api/AsyncImportOrganDrug", method = RequestMethod.POST)
-    @ResponseBody
-    public Map<String, Object> asyncImportOrganDrug(HttpServletRequest request, HttpServletResponse response) throws Exception {
-        logger.info("机构药品导入进入");
-        request.setCharacterEncoding("UTF-8");
-        UserRoleToken e = null;
-        e = UserRoleTokenUtils.getUserRoleToken(request);
-        ContextUtils.put("$ur", e);
-        response.setContentType("application/json;charset=UTF-8");
-        response.setHeader("X-Coded-JSON-Message","true");
-        List items = this.uploader.parseRequest(request);
-        logger.info("机构药品导入进入—-----1");
-        Iterator gzip = items.iterator();
-        FileItem itemTemp = null;
-        byte[] bytes = new byte[0];
-        Integer organId = null;
-        String operator = "";
-        String originalFilename = "";
-        while (gzip.hasNext()) {
-            itemTemp = (FileItem) gzip.next();
-            if (("file").equals(itemTemp.getFieldName())){
-                bytes = itemTemp.get();
-                originalFilename = itemTemp.getName();
-                continue;
-            }
-            if("organId".equals(itemTemp.getFieldName())){
-                organId = Integer.valueOf(itemTemp.getString("UTF-8"));
-            }
-            if("operator".equals(itemTemp.getFieldName())){
-                operator = itemTemp.getString("UTF-8");
-            }
-        }
-        logger.info("api/OrganDrug"+originalFilename+" : "+bytes.length);
-        String fileId = fileUploadService.uploadFileWithoutUrt(bytes, originalFilename);
-        logger.info("fileId:{}",fileId);
-
-        return null;
-    }
-
-
-    /**
-     * 文件上传至oss服务器
-     * @param request
-     * @param response
+     * 判断该机构是否关联省平台（包括互联网医院）供前端调用
+     *
+     * @param organId
      * @return
      */
     @RpcService
-    public Map<String, Object> asyncImportOrganDrug2(HttpServletRequest request, HttpServletResponse response) throws Exception {
-        logger.info("机构药品导入进入");
-        request.setCharacterEncoding("UTF-8");
-        UserRoleToken e = null;
-        e = UserRoleTokenUtils.getUserRoleToken(request);
-        ContextUtils.put("$ur", e);
-        response.setContentType("application/json;charset=UTF-8");
-        response.setHeader("X-Coded-JSON-Message","true");
-        List items = this.uploader.parseRequest(request);
-        logger.info("机构药品导入进入—-----1");
-        Iterator gzip = items.iterator();
-        FileItem itemTemp = null;
-        byte[] bytes = new byte[0];
-        Integer organId = null;
-        String operator = "";
-        String originalFilename = "";
-        while (gzip.hasNext()) {
-            itemTemp = (FileItem) gzip.next();
-            if (("file").equals(itemTemp.getFieldName())){
-                bytes = itemTemp.get();
-                originalFilename = itemTemp.getName();
-                continue;
-            }
-            if("organId".equals(itemTemp.getFieldName())){
-                organId = Integer.valueOf(itemTemp.getString("UTF-8"));
-            }
-            if("operator".equals(itemTemp.getFieldName())){
-                operator = itemTemp.getString("UTF-8");
-            }
-        }
-        logger.info("api/OrganDrug"+originalFilename+" : "+bytes.length);
-        String fileId = fileUploadService.uploadFileWithoutUrt(bytes, originalFilename);
-        logger.info("fileId:{}",fileId);
-
-        return null;
+    public List<ImportDrugRecordVO> findImportDrugRecordByOrganId(Integer organId) {
+        return fileBusinessService.findImportDrugRecordByOrganId(organId);
     }
+
+    @RpcService
+    public List<ImportDrugRecord> findImportDrugRecord(ImportDrugRecord importDrugRecord) {
+        return fileBusinessService.findImportDrugRecord(importDrugRecord);
+    }
+
+    @RpcService
+    public List<ImportDrugRecordMsg> findImportDrugRecordMsgByImportDrugRecordId(ImportDrugRecord importDrugRecord) {
+        return fileBusinessService.findImportDrugRecordMsgByImportDrugRecordId(importDrugRecord);
+    }
+
+
+
+//    /**
+//     * 文件上传至oss服务器
+//     * @param request
+//     * @param response
+//     * @return
+//     */
+//    @RequestMapping(value = "api/AsyncImportOrganDrug", method = RequestMethod.POST)
+//    @ResponseBody
+//    public Map<String, Object> asyncImportOrganDrug(HttpServletRequest request, HttpServletResponse response) throws Exception {
+//        logger.info("机构药品导入进入");
+//        request.setCharacterEncoding("UTF-8");
+//        UserRoleToken e = null;
+//        e = UserRoleTokenUtils.getUserRoleToken(request);
+//        ContextUtils.put("$ur", e);
+//        response.setContentType("application/json;charset=UTF-8");
+//        response.setHeader("X-Coded-JSON-Message","true");
+//        List items = this.uploader.parseRequest(request);
+//        logger.info("机构药品导入进入—-----1");
+//        Iterator gzip = items.iterator();
+//        FileItem itemTemp = null;
+//        byte[] bytes = new byte[0];
+//        Integer organId = null;
+//        String operator = "";
+//        String originalFilename = "";
+//        while (gzip.hasNext()) {
+//            itemTemp = (FileItem) gzip.next();
+//            if (("file").equals(itemTemp.getFieldName())){
+//                bytes = itemTemp.get();
+//                originalFilename = itemTemp.getName();
+//                continue;
+//            }
+//            if("organId".equals(itemTemp.getFieldName())){
+//                organId = Integer.valueOf(itemTemp.getString("UTF-8"));
+//            }
+//            if("operator".equals(itemTemp.getFieldName())){
+//                operator = itemTemp.getString("UTF-8");
+//            }
+//        }
+//        logger.info("api/OrganDrug"+originalFilename+" : "+bytes.length);
+//        String fileId = fileUploadService.uploadFileWithoutUrt(bytes, originalFilename);
+//        logger.info("fileId:{}",fileId);
+//
+//        return null;
+//    }
+//
+//
+//    /**
+//     * 文件上传至oss服务器
+//     * @param request
+//     * @param response
+//     * @return
+//     */
+//    @RpcService
+//    public Map<String, Object> asyncImportOrganDrug2(HttpServletRequest request, HttpServletResponse response) throws Exception {
+//        logger.info("机构药品导入进入");
+//        request.setCharacterEncoding("UTF-8");
+//        UserRoleToken e = null;
+//        e = UserRoleTokenUtils.getUserRoleToken(request);
+//        ContextUtils.put("$ur", e);
+//        response.setContentType("application/json;charset=UTF-8");
+//        response.setHeader("X-Coded-JSON-Message","true");
+//        List items = this.uploader.parseRequest(request);
+//        logger.info("机构药品导入进入—-----1");
+//        Iterator gzip = items.iterator();
+//        FileItem itemTemp = null;
+//        byte[] bytes = new byte[0];
+//        Integer organId = null;
+//        String operator = "";
+//        String originalFilename = "";
+//        while (gzip.hasNext()) {
+//            itemTemp = (FileItem) gzip.next();
+//            if (("file").equals(itemTemp.getFieldName())){
+//                bytes = itemTemp.get();
+//                originalFilename = itemTemp.getName();
+//                continue;
+//            }
+//            if("organId".equals(itemTemp.getFieldName())){
+//                organId = Integer.valueOf(itemTemp.getString("UTF-8"));
+//            }
+//            if("operator".equals(itemTemp.getFieldName())){
+//                operator = itemTemp.getString("UTF-8");
+//            }
+//        }
+//        logger.info("api/OrganDrug"+originalFilename+" : "+bytes.length);
+//        String fileId = fileUploadService.uploadFileWithoutUrt(bytes, originalFilename);
+//        logger.info("fileId:{}",fileId);
+//
+//        return null;
+//    }
 
 }

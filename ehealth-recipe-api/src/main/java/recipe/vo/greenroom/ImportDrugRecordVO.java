@@ -1,14 +1,12 @@
 package recipe.vo.greenroom;
 
 
+import ctd.schema.annotation.FileToken;
 import ctd.schema.annotation.ItemProperty;
-import ctd.schema.annotation.Schema;
 import lombok.Data;
 
-import javax.persistence.*;
 import java.util.Date;
-
-import static javax.persistence.GenerationType.IDENTITY;
+import java.util.List;
 
 /**
  * 导入药品记录
@@ -49,95 +47,11 @@ public class ImportDrugRecordVO implements java.io.Serializable {
     @ItemProperty(alias = "机构ID")
     private Integer organId;
 
-    @Id
-    @GeneratedValue(strategy = IDENTITY)
-    @Column(name = "RecordId", unique = true, nullable = false)
-    public Integer getRecordId() {
-        return recordId;
-    }
+    @ItemProperty(alias = "导入状态 1、导入成功——指写入平台成功 2、正在导入——还没存在oss里，或者已存在oss里，未但导入至平台 3、导入失败，点击查看原因——导入失败（不管哪里失败都展示失败）=第三种，点击查看原因，出现报错内容弹窗，如右图所示")
+    private Integer status;
 
-    public void setRecordId(Integer recordId) {
-        this.recordId = recordId;
-    }
+    @FileToken
+    private String fileId;
 
-    @Column(name = "FileName")
-    public String getFileName() {
-        return fileName;
-    }
-
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
-    }
-
-    @Column(name = "AddNum")
-    public Integer getAddNum() {
-        return addNum;
-    }
-
-    public void setAddNum(Integer addNum) {
-        this.addNum = addNum;
-    }
-
-    @Column(name = "UpdateNum")
-    public Integer getUpdateNum() {
-        return updateNum;
-    }
-
-    public void setUpdateNum(Integer updateNum) {
-        this.updateNum = updateNum;
-    }
-
-    @Column(name = "FailNum")
-    public Integer getFailNum() {
-        return failNum;
-    }
-
-    public void setFailNum(Integer failNum) {
-        this.failNum = failNum;
-    }
-
-    @Column(name = "ImportOperator")
-    public String getImportOperator() {
-        return importOperator;
-    }
-
-    public void setImportOperator(String importOperator) {
-        this.importOperator = importOperator;
-    }
-
-    @Column(name = "errMsg")
-    public String getErrMsg() {
-        return errMsg;
-    }
-
-    public void setErrMsg(String errMsg) {
-        this.errMsg = errMsg;
-    }
-
-    @Column(name = "CreateDt")
-    public Date getCreateDt() {
-        return createDt;
-    }
-
-    public void setCreateDt(Date createDt) {
-        this.createDt = createDt;
-    }
-
-    @Column(name = "LastModify")
-    public Date getLastModify() {
-        return lastModify;
-    }
-
-    public void setLastModify(Date lastModify) {
-        this.lastModify = lastModify;
-    }
-
-    @Column(name = "OrganId")
-    public Integer getOrganId() {
-        return organId;
-    }
-
-    public void setOrganId(Integer organId) {
-        this.organId = organId;
-    }
+    private List<ImportDrugRecordMsgVO> importDrugRecordMsg;
 }

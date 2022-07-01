@@ -30,6 +30,7 @@ import com.ngari.recipe.drug.service.ISaleDrugListService;
 import com.ngari.recipe.drugTool.service.IDrugToolService;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.UpdateMatchStatusFormBean;
+import com.ngari.upload.service.IFileUploadService;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.dictionary.DictionaryItem;
@@ -75,6 +76,7 @@ import recipe.constant.RecipeSystemConstant;
 import recipe.dao.*;
 import recipe.service.DrugsEnterpriseConfigService;
 import recipe.service.OrganDrugListService;
+import recipe.third.IFileDownloadService;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.DrugMatchUtil;
 import recipe.util.LocalStringUtil;
@@ -157,7 +159,11 @@ public class DrugToolService implements IDrugToolService {
     @Autowired
     private DrugsEnterpriseDAO drugsEnterpriseDAO;
 
+    @Autowired
+    private IFileUploadService fileUploadService;
 
+    @Autowired
+    private IFileDownloadService fileDownloadService;
 
 
     private LoadingCache<String, List<DrugList>> drugListCache = CacheBuilder.newBuilder().expireAfterWrite(10, TimeUnit.MINUTES).build(new CacheLoader<String, List<DrugList>>() {
@@ -232,8 +238,31 @@ public class DrugToolService implements IDrugToolService {
     }
 
     @Override
+    @LogRecord
     public Map<String, Object> readDrugExcel(byte[] buf, String originalFilename, int organId, String operator) {
         LOGGER.info(operator + "开始 readDrugExcel 方法" + System.currentTimeMillis() + "当前进程=" + Thread.currentThread().getName());
+        //保存到ossid
+        String fileId = fileUploadService.uploadFileWithoutUrt(buf, originalFilename);
+        LOGGER.info("file upload success fileId:"+fileId);
+        ImportDrugRecordVO importDrugRecordVO=new ImportDrugRecordVO();
+        importDrugRecordVO.setFileId(fileId);
+        importDrugRecordVO.setStatus(2);
+        importDrugRecordVO.setFileName(originalFilename);
+        importDrugRecordVO.setImportOperator(operator);
+        importDrugRecordVO.setCreateDt(new Date());
+        saveImportDrugRecord(importDrugRecordVO);
+
+        //数据处理
+        byte[] bytes=fileDownloadService.downloadAsByte(fileId);
+
+
+
+
+
+
+
+
+
         String key = organId + operator;
         Map<String, Object> result = Maps.newHashMap();
         if (StringUtils.isEmpty(operator)) {

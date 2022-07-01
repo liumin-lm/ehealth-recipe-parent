@@ -2,6 +2,7 @@ package com.ngari.recipe.entity;
 
 
 import ctd.schema.annotation.Dictionary;
+import ctd.schema.annotation.FileToken;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
@@ -53,6 +54,28 @@ public class ImportDrugRecord implements java.io.Serializable {
 
     @ItemProperty(alias = "机构ID")
     private Integer organId;
+
+    @ItemProperty(alias = "导入状态 1、导入成功——指写入平台成功 2、正在导入——还没存在oss里，或者已存在oss里，未但导入至平台 3、导入失败，点击查看原因——导入失败（不管哪里失败都展示失败）=第三种，点击查看原因，出现报错内容弹窗，如右图所示")
+    private Integer status;
+
+    @FileToken
+    private String fileId;
+
+    public Integer getStatus() {
+        return status;
+    }
+
+    public void setStatus(Integer status) {
+        this.status = status;
+    }
+
+    public String getFileId() {
+        return fileId;
+    }
+
+    public void setFileId(String fileId) {
+        this.fileId = fileId;
+    }
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
