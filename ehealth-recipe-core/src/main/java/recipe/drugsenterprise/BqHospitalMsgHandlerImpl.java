@@ -22,10 +22,12 @@ import recipe.constant.HisBussConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDAO;
+import recipe.enumerate.status.RecipeStateEnum;
 import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
 import recipe.hisservice.RecipeToHisService;
 import recipe.hisservice.syncdata.SyncExecutorService;
+import recipe.manager.StateManager;
 import recipe.service.RecipeHisService;
 import recipe.service.RecipeMsgService;
 
@@ -42,6 +44,9 @@ public class BqHospitalMsgHandlerImpl implements BqHospitalMsgHandler {
 
     @Autowired
     private RecipeDAO recipeDAO;
+
+    @Autowired
+    private StateManager stateManager;
 
     @Override
     public void handle(BqHospitalPrescriptionStatus bqHospitalPrescriptionStatus) throws BqHospitalMsgException {
@@ -103,6 +108,9 @@ public class BqHospitalMsgHandlerImpl implements BqHospitalMsgHandler {
                 //监管平台核销上传
                 SyncExecutorService syncExecutorService = ApplicationUtils.getRecipeService(SyncExecutorService.class);
                 syncExecutorService.uploadRecipeVerificationIndicators(recipe.getRecipeId());
+
+                // 更新处方新状态
+                stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_DONE, RecipeStateEnum.SUB_DONE_UPLOAD_THIRD);
             }
         }
 
