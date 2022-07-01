@@ -1,7 +1,6 @@
 package recipe.service;
 
 import com.ngari.patient.utils.ObjectCopyUtils;
-import com.ngari.recipe.commonrecipe.model.RulesDrugCorrelationDTO;
 import com.ngari.recipe.drug.service.IRulesDrugCorrelationService;
 import com.ngari.recipe.entity.RecipeRulesDrugCorrelation;
 import ctd.persistence.bean.QueryResult;
@@ -12,6 +11,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 import recipe.dao.RecipeRulesDrugCorrelationDAO;
+import recipe.vo.second.RecipeRulesDrugCorrelationVO;
 
 import java.util.Date;
 import java.util.List;
@@ -39,7 +39,7 @@ public class RecipeRulesDrugCorrelationService implements IRulesDrugCorrelationS
      */
     @Override
     @RpcService
-    public QueryResult<RulesDrugCorrelationDTO> queryRulesDrugCorrelationByDrugCodeOrname(Integer drugId, String input, Integer rulesId, int start, int limit) {
+    public QueryResult<RecipeRulesDrugCorrelationVO> queryRulesDrugCorrelationByDrugCodeOrname(Integer drugId, String input, Integer rulesId, int start, int limit) {
         return recipeRulesDrugCorrelationDAO.queryMedicationRulesByNameAndRecipeType(drugId, input, rulesId, start, limit);
     }
 
@@ -70,18 +70,18 @@ public class RecipeRulesDrugCorrelationService implements IRulesDrugCorrelationS
      */
     @Override
     @RpcService
-    public void addRulesDrugCorrelation(List<RulesDrugCorrelationDTO> list, Integer rulesId) {
+    public void addRulesDrugCorrelation(List<RecipeRulesDrugCorrelationVO> list, Integer rulesId) {
         if (Objects.isNull(rulesId) || CollectionUtils.isEmpty(list)) {
             throw new DAOException(DAOException.VALUE_NEEDED, "param is required!");
         }
         //前端目前空的RulesDrugCorrelationDTO对象也会传过来，每个字段都是"", 临时处理下
-        List<RulesDrugCorrelationDTO> rulesList = list.stream().filter(x -> Objects.nonNull(x.getDrugId())).collect(Collectors.toList());
+        List<RecipeRulesDrugCorrelationVO> rulesList = list.stream().filter(x -> Objects.nonNull(x.getDrugId())).collect(Collectors.toList());
         if (CollectionUtils.isEmpty(list)) {
             return;
         }
         if (OVER.equals(rulesId)) {
             //超量
-            for (RulesDrugCorrelationDTO rule : rulesList) {
+            for (RecipeRulesDrugCorrelationVO rule : rulesList) {
                 List<RecipeRulesDrugCorrelation> recipeRulesDrugCorrelationList = recipeRulesDrugCorrelationDAO.findRulesByDrugIdAndRuleId(rule.getDrugId(), rulesId);
                 if (CollectionUtils.isNotEmpty(recipeRulesDrugCorrelationList)) {
                     throw new DAOException(DAOException.VALUE_NEEDED, "保存数据" + rule.getDrugName() + "此药品已存在，请重新填写!");
@@ -93,7 +93,7 @@ public class RecipeRulesDrugCorrelationService implements IRulesDrugCorrelationS
             }
         } else {
             //十八反、十九畏
-            for (RulesDrugCorrelationDTO ruleDTO : rulesList) {
+            for (RecipeRulesDrugCorrelationVO ruleDTO : rulesList) {
                 RecipeRulesDrugCorrelation rule = ObjectCopyUtils.convert(ruleDTO, RecipeRulesDrugCorrelation.class);
                 RecipeRulesDrugCorrelation drugCorrelation = recipeRulesDrugCorrelationDAO.getDrugCorrelationByCodeAndRulesId(rulesId, rule.getDrugId(), rule.getCorrelationDrugId());
                 if (Objects.nonNull(drugCorrelation)) {
@@ -115,7 +115,7 @@ public class RecipeRulesDrugCorrelationService implements IRulesDrugCorrelationS
      */
     @Override
     @RpcService
-    public Boolean checkRulesDrugCorrelations(RulesDrugCorrelationDTO correlationDTO, Integer rulesId) {
+    public Boolean checkRulesDrugCorrelations(RecipeRulesDrugCorrelationVO correlationDTO, Integer rulesId) {
         if (Objects.isNull(correlationDTO) || Objects.isNull(correlationDTO.getDrugId()) || Objects.isNull(rulesId)) {
             throw new DAOException(DAOException.VALUE_NEEDED, "param is required!");
         }

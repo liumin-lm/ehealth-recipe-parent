@@ -4,7 +4,8 @@ import com.ngari.platform.recipe.mode.ListOrganDrugReq;
 import com.ngari.platform.recipe.mode.ListOrganDrugRes;
 import ctd.util.annotation.RpcService;
 import recipe.vo.doctor.DrugBookVo;
-import recipe.vo.second.RecipeDrugRelationRuleVO;
+import recipe.vo.second.RecipeRulesDrugCorrelationVO;
+
 
 import java.util.List;
 
@@ -33,7 +34,7 @@ public interface IDrugAtopService {
      * @return
      */
     @RpcService(mvcDisabled = true)
-    List<RecipeDrugRelationRuleVO> getListDrugRules(List<Integer> list, Integer ruleId);
+    List<RecipeRulesDrugCorrelationVO> getListDrugRules(List<Integer> list, Integer ruleId);
 
     /**
      * 获取机构药品目录
@@ -52,7 +53,7 @@ public interface IDrugAtopService {
      * @return
      */
     @RpcService(mvcDisabled = true)
-    List<RecipeDrugRelationRuleVO> findRulesByDrugIdAndRuleId(Integer drugId, Integer ruleId);
+    List<RecipeRulesDrugCorrelationVO> findRulesByDrugIdAndRuleId(Integer drugId, Integer ruleId);
 
 
     /**
@@ -63,5 +64,5 @@ public interface IDrugAtopService {
      * @return
      */
     @RpcService(mvcDisabled = true)
-    List<RecipeDrugRelationRuleVO> findRulesByCorrelationDrugIdAndRuleId(Integer correlationDrugId, Integer ruleId);
+    List<RecipeRulesDrugCorrelationVO> findRulesByCorrelationDrugIdAndRuleId(Integer correlationDrugId, Integer ruleId);
 }
