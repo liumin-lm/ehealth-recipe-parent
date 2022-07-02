@@ -1492,7 +1492,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder sbHql = preparedHql;
                 System.out.println(preparedHql);
-                Query query = ss.createSQLQuery(sbHql.append(" order by r.recipeId DESC").toString()).addEntity(RecipeExportDTO.class).addEntity(RecipeOrderExportDTO.class).addEntity(RecipeDetailExportDTO.class);
+                Query query = ss.createSQLQuery(sbHql.append(" order by r.recipeId DESC").toString())
+                        .addEntity(RecipeExportDTO.class)
+                        .addEntity(RecipeOrderExportDTO.class)
+                        .addEntity(RecipeDetailExportDTO.class);
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                 query.setParameter("startTime", sdf.format(recipesQueryVO.getBDate()));
                 query.setParameter("endTime", sdf.format(recipesQueryVO.getEDate()));
@@ -2136,105 +2139,18 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     private StringBuilder generateRecipeOderHQLforStatisticsN(RecipesQueryVO recipesQueryVO) {
         StringBuilder hql = new StringBuilder("select ");
         hql.append("o.orderId,o.address1,o.address2,o.address3,o.address4,address5Text,o.streetAddress,o.receiver,o.send_type,o.RecMobile,o.CreateTime,o.ExpressFee,o.OrderCode,o.Status,o.ActualPrice,o.TotalFee,o.EnterpriseId,o.ExpectSendDate,o.ExpectSendTime,o.PayFlag,o.PayTime,o.TradeNo,o.RecipeIdList,o.dispensingTime,o.drugStoreName, ");
-        hql.append("r.recipeId,r.mpiid,r.patientID,r.doctor,r.organName,r.organDiseaseName,r.doctorName,r.patientName,r.status,r.depart,r.fromflag,r.giveMode,r.recipeType,r.giveUser,r.bussSource,r.recipeCode,ce.recipe_business_type as recipeBusinessType,r.clinicOrgan , ");
+        hql.append("r.recipeId,r.mpiid,r.patientID,r.doctor,r.organName,r.organDiseaseName,r.doctorName,r.patientName,r.status,r.depart,r.fromflag,r.giveMode,r.recipeType,r.giveUser,r.bussSource,r.recipeCode,re.recipe_business_type as recipeBusinessType,r.clinicOrgan , ");
         hql.append("d.recipeDetailId,d.drugName,d.drugSpec,d.drugUnit,d.salePrice,d.actualSalePrice,d.saleDrugCode,d.producer,d.licenseNumber,d.useDose,d.useDoseUnit,d.usePathways,d.usingRate,d.useTotalDose,d.drugId ,d.organDrugCode,d.his_return_sale_price ");
-        hql.append(" ,ce.decoctionId,ce.decoctionText ");
+        hql.append(" ,re.decoctionId,re.decoctionText ");
 //        hql.append(" ,drug.organDrugCode,drug.medicalDrugCode  ");
 
         hql.append(" from cdr_recipe r LEFT JOIN cdr_recipeorder o on r.orderCode=o.orderCode ");
-        hql.append("LEFT JOIN cdr_recipedetail d ON r.RecipeID = d.RecipeID LEFT JOIN cdr_recipe_ext ce on ce.recipeId = r.recipeId ");
+        hql.append("LEFT JOIN cdr_recipedetail d ON r.RecipeID = d.RecipeID")
+                .append(" LEFT JOIN cdr_recipe_ext re on re.recipeId = r.recipeId ");
 //        hql.append("LEFT JOIN base_organdruglist drug on drug.OrganDrugCode=d.OrganDrugCode and drug.OrganID=r.clinicorgan  ");
-        hql.append(" where d.Status= 1 ");
-        //默认查询所有
-        if (CollectionUtils.isNotEmpty(recipesQueryVO.getOrganIds())) {
-            // 添加申请机构条件
-            boolean flag = true;
-            for (Integer i : recipesQueryVO.getOrganIds()) {
-                if (i != null) {
-                    if (flag) {
-                        hql.append(" and r.clinicOrgan in(");
-                        flag = false;
-                    }
-                    hql.append(i + ",");
-                }
-            }
-            if (!flag) {
-                hql = new StringBuilder(hql.substring(0, hql.length() - 1) + ") ");
-            }
-        }
-        if (null != recipesQueryVO.getOrganId()) {
-            hql.append(" and r.clinicOrgan =" + recipesQueryVO.getOrganId());
-        }
-        switch (recipesQueryVO.getDateType()) {
-            case 0:
-                //开方时间
-                hql.append(" and r.createDate >= :startTime" + " and r.createDate <= :endTime ");
-                break;
-            case 1:
-                //审核时间
-                hql.append(" and r.checkDate >= :startTime" + " and r.checkDate <= :endTime ");
-                break;
-            case 2:
-                //支付时间
-                hql.append(" and o.payTime >= :startTime" + " and o.payTime <= :endTime ");
-                break;
-            case 3:
-                //发药时间
-                hql.append(" and o.dispensingTime BETWEEN :startTime" + " and :endTime ");
-                break;
-            default:
-                break;
-        }
-        if (null != recipesQueryVO.getStatus()) {
-            //由于已取消状态较多，使用其中一个值查询所有已取消的状态
-            if (new Integer(11).equals(recipesQueryVO.getStatus())) {
-                hql.append(" and r.status in (11,12,13,14,17,19,20,25)");
-            } else {
-                hql.append(" and r.status =").append(recipesQueryVO.getStatus());
-            }
-        }
-        if (null != recipesQueryVO.getDoctor()) {
-            hql.append(" and r.doctor=").append(recipesQueryVO.getDoctor());
-        }
-        //根据患者姓名  精确查询
-        if (!StringUtils.isEmpty(recipesQueryVO.getPatientName().trim())) {
-            hql.append(" and r.patientName='").append(recipesQueryVO.getPatientName()).append("'");
-        }
-        if (null != recipesQueryVO.getDepart()) {
-            hql.append(" and r.depart=").append(recipesQueryVO.getDepart());
-        }
-        if (null != recipesQueryVO.getGiveMode()) {
-            hql.append(" and r.giveMode=").append(recipesQueryVO.getGiveMode());
-        }
-        if (null != recipesQueryVO.getFromFlag()) {
-            hql.append(" and r.fromflag=").append(recipesQueryVO.getFromFlag());
-        }
-        if (null != recipesQueryVO.getRecipeId()) {
-            hql.append(" and r.recipeId=").append(recipesQueryVO.getRecipeId());
-        }
-        if (null != recipesQueryVO.getRecipeType()) {
-            hql.append(" and r.recipeType=").append(recipesQueryVO.getRecipeType());
-        }
-        if (recipesQueryVO.getBussSource() != null) {
-            switch (recipesQueryVO.getBussSource()) {
-                case 1:
-                    hql.append(" and r.bussSource=1 ");
-                    break;
-                case 2:
-                    hql.append(" and r.bussSource=2 ");
-                    break;
-                case 3:
-                    hql.append(" and r.bussSource=3 ");
-                    break;
-                case 5:
-                    hql.append(" and r.bussSource=5 ");
-                    break;
-            }
-        }
-        if (null != recipesQueryVO.getRecipeBusinessType()) {
-            hql.append(" and ce.recipe_business_type=").append(recipesQueryVO.getRecipeBusinessType());
-        }
-        return hql;
+        hql.append(" where d.Status= 1 and r.recipeSourceType!=3 ");
+
+        return generateRecipeOderWhereHQLforStatistics(hql,recipesQueryVO);
     }
 
     /**
