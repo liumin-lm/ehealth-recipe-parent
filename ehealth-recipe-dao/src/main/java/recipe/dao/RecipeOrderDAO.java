@@ -1,7 +1,5 @@
 package recipe.dao;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.ngari.recipe.dto.RecipeOrderRefundReqDTO;
@@ -10,7 +8,6 @@ import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.pay.model.BusBillDateAccountDTO;
 import com.ngari.recipe.recipe.model.RecipeOrderDetailExportDTO;
 import com.ngari.recipe.recipereportform.model.*;
-import ctd.persistence.DAOFactory;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;
 import ctd.persistence.bean.QueryResult;
@@ -21,7 +18,6 @@ import ctd.persistence.support.hibernate.template.HibernateSessionTemplate;
 import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction;
 import ctd.util.annotation.RpcSupportDAO;
 import ctd.util.converter.ConversionUtils;
-import eh.entity.mpi.Patient;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Query;
@@ -1872,15 +1868,15 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
     @DAOMethod(sql = "update RecipeOrder set trackingNumber=:trackingNumber,logisticsCompany=:logisticsCompany where orderId=:orderId")
     public abstract void updateTrackingNumberByOrderId(@DAOParam("orderId")Integer orderId, @DAOParam("logisticsCompany")Integer logisticsCompany, @DAOParam("trackingNumber")String trackingNumber);
 
-    public List<Object[]> getRecipeOrderDetail(RecipeOrderRefundReqDTO recipeOrderRefundReqDTO) {
+    public List<RecipeOrderDetailExportDTO> getRecipeOrderDetail(RecipeOrderRefundReqDTO recipeOrderRefundReqDTO) {
         final StringBuilder sbHql = this.generateRecipeOrderDetailHQL(recipeOrderRefundReqDTO);
         logger.info("RecipeOderDAO getRecipeOrderDetail sbHql = {} ", sbHql.toString());
-        HibernateStatelessResultAction<List<Object[]>> action = new AbstractHibernateStatelessResultAction<List<Object[]>>() {
+        HibernateStatelessResultAction<List<RecipeOrderDetailExportDTO>> action = new AbstractHibernateStatelessResultAction<List<RecipeOrderDetailExportDTO>>() {
             @Override
             public void execute(StatelessSession ss) {
                 Query query = ss.createSQLQuery(sbHql.append(" order by a.CreateTime DESC").toString()).addEntity(RecipeOrderDetailExportDTO.class);
                 setRefundParameter(query, recipeOrderRefundReqDTO);
-                List<Object[]> list = query.list();
+                List<RecipeOrderDetailExportDTO> list = query.list();
                 setResult(list);
             }
         };

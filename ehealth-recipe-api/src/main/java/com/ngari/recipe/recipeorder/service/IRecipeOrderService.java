@@ -2,6 +2,7 @@ package com.ngari.recipe.recipeorder.service;
 
 import com.ngari.recipe.IBaseService;
 import com.ngari.recipe.common.*;
+import com.ngari.recipe.recipe.model.RecipeOrderDetailExportDTO;
 import com.ngari.recipe.recipe.model.RecipeRefundBean;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
@@ -238,5 +239,5 @@ public interface IRecipeOrderService extends IBaseService<RecipeOrderBean> {
      * @return
      */
     @RpcService
-    List<Object[]> getRecipeOrderDetail(RecipeOrderRefundReqVO recipeOrderRefundReqVO);
+    List<RecipeOrderDetailExportDTO> getRecipeOrderDetail(RecipeOrderRefundReqVO recipeOrderRefundReqVO);
 }

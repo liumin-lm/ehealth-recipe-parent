@@ -78,8 +78,6 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
     private StateManager stateManager;
     @Autowired
     private RecipeOrderDAO recipeOrderDAO;
-    @Autowired
-    private PatientClient patientClient;
 
     @RpcService
     @Override
@@ -472,7 +470,7 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
     }
 
     @Override
-    public List<Object[]> getRecipeOrderDetail(RecipeOrderRefundReqVO recipeOrderRefundReqVO) {
+    public List<RecipeOrderDetailExportDTO> getRecipeOrderDetail(RecipeOrderRefundReqVO recipeOrderRefundReqVO) {
         LOGGER.info("getRecipeOrderDetail recipeOrderRefundReqVO={}",JSONUtils.toString(recipeOrderRefundReqVO));
         if (null == recipeOrderRefundReqVO.getBeginTime()) {
             throw new DAOException(DAOException.VALUE_NEEDED, "统计开始时间不能为空");
@@ -485,7 +483,7 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
         RecipeOrderRefundReqDTO recipeOrderRefundReqDTO = ObjectCopyUtils.convert(recipeOrderRefundReqVO, RecipeOrderRefundReqDTO.class);
         recipeOrderRefundReqDTO.setBeginTime(beginDate);
         recipeOrderRefundReqDTO.setEndTime(endDate);
-        List<Object[]> recipeOrderDetailVOList = recipeOrderDAO.getRecipeOrderDetail(recipeOrderRefundReqDTO);
+        List<RecipeOrderDetailExportDTO> recipeOrderDetailVOList = recipeOrderDAO.getRecipeOrderDetail(recipeOrderRefundReqDTO);
         LOGGER.info("getRecipeOrderDetail recipeOrderDetailVOList={}",JSONUtils.toString(recipeOrderDetailVOList));
         return recipeOrderDetailVOList;
     }
