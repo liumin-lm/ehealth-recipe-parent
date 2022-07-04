@@ -786,6 +786,13 @@ public class BaseOfflineToOnlineService {
                     recipedetail.setDrugName(organDrugLists.get(0).getDrugName());
                 }
             }
+            if (StringUtils.isNotEmpty(hisRecipeDetail.getSaleName())) {
+                recipedetail.setSaleName(hisRecipeDetail.getSaleName());
+            } else {
+                if (CollectionUtils.isNotEmpty(organDrugLists)) {
+                    recipedetail.setSaleName(organDrugLists.get(0).getSaleName());
+                }
+            }
             if (StringUtils.isNotEmpty(hisRecipeDetail.getDrugUnit())) {
                 recipedetail.setDrugUnit(hisRecipeDetail.getDrugUnit());
             } else {
