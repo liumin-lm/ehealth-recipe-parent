@@ -148,21 +148,23 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
             }
             HisResponseTO responseTO = recipeEnterpriseService.pushSingleRecipeInfo(pushRecipeAndOrder);
             LOGGER.info("pushSingleRecipeInfo responseTO:{}.", JSONUtils.toString(responseTO));
-            if (responseTO != null && responseTO.isSuccess()) {
-                //推送药企处方成功
-                orderService.updateOrderInfo(recipe.getOrderCode(), ImmutableMap.of("pushFlag", 1), null);
-                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "纳里给" + enterprise.getName() + "推送处方成功");
-                result.setCode(1);
-                String prescId = (String) responseTO.getExtend().get("prescId");
-                RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-                if (StringUtils.isNotEmpty(prescId)) {
-                    recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("rxid", prescId));
-                }
-            } else {
-                if (null != enterprise && StringUtils.isEmpty(enterprise.getAppKey()) && !NO_PUSH_MSG.equals(responseTO.getMsg())) {
-                    orderService.updateOrderInfo(recipe.getOrderCode(), ImmutableMap.of("pushFlag", -1), null);
-                    RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "纳里给" + enterprise.getName() + "推送处方失败");
-                    result.setCode(0);
+            if (responseTO != null) {
+                if (responseTO.isSuccess()) {
+                    //推送药企处方成功
+                    orderService.updateOrderInfo(recipe.getOrderCode(), ImmutableMap.of("pushFlag", 1), null);
+                    RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "纳里给" + enterprise.getName() + "推送处方成功");
+                    result.setCode(1);
+                    String prescId = (String) responseTO.getExtend().get("prescId");
+                    RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+                    if (StringUtils.isNotEmpty(prescId)) {
+                        recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("rxid", prescId));
+                    }
+                } else {
+                    if (StringUtils.isEmpty(enterprise.getAppKey()) && !NO_PUSH_MSG.equals(responseTO.getMsg())) {
+                        orderService.updateOrderInfo(recipe.getOrderCode(), ImmutableMap.of("pushFlag", -1), null);
+                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "纳里给" + enterprise.getName() + "推送处方失败");
+                        result.setCode(0);
+                    }
                 }
             }
         } else {
