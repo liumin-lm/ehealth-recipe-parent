@@ -711,6 +711,7 @@ public class BaseOfflineToOnlineService {
         }
         //中药医嘱跟着处方 西药医嘱跟着药品（见药品详情）
         recipe.setRecipeMemo(hisRecipe.getRecipeMemo());
+        recipe.setFastRecipeFlag(0);
         recipe = recipeDAO.saveOrUpdate(recipe);
 
         LOGGER.info("BaseOfflineToOnlineService saveRecipeFromHisRecipe res:{}", JSONUtils.toString(recipe));

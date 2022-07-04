@@ -378,6 +378,7 @@ public class DrugManager extends BaseManager {
                 salePrice = salePrice.setScale(4, BigDecimal.ROUND_HALF_UP);
             }
             patientDrugWithEsDTO.setSalePrice(salePrice);
+            patientDrugWithEsDTO.setShowSalePrice(String.valueOf(salePrice));
             List<DrugList> drugLists = collect.get(patientDrugWithEsDTO.getDrugId());
             if (CollectionUtils.isNotEmpty(drugLists)) {
                 patientDrugWithEsDTO.setDrugPic(drugLists.get(0).getDrugPic());
