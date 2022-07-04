@@ -1,12 +1,16 @@
 package recipe.dao;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.ngari.recipe.dto.RecipeOrderRefundReqDTO;
 import com.ngari.recipe.dto.RegulationChargeDetailDTO;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.pay.model.BusBillDateAccountDTO;
+import com.ngari.recipe.recipe.model.RecipeOrderDetailExportDTO;
 import com.ngari.recipe.recipereportform.model.*;
+import ctd.persistence.DAOFactory;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;
 import ctd.persistence.bean.QueryResult;
@@ -17,6 +21,7 @@ import ctd.persistence.support.hibernate.template.HibernateSessionTemplate;
 import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction;
 import ctd.util.annotation.RpcSupportDAO;
 import ctd.util.converter.ConversionUtils;
+import eh.entity.mpi.Patient;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Query;
@@ -1866,4 +1871,38 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
 
     @DAOMethod(sql = "update RecipeOrder set trackingNumber=:trackingNumber,logisticsCompany=:logisticsCompany where orderId=:orderId")
     public abstract void updateTrackingNumberByOrderId(@DAOParam("orderId")Integer orderId, @DAOParam("logisticsCompany")Integer logisticsCompany, @DAOParam("trackingNumber")String trackingNumber);
+
+    public List<Object[]> getRecipeOrderDetail(RecipeOrderRefundReqDTO recipeOrderRefundReqDTO) {
+        final StringBuilder sbHql = this.generateRecipeOrderDetailHQL(recipeOrderRefundReqDTO);
+        logger.info("RecipeOderDAO getRecipeOrderDetail sbHql = {} ", sbHql.toString());
+        HibernateStatelessResultAction<List<Object[]>> action = new AbstractHibernateStatelessResultAction<List<Object[]>>() {
+            @Override
+            public void execute(StatelessSession ss) {
+                Query query = ss.createSQLQuery(sbHql.append(" order by a.CreateTime DESC").toString()).addEntity(RecipeOrderDetailExportDTO.class);
+                setRefundParameter(query, recipeOrderRefundReqDTO);
+                List<Object[]> list = query.list();
+                setResult(list);
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+
+    }
+
+    protected StringBuilder generateRecipeOrderDetailHQL(RecipeOrderRefundReqDTO recipeOrderRefundReqDTO){
+        StringBuilder hql = new StringBuilder("select ");
+        hql.append("b.recipeId,case when b.recipeType = 1 then '西药' when b.recipeType = 2 then '中成药' when b.recipeType = 3 then '中药' when b.recipeType = 4 then '膏方' else '其他' end as recipeType,");
+        hql.append("b.recipeCode,b.appoint_depart_name as appointDepartName,b.doctorName,b.patientName,b.CreateDate,b.mpiid,");
+        hql.append("a.OrderCode,case when a.status = 1 then '待支付' when a.status in (2,3,4,12) then '处理中' when a.status = 5 then '已完成' else '默认' end as processState,");
+        hql.append("case when c.refundNodeStatus is null || c.refundNodeStatus = 2 || c.refundNodeStatus = 3  then '未退款' when c.refundNodeStatus = 0 then '退款中' when c.refundNodeStatus = 1 then '已退款' else '其他' end as refundNodeStatus,");
+        hql.append("a.giveModeText,a.DrugStoreName,a.CreateTime as orderTime,a.PayTime,a.TotalFee,a.RecipeFee,a.ExpressFee,a.DecoctionFee,a.TCMFee,a.RegisterFee,a.AuditFee,a.TradeNo,a.RecMobile as mobile,");
+        hql.append("c.decoctionText,d.DrugName,d.OrganDrugCode,d.salePrice,d.useTotalDose,d.drugUnit,");
+        hql.append("cd.Name,bs.OrganDrugCode as saleDrugCode,dd.generationis_of_decoction as generationisOfDecoction ");
+        hql.append("from cdr_recipe b LEFT JOIN cdr_recipeorder a on b.orderCode=a.orderCode ");
+        hql.append("LEFT JOIN cdr_recipedetail d ON b.RecipeID = d.RecipeID LEFT JOIN cdr_recipe_ext c on c.recipeId = b.recipeId ");
+        hql.append("LEFT JOIN cdr_drugsenterprise cd ON cd.id = a.EnterpriseId ");
+        hql.append("LEFT JOIN base_saledruglist bs ON bs.OrganID = a.EnterpriseId and bs.DrugId = d.DrugID LEFT JOIN base_drug_decoctionway dd on dd.decoctionId = c.decoctionId ");
+        hql.append(" where d.status= 1 ");
+        return getRefundStringBuilder(recipeOrderRefundReqDTO, hql);
+    }
 }

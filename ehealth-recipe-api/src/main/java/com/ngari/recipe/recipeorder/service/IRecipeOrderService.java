@@ -7,6 +7,7 @@ import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import ctd.util.annotation.RpcService;
 import eh.billcheck.vo.*;
+import recipe.vo.greenroom.RecipeOrderRefundReqVO;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -230,4 +231,12 @@ public interface IRecipeOrderService extends IBaseService<RecipeOrderBean> {
      */
     @RpcService
     Integer obtainPayMode(Integer payMode, Integer giveMode);
+
+    /**
+     * 订单明细导出
+     * @param recipeOrderRefundReqVO 入参
+     * @return
+     */
+    @RpcService
+    List<Object[]> getRecipeOrderDetail(RecipeOrderRefundReqVO recipeOrderRefundReqVO);
 }

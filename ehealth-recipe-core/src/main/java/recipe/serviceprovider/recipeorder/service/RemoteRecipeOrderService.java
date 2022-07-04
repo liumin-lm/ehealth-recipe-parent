@@ -1,5 +1,6 @@
 package recipe.serviceprovider.recipeorder.service;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
@@ -7,10 +8,12 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.common.*;
+import com.ngari.recipe.dto.RecipeOrderRefundReqDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.RecipeOrderBill;
 import com.ngari.recipe.entity.RecipeRefund;
+import com.ngari.recipe.recipe.model.RecipeOrderDetailExportDTO;
 import com.ngari.recipe.recipe.model.RecipeRefundBean;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
@@ -29,6 +32,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.ThirdResultBean;
+import recipe.client.PatientClient;
 import recipe.constant.OrderStatusConstant;
 import recipe.constant.RecipeBaseTrackingStatusEnum;
 import recipe.constant.RecipeStatusConstant;
@@ -47,8 +51,10 @@ import recipe.service.RecipeMsgService;
 import recipe.service.RecipeOrderService;
 import recipe.service.RecipeRefundService;
 import recipe.serviceprovider.BaseService;
+import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 import recipe.util.ObjectCopyUtils;
+import recipe.vo.greenroom.RecipeOrderRefundReqVO;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
@@ -70,6 +76,10 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
 
     @Autowired
     private StateManager stateManager;
+    @Autowired
+    private RecipeOrderDAO recipeOrderDAO;
+    @Autowired
+    private PatientClient patientClient;
 
     @RpcService
     @Override
@@ -459,6 +469,25 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
     public Integer obtainPayMode(Integer payMode, Integer giveMode) {
         return PayModeGiveModeUtil.getPayMode(payMode, giveMode);
 
+    }
+
+    @Override
+    public List<Object[]> getRecipeOrderDetail(RecipeOrderRefundReqVO recipeOrderRefundReqVO) {
+        LOGGER.info("getRecipeOrderDetail recipeOrderRefundReqVO={}",JSONUtils.toString(recipeOrderRefundReqVO));
+        if (null == recipeOrderRefundReqVO.getBeginTime()) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "统计开始时间不能为空");
+        }
+        if (null == recipeOrderRefundReqVO.getEndTime()) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "统计结束时间不能为空");
+        }
+        Date beginDate = DateConversion.parseDate(recipeOrderRefundReqVO.getBeginTime(), DateConversion.DEFAULT_DATE_TIME);
+        Date endDate = DateConversion.parseDate(recipeOrderRefundReqVO.getEndTime(), DateConversion.DEFAULT_DATE_TIME);
+        RecipeOrderRefundReqDTO recipeOrderRefundReqDTO = ObjectCopyUtils.convert(recipeOrderRefundReqVO, RecipeOrderRefundReqDTO.class);
+        recipeOrderRefundReqDTO.setBeginTime(beginDate);
+        recipeOrderRefundReqDTO.setEndTime(endDate);
+        List<Object[]> recipeOrderDetailVOList = recipeOrderDAO.getRecipeOrderDetail(recipeOrderRefundReqDTO);
+        LOGGER.info("getRecipeOrderDetail recipeOrderDetailVOList={}",JSONUtils.toString(recipeOrderDetailVOList));
+        return recipeOrderDetailVOList;
     }
 
 }
