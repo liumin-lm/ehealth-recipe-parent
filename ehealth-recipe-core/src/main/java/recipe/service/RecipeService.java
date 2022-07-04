@@ -742,6 +742,7 @@ public class RecipeService extends RecipeBaseService {
             }
         }
     }
+    
     /**
      * 生成pdf并签名
      *
@@ -761,6 +762,7 @@ public class RecipeService extends RecipeBaseService {
             return RecipeResultBean.getFail();
         }
         if (old) {
+            //调用审方等接口 并修改处方状态
             RecipeMsgService.batchSendMsg(recipeId, RecipeMsgEnum.PRESCRIBE_SUCCESS.getStatus());
             caAfterProcessType.caComplete(recipe, "老模式不走ca回调,签名成功");
         }
