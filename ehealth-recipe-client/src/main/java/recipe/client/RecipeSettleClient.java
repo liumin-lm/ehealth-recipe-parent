@@ -56,7 +56,7 @@ public class RecipeSettleClient extends BaseClient {
         HisResponseTO hisResponse = new HisResponseTO();
         try {
             hisResponse = retryer.call(() -> {
-                    LOGGER.info("RecipeSettleClient.retrySettle retry");
+                    LOGGER.info("RecipeSettleClient.retrySettle retry cashSettleResultReqTo={}", JsonUtil.toString(cashSettleResultReqTo));
                     HisResponseTO hisResponseTO = hisService.cashSettleResult(cashSettleResultReqTo);
                     LOGGER.info("RecipeSettleClient.retrySettle hisResponseTO={}", JsonUtil.toString(hisResponseTO));
                     return hisResponseTO;
