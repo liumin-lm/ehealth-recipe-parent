@@ -34,6 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.aop.LogRecord;
 import recipe.bean.CheckYsInfoBean;
+import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.DocIndexClient;
 import recipe.constant.*;
 import recipe.core.api.IStockBusinessService;
@@ -91,6 +92,8 @@ public class RecipeSignService {
     private DocIndexClient docIndexClient;
     @Resource
     private CaManager caManager;
+    @Autowired
+    private CreatePdfFactory createPdfFactory;
 
     /**
      * 武昌模式签名方法
@@ -199,10 +202,10 @@ public class RecipeSignService {
 
         //签名
         RecipeBusiThreadPool.execute(() -> {
-            RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
             try {
                 //生成pdf并签名
-                recipeService.generateRecipePdfAndSign(recipeId);
+                Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+                createPdfFactory.queryPdfOssId(recipe);
             } catch (Exception e) {
                 LOG.error("sign 签名服务异常，recipeId={}", recipeId, e);
             }

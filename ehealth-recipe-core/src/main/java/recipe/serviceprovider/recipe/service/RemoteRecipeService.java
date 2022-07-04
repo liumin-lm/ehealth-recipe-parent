@@ -2132,7 +2132,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     }
 
     /**
-     * ca回调
+     * ca回调：医生
      *
      * @param caSignResultVo
      */

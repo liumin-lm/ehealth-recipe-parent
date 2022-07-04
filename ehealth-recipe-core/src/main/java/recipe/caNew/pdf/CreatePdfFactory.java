@@ -1,15 +1,19 @@
 package recipe.caNew.pdf;
 
+import ca.service.ICaRemoteService;
 import com.alibaba.fastjson.JSON;
 import com.ngari.base.esign.model.CoOrdinateVO;
 import com.ngari.base.esign.model.SignRecipePdfVO;
 import com.ngari.his.ca.model.CaSealRequestTO;
+import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.DoctorExtendDTO;
+import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.dto.ApothecaryDTO;
 import com.ngari.recipe.dto.AttachSealPicDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import ctd.persistence.exception.DAOException;
+import ctd.spring.AppDomainContext;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +31,7 @@ import recipe.constant.OperationConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.enumerate.type.SignImageTypeEnum;
+import recipe.manager.CaManager;
 import recipe.manager.SignManager;
 import recipe.service.RecipeLogService;
 import recipe.thread.RecipeBusiThreadPool;
@@ -35,6 +40,7 @@ import recipe.util.ValidateUtil;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.List;
 
 import static recipe.util.DictionaryUtil.getDictionary;
@@ -47,6 +53,8 @@ import static recipe.util.DictionaryUtil.getDictionary;
 @Service
 public class CreatePdfFactory {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
+    private static List<String> beforeCAList = Arrays.asList("gdsign", "gdsign|2", "jiangsuCA", "beijingCA", "bjYwxCA");
+
     @Resource(name = "platformCreatePdfServiceImpl")
     private CreatePdfService platformCreatePdfServiceImpl;
     @Resource(name = "customCreatePdfServiceImpl")
@@ -61,6 +69,47 @@ public class CreatePdfFactory {
     private SignManager signManager;
     @Autowired
     protected DoctorClient doctorClient;
+    @Resource
+    private CaManager caManager;
+
+    /**
+     * 判断不同签名机构 进行pdf生成
+     * 返回新老模式类型
+     *
+     * @param recipe
+     * @return
+     * @throws Exception
+     */
+    public boolean generateRecipePdf(Recipe recipe) throws Exception {
+        String thirdCASign = configurationClient.getValueCatch(recipe.getClinicOrgan(), "thirdCASign", "");
+        String memo;
+        boolean old = true;
+        if ("esign".equals(thirdCASign)) {
+            //老模式不走ca回调
+            memo = "esign签名上传文件成功";
+            this.queryPdfOssId(recipe);
+            logger.info("generateRecipePdfAndSign 签名成功 recipeId={}", recipe.getRecipeId());
+        } else if (beforeCAList.contains(thirdCASign)) {
+            //老模式不走ca回调
+            memo = "签名成功,高州CA方式";
+            this.updateDoctorNamePdf(recipe);
+            logger.info("generateRecipePdfAndSign 签名成功. 高州CA模式, recipeId={}", recipe.getRecipeId());
+        } else {
+            old = false;
+            memo = "old签名标准对接CA方式";
+            //获取签章pdf数据。签名原文
+            CaSealRequestTO requestSealTO = this.updateDoctorNamePdfV1(recipe);
+            //签名时的密码从redis中获取
+            String caPassword = caManager.getCaPassWord(recipe.getClinicOrgan(), recipe.getDoctor());
+            DoctorDTO doctorDTO = doctorClient.getDoctor(recipe.getDoctor());
+            ICaRemoteService iCaRemoteService = AppDomainContext.getBean("ca.iCaRemoteService", ICaRemoteService.class);
+            ca.vo.model.RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, ca.vo.model.RecipeBean.class);
+            iCaRemoteService.commonCASignAndSealForRecipe(requestSealTO, recipeBean, recipe.getClinicOrgan(), doctorDTO.getIdNumber(), caPassword);
+            logger.info("generateRecipePdfAndSign 签名成功. 标准对接CA模式, recipeId={}", recipe.getRecipeId());
+        }
+        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), memo);
+        return old;
+    }
 
     /**
      * 获取pdf oss id

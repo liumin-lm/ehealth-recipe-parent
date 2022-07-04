@@ -11,10 +11,12 @@ import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.caNew.pdf.CreatePdfFactory;
+import recipe.constant.RecipeMsgEnum;
 import recipe.dao.RecipeDAO;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.status.SignEnum;
+import recipe.service.RecipeMsgService;
 
 import java.util.List;
 
@@ -56,9 +58,8 @@ public class CaBeforeProcessType extends AbstractCaProcessType {
             CreatePdfFactory createPdfFactory = AppContextHolder.getBean("createPdfFactory", CreatePdfFactory.class);
             createPdfFactory.updateCodePdfExecute(recipeId);
         }
-        //将返回的CA结果给处方，设置处方流转
-        RecipeResultBean recipeResultBean = new RecipeResultBean();
-        recipeResultBean.setCode(RecipeResultBean.SUCCESS);
-        return recipeResultBean;
+        RecipeMsgService.batchSendMsg(recipeId, RecipeMsgEnum.PRESCRIBE_SUCCESS.getStatus());
+        super.caComplete(recipe, "当前签名处方签名成功:前置---");
+        return RecipeResultBean.getSuccess();
     }
 }

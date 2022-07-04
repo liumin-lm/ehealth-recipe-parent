@@ -63,13 +63,12 @@ public class CaAfterProcessType extends AbstractCaProcessType {
     @Override
     public RecipeResultBean hisCallBackCARecipeFunction(Integer recipeId) {
         LOGGER.info("After---当前CA执行his回调之后组装CA响应特应性行为，入参：recipeId：{}", recipeId);
-        RecipeResultBean recipeResultBean = RecipeResultBean.getFail();
         //后置CA:首先组装CA请求 =》请求CA =》封装一个异步请求CA结果
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         if (null == recipe) {
             LOGGER.warn("当前处方{}信息不存在，无法进行签名操作!", recipeId);
-            return recipeResultBean;
+            return RecipeResultBean.getFail();
         }
         //设置处方状态为：签名中
         stateManager.updateStatus(recipeId, RecipeStatusEnum.RECIPE_STATUS_SIGN_ING_CODE_DOC, SignEnum.sign_STATE_SUBMIT);
@@ -82,13 +81,10 @@ public class CaAfterProcessType extends AbstractCaProcessType {
         try {
             caSignService.commonCaSignAndSeal(commonSignRequest);
         } catch (Exception e) {
-            LOGGER.warn("请求CA异常{}！", e);
+            LOGGER.error("请求CA异常 recipeId={}", recipeId, e);
+            return RecipeResultBean.getFail();
         }
-        //3.返回一个异步操作的CA,中断状态
-        recipeResultBean.setCode(RecipeResultBean.NO_ADDRESS);
-        //将返回的CA结果给处方，设置处方流转
-        LOGGER.info("After---当前CA执行his回调之后组装CA响应特应性行为，出参：recipeId：{}，{}", recipeId, JSON.toJSONString(recipeResultBean));
-        return recipeResultBean;
+        return RecipeResultBean.getSuccess();
     }
 
 }
