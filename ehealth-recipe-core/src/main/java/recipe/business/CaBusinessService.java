@@ -28,7 +28,7 @@ public class CaBusinessService extends BaseService implements ICaBusinessService
 
     @Override
     public void signRecipeCAInterruptForStandard(Integer recipeId) {
-        signRecipeCAInterrupt(recipeId, RecipeStatusEnum.RECIPE_STATUS_SIGN_ERROR_CODE_DOC, SignEnum.sign_STATE_AUDIT);
+        signRecipeCAInterrupt(recipeId, RecipeStatusEnum.RECIPE_STATUS_SIGN_ERROR_CODE_DOC, SignEnum.SIGN_STATE_AUDIT);
     }
 
     /**

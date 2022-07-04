@@ -20,6 +20,7 @@ import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
@@ -243,10 +244,13 @@ public class RecipeUtil {
      */
     public static void setDefaultData(Recipe recipe) {
         // 不用审核
+        recipe.setStatus(RecipeStatusConstant.UNSIGN);
+        recipe.setSignDate(DateTime.now().toDate());
         recipe.setProcessState(RecipeStateEnum.PROCESS_STATE_SUBMIT.getType());
         recipe.setSubState(RecipeStateEnum.SUB_SUBMIT_TEMPORARY.getType());
         recipe.setAuditState(RecipeAuditStateEnum.DEFAULT.getType());
         recipe.setWriteHisState(0);
+        recipe.setCheckFlag(0);
         if (null == recipe.getRecipeType()) {
             recipe.setRecipeId(0);
         }
@@ -344,11 +348,6 @@ public class RecipeUtil {
             recipe.setFromflag(1);
         }
 
-        //默认未签名
-        if (null == recipe.getStatus()) {
-            recipe.setStatus(RecipeStatusConstant.UNSIGN);
-        }
-
         if (null == recipe.getCreateDate()) {
             Date now = new Date();
             recipe.setCreateDate(now);
@@ -359,11 +358,6 @@ public class RecipeUtil {
         if (null == recipe.getValueDays()) {
             recipe.setValueDays(3);
         }
-
-        //判断诊断备注是否为空，若为空则显示“无”
-//        if (StringUtils.isEmpty(recipe.getMemo())) {
-//            recipe.setMemo("无");
-//        }
 
         if (null == recipe.getPayFlag()) {
             recipe.setPayFlag(PayConstant.PAY_FLAG_NOT_PAY);

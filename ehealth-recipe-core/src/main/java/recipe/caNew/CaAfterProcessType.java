@@ -71,7 +71,7 @@ public class CaAfterProcessType extends AbstractCaProcessType {
             return RecipeResultBean.getFail();
         }
         //设置处方状态为：签名中
-        stateManager.updateStatus(recipeId, RecipeStatusEnum.RECIPE_STATUS_SIGN_ING_CODE_DOC, SignEnum.sign_STATE_SUBMIT);
+        stateManager.updateStatus(recipeId, RecipeStatusEnum.RECIPE_STATUS_SIGN_ING_CODE_DOC, SignEnum.SIGN_STATE_SUBMIT);
         stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_SUBMIT, RecipeStateEnum.NONE);
         //1.调用组装CA请求
         RecipeCAService recipeCAService = ApplicationUtils.getRecipeService(RecipeCAService.class);

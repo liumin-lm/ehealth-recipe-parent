@@ -692,7 +692,7 @@ public class RecipeCAService {
     @RpcService
     //医生签名失败，操作重新签名设置处方状态【医生签名中】
     public void signRecipeCAAgain(Integer recipeId) {
-        caBusinessService.signRecipeCAInterrupt(recipeId, RecipeStatusEnum.RECIPE_STATUS_SIGN_ING_CODE_DOC, SignEnum.sign_STATE_SUBMIT);
+        caBusinessService.signRecipeCAInterrupt(recipeId, RecipeStatusEnum.RECIPE_STATUS_SIGN_ING_CODE_DOC, SignEnum.SIGN_STATE_SUBMIT);
     }
 
 

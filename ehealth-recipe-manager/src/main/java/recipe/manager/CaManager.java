@@ -3,6 +3,8 @@ package recipe.manager;
 import ca.vo.CaSignResultVo;
 import com.ngari.base.BaseAPI;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
+import com.ngari.his.ca.model.CaSealRequestTO;
+import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -127,4 +129,19 @@ public class CaManager extends BaseManager {
         caClient.signRecipeInfoSave(recipe.getRecipeId(), isDoctor, resultVo, recipe.getClinicOrgan());
         caClient.signUpdate(recipe, details);
     }
+
+    /**
+     * 调用ca老二方包签名接口-ca回调接口为retryCaDoctorCallBackToRecipe
+     *
+     * @param requestSeal ca入参数
+     * @param recipe
+     */
+    public void oldCommonCASign(CaSealRequestTO requestSeal, Recipe recipe) {
+        //签名时的密码从redis中获取
+        String caPassword = this.getCaPassWord(recipe.getClinicOrgan(), recipe.getDoctor());
+        DoctorDTO doctor = doctorClient.getDoctor(recipe.getDoctor());
+        caClient.oldCommonCASign(requestSeal, recipe, doctor.getIdNumber(), caPassword);
+        logger.info("generateRecipePdfAndSign 签名成功. 标准对接CA模式, recipeId={}", recipe.getRecipeId());
+    }
+
 }

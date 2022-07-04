@@ -750,7 +750,7 @@ public class RecipeService extends RecipeBaseService {
      */
     @LogRecord
     private RecipeResultBean generateRecipePdfAndSign(Integer recipeId) {
-        stateManager.updateStatus(recipeId, RecipeStatusEnum.RECIPE_STATUS_SIGN_ING_CODE_DOC, SignEnum.sign_STATE_SUBMIT);
+        stateManager.updateStatus(recipeId, RecipeStatusEnum.RECIPE_STATUS_SIGN_ING_CODE_DOC, SignEnum.SIGN_STATE_SUBMIT);
         stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_SUBMIT, RecipeStateEnum.NONE);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         boolean old;
@@ -918,7 +918,7 @@ public class RecipeService extends RecipeBaseService {
         //添加逻辑：ca返回异步无结果
         if (RecipeResultBean.FAIL.equals(recipeSignResult.getCode())) {
             //说明处方签名失败
-            stateManager.updateStatus(recipeId, RecipeStatusEnum.RECIPE_STATUS_SIGN_ERROR_CODE_DOC, SignEnum.sign_STATE_AUDIT);
+            stateManager.updateStatus(recipeId, RecipeStatusEnum.RECIPE_STATUS_SIGN_ERROR_CODE_DOC, SignEnum.SIGN_STATE_AUDIT);
             stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_SUBMIT, RecipeStateEnum.NONE);
             RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "说明处方签名失败:" + recipeSignResult.getMsg());
             //CA同步回调的接口 发送环信消息
@@ -1361,10 +1361,6 @@ public class RecipeService extends RecipeBaseService {
             recipe.setOrganDiseaseName(emrDetailDTO.getOrganDiseaseName());
             recipe.setOrganDiseaseId(emrDetailDTO.getOrganDiseaseId());
         }
-        recipe.setSubState(RecipeStateEnum.NONE.getType());
-        recipe.setProcessState(RecipeStateEnum.NONE.getType());
-        recipe.setStatus(RecipeStatusConstant.UNSIGN);
-        recipe.setSignDate(DateTime.now().toDate());
         Integer recipeId = recipe.getRecipeId();
         LOGGER.info("doSignRecipeSave recipe={}", JSON.toJSONString(recipe));
         //如果是已经暂存过的处方单，要去数据库取状态 判断能不能进行签名操作

@@ -1,19 +1,15 @@
 package recipe.caNew.pdf;
 
-import ca.service.ICaRemoteService;
 import com.alibaba.fastjson.JSON;
 import com.ngari.base.esign.model.CoOrdinateVO;
 import com.ngari.base.esign.model.SignRecipePdfVO;
 import com.ngari.his.ca.model.CaSealRequestTO;
-import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.DoctorExtendDTO;
-import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.dto.ApothecaryDTO;
 import com.ngari.recipe.dto.AttachSealPicDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import ctd.persistence.exception.DAOException;
-import ctd.spring.AppDomainContext;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -97,15 +93,9 @@ public class CreatePdfFactory {
         } else {
             old = false;
             memo = "old签名标准对接CA方式";
-            //生产pdf文件
+            //生成pdf文件
             CaSealRequestTO requestSealTO = this.updateDoctorNamePdfV1(recipe);
-            //签名时的密码从redis中获取
-            String caPassword = caManager.getCaPassWord(recipe.getClinicOrgan(), recipe.getDoctor());
-            DoctorDTO doctorDTO = doctorClient.getDoctor(recipe.getDoctor());
-            ICaRemoteService iCaRemoteService = AppDomainContext.getBean("ca.iCaRemoteService", ICaRemoteService.class);
-            ca.vo.model.RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, ca.vo.model.RecipeBean.class);
-            iCaRemoteService.commonCASignAndSealForRecipe(requestSealTO, recipeBean, recipe.getClinicOrgan(), doctorDTO.getIdNumber(), caPassword);
-            logger.info("generateRecipePdfAndSign 签名成功. 标准对接CA模式, recipeId={}", recipe.getRecipeId());
+            caManager.oldCommonCASign(requestSealTO, recipe);
         }
         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), memo);
         return old;

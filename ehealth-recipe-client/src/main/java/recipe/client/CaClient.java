@@ -1,9 +1,11 @@
 package recipe.client;
 
+import ca.service.ICaRemoteService;
 import ca.service.ISignRecipeInfoService;
 import ca.vo.CaSignResultVo;
 import ca.vo.model.SignDoctorRecipeInfoDTO;
 import com.alibaba.fastjson.JSONObject;
+import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
@@ -26,6 +28,8 @@ public class CaClient extends BaseClient {
     private ISignRecipeInfoService signRecipeInfoService;
     @Autowired
     private IConfigurationClient iConfigurationClient;
+    @Autowired
+    private ICaRemoteService iCaRemoteService;
 
     public void signRecipeInfoSave(Integer recipeId, boolean isDoctor, CaSignResultVo signResultVo, Integer organId) {
         String thirdCASign = iConfigurationClient.getValueCatch(organId, "thirdCASign", "");
@@ -55,5 +59,19 @@ public class CaClient extends BaseClient {
         jsonObject.put("details", JSONObject.toJSONString(details));
         signDoctorRecipeInfo.setSignBefText(jsonObject.toJSONString());
         signRecipeInfoService.update(signDoctorRecipeInfo);
+    }
+
+    /**
+     * 调用ca老二方包接口
+     *
+     * @param requestSeal
+     * @param recipe
+     * @param idNumber
+     * @param caPassword
+     */
+    public void oldCommonCASign(CaSealRequestTO requestSeal, Recipe recipe, String idNumber, String caPassword) {
+        //签名时的密码从redis中获取
+        ca.vo.model.RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, ca.vo.model.RecipeBean.class);
+        iCaRemoteService.commonCASignAndSealForRecipe(requestSeal, recipeBean, recipe.getClinicOrgan(), idNumber, caPassword);
     }
 }

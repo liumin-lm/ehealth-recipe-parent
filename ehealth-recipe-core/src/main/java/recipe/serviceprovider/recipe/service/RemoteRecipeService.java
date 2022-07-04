@@ -2159,6 +2159,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                 String fileId = null;
                 RecipeServiceEsignExt.saveSignRecipePDFCA(resultVo.getPdfBase64(), recipeId, null, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), true, fileId);
                 resultVo.setFileId(fileId);
+                //todo 这里判断特指ca前置？
                 if (CA_NEW_TYPE.equals(caType)) {
                     createPdfFactory.updateDoctorNamePdf(recipe);
                 } else {
@@ -2180,13 +2181,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
         try {
             if (Integer.valueOf(200).equals(resultVo.getCode())) {
-                //说明处方签名成功，记录日志，走签名成功逻辑 /更新审方checkFlag为待审核
+                //说明处方签名成功，记录日志，走签名成功逻辑
                 RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "当前签名处方签名成功");
-                Recipe updateRecipe = new Recipe();
-                updateRecipe.setRecipeId(recipeId);
-                updateRecipe.setCheckFlag(0);
-                recipeDAO.updateNonNullFieldByPrimaryKey(updateRecipe);
-                LOGGER.info("checkFlag {} 更新为待审核", recipe.getRecipeId());
             } else {
                 //说明处方签名失败
                 RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "说明处方签名失败:" + resultVo.getMsg());
@@ -2194,7 +2190,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                 recipeExtend.setRecipeId(recipeId);
                 recipeExtend.setSignFailReason(resultVo.getMsg());
                 recipeExtendDAO.updateNonNullFieldByPrimaryKey(recipeExtend);
-                stateManager.updateStatus(recipeId, RecipeStatusEnum.RECIPE_STATUS_SIGN_ERROR_CODE_DOC, SignEnum.sign_STATE_AUDIT);
+                stateManager.updateStatus(recipeId, RecipeStatusEnum.RECIPE_STATUS_SIGN_ERROR_CODE_DOC, SignEnum.SIGN_STATE_AUDIT);
                 stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_SUBMIT, RecipeStateEnum.NONE);
                 //CA异步回调的接口 发送环信消息
                 if (Integer.valueOf(2).equals(recipe.getBussSource())) {
