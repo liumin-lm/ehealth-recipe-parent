@@ -963,8 +963,11 @@ public class RecipeService extends RecipeBaseService {
         caAfterProcessType.caComplete(recipe, "当前签名处方签名成功---" + caType);
     }
 
-    //date 20200610
-    //上海胸科ca通过回调的方式回写ca药师结果给平台触发业务流程
+    /**
+     * 药师ca回调
+     *
+     * @param resultVo
+     */
     @RpcService
     public void retryCaPharmacistCallBackToRecipe(CaSignResultVo resultVo) {
         //ca完成签名签章后，将和返回的结果给平台
