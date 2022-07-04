@@ -31,6 +31,7 @@ import eh.utils.BeanCopyUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
+import org.mvel2.util.Make;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -495,7 +496,14 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
     public List<RecipeOrderWaybillDTO> findOrderByMpiId(String mpiId) {
         Date date = DateUtils.addDays(new Date(), -1);
         List<RecipeOrder> orders = recipeOrderDAO.findByMpiIdAndDate(mpiId, date);
-        return BeanCopyUtils.copyList(orders, RecipeOrderWaybillDTO::new);
+        List<RecipeOrderWaybillDTO> recipeOrderWaybillDTOS = orders.stream().map(order -> {
+            RecipeOrderWaybillDTO recipeOrderWaybillDTO = BeanCopyUtils.copyProperties(order, RecipeOrderWaybillDTO::new);
+            if (StringUtils.isNotEmpty(order.getTrackingNumber())) {
+                return recipeOrderWaybillDTO;
+            }
+            return null;
+        }).filter(Objects::nonNull).collect(Collectors.toList());
+        return recipeOrderWaybillDTOS;
     }
 
     @Override
