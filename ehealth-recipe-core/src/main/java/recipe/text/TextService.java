@@ -5,10 +5,12 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.vo.*;
+import ctd.persistence.exception.DAOException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.ConsultClient;
+import recipe.constant.ErrorCode;
 import recipe.core.api.greenroom.ITextService;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
@@ -82,5 +84,15 @@ public class TextService implements ITextService {
         fastRecipeAndDetailResVO.setBackgroundImg(fastRecipeReqVO.getBackgroundImg());
         fastRecipeAndDetailResVO.setIntroduce(fastRecipeReqVO.getIntroduce());
         return fastRecipeAndDetailResVO;
+    }
+
+    @Override
+    public void generateRecipePdf(Integer recipeId) {
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        try {
+            createPdfFactory.generateRecipePdf(recipe);
+        } catch (Exception e) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
     }
 }

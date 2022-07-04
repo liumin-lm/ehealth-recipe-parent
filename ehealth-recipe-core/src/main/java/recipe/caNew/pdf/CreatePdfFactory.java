@@ -97,7 +97,7 @@ public class CreatePdfFactory {
         } else {
             old = false;
             memo = "old签名标准对接CA方式";
-            //获取签章pdf数据。签名原文
+            //生产pdf文件
             CaSealRequestTO requestSealTO = this.updateDoctorNamePdfV1(recipe);
             //签名时的密码从redis中获取
             String caPassword = caManager.getCaPassWord(recipe.getClinicOrgan(), recipe.getDoctor());

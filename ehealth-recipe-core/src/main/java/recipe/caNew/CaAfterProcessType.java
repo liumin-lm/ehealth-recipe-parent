@@ -37,7 +37,7 @@ public class CaAfterProcessType extends AbstractCaProcessType {
     public void signCABeforeRecipeFunction(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList) {
         LOGGER.info("After---signCABeforeRecipeFunction 当前CA执行签名之前特应性行为，入参：recipeBean：{}，detailBeanList：{} ", JSONUtils.toString(recipeBean), JSONUtils.toString(detailBeanList));
         try {
-            recipeHisResultBeforeCAFunction(recipeBean, detailBeanList);
+            super.recipeHisResultBeforeCAFunction(recipeBean, detailBeanList);
         } catch (Exception e) {
             LOGGER.error("CaAfterProcessType signCABeforeRecipeFunction recipeBean= {}", JSON.toJSONString(recipeBean), e);
         }

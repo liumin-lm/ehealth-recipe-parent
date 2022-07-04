@@ -2207,15 +2207,10 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             LOGGER.error("checkPassSuccess 签名服务或者发送卡片异常. ", e);
         }
 
-        /**设置处方的状态，如果失败不走下面逻辑************/
+        /**设置处方的状态************/
         RecipeBean recipeBean = getByRecipeId(recipeId);
         List<RecipeDetailBean> detailBeanList = ObjectCopyUtils.convert(details, RecipeDetailBean.class);
-        if (CA_NEW_TYPE.equals(caType)) {
-            AbstractCaProcessType.getCaProcessFactory(recipeBean.getClinicOrgan()).signCAAfterRecipeCallBackFunction(recipeBean, detailBeanList);
-        } else {
-            //老版默认走后置的逻辑，直接将处方向下流
-            caAfterProcessType.signCAAfterRecipeCallBackFunction(recipeBean, detailBeanList);
-        }
+        AbstractCaProcessType.getCaProcessFactory(recipeBean.getClinicOrgan()).signCAAfterRecipeCallBackFunction(recipeBean, detailBeanList);
     }
 
     @RpcService

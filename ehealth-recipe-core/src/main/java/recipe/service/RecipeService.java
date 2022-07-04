@@ -742,18 +742,6 @@ public class RecipeService extends RecipeBaseService {
             }
         }
     }
-
-    @RpcService
-    @LogRecord
-    public void generateRecipePdf(Integer recipeId) {
-        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        try {
-            createPdfFactory.generateRecipePdf(recipe);
-        } catch (Exception e) {
-            LOGGER.error("generateRecipePdf error", e);
-        }
-    }
-
     /**
      * 生成pdf并签名
      *
