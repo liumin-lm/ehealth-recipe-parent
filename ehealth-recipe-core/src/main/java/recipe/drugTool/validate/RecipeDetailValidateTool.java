@@ -106,6 +106,7 @@ public class RecipeDetailValidateTool {
         //剂量单位是否与机构药品目录单位一致
         if (StringUtils.isEmpty(OrganDrugListManager.getUseDoseUnit(recipeDetail.getUseDoseUnit(), organDrug))) {
             recipeDetail.setUseDoseUnit(null);
+            recipeDetail.setUseDose(null);
             recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
             recipeDetail.setValidateStatusText("机构药品药物使用规格单位或者最小单位错误");
         }
