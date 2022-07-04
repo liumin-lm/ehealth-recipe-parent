@@ -243,8 +243,8 @@ public class RecipeUtil {
      */
     public static void setDefaultData(Recipe recipe) {
         // 不用审核
-        recipe.setSubState(RecipeStateEnum.NONE.getType());
-        recipe.setProcessState(RecipeStateEnum.NONE.getType());
+        recipe.setProcessState(RecipeStateEnum.PROCESS_STATE_SUBMIT.getType());
+        recipe.setSubState(RecipeStateEnum.SUB_SUBMIT_TEMPORARY.getType());
         recipe.setAuditState(RecipeAuditStateEnum.DEFAULT.getType());
         recipe.setWriteHisState(0);
         if (null == recipe.getRecipeType()) {

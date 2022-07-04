@@ -24,13 +24,18 @@ public enum RecipeStateEnum {
     PROCESS_STATE_CANCELLATION(9, "已作废", ""),
 
     /**
+     * 处方子状态:待提交
+     */
+    SUB_SUBMIT_TEMPORARY(11, "暂存", ""),
+
+    /**
      * 处方子状态:已完成
      */
-    SUB_DONE_DOWNLOAD(71,"下载处方签",""),
-    SUB_DONE_OD_PAYMENT(72,"门诊缴费下单",""),
-    SUB_DONE_UPLOAD_THIRD(73,"上传到第三方",""),
-    SUB_DONE_SELF_TAKE(74,"自取核销",""),
-    SUB_DONE_SEND(75,"发药签收",""),
+    SUB_DONE_DOWNLOAD(71, "下载处方签", ""),
+    SUB_DONE_OD_PAYMENT(72, "门诊缴费下单", ""),
+    SUB_DONE_UPLOAD_THIRD(73, "上传到第三方", ""),
+    SUB_DONE_SELF_TAKE(74, "自取核销", ""),
+    SUB_DONE_SEND(75, "发药签收", ""),
 
     /**
      * 处方子状态:删除
