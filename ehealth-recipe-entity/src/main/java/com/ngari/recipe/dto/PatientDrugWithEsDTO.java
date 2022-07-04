@@ -48,4 +48,7 @@ public class PatientDrugWithEsDTO implements Serializable {
     @ItemProperty(alias = "价格")
     private BigDecimal salePrice;
 
+    @ItemProperty(alias = "展示价格")
+    private String showSalePrice;
+
 }
