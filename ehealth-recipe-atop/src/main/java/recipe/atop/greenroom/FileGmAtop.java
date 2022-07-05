@@ -51,7 +51,7 @@ public class FileGmAtop extends OutputSupportMVCController {
     private IFileBusinessService fileBusinessService;
 
     /**
-     * 判断该机构是否关联省平台（包括互联网医院）供前端调用
+     * 查找
      *
      * @param organId
      * @return
@@ -61,11 +61,21 @@ public class FileGmAtop extends OutputSupportMVCController {
         return fileBusinessService.findImportDrugRecordByOrganId(organId);
     }
 
+    /**
+     * 导入结果查看
+     * @param importDrugRecord
+     * @return
+     */
     @RpcService
     public List<ImportDrugRecord> findImportDrugRecord(ImportDrugRecord importDrugRecord) {
         return fileBusinessService.findImportDrugRecord(importDrugRecord);
     }
 
+    /**
+     * 错误原因查看
+     * @param importDrugRecord
+     * @return
+     */
     @RpcService
     public List<ImportDrugRecordMsg> findImportDrugRecordMsgByImportDrugRecordId(ImportDrugRecord importDrugRecord) {
         return fileBusinessService.findImportDrugRecordMsgByImportDrugRecordId(importDrugRecord);

@@ -53,8 +53,9 @@ public class FileBusinessService extends BaseService implements IFileBusinessSer
 
     @Override
     public List<ImportDrugRecordMsg> findImportDrugRecordMsgByImportDrugRecordId(ImportDrugRecord importDrugRecord) {
+        List<ImportDrugRecordMsg> importDrugRecordMsgs =new ArrayList<>();
         ImportDrugRecord importDrugRecordDb=importDrugRecordDAO.get(importDrugRecord.getRecordId());
-        List<ImportDrugRecordMsg> importDrugRecordMsgs=importDrugRecordMsgDAO.findImportDrugRecordMsgByImportdrugRecordId(importDrugRecord.getRecordId());
+        importDrugRecordMsgs=importDrugRecordMsgDAO.findImportDrugRecordMsgByImportdrugRecordId(importDrugRecord.getRecordId());
         if(importDrugRecordDb!=null&& StringUtils.isNotEmpty(importDrugRecordDb.getErrMsg())){
             ImportDrugRecordMsg importDrugRecordMsg=new ImportDrugRecordMsg();
             importDrugRecordMsg.setErrMsg(importDrugRecordDb.getErrMsg());

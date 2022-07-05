@@ -16,6 +16,4 @@ public interface IDrugToolService {
     @RpcService
     Boolean judgePlatformDrugDelete(int drugId);
 
-    @RpcService
-    String saveImportDrugRecord(ImportDrugRecordVO importDrugRecord);
 }
