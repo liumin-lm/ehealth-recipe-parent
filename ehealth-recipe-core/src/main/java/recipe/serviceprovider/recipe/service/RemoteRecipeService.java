@@ -2180,10 +2180,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         }
 
         try {
-            if (Integer.valueOf(200).equals(resultVo.getCode())) {
-                //说明处方签名成功，记录日志，走签名成功逻辑
-                RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "当前签名处方签名成功");
-            } else {
+            if (!Integer.valueOf(200).equals(resultVo.getCode())) {
                 //说明处方签名失败
                 RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "说明处方签名失败:" + resultVo.getMsg());
                 RecipeExtend recipeExtend = new RecipeExtend();
@@ -2202,8 +2199,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         } catch (Exception e) {
             LOGGER.error("checkPassSuccess 签名服务或者发送卡片异常. ", e);
         }
-
         /**设置处方的状态************/
+        RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "当前签名处方签名成功");
         RecipeBean recipeBean = getByRecipeId(recipeId);
         List<RecipeDetailBean> detailBeanList = ObjectCopyUtils.convert(details, RecipeDetailBean.class);
         AbstractCaProcessType.getCaProcessFactory(recipeBean.getClinicOrgan()).signCAAfterRecipeCallBackFunction(recipeBean, detailBeanList);
