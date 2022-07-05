@@ -162,7 +162,7 @@ public class StateManager extends BaseManager {
     }
 
     /**
-     * 代提交处方
+     * 待提交处方
      *
      * @param recipe
      * @param processState
@@ -174,6 +174,9 @@ public class StateManager extends BaseManager {
         updateRecipe.setRecipeId(recipe.getRecipeId());
         updateRecipe.setProcessState(processState.getType());
         //    updateRecipe.setSubState(subState.getType());
+        recipe.getWriteHisState();
+        recipe.getDoctorSignState();
+
         recipeDAO.updateNonNullFieldByPrimaryKey(updateRecipe);
         return true;
     }
