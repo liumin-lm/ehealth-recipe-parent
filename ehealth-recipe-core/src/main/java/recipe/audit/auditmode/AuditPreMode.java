@@ -7,7 +7,6 @@ import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import recipe.ApplicationUtils;
 import recipe.client.DocIndexClient;
 import recipe.client.RecipeAuditClient;
 import recipe.constant.RecipeBussConstant;
@@ -23,7 +22,6 @@ import recipe.enumerate.type.DocIndexShowEnum;
 import recipe.manager.EnterpriseManager;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeMsgService;
-import recipe.service.RecipeService;
 import recipe.service.RecipeServiceSub;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.thread.UpdateWaterPrintRecipePdfRunnable;
@@ -100,23 +98,11 @@ public class AuditPreMode extends AbstractAuditMode {
         //日志记录
         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), status, memo);
         //发送消息
-        sendMsg(status, recipe);
+        RecipeMsgService.batchSendMsg(recipe.getRecipeId(), status);
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
         RecipeAuditClient recipeAuditClient = AppContextHolder.getBean("recipeAuditClient", RecipeAuditClient.class);
         recipeAuditClient.recipeAudit(currentRecipe, recipeExtend, recipeDetailList);
         //异步添加水印
         RecipeBusiThreadPool.execute(new UpdateWaterPrintRecipePdfRunnable(recipe.getRecipeId()));
     }
-
-    private void sendMsg(Integer status, Recipe recipe) {
-        //平台处方进行消息发送等操作
-        if (1 == recipe.getFromflag()) {
-            //发送消息--待审核消息
-            RecipeMsgService.batchSendMsg(recipe.getRecipeId(), status);
-            //保存至电子病历
-            RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
-            recipeService.saveRecipeDocIndex(recipe);
-        }
-    }
-
 }

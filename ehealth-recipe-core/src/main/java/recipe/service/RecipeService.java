@@ -12,10 +12,8 @@ import com.google.common.collect.Maps;
 import com.ngari.base.BaseAPI;
 import com.ngari.base.cdr.model.DiseaseDTO;
 import com.ngari.base.cdr.service.IDiseaseService;
-import com.ngari.base.department.service.IDepartmentService;
 import com.ngari.base.hisconfig.service.IHisConfigService;
 import com.ngari.base.organconfig.service.IOrganConfigService;
-import com.ngari.base.patient.model.DocIndexBean;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
@@ -54,8 +52,6 @@ import com.ngari.revisit.common.request.ValidRevisitRequest;
 import com.ngari.revisit.common.service.IRevisitService;
 import com.ngari.revisit.process.service.IRecipeOnLineRevisitService;
 import ctd.account.UserRoleToken;
-import ctd.controller.exception.ControllerException;
-import ctd.dictionary.DictionaryController;
 import ctd.net.broadcast.MQHelper;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
@@ -556,43 +552,6 @@ public class RecipeService extends RecipeBaseService {
         }
     }
 
-
-    /**
-     * 保存处方电子病历
-     *
-     * @param recipe 处方对象
-     */
-    @LogRecord
-    public void saveRecipeDocIndex(Recipe recipe) {
-        IDepartmentService iDepartmentService = ApplicationUtils.getBaseService(IDepartmentService.class);
-
-        DocIndexBean docIndex = new DocIndexBean();
-        String docType = "3";
-        try {
-            String docTypeText = DictionaryController.instance().get("eh.cdr.dictionary.DocType").getText(docType);
-            docIndex.setDocSummary(docTypeText);
-            docIndex.setDoctypeName(docTypeText);
-        } catch (ControllerException e) {
-            LOGGER.error("saveRecipeDocIndex DocType dictionary error! docType=", docType, e);
-        }
-        try {
-            String recipeTypeText = DictionaryController.instance().get("eh.cdr.dictionary.RecipeType").getText(recipe.getRecipeType());
-            docIndex.setDocTitle(recipeTypeText);
-        } catch (ControllerException e) {
-            LOGGER.error("saveRecipeDocIndex RecipeType dictionary error! recipeType=", recipe.getRecipeType(), e);
-        }
-        docIndex.setDocId(recipe.getRecipeId());
-        docIndex.setMpiid(recipe.getMpiid());
-        // docStatus   0  正常（显示） 1  删除状态（不显示）
-        docIndex.setDocStatus(DocIndexShowEnum.NO_AUDIT.getCode().equals(recipe.getReviewType()) ? DocIndexShowEnum.SHOW.getCode() : DocIndexShowEnum.HIDE.getCode());
-        docIndex.setCreateOrgan(recipe.getClinicOrgan());
-        docIndex.setCreateDepart(recipe.getDepart());
-        docIndex.setCreateDoctor(recipe.getDoctor());
-        docIndex.setDoctorName(doctorService.getNameById(recipe.getDoctor()));
-        docIndex.setDepartName(iDepartmentService.getNameById(recipe.getDepart()));
-        LOGGER.info("saveRecipeDocIndex RecipeType docIndex={},docType={}", JSON.toJSONString(docIndex), docType);
-        iPatientService.saveRecipeDocIndex(docIndex, docType, 3);
-    }
 
     /**
      * 根据处方ID获取完整地址

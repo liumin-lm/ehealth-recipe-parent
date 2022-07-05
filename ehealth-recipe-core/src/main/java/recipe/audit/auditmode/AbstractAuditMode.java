@@ -45,7 +45,6 @@ import recipe.manager.RecipeManager;
 import recipe.manager.StateManager;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeMsgService;
-import recipe.service.RecipeService;
 import recipe.service.RecipeServiceSub;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.thread.UpdateWaterPrintRecipePdfRunnable;
@@ -86,10 +85,6 @@ public abstract class AbstractAuditMode implements IAuditMode {
         recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), status, null);
         //日志记录
         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), status, memo);
-        //平台处方进行消息发送等操作
-        if (1 != recipe.getFromflag()) {
-            return;
-        }
         //发送消息--待审核或者待处理消息
         RecipeMsgService.batchSendMsg(recipe.getRecipeId(), status);
         boolean flag = this.judgeRecipeAutoCheck(recipe.getRecipeId(), recipe.getClinicOrgan());
@@ -101,9 +96,6 @@ public abstract class AbstractAuditMode implements IAuditMode {
             LOGGER.info("AbstractAuidtMode saveStatusAndSendMsg recipeId:{},recipeBean:{}", recipe.getRecipeId(), JSON.toJSONString(recipeBean));
             ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussCreateEvent(recipeBean, BussTypeConstant.RECIPE));
         }
-        //保存至电子病历
-        RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
-        recipeService.saveRecipeDocIndex(recipe);
     }
 
     @Override
