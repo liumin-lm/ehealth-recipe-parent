@@ -39,6 +39,7 @@ import recipe.dao.RecipeOrderDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.enumerate.status.RecipeStateEnum;
+import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.SignImageTypeEnum;
 import recipe.manager.RecipeManager;
 import recipe.manager.StateManager;
@@ -67,12 +68,12 @@ public abstract class AbstractAuditMode implements IAuditMode {
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         //发送卡片
         RecipeServiceSub.sendRecipeTagToPatient(recipe, detailDAO.findByRecipeId(recipe.getRecipeId()), null, true);
-        saveStatusAndSendMsg(status, recipe, memo);
+        saveStatusAndSendMsg(recipe, memo);
         //异步添加水印
         RecipeBusiThreadPool.execute(new UpdateWaterPrintRecipePdfRunnable(recipe.getRecipeId()));
     }
 
-    private void saveStatusAndSendMsg(Integer status, Recipe recipe, String memo) {
+    private void saveStatusAndSendMsg(Recipe recipe, String memo) {
         //生成文件成功后再去更新处方状态
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe byRecipeId = recipeDAO.getByRecipeId(recipe.getRecipeId());
@@ -81,6 +82,7 @@ public abstract class AbstractAuditMode implements IAuditMode {
             LOGGER.info("saveStatusAndSendMsg 处方单已经撤销,recipeid:{}", recipe.getRecipeId());
             return;
         }
+        Integer status = RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType();
         recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), status, null);
         //日志记录
         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), status, memo);

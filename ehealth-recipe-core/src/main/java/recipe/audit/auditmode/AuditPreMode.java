@@ -1,6 +1,5 @@
 package recipe.audit.auditmode;
 
-import com.google.common.collect.Maps;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.Recipedetail;
@@ -17,6 +16,8 @@ import recipe.constant.ReviewTypeConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeExtendDAO;
+import recipe.enumerate.status.RecipeAuditStateEnum;
+import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.DocIndexShowEnum;
 import recipe.manager.EnterpriseManager;
@@ -28,7 +29,6 @@ import recipe.thread.RecipeBusiThreadPool;
 import recipe.thread.UpdateWaterPrintRecipePdfRunnable;
 
 import java.util.List;
-import java.util.Map;
 
 import static ctd.persistence.DAOFactory.getDAO;
 
@@ -79,34 +79,29 @@ public class AuditPreMode extends AbstractAuditMode {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
-        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-        List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
         Recipe currentRecipe = recipeDAO.getByRecipeId(recipe.getRecipeId());
         if (RecipeStatusEnum.RECIPE_STATUS_REVOKE.getType().equals(currentRecipe.getStatus())) {
             LOGGER.info("afterHisCallBackChange 处方单已经撤销,recipeId:{}", recipe.getRecipeId());
             return;
         }
-        if (status == RecipeStatusConstant.CHECK_PASS) {
-            status = RecipeStatusConstant.READY_CHECK_YS;
-        }
+        status = RecipeStatusEnum.RECIPE_STATUS_READY_CHECK_YS.getType();
         // 设置新的审方状态
-        super.setAuditStateToPendingReview(recipe.getRecipeId(), status);
+        currentRecipe.setStatus(status);
+        currentRecipe.setCheckFlag(0);
+        currentRecipe.setSubState(RecipeStateEnum.NONE.getType());
+        currentRecipe.setProcessState(RecipeStateEnum.PROCESS_STATE_AUDIT.getType());
+        currentRecipe.setAuditState(RecipeAuditStateEnum.PENDING_REVIEW.getType());
+        recipeDAO.updateNonNullFieldByPrimaryKey(currentRecipe);
+        List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
         // 平台模式前置需要发送卡片 待审核只有平台发
         if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
             RecipeServiceSub.sendRecipeTagToPatient(recipe, recipeDetailList, null, true);
         }
-        //生成文件成功后再去更新处方状态
-        if (recipeDAO.getByRecipeId(recipe.getRecipeId()).getStatus() == 9) {
-            LOGGER.info("afterHisCallBackChange 处方单已经撤销再次判断,recipeId:{}", recipe.getRecipeId());
-            return;
-        }
-        currentRecipe.setStatus(status);
-        currentRecipe.setCheckFlag(0);
-        recipeDAO.updateNonNullFieldByPrimaryKey(currentRecipe);
         //日志记录
         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), status, memo);
         //发送消息
         sendMsg(status, recipe);
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
         RecipeAuditClient recipeAuditClient = AppContextHolder.getBean("recipeAuditClient", RecipeAuditClient.class);
         recipeAuditClient.recipeAudit(currentRecipe, recipeExtend, recipeDetailList);
         //异步添加水印

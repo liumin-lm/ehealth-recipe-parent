@@ -119,10 +119,6 @@ public abstract class AbstractCaProcessType {
     public void caComplete(Recipe recipe, String memo) {
         //设置处方签名成功后的处方的状态
         Integer status = RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType();
-        //其他平台处方状态不变
-        if (0 == recipe.getFromflag()) {
-            status = recipe.getStatus();
-        }
         //根据审方模式改变状态
         AuditModeContext auditModeContext = AppContextHolder.getBean("auditModeContext", AuditModeContext.class);
         auditModeContext.getAuditModes(recipe.getReviewType()).afterHisCallBackChange(status, recipe, memo);
