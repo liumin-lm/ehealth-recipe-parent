@@ -24,7 +24,7 @@ public interface IOrganDrugToolService {
      * @return
      */
     @RpcService
-    String saveImportDrugRecord(ImportDrugRecordVO importDrugRecord);
+    Integer saveImportDrugRecord(ImportDrugRecordVO importDrugRecord);
 
 
 

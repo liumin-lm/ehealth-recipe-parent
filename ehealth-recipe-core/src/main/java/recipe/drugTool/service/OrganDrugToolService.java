@@ -176,10 +176,10 @@ public class OrganDrugToolService implements IOrganDrugToolService {
     }
 
     @Override
-    public String saveImportDrugRecord(ImportDrugRecordVO param) {
+    public Integer saveImportDrugRecord(ImportDrugRecordVO param) {
         ImportDrugRecord importDrugRecord= ObjectCopyUtils.convert(param,ImportDrugRecord.class);
-        importDrugRecordDAO.save(importDrugRecord);
-        return null;
+        importDrugRecord=importDrugRecordDAO.save(importDrugRecord);
+        return importDrugRecord.getRecordId();
     }
 
     /**
