@@ -670,6 +670,7 @@ public class EnterpriseManager extends BaseManager {
             OrganDrugList organDrug = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(organId, recipedetail.getOrganDrugCode(), recipedetail.getDrugId());
             if (organDrug != null) {
                 pushDrugListBean.setOrganDrugListBean(ObjectCopyUtils.convert(organDrug, OrganDrugListBean.class));
+                pushDrugListBean.getRecipeDetailBean().setMedicalDrugCode(organDrug.getMedicalDrugCode());
             }
             if (null != enterprise) {
                 SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipedetail.getDrugId(), enterprise.getId());
