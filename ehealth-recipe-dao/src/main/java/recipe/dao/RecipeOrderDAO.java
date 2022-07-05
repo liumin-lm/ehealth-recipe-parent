@@ -1874,7 +1874,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         HibernateStatelessResultAction<List<RecipeOrderDetailExportDTO>> action = new AbstractHibernateStatelessResultAction<List<RecipeOrderDetailExportDTO>>() {
             @Override
             public void execute(StatelessSession ss) {
-                Query query = ss.createSQLQuery(sbHql.append(" order by a.CreateTime DESC").toString()).addEntity(RecipeOrderDetailExportDTO.class);
+                Query query = ss.createSQLQuery(sbHql.toString()).addEntity(RecipeOrderDetailExportDTO.class);
                 setRefundParameter(query, recipeOrderRefundReqDTO);
                 List<RecipeOrderDetailExportDTO> list = query.list();
                 setResult(list);
@@ -1899,6 +1899,14 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         hql.append("LEFT JOIN cdr_drugsenterprise cd ON cd.id = a.EnterpriseId ");
         hql.append("LEFT JOIN base_saledruglist bs ON bs.OrganID = a.EnterpriseId and bs.DrugId = d.DrugID LEFT JOIN base_drug_decoctionway dd on dd.decoctionId = c.decoctionId ");
         hql.append(" where d.status= 1 ");
-        return getRefundStringBuilder(recipeOrderRefundReqDTO, hql);
+        getRefundStringBuilder(recipeOrderRefundReqDTO, hql);
+        hql.append(" order by a.CreateTime DESC");
+        if(null != recipeOrderRefundReqDTO.getStart()){
+            hql.append(" limit ").append(recipeOrderRefundReqDTO.getStart());
+        }
+        if(null != recipeOrderRefundReqDTO.getLimit()){
+            hql.append(" , ").append(recipeOrderRefundReqDTO.getLimit());
+        }
+        return hql;
     }
 }
