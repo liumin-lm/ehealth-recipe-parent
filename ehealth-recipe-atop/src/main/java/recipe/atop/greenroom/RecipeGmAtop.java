@@ -64,16 +64,16 @@ public class RecipeGmAtop extends BaseAtop {
     public ResultBean updateRecipeOrderStatusAndGiveUser(UpdateOrderStatusVO updateOrderStatusVO) {
         validateAtop(updateOrderStatusVO,updateOrderStatusVO.getRecipeId());
         ResultBean resultBean1 = new ResultBean();
-        if (Objects.nonNull(updateOrderStatusVO.getGiveUser())) {
-            // 更改发药人
-            ResultBean resultBean = recipeOrderService.updateRecipeGiveUser(updateOrderStatusVO.getRecipeId(), updateOrderStatusVO.getGiveUser());
+        if (Objects.nonNull(updateOrderStatusVO.getTargetRecipeOrderStatus())) {
+            // 更改状态
+            ResultBean resultBean = recipeOrderService.updateRecipeOrderStatus(updateOrderStatusVO);
             if(CodeEnum.SERVICE_ERROR.getCode().equals(resultBean.getCode())){
                 resultBean1.setCode(resultBean.getCode());
             }
         }
-        if (Objects.nonNull(updateOrderStatusVO.getTargetRecipeOrderStatus())) {
-            // 更改状态
-            ResultBean resultBean = recipeOrderService.updateRecipeOrderStatus(updateOrderStatusVO);
+        if (Objects.nonNull(updateOrderStatusVO.getGiveUser())) {
+            // 更改发药人
+            ResultBean resultBean = recipeOrderService.updateRecipeGiveUser(updateOrderStatusVO.getRecipeId(), updateOrderStatusVO.getGiveUser());
             if(CodeEnum.SERVICE_ERROR.getCode().equals(resultBean.getCode())){
                 resultBean1.setCode(resultBean.getCode());
             }
