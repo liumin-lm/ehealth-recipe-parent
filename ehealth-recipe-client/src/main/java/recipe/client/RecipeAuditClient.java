@@ -229,7 +229,7 @@ public class RecipeAuditClient extends BaseClient {
     }
 
     @LogRecord
-    public void recipeAudit(Recipe recipe, RecipeExtend recipeExtend, List<Recipedetail> recipeDetailList, Integer currentStatus) {
+    public void recipeAudit(Recipe recipe, RecipeExtend recipeExtend, List<Recipedetail> recipeDetailList) {
         RecipeAuditReqDTO recipeAuditReqDTO = new RecipeAuditReqDTO();
         RecipeDTO recipeDTO = ObjectCopyUtils.convert(recipe, RecipeDTO.class);
         RecipeExtendDTO recipeExtendDTO = ObjectCopyUtils.convert(recipeExtend, RecipeExtendDTO.class);
@@ -237,7 +237,6 @@ public class RecipeAuditClient extends BaseClient {
         recipeAuditReqDTO.setRecipeDTO(recipeDTO);
         recipeAuditReqDTO.setRecipeExtendDTO(recipeExtendDTO);
         recipeAuditReqDTO.setRecipeDetailDTOList(recipeDetailDTOList);
-        recipeAuditReqDTO.setCurrentStatus(currentStatus);
         recipeAuditService.recipeAudit(recipeAuditReqDTO);
     }
 }

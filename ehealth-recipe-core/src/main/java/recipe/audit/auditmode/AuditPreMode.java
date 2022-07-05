@@ -108,7 +108,7 @@ public class AuditPreMode extends AbstractAuditMode {
         //发送消息
         sendMsg(status, recipe);
         RecipeAuditClient recipeAuditClient = AppContextHolder.getBean("recipeAuditClient", RecipeAuditClient.class);
-        recipeAuditClient.recipeAudit(recipe, recipeExtend, recipeDetailList, status);
+        recipeAuditClient.recipeAudit(currentRecipe, recipeExtend, recipeDetailList);
         //异步添加水印
         RecipeBusiThreadPool.execute(new UpdateWaterPrintRecipePdfRunnable(recipe.getRecipeId()));
     }
