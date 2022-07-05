@@ -1961,6 +1961,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                             attrMap.put("payDate", new Date());
                             //更新处方信息
                             recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), RecipeStatusConstant.FINISH, attrMap);
+                            stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_DONE_UPLOAD_THIRD);
                             stringBuilder.append("[订单状态]该订单已完成;");
                             break;
                         case "5":
