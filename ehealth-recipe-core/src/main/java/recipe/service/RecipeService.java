@@ -4297,6 +4297,8 @@ public class RecipeService extends RecipeBaseService {
                     //监管平台核销上传
                     SyncExecutorService syncExecutorService = ApplicationUtils.getRecipeService(SyncExecutorService.class);
                     syncExecutorService.uploadRecipeVerificationIndicators(recipeId);
+                    stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_DONE, RecipeStateEnum.SUB_DONE_DOWNLOAD);
+
                 } else {
                     LOGGER.warn("处方：{},更新失败", recipe.getRecipeId());
                 }
