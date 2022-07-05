@@ -17,12 +17,14 @@ import eh.recipeaudit.model.Intelligent.AutoAuditResultBean;
 import eh.recipeaudit.model.Intelligent.PAWebRecipeDangerBean;
 import eh.recipeaudit.model.RecipeCheckBean;
 import eh.recipeaudit.model.RecipeCheckDetailBean;
+import eh.recipeaudit.model.recipe.RecipeAuditReqDTO;
 import eh.recipeaudit.model.recipe.RecipeDTO;
 import eh.recipeaudit.model.recipe.RecipeDetailDTO;
 import eh.recipeaudit.model.recipe.RecipeExtendDTO;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 import recipe.aop.LogRecord;
 
 import java.util.ArrayList;
@@ -224,5 +226,17 @@ public class RecipeAuditClient extends BaseClient {
     @LogRecord
     public Map<String, Object> getGrabOrderStatusAndLimitTime(Map<String, Object> map) {
         return recipeCheckService.getGrabOrderStatusAndLimitTime(map);
+    }
+
+    @LogRecord
+    public void recipeAudit(Recipe recipe, RecipeExtend recipeExtend, List<Recipedetail> recipeDetailList) {
+        RecipeAuditReqDTO recipeAuditReqDTO = new RecipeAuditReqDTO();
+        RecipeDTO recipeDTO = ObjectCopyUtils.convert(recipe, RecipeDTO.class);
+        RecipeExtendDTO recipeExtendDTO = ObjectCopyUtils.convert(recipeExtend, RecipeExtendDTO.class);
+        List<RecipeDetailDTO> recipeDetailDTOList = ObjectCopyUtils.convert(recipeDetailList, RecipeDetailDTO.class);
+        recipeAuditReqDTO.setRecipeDTO(recipeDTO);
+        recipeAuditReqDTO.setRecipeExtendDTO(recipeExtendDTO);
+        recipeAuditReqDTO.setRecipeDetailDTOList(recipeDetailDTOList);
+        recipeAuditService.recipeAudit(recipeAuditReqDTO);
     }
 }
