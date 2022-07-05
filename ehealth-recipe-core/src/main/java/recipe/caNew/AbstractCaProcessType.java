@@ -93,14 +93,18 @@ public abstract class AbstractCaProcessType {
         //HIS消息发送--异步处理
         RecipeBusiThreadPool.execute(new PushRecipeToHisCallable(recipeBean.getRecipeId()));
         //非可使用省医保的处方立即发送处方卡片，使用省医保的处方需要在药师审核通过后显示
-        if (!recipeBean.canMedicalPay()) {
-            //发送卡片
-            Recipe recipe = ObjectCopyUtils.convert(recipeBean, Recipe.class);
-            List<Recipedetail> details = ObjectCopyUtils.convert(detailBeanList, Recipedetail.class);
-            Map<String, Object> rMap = new HashMap<>();
-            rMap.put("signResult", true);
-            rMap.put("recipeId", recipeBean.getRecipeId());
-            RecipeServiceSub.sendRecipeTagToPatient(recipe, details, rMap, false);
+        try {
+            if (!recipeBean.canMedicalPay()) {
+                //发送卡片
+                Recipe recipe = ObjectCopyUtils.convert(recipeBean, Recipe.class);
+                List<Recipedetail> details = ObjectCopyUtils.convert(detailBeanList, Recipedetail.class);
+                Map<String, Object> rMap = new HashMap<>();
+                rMap.put("signResult", true);
+                rMap.put("recipeId", recipeBean.getRecipeId());
+                RecipeServiceSub.sendRecipeTagToPatient(recipe, details, rMap, false);
+            }
+        } catch (Exception e) {
+            LOGGER.warn("AbstractCaProcessType recipeHisResultBeforeCAFunction sendRecipeTagToPatient{}", recipeBean.getRecipeId(), e);
         }
         LOGGER.info("AbstractCaProcessType recipeHisResultBeforeCAFunction end recipeBean={}", JSON.toJSONString(recipeBean));
     }

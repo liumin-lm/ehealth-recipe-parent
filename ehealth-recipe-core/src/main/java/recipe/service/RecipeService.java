@@ -762,6 +762,8 @@ public class RecipeService extends RecipeBaseService {
             return RecipeResultBean.getFail();
         }
         if (old) {
+            stateManager.updateStatus(recipeId, RecipeStatusEnum.RECIPE_STATUS_SIGN_SUCCESS_CODE_DOC, SignEnum.SIGN_STATE_ORDER);
+            stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_SUBMIT, RecipeStateEnum.NONE);
             //调用审方等接口 并修改处方状态
             RecipeMsgService.batchSendMsg(recipeId, RecipeMsgEnum.PRESCRIBE_SUCCESS.getStatus());
             caAfterProcessType.caComplete(recipe, "老模式不走ca回调,签名成功");

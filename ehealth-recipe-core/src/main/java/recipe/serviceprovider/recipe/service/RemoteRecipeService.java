@@ -2202,6 +2202,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         }
         /**设置处方的状态************/
         RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "当前签名处方签名成功");
+        stateManager.updateStatus(recipeId, RecipeStatusEnum.RECIPE_STATUS_SIGN_SUCCESS_CODE_DOC, SignEnum.SIGN_STATE_ORDER);
+        stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_SUBMIT, RecipeStateEnum.NONE);
         RecipeBean recipeBean = getByRecipeId(recipeId);
         List<RecipeDetailBean> detailBeanList = ObjectCopyUtils.convert(details, RecipeDetailBean.class);
         AbstractCaProcessType.getCaProcessFactory(recipeBean.getClinicOrgan()).signCAAfterRecipeCallBackFunction(recipeBean, detailBeanList);

@@ -250,6 +250,7 @@ public class RecipeUtil {
         recipe.setSubState(RecipeStateEnum.SUB_SUBMIT_TEMPORARY.getType());
         recipe.setAuditState(RecipeAuditStateEnum.DEFAULT.getType());
         recipe.setWriteHisState(0);
+        recipe.setDoctorSignState(0);
         recipe.setCheckFlag(0);
         if (null == recipe.getRecipeType()) {
             recipe.setRecipeId(0);

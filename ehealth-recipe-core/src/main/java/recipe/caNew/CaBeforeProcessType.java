@@ -59,7 +59,7 @@ public class CaBeforeProcessType extends AbstractCaProcessType {
             createPdfFactory.updateCodePdfExecute(recipeId);
         }
         RecipeMsgService.batchSendMsg(recipeId, RecipeMsgEnum.PRESCRIBE_SUCCESS.getStatus());
-        super.caComplete(recipe, "当前签名处方签名成功:前置---");
+        super.caComplete(recipe, "当前签名处方his回调成功:前置---");
         return RecipeResultBean.getSuccess();
     }
 }
