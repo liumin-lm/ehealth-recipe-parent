@@ -23,6 +23,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
+import recipe.aop.LogRecord;
 import recipe.bean.CheckYsInfoBean;
 import recipe.client.RecipeAuditClient;
 import recipe.constant.CacheConstant;
@@ -69,6 +70,7 @@ public class AuditPostMode extends AbstractAuditMode {
     }
 
     @Override
+    @LogRecord
     public void afterPayChange(Boolean saveFlag, Recipe dbRecipe, RecipeResultBean result, Map<String, Object> attrMap) {
         //默认审核通过
         Integer status = RecipeStatusConstant.CHECK_PASS;
@@ -132,19 +134,18 @@ public class AuditPostMode extends AbstractAuditMode {
                 status = dbRecipe.getStatus();
             }
         }
-        super.updateRecipeInfoByRecipeId(dbRecipe.getRecipeId(),status,attrMap,result);
+        super.updateRecipeInfoByRecipeId(dbRecipe.getRecipeId(), status, attrMap, result);
         if (saveFlag && RecipeResultBean.SUCCESS.equals(result.getCode())) {
             //更新处方为待审核
             if (RecipeStatusEnum.RECIPE_STATUS_READY_CHECK_YS.getType().equals(status)) {
                 dbRecipe.setCheckFlag(0);
                 recipeDAO.updateNonNullFieldByPrimaryKey(dbRecipe);
+                RecipeMsgService.batchSendMsg(dbRecipe.getRecipeId(), status);
+                RecipeAuditClient recipeAuditClient = AppContextHolder.getBean("recipeAuditClient", RecipeAuditClient.class);
+                recipeAuditClient.recipeAudit(dbRecipe, recipeExtend, recipeDetailList);
             }
-            // 设置新的审方状态
+            //设置新的审方状态
             super.setAuditStateToPendingReview(dbRecipe.getRecipeId(),status);
-            //支付后调用
-            RecipeMsgService.batchSendMsg(dbRecipe.getRecipeId(), status);
-            RecipeAuditClient recipeAuditClient = AppContextHolder.getBean("recipeAuditClient", RecipeAuditClient.class);
-            recipeAuditClient.recipeAudit(dbRecipe, recipeExtend, recipeDetailList);
             if (RecipeStatusConstant.CHECK_PASS_YS == status) {
                 //说明是可进行医保支付的单子或者是中药或膏方处方
                 RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
