@@ -1,23 +1,10 @@
 package recipe.audit.auditmode;
 
-import com.alibaba.fastjson.JSON;
-import com.google.common.collect.Maps;
-import com.ngari.home.asyn.model.BussCreateEvent;
-import com.ngari.home.asyn.service.IAsynDoBussService;
-import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
-import com.ngari.recipe.entity.Recipedetail;
-import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.persistence.DAOFactory;
-import ctd.util.AppContextHolder;
-import eh.base.constant.BussTypeConstant;
 import eh.cdr.constant.RecipeStatusConstant;
-import eh.recipeaudit.api.IRecipeAuditService;
-import eh.recipeaudit.model.recipe.RecipeDTO;
-import eh.recipeaudit.util.RecipeAuditAPI;
 import eh.wxpay.constant.PayConstant;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
@@ -25,25 +12,20 @@ import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.aop.LogRecord;
 import recipe.bean.CheckYsInfoBean;
-import recipe.client.RecipeAuditClient;
 import recipe.constant.CacheConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeMsgEnum;
 import recipe.constant.ReviewTypeConstant;
 import recipe.dao.RecipeDAO;
-import recipe.dao.RecipeDetailDAO;
-import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.enumerate.status.RecipeStatusEnum;
-import recipe.enumerate.type.PayFlagEnum;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeMsgService;
 import recipe.service.RecipeService;
 import recipe.util.MapValueUtil;
 import recipe.util.RedisClient;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -75,10 +57,6 @@ public class AuditPostMode extends AbstractAuditMode {
         //默认审核通过
         Integer status = RecipeStatusConstant.CHECK_PASS;
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
-        RecipeExtendDAO recipeExtendDAO = getDAO(RecipeExtendDAO.class);
-        RecipeDetailDAO recipeDetailDAO = getDAO(RecipeDetailDAO.class);
-        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(dbRecipe.getRecipeId());
-        List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(dbRecipe.getRecipeId());
         Integer giveMode = null == MapValueUtil.getInteger(attrMap,"giveMode") ? dbRecipe.getGiveMode() : MapValueUtil.getInteger(attrMap,"giveMode");
         Integer payFlag = MapValueUtil.getInteger(attrMap, "payFlag");
         // 获取paymode
@@ -141,8 +119,7 @@ public class AuditPostMode extends AbstractAuditMode {
                 dbRecipe.setCheckFlag(0);
                 recipeDAO.updateNonNullFieldByPrimaryKey(dbRecipe);
                 RecipeMsgService.batchSendMsg(dbRecipe.getRecipeId(), status);
-                RecipeAuditClient recipeAuditClient = AppContextHolder.getBean("recipeAuditClient", RecipeAuditClient.class);
-                recipeAuditClient.recipeAudit(dbRecipe, recipeExtend, recipeDetailList);
+                super.recipeAudit(dbRecipe.getRecipeId());
             }
             //设置新的审方状态
             super.setAuditStateToPendingReview(dbRecipe.getRecipeId(),status);
