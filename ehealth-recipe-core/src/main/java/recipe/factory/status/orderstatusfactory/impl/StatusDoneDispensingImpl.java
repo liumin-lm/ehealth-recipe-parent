@@ -48,7 +48,8 @@ public class StatusDoneDispensingImpl extends AbstractRecipeOrderStatus {
     public Recipe updateStatus(UpdateOrderStatusVO orderStatus, RecipeOrder recipeOrder, Recipe recipe) {
         recipeOrder.setDispensingFlag(DISPENSING_FLAG_DONE);
         recipeOrder.setDispensingTime(new Date());
-        List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
+        RecipeOrder order = recipeOrderDAO.get(recipeOrder.getOrderId());
+        List<Integer> recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
         List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeIdList(recipeIdList);
         try {
             for(Recipedetail recipedetail : recipeDetailList){
