@@ -4,11 +4,14 @@ import com.ngari.platform.recipe.mode.RecipeDrugInventoryDTO;
 import com.ngari.recipe.drug.model.OrganDrugListBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
+import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.DrugStockClient;
+import recipe.constant.ErrorCode;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.manager.PharmacyManager;
@@ -18,6 +21,7 @@ import recipe.thread.RecipeBusiThreadPool;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 已发药
@@ -53,7 +57,7 @@ public class StatusDoneDispensingImpl extends AbstractRecipeOrderStatus {
         List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeIdList(recipeIdList);
         try {
             for(Recipedetail recipedetail : recipeDetailList){
-                OrganDrugListBean organDrugList = organDrugListService.getByOrganIdAndOrganDrugCodeAndDrugId(recipe.getRecipeId(), recipedetail.getOrganDrugCode(), recipedetail.getDrugId());
+                OrganDrugListBean organDrugList = organDrugListService.getByOrganIdAndOrganDrugCodeAndDrugId(recipe.getClinicOrgan(), recipedetail.getOrganDrugCode(), recipedetail.getDrugId());
                 logger.info("StatusDoneDispensingImpl updateStatus  organDrugList={}", JSONUtils.toString(organDrugList));
                 if(null != organDrugList){
                     recipedetail.setDrugItemCode(organDrugList.getDrugItemCode());
@@ -62,11 +66,7 @@ public class StatusDoneDispensingImpl extends AbstractRecipeOrderStatus {
         }catch (Exception e){
             logger.error("StatusDoneDispensingImpl updateStatus  error",e);
         }
-        RecipeOrderBill recipeOrderBill = recipeOrderBillDAO.getRecipeOrderBillByOrderCode(recipe.getOrderCode());
-        Map<Integer, PharmacyTcm> pharmacyTcmMap = pharmacyManager.pharmacyIdMap(recipe.getClinicOrgan());
-        RecipeDrugInventoryDTO request = drugStockClient.recipeDrugInventory(recipe, recipeDetailList, recipeOrderBill, pharmacyTcmMap);
-        request.setInventoryType(DISPENSING_FLAG_DONE);
-        drugStockClient.drugInventory(request);
+        drugInventory(recipeIdList,recipeDetailList,recipe);
         recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_DONE_DISPENSING.getType());
         return recipe;
     }
@@ -74,5 +74,21 @@ public class StatusDoneDispensingImpl extends AbstractRecipeOrderStatus {
     @Override
     public void upRecipeThreadPool(Recipe recipe) {
         RecipeBusiThreadPool.execute(() -> createPdfFactory.updateGiveUser(recipe));
+    }
+
+    private void drugInventory(List<Integer> recipeIdList,List<Recipedetail> recipeDetailList,Recipe recipe){
+        if(CollectionUtils.isEmpty(recipeDetailList)){
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "药品列表为空");
+        }
+        Map<Integer, List<Recipedetail>> collect = recipeDetailList.stream().collect(Collectors.groupingBy(Recipedetail::getRecipeId));
+        List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIdList);
+        RecipeOrderBill recipeOrderBill = recipeOrderBillDAO.getRecipeOrderBillByOrderCode(recipe.getOrderCode());
+        Map<Integer, PharmacyTcm> pharmacyTcmMap = pharmacyManager.pharmacyIdMap(recipe.getClinicOrgan());
+        recipes.forEach(r -> {
+            List<Recipedetail> recipeDetails = collect.get(r.getRecipeId());
+            RecipeDrugInventoryDTO request = drugStockClient.recipeDrugInventory(r, recipeDetails, recipeOrderBill, pharmacyTcmMap);
+            request.setInventoryType(DISPENSING_FLAG_DONE);
+            drugStockClient.drugInventory(request);
+        });
     }
 }

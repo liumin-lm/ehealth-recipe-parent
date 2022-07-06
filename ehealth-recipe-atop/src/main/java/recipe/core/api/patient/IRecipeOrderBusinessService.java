@@ -141,4 +141,12 @@ public interface IRecipeOrderBusinessService {
      * @return
      */
     Integer thirdCreateOrder(ThirdCreateOrderReqDTO thirdCreateOrderReqDTO);
+
+    /**
+     * 根据订单批量修改发药药师
+     * @param orderId
+     * @param giveUser
+     * @return
+     */
+    ResultBean updateOrderGiveUser(Integer orderId, Integer giveUser);
 }

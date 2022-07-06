@@ -73,7 +73,7 @@ public class RecipeGmAtop extends BaseAtop {
         }
         if (Objects.nonNull(updateOrderStatusVO.getGiveUser())) {
             // 更改发药人
-            ResultBean resultBean = recipeOrderService.updateRecipeGiveUser(updateOrderStatusVO.getRecipeId(), updateOrderStatusVO.getGiveUser());
+            ResultBean resultBean = recipeOrderService.updateOrderGiveUser(updateOrderStatusVO.getOrderId(), updateOrderStatusVO.getGiveUser());
             if(CodeEnum.SERVICE_ERROR.getCode().equals(resultBean.getCode())){
                 resultBean1.setCode(resultBean.getCode());
             }
