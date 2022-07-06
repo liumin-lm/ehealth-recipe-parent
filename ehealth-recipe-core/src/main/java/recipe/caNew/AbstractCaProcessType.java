@@ -3,37 +3,26 @@ package recipe.caNew;
 import com.alibaba.fastjson.JSON;
 import com.ngari.consult.ConsultAPI;
 import com.ngari.consult.process.service.IRecipeOnLineConsultService;
-import com.ngari.patient.service.BasicAPI;
-import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
-import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.process.service.IRecipeOnLineRevisitService;
-import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
-import ctd.util.JSONUtils;
 import eh.wxpay.constant.PayConstant;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.audit.auditmode.AuditModeContext;
-import recipe.bean.DrugEnterpriseResult;
 import recipe.client.IConfigurationClient;
 import recipe.constant.RecipeBussConstant;
-import recipe.dao.OrganAndDrugsepRelationDAO;
-import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.RecipeDistributionFlagEnum;
 import recipe.manager.CaManager;
 import recipe.manager.StateManager;
-import recipe.service.DrugDistributionService;
 import recipe.service.RecipeHisService;
 import recipe.service.RecipeServiceSub;
 import recipe.thread.PushRecipeToHisCallable;
@@ -53,13 +42,9 @@ public abstract class AbstractCaProcessType {
     protected static IConfigurationClient configurationClient = AppContextHolder.getBean("IConfigurationClient", IConfigurationClient.class);
     protected static CaManager caManager = AppContextHolder.getBean("caManager", CaManager.class);
     protected static StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
-    private static final Integer CA_OLD_TYPE = new Integer(0);
-
-    private static final Integer CA_NEW_TYPE = new Integer(1);
 
     private static final Integer CA_BEFORE = new Integer(0);
 
-    private static final Integer CA_AFTER = new Integer(1);
     //我们将开方的流程拆开：
     //1.保存处方（公共操作）=》2.CA签名前操作=》3.CA签名后操作
     //因为拿到CA结果的时机不同，流程3中：前置是在推his前拿到的，所以在拿到结果后需要将处方做推his的相关操作;
@@ -149,26 +134,5 @@ public abstract class AbstractCaProcessType {
         }
         //推送处方到监管平台
         RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(Collections.singletonList(recipe.getRecipeId()), 1));
-
-        //将原先互联网回调修改处方的推送的逻辑移到这里
-        //判断是否是阿里药企，是阿里大药房就推送处方给药企
-        OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
-        List<DrugsEnterprise> drugsEnterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(recipe.getClinicOrgan(), 1);
-        if (CollectionUtils.isEmpty(drugsEnterprises)) {
-            return;
-        }
-        DrugsEnterprise drugsEnterprise = drugsEnterprises.get(0);
-        if ("aldyf".equals(drugsEnterprise.getCallSys()) && StringUtils.isNotEmpty(recipe.getRequestMpiId())) {
-            //判断用户是否已鉴权
-            DrugDistributionService drugDistributionService = ApplicationUtils.getRecipeService(DrugDistributionService.class);
-            PatientService patientService = BasicAPI.getService(PatientService.class);
-            String loginId = patientService.getLoginIdByMpiId(recipe.getRequestMpiId());
-            if (drugDistributionService.authorization(loginId)) {
-                //推送阿里处方推片和信息
-                RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
-                DrugEnterpriseResult deptResult = remoteDrugEnterpriseService.pushSingleRecipeInfoWithDepId(recipe.getRecipeId(), drugsEnterprise.getId());
-                LOGGER.info("updateRecipeStatus 推送药企处方，result={}", JSONUtils.toString(deptResult));
-            }
-        }
     }
 }
