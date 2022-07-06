@@ -218,20 +218,6 @@ public abstract class AbstractAuditMode implements IAuditMode {
         }
     }
 
-
-    /**
-     * @param recipeId
-     * @desc 执行具体的三方 只能是三方审核模式下
-     */
-    protected void doAutoRecipe(Integer recipeId) {
-        RecipeManager recipeManager = AppContextHolder.getBean("recipeManager", RecipeManager.class);
-        Recipe recipe = recipeManager.getRecipeById(recipeId);
-        RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
-        List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipeId);
-        RecipeAuditClient recipeAuditClient = AppContextHolder.getBean("recipeAuditClient", RecipeAuditClient.class);
-        recipeAuditClient.analysis(recipe, null, recipeDetails);
-    }
-
     protected boolean judgeRecipeAutoCheck(Integer recipeId, Integer organId) {
         LOGGER.info("judgeRecipeAutoCheck recipe={}", recipeId);
         try {
