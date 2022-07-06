@@ -250,7 +250,7 @@ public class RecipeUtil {
         if (null == recipe.getRecipeType()) {
             recipe.setRecipeId(0);
         }
-
+        recipe.setMedicalFlag(0);
         //默认为西药
         if (null == recipe.getRecipeType()) {
             recipe.setRecipeType(RecipeBussConstant.RECIPETYPE_WM);

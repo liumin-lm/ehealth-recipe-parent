@@ -349,6 +349,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
             if (StringUtils.isNotEmpty(recipeOrder.getAddress1())) {
                 receiverInfo.setProvinceCode(StringUtils.isNotEmpty(recipeOrder.getAddress1()) ? recipeOrder.getAddress1() + "0000" : "");
                 receiverInfo.setCityCode(StringUtils.isNotEmpty(recipeOrder.getAddress2()) ? recipeOrder.getAddress2() + "00" : "");
+                receiverInfo.setDistrictCode(recipeOrder.getAddress3());
             }
             receiverInfo.setCommunityCode(ValidateUtil.isEmpty(recipeOrder.getAddress5()));
             receiverInfo.setCommunityName(ValidateUtil.isEmpty(recipeOrder.getAddress5Text()));
@@ -588,6 +589,16 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
             return recipeOrder.getOrderId();
         }
         return 0;
+    }
+
+    @Override
+    public ResultBean updateOrderGiveUser(Integer orderId, Integer giveUser) {
+        RecipeOrder recipeOrder = recipeOrderDAO.get(orderId);
+        List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
+        recipeIdList.forEach(id -> {
+            updateRecipeGiveUser(id, giveUser);
+        });
+        return ResultBean.succeed();
     }
 
     /**
