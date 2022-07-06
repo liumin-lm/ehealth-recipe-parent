@@ -35,6 +35,7 @@ import recipe.enumerate.status.RecipeOrderStatusEnum;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * company: ngarihealth
@@ -1869,12 +1870,21 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
     public abstract void updateTrackingNumberByOrderId(@DAOParam("orderId")Integer orderId, @DAOParam("logisticsCompany")Integer logisticsCompany, @DAOParam("trackingNumber")String trackingNumber);
 
     public List<RecipeOrderDetailExportDTO> getRecipeOrderDetail(RecipeOrderRefundReqDTO recipeOrderRefundReqDTO) {
+        final StringBuilder orderCodeHQL = generateOrderCodeHQL(recipeOrderRefundReqDTO);
         final StringBuilder sbHql = this.generateRecipeOrderDetailHQL(recipeOrderRefundReqDTO);
         logger.info("RecipeOderDAO getRecipeOrderDetail sbHql = {} ", sbHql.toString());
         HibernateStatelessResultAction<List<RecipeOrderDetailExportDTO>> action = new AbstractHibernateStatelessResultAction<List<RecipeOrderDetailExportDTO>>() {
             @Override
             public void execute(StatelessSession ss) {
+                Query orderCodeQuery = ss.createSQLQuery(orderCodeHQL.toString());
+                setRefundParameter(orderCodeQuery, recipeOrderRefundReqDTO);
+                List<String> orderCodeList = orderCodeQuery.list();
+
                 Query query = ss.createSQLQuery(sbHql.toString()).addEntity(RecipeOrderDetailExportDTO.class);
+                if(CollectionUtils.isNotEmpty(orderCodeList)){
+                    HashSet<String> strings = new HashSet<>(orderCodeList);
+                    query.setParameterList("orderCodeList",strings );
+                }
                 setRefundParameter(query, recipeOrderRefundReqDTO);
                 List<RecipeOrderDetailExportDTO> list = query.list();
                 setResult(list);
@@ -1884,16 +1894,9 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         return action.getResult();
 
     }
-
-    protected StringBuilder generateRecipeOrderDetailHQL(RecipeOrderRefundReqDTO recipeOrderRefundReqDTO){
+    private StringBuilder generateOrderCodeHQL(RecipeOrderRefundReqDTO recipeOrderRefundReqDTO){
         StringBuilder hql = new StringBuilder("select ");
-        hql.append("b.recipeId,case when b.recipeType = 1 then '西药' when b.recipeType = 2 then '中成药' when b.recipeType = 3 then '中药' when b.recipeType = 4 then '膏方' else '其他' end as recipeType,");
-        hql.append("b.recipeCode,b.appoint_depart_name as appointDepartName,b.doctorName,b.patientName,b.CreateDate,b.mpiid,");
-        hql.append("a.OrderCode,case when a.status = 1 then '待支付' when a.status in (2,3,4,12) then '处理中' when a.status = 5 then '已完成' else '默认' end as processState,");
-        hql.append("case when c.refundNodeStatus is null || c.refundNodeStatus = 2 || c.refundNodeStatus = 3  then '未退款' when c.refundNodeStatus = 0 then '退款中' when c.refundNodeStatus = 1 then '已退款' else '其他' end as refundNodeStatus,");
-        hql.append("a.giveModeText,a.DrugStoreName,a.CreateTime as orderTime,a.PayTime,a.TotalFee,a.RecipeFee,a.ExpressFee,a.DecoctionFee,a.TCMFee,a.RegisterFee,a.AuditFee,a.TradeNo,a.RecMobile as mobile,");
-        hql.append("c.decoctionText,d.DrugName,d.OrganDrugCode,d.salePrice,d.useTotalDose,d.drugUnit,");
-        hql.append("cd.Name,bs.OrganDrugCode as saleDrugCode,dd.generationis_of_decoction as generationisOfDecoction ");
+        hql.append("b.orderCode ");
         hql.append("from cdr_recipe b LEFT JOIN cdr_recipeorder a on b.orderCode=a.orderCode ");
         hql.append("LEFT JOIN cdr_recipedetail d ON b.RecipeID = d.RecipeID LEFT JOIN cdr_recipe_ext c on c.recipeId = b.recipeId ");
         hql.append("LEFT JOIN cdr_drugsenterprise cd ON cd.id = a.EnterpriseId ");
@@ -1907,6 +1910,29 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         if(null != recipeOrderRefundReqDTO.getLimit()){
             hql.append(" , ").append(recipeOrderRefundReqDTO.getLimit());
         }
+        return hql;
+    }
+
+    protected StringBuilder generateRecipeOrderDetailHQL(RecipeOrderRefundReqDTO recipeOrderRefundReqDTO){
+        StringBuilder hql = new StringBuilder("select ");
+        hql.append("b.recipeId,case when b.recipeType = 1 then '西药' when b.recipeType = 2 then '中成药' when b.recipeType = 3 then '中药' when b.recipeType = 4 then '膏方' else '其他' end as recipeType,");
+        hql.append("b.recipeCode,b.appoint_depart_name as appointDepartName,b.doctorName,b.patientName,b.CreateDate,b.mpiid,");
+        hql.append("a.OrderCode,case when a.status = 1 then '待支付' when a.status in (2,3,4,12) then '处理中' when a.status = 5 then '已完成' else '默认' end as processState,");
+        hql.append("case when c.refundNodeStatus is null || c.refundNodeStatus = 2 || c.refundNodeStatus = 3  then '未退款' when c.refundNodeStatus = 0 then '退款中' when c.refundNodeStatus = 1 then '已退款' else '其他' end as refundNodeStatus,");
+        hql.append("a.giveModeText,a.DrugStoreName,a.CreateTime as orderTime,a.PayTime,a.TotalFee,a.RecipeFee,a.ExpressFee,a.DecoctionFee,a.TCMFee,a.RegisterFee,a.AuditFee,a.TradeNo,a.RecMobile as mobile,");
+        hql.append("c.decoctionText,d.DrugName,d.OrganDrugCode,d.salePrice,d.useTotalDose,d.drugUnit,");
+        hql.append("cd.Name,bs.OrganDrugCode as saleDrugCode,dd.generationis_of_decoction as generationisOfDecoction ");
+        return generateRecipeOrderDetailHQLStatistics(recipeOrderRefundReqDTO,hql);
+    }
+
+    private StringBuilder generateRecipeOrderDetailHQLStatistics(RecipeOrderRefundReqDTO recipeOrderRefundReqDTO,StringBuilder hql){
+        hql.append("from cdr_recipe b LEFT JOIN cdr_recipeorder a on b.orderCode=a.orderCode ");
+        hql.append("LEFT JOIN cdr_recipedetail d ON b.RecipeID = d.RecipeID LEFT JOIN cdr_recipe_ext c on c.recipeId = b.recipeId ");
+        hql.append("LEFT JOIN cdr_drugsenterprise cd ON cd.id = a.EnterpriseId ");
+        hql.append("LEFT JOIN base_saledruglist bs ON bs.OrganID = a.EnterpriseId and bs.DrugId = d.DrugID LEFT JOIN base_drug_decoctionway dd on dd.decoctionId = c.decoctionId ");
+        hql.append(" where d.status= 1 and b.orderCode in (:orderCodeList) ");
+        getRefundStringBuilder(recipeOrderRefundReqDTO, hql);
+        hql.append(" order by a.CreateTime DESC");
         return hql;
     }
 }
