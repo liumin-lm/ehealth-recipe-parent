@@ -1,20 +1,17 @@
 package recipe.audit.auditmode;
 
 import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.Recipedetail;
 import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.client.DocIndexClient;
-import recipe.client.RecipeAuditClient;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.constant.ReviewTypeConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
-import recipe.dao.RecipeExtendDAO;
 import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
@@ -75,7 +72,6 @@ public class AuditPreMode extends AbstractAuditMode {
     public void afterHisCallBackChange(Integer status, Recipe recipe, String memo) {
         //处方签名中 点击撤销按钮 如果处方单状态处于已取消 则不走下面逻辑
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         Recipe currentRecipe = recipeDAO.getByRecipeId(recipe.getRecipeId());
         if (RecipeStatusEnum.RECIPE_STATUS_REVOKE.getType().equals(currentRecipe.getStatus())) {
@@ -99,9 +95,8 @@ public class AuditPreMode extends AbstractAuditMode {
         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), status, memo);
         //发送消息
         RecipeMsgService.batchSendMsg(recipe.getRecipeId(), status);
-        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-        RecipeAuditClient recipeAuditClient = AppContextHolder.getBean("recipeAuditClient", RecipeAuditClient.class);
-        recipeAuditClient.recipeAudit(currentRecipe, recipeExtend, recipeDetailList);
+        //处方审核
+        super.recipeAudit(recipe.getRecipeId());
         //异步添加水印
         RecipeBusiThreadPool.execute(new UpdateWaterPrintRecipePdfRunnable(recipe.getRecipeId()));
     }
