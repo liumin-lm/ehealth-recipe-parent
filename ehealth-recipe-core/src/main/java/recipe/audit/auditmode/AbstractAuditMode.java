@@ -78,7 +78,7 @@ public abstract class AbstractAuditMode implements IAuditMode {
         Recipe byRecipeId = recipeDAO.getByRecipeId(recipe.getRecipeId());
         //处方签名中 点击撤销按钮 如果处方单状态处于已取消 则不走下面逻辑
         if (9 == byRecipeId.getStatus()) {
-            LOGGER.info("saveStatusAndSendMsg 处方单已经撤销,recipeid:{}", recipe.getRecipeId());
+            LOGGER.info("saveStatusAndSendMsg 处方单已经撤销,recipeId:{}", recipe.getRecipeId());
             return;
         }
         Integer status = RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType();
@@ -159,7 +159,7 @@ public abstract class AbstractAuditMode implements IAuditMode {
             }
         }
         updateRecipeInfoByRecipeId(recipe.getRecipeId(), status, attrMap, result);
-        LOGGER.info("AbstractAuidtMode.afterPayChange saveFlag:{}, payFlag:{}.", saveFlag, payFlag);
+        LOGGER.info("AbstractAuditMode.afterPayChange saveFlag:{}, payFlag:{}.", saveFlag, payFlag);
         if (saveFlag && new Integer(PayConstant.PAY_FLAG_PAY_SUCCESS).equals(payFlag)) {
             //处方推送到药企
             RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
@@ -191,7 +191,7 @@ public abstract class AbstractAuditMode implements IAuditMode {
      * @param recipe
      */
     protected void recipeAudit(Recipe recipe) {
-        LOGGER.info("AbstractAuidtMode recipeAudit recipe={}",JSON.toJSONString(recipe));
+        LOGGER.info("AbstractAuditMode recipeAudit recipe={}",JSON.toJSONString(recipe));
         try {
             Integer recipeId = recipe.getRecipeId();
             //处方信息 AND 病历信息重新拉去
@@ -207,7 +207,7 @@ public abstract class AbstractAuditMode implements IAuditMode {
             List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipeId);
             List<RecipeDetailDTO> recipeDetailBeans = ObjectCopyUtils.convert(recipeDetails, RecipeDetailDTO.class);
             IRecipeAuditService recipeAuditService = RecipeAuditAPI.getService(IRecipeAuditService.class, "recipeAuditServiceImpl");
-            LOGGER.info("AbstractAuidtMode recipeAudit recipeDTO={} recipeDetailBeans={}",JSON.toJSONString(recipeDTO),JSON.toJSONString(recipeDetailBeans));
+            LOGGER.info("AbstractAuditMode recipeAudit recipeDTO={} recipeDetailBeans={}",JSON.toJSONString(recipeDTO),JSON.toJSONString(recipeDetailBeans));
             if (recipeDTO.getCheckMode().equals(3)) {
                 recipeAuditService.winningRecipeAudit(recipeDTO, recipeDetailBeans);
             } else {
@@ -256,30 +256,6 @@ public abstract class AbstractAuditMode implements IAuditMode {
             return false;
         } catch (Exception e) {
             LOGGER.error("judgeRecipeAutoCheck error recipe={}", recipeId, e);
-            return false;
-        }
-    }
-
-
-    /**
-     * @return
-     */
-    protected Boolean threeRecipeAutoCheck(Integer recipeId, Integer organId) {
-        LOGGER.info("threeRecipeAutoCheck recipe={}", recipeId);
-        try {
-            IConfigurationCenterUtilsService iConfigService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-            Integer intellectJudicialFlag = (Integer) iConfigService.getConfiguration(organId, "intellectJudicialFlag");
-            String autoRecipecheckLevel = (String) iConfigService.getConfiguration(organId, "autoRecipecheckLevel");
-//            String defaultRecipecheckDoctor = (String) iConfigService.getConfiguration(organId, "defaultRecipecheckDoctor");
-            ICheckScheduleService iCheckScheduleService = AppContextHolder.getBean("recipeaudit.checkScheduleServiceImpl", ICheckScheduleService.class);
-            List<Integer> docIds = iCheckScheduleService.getDocIdInTime(organId);
-            if (intellectJudicialFlag == 3 && CollectionUtils.isNotEmpty(docIds) && StringUtils.isNotEmpty(autoRecipecheckLevel)) {
-                // 这个只是一个范围判断
-                return true;
-            }
-            return false;
-        } catch (Exception e) {
-            LOGGER.error("threeRecipeAutoCheck error recipe={}", recipeId, e);
             return false;
         }
     }
