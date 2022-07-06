@@ -252,10 +252,6 @@ public class RecipeUtil {
         recipe.setWriteHisState(0);
         recipe.setDoctorSignState(0);
         recipe.setCheckFlag(0);
-        if (null == recipe.getRecipeType()) {
-            recipe.setRecipeId(0);
-        }
-
         //默认为西药
         if (null == recipe.getRecipeType()) {
             recipe.setRecipeType(RecipeBussConstant.RECIPETYPE_WM);

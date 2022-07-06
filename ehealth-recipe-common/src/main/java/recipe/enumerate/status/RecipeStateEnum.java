@@ -26,8 +26,8 @@ public enum RecipeStateEnum {
     /**
      * 处方子状态:待提交
      */
-    SUB_SUBMIT_TEMPORARY(11, "暂存", ""),
-
+    SUB_SUBMIT_TEMPORARY(11, "暂存处方", ""),
+    SUB_SUBMIT_CHECKING_HOS(12, "您已提交，等待医院HIS确认", ""),
     /**
      * 处方子状态:已完成
      */
