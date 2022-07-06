@@ -1882,8 +1882,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
 
                 Query query = ss.createSQLQuery(sbHql.toString()).addEntity(RecipeOrderDetailExportDTO.class);
                 if(CollectionUtils.isNotEmpty(orderCodeList)){
-                    HashSet<String> strings = new HashSet<>(orderCodeList);
-                    query.setParameterList("orderCodeList",strings );
+                    query.setParameterList("orderCodeList",orderCodeList);
                 }
                 setRefundParameter(query, recipeOrderRefundReqDTO);
                 List<RecipeOrderDetailExportDTO> list = query.list();
@@ -1896,11 +1895,9 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
     }
     private StringBuilder generateOrderCodeHQL(RecipeOrderRefundReqDTO recipeOrderRefundReqDTO){
         StringBuilder hql = new StringBuilder("select ");
-        hql.append("b.orderCode ");
+        hql.append("DISTINCT(b.orderCode) ");
         hql.append("from cdr_recipe b LEFT JOIN cdr_recipeorder a on b.orderCode=a.orderCode ");
         hql.append("LEFT JOIN cdr_recipedetail d ON b.RecipeID = d.RecipeID LEFT JOIN cdr_recipe_ext c on c.recipeId = b.recipeId ");
-        hql.append("LEFT JOIN cdr_drugsenterprise cd ON cd.id = a.EnterpriseId ");
-        hql.append("LEFT JOIN base_saledruglist bs ON bs.OrganID = a.EnterpriseId and bs.DrugId = d.DrugID LEFT JOIN base_drug_decoctionway dd on dd.decoctionId = c.decoctionId ");
         hql.append(" where d.status= 1 ");
         getRefundStringBuilder(recipeOrderRefundReqDTO, hql);
         hql.append(" order by a.CreateTime DESC");
