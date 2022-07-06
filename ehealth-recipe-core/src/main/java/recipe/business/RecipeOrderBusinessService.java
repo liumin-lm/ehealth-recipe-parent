@@ -590,6 +590,16 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
         return 0;
     }
 
+    @Override
+    public ResultBean updateOrderGiveUser(Integer orderId, Integer giveUser) {
+        RecipeOrder recipeOrder = recipeOrderDAO.get(orderId);
+        List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
+        recipeIdList.forEach(id -> {
+            updateRecipeGiveUser(id, giveUser);
+        });
+        return ResultBean.succeed();
+    }
+
     /**
      * 第三方设置订单费用
      *
