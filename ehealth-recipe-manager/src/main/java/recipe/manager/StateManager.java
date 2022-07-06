@@ -175,20 +175,20 @@ public class StateManager extends BaseManager {
         Recipe updateRecipe = new Recipe();
         updateRecipe.setRecipeId(recipe.getRecipeId());
         updateRecipe.setProcessState(processState.getType());
-        //    updateRecipe.setSubState(subState.getType());
         RecipeStateEnum sub = RecipeStateEnum.SUB_SUBMIT_TEMPORARY;
         if (1 == recipe.getWriteHisState()) {
             sub = RecipeStateEnum.SUB_SUBMIT_CHECKING_HOS;
         }
         if (2 == recipe.getWriteHisState()) {
-            sub = "医院HIS确认失败，您可以进行续方操作重新开具本张处方";
+            sub = RecipeStateEnum.SUB_SUBMIT_HIS_FAIL;
         }
-        if (1 == recipe.getDoctorSignState()) {
-            sub = "您已提交，等待签名完成";
+        if (SignEnum.SIGN_STATE_SUBMIT.getType().equals(recipe.getDoctorSignState())) {
+            sub = RecipeStateEnum.SUB_SUBMIT_DOC_SIGN_ING;
         }
-        if (2 == recipe.getDoctorSignState()) {
-            sub = "签名失败，您可以重新发起签名";
+        if (SignEnum.SIGN_STATE_AUDIT.getType().equals(recipe.getDoctorSignState())) {
+            sub = RecipeStateEnum.SUB_SUBMIT_DOC_SIGN_FAIL;
         }
+        updateRecipe.setSubState(sub.getType());
         recipeDAO.updateNonNullFieldByPrimaryKey(updateRecipe);
         return true;
     }

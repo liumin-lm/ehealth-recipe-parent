@@ -28,6 +28,10 @@ public enum RecipeStateEnum {
      */
     SUB_SUBMIT_TEMPORARY(11, "暂存处方", ""),
     SUB_SUBMIT_CHECKING_HOS(12, "您已提交，等待医院HIS确认", ""),
+    SUB_SUBMIT_HIS_FAIL(13, "医院HIS确认失败，您可以进行续方操作重新开具本张处方", ""),
+    SUB_SUBMIT_DOC_SIGN_ING(14, "您已提交，等待签名完成", "医生签名中"),
+    SUB_SUBMIT_DOC_SIGN_FAIL(15, "签名失败，您可以重新发起签名", "医生签名失败"),
+
     /**
      * 处方子状态:已完成
      */
