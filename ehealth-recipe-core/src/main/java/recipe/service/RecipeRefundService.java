@@ -195,8 +195,12 @@ public class RecipeRefundService extends RecipeBaseService {
                 recipeReFundSave(recipe, recipeRefund);
                 RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.RECIPE_REFUND_APPLY);
             } else {
-                LOGGER.error("applyForRecipeRefund-处方退费申请失败-his. param={},result={}", JSONUtils.toString(request), JSONUtils.toString(result));
-                throw new DAOException("处方退费申请失败！" + result.getMsg());
+                LOGGER.error("applyForRecipeRefund-checkForRefundVisit-处方退费申请失败-his. param={},result={}", JSONUtils.toString(request), JSONUtils.toString(result));
+                String msg = "";
+                if (result != null && result.getMsg() != null) {
+                    msg = result.getMsg();
+                }
+                throw new DAOException("处方退费申请失败！" + msg);
             }
         }
         //更新当前处方的退费审核状态
