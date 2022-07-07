@@ -456,6 +456,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
         //查询数据
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        recipesQueryVO.setOrganIds(organIds);
         QueryResult<Recipe> recipeListResult = recipeDAO.findRecipesByInfoV2(recipesQueryVO);
         List<Recipe> recipeList=recipeListResult.getItems();
         LOGGER.info("findRecipesByInfo recipeListResult:{}", JSONUtils.toString(recipeListResult));
