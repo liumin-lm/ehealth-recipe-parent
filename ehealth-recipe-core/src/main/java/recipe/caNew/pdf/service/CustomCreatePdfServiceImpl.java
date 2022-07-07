@@ -32,6 +32,7 @@ import recipe.constant.OperationConstant;
 import recipe.constant.birthdayToAgeConstant;
 import recipe.dao.RecipeExtendDAO;
 import recipe.enumerate.type.DrugBelongTypeEnum;
+import recipe.manager.RecipeDetailManager;
 import recipe.manager.RedisManager;
 import recipe.util.ByteUtils;
 import recipe.util.DictionaryUtil;
@@ -46,7 +47,6 @@ import java.io.InputStream;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static recipe.constant.OperationConstant.*;
 import static recipe.util.ByteUtils.DOT_EN;
@@ -73,6 +73,8 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
     private RecipeExtendDAO recipeExtendDAO;
     @Resource
     private IESignBaseService esignService;
+    @Autowired
+    private RecipeDetailManager recipeDetailManager;
 
 
     @Override
@@ -409,6 +411,7 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
         logger.warn("CustomCreatePdfServiceImpl generatePdfList organId:{}, keySet : {}", organId, JSON.toJSONString(keySet));
         List<WordToPdfBean> generatePdfList = new LinkedList<>();
         Map<String, Object> recipeDetailMap;
+        recipeDetailManager.filterSecrecyDrug(recipePdfDTO);
         if (RecipeUtil.isTcmType(recipePdfDTO.getRecipe().getRecipeType())) {
             //中药
             recipeDetailMap = createChineMedicinePDF(recipePdfDTO);
@@ -511,7 +514,6 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
         }
         List<RecipeLabelDTO> list = new LinkedList<>();
         Recipedetail recipeDetail = recipeDetails.get(0);
-        recipeDetails = setSecrecyDrugLabel(list, recipeDetails, recipeInfoDTO.getRecipe());
         for (int i = 0; i < recipeDetails.size(); i++) {
             String drugShowName = RecipeUtil.drugChineShowName(recipeDetails.get(i));
             list.add(new RecipeLabelDTO("药品名称", "recipeDetail.drugName_" + i, drugShowName));
@@ -547,10 +549,12 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
         }
         List<RecipeLabelDTO> list = new LinkedList<>();
         Recipedetail recipedetail = recipeDetails.get(0);
-        recipeDetails = setSecrecyDrugLabel(list, recipeDetails, recipeInfoDTO.getRecipe());
         for (int i = 0; i < recipeDetails.size(); i++) {
             Recipedetail detail = recipeDetails.get(i);
             list.add(new RecipeLabelDTO("药品名称", "recipeDetail.drugName_" + i, detail.getDrugName()));
+            if (DrugBelongTypeEnum.SECRECY_DRUG.getType().equals(detail.getType())) {
+                continue;
+            }
             list.add(new RecipeLabelDTO("包装规格", "recipeDetail.drugSpec_" + i, ByteUtils.objValueOfString(detail.getDrugSpec()) + "/" + ByteUtils.objValueOfString(detail.getDrugUnit())));
             list.add(new RecipeLabelDTO("发药数量", "recipeDetail.useTotalDose_" + i, ByteUtils.objValueOfString(detail.getUseTotalDose()) + ByteUtils.objValueOfString(detail.getDrugUnit())));
             String useDose = StringUtils.isNotEmpty(detail.getUseDoseStr()) ? detail.getUseDoseStr() : detail.getUseDose() + detail.getUseDoseUnit();
@@ -563,23 +567,6 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
         list.add(new RecipeLabelDTO("药房", "recipeDetail.pharmacyName", recipedetail.getPharmacyName()));
         logger.info("CreateRecipePdfUtil createMedicinePDF list :{} ", JSON.toJSONString(list));
         return list.stream().collect(HashMap::new, (m, v) -> m.put(v.getEnglishName(), v.getValue()), HashMap::putAll);
-    }
-
-    /**
-     * 设置保密药品信息
-     * @param list
-     * @param recipeDetails
-     * @param recipe
-     * @return
-     */
-    private List<Recipedetail> setSecrecyDrugLabel(List<RecipeLabelDTO> list, List<Recipedetail> recipeDetails, Recipe recipe){
-        Boolean haveSecrecyDrugFlag = recipeDetails.stream().anyMatch(recipeDetail -> DrugBelongTypeEnum.SECRECY_DRUG.getType().equals(recipeDetail.getType()));
-        if (!haveSecrecyDrugFlag) {
-            return recipeDetails;
-        }
-        recipeDetails = recipeDetails.stream().filter(recipeDetail -> !DrugBelongTypeEnum.SECRECY_DRUG.getType().equals(recipeDetail.getType())).collect(Collectors.toList());
-        list.add(new RecipeLabelDTO("药品名称", "recipeDetail.drugName_" + recipeDetails.size(), recipe.getOfflineRecipeName()));
-        return recipeDetails;
     }
 
 

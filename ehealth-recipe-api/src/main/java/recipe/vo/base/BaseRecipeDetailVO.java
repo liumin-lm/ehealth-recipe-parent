@@ -1,10 +1,13 @@
 package recipe.vo.base;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
 import lombok.Getter;
 import lombok.Setter;
 
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
@@ -79,6 +82,7 @@ public class BaseRecipeDetailVO implements Serializable {
     private String memo;
 
     @ItemProperty(alias = "创建时间")
+    @Temporal(TemporalType.DATE)
     private Date createDt;
 
     @ItemProperty(alias = "销售价格 = organDrug.salePrice")
@@ -113,4 +117,12 @@ public class BaseRecipeDetailVO implements Serializable {
     @ItemProperty(alias = "销售药品数量")
     private BigDecimal saleUseDose;
 
+    @Temporal(TemporalType.DATE)
+    @JsonFormat(
+            pattern = "yyyy-MM-dd HH:mm:ss",
+            timezone = "Asia/Shanghai"
+    )
+    public Date getCreateDt() {
+        return createDt;
+    }
 }

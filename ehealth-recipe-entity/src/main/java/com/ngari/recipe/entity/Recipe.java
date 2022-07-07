@@ -272,7 +272,7 @@ public class Recipe implements Serializable {
     @ItemProperty(alias = "审核途径 1平台审核 2his审核")
     private Integer checkMode;
 
-    @ItemProperty(alias = "处方来源类型 1 平台处方 2 线下转线上的处方")
+    @ItemProperty(alias = "处方来源类型 1 平台处方 2 线下转线上的处方 3诊疗处方")
     private Integer recipeSourceType;
 
 
@@ -338,6 +338,19 @@ public class Recipe implements Serializable {
 
     @ItemProperty(alias = "线下处方名称")
     private String offlineRecipeName;
+
+
+    @ItemProperty(alias = "0：默认(未写入)，1：写入中，2：写入失败，3：写入成功")
+    private Integer writeHisState;
+
+    @Column(name = "write_his_state")
+    public Integer getWriteHisState() {
+        return writeHisState;
+    }
+
+    public void setWriteHisState(Integer writeHisState) {
+        this.writeHisState = writeHisState;
+    }
 
     @Column(name = "medical_flag")
     public Integer getMedicalFlag() {

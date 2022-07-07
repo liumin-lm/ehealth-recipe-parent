@@ -30,6 +30,7 @@ import recipe.dao.*;
 import recipe.util.LocalStringUtil;
 import recipe.util.ValidateUtil;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -52,11 +53,13 @@ public class DrugManager extends BaseManager {
     @Autowired
     private DispensatoryDAO dispensatoryDAO;
     @Autowired
-    private RecipeRulesDrugcorrelationDao recipeRulesDrugcorrelationDao;
+    private RecipeRulesDrugCorrelationDAO recipeRulesDrugCorrelationDAO;
     @Autowired
     private DrugCommonDAO drugCommonDAO;
     @Autowired
     private DrugSearchService searchService;
+    @Autowired
+    private DrugSaleStrategyDAO drugSaleStrategyDAO;
 
     /**
      * 更新drugList 到Es
@@ -367,6 +370,15 @@ public class DrugManager extends BaseManager {
         }
         Map<Integer, List<DrugList>> collect = byDrugIds.stream().collect(Collectors.groupingBy(DrugList::getDrugId));
         drugWithEsByPatient.forEach(patientDrugWithEsDTO -> {
+            BigDecimal salePrice = patientDrugWithEsDTO.getSalePrice();
+            int numberOfDecimalPlaces = getNumberOfDecimalPlaces(salePrice);
+            if (numberOfDecimalPlaces <= 2) {
+                salePrice = salePrice.setScale(2, BigDecimal.ROUND_HALF_UP);
+            } else if (numberOfDecimalPlaces > 4) {
+                salePrice = salePrice.setScale(4, BigDecimal.ROUND_HALF_UP);
+            }
+            patientDrugWithEsDTO.setSalePrice(salePrice);
+            patientDrugWithEsDTO.setShowSalePrice(String.valueOf(salePrice));
             List<DrugList> drugLists = collect.get(patientDrugWithEsDTO.getDrugId());
             if (CollectionUtils.isNotEmpty(drugLists)) {
                 patientDrugWithEsDTO.setDrugPic(drugLists.get(0).getDrugPic());
@@ -375,6 +387,18 @@ public class DrugManager extends BaseManager {
         logger.info("DrugManager findDrugWithEsByPatient res drugWithEsByPatient:{}", JSON.toJSONString(drugWithEsByPatient));
         return drugWithEsByPatient;
     }
+
+    /**
+     * 获取 bigDecimal 的小数位数
+     * @param bigDecimal
+     * @return
+     */
+    private int getNumberOfDecimalPlaces(BigDecimal bigDecimal) {
+        String string = bigDecimal.stripTrailingZeros().toPlainString();
+        int index = string.indexOf(".");
+        return index < 0 ? 0 : string.length() - index - 1;
+    }
+
 
     /**
      * 查询es 药品数据
@@ -416,17 +440,14 @@ public class DrugManager extends BaseManager {
      * @param ruleId
      * @return
      */
-    public List<RecipeRulesDrugcorrelation> getListDrugRules(List<Integer> list, Integer ruleId) {
+    public List<RecipeRulesDrugCorrelation> getListDrugRules(List<Integer> list, Integer ruleId) {
         logger.info("DrugManager.getListDrugRules req list={} ruleId={}", JSON.toJSONString(list), ruleId);
-        List<RecipeRulesDrugcorrelation> result = new ArrayList<>();
-        if (CollectionUtils.isEmpty(list)) {
+        List<RecipeRulesDrugCorrelation> result = new ArrayList<>();
+        if (CollectionUtils.isEmpty(list) || Objects.isNull(ruleId)) {
             return result;
         }
-        if (ruleId == null) {
-            return result;
-        }
-        result = recipeRulesDrugcorrelationDao.findListRules(list, ruleId);
-        logger.info("DrugManager.getDrugBook res result={} drugId={}", JSON.toJSONString(result));
+        result = recipeRulesDrugCorrelationDAO.findListRules(list, ruleId);
+        logger.info("DrugManager.getDrugBook res result={} ruleId={}", JSON.toJSONString(result), ruleId);
         return result;
     }
 
@@ -542,4 +563,31 @@ public class DrugManager extends BaseManager {
         logger.info("DrugManager saveCommonDrug end recipe={}", recipe.getRecipeId());
         return recipe.getRecipeId();
     }
+
+    public DrugSaleStrategy getDrugSaleStrategyById(Integer id) {
+        return drugSaleStrategyDAO.getDrugSaleStrategyById(id);
+    }
+
+    public List<DrugSaleStrategy> findDrugSaleStrategy(Integer drugId){
+        return drugSaleStrategyDAO.findByDrugId(drugId);
+    }
+
+    public DrugSaleStrategy getDefaultDrugSaleStrategy(Integer depId, Integer drugId){
+        if (null == drugId) {
+            return  null;
+        }
+        DrugList drugList = drugListDAO.getById(drugId);
+        if (null == drugList) {
+            return  null;
+        }
+        DrugSaleStrategy drugSaleStrategy = new DrugSaleStrategy();
+        drugSaleStrategy.setDrugId(drugId);
+        drugSaleStrategy.setDrugAmount(1);
+        drugSaleStrategy.setDrugUnit(drugList.getUnit());
+        drugSaleStrategy.setStrategyTitle("默认出售策略");
+        drugSaleStrategy.setStatus(1);
+        drugSaleStrategy.setId(0);
+        return drugSaleStrategy;
+    }
+
 }

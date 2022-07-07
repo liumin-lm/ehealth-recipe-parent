@@ -1,13 +1,15 @@
 package recipe.core.api;
 
+import com.ngari.recipe.recipe.model.AdvanceWarningReqVO;
+import com.ngari.recipe.recipe.model.AdvanceWarningResVO;
 import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.OutPatientRecipeDTO;
 import com.ngari.recipe.dto.OutPatientRecordResDTO;
-import com.ngari.recipe.dto.RecipeDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Symptom;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
-import com.ngari.recipe.recipe.model.*;
+import com.ngari.recipe.recipe.model.RecipeBean;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.vo.*;
 import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.vo.doctor.PatientOptionalDrugVO;
@@ -176,7 +178,7 @@ public interface IRecipeBusinessService {
      *
      * @param recipeBean     处方信息
      * @param detailBeanList 药品信息
-     * @return 处方id
+     * @return 处方组号
      */
     String splitDrugRecipe(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList);
 
@@ -223,4 +225,14 @@ public interface IRecipeBusinessService {
      */
     List<RecipeInfoVO> findRelatedRecipeRecordByRegisterNo(Integer recipeId, Integer doctorId,
                                                            List<Integer> recipeTypeList, List<Integer> organIds);
+
+    /**
+     * 根据订单的维度查询药品用量标签
+     * @param orderId
+     * @return
+     */
+    List<DrugUsageLabelResp> queryRecipeDrugUsageLabelByOrder(Integer orderId);
+
+    AdvanceWarningResVO getAdvanceWarning(AdvanceWarningReqVO advanceWarningReqDTO);
+
 }

@@ -28,6 +28,7 @@ public class RecipeOrderRefundReqDTO implements Serializable {
     private Date beginTime;
     private Date endTime;
     private Integer invoiceStatus;
+    private Integer fastRecipeFlag;
     private Integer start;
     private Integer limit;
 }

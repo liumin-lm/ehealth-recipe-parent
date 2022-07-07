@@ -26,6 +26,8 @@ import recipe.bussutil.CreateRecipePdfUtil;
 import recipe.bussutil.SignImgNode;
 import recipe.constant.ErrorCode;
 import recipe.dao.RecipeExtendDAO;
+import recipe.enumerate.type.DrugBelongTypeEnum;
+import recipe.manager.RecipeDetailManager;
 import recipe.manager.RedisManager;
 import recipe.manager.SignManager;
 import recipe.util.ByteUtils;
@@ -58,6 +60,8 @@ public class PlatformCreatePdfServiceImpl extends BaseCreatePdf implements Creat
     private RecipeExtendDAO recipeExtendDAO;
     @Autowired
     private SignManager signManager;
+    @Autowired
+    private RecipeDetailManager recipeDetailManager;
 
     @Override
     public byte[] queryPdfByte(Recipe recipe) throws Exception {
@@ -346,6 +350,7 @@ public class PlatformCreatePdfServiceImpl extends BaseCreatePdf implements Creat
         recipePdfDTO.setApothecary(apothecaryDTO);
         Map<String, List<RecipeLabelDTO>> result = operationClient.queryRecipeLabel(recipePdfDTO);
         List<RecipeLabelDTO> list = result.get("moduleThree");
+        recipeDetailManager.filterSecrecyDrug(recipePdfDTO);
         //组装生成pdf的参数
         Map<String, Object> map = new HashMap<>();
         if (RecipeUtil.isTcmType(recipe.getRecipeType())) {
@@ -388,6 +393,10 @@ public class PlatformCreatePdfServiceImpl extends BaseCreatePdf implements Creat
                 stringBuilder.append(d.getDrugDisplaySplicedName());
             } else {
                 stringBuilder.append(d.getDrugName()).append(d.getDrugSpec()).append("/").append(d.getDrugUnit());
+            }
+            if (DrugBelongTypeEnum.SECRECY_DRUG.getType().equals(d.getType())) {
+                list.add(new RecipeLabelDTO("medicine", "drugInfo" + i, stringBuilder.toString()));
+                continue;
             }
             stringBuilder.append("   ").append("X").append(d.getUseTotalDose()).append(d.getDrugUnit());
             Boolean canShowDrugCost = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "canShowDrugCost", false);

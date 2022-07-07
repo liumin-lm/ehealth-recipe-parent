@@ -8,6 +8,7 @@ import com.ngari.recipe.dto.DrugInfoDTO;
 import com.ngari.recipe.dto.DrugSpecificationInfoDTO;
 import com.ngari.recipe.dto.PatientDrugWithEsDTO;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.vo.DrugSaleStrategyVO;
 import com.ngari.recipe.vo.HospitalDrugListReqVO;
 import com.ngari.recipe.vo.HospitalDrugListVO;
 import com.ngari.recipe.vo.SearchDrugReqVO;
@@ -58,7 +59,7 @@ public interface IDrugBusinessService {
      * @param ruleId
      * @return
      */
-    List<RecipeRulesDrugcorrelation> getListDrugRules(List<Integer> list, Integer ruleId);
+    List<RecipeRulesDrugCorrelation> getListDrugRules(List<Integer> list, Integer ruleId);
 
     /**
      * 查询his 药品说明书
@@ -165,4 +166,38 @@ public interface IDrugBusinessService {
      * @param doctorId
      */
     void saveCommonDrug(Integer recipeId, Integer doctorId);
+
+    /**
+     * 查找药品规则
+     * @param drugId
+     * @param ruleId
+     * @return
+     */
+    List<RecipeRulesDrugCorrelation> findRulesByDrugIdAndRuleId(Integer drugId, Integer ruleId);
+
+    List<RecipeRulesDrugCorrelation> findRulesByCorrelationDrugIdAndRuleId(Integer correlationDrugId, Integer ruleId);
+
+    /**
+     * 操作销售策略
+     * @param drugSaleStrategy
+     */
+    void operationDrugSaleStrategy(DrugSaleStrategyVO drugSaleStrategy);
+
+    /**
+     * 查找销售策略
+     * @param depId
+     * @param drugId
+     * @return
+     */
+    List<DrugSaleStrategyVO> findDrugSaleStrategy(Integer depId, Integer drugId);
+
+    List<DrugSaleStrategy> findDrugSaleStrategy(DrugSaleStrategyVO drugSaleStrategy);
+
+    /**
+     * 保存药品销售策略
+     * @param depId
+     * @param drugId
+     * @param strategyId
+     */
+    void saveDrugSaleStrategy(Integer depId, Integer drugId, Integer strategyId);
 }

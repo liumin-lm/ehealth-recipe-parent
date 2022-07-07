@@ -39,7 +39,6 @@ public class ReimbursementListResVO implements Serializable {
     @ItemProperty(alias="医保属性 ")
     private String medicalFlag;
 
-    @ItemProperty(alias="项目编码(药品编码),项目名称(药品名称)")
-    private Map<String,String> drugItem;
+    private List<RecipeDetailBean> recipeDetail;
 
 }

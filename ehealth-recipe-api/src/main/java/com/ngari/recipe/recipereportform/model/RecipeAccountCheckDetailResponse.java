@@ -1,5 +1,7 @@
 package com.ngari.recipe.recipereportform.model;
 
+import ctd.schema.annotation.Desensitizations;
+import ctd.schema.annotation.DesensitizationsType;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -15,6 +17,9 @@ public class RecipeAccountCheckDetailResponse implements Serializable{
     private Integer recipeId; //处方单号
 
     private String patientName; //患者姓名
+
+    @Desensitizations(type = DesensitizationsType.MOBILE)
+    private String mobile; //患者联系电话
 
     private Date payDate; //支付时间
 

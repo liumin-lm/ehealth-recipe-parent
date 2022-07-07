@@ -8,12 +8,14 @@ import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.DepartmentService;
 import com.ngari.patient.service.PatientService;
-import com.ngari.recipe.drug.model.OrganDrugListBean;
 import com.ngari.recipe.dto.ChargeItemDTO;
 import com.ngari.recipe.dto.OffLineRecipeDetailDTO;
 import com.ngari.recipe.dto.RecipeDetailDTO;
 import com.ngari.recipe.dto.RecipeInfoDTO;
-import com.ngari.recipe.entity.*;
+import com.ngari.recipe.entity.HisRecipe;
+import com.ngari.recipe.entity.PharmacyTcm;
+import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailResVO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeListVO;
@@ -41,11 +43,7 @@ import recipe.dao.RecipeExtendDAO;
 import recipe.enumerate.status.OfflineToOnlineEnum;
 import recipe.factory.offlinetoonline.IOfflineToOnlineStrategy;
 import recipe.factory.offlinetoonline.OfflineToOnlineFactory;
-import recipe.manager.HisRecipeManager;
-import recipe.manager.PharmacyManager;
-import recipe.manager.RecipeManager;
-import recipe.manager.RecipeTherapyManager;
-import recipe.service.OrganDrugListService;
+import recipe.manager.*;
 import recipe.service.RecipeLogService;
 import recipe.util.MapValueUtil;
 import recipe.vo.patient.RecipeGiveModeButtonRes;
@@ -86,8 +84,7 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
     @Autowired
     private PharmacyManager pharmacyManager;
     @Autowired
-    private OrganDrugListService organDrugListService;
-
+    private OrganDrugListManager organDrugListManager;
 
     @Override
     public List<MergeRecipeVO> findHisRecipeList(FindHisRecipeListVO request) {
@@ -96,7 +93,7 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
             // 1、公共参数获取
             PatientDTO patientDTO = obtainPatientInfo(request);
             // 2、获取his数据
-            HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos = hisRecipeManager.queryData(request.getOrganId(), patientDTO, request.getTimeQuantum(), OfflineToOnlineEnum.getOfflineToOnlineType(request.getStatus()), null);
+            HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos = hisRecipeManager.queryHisRecipeData(request.getOrganId(), patientDTO, request.getTimeQuantum(), OfflineToOnlineEnum.getOfflineToOnlineType(request.getStatus()), null);
             // 3、待处理、进行中、已处理线下处方列表服务差异化实现
             IOfflineToOnlineStrategy offlineToOnlineStrategy = offlineToOnlineFactory.getFactoryService(request.getStatus());
             List<MergeRecipeVO> res = offlineToOnlineStrategy.findHisRecipeList(hisRecipeInfos, patientDTO, request);
@@ -135,11 +132,6 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
         List<RecipeGiveModeButtonRes> result = offlineToOnlineStrategy.settleForOfflineToOnline(request);
         logger.info("OfflineToOnlineService settleForOfflineToOnline res:{}", JSONUtils.toString(result));
         return result;
-    }
-
-    @Override
-    public String getHandlerMode() {
-        return null;
     }
 
     @Override
@@ -195,7 +187,11 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
                 }
             }
         }
-        request.setTimeQuantum(6);
+        if (null != request.getTimeQuantum()) {
+            request.getTimeQuantum();
+        } else {
+            request.setTimeQuantum(6);
+        }
         logger.info("OfflineToOnlineService obtainFindHisRecipeDetailParam req:{}", JSONUtils.toString(request));
         return request;
     }
@@ -313,22 +309,16 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
 
 
     @Override
-    public RecipeInfoDTO pushRecipe(Integer recipeId, Integer pushType, Integer sysType, Integer expressFeePayType, Double expressFee) {
+    public RecipeInfoDTO pushRecipe(Integer recipeId, Integer pushType, Integer sysType, Integer expressFeePayType, Double expressFee, String giveModeKey) {
         logger.info("RecipeBusinessService pushRecipe recipeId={}", recipeId);
         RecipeInfoDTO recipePdfDTO = recipeTherapyManager.getRecipeTherapyDTO(recipeId);
         ChargeItemDTO chargeItemDTO = new ChargeItemDTO(expressFeePayType, expressFee);
         recipePdfDTO.setChargeItemDTO(chargeItemDTO);
         Recipe recipe = recipePdfDTO.getRecipe();
+        organDrugListManager.setDrugItemCode(recipe.getClinicOrgan(), recipePdfDTO.getRecipeDetails());
         try {
-            List<Recipedetail> recipeDetailList = recipePdfDTO.getRecipeDetails();
-            for (Recipedetail recipedetail : recipeDetailList) {
-                OrganDrugListBean organDrugList = organDrugListService.getByOrganIdAndOrganDrugCodeAndDrugId(recipe.getClinicOrgan(), recipedetail.getOrganDrugCode(), recipedetail.getDrugId());
-                if (null != organDrugList) {
-                    recipedetail.setDrugItemCode(organDrugList.getDrugItemCode());
-                }
-            }
             Map<Integer, PharmacyTcm> pharmacyIdMap = pharmacyManager.pharmacyIdMap(recipe.getClinicOrgan());
-            RecipeInfoDTO result = hisRecipeManager.pushRecipe(recipePdfDTO, pushType, pharmacyIdMap, sysType);
+            RecipeInfoDTO result = hisRecipeManager.pushRecipe(recipePdfDTO, pushType, pharmacyIdMap, sysType, giveModeKey);
             logger.info("RecipeBusinessService pushRecipe result={}", JSONUtils.toString(result));
             result.getRecipe().setBussSource(recipe.getBussSource());
             result.getRecipe().setClinicId(recipe.getClinicId());
@@ -360,7 +350,7 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
     }
 
     @Override
-    public HisResponseTO abolishOffLineRecipe(Integer organId, String recipeCode) {
-        return hisRecipeManager.abolishOffLineRecipe(organId, recipeCode);
+    public HisResponseTO abolishOffLineRecipe(Integer organId, List<String> recipeCodes) {
+        return hisRecipeManager.abolishOffLineRecipe(organId, recipeCodes);
     }
 }

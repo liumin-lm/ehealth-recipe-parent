@@ -79,14 +79,4 @@ public class RedisManager extends BaseManager {
         Map<String, CoOrdinateVO> map = coOrdinateList.stream().collect(Collectors.toMap(CoOrdinateVO::getName, a -> a, (k1, k2) -> k1));
         return map.get(namePdf);
     }
-
-    public void getConsult(Integer consultId) {
-        List<Object> list = redisClient.getMapToValue(CacheConstant.KEY_CONSULT_REGISTER_ID);
-        logger.warn("RedisManager getConsult  list={}", JSON.toJSONString(list));
-        Object consult = redisClient.getMapToValue(CacheConstant.KEY_CONSULT_REGISTER_ID, consultId.toString());
-        logger.warn("RedisManager getConsult  consult={}", JSON.toJSONString(consult));
-        Object hget = redisClient.hget(CacheConstant.KEY_CONSULT_REGISTER_ID, consultId.toString());
-        logger.warn("RedisManager getConsult  consult={}", JSON.toJSONString(hget));
-    }
-
 }

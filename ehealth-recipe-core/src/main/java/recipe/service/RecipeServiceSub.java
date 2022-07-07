@@ -189,10 +189,7 @@ public class RecipeServiceSub {
         }
         Recipe recipe = ObjectCopyUtils.convert(recipeBean, Recipe.class);
         List<Recipedetail> details = ObjectCopyUtils.convert(detailBeanList, Recipedetail.class);
-
         setRecipeMoreInfo(recipe, details, recipeBean, flag);
-        // 不用审核
-        recipe.setAuditState(0);
         // 保存接方状态
         recipe.setSupportMode(this.getSupportMode(recipe.getOriginClinicOrgan()));
         Integer recipeId = recipeDAO.updateOrSaveRecipeAndDetail(recipe, details, false);
@@ -484,6 +481,7 @@ public class RecipeServiceSub {
         for (Recipedetail detail : recipedetails) {
             //设置药品详情基础数据
             detail.setStatus(1);
+            detail.setHisReturnSalePrice(null);
             detail.setRecipeId(recipe.getRecipeId());
             detail.setCreateDt(nowDate);
             detail.setLastModify(nowDate);
@@ -1581,7 +1579,6 @@ public class RecipeServiceSub {
     public static Map<String, Object> getRecipeAndDetailByIdImpl(int recipeId, boolean isDoctor, Integer depId) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
 
         Map<String, Object> map = Maps.newHashMap();
@@ -1627,9 +1624,15 @@ public class RecipeServiceSub {
                 recipe.setTcmUsingRate(recipedetail.getUsingRate());
             }
         }
+        //设置订单信息
+        RecipeOrder recipeOrder = null;
+        if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
+            recipeOrder = orderDAO.getByOrderCode(recipe.getOrderCode());
+            map.put("recipeOrder", recipeOrder);
+        }
         map.put("patient", patient);
         Map<Integer, List<SaleDrugList>> recipeDetailSalePrice = recipeManager.getRecipeDetailSalePrice(recipeId, depId);
-        map.put("recipedetails", RecipeValidateUtil.covertDrugUnitdoseAndUnit(RecipeValidateUtil.validateDrugsImplForDetail(recipe, recipeDetailSalePrice), isDoctor, recipe.getClinicOrgan()));
+        map.put("recipedetails", RecipeValidateUtil.covertDrugUnitdoseAndUnit(RecipeValidateUtil.validateDrugsImplForDetail(recipe, recipeDetailSalePrice,depId), isDoctor, recipe.getClinicOrgan()));
         //隐方
         boolean isHiddenRecipeDetail = false;
         if (isDoctor == false) {
@@ -1823,14 +1826,6 @@ public class RecipeServiceSub {
         } catch (Exception e) {
             LOGGER.error("RecipeServiceSub.getRecipeAndDetailByIdImpl 获取慢病配置error, recipeId:{}", recipeId, e);
         }
-
-
-        //设置订单信息
-        RecipeOrder recipeOrder = null;
-        if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
-            recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
-            map.put("recipeOrder", recipeOrder);
-        }
         //设置签名图片
         Map<String, String> signInfo = attachSealPic(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getChecker(), recipeId);
         if (StringUtils.isNotEmpty(signInfo.get("doctorSignImg"))) {
@@ -1887,7 +1882,7 @@ public class RecipeServiceSub {
         //医生端/患者端获取处方扩展信息
         if (recipeExtend != null) {
             //医生选择煎法后的每贴待煎费
-            if (recipeExtend.getDecoctionId() != null) {
+            if (StringUtils.isNotEmpty(recipeExtend.getDecoctionId())) {
                 DrugDecoctionWayDao DecoctionWayDao = DAOFactory.getDAO(DrugDecoctionWayDao.class);
                 DecoctionWay decoctionWay = DecoctionWayDao.get(Integer.valueOf(recipeExtend.getDecoctionId()));
                 if (decoctionWay != null && decoctionWay.getDecoctionPrice() != null) {
@@ -1974,8 +1969,14 @@ public class RecipeServiceSub {
         recipeBean.setCheckerTel(LocalStringUtil.coverMobile(recipeBean.getCheckerTel()));
         recipeBean.setSubStateText(RecipeStateEnum.getRecipeStateEnum(recipe.getSubState()).getName());
         BigDecimal offlineRecipeTotalPrice = new BigDecimal(BigInteger.ZERO);
-        //计算保密处方药品走总价
-        offlineRecipeTotalPrice = recipedetails.stream().filter(recipeDetail -> DrugBelongTypeEnum.SECRECY_DRUG.getType().equals(recipeDetail.getType())).map(Recipedetail::getDrugCost).reduce(BigDecimal.ZERO, BigDecimal::add);
+        try {
+            List<RecipeDetailBean> recipeDetailBeanList = (List<RecipeDetailBean>)map.get("recipedetails");
+            //计算保密处方药品走总价
+            offlineRecipeTotalPrice = recipeDetailBeanList.stream().filter(recipeDetail -> DrugBelongTypeEnum.SECRECY_DRUG.getType().equals(recipeDetail.getType())).map(recipeDetailBean -> recipeDetailBean.getSalePrice().multiply(new BigDecimal(recipeDetailBean.getUseTotalDose()))).reduce(BigDecimal.ZERO, BigDecimal::add);
+        } catch (Exception e) {
+            LOGGER.error("getRecipeAndDetailByIdImpl error 保密处方价格计算错误:{}", e);
+            offlineRecipeTotalPrice = recipedetails.stream().filter(recipeDetail -> DrugBelongTypeEnum.SECRECY_DRUG.getType().equals(recipeDetail.getType())).map(Recipedetail::getDrugCost).reduce(BigDecimal.ZERO, BigDecimal::add);
+        }
         recipeBean.setOfflineRecipeTotalPrice(offlineRecipeTotalPrice);
         map.put("recipe", recipeBean);
         //20200519 zhangx 是否展示退款按钮(重庆大学城退款流程)，前端调用patientRefundForRecipe
@@ -2826,9 +2827,6 @@ public class RecipeServiceSub {
         if (!cancelFlag && Integer.valueOf(1).equals(recipe.getPayFlag())) {
             msg = "该处方单用户已支付，不能进行撤销操作";
         }
-        /*if (!cancelFlag && Integer.valueOf(1).equals(recipe.getChooseFlag())) {
-            msg = "患者已选择购药方式，不能进行撤销操作";
-        }*/
         if (1 == flag) {
             if (StringUtils.isEmpty(name)) {
                 msg = "姓名不能为空";
@@ -2854,33 +2852,37 @@ public class RecipeServiceSub {
         boolean result = true;
         //HIS消息发送
         StringBuilder memo = new StringBuilder();
-        if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipeMode)) {
-            boolean succFlag = hisService.cancelRecipeImpl(recipeId, null, CommonConstant.RECIPE_CANCEL_TYPE.toString());
-            if (succFlag) {
-                memo.append("HIS推送成功");
-            } else {
-                memo.append("HIS不允许撤销");
-                result = false;
-            }
-        } else if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipeMode)) {
-            memo.append("aldyf推送成功");
-            hisMqService.recipeStatusToHis(HisMqRequestInit.initRecipeStatusToHisReq(recipe, HisBussConstant.TOHIS_RECIPE_STATUS_REVOKE));
-            OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
-            List<DrugsEnterprise> drugsEnterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(recipe.getClinicOrgan(), 1);
-            for (DrugsEnterprise drugsEnterprise : drugsEnterprises) {
-                if ("aldyf".equals(drugsEnterprise.getCallSys())) {
-                    //向阿里大药房推送处方撤销通知
-                    DrugEnterpriseResult drugEnterpriseResult = null;
-                    try {
-                        AldyfRemoteService aldyfRemoteService = ApplicationUtils.getRecipeService(AldyfRemoteService.class);
-                        drugEnterpriseResult = aldyfRemoteService.updatePrescriptionStatus(recipe.getRecipeCode(), AlDyfRecipeStatusConstant.RETREAT);
-                        LOGGER.info("向阿里大药房推送处方撤销通知,{}", JSONUtils.toString(drugEnterpriseResult));
-                    } catch (Exception e) {
-                        LOGGER.warn("cancelRecipeImpl  向阿里大药房推送处方撤销通知,{}", JSONUtils.toString(drugEnterpriseResult), e);
+
+        if (Integer.valueOf(1).equals(recipe.getWriteHisState()) || Integer.valueOf(3).equals(recipe.getWriteHisState())) {
+            if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipeMode)) {
+                boolean succFlag = hisService.cancelRecipeImpl(recipeId, null, CommonConstant.RECIPE_CANCEL_TYPE.toString());
+                if (succFlag) {
+                    memo.append("HIS推送成功");
+                } else {
+                    memo.append("HIS不允许撤销");
+                    result = false;
+                }
+            } else if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipeMode)) {
+                memo.append("aldyf推送成功");
+                hisMqService.recipeStatusToHis(HisMqRequestInit.initRecipeStatusToHisReq(recipe, HisBussConstant.TOHIS_RECIPE_STATUS_REVOKE));
+                OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
+                List<DrugsEnterprise> drugsEnterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(recipe.getClinicOrgan(), 1);
+                for (DrugsEnterprise drugsEnterprise : drugsEnterprises) {
+                    if ("aldyf".equals(drugsEnterprise.getCallSys())) {
+                        //向阿里大药房推送处方撤销通知
+                        DrugEnterpriseResult drugEnterpriseResult = null;
+                        try {
+                            AldyfRemoteService aldyfRemoteService = ApplicationUtils.getRecipeService(AldyfRemoteService.class);
+                            drugEnterpriseResult = aldyfRemoteService.updatePrescriptionStatus(recipe.getRecipeCode(), AlDyfRecipeStatusConstant.RETREAT);
+                            LOGGER.info("向阿里大药房推送处方撤销通知,{}", JSONUtils.toString(drugEnterpriseResult));
+                        } catch (Exception e) {
+                            LOGGER.warn("cancelRecipeImpl  向阿里大药房推送处方撤销通知,{}", JSONUtils.toString(drugEnterpriseResult), e);
+                        }
                     }
                 }
             }
         }
+
         //通知his失败
         if (!result) {
             rMap.put("result", false);

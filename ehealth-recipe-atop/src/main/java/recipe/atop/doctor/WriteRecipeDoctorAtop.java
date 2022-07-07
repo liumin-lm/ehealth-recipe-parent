@@ -1,8 +1,9 @@
 package recipe.atop.doctor;
 
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.recipe.recipe.model.AdvanceWarningReqVO;
+import com.ngari.recipe.recipe.model.AdvanceWarningResVO;
 import com.ngari.recipe.dto.OutPatientRecordResDTO;
-import com.ngari.recipe.dto.RecipeDTO;
 import com.ngari.recipe.dto.WriteDrugRecipeDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.recipe.model.RecipeBean;
@@ -73,10 +74,12 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
 
     /**
      * 靶向药拆方，无靶向药 返回空
+     * todo 新街口 splitDrugRecipeV1
      *
      * @param validateDetailVO 处方信息
      * @return 处方组号
      */
+    @Deprecated
     @RpcService
     public String splitDrugRecipe(ValidateDetailVO validateDetailVO) {
         validateAtop(validateDetailVO, validateDetailVO.getRecipeBean(), validateDetailVO.getRecipeDetails());
@@ -88,6 +91,18 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
         recipeBean.setRecipeExtend(validateDetailVO.getRecipeExtendBean());
         recipeBean.setTargetedDrugType(1);
         return recipeBusinessService.splitDrugRecipe(recipeBean, validateDetailVO.getRecipeDetails());
+    }
+
+    /**
+     * 靶向药拆方，无靶向药 返回空
+     *
+     * @param validateDetailVO 处方信息
+     * @return 处方id
+     */
+    @RpcService
+    public List<Integer> splitDrugRecipeV1(ValidateDetailVO validateDetailVO) {
+        String groupCode = this.splitDrugRecipe(validateDetailVO);
+        return this.recipeByGroupCode(groupCode, 1);
     }
 
     /**
@@ -124,5 +139,14 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
         return recipeBean;
     }
 
+    /**
+     * 获取事前提醒
+     * @param advanceWarningReqDTO
+     */
+    @RpcService
+    public AdvanceWarningResVO getAdvanceWarning(AdvanceWarningReqVO advanceWarningReqDTO){
+        validateAtop(advanceWarningReqDTO.getRecipeId());
+        return recipeBusinessService.getAdvanceWarning(advanceWarningReqDTO);
+    }
 
 }

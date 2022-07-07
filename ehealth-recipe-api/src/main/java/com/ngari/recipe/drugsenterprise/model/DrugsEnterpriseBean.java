@@ -199,6 +199,12 @@ public class DrugsEnterpriseBean implements Serializable {
     @ItemProperty(alias = "第三方物流页面链接")
     private String showLogisticsLink;
 
+    @ItemProperty(alias = "药企所属商户： 0：普通药企, 1:印象智能, 2:金投云药房")
+    private Integer merchantType;
+
+    @ItemProperty(alias = "优先级")
+    private Integer priorityLevel;
+
     private PharmacyVO pharmacy;
 
     public PharmacyVO getPharmacy() {
@@ -672,5 +678,21 @@ public class DrugsEnterpriseBean implements Serializable {
 
     public void setShowLogisticsLink(String showLogisticsLink) {
         this.showLogisticsLink = showLogisticsLink;
+    }
+
+    public Integer getMerchantType() {
+        return merchantType;
+    }
+
+    public void setMerchantType(Integer merchantType) {
+        this.merchantType = merchantType;
+    }
+
+    public Integer getPriorityLevel() {
+        return priorityLevel;
+    }
+
+    public void setPriorityLevel(Integer priorityLevel) {
+        this.priorityLevel = priorityLevel;
     }
 }

@@ -3,7 +3,9 @@ package recipe.api.open;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
-import com.ngari.recipe.recipe.model.*;
+import com.ngari.recipe.recipe.model.RecipeBean;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import com.ngari.recipe.recipe.model.SymptomDTO;
 import com.ngari.recipe.vo.FormWorkRecipeVO;
 import ctd.util.annotation.RpcService;
 import recipe.vo.doctor.RecipeInfoVO;
@@ -145,7 +147,8 @@ public interface IRecipeAtopService {
      * @return
      */
     @RpcService
-    HisResponseTO abolishOffLineRecipe(Integer organId, String recipeCode);
+    HisResponseTO abolishOffLineRecipe(Integer organId, List<String> recipeCode);
+
 
     /**
      * 从his更新处方信息
@@ -169,6 +172,7 @@ public interface IRecipeAtopService {
 
     /**
      * 通过处方ID获取处方明细
+     *
      * @param recipeId
      * @return
      */
@@ -176,7 +180,7 @@ public interface IRecipeAtopService {
     List<RecipeDetailBean> findRecipeDetailByRecipeId(Integer recipeId);
 
 
-    @RpcService
+    @RpcService(mvcDisabled = true)
     List<RecipeInfoVO> findRelatedRecipeRecordByRegisterNo(Integer recipeId, Integer doctorId,
                                                            List<Integer> recipeTypeList, List<Integer> organIds);
 }

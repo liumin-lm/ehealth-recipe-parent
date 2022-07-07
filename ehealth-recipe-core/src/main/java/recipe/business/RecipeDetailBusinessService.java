@@ -77,6 +77,7 @@ public class RecipeDetailBusinessService implements IRecipeDetailBusinessService
         String[] recipeDay = configurationClient.recipeDay(organId, recipeType, validateDetailVO.getLongRecipe());
         //药房信息
         Map<String, PharmacyTcm> pharmacyCodeMap = pharmacyManager.pharmacyCodeMap(organId);
+        Map<Integer, PharmacyTcm> pharmacyIdMap = pharmacyManager.pharmacyIdMap(organId);
         //查询机构药品
         List<String> organDrugCodeList = validateDetailVO.getRecipeDetails().stream().map(RecipeDetailBean::getOrganDrugCode).distinct().collect(Collectors.toList());
         Map<String, List<OrganDrugList>> organDrugGroup = organDrugListManager.getOrganDrugCode(organId, organDrugCodeList);
@@ -96,11 +97,13 @@ public class RecipeDetailBusinessService implements IRecipeDetailBusinessService
             //校验机构药品
             OrganDrugList organDrug = recipeDetailValidateTool.validateOrganDrug(a, organDrugGroup);
             if (null == organDrug || RecipeDetailValidateTool.VALIDATE_STATUS_FAILURE.equals(a.getValidateStatus())) {
+                a.setValidateStatusText("机构药品不存在");
                 return;
             }
             //校验药品药房是否变动
             Integer pharmacyId = PharmacyManager.pharmacyVariation(a.getPharmacyId(), a.getPharmacyCode(), organDrug.getPharmacy(), pharmacyCodeMap);
             if (null == pharmacyId) {
+                a.setValidateStatusText("机构药品药房错误");
                 a.setValidateStatus(RecipeDetailValidateTool.VALIDATE_STATUS_FAILURE);
                 logger.info("RecipeDetailService validateDrug pharmacy OrganDrugCode ：= {}", a.getOrganDrugCode());
                 return;
@@ -108,7 +111,7 @@ public class RecipeDetailBusinessService implements IRecipeDetailBusinessService
             //校验数据是否完善
             recipeDetailValidateTool.validateDrug(a, recipeDay, organDrug, recipeType, drugEntrustNameMap, organId, validateDetailVO.getVersion());
             //返回前端必须字段
-            setRecipeDetail(a, organDrug, configDrugNameMap, recipeType, pharmacyId);
+            setRecipeDetail(a, organDrug, configDrugNameMap, recipeType, pharmacyId, pharmacyIdMap);
         });
         return validateDetailVO;
     }
@@ -256,14 +259,18 @@ public class RecipeDetailBusinessService implements IRecipeDetailBusinessService
      * @param recipeType        处方类型
      */
     private void setRecipeDetail(RecipeDetailBean recipeDetailBean, OrganDrugList organDrug, Map<String, Integer> configDrugNameMap,
-                                 Integer recipeType, Integer pharmacyId) {
+                                 Integer recipeType, Integer pharmacyId, Map<Integer, PharmacyTcm> pharmacyIdMap) {
         recipeDetailBean.setStatus(organDrug.getStatus());
         recipeDetailBean.setDrugId(organDrug.getDrugId());
         recipeDetailBean.setUseDoseAndUnitRelation(RecipeUtil.defaultUseDose(organDrug));
+        recipeDetailBean.setSalePrice(organDrug.getSalePrice());
         //续方也会走这里但是 续方要用药品名实时配置
         recipeDetailBean.setDrugDisplaySplicedName(DrugDisplayNameProducer.getDrugName(recipeDetailBean, configDrugNameMap, DrugNameDisplayUtil.getDrugNameConfigKey(recipeType)));
         if (!ValidateUtil.integerIsEmpty(pharmacyId)) {
             recipeDetailBean.setPharmacyId(pharmacyId);
+            PharmacyTcm pharmacyTcm = pharmacyIdMap.get(pharmacyId);
+            recipeDetailBean.setPharmacyName(pharmacyTcm.getPharmacyName());
+            recipeDetailBean.setPharmacyCode(pharmacyTcm.getPharmacyCode());
         }
     }
 

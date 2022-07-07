@@ -2,16 +2,20 @@ package recipe.business;
 
 import com.alibaba.fastjson.JSON;
 import com.ngari.base.scratchable.model.ScratchableBean;
+import com.ngari.recipe.dto.OrganDTO;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.recipe.model.GiveModeButtonBean;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.client.IConfigurationClient;
+import recipe.client.OperationClient;
 import recipe.client.OrganClient;
 import recipe.core.api.IOrganBusinessService;
 import recipe.dao.RecipeParameterDao;
 import recipe.manager.OrderManager;
+import recipe.util.ObjectCopyUtils;
+import recipe.vo.second.OrganVO;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +30,9 @@ public class OrganBusinessService extends BaseService implements IOrganBusinessS
     private OrderManager orderManager;
     @Autowired
     private RecipeParameterDao recipeParameterDao;
+    @Autowired
+    private OperationClient operationClient;
+
 
     @Override
     public List<Integer> getOrganForWeb() {
@@ -74,4 +81,14 @@ public class OrganBusinessService extends BaseService implements IOrganBusinessS
         return recipeParameterDao.getByName(key);
     }
 
+    @Override
+    public OrganVO getOrganVOByOrganId(Integer organId){
+        OrganDTO organDTO = organClient.organDTO(organId);
+        return ObjectCopyUtils.convert(organDTO, OrganVO.class);
+    }
+
+    @Override
+    public Boolean isAuthorisedOrgan(Integer organId) {
+        return operationClient.isAuthorisedOrgan(organId);
+    }
 }

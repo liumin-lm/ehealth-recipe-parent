@@ -23,6 +23,7 @@ import recipe.constant.RecipeBussConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
+import recipe.enumerate.status.YesOrNoEnum;
 import recipe.enumerate.type.ForceCashTypeEnum;
 import recipe.hisservice.RecipeToHisService;
 import recipe.manager.RecipeDetailManager;
@@ -31,6 +32,7 @@ import recipe.service.RecipeLogService;
 import recipe.service.RecipeOrderService;
 import recipe.util.MapValueUtil;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -77,6 +79,10 @@ public class CashPreSettleService implements IRecipePreSettleService {
                 request.setIllnessType(ext.getIllnessType());
 
             }
+            String recipeCodeS = MapValueUtil.getString(extInfo, "recipeNoS");
+            if (recipeCodeS != null) {
+                request.setHisRecipeNoS(JSONUtils.parse(recipeCodeS, ArrayList.class));
+            }
             request.setClinicOrgan(recipe.getClinicOrgan());
             request.setRecipeId(String.valueOf(recipeId));
             request.setHisRecipeNo(recipe.getRecipeCode());
@@ -100,6 +106,7 @@ public class CashPreSettleService implements IRecipePreSettleService {
                     request.setRegisterFeeNo(recipeOrder.getRegisterFeeNo());
                     request.setTcmFee(recipeOrder.getTcmFee());
                     request.setTcmFeeNo(recipeOrder.getTcmFeeNo());
+                    request.setOrderCode(recipeOrder.getOrderCode());
                 }
             } catch (Exception e) {
                 LOGGER.error("MedicalPreSettleService 代缴费用有误");

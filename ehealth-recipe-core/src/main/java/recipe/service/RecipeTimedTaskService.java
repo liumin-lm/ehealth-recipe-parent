@@ -6,12 +6,12 @@ import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.base.push.service.ISmsPushService;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganService;
-import com.ngari.recipe.entity.*;
+import com.ngari.recipe.entity.OrganDrugList;
+import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.hisprescription.model.HosRecipeResult;
 import com.ngari.recipe.hisprescription.model.HospitalStatusUpdateDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
-import com.ngari.recipe.vo.FormWorkRecipeVO;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -24,7 +24,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.client.IConfigurationClient;
 import recipe.constant.*;
-import recipe.dao.*;
+import recipe.dao.OrganDrugListDAO;
+import recipe.dao.RecipeDAO;
+import recipe.dao.RecipeParameterDao;
 import recipe.drugsenterprise.ThirdEnterpriseCallService;
 import recipe.service.common.RecipeCacheService;
 import recipe.service.hospitalrecipe.PrescribeService;
@@ -38,8 +40,6 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
-
-import static com.alibaba.fastjson.JSON.parseArray;
 
 /**
  * 电子处方定时任务服务
@@ -194,20 +194,6 @@ public class RecipeTimedTaskService {
             }
         }
     }
-
-    /**
-     * 通知前置机去HIS查询审方状态
-     */
-//    @RpcService
-//    public void noticeGetHisCheckStatusTask(){
-//        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-//        List<Recipe> recipes = recipeDAO.findReadyCheckRecipeByCheckMode(2);
-//        for (Recipe recipe : recipes) {
-//            //针对his审方的模式,先在此处处理,推送消息给前置机,让前置机取轮询HIS获取审方结果
-//            HisCheckRecipeService hisCheckRecipeService = ApplicationUtils.getRecipeService(HisCheckRecipeService.class);
-//            hisCheckRecipeService.sendCheckRecipeInfo(recipe);
-//        }
-//    }
 
     /**
      * 更新机构药品目录方便运维做shadow心跳检测

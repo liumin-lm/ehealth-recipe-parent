@@ -4,29 +4,37 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.dto.UsingRateDTO;
+import com.ngari.common.mode.HisResponseTO;
 import com.ngari.consult.common.model.ConsultExDTO;
 import com.ngari.follow.utils.ObjectCopyUtil;
+import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.patient.dto.DoctorDTO;
-import com.ngari.platform.recipe.mode.RecipeDetailBean;
+import com.ngari.platform.recipe.mode.*;
 import com.ngari.recipe.dto.*;
+import com.ngari.recipe.dto.EmrDetailDTO;
+import com.ngari.recipe.dto.RecipeDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.revisit.RevisitBean;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import ctd.persistence.exception.DAOException;
+import ctd.util.FileAuth;
 import ctd.util.JSONUtils;
 import eh.base.constant.ErrorCode;
 import eh.recipeaudit.api.IRecipeCheckService;
 import eh.recipeaudit.model.RecipeCheckBean;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.client.*;
 import recipe.common.CommonConstant;
+import recipe.common.UrlConfig;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.DrugsEnterpriseDAO;
+import recipe.dao.RecipeParameterDao;
 import recipe.dao.SaleDrugListDAO;
 import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.enumerate.status.RecipeStateEnum;
@@ -34,10 +42,14 @@ import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.AppointEnterpriseTypeEnum;
 import recipe.enumerate.type.RecipeShowQrConfigEnum;
 import recipe.util.DictionaryUtil;
+import recipe.util.RSAEncryptUtils;
 import recipe.util.ValidateUtil;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.security.interfaces.RSAPublicKey;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -76,6 +88,10 @@ public class RecipeManager extends BaseManager {
     private SaleDrugListDAO saleDrugListDAO;
     @Autowired
     private IRecipeCheckService iRecipeCheckService;
+    @Autowired
+    private RecipeClient recipeClient;
+    @Autowired
+    private RecipeParameterDao recipeParameterDao;
 
     /**
      * 保存处方信息
@@ -403,17 +419,15 @@ public class RecipeManager extends BaseManager {
         Recipe updateRecipe = new Recipe();
         updateRecipe.setRecipeId(recipeId);
         //如果处方来源是复诊，则patientID取复诊的
+        updateRecipe.setPatientID(recipeResult.getPatientID());
         if (new Integer(2).equals(recipeResult.getBussSource())) {
             RevisitExDTO revisitExDTO = revisitClient.getByClinicId(recipeResult.getClinicId());
             if (null != revisitExDTO && StringUtils.isNotEmpty(revisitExDTO.getPatId())) {
                 updateRecipe.setPatientID(revisitExDTO.getPatId());
-            } else {
-                updateRecipe.setPatientID(recipeResult.getPatientID());
             }
-        } else {
-            updateRecipe.setPatientID(recipeResult.getPatientID());
         }
         updateRecipe.setRecipeCode(recipeResult.getRecipeCode());
+        updateRecipe.setWriteHisState(3);
         recipeDAO.updateNonNullFieldByPrimaryKey(updateRecipe);
         logger.info("RecipeManager updatePushHisRecipe updateRecipe:{}.", JSON.toJSONString(updateRecipe));
     }
@@ -711,6 +725,16 @@ public class RecipeManager extends BaseManager {
     }
 
     /**
+     * 获取处方签名文件地址
+     * @param fileId
+     * @param validTime
+     * @return
+     */
+    public String getRecipeSignFileUrl(String fileId, long validTime){
+        return UrlConfig.fileViewUrl+fileId+"?token="+ FileAuth.instance().createToken(fileId,validTime);
+    }
+
+    /**
      * 查询同组处方
      *
      * @param groupCode 处方组号
@@ -745,5 +769,96 @@ public class RecipeManager extends BaseManager {
             }
         });
         return recipes;
+    }
+
+    /**
+     * 完成处方
+     * @param recipeIdList
+     * @param finishDate
+     */
+    public void finishRecipes(List<Integer> recipeIdList, Date finishDate){
+        recipeDAO.updateRecipeFinishInfoByRecipeIds(recipeIdList, finishDate);
+    }
+
+    public AdvanceWarningResDTO getAdvanceWarning(AdvanceWarningReqDTO advanceWarningReqDTO) {
+        logger.info("getAdvanceWarning advanceWarningReqDTO={}",JSONUtils.toString(advanceWarningReqDTO));
+        AdvanceInfoReqTO advanceInfoReqTO = new AdvanceInfoReqTO();
+        AdvanceInfoPatientDTO patientDTO = new AdvanceInfoPatientDTO();
+        List<EncounterDTO> encounterDTOList = new ArrayList<>();
+        AdvanceWarningResDTO advanceWarningResDTO = new AdvanceWarningResDTO();
+        Recipe recipe = recipeDAO.get(advanceWarningReqDTO.getRecipeId());
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(advanceWarningReqDTO.getRecipeId());
+        if(null == recipe){
+            return advanceWarningResDTO;
+        }
+        advanceInfoReqTO.setOrganId(recipe.getClinicOrgan());
+        //系统编码
+        advanceInfoReqTO.setSyscode("recipe");
+        if(Objects.nonNull(recipeExtend)){
+            //就诊流水号
+            advanceInfoReqTO.setMdtrtSn(recipeExtend.getRegisterID());
+        }
+        //触发场景
+        advanceInfoReqTO.setTrigScen("2");
+        //app必传
+        if(new Integer(1).equals(advanceWarningReqDTO.getServerFlag())){
+            //应用的appId
+            advanceInfoReqTO.setAppId("202206291421");
+            //app端传身份证号
+            com.ngari.patient.dto.PatientDTO patient = patientClient.getPatientBeanByMpiId(recipe.getMpiid());
+            patientDTO.setPatnId(patient.getIdcard());
+        }else{
+            //pc端传patientId
+            patientDTO.setPatnId(recipe.getPatientID());
+        }
+        patientDTO.setPatnName(recipe.getPatientName());
+        patientDTO.setCurrMdtrtId(String.valueOf(recipe.getRecipeId()));
+        //端标识
+        advanceInfoReqTO.setServerFlag(advanceWarningReqDTO.getServerFlag());
+        //业务类型:处方
+        advanceInfoReqTO.setBusinessType(0);
+        EncounterDTO encounterDTO = new EncounterDTO();
+        //就诊标识
+        encounterDTO.setMdtrtId(String.valueOf(recipe.getRecipeId()));
+        //医疗服务机构标识
+        encounterDTO.setMedinsId("H12010500650");
+        //医疗机构名称
+        encounterDTO.setMedinsName(String.valueOf(recipe.getClinicOrgan()));
+        //入院日期
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        try {
+            encounterDTO.setAdmDate(sdf.parse(String.valueOf(recipe.getCreateDate())));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        //主诊断编码
+        encounterDTO.setDscgMainDiseCodg(recipe.getOrganDiseaseId());
+        //主诊断名称
+        encounterDTO.setDscgMainDiseName(recipe.getOrganDiseaseName());
+        //医师标识
+        encounterDTO.setDrCodg(String.valueOf(recipe.getDoctor()));
+        //入院科室标识
+        encounterDTO.setAdmDeptCodg(recipe.getAppointDepart());
+        //入院科室名称
+        encounterDTO.setAdmDeptName(recipe.getAppointDepartName());
+        //就诊类型：门诊
+        encounterDTO.setMedMdtrtType("1");
+        //就医疗类型：普通门诊
+        encounterDTO.setMedType("11");
+        //总费用
+        encounterDTO.setMedfeeSumamt(recipe.getActualPrice().doubleValue());
+        //生育状态
+        encounterDTO.setMatnStas("0");
+        //险种
+        encounterDTO.setInsutype("310");
+        //异地结算标志
+        encounterDTO.setOutSetlFlag("0");
+        encounterDTOList.add(encounterDTO);
+        patientDTO.setEncounterDtos(encounterDTOList);
+        advanceInfoReqTO.setPatientDTO(patientDTO);
+        AdvanceInfoResTO advanceInfo = recipeClient.getAdvanceInfo(advanceInfoReqTO);
+        advanceWarningResDTO.setPopUrl(advanceInfo.getPopUrl());
+        logger.info("getAdvanceWarning advanceWarningResDTO={}",JSONUtils.toString(advanceWarningResDTO));
+        return advanceWarningResDTO;
     }
 }

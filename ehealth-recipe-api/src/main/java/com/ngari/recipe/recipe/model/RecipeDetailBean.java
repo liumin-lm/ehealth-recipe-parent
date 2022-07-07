@@ -272,6 +272,17 @@ public class RecipeDetailBean implements java.io.Serializable {
     @ItemProperty(alias = " 中药/系数的价格 ")
     private BigDecimal saleDrugPrice;
 
+    @ItemProperty(alias = "his开方或预结算时返回的药品单价")
+    private BigDecimal hisReturnSalePrice;
+
+    public BigDecimal getHisReturnSalePrice() {
+        return hisReturnSalePrice;
+    }
+
+    public void setHisReturnSalePrice(BigDecimal hisReturnSalePrice) {
+        this.hisReturnSalePrice = hisReturnSalePrice;
+    }
+
     public BigDecimal getSaleDrugPrice() {
         return saleDrugPrice;
     }

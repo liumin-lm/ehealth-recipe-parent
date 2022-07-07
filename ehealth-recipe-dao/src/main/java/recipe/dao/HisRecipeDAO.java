@@ -11,7 +11,11 @@ import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction
 import ctd.util.annotation.RpcSupportDAO;
 import org.hibernate.Query;
 import org.hibernate.StatelessSession;
+import org.hibernate.transform.AliasToBeanResultTransformer;
+import org.hibernate.type.StandardBasicTypes;
+import org.hibernate.type.TimestampType;
 import recipe.dao.bean.HisRecipeListBean;
+import recipe.util.JsonUtil;
 
 import java.util.List;
 
@@ -48,7 +52,7 @@ public abstract class HisRecipeDAO extends HibernateSupportDelegateDAO<HisRecipe
     @DAOMethod(sql = " From HisRecipe where clinicOrgan=:clinicOrgan and recipeCode in (:recipeCodeList)")
     public abstract List<HisRecipe> findHisRecipeByRecipeCodeAndClinicOrgan(@DAOParam("clinicOrgan") int clinicOrgan, @DAOParam("recipeCodeList") List<String> recipeCodeList);
 
-    @DAOMethod(sql = " From HisRecipe where clinicOrgan=:clinicOrgan and recipeCode in (:recipeCodeList) and status!=2")
+    @DAOMethod(sql = " From HisRecipe where clinicOrgan=:clinicOrgan and recipeCode in (:recipeCodeList) and status=1")
     public abstract List<HisRecipe> findNoDealHisRecipe(@DAOParam("clinicOrgan") int clinicOrgan, @DAOParam("recipeCodeList") List<String> recipeCodeList);
 
 
@@ -108,12 +112,12 @@ public abstract class HisRecipeDAO extends HibernateSupportDelegateDAO<HisRecipe
      * @param start
      * @param
      */
-    public List<HisRecipeListBean> findHisRecipeListByMPIId(Integer organId, String mpiId, Integer start, Integer limit) {
+    public List<HisRecipeListBean> findHisRecipeListByMPIId1(Integer organId, String mpiId, Integer start, Integer limit) {
         HibernateStatelessResultAction<List<HisRecipeListBean>> action = new AbstractHibernateStatelessResultAction<List<HisRecipeListBean>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder();
-                hql.append("select new recipe.dao.bean.HisRecipeListBean(h.diseaseName,h.hisRecipeID,h.registeredId, h.mpiId, h.recipeCode, h.clinicOrgan, h.departCode, h.departName, h.createDate, h.doctorCode, h.doctorName, h.chronicDiseaseCode, h.chronicDiseaseName, h.patientName, h.memo,h.recipeType,r.fromflag,r.recipeId, r.orderCode, r.status)  FROM HisRecipe h,Recipe r where h.status = 2 and h.clinicOrgan=r.clinicOrgan and h.recipeCode=r.recipeCode and h.mpiId =:mpiId and h.clinicOrgan =:organId ORDER BY h.createDate DESC");
+                hql.append("select new recipe.dao.bean.HisRecipeListBean(h.diseaseName,h.hisRecipeID,h.registeredId, h.mpiId, h.recipeCode, h.clinicOrgan, h.departCode, h.departName, h.createDate, h.doctorCode, h.doctorName, h.chronicDiseaseCode, h.chronicDiseaseName, h.patientName, h.memo,h.recipeType,r.fromflag,r.recipeId, r.orderCode, r.status)  FROM HisRecipe h,Recipe r where h.status in (2,3) and h.clinicOrgan=r.clinicOrgan and h.recipeCode=r.recipeCode and h.mpiId =:mpiId and h.clinicOrgan =:organId ORDER BY h.createDate DESC");
                 Query q = ss.createQuery(hql.toString());
                 q.setParameter("organId", organId);
                 q.setParameter("mpiId", mpiId);
@@ -125,6 +129,62 @@ public abstract class HisRecipeDAO extends HibernateSupportDelegateDAO<HisRecipe
 
         HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
+    }
+
+    public List<HisRecipeListBean> findHisRecipeListByMPIId(Integer organId, String mpiId, Integer start, Integer limit) {
+        HibernateStatelessResultAction<List<HisRecipeListBean>> action = new AbstractHibernateStatelessResultAction<List<HisRecipeListBean>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder sqlNew = new StringBuilder(
+                        "select " +
+                                " h.diseaseName diseaseName,h.hisRecipeID hisRecipeID,h.registeredId registeredId, h.mpiId mpiId, h.recipeCode recipeCode, h.clinicOrgan clinicOrgan" +
+                                " , h.departCode departCode, h.departName departName, h.createDate createDate, h.doctorCode doctorCode, h.doctorName doctorName" +
+                                " , h.chronicDiseaseCode chronicDiseaseCode, h.chronicDiseaseName chronicDiseaseName, h.patientName patientName,h.memo memo,h.recipeType recipeType,h.status hisRecipeStatus " +
+                                " ,r.fromflag fromFlag" +
+                                "  ,r.recipeId recipeId" +
+                                ", r.orderCode orderCode, r.status status" +
+                                " FROM cdr_his_recipe h left join cdr_recipe r on  h.clinicOrgan=r.clinicOrgan and h.recipeCode=r.recipeCode " +
+                                " where h.status in (2,3) " +
+                                " and h.mpiId =:mpiId and h.clinicOrgan =:organId " +
+                                " ORDER BY h.createDate DESC;");
+                Query query = ss.createSQLQuery(sqlNew.toString())
+                        .addScalar("diseaseName", StandardBasicTypes.STRING)
+                        .addScalar("hisRecipeID", StandardBasicTypes.INTEGER)
+                        .addScalar("registeredId", StandardBasicTypes.STRING)
+                        .addScalar("mpiId", StandardBasicTypes.STRING)
+                        .addScalar("recipeCode", StandardBasicTypes.STRING)
+                        .addScalar("clinicOrgan", StandardBasicTypes.INTEGER)
+
+                        .addScalar("departCode", StandardBasicTypes.STRING)
+                        .addScalar("departName", StandardBasicTypes.STRING)
+                        .addScalar("createDate", TimestampType.INSTANCE)
+                        .addScalar("doctorCode", StandardBasicTypes.STRING)
+                        .addScalar("doctorName", StandardBasicTypes.STRING)
+
+                        .addScalar("chronicDiseaseCode", StandardBasicTypes.STRING)
+                        .addScalar("chronicDiseaseName", StandardBasicTypes.STRING)
+                        .addScalar("patientName", StandardBasicTypes.STRING)
+                        .addScalar("memo", StandardBasicTypes.STRING)
+                        .addScalar("recipeType", StandardBasicTypes.INTEGER)
+                        .addScalar("hisRecipeStatus", StandardBasicTypes.INTEGER)
+
+                        .addScalar("fromFlag", StandardBasicTypes.INTEGER)
+                        .addScalar("recipeId", StandardBasicTypes.INTEGER)
+                        .addScalar("orderCode", StandardBasicTypes.STRING)
+                        .addScalar("status", StandardBasicTypes.INTEGER)
+
+                        .setResultTransformer(new AliasToBeanResultTransformer(HisRecipeListBean.class));
+
+                query.setParameter("organId", organId);
+                query.setParameter("mpiId", mpiId);
+                JsonUtil.toString(query.list());
+                List<HisRecipeListBean> result = (List<HisRecipeListBean>) query.list();
+                setResult(result);
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+
     }
 
     /**

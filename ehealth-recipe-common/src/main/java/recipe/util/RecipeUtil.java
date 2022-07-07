@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import recipe.constant.RecipeBussConstant;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.type.DrugBelongTypeEnum;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -48,6 +49,9 @@ public class RecipeUtil {
      */
     public static String drugChineShowName(Recipedetail detail) {
         String dTotal;
+        if (DrugBelongTypeEnum.SECRECY_DRUG.getType().equals(detail.getType())) {
+            return detail.getDrugName();
+        }
         if (StringUtils.isNotEmpty(detail.getUseDoseStr())) {
             dTotal = detail.getUseDoseStr();
         } else {
@@ -159,12 +163,10 @@ public class RecipeUtil {
                     }
 
                 } else if (RecipeBussConstant.GIVEMODE_TFDS.equals(giveMode) && StringUtils.isNotEmpty(recipe.getOrderCode())) {
-                    if (RecipeOrderStatusEnum.ORDER_STATUS_HAS_DRUG.getType().equals(orderStatus)) {
-                        if (payFlag == 0) {
-                            tips = "待支付";
-                        } else {
-                            tips = "待取药";
-                        }
+                    if (payFlag == 0) {
+                        tips = "待支付";
+                    } else {
+                        tips = "待取药";
                     }
                 } else if (RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE.equals(giveMode)) {
                     tips = "已完成";

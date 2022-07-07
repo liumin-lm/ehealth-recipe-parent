@@ -1,6 +1,7 @@
 package recipe.core.api;
 
 import com.ngari.recipe.recipe.model.GiveModeButtonBean;
+import recipe.vo.second.OrganVO;
 
 import java.util.List;
 
@@ -47,4 +48,18 @@ public interface IOrganBusinessService {
      * @return
      */
     String getRecipeParameterValue(String key);
+
+    /**
+     * 获取机构信息
+     * @param organId
+     * @return
+     */
+    OrganVO getOrganVOByOrganId(Integer organId);
+
+    /**
+     * 判断运营平台账户越权校验
+     * @param key
+     * @return
+     */
+    Boolean isAuthorisedOrgan(Integer organId);
 }

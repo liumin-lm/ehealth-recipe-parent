@@ -1,5 +1,7 @@
 package com.ngari.recipe.hisprescription.model;
 
+import com.ngari.platform.recipe.mode.RecipeExtendBean;
+import com.ngari.platform.sync.mode.RecipeChHerbalIndicatorsReq;
 import ctd.schema.annotation.Desensitizations;
 import ctd.schema.annotation.DesensitizationsType;
 
@@ -52,6 +54,7 @@ public class RegulationRecipeIndicatorsDTO implements Serializable {
     private Integer age;//	患者年龄
     private String sex;//	患者性别
     private Date birthDay;//患者出生日期
+    private String nation;//患者民族
     @Desensitizations(type = DesensitizationsType.MOBILE)
     private String mobile;//	患者联系电话
     private String costType;//	费别 1自费 2医保
@@ -60,6 +63,8 @@ public class RegulationRecipeIndicatorsDTO implements Serializable {
     private String cardNo;//	卡号
     @Desensitizations(type = DesensitizationsType.IDCARD)
     private String guardianCertID;
+
+    private Integer guardianCertificateType;
     private String guardianName;
     private String guardianMobile;
 
@@ -67,12 +72,21 @@ public class RegulationRecipeIndicatorsDTO implements Serializable {
     private String allergyInfo;//	过敏信息
     private String diseasesHistory;//	患者简要病史描述
     private String recipeUniqueID;//	互联网医院处方唯一号
+    /**
+     * 药师审核不通过的旧处方互联网医院处方唯一号
+     */
+    private String oldRecipeUniqueId;
     private String recipeID;//	互联网医院处方号
+    /**
+     * 药师审核不通过的旧处方Id
+     */
+    private Integer oldRecipeId;
     private String recipeRecordNo;//处方医保备案号
     private String rationalFlag;//是否经过合理用药判断标志 1经过0未经过
     private String rationalDrug;//	合理用药审核结果
     private String CAInfo;//	处方CA认证文件信息
     private String recipeFileId; // 处方笺文件id
+    private String  recipeSignImgId; // 处方图片文件id
     private String medicalFileId; //患者病历文件id
     private String icdCode;//	诊断ICD码
     private String icdName;//	初步诊断名称
@@ -133,6 +147,9 @@ public class RegulationRecipeIndicatorsDTO implements Serializable {
 
     private FirstVisitRecord firstVisitRecord;//初诊列表数据集
 
+    private String registerNo;
+    private String registerId;;//his返回的就诊流水号
+
     //发药药师姓名
     private String dispensingApothecaryName;
     //发药药师身份证号
@@ -150,6 +167,18 @@ public class RegulationRecipeIndicatorsDTO implements Serializable {
      * 支付时间
      */
     private Date payTime;
+
+    /**配送地址*/
+    private String address;
+
+    /**
+     * 处方扩展表信息
+     */
+    private RecipeExtendBean recipeExtend;
+
+    //中草药扩展字段
+    private RecipeChHerbalIndicatorsReq recipeChHerbalIndicatorsReq;
+
 
     public String getOutTradeNo() {
         return outTradeNo;
@@ -917,5 +946,85 @@ public class RegulationRecipeIndicatorsDTO implements Serializable {
 
     public void setEinvoiceNumber(String einvoiceNumber) {
         this.einvoiceNumber = einvoiceNumber;
+    }
+
+    public String getNation() {
+        return nation;
+    }
+
+    public void setNation(String nation) {
+        this.nation = nation;
+    }
+
+    public Integer getGuardianCertificateType() {
+        return guardianCertificateType;
+    }
+
+    public void setGuardianCertificateType(Integer guardianCertificateType) {
+        this.guardianCertificateType = guardianCertificateType;
+    }
+
+    public String getOldRecipeUniqueId() {
+        return oldRecipeUniqueId;
+    }
+
+    public void setOldRecipeUniqueId(String oldRecipeUniqueId) {
+        this.oldRecipeUniqueId = oldRecipeUniqueId;
+    }
+
+    public Integer getOldRecipeId() {
+        return oldRecipeId;
+    }
+
+    public void setOldRecipeId(Integer oldRecipeId) {
+        this.oldRecipeId = oldRecipeId;
+    }
+
+    public String getRecipeSignImgId() {
+        return recipeSignImgId;
+    }
+
+    public void setRecipeSignImgId(String recipeSignImgId) {
+        this.recipeSignImgId = recipeSignImgId;
+    }
+
+    public String getRegisterNo() {
+        return registerNo;
+    }
+
+    public void setRegisterNo(String registerNo) {
+        this.registerNo = registerNo;
+    }
+
+    public String getRegisterId() {
+        return registerId;
+    }
+
+    public void setRegisterId(String registerId) {
+        this.registerId = registerId;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public RecipeExtendBean getRecipeExtend() {
+        return recipeExtend;
+    }
+
+    public void setRecipeExtend(RecipeExtendBean recipeExtend) {
+        this.recipeExtend = recipeExtend;
+    }
+
+    public RecipeChHerbalIndicatorsReq getRecipeChHerbalIndicatorsReq() {
+        return recipeChHerbalIndicatorsReq;
+    }
+
+    public void setRecipeChHerbalIndicatorsReq(RecipeChHerbalIndicatorsReq recipeChHerbalIndicatorsReq) {
+        this.recipeChHerbalIndicatorsReq = recipeChHerbalIndicatorsReq;
     }
 }

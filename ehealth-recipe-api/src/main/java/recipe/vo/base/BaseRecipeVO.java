@@ -1,9 +1,12 @@
 package recipe.vo.base;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import ctd.schema.annotation.ItemProperty;
 import lombok.Getter;
 import lombok.Setter;
 
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 import java.io.Serializable;
 import java.util.Date;
 
@@ -52,9 +55,6 @@ public class BaseRecipeVO implements Serializable {
     @ItemProperty(alias = "挂号科室名称")
     private String appointDepartName;
 
-    @ItemProperty(alias = "开方时间")
-    private Date createDate;
-
     @ItemProperty(alias = "中药贴数")
     private Integer copyNum;
 
@@ -63,9 +63,6 @@ public class BaseRecipeVO implements Serializable {
 
     @ItemProperty(alias = "机构疾病编码")
     private String organDiseaseId;
-
-    @ItemProperty(alias = "审核日期")
-    private Date checkDate;
 
     @ItemProperty(alias = "医生签名的处方PDF")
     private String signFile;
@@ -78,9 +75,6 @@ public class BaseRecipeVO implements Serializable {
 
     @ItemProperty(alias = "处方备注")
     private String recipeMemo;
-
-    @ItemProperty(alias = "失效时间")
-    private Date invalidTime;
 
     @ItemProperty(alias = "制法")
     private String makeMethodId;

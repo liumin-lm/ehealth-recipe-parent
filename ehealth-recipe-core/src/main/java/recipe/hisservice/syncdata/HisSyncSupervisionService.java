@@ -64,6 +64,7 @@ import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.CommonRemoteService;
 import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.type.SettlementModeTypeEnum;
 import recipe.hisservice.EleInvoiceService;
 import recipe.manager.EmrRecipeManager;
 import recipe.service.RecipeExtendService;
@@ -75,6 +76,7 @@ import recipe.util.LocalStringUtil;
 import recipe.util.RedisClient;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -158,7 +160,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         List<RegulationRecipeIndicatorsReq> request = new ArrayList<>(recipeList.size());
         splicingBackRecipeData(recipeList, request);
 
-        
+
         try {
             IRegulationService hisService = AppDomainContext.getBean("his.regulationService", IRegulationService.class);
             LOGGER.info("uploadRecipeIndicators request={}", JSONUtils.toString(request));
@@ -648,6 +650,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             } else {
                 LOGGER.warn("recipeId file is null  recipeId={}", recipe.getRecipeId());
             }
+            req.setRecipeSignImgId(recipe.getSignImg());
+
             //详情处理
             detailList = detailDAO.findByRecipeId(recipe.getRecipeId());
             if (CollectionUtils.isEmpty(detailList)) {
@@ -1212,6 +1216,9 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             reqDetail.setRecipeDetailId(detail.getRecipeDetailId());
             //单价
             reqDetail.setPrice(detail.getSalePrice());
+            if(Objects.nonNull(detail.getHisReturnSalePrice())){
+                reqDetail.setPrice(detail.getHisReturnSalePrice());
+            }
             //总价
             reqDetail.setTotalPrice(detail.getDrugCost());
 
@@ -1310,7 +1317,16 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                         costDetailReq.setStatCatCode("010100"); //监管分类代码 his未返回该字段，不知道传什么，默认传  010100 一般医疗服务
                         costDetailReq.setPinCatCode("9900"); // 财务分类代码 ，his未返回  9900 其他
                         costDetailReq.setIfOutMedIns("0");
-                        costDetailReq.setProjUnitPrice(item.getSalePrice() != null ? item.getSalePrice().doubleValue() : 0);
+                        BigDecimal salePrice = BigDecimal.ZERO;
+                        if(SettlementModeTypeEnum.SETTLEMENT_MODE_HOS.getType().equals(item.getSettlementMode())){
+                            salePrice = item.getSalePrice();
+                            if(Objects.nonNull(item.getHisReturnSalePrice())){
+                                salePrice = item.getHisReturnSalePrice();
+                            }
+                        }else {
+                            salePrice = item.getActualSalePrice();
+                        }
+                        costDetailReq.setProjUnitPrice(salePrice != null ? salePrice.doubleValue() : 0);
                         costDetailReq.setProjCnt(item.getUseTotalDose());
                         costDetailReq.setProjAmount(item.getDrugCost() != null ? item.getDrugCost().doubleValue() : 0);
                         items.add(costDetailReq);
@@ -1555,7 +1571,16 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             costDetailReq.setStatCatCode("010100"); //监管分类代码 his未返回该字段，不知道传什么，默认传  010100 一般医疗服务
             costDetailReq.setPinCatCode("9900"); // 财务分类代码 ，his未返回  9900 其他
             costDetailReq.setIfOutMedIns("0");
-            costDetailReq.setProjUnitPrice(item.getSalePrice() != null ? item.getSalePrice().doubleValue() : 0);
+            BigDecimal salePrice = BigDecimal.ZERO;
+            if(SettlementModeTypeEnum.SETTLEMENT_MODE_HOS.getType().equals(item.getSettlementMode())){
+                salePrice = item.getSalePrice();
+                if(Objects.nonNull(item.getHisReturnSalePrice())){
+                    salePrice = item.getHisReturnSalePrice();
+                }
+            }else {
+                salePrice = item.getActualSalePrice();
+            }
+            costDetailReq.setProjUnitPrice(salePrice != null ? salePrice.doubleValue() : 0);
             costDetailReq.setProjCnt(item.getUseTotalDose());
             costDetailReq.setProjAmount(item.getDrugCost() != null ? item.getDrugCost().doubleValue() : 0);
             costDetailReq.setDetailId(item.getRecipeDetailId());

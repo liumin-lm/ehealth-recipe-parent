@@ -38,7 +38,7 @@ import java.util.List;
 public class DrugEnterprisePatientAtop extends BaseAtop {
 
     @Autowired
-    private IStockBusinessService iDrugEnterpriseBusinessService;
+    private IStockBusinessService iStockBusinessService;
     @Autowired
     private IDrugsEnterpriseBusinessService enterpriseBusinessService;
 
@@ -86,7 +86,7 @@ public class DrugEnterprisePatientAtop extends BaseAtop {
         if (null == recipeExtendBean) {
             recipeExtendBean = new RecipeExtendBean();
         }
-        List<EnterpriseStock> result = iDrugEnterpriseBusinessService.stockList(recipe, recipeExtendBean.getDecoctionId(), detailList);
+        List<EnterpriseStock> result = iStockBusinessService.stockList(recipe, recipeExtendBean.getDecoctionId(), detailList);
         result.forEach(a -> {
             a.setDrugsEnterprise(null);
             a.setDrugInfoList(null);
@@ -103,7 +103,7 @@ public class DrugEnterprisePatientAtop extends BaseAtop {
     public List<MedicineStationVO> getMedicineStationList(MedicineStationVO medicineStationVO){
         validateAtop(medicineStationVO, medicineStationVO.getOrganId(), medicineStationVO.getEnterpriseId());
         try {
-            List<MedicineStationVO> medicineStationList = iDrugEnterpriseBusinessService.getMedicineStationList(medicineStationVO);
+            List<MedicineStationVO> medicineStationList = iStockBusinessService.getMedicineStationList(medicineStationVO);
             //对站点由近到远排序
             Collections.sort(medicineStationList, (o1,o2)-> o1.getDistance() >= o2.getDistance() ? 0 : -1);
             return medicineStationList;
@@ -121,7 +121,7 @@ public class DrugEnterprisePatientAtop extends BaseAtop {
     @RpcService
     public OrganDrugsSaleConfigVo getOrganDrugsSaleConfig(Integer organId , Integer drugsEnterpriseId){
         validateAtop(organId);
-        OrganDrugsSaleConfig organDrugsSaleConfig = iDrugEnterpriseBusinessService.getOrganDrugsSaleConfig(organId,drugsEnterpriseId);
+        OrganDrugsSaleConfig organDrugsSaleConfig = iStockBusinessService.getOrganDrugsSaleConfig(organId, drugsEnterpriseId);
         OrganDrugsSaleConfigVo organDrugsSaleConfigVo = new OrganDrugsSaleConfigVo();
         BeanUtils.copyProperties(organDrugsSaleConfig,organDrugsSaleConfigVo);
         return organDrugsSaleConfigVo;
@@ -135,6 +135,6 @@ public class DrugEnterprisePatientAtop extends BaseAtop {
     @RpcService
     public OrganDrugsSaleConfig getOrganDrugsSaleConfigOfPatient(Integer organId , Integer drugsEnterpriseId){
         validateAtop(drugsEnterpriseId);
-        return iDrugEnterpriseBusinessService.getOrganDrugsSaleConfigOfPatient(organId,drugsEnterpriseId);
+        return iStockBusinessService.getOrganDrugsSaleConfigOfPatient(organId, drugsEnterpriseId);
     }
 }

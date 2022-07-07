@@ -1,5 +1,6 @@
 package com.ngari.recipe.recipe.model;
 
+import ctd.schema.annotation.ItemProperty;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -40,6 +41,8 @@ public class RecipesQueryVO implements Serializable {
     private Integer refundNodeStatus;
     private Integer bussSource;
     private Integer recipeBusinessType;
+    @ItemProperty(alias = "便捷购药标识：0普通复诊，1便捷购药复诊")
+    private Integer fastRecipeFlag;
 
     private int start;
     private int limit;

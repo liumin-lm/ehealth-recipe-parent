@@ -11,6 +11,7 @@ import com.ngari.recipe.dto.DrugSpecificationInfoDTO;
 import com.ngari.recipe.dto.PatientDrugWithEsDTO;
 import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.vo.DrugSaleStrategyVO;
 import com.ngari.recipe.vo.HospitalDrugListReqVO;
 import com.ngari.recipe.vo.HospitalDrugListVO;
 import com.ngari.recipe.vo.SearchDrugReqVO;
@@ -20,14 +21,14 @@ import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.aop.LogRecord;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.client.DrugClient;
 import recipe.client.IConfigurationClient;
 import recipe.constant.RecipeBussConstant;
 import recipe.core.api.IDrugBusinessService;
-import recipe.dao.OrganDrugListDAO;
-import recipe.dao.RecipeDAO;
+import recipe.dao.*;
 import recipe.enumerate.status.YesOrNoEnum;
 import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.manager.DrugManager;
@@ -62,6 +63,14 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
     private DrugClient drugClient;
     @Autowired
     private OrganDrugListDAO organDrugListDAO;
+    @Autowired
+    private RecipeRulesDrugCorrelationDAO recipeRulesDrugCorrelationDAO;
+    @Autowired
+    private DrugSaleStrategyDAO drugSaleStrategyDAO;
+    @Autowired
+    private SaleDrugListDAO saleDrugListDAO;
+    @Autowired
+    private DrugListDAO drugListDAO;
 
     @Override
     public List<PatientDrugWithEsDTO> findDrugWithEsByPatient(SearchDrugReqVO searchDrugReqVo) {
@@ -94,7 +103,7 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
     }
 
     @Override
-    public List<RecipeRulesDrugcorrelation> getListDrugRules(List<Integer> list, Integer ruleId) {
+    public List<RecipeRulesDrugCorrelation> getListDrugRules(List<Integer> list, Integer ruleId) {
         return drugManager.getListDrugRules(list, ruleId);
     }
 
@@ -286,6 +295,108 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
             recipeId = recipeList.get(recipeList.size() - 1).getRecipeId();
             logger.info("DrugBusinessService saveCommonDrug recipeId={}", recipeId);
         }
+    }
+
+    @Override
+    public List<RecipeRulesDrugCorrelation> findRulesByDrugIdAndRuleId(Integer drugId, Integer ruleId) {
+        return recipeRulesDrugCorrelationDAO.findRulesByDrugIdAndRuleId(drugId, ruleId);
+    }
+
+    @Override
+    public List<RecipeRulesDrugCorrelation> findRulesByCorrelationDrugIdAndRuleId(Integer correlationDrugId, Integer ruleId) {
+        return recipeRulesDrugCorrelationDAO.findRulesByCorrelationDrugIdAndRuleId(correlationDrugId, ruleId);
+    }
+
+    @Override
+    @LogRecord
+    public void operationDrugSaleStrategy(DrugSaleStrategyVO param) {
+        DrugSaleStrategy drugSaleStrategy=new DrugSaleStrategy();
+        recipe.util.ObjectCopyUtils.copyProperties(drugSaleStrategy,param);
+        if("add".equals(param.getType())){
+            drugSaleStrategy.setStatus(1);
+            drugSaleStrategyDAO.save(drugSaleStrategy);
+        }
+        if("update".equals(param.getType())){
+            drugSaleStrategy.setStatus(1);
+            drugSaleStrategyDAO.updateNonNullFieldByPrimaryKey(drugSaleStrategy);
+        }
+        if("delete".equals(param.getType())){
+            drugSaleStrategy.setStatus(0);
+            drugSaleStrategyDAO.updateNonNullFieldByPrimaryKey(drugSaleStrategy);
+            //关联删除药企药品目录销售策略
+            List<SaleDrugList> saleDrugListList=saleDrugListDAO.findByDrugId(param.getDrugId());
+            saleDrugListList.forEach(saleDrugList -> {
+                saleDrugList.setSaleStrategyId(null);
+                saleDrugListDAO.update(saleDrugList);
+            });
+        }
+    }
+
+    @Override
+    @LogRecord
+    public List<DrugSaleStrategyVO> findDrugSaleStrategy(Integer depId, Integer drugId) {
+        List<DrugSaleStrategyVO> drugSaleStrategyVOList = new ArrayList<>();
+        //获取该配送药品选中的销售策略
+        SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugId, depId);
+        DrugSaleStrategy drugSaleStrategy = null;
+        if (null != saleDrugList && null != saleDrugList.getSaleStrategyId()) {
+            drugSaleStrategy = drugManager.getDrugSaleStrategyById(saleDrugList.getSaleStrategyId());
+        }
+        //获取药品所有的销售策略
+        List<DrugSaleStrategy> allDrugSaleStrategyList = drugManager.findDrugSaleStrategy(drugId);
+        //获取该药品默认的销售策略
+        DrugSaleStrategy defaultDrugSaleStrategy = drugManager.getDefaultDrugSaleStrategy(depId, drugId);
+        DrugSaleStrategyVO defaultDrugSaleStrategyVO = null;
+        if (null != defaultDrugSaleStrategy) {
+            defaultDrugSaleStrategyVO = recipe.util.ObjectCopyUtils.convert(defaultDrugSaleStrategy, DrugSaleStrategyVO.class);
+            drugSaleStrategyVOList.add(defaultDrugSaleStrategyVO);
+        }
+        if (null != drugSaleStrategy) {
+            DrugSaleStrategyVO drugSaleStrategyVO = recipe.util.ObjectCopyUtils.convert(drugSaleStrategy, DrugSaleStrategyVO.class);
+            drugSaleStrategyVO.setButtonOpenFlag(true);
+            drugSaleStrategyVOList.add(drugSaleStrategyVO);
+        } else {
+            if (null != defaultDrugSaleStrategyVO) {
+                defaultDrugSaleStrategyVO.setButtonOpenFlag(true);
+            }
+        }
+        for (DrugSaleStrategy drugStrategy : allDrugSaleStrategyList) {
+            if (null != drugSaleStrategy && drugStrategy.getId().equals(drugSaleStrategy.getId())) {
+                continue;
+            }
+            DrugSaleStrategyVO drugSaleStrategyVO = recipe.util.ObjectCopyUtils.convert(drugStrategy, DrugSaleStrategyVO.class);
+            drugSaleStrategyVOList.add(drugSaleStrategyVO);
+        }
+        return drugSaleStrategyVOList;
+    }
+
+    @Override
+    public List<DrugSaleStrategy> findDrugSaleStrategy(DrugSaleStrategyVO drugSaleStrategy) {
+        List<DrugSaleStrategy> drugSaleStrategyList = drugSaleStrategyDAO.findByDrugId(drugSaleStrategy.getDrugId());
+        DrugList drugList = drugListDAO.getById(drugSaleStrategy.getDrugId());
+        if (null != drugList) {
+            DrugSaleStrategy saleStrategy = new DrugSaleStrategy();
+            saleStrategy.setDrugId(drugSaleStrategy.getDrugId());
+            saleStrategy.setDrugAmount(1);
+            saleStrategy.setDrugUnit(drugList.getUnit());
+            saleStrategy.setStrategyTitle("默认出售策略");
+            saleStrategy.setStatus(1);
+            saleStrategy.setId(0);
+            drugSaleStrategyList.add(saleStrategy);
+            Collections.sort(drugSaleStrategyList);
+        }
+        return drugSaleStrategyList;
+    }
+
+    @Override
+    public void saveDrugSaleStrategy(Integer depId, Integer drugId, Integer strategyId) {
+        SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugId, depId);
+        if (new Integer(0).equals(strategyId)) {
+            saleDrugList.setSaleStrategyId(null);
+        } else {
+            saleDrugList.setSaleStrategyId(strategyId);
+        }
+        saleDrugListDAO.updateNonNullFieldByPrimaryKey(saleDrugList);
     }
 
 

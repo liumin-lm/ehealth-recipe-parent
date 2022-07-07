@@ -172,7 +172,7 @@ public enum RecipeSupportGiveModeEnum {
         return giveModeTypeList;
     }
 
-    public static List<String> enterpriseList = Arrays.asList(SHOW_SEND_TO_HOS.text, SHOW_SEND_TO_ENTERPRISES.text, SUPPORT_TFDS.text);
+    public static List<String> enterpriseList = Arrays.asList(SHOW_SEND_TO_HOS.text, SHOW_SEND_TO_ENTERPRISES.text, SUPPORT_TFDS.text,SUPPORT_MEDICAL_PAYMENT.text);
 
     /**
      * 校验何种类型库存
@@ -236,17 +236,19 @@ public enum RecipeSupportGiveModeEnum {
             giveModeButtonList.add(giveModeButtonDTO(SUPPORT_TFDS));
             return giveModeButtonList;
         }
+        if(RecipeBussConstant.SUPPORT_MEDICAL_PAYMENT.equals(payModeSupport)){
+            giveModeButtonList.add(giveModeButtonDTO(SUPPORT_MEDICAL_PAYMENT));
+            return giveModeButtonList;
+        }
         if (RecipeDistributionFlagEnum.drugsEnterpriseAll.contains(payModeSupport)) {
             giveModeButtonList.add(giveModeButtonDTO(SUPPORT_TFDS));
+            giveModeButtonList.add(giveModeButtonDTO(SUPPORT_MEDICAL_PAYMENT));
         }
         //配送判断
         if (ValidateUtil.integerIsEmpty(sendType) || RecipeSendTypeEnum.NO_PAY.getSendType().equals(sendType)) {
             giveModeButtonList.add(giveModeButtonDTO(SHOW_SEND_TO_ENTERPRISES));
         } else {
             giveModeButtonList.add(giveModeButtonDTO(SHOW_SEND_TO_HOS));
-        }
-        if(RecipeBussConstant.SUPPORT_MEDICAL_PAYMENT.equals(payModeSupport)){
-            giveModeButtonList.add(giveModeButtonDTO(SUPPORT_MEDICAL_PAYMENT));
         }
         return giveModeButtonList;
     }

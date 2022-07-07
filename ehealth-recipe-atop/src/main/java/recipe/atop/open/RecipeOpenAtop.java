@@ -6,7 +6,9 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Symptom;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
-import com.ngari.recipe.recipe.model.*;
+import com.ngari.recipe.recipe.model.RecipeBean;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import com.ngari.recipe.recipe.model.SymptomDTO;
 import com.ngari.recipe.vo.FormWorkRecipeReqVO;
 import com.ngari.recipe.vo.FormWorkRecipeVO;
 import ctd.persistence.exception.DAOException;
@@ -193,7 +195,7 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
     }
 
     @Override
-    public HisResponseTO abolishOffLineRecipe(Integer organId, String recipeCode) {
+    public HisResponseTO abolishOffLineRecipe(Integer organId, List<String> recipeCode) {
         HisResponseTO response = offlineToOnlineService.abolishOffLineRecipe(organId, recipeCode);
         return response;
     }
@@ -209,6 +211,7 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
     public List<RecipeBean> recipeListByClinicId(Integer clinicId, Integer bussSource) {
         return recipeBusinessService.recipeListByClinicId(clinicId, bussSource);
     }
+
     @Override
     public List<RecipeDetailBean> findRecipeDetailByRecipeId(Integer recipeId) {
         validateAtop(recipeId);

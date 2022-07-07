@@ -115,8 +115,13 @@ public class RecipeReportFormsService {
         Args.notNull(request.getStart(), "start");
         Args.notNull(request.getLimit(), "limit");
         List<Integer> organIdList = getQueryOrganIdList(request);
+        //将日期处理成如下格式：2022-01-01 00:00:00 ~ 2022-01-31 23:59:59
+        String fistDateOfMonth = DateConversion.getFirstDateOfMonth(request.getYear(), request.getMonth());
+        String endDateOfMonth = DateConversion.getEndDayOfMonth(request.getYear(), request.getMonth());
+        request.setFirstDate(DateConversion.parseDate(fistDateOfMonth, DateConversion.DEFAULT_DATE_TIME));
+        request.setEndDate(DateConversion.parseDate(endDateOfMonth, DateConversion.DEFAULT_DATE_TIME));
         try {
-            List<RecipeMonthAccountCheckResponse> responses = recipeOrderDAO.findRecipeMonthAccountCheckList(organIdList, request.getYear(), request.getMonth(), request.getStart(), request.getLimit());
+            List<RecipeMonthAccountCheckResponse> responses = recipeOrderDAO.findRecipeMonthAccountCheckList(organIdList, request.getStart(), request.getLimit(), request.getFirstDate(), request.getEndDate());
             if (CollectionUtils.isNotEmpty(responses)) {
                 resultMap.put("total", responses.get(0).getTotal());
             } else {
@@ -130,14 +135,31 @@ public class RecipeReportFormsService {
         return resultMap;
     }
 
+
+    /**
+     * 处方对账明细列表
+     * 2022-6-v2版本为了兼容做的接口处理
+     * @return
+     */
+    @RpcService
+    public Map<String, Object> recipeAccountCheckDetailList(RecipeReportFormsRequest request) {
+        Map<String, Object> resultMap = new HashMap<>();
+        RecipeReportFormsResponse response=recipeAccountCheckDetailListV2(request);
+
+        resultMap.put("total", response.getTotal());
+        resultMap.put("data", response.getData());
+        return resultMap;
+    }
+
     /**
      * 处方对账明细列表
      *
      * @return
      */
     @RpcService
-    public Map<String, Object> recipeAccountCheckDetailList(RecipeReportFormsRequest request) {
-        Map<String, Object> resultMap = new HashMap<>();
+    public RecipeReportFormsResponse recipeAccountCheckDetailListV2(RecipeReportFormsRequest request) {
+        RecipeReportFormsResponse response=new RecipeReportFormsResponse<>();
+
         Args.notNull(request.getStartTime(), "startTime");
         Args.notNull(request.getEndTime(), "endTime");
         Args.notNull(request.getStart(), "start");
@@ -150,9 +172,9 @@ public class RecipeReportFormsService {
             List<RecipeAccountCheckDetailResponse> responses = recipeOrderDAO.findRecipeAccountCheckDetailList(request);
             LOGGER.info("recipeAccountCheckDetailList request = {} responses={}", JSONUtils.toString(request), JSONUtils.toString(responses));
             if (CollectionUtils.isEmpty(responses)) {
-                resultMap.put("total", 0);
-                resultMap.put("data", responses);
-                return resultMap;
+                response.setTotal(Long.valueOf(0));
+                response.setData(responses);
+                return response;
             }
             Set<String> mpiIds = new HashSet<>();
             Set<Integer> enterpriseIds = new HashSet<>();
@@ -174,7 +196,7 @@ public class RecipeReportFormsService {
             responses.forEach(a -> {
                 PatientDTO patientDTO = patientMap.get(a.getMpiId());
                 if (null != patientDTO) {
-                    a.setPatientName(patientDTO.getPatientName() + "\n" + patientDTO.getMobile());
+                    a.setMobile(patientDTO.getMobile());
                 } else {
                     LOGGER.warn("recipeAccountCheckDetailList mpiId is null :{}", a.getMpiId());
                 }
@@ -187,8 +209,8 @@ public class RecipeReportFormsService {
                 }
             });
             if (CollectionUtils.isEmpty(responses)) {
-                resultMap.put("total", 0);
-                resultMap.put("data", responses);
+                response.setTotal(Long.valueOf(0));
+                response.setData(responses);
             } else {
                 responses.stream().forEach(a -> {
                     if (0 == a.getRefundFlag()) {
@@ -198,16 +220,16 @@ public class RecipeReportFormsService {
                         a.setRefundMessage("已退费");
                     }
                 });
-                resultMap.put("total", responses.get(0).getTotal());
-                resultMap.put("data", responses);
+                response.setTotal(responses.get(0).getTotal());
+                response.setData(responses);
             }
 
         } catch (Exception e) {
             LOGGER.error("recipeAccountCheckDetailList error,request = {}", JSONUtils.toString(request), e);
-            resultMap.put("data", Collections.emptyList());
+            response.setData(Collections.emptyList());
         }
-        LOGGER.info("recipeAccountCheckDetailList resultMap = {}", JSONUtils.toString(resultMap));
-        return resultMap;
+        LOGGER.info("recipeAccountCheckDetailList resultMap = {}", JSONUtils.toString(response));
+        return response;
     }
 
     /**
@@ -241,7 +263,7 @@ public class RecipeReportFormsService {
                     if (null != drugsEnterprise) {
                         a.setEnterpriseName(drugsEnterprise.getName());
                     } else {
-                        LOGGER.warn("recipeAccountCheckDetailList enterpriseId is null {}", a.getEnterpriseId());
+                        LOGGER.warn("enterpriseRecipeMonthSummaryList enterpriseId is null {}", a.getEnterpriseId());
                     }
                 });
             }
@@ -300,14 +322,14 @@ public class RecipeReportFormsService {
                 if (null != patientDTO) {
                     a.setPatientName(patientDTO.getPatientName());
                 } else {
-                    LOGGER.warn("recipeAccountCheckDetailList mpiId is null :{}", a.getMpiId());
+                    LOGGER.warn("enterpriseRecipeDetailList mpiId is null :{}", a.getMpiId());
                 }
 
                 DrugsEnterprise drugsEnterprise = drugsEnterpriseMap.get(a.getEnterpriseId());
                 if (null != drugsEnterprise) {
                     a.setEnterpriseName(drugsEnterprise.getName());
                 } else {
-                    LOGGER.warn("recipeAccountCheckDetailList enterpriseId is null {}", a.getEnterpriseId());
+                    LOGGER.warn("enterpriseRecipeDetailList enterpriseId is null {}", a.getEnterpriseId());
                 }
 
                 try {

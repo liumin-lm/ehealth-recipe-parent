@@ -127,6 +127,9 @@ public class DepDetailBean {
     @ItemProperty(alias = "药店所属公司名称")
     private String companyName;
 
+    @ItemProperty(alias = "优先级")
+    private Integer priorityLevel;
+
     public Integer getStockFlag() {
         return stockFlag;
     }
@@ -386,5 +389,13 @@ public class DepDetailBean {
 
     public void setCompanyName(String companyName) {
         this.companyName = companyName;
+    }
+
+    public Integer getPriorityLevel() {
+        return priorityLevel;
+    }
+
+    public void setPriorityLevel(Integer priorityLevel) {
+        this.priorityLevel = priorityLevel;
     }
 }

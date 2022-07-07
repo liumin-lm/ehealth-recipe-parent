@@ -62,6 +62,7 @@ import recipe.bussutil.UsingRateFilter;
 import recipe.client.DocIndexClient;
 import recipe.client.IConfigurationClient;
 import recipe.client.OfflineRecipeClient;
+import recipe.client.RecipeSettleClient;
 import recipe.constant.CacheConstant;
 import recipe.constant.ErrorCode;
 import recipe.constant.RecipeBussConstant;
@@ -71,6 +72,7 @@ import recipe.dao.bean.DrugInfoHisBean;
 import recipe.drugsenterprise.AccessDrugEnterpriseService;
 import recipe.drugsenterprise.CommonRemoteService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
+import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.hisservice.HisRequestInit;
 import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.hisservice.RecipeToHisService;
@@ -83,10 +85,7 @@ import recipe.presettle.settle.IRecipeSettleService;
 import recipe.retry.RecipeRetryService;
 import recipe.thread.CardDataUploadRunable;
 import recipe.thread.RecipeBusiThreadPool;
-import recipe.util.ByteUtils;
-import recipe.util.DateConversion;
-import recipe.util.MapValueUtil;
-import recipe.util.RedisClient;
+import recipe.util.*;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -117,7 +116,7 @@ public class RecipeHisService extends RecipeBaseService {
     @Autowired
     private IRevisitService consultService;
     @Resource
-    RecipeRetryService recipeRetryService;
+    private RecipeRetryService recipeRetryService;
     @Resource
     private PharmacyTcmDAO pharmacyTcmDAO;
     @Autowired
@@ -134,6 +133,12 @@ public class RecipeHisService extends RecipeBaseService {
     private PharmacyManager pharmacyManager;
     @Autowired
     private OrderManager orderManager;
+    @Autowired
+    private RecipeParameterDao recipeParameterDao;
+    @Autowired
+    private RecipeDAO recipeDAO;
+    @Autowired
+    private RecipeSettleClient recipeSettleClient;
 
     /**
      * 发送处方
@@ -144,20 +149,22 @@ public class RecipeHisService extends RecipeBaseService {
     @LogRecord
     public boolean recipeSendHis(Integer recipeId, Integer otherOrganId) {
         boolean result = true;
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         LOGGER.info("recipeSendHis recipe={}", JSONUtils.toString(recipe));
         if (null == recipe) {
             return false;
         }
+        Recipe updateRecipe = new Recipe();
+        updateRecipe.setRecipeId(recipeId);
+        updateRecipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_CHECKING_HOS.getType());
+        updateRecipe.setWriteHisState(1);
+        recipeDAO.updateNonNullFieldByPrimaryKey(updateRecipe);
         //中药处方由于不需要跟HIS交互，故读写分离后有可能查询不到数据
         if (skipHis(recipe)) {
             LOGGER.info("skip his!!! recipeId={}", recipeId);
             doHisReturnSuccess(recipe);
             return true;
         }
-
         Integer sendOrganId = (null == otherOrganId) ? recipe.getClinicOrgan() : otherOrganId;
         if (isHisEnable(sendOrganId)) {
             //推送处方
@@ -208,19 +215,6 @@ public class RecipeHisService extends RecipeBaseService {
             }
         }
         request.setOrganID(sendOrganId.toString());
-        LOGGER.info("recipeHisService recipeId:{} request:{}", recipeId, JSONUtils.toString(request));
-        // 处方独立出来后,his根据域名来判断回调模块
-        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-        // 传输煎发
-        if (StringUtils.isNotBlank(recipeExtend.getDecoctionId())) {
-            DrugDecoctionWayDao drugDecoctionWayDao = DAOFactory.getDAO(DrugDecoctionWayDao.class);
-            DecoctionWay decoctionWay = drugDecoctionWayDao.get(Integer.parseInt(recipeExtend.getDecoctionId()));
-            if (null != decoctionWay) {
-                request.setDecoctionCode(decoctionWay.getDecoctionCode());
-                request.setDecoctionText(decoctionWay.getDecoctionText());
-            }
-        }
         service.recipeSend(request);
     }
 
@@ -248,13 +242,11 @@ public class RecipeHisService extends RecipeBaseService {
                 orderRepTO.setPatientID(DateConversion.getDateFormatter(now, "yyMMdd") + str);
                 orderRepTO.setRegisterID(orderRepTO.getPatientID());
             }
-//            //生成处方编号，不需要通过HIS去产生
-//            String recipeCodeStr = DigestUtil.md5For16(recipe.getClinicOrgan() + recipe.getMpiid() + Calendar.getInstance().getTimeInMillis());
-//            orderRepTO.setRecipeNo(recipeCodeStr);
         }
         orderRepTO.setRecipeNo(String.valueOf(recipe.getRecipeId()));
         repList.add(orderRepTO);
         response.setData(repList);
+        response.setWriteHisState(0);
         service.sendSuccess(response);
         LOGGER.info("skip his success!!! recipeId={}", recipe.getRecipeId());
     }
@@ -332,6 +324,7 @@ public class RecipeHisService extends RecipeBaseService {
                 request.setRecipeID(recipeId);
                 request.setDoctorNumber(jobNumber);
                 request.setDoctorName(recipe.getDoctorName());
+                request.setTakeMedicine(recipe.getTakeMedicine());
                 if (recipeExtend != null) {
                     request.setHisDiseaseSerial(recipeExtend.getHisDiseaseSerial());
                 }
@@ -517,10 +510,12 @@ public class RecipeHisService extends RecipeBaseService {
         if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(recipe.getGiveMode()) || RecipeBussConstant.GIVEMODE_TFDS.equals(recipe.getGiveMode())
             || RecipeBussConstant.GIVEMODE_TO_HOS.equals(recipe.getGiveMode())) {
             LOGGER.info("doRecipeSettle recipeId={}", recipe.getRecipeId());
-            // 重附二个性化处理
-            if (recipe.getClinicOrgan().equals(1003498) && RecipeBussConstant.GIVEMODE_TFDS.equals(recipe.getGiveMode())) {
+            String settle_by_givemode_tfds = recipeParameterDao.getByName("settle_by_givemode_tfds");
+            List<Integer> organIds = JSONUtils.parse(settle_by_givemode_tfds, ArrayList.class);
+            if (CollectionUtils.isNotEmpty(organIds) && organIds.contains(recipe.getClinicOrgan()) && RecipeBussConstant.GIVEMODE_TFDS.equals(recipe.getGiveMode())) {
                 return true;
             }
+
             if (StringUtils.isEmpty(recipe.getOrderCode())) {
                 LOGGER.error("doRecipeSettle orderCode is null; recipeId={}", recipe.getRecipeId());
                 return false;
@@ -554,6 +549,15 @@ public class RecipeHisService extends RecipeBaseService {
             try {
                 //如果异常重试处理
                 response = recipeRetryService.doRecipeSettle(settleService, payNotifyReq);
+                LOGGER.info("doRecipeSettle settleService recipeId={}. response={}", recipe.getRecipeId(),JsonUtil.toString(response));
+                // 前置机返回结算异常码 99 启动结算重试
+                if(Objects.nonNull(response) && new Integer(99).equals(response.getMsgCode())) {
+                    HisResponseTO hisResponseTO = recipeSettleClient.retrySettle(payNotifyReq);
+                    // 反查成功或异常都算结算成功
+                    if ("99".equals(hisResponseTO.getMsgCode()) || "200".equals(hisResponseTO.getMsgCode())) {
+                        response.setMsgCode(0);
+                    }
+                }
             } catch (Exception e) {
                 LOGGER.error("doRecipeSettle error", e);
                 //三次重试后还是异常当做失败处理
@@ -565,9 +569,6 @@ public class RecipeHisService extends RecipeBaseService {
         }
         return true;
     }
-
-    @Autowired
-    private RecipeDAO recipeDAO;
 
     /**
      * 处方批量查询

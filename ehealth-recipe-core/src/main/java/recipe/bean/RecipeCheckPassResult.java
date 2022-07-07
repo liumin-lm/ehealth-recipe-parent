@@ -90,6 +90,17 @@ public class RecipeCheckPassResult {
     )
     private String visitCode;
 
+    @ItemProperty(alias = "0：默认(未写入)，1：写入中，2：写入失败，3：写入成功")
+    private Integer writeHisState;
+
+    public Integer getWriteHisState() {
+        return writeHisState;
+    }
+
+    public void setWriteHisState(Integer writeHisState) {
+        this.writeHisState = writeHisState;
+    }
+
     public String getVisitCode() {
         return visitCode;
     }

@@ -1224,7 +1224,7 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                     }
                 }
                 int flag = q.executeUpdate();
-                setResult(flag == 1);
+                setResult(flag > 0);
             }
         };
         HibernateSessionTemplate.instance().execute(action);

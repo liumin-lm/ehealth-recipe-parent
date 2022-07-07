@@ -43,12 +43,6 @@ public interface IOfflineRecipeBusinessService {
      */
     List<RecipeGiveModeButtonRes> settleForOfflineToOnline(SettleForOfflineToOnlineVO request);
 
-    /**
-     * 获取实现类 类型
-     *
-     * @return
-     */
-    String getHandlerMode();
 
     /**
      * 获取卡类型
@@ -78,7 +72,8 @@ public interface IOfflineRecipeBusinessService {
      * @param sysType  处方端类型 1 医生端 2患者端
      * @return RecipeInfoDTO 处方信息
      */
-    RecipeInfoDTO pushRecipe(Integer recipeId, Integer pushType, Integer sysType, Integer expressFeePayType, Double expressFee);
+    RecipeInfoDTO pushRecipe(Integer recipeId, Integer pushType, Integer sysType, Integer expressFeePayType,
+                             Double expressFee, String giveModeKey);
 
     void offlineToOnlineForRecipe(FindHisRecipeDetailReqVO request);
 
@@ -89,5 +84,5 @@ public interface IOfflineRecipeBusinessService {
      * @param recipeCode
      * @return
      */
-    HisResponseTO abolishOffLineRecipe(Integer organId, String recipeCode);
+    HisResponseTO abolishOffLineRecipe(Integer organId, List<String> recipeCode);
 }

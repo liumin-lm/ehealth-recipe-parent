@@ -1,11 +1,9 @@
 package recipe.atop.greenroom;
 
+import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.drugdistributionprice.model.DrugDistributionPriceBean;
 import com.ngari.recipe.drugdistributionprice.service.IDrugDistributionPriceService;
-import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
-import com.ngari.recipe.drugsenterprise.model.EnterpriseDecoctionAddressDTO;
-import com.ngari.recipe.drugsenterprise.model.EnterpriseDecoctionAddressReq;
-import com.ngari.recipe.drugsenterprise.model.EnterpriseDecoctionList;
+import com.ngari.recipe.drugsenterprise.model.*;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.EnterpriseDecoctionAddress;
 import com.ngari.recipe.entity.OrganAndDrugsepRelation;
@@ -27,9 +25,7 @@ import recipe.vo.greenroom.OrganDrugsSaleConfigVo;
 import recipe.vo.greenroom.OrganEnterpriseRelationVo;
 import recipe.vo.greenroom.PharmacyVO;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -42,6 +38,7 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
 
     @Autowired
     private IDrugsEnterpriseBusinessService enterpriseBusinessService;
+
     @Autowired
     private IDrugDistributionPriceService drugDistributionPriceService;
 
@@ -57,7 +54,7 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
         return enterpriseIdAndAddrArea;
     }
 
- /**
+    /**
      * 添加药企配送地址快递费
      *
      * @param list
@@ -69,10 +66,6 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
         return list;
     }
 
-    @Autowired
-    private IDrugsEnterpriseBusinessService drugsEnterpriseBusinessService;
-
-
     /**
      * 根据药企机构查询煎法
      *
@@ -82,6 +75,30 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
     public List<EnterpriseDecoctionList> findEnterpriseDecoctionList(Integer enterpriseId,Integer organId) {
         validateAtop(enterpriseId,organId);
         List<EnterpriseDecoctionList> list = enterpriseBusinessService.findEnterpriseDecoctionList(enterpriseId,organId);
+        return list;
+    }
+
+    /**
+     * 获取药企的配送地址以及费用
+     *
+     * @param enterpriseId
+     */
+    @RpcService
+    public List<EnterpriseAddressAndPrice> findEnterpriseAddressAndPrice(Integer enterpriseId,String area) {
+        validateAtop(enterpriseId);
+        List<EnterpriseAddressAndPrice> list = enterpriseBusinessService.findEnterpriseAddressAndPrice(enterpriseId,area);
+        return list;
+    }
+
+    /**
+     * 获取药企的配送地址以及费用
+     *
+     * @param enterpriseId
+     */
+    @RpcService
+    public List<EnterpriseAddressAndPrice> findEnterpriseAddressProvince(Integer enterpriseId) {
+        validateAtop(enterpriseId);
+        List<EnterpriseAddressAndPrice> list = enterpriseBusinessService.findEnterpriseAddressProvince(enterpriseId);
         return list;
     }
 
@@ -131,19 +148,28 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
     public OrganEnterpriseRelationVo drugsEnterpriseLimit(OrganEnterpriseRelationVo organEnterpriseRelationVo) {
         validateAtop(organEnterpriseRelationVo.getType(), organEnterpriseRelationVo.getStart(), organEnterpriseRelationVo.getLimit());
         organEnterpriseRelationVo.setStart((organEnterpriseRelationVo.getStart() - 1) * organEnterpriseRelationVo.getLimit());
+        Integer organId = organEnterpriseRelationVo.getOrganId();
         QueryResult<DrugsEnterprise> queryResult = enterpriseBusinessService.drugsEnterpriseLimit(organEnterpriseRelationVo);
         if (null == queryResult || ValidateUtil.longIsEmpty(queryResult.getTotal())) {
             organEnterpriseRelationVo.setTotal(0);
             return organEnterpriseRelationVo;
         }
         List<DrugsEnterpriseBean> drugsEnterpriseList = ObjectCopyUtils.convert(queryResult.getItems(), DrugsEnterpriseBean.class);
+        List<OrganAndDrugsepRelation> organAndDrugsDepRelationList = enterpriseBusinessService.findOrganAndDrugsDepRelationBeanByOrganId(organId);
+        Map<Integer, OrganAndDrugsepRelation> organAndDrugsDepRelationMap = organAndDrugsDepRelationList.stream().collect(Collectors.toMap(OrganAndDrugsepRelation::getDrugsEnterpriseId,a->a,(k1,k2)->k1));
+        logger.info("drugsEnterpriseLimit organAndDrugsDepRelationMap:{}", JSON.toJSONString(organAndDrugsDepRelationMap));
         List<PharmacyVO> pharmacyList = enterpriseBusinessService.pharmacy();
         Map<Integer, PharmacyVO> map = pharmacyList.stream().collect(Collectors.toMap(PharmacyVO::getDrugsenterpriseId, a -> a, (k1, k2) -> k1));
         drugsEnterpriseList.forEach(a -> {
             if (ValidateUtil.integerIsEmpty(a.getCreateType())) {
                 a.setPharmacy(map.get(a.getId()));
             }
+            if (null == organAndDrugsDepRelationMap.get(a.getId())) {
+                return;
+            }
+            a.setPriorityLevel(organAndDrugsDepRelationMap.get(a.getId()).getPriorityLevel());
         });
+        drugsEnterpriseList = drugsEnterpriseList.stream().sorted(Comparator.comparing(drugsEnterpriseBean -> Optional.ofNullable(drugsEnterpriseBean.getPriorityLevel()).orElse(0),Comparator.reverseOrder())).collect(Collectors.toList());
         organEnterpriseRelationVo.setDrugsEnterpriseList(drugsEnterpriseList);
         organEnterpriseRelationVo.setTotal((int) queryResult.getTotal());
         return organEnterpriseRelationVo;
@@ -245,6 +271,28 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
      */
     @RpcService
     public Boolean pushDrugDispenser(Integer recipeId) {
-        return drugsEnterpriseBusinessService.pushDrugDispenser(recipeId);
+        return enterpriseBusinessService.pushDrugDispenser(recipeId);
+    }
+
+    /**
+     * 运营平台调用发药机发药根据订单
+     *
+     * @param orderId
+     * @return
+     */
+    @RpcService
+    public Boolean pushDrugDispenserByOrder(Integer orderId) {
+        return enterpriseBusinessService.pushDrugDispenserByOrder(orderId);
+    }
+
+    /**
+     * 更新药企的优先级
+     * @param depId
+     * @param level
+     * @return
+     */
+    @RpcService
+    public Boolean updateEnterprisePriorityLevel(Integer organId, Integer depId, Integer level){
+        return enterpriseBusinessService.updateEnterprisePriorityLevel(organId, depId, level);
     }
 }

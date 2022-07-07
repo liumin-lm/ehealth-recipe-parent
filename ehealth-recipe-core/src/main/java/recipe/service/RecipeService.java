@@ -263,6 +263,8 @@ public class RecipeService extends RecipeBaseService {
     private OrderManager orderManager;
     @Resource
     private DrugManager drugManager;
+    @Resource
+    private CaManager caManager;
 
     /**
      * 药师审核不通过
@@ -525,11 +527,9 @@ public class RecipeService extends RecipeBaseService {
     @RpcService
     @LogRecord
     public Integer saveRecipeData(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList) {
-        recipeBean.setSubState(RecipeStateEnum.NONE.getType());
-        recipeBean.setProcessState(RecipeStateEnum.NONE.getType());
-        recipeBean.setAuditState(RecipeAuditStateEnum.DEFAULT.getType());
         Integer recipeId = recipeServiceSub.saveRecipeDataImpl(recipeBean, detailBeanList, 1);
         updateRevisitOrConsultInfo(recipeId, recipeBean.getBussSource(), recipeBean.getClinicId());
+        RecipeBusiThreadPool.execute(() -> drugManager.saveCommonDrug(recipeId));
         if (RecipeBussConstant.FROMFLAG_HIS_USE.equals(recipeBean.getFromflag())) {
             //生成订单数据，与 HosPrescriptionService 中 createPrescription 方法一致
             HosPrescriptionService service = AppContextHolder.getBean("hosPrescriptionService", HosPrescriptionService.class);
@@ -542,12 +542,12 @@ public class RecipeService extends RecipeBaseService {
             recipeBean.setPayFlag(PayConstant.PAY_FLAG_NOT_PAY);
             service.createBlankOrderForHos(recipeBean, hospitalRecipeDTO);
         }
-        RecipeBusiThreadPool.execute(() -> drugManager.saveCommonDrug(recipeId));
         return recipeId;
     }
 
     /**
      * 暂存时更新复诊或者咨询recipeId
+     *
      * @param recipeId
      * @param bussSource
      * @param clinicId
@@ -797,8 +797,7 @@ public class RecipeService extends RecipeBaseService {
                 DoctorDTO doctorDTO = doctorService.getByDoctorId(recipe.getDoctor());
                 String userAccount = doctorDTO.getIdNumber();
                 //签名时的密码从redis中获取
-                String caPassword = redisClient.get("caPassword");
-                caPassword = null == caPassword ? "" : caPassword;
+                String caPassword = caManager.getCaPassWord(recipe.getClinicOrgan(), recipe.getDoctor());
                 //CA
                 ICaRemoteService iCaRemoteService = AppDomainContext.getBean("ca.iCaRemoteService", ICaRemoteService.class);
                 ca.vo.model.RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, ca.vo.model.RecipeBean.class);
@@ -1499,9 +1498,10 @@ public class RecipeService extends RecipeBaseService {
     public Map<String, Object> doSignRecipeNew(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList, int continueFlag) {
         LOGGER.info("RecipeService.doSignRecipeNew param: recipeBean={} detailBean={} continueFlag={}", JSONUtils.toString(recipeBean), JSONUtils.toString(detailBeanList), continueFlag);
         recipeDetailValidateTool.validateMedicalChineDrugNumber(recipeBean, detailBeanList);
-        //将密码放到redis中
-        redisClient.set("caPassword", recipeBean.getCaPassword());
+        caManager.setCaPassWord(recipeBean.getClinicOrgan(), recipeBean.getDoctor(), recipeBean.getCaPassword());
         Map<String, Object> rMap = new HashMap<String, Object>();
+
+
         rMap.put("signResult", true);
         try {
             recipeBean.setDistributionFlag(continueFlag);
@@ -3681,6 +3681,7 @@ public class RecipeService extends RecipeBaseService {
                 StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
                 RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
                 RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
+                HisRecipeDAO hisRecipeDAO = getDAO(HisRecipeDAO.class);
                 StringBuilder memo = new StringBuilder();
                 RecipeOrder order;
                 List<Integer> recipeIds = new ArrayList<>();
@@ -3737,6 +3738,9 @@ public class RecipeService extends RecipeBaseService {
                         Integer updateStatus = status == RecipeStatusConstant.RECIPE_ORDER_CACEL ? RecipeStatusConstant.NO_OPERATOR : status;
                         recipeDAO.updateRecipeInfoByRecipeId(recipeId, updateStatus, ImmutableMap.of("chooseFlag", 1));
                         stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_TIMEOUT_NOT_ORDER);
+                        if (new Integer("2").equals(recipe.getRecipeSourceType()) && new Integer(RecipeStatusConstant.NO_OPERATOR).equals(updateStatus)) {
+                            hisRecipeDAO.updateHisRecieStatus(recipe.getClinicOrgan(), recipe.getRecipeCode(), HisRecipeConstant.HISRECIPESTATUS_EXPIRED);
+                        }
                         RecipeMsgService.batchSendMsg(recipe, status);
                         if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
                             //药师首页待处理任务---取消未结束任务

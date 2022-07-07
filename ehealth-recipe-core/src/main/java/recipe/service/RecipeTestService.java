@@ -13,7 +13,6 @@ import com.ngari.patient.service.OrganService;
 import com.ngari.platform.recipe.mode.NoticeNgariRecipeInfoReq;
 import com.ngari.platform.recipe.mode.PushRecipeAndOrder;
 import com.ngari.recipe.common.RecipeResultBean;
-import com.ngari.recipe.drug.model.OrganDrugListBean;
 import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
 import com.ngari.recipe.entity.*;
 import ctd.account.session.ClientSession;
@@ -29,6 +28,9 @@ import eh.recipeaudit.api.IRecipeCheckService;
 import eh.recipeaudit.model.RecipeCheckBean;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,13 +38,12 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import recipe.ApplicationUtils;
 import recipe.aop.LogRecord;
 import recipe.business.StockBusinessService;
-import recipe.bussutil.CreateRecipePdfUtil;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.common.OnsConfig;
 import recipe.core.api.IDrugBusinessService;
 import recipe.dao.*;
+import recipe.drugTool.service.DrugToolService;
 import recipe.enumerate.status.RecipeAuditStateEnum;
-import recipe.enumerate.type.SignImageTypeEnum;
 import recipe.manager.EnterpriseManager;
 import recipe.manager.StateManager;
 import recipe.service.afterpay.LogisticsOnlineOrderService;
@@ -50,6 +51,9 @@ import recipe.service.recipecancel.RecipeCancelService;
 import recipe.util.DateConversion;
 import recipe.util.RecipeMsgUtils;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
@@ -81,6 +85,8 @@ public class RecipeTestService {
     private CreatePdfFactory createPdfFactory;
     @Autowired
     private StockBusinessService stockBusinessService;
+    @Autowired
+    private DrugToolService drugToolService;
 
 
 
@@ -100,12 +106,6 @@ public class RecipeTestService {
     public String testanyway() {
         ClientSession clientSession = ClientSession.getCurrent();
         return JSONUtils.toString(clientSession);
-    }
-
-    @RpcService
-    public int checkPassFail(Integer recipeId, Integer errorCode, String msg) {
-        HisCallBackService.checkPassFail(recipeId, errorCode, msg);
-        return 0;
     }
 
     /**
@@ -447,4 +447,33 @@ public class RecipeTestService {
         stockBusinessService.enterpriseStock(recipeId);
     }
 
+    @RpcService
+    public Map<String, Object> readDrugExcelTest(String filePath, int organId, String operator){
+        LOGGER.info("readDrugExcelTest filePath={},organId={},operator={}",filePath,organId,operator);
+        Workbook wb = null;
+        File file = new File(filePath);
+        String fileName = file.getName();
+        String subFileName = fileName.substring(fileName.lastIndexOf("."));
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        try {
+            FileInputStream fileInputStream = new FileInputStream(file);
+            if(".xls".equals(subFileName)){
+                wb = new HSSFWorkbook(fileInputStream);
+            }
+            else if(".xlsx".equals(subFileName)){
+                wb = new XSSFWorkbook(fileInputStream);
+            }else return null;
+            wb.write(os);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        byte[] bytes = os.toByteArray();
+        return drugToolService.readDrugExcel(bytes,fileName,organId,operator);
+    }
+
+    @RpcService
+    public String getParameterValue(String name){
+        RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
+        return recipeParameterDao.getByName(name);
+    }
 }

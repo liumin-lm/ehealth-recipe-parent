@@ -9,8 +9,7 @@ import com.ngari.recipe.dto.RecipeOrderDto;
 import com.ngari.recipe.dto.ReimbursementDTO;
 import com.ngari.recipe.dto.SkipThirdDTO;
 import com.ngari.recipe.entity.RecipeOrder;
-import com.ngari.recipe.recipe.model.ReimbursementListReqVO;
-import com.ngari.recipe.recipe.model.SkipThirdReqVO;
+import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
 import ctd.util.annotation.RpcService;
 import recipe.vo.ResultBean;
@@ -122,4 +121,32 @@ public interface IRecipeOrderBusinessService {
      * @return
      */
     ReimbursementDTO findReimbursementDetail(Integer recipeId);
+
+    /**
+     * 获取当前订单用户下历史订单的运单信息
+     * @param mpiId
+     * @return
+     */
+    List<RecipeOrderWaybillDTO> findOrderByMpiId(String mpiId);
+
+    /**
+     * 更改订单物流信息
+     * @param updateOrderStatusVO
+     */
+    void updateTrackingNumberByOrderId(UpdateOrderStatusVO updateOrderStatusVO);
+
+    /**
+     * 第三方创建订单
+     * @param thirdCreateOrderReqDTO
+     * @return
+     */
+    Integer thirdCreateOrder(ThirdCreateOrderReqDTO thirdCreateOrderReqDTO);
+
+    /**
+     * 根据订单批量修改发药药师
+     * @param orderId
+     * @param giveUser
+     * @return
+     */
+    ResultBean updateOrderGiveUser(Integer orderId, Integer giveUser);
 }

@@ -27,6 +27,7 @@ public class RecipeOrderRefundReqVO implements Serializable {
     private String beginTime;
     private String endTime;
     private Integer invoiceStatus;
+    private Integer fastRecipeFlag;
     private Integer start;
     private Integer limit;
 }

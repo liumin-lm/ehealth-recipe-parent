@@ -41,6 +41,8 @@ public class AfterPayBusService{
             keepAccountService.uploadKeepAccount(recipeOrder, recipes);
             //发送支付后消息
             paySendMsgService.sendPayMsg(recipeOrder, recipes);
+            //推送复诊用药提醒
+            //drugRemindRevisitService.drugRemind(recipeOrder,recipes);
         }
         //上传健康卡
         healthCardService.uploadHealthCard(recipes);

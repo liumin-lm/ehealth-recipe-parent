@@ -229,6 +229,9 @@ public abstract class GiveModeManager implements IGiveModeBase {
             if (strings.contains(String.valueOf(RecipeSupportGiveModeEnum.DOWNLOAD_RECIPE.getType()))) {
                 list.add(RecipeSupportGiveModeEnum.DOWNLOAD_RECIPE.getText());
             }
+            if (strings.contains(String.valueOf(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getType()))) {
+                list.add(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText());
+            }
         }
 
         saveGiveModeDatas(giveModeButtonBeans, list);
@@ -297,6 +300,9 @@ public abstract class GiveModeManager implements IGiveModeBase {
         }
         if (!remoteGiveMode.contains(RecipeSupportGiveModeEnum.DOWNLOAD_RECIPE.getText())) {
             list.add(RecipeSupportGiveModeEnum.DOWNLOAD_RECIPE.getText());
+        }
+        if (!remoteGiveMode.contains(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText())) {
+            list.add(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText());
         }
         Iterator iterator = giveModeButtonBeans.iterator();
         while (iterator.hasNext()) {

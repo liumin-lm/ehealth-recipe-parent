@@ -187,23 +187,23 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      *                         参见
      * @return
      */
-    @RpcService
-    QueryResult<Map> findRecipesByInfo(Integer organId, Integer status, Integer doctor, String mpiid,
-                                       Date bDate, Date eDate, Integer dateType,
-                                       Integer depart, int start, int limit, List<Integer> organIds,
-                                       Integer giveMode, Integer sendType, Integer fromflag,
-                                       Integer recipeId, Integer enterpriseId, Integer checkStatus,
-                                       Integer payFlag, Integer orderType, Integer refundNodeStatus, Integer recipeType);
+//    @RpcService
+//    QueryResult<Map> findRecipesByInfo(Integer organId, Integer status, Integer doctor, String mpiid,
+//                                       Date bDate, Date eDate, Integer dateType,
+//                                       Integer depart, int start, int limit, List<Integer> organIds,
+//                                       Integer giveMode, Integer sendType, Integer fromflag,
+//                                       Integer recipeId, Integer enterpriseId, Integer checkStatus,
+//                                       Integer payFlag, Integer orderType, Integer refundNodeStatus, Integer recipeType);
 
-    /**
-     * 运营平台使用
-     * 处方查询
-     *
-     * @param recipesQueryVO
-     * @return
-     */
-    @RpcService
-    QueryResult<Map> findRecipesByInfo2(RecipesQueryVO recipesQueryVO);
+//    /**
+//     * 运营平台使用
+//     * 处方查询
+//     *
+//     * @param recipesQueryVO
+//     * @return
+//     */
+//    @RpcService
+//    QueryResult<Map> findRecipesByInfo2(RecipesQueryVO recipesQueryVO);
 
 
     /**
@@ -315,26 +315,26 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     @RpcService
     HashMap<Object, Integer> getCountByHourAreaGroupByOrgan(final Date startDate, final Date endDate);
 
-    /**
-     * 处方导出Excel
-     *
-     * @param organId
-     * @param status
-     * @param doctor
-     * @param patientName
-     * @param bDate
-     * @param eDate
-     * @param dateType
-     * @param depart
-     * @param organIds
-     * @param giveMode
-     * @param fromflag
-     * @return
-     */
-    @RpcService(timeout = 600000)
-    @Deprecated
-    List<Object[]> findRecipesByInfoForExcel(final Integer organId, final Integer status, final Integer doctor, final String patientName, final Date bDate, final Date eDate, final Integer dateType,
-                                             final Integer depart, List<Integer> organIds, Integer giveMode, Integer fromflag, Integer recipeId, Integer enterpriseId, Integer checkStatus, Integer payFlag, Integer orderType, Integer sendType);
+//    /**
+//     * 处方导出Excel
+//     *
+//     * @param organId
+//     * @param status
+//     * @param doctor
+//     * @param patientName
+//     * @param bDate
+//     * @param eDate
+//     * @param dateType
+//     * @param depart
+//     * @param organIds
+//     * @param giveMode
+//     * @param fromflag
+//     * @return
+//     */
+//    @RpcService(timeout = 600000)
+//    @Deprecated
+//    List<Object[]> findRecipesByInfoForExcel(final Integer organId, final Integer status, final Integer doctor, final String patientName, final Date bDate, final Date eDate, final Integer dateType,
+//                                             final Integer depart, List<Integer> organIds, Integer giveMode, Integer fromflag, Integer recipeId, Integer enterpriseId, Integer checkStatus, Integer payFlag, Integer orderType, Integer sendType);
 
     /**
      * 处方导出Excel
@@ -343,7 +343,7 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      * @return
      */
     @RpcService(timeout = 600000)
-    List<Object[]> findRecipesByInfoForExcel2(RecipesQueryVO recipesQueryVO);
+    List<RecipeInfoExportDTO> findRecipesByInfoForExcel2(RecipesQueryVO recipesQueryVO);
 
     /**
      * 处方订单导出Excel

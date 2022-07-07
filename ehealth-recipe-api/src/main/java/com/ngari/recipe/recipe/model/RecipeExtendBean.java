@@ -201,8 +201,17 @@ public class RecipeExtendBean implements Serializable {
     @ItemProperty(alias = "强制自费的标识 1 强制 2 不强制")
     private Integer forceCashType;
 
+    /**
+     * 处方退费当前节点状态。0-待审核；1-审核通过，退款成功；2-审核通过，退款失败；3-审核不通过
+     */
+    @ItemProperty(alias = "处方退费当前节点状态")
+    @Dictionary(id = "eh.cdr.dictionary.RecipeRefundNodeStatus")
+    private Integer refundNodeStatus;
+
     @ItemProperty(alias = "处方业务类型  1 门诊处方  2  复诊处方  3 其他处方")
     private Integer recipeBusinessType;
+
+    private String recipeBusinessText;
 
     //用户页面选择
     @ItemProperty(alias = "医生选择是否代煎（ 0:否 1：是）")
@@ -797,5 +806,21 @@ public class RecipeExtendBean implements Serializable {
 
     public void setHandleType(String handleType) {
         this.handleType = handleType;
+    }
+
+    public String getRecipeBusinessText() {
+        return recipeBusinessText;
+    }
+
+    public void setRecipeBusinessText(String recipeBusinessText) {
+        this.recipeBusinessText = recipeBusinessText;
+    }
+
+    public Integer getRefundNodeStatus() {
+        return refundNodeStatus;
+    }
+
+    public void setRefundNodeStatus(Integer refundNodeStatus) {
+        this.refundNodeStatus = refundNodeStatus;
     }
 }

@@ -53,11 +53,12 @@ import recipe.ca.vo.CaSignResultVo;
 import recipe.caNew.AbstractCaProcessType;
 import recipe.caNew.CaAfterProcessType;
 import recipe.caNew.pdf.CreatePdfFactory;
-import recipe.common.OnsConfig;
+import recipe.common.UrlConfig;
 import recipe.constant.CARecipeTypeConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.core.api.IStockBusinessService;
 import recipe.dao.*;
+import recipe.manager.CaManager;
 import recipe.manager.EmrRecipeManager;
 import recipe.service.common.RecipeSignService;
 import recipe.util.ByteUtils;
@@ -81,6 +82,8 @@ public class RecipeCAService {
 
     private static final Integer CA_NEW_TYPE = new Integer(1);
 
+    private final static long VALID_TIME_SECOND = 3600 * 24 * 30;
+
     @Autowired
     private RedisClient redisClient;
     @Autowired
@@ -96,18 +99,21 @@ public class RecipeCAService {
     private RecipeExtendDAO recipeExtendDAO;
 
     @Autowired
-    PatientService patientService;
+    private PatientService patientService;
 
     @Autowired
-    RecipeDetailDAO recipeDetailDAO;
+    private RecipeDetailDAO recipeDetailDAO;
 
     @Autowired
-    OrganDrugListDAO organDrugDao;
+    private OrganDrugListDAO organDrugDao;
     @Autowired
     private CreatePdfFactory createPdfFactory;
 
     @Resource
     private IStockBusinessService drugEnterpriseBusinessService;
+
+    @Autowired
+    private CaManager caManager;
 
     @RpcService
     public CommonSignRequest packageCAFromRecipe(Integer recipeId, Integer doctorId, Boolean isDoctor) {
@@ -133,7 +139,7 @@ public class RecipeCAService {
             caRequest.setBussId(recipeId);
             caRequest.setBusstype(isDoctor ? CARecipeTypeConstant.CA_RECIPE_DOC : CARecipeTypeConstant.CA_RECIPE_PHA);
             caRequest.setMpiid(recipe.getMpiid());
-            caRequest.setCreateTime(recipe.getCreateDate()==null?"":recipe.getCreateDate().getTime()+"");
+            caRequest.setCreateTime(recipe.getCreateDate() == null ? "" : recipe.getCreateDate().getTime() + "");
             //2.首先组装易签保用的签名签章数据
             esignMap.put("isDoctor", isDoctor);
             esignMap.put("checker", doctorId);
@@ -183,10 +189,10 @@ public class RecipeCAService {
                 caRequest.setBussData(getBussDataFromCQ(recipeId, isDoctor));
             }
             caRequest.setExtendMap(obtainExtendMap(recipe));
-            if(StringUtils.isNotEmpty(recipe.getChemistSignFile())){
-                caRequest.setPdfPath(OnsConfig.fileViewUrl+recipe.getChemistSignFile()+"?token="+FileAuth.instance().createToken(recipe.getChemistSignFile(),3600));
-            }else if(StringUtils.isNotEmpty(recipe.getSignFile())){
-                caRequest.setPdfPath(OnsConfig.fileViewUrl+recipe.getSignFile()+"?token="+FileAuth.instance().createToken(recipe.getSignFile(),3600));
+            if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
+                caRequest.setPdfPath(UrlConfig.fileViewUrl + recipe.getChemistSignFile() + "?token=" + FileAuth.instance().createToken(recipe.getChemistSignFile(), VALID_TIME_SECOND));
+            } else if (StringUtils.isNotEmpty(recipe.getSignFile())) {
+                caRequest.setPdfPath(UrlConfig.fileViewUrl + recipe.getSignFile() + "?token=" + FileAuth.instance().createToken(recipe.getSignFile(), VALID_TIME_SECOND));
             }
         } catch (Exception e) {
             LOGGER.warn("当前处方CA数据组装失败返回空，{}", e);
@@ -195,11 +201,11 @@ public class RecipeCAService {
         return caRequest;
     }
 
-    private String calculationToken(String fileId){
+    private String calculationToken(String fileId) {
 //        String signStr = "fileid="+fileId+"?e=1571367872";
 //        Sign = hmac_sha1(signStr, 'MY_SECRET_KEY')
 //        EncodedSign = urlsafe_base64_encode(Sign)
-        FileAuth.instance().createToken("6246b575b262447d61a58848",3600);
+        FileAuth.instance().createToken("6246b575b262447d61a58848", 3600);
         return "";
     }
 
@@ -480,6 +486,7 @@ public class RecipeCAService {
         return request;
     }
 
+    //TODO 这个方法给哪个机构做的个性华？？
     @RpcService
     public Map<String, Object> doSignRecipeCABefore(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList, int continueFlag) {
         if (null == recipeBean) {
@@ -490,8 +497,7 @@ public class RecipeCAService {
         //2.新增后处方状态为：医生签名中
 
         LOGGER.info("doSignRecipeCABefore param: recipeBean={} detailBean={}", JSONUtils.toString(recipeBean), JSONUtils.toString(detailBeanList));
-        //将密码放到redis中
-        redisClient.set("caPassword", recipeBean.getCaPassword());
+        caManager.setCaPassWord(recipeBean.getClinicOrgan(), recipeBean.getDoctor(), recipeBean.getCaPassword());
         Map<String, Object> rMap = new HashMap<String, Object>();
         rMap.put("signResult", true);
         try {

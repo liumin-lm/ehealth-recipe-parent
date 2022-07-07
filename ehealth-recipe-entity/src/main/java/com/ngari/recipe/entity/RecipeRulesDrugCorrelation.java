@@ -1,24 +1,26 @@
-package com.ngari.recipe.commonrecipe.model;
+package com.ngari.recipe.entity;
 
 import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
+import javax.persistence.*;
+import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Date;
 
-/**
- * 合理用药规则 药品关系表
- *
- * @author renfuhao
- */
-@Schema
-public class RulesDrugCorrelationDTO  implements java.io.Serializable {
+import static javax.persistence.GenerationType.IDENTITY;
 
-    private static final long serialVersionUID = -7235240394983438859L;
+@Entity
+@Schema
+@Table(name = "recipe_rules_drugcorrelation")
+@Access(AccessType.PROPERTY)
+public class RecipeRulesDrugCorrelation implements Serializable {
+
+    private static final long serialVersionUID = -1918938219429895165L;
 
     @ItemProperty(alias = "规则关联药品表ID")
     private Integer id;
-
 
     @ItemProperty(alias = "合理用药规则Id")
     private Integer medicationRulesId;
@@ -39,11 +41,11 @@ public class RulesDrugCorrelationDTO  implements java.io.Serializable {
     @ItemProperty(alias = "规则关联药品名称")
     private String correlationDrugName;
 
-    @ItemProperty(alias = "最小规则药品 用量范围  中药药品超量规则 用")
-    private Double minimumDosageRange;
+    @ItemProperty(alias = "最小规则药品用量范围, 中药药品超量规则用")
+    private BigDecimal minimumDosageRange;
 
-    @ItemProperty(alias = "最大规则药品 用量范围  中药药品超量规则 用")
-    private Double maximumDosageRange;
+    @ItemProperty(alias = "最大规则药品用量范围, 中药药品超量规则用")
+    private BigDecimal maximumDosageRange;
 
     @ItemProperty(alias = "创建时间")
     private Date createDt;
@@ -51,6 +53,10 @@ public class RulesDrugCorrelationDTO  implements java.io.Serializable {
     @ItemProperty(alias = "最后修改时间")
     private Date lastModify;
 
+
+    @Id
+    @GeneratedValue(strategy = IDENTITY)
+    @Column(name = "id", unique = true, nullable = false)
     public Integer getId() {
         return id;
     }
@@ -59,6 +65,7 @@ public class RulesDrugCorrelationDTO  implements java.io.Serializable {
         this.id = id;
     }
 
+    @Column(name = "medicationRulesId")
     public Integer getMedicationRulesId() {
         return medicationRulesId;
     }
@@ -67,6 +74,7 @@ public class RulesDrugCorrelationDTO  implements java.io.Serializable {
         this.medicationRulesId = medicationRulesId;
     }
 
+    @Column(name = "drugRelationship")
     public Integer getDrugRelationship() {
         return drugRelationship;
     }
@@ -75,15 +83,7 @@ public class RulesDrugCorrelationDTO  implements java.io.Serializable {
         this.drugRelationship = drugRelationship;
     }
 
-
-    public String getDrugName() {
-        return drugName;
-    }
-
-    public void setDrugName(String drugName) {
-        this.drugName = drugName;
-    }
-
+    @Column(name = "drugId")
     public Integer getDrugId() {
         return drugId;
     }
@@ -92,6 +92,7 @@ public class RulesDrugCorrelationDTO  implements java.io.Serializable {
         this.drugId = drugId;
     }
 
+    @Column(name = "correlationDrugId")
     public Integer getCorrelationDrugId() {
         return correlationDrugId;
     }
@@ -100,6 +101,16 @@ public class RulesDrugCorrelationDTO  implements java.io.Serializable {
         this.correlationDrugId = correlationDrugId;
     }
 
+    @Column(name = "drugName")
+    public String getDrugName() {
+        return drugName;
+    }
+
+    public void setDrugName(String drugName) {
+        this.drugName = drugName;
+    }
+
+    @Column(name = "correlationDrugName")
     public String getCorrelationDrugName() {
         return correlationDrugName;
     }
@@ -108,15 +119,25 @@ public class RulesDrugCorrelationDTO  implements java.io.Serializable {
         this.correlationDrugName = correlationDrugName;
     }
 
-    public Double getMinimumDosageRange() {
+    @Column(name = "minimumDosageRange")
+    public BigDecimal getMinimumDosageRange() {
         return minimumDosageRange;
     }
 
-    public void setMinimumDosageRange(Double minimumDosageRange) {
+    public void setMinimumDosageRange(BigDecimal minimumDosageRange) {
         this.minimumDosageRange = minimumDosageRange;
     }
 
+    @Column(name = "MaximumDosageRange")
+    public BigDecimal getMaximumDosageRange() {
+        return maximumDosageRange;
+    }
 
+    public void setMaximumDosageRange(BigDecimal maximumDosageRange) {
+        this.maximumDosageRange = maximumDosageRange;
+    }
+
+    @Column(name = "createDt")
     public Date getCreateDt() {
         return createDt;
     }
@@ -125,14 +146,7 @@ public class RulesDrugCorrelationDTO  implements java.io.Serializable {
         this.createDt = createDt;
     }
 
-    public Double getMaximumDosageRange() {
-        return maximumDosageRange;
-    }
-
-    public void setMaximumDosageRange(Double maximumDosageRange) {
-        this.maximumDosageRange = maximumDosageRange;
-    }
-
+    @Column(name = "LastModify")
     public Date getLastModify() {
         return lastModify;
     }

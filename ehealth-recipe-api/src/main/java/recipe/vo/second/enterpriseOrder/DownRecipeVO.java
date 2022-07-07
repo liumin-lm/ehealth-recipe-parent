@@ -10,6 +10,7 @@ import recipe.vo.base.BaseRecipeVO;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
@@ -41,7 +42,7 @@ public class DownRecipeVO extends BaseRecipeVO implements Serializable {
     private String mpiid;
 
     @ItemProperty(alias = "处方签名图片")
-    private String signImg;
+    private String recipeSignImgUrl;
 
     @ItemProperty(alias = "出生日期")
     @Temporal(TemporalType.DATE)
@@ -56,6 +57,9 @@ public class DownRecipeVO extends BaseRecipeVO implements Serializable {
 
     private String sexName;
 
+    @ItemProperty(alias = "处方费用")
+    private BigDecimal recipeFee;
+
     @Temporal(TemporalType.DATE)
     @JsonFormat(
             pattern = "yyyy-MM-dd",
@@ -63,6 +67,49 @@ public class DownRecipeVO extends BaseRecipeVO implements Serializable {
     )
     public Date getBirthday() {
         return this.birthday;
+    }
+
+    @ItemProperty(alias = "处方签（Base64图片编码）")
+    private String recipeSignImg;
+
+
+    @ItemProperty(alias = "开方时间")
+    @Temporal(TemporalType.DATE)
+    private Date createDate;
+
+    @ItemProperty(alias = "审核日期")
+    @Temporal(TemporalType.DATE)
+    private Date checkDate;
+
+    @ItemProperty(alias = "失效时间")
+    @Temporal(TemporalType.DATE)
+    private Date invalidTime;
+
+    @Temporal(TemporalType.DATE)
+    @JsonFormat(
+            pattern = "yyyy-MM-dd HH:mm:ss",
+            timezone = "Asia/Shanghai"
+    )
+    public Date getCreateDate() {
+        return createDate;
+    }
+
+    @Temporal(TemporalType.DATE)
+    @JsonFormat(
+            pattern = "yyyy-MM-dd HH:mm:ss",
+            timezone = "Asia/Shanghai"
+    )
+    public Date getCheckDate() {
+        return checkDate;
+    }
+
+    @Temporal(TemporalType.DATE)
+    @JsonFormat(
+            pattern = "yyyy-MM-dd HH:mm:ss",
+            timezone = "Asia/Shanghai"
+    )
+    public Date getInvalidTime() {
+        return invalidTime;
     }
 
 }

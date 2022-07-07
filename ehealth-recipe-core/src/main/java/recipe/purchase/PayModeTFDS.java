@@ -18,6 +18,7 @@ import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.RecipePayModeSupportBean;
+import recipe.client.IConfigurationClient;
 import recipe.constant.OrderStatusConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.core.api.IStockBusinessService;
@@ -56,6 +57,10 @@ public class PayModeTFDS implements IPurchaseService {
     private EnterpriseManager enterpriseManager;
     @Autowired
     private RecipeDetailDAO detailDAO;
+    @Autowired
+    private IConfigurationClient configurationClient;
+    @Autowired
+    private OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO;
 
     public PayModeTFDS() {
 
@@ -127,6 +132,8 @@ public class PayModeTFDS implements IPurchaseService {
                 depDetailList.addAll(depList);
             }
         }
+        //药店优先级处理
+        depDetailList = drugStorePriorityLevel(recipe.getClinicOrgan(), depDetailList);
         if (CollectionUtils.isNotEmpty(depDetailList)) {
             Iterator iterator = depDetailList.iterator();
             while (iterator.hasNext()) {
@@ -206,21 +213,17 @@ public class PayModeTFDS implements IPurchaseService {
         Integer calculateFee = MapValueUtil.getInteger(extInfo, "calculateFee");
         //设置中药代建费
         Integer decoctionId = MapValueUtil.getInteger(extInfo, "decoctionId");
-        RecipeExtendDAO recipeExtendDAO = getDAO(RecipeExtendDAO.class);
         if (decoctionId != null) {
             DrugDecoctionWayDao drugDecoctionWayDao = getDAO(DrugDecoctionWayDao.class);
             DecoctionWay decoctionWay = drugDecoctionWayDao.get(decoctionId);
-//            for (Recipe dbRecipe : dbRecipes) {
-                if (decoctionWay != null) {
-                    if (decoctionWay.getDecoctionPrice() != null) {
-                        calculateFee = 1;
-                        order.setDecoctionUnitPrice(BigDecimal.valueOf(decoctionWay.getDecoctionPrice()));
-                    }
-//                    recipeExtendDAO.updateRecipeExInfoByRecipeId(dbRecipe.getRecipeId(), ImmutableMap.of("decoctionId", decoctionId + "", "decoctionText", decoctionWay.getDecoctionText()));
-                } else {
-                    LOGGER.error("未获取到对应的代煎费，,decoctionId={}", decoctionId);
+            if (decoctionWay != null) {
+                if (decoctionWay.getDecoctionPrice() != null) {
+                    calculateFee = 1;
+                    order.setDecoctionUnitPrice(BigDecimal.valueOf(decoctionWay.getDecoctionPrice()));
                 }
-//            }
+            } else {
+                LOGGER.error("未获取到对应的代煎费，,decoctionId={}", decoctionId);
+            }
         }
         //线下处方和线上PatientIsDecoction处理成一样
         //在患者没有选择的情况下：前端会根据医生是否选择字段传入patientIsDecoction  对于线下处方而言，线下转线上的时候医生是否选择已经赋值
@@ -262,7 +265,6 @@ public class PayModeTFDS implements IPurchaseService {
         } else {
             // 邵逸夫模式下 不需要审方物流费需要生成一条流水记录
             orderManager.saveFlowByOrder(order);
-
             //需要支付则走支付前的逻辑
             orderService.finishOrderPayWithoutPay(order.getOrderCode(), payMode);
         }
@@ -435,6 +437,22 @@ public class PayModeTFDS implements IPurchaseService {
             }
         }
         return depDetailList;
+    }
+
+    private List<DepDetailBean> drugStorePriorityLevel(Integer organId, List<DepDetailBean> depDetailBeans){
+        Boolean openEnterprisePriorityFlag = configurationClient.getValueBooleanCatch(organId, "openEnterprisePriorityFlag", false);
+        if (!openEnterprisePriorityFlag) {
+            return depDetailBeans;
+        }
+        List<OrganAndDrugsepRelation> organAndDrugsDepRelationList = organAndDrugsepRelationDAO.findByOrganId(organId);
+        Map<Integer, OrganAndDrugsepRelation> organAndDrugsDepRelationMap = organAndDrugsDepRelationList.stream().collect(Collectors.toMap(OrganAndDrugsepRelation::getDrugsEnterpriseId,a->a,(k1,k2)->k1));
+        depDetailBeans.forEach(depDetailBean -> depDetailBean.setPriorityLevel(organAndDrugsDepRelationMap.get(depDetailBean.getDepId()).getPriorityLevel()));
+        Map<Integer, List<DepDetailBean>> depDetailBeanListMap = depDetailBeans.stream().collect(Collectors.groupingBy(depDetailBean -> Optional.ofNullable(depDetailBean.getPriorityLevel()).orElse(0)));
+        DepDetailBean detailBean = depDetailBeans.stream().max(Comparator.comparing(depDetailBean -> Optional.ofNullable(depDetailBean.getPriorityLevel()).orElse(0))).orElse(null);
+        if (null == detailBean) {
+            return depDetailBeans;
+        }
+        return depDetailBeanListMap.get(detailBean.getPriorityLevel());
     }
 
     class DepDetailBeanComparator implements Comparator<DepDetailBean> {

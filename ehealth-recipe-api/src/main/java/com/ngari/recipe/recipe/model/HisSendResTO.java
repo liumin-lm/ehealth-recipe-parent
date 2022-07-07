@@ -66,6 +66,17 @@ public class HisSendResTO implements java.io.Serializable {
     @ItemProperty(alias = "处方药品价格明细")
     private List<RecipePreSettleDrugFeeDTO> recipePreSettleDrugFeeDTOS;
 
+    @ItemProperty(alias = "0：默认(未写入)，1：写入中，2：写入失败，3：写入成功")
+    private Integer writeHisState;
+
+    public Integer getWriteHisState() {
+        return writeHisState;
+    }
+
+    public void setWriteHisState(Integer writeHisState) {
+        this.writeHisState = writeHisState;
+    }
+
     public List<RecipePreSettleDrugFeeDTO> getRecipePreSettleDrugFeeDTOS() {
         return recipePreSettleDrugFeeDTOS;
     }

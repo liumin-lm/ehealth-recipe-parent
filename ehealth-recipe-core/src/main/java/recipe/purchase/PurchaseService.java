@@ -13,7 +13,6 @@ import com.ngari.his.patient.service.IPatientHisService;
 import com.ngari.his.recipe.mode.MedicInsurSettleApplyReqTO;
 import com.ngari.his.recipe.mode.MedicInsurSettleApplyResTO;
 import com.ngari.his.recipe.mode.QueryHisRecipResTO;
-import com.ngari.infra.logistics.service.ILogisticsOrderService;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.BasicAPI;
@@ -47,11 +46,11 @@ import recipe.bean.PltPurchaseResponse;
 import recipe.client.IConfigurationClient;
 import recipe.constant.*;
 import recipe.dao.*;
-import recipe.enumerate.status.GiveModeEnum;
 import recipe.enumerate.status.OfflineToOnlineEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.GiveModeTextEnum;
 import recipe.enumerate.type.RecipeDistributionFlagEnum;
+import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.manager.*;
 import recipe.service.*;
 import recipe.util.MapValueUtil;
@@ -328,10 +327,6 @@ public class PurchaseService {
     private OrderCreateResult checkOrderInfo(List<Integer> recipeIds, Map<String, String> extInfo) {
         // 物流是否管控
         extInfo.put("recipeId", recipeIds.get(0).toString());
-        boolean sendFlag = orderManager.orderCanSend(extInfo);
-        if (!sendFlag) {
-            throw new DAOException(609, "由于疫情影响，本地无法进行快递配送，敬请见谅！");
-        }
 
         //在确认订单页，用户点击提交订单，需要再次判断该处方单状态，若更新了诊断或药品信息或者删除了处方或者处方已经支付，则提示患者该处方已做变更，需要重新进入处理。
         OrderCreateResult result = new OrderCreateResult(RecipeResultBean.SUCCESS);
@@ -411,6 +406,10 @@ public class PurchaseService {
                 LOG.info("checkOrderInfo recipeId:{} 药品详情已变更或数据已经由他人生成", recipeId);
             }
             EmrRecipeManager.getMedicalInfo(dbRecipe, recipeExtend);
+        }
+        boolean sendFlag = orderManager.orderCanSend(extInfo);
+        if (!sendFlag) {
+            throw new DAOException(609, "由于疫情影响，本地无法进行快递配送，敬请见谅！");
         }
         return result;
     }
@@ -540,8 +539,6 @@ public class PurchaseService {
             Recipe recipe = recipeDAO.getByRecipeId(recipeId);
             List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipeId);
             List<Integer> drugList = recipeDetails.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
-            List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugIdList(recipe.getClinicOrgan(), drugList);
-            Map<Integer, OrganDrugList> organDrugListMap = organDrugLists.stream().collect(Collectors.toMap(OrganDrugList::getDrugId, a->a,(k1,k2)->k1));
             if (recipe.getEnterpriseId() != null) {
                 DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipe.getEnterpriseId());
                 //结算方式 0:药店价格 1:医院价格
@@ -560,13 +557,13 @@ public class PurchaseService {
                         if (settlementMode == 0) {
                             //可能取的是药企配送目录里的价格，得重新设置药品总价
                             BigDecimal price = saleDrugList.getPrice();
-                            recipedetail.setActualSalePrice(price);
+                            recipedetail.setActualSalePrice(setRecipeDetailActualSalePrice(recipedetail, price));
                             //线下转线上不处理药品总价
                             if (!RecipeBussConstant.OFFLINE_TO_ONLINE.equals(recipe.getRecipeSourceType())) {
                                 recipedetail.setDrugCost(price.multiply(new BigDecimal(recipedetail.getUseTotalDose())).divide(BigDecimal.ONE, 4, RoundingMode.UP));
                             }
                         } else if (settlementMode == 1) {
-                            recipedetail.setActualSalePrice(recipedetail.getSalePrice());
+                            recipedetail.setActualSalePrice(setRecipeDetailActualSalePrice(recipedetail, recipedetail.getSalePrice()));
                         }
 
 
@@ -581,8 +578,7 @@ public class PurchaseService {
             } else {
                 recipeDetails.forEach(recipeDetail -> {
                     try {
-                        OrganDrugList organDrugList = organDrugListMap.get(recipeDetail.getDrugId());
-                        recipeDetail.setActualSalePrice(organDrugList.getSalePrice());
+                        recipeDetail.setActualSalePrice(setRecipeDetailActualSalePrice(recipeDetail, recipeDetail.getSalePrice()));
 
                         recipeDetailDAO.updateNonNullFieldByPrimaryKey(recipeDetail);
                     } catch (Exception e) {
@@ -636,6 +632,20 @@ public class PurchaseService {
         }
 
         return purchaseService;
+    }
+
+    /**
+     * 重新设置实际单价
+     *
+     * @param recipeDetail
+     * @param price
+     * @return
+     */
+    private BigDecimal setRecipeDetailActualSalePrice(Recipedetail recipeDetail, BigDecimal price) {
+        if (RecipeTypeEnum.RECIPETYPE_TCM.getType().equals(recipeDetail.getDrugType())) {
+            return price.divide(new BigDecimal(recipeDetail.getPack()), 4, BigDecimal.ROUND_HALF_UP);
+        }
+        return price;
     }
 
     /**
