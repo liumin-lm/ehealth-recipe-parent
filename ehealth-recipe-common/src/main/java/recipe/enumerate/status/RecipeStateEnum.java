@@ -33,6 +33,13 @@ public enum RecipeStateEnum {
     SUB_SUBMIT_DOC_SIGN_FAIL(15, "签名失败，您可以重新发起签名", "医生签名失败"),
 
     /**
+     * 处方子状态:待审核
+     */
+    SUB_AUDIT_NO_AUDIT(21, "药师未审核", ""),
+    SUB_AUDIT_SUCCESS(22, "药师审核成功", ""),
+    SUB_AUDIT_FAIL(23, "药师审核失败", ""),
+
+    /**
      * 处方子状态:已完成
      */
     SUB_DONE_DOWNLOAD(71, "下载处方签", ""),
