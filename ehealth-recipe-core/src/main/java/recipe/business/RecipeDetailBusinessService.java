@@ -103,7 +103,7 @@ public class RecipeDetailBusinessService implements IRecipeDetailBusinessService
             //校验药品药房是否变动
             Integer pharmacyId = PharmacyManager.pharmacyVariation(a.getPharmacyId(), a.getPharmacyCode(), organDrug.getPharmacy(), pharmacyCodeMap);
             if (null == pharmacyId) {
-                a.setValidateStatusText("机构药品药房错误");
+                a.setValidateStatusText("机构药品药房错误｜" + a.getPharmacyId() + "｜" + a.getPharmacyCode() + "->" + organDrug.getPharmacy());
                 a.setValidateStatus(RecipeDetailValidateTool.VALIDATE_STATUS_FAILURE);
                 logger.info("RecipeDetailService validateDrug pharmacy OrganDrugCode ：= {}", a.getOrganDrugCode());
                 return;
