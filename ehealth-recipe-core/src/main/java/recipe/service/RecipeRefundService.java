@@ -679,6 +679,7 @@ public class RecipeRefundService extends RecipeBaseService {
         try {
             applyForRecipeRefund(recipeId, patientRefundReason);
         } catch (Exception e) {
+            LOGGER.error("startRefundRecipeToDoctor error msg:{}", e.getMessage());
             throw new DAOException(609, e.getMessage());
         }
 
