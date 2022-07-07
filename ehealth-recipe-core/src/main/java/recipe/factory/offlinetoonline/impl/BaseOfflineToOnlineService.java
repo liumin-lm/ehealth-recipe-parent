@@ -252,7 +252,6 @@ public class BaseOfflineToOnlineService {
      *
      * @param hisRecipeListBeans
      * @param organId
-     * @param mpiId
      * @param giveModeButtonBean
      * @param start
      * @param limit
@@ -326,9 +325,11 @@ public class BaseOfflineToOnlineService {
             // 有订单跳转订单
             hisRecipeVO.setJumpPageType(1);
             hisRecipeVO.setOrganDiseaseName(hisRecipeListBean.getDiseaseName());
-            Recipe recipe = recipeMap.get(hisRecipeListBean.getRecipeId()).get(0);
-            if (Objects.nonNull(recipeOrder)) {
-                hisRecipeVO.setStatusText(RecipeUtil.getTipsByStatusForPatient(recipe, recipeOrder));
+            if (recipeMap != null) {
+                Recipe recipe = recipeMap.get(hisRecipeListBean.getRecipeId()).get(0);
+                if (Objects.nonNull(recipeOrder)) {
+                    hisRecipeVO.setStatusText(RecipeUtil.getTipsByStatusForPatient(recipe, recipeOrder));
+                }
             }
             recipeIds.add(hisRecipeVO.getHisRecipeID());
             hisRecipeVos.add(hisRecipeVO);
@@ -375,6 +376,9 @@ public class BaseOfflineToOnlineService {
 
     private Map<Integer, List<Recipe>> getRecipeMap(List<HisRecipeListBean> hisRecipeListByMpiIds) {
         Set<Integer> recipes = hisRecipeListByMpiIds.stream().filter(hisRecipeListBean -> hisRecipeListBean.getRecipeId() != null).collect(Collectors.groupingBy(HisRecipeListBean::getRecipeId)).keySet();
+        if (CollectionUtils.isEmpty(recipes)) {
+            return null;
+        }
         List<Recipe> byRecipes = recipeDAO.findByRecipeIds(recipes);
         Map<Integer, List<Recipe>> collect = null;
         if (CollectionUtils.isNotEmpty(byRecipes)) {
