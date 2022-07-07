@@ -374,7 +374,7 @@ public class DrugManager extends BaseManager {
             int numberOfDecimalPlaces = getNumberOfDecimalPlaces(salePrice);
             if (numberOfDecimalPlaces <= 2) {
                 salePrice = salePrice.setScale(2, BigDecimal.ROUND_HALF_UP);
-            } else {
+            } else if (numberOfDecimalPlaces > 4) {
                 salePrice = salePrice.setScale(4, BigDecimal.ROUND_HALF_UP);
             }
             patientDrugWithEsDTO.setSalePrice(salePrice);

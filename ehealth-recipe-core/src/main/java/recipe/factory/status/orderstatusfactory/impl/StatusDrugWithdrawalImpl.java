@@ -4,10 +4,13 @@ import com.ngari.platform.recipe.mode.RecipeDrugInventoryDTO;
 import com.ngari.recipe.drug.model.OrganDrugListBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
+import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.client.DrugStockClient;
+import recipe.constant.ErrorCode;
 import recipe.enumerate.status.OrderStateEnum;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.status.RecipeStateEnum;
@@ -17,6 +20,7 @@ import recipe.service.OrganDrugListService;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 已退药
@@ -44,7 +48,9 @@ public class StatusDrugWithdrawalImpl extends AbstractRecipeOrderStatus {
     @Override
     public Recipe updateStatus(UpdateOrderStatusVO orderStatus, RecipeOrder recipeOrder, Recipe recipe) {
         recipeOrder.setDispensingFlag(DISPENSING_FLAG_WITHDRAWAL);
-        List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
+        RecipeOrder order = recipeOrderDAO.get(recipeOrder.getOrderId());
+        List<Integer> recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
+        List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeIdList(recipeIdList);
         try {
             for(Recipedetail recipedetail : recipeDetailList){
                 OrganDrugListBean organDrugList = organDrugListService.getByOrganIdAndOrganDrugCodeAndDrugId(recipe.getRecipeId(), recipedetail.getOrganDrugCode(), recipedetail.getDrugId());
@@ -56,16 +62,28 @@ public class StatusDrugWithdrawalImpl extends AbstractRecipeOrderStatus {
         }catch (Exception e){
             logger.info("StatusDrugWithdrawalImpl updateStatus  error",e);
         }
-        RecipeOrderBill recipeOrderBill = recipeOrderBillDAO.getRecipeOrderBillByOrderCode(recipe.getOrderCode());
-        Map<Integer, PharmacyTcm> pharmacyTcmMap = pharmacyManager.pharmacyIdMap(recipe.getClinicOrgan());
-        RecipeDrugInventoryDTO request = drugStockClient.recipeDrugInventory(recipe, recipeDetailList, recipeOrderBill, pharmacyTcmMap);
-        request.setInventoryType(DISPENSING_FLAG_WITHDRAWAL);
-        drugStockClient.drugInventory(request);
+        drugInventory(recipeIdList,recipeDetailList,recipe);
         recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_DRUG_WITHDRAWAL.getType());
         recipe.setProcessState(RecipeStateEnum.PROCESS_STATE_CANCELLATION.getType());
         recipe.setSubState(RecipeStateEnum.SUB_CANCELLATION_RETURN_DRUG.getType());
         stateManager.updateOrderState(recipeOrder.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION, OrderStateEnum.SUB_CANCELLATION_RETURN_DRUG);
         return recipe;
+    }
+
+    private void drugInventory(List<Integer> recipeIdList,List<Recipedetail> recipeDetailList,Recipe recipe){
+        if(CollectionUtils.isEmpty(recipeDetailList)){
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "药品列表为空");
+        }
+        Map<Integer, List<Recipedetail>> collect = recipeDetailList.stream().collect(Collectors.groupingBy(Recipedetail::getRecipeId));
+        List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIdList);
+        RecipeOrderBill recipeOrderBill = recipeOrderBillDAO.getRecipeOrderBillByOrderCode(recipe.getOrderCode());
+        Map<Integer, PharmacyTcm> pharmacyTcmMap = pharmacyManager.pharmacyIdMap(recipe.getClinicOrgan());
+        recipes.forEach(r -> {
+            List<Recipedetail> recipeDetails = collect.get(r.getRecipeId());
+            RecipeDrugInventoryDTO request = drugStockClient.recipeDrugInventory(r, recipeDetails, recipeOrderBill, pharmacyTcmMap);
+            request.setInventoryType(DISPENSING_FLAG_WITHDRAWAL);
+            drugStockClient.drugInventory(request);
+        });
     }
     
 }

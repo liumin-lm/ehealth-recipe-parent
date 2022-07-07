@@ -157,7 +157,7 @@ public class RecipeOrderPatientAtop extends BaseAtop {
         //过滤按钮
         boolean validate = iOrganBusinessService.giveModeValidate(organId, giveModeKey);
         if (!validate) {
-            logger.info("RecipeOrderPatientAtop submitRecipeHis orderId = {} , giveModeKey = {}", organId, giveModeKey);
+            logger.info("RecipeOrderPatientAtop submitRecipeHis organId = {}, giveModeKey = {}", organId, giveModeKey);
             return;
         }
         //推送his

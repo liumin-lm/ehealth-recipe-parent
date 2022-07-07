@@ -96,7 +96,7 @@ public abstract class AbstractAuditMode implements IAuditMode {
                 && RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
             //增加药师首页待处理任务---创建任务
             RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
-            LOGGER.info("AbstractAuidtMode saveStatusAndSendMsg recipeId:{},recipeBean:{}", recipe.getRecipeId(), JSON.toJSONString(recipeBean));
+            LOGGER.info("AbstractAuditMode saveStatusAndSendMsg recipeId:{},recipeBean:{}", recipe.getRecipeId(), JSON.toJSONString(recipeBean));
             ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussCreateEvent(recipeBean, BussTypeConstant.RECIPE));
         }
         //保存至电子病历
@@ -279,11 +279,8 @@ public abstract class AbstractAuditMode implements IAuditMode {
 //            String defaultRecipecheckDoctor = (String) iConfigService.getConfiguration(organId, "defaultRecipecheckDoctor");
             ICheckScheduleService iCheckScheduleService = AppContextHolder.getBean("recipeaudit.checkScheduleServiceImpl", ICheckScheduleService.class);
             List<Integer> docIds = iCheckScheduleService.getDocIdInTime(organId);
-            if (intellectJudicialFlag == 3 && CollectionUtils.isNotEmpty(docIds) && StringUtils.isNotEmpty(autoRecipecheckLevel)) {
-                // 这个只是一个范围判断
-                return true;
-            }
-            return false;
+            // 这个只是一个范围判断
+            return intellectJudicialFlag == 3 && CollectionUtils.isNotEmpty(docIds) && StringUtils.isNotEmpty(autoRecipecheckLevel);
         } catch (Exception e) {
             LOGGER.error("threeRecipeAutoCheck error recipe={}", recipeId, e);
             return false;

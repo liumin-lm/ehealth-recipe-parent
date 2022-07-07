@@ -55,7 +55,7 @@ public abstract class RecipeRulesDrugCorrelationDAO extends HibernateSupportDele
         HibernateStatelessResultAction<QueryResult<RecipeRulesDrugCorrelationVO>> action = new AbstractHibernateStatelessResultAction<QueryResult<RecipeRulesDrugCorrelationVO>>() {
             @Override
             public void execute(StatelessSession ss) {
-                StringBuilder hql = new StringBuilder("FROM RecipeRulesDrugCorrelation  WHERE 1=1 ");
+                StringBuilder hql = new StringBuilder("FROM RecipeRulesDrugCorrelation WHERE 1=1 ");
                 if (Objects.nonNull(drugId)) {
                     hql.append(" AND (drugId = :drugId or correlationDrugId = :drugId) ");
                 }

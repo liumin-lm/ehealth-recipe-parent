@@ -1239,11 +1239,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                 return true;
             }
             List<RecipeInfoTO> data = response.getData();
-            if (CollectionUtils.isEmpty(data)) {
-                return true;
-            } else {
-                return false;
-            }
+            return CollectionUtils.isEmpty(data);
         } else {
             return false;
         }
@@ -1281,7 +1277,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @RpcService
     @Override
     public Map<String, Object> noticePlatRecipeAuditResult(NoticeNgariAuditResDTO req) {
-        LOGGER.info("noticePlatRecipeAuditResult，req = {}", JSONUtils.toString(req));
+        LOGGER.info("noticePlatRecipeAuditResult req = {}", JSONUtils.toString(req));
         Map<String, Object> resMap = Maps.newHashMap();
         if (null == req) {
             LOGGER.warn("当前处方更新审核结果接口入参为空！");
@@ -1290,54 +1286,52 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         }
         try {
             IRecipeAuditService iRecipeAuditService = RecipeAuditAPI.getService(IRecipeAuditService.class, "recipeAuditServiceImpl");
-            RecipeDAO dao = DAOFactory.getDAO(RecipeDAO.class);
-
-            //date 20200519
-            //当调用处方审核失败接口记录日志，不走有审核结果的逻辑
-            Recipe recipe = null;
-            //添加处方审核接受结果，recipeId的字段，优先使用recipeId
+            RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+            Recipe recipe;
             if (StringUtils.isNotEmpty(req.getRecipeId())) {
-                recipe = dao.getByRecipeId(Integer.parseInt(req.getRecipeId()));
+                recipe = recipeDAO.getByRecipeId(Integer.parseInt(req.getRecipeId()));
             } else {
-                recipe = dao.getByRecipeCodeAndClinicOrgan(req.getRecipeCode(), req.getOrganId());
+                recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(req.getRecipeCode(), req.getOrganId());
             }
-            if ("2".equals(req.getAuditResult())) {
-                LOGGER.warn("当前处方{}调用审核接口失败！", JSONUtils.toString(req));
-                RecipeLogDAO logDAO = DAOFactory.getDAO(RecipeLogDAO.class);
-                if (null != recipe) {
-                    logDAO.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "当前处方调用审核接口失败");
-                } else {
-                    LOGGER.warn("当前处方code的处方{}不存在！", req.getRecipeCode());
-                }
-                resMap.put("msg", "当前处方调用审核接口失败");
-                return resMap;
-            }
-            if (recipe == null) {
+
+            //审核结果auditResult: 0审核不通过, 1审核通过, 2审核失败
+            if (Objects.isNull(recipe)) {
                 resMap.put("msg", "查询不到处方信息");
+            } else {
+                if ("2".equals(req.getAuditResult())) {
+                    LOGGER.warn("当前处方{}调用审核接口失败！", JSONUtils.toString(req));
+                    RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
+                    recipeLogDAO.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "当前处方调用审核接口失败");
+                    resMap.put("msg", "当前处方调用审核接口失败");
+                    return resMap;
+                }
+
+                Map<String, Object> paramMap = Maps.newHashMap();
+                paramMap.put("recipeId", recipe.getRecipeId());
+                //1:审核通过 0-通过失败
+                paramMap.put("result", req.getAuditResult());
+                //审核机构
+                paramMap.put("checkOrgan", req.getOrganId());
+                //审核药师工号
+                paramMap.put("auditDoctorCode", req.getAuditDoctorCode());
+                //审核药师姓名
+                paramMap.put("auditDoctorName", req.getAuditDoctorName());
+                //审核不通过原因备注
+                paramMap.put("failMemo", req.getMemo());
+                //审核时间
+                paramMap.put("auditTime", req.getAuditTime());
+                Map<String, Object> result = iRecipeAuditService.saveCheckResult(paramMap);
+                LOGGER.info("noticePlatRecipeAuditResult res = {}", JSONUtils.toString(result));
+
+                //错误消息返回
+                if (result != null && result.get("msg") != null) {
+                    resMap.put("msg", result.get("msg"));
+                }
             }
-            Map<String, Object> paramMap = Maps.newHashMap();
-            paramMap.put("recipeId", recipe.getRecipeId());
-            //1:审核通过 0-通过失败
-            paramMap.put("result", req.getAuditResult());
-            //审核机构
-            paramMap.put("checkOrgan", req.getOrganId());
-            //审核药师工号
-            paramMap.put("auditDoctorCode", req.getAuditDoctorCode());
-            //审核药师姓名
-            paramMap.put("auditDoctorName", req.getAuditDoctorName());
-            //审核不通过原因备注
-            paramMap.put("failMemo", req.getMemo());
-            //审核时间
-            paramMap.put("auditTime", req.getAuditTime());
-            Map<String, Object> result = iRecipeAuditService.saveCheckResult(paramMap);
-            //错误消息返回
-            if (result != null && result.get("msg") != null) {
-                resMap.put("msg", result.get("msg"));
-            }
-            LOGGER.info("noticePlatRecipeAuditResult，res = {}", JSONUtils.toString(result));
+
         } catch (Exception e) {
             resMap.put("msg", e.getMessage());
-            LOGGER.error("noticePlatRecipeAuditResult，error= {}", e);
+            LOGGER.error("noticePlatRecipeAuditResult error", e);
         }
         return resMap;
     }
@@ -2648,10 +2642,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                     return true;
                 }
             }
-            if (CollectionUtils.isEmpty(recipeOrders) && CollectionUtils.isNotEmpty(effectiveRecipes)) {
-                //患者不存在订单并且存在有效的处方单
-                return true;
-            }
+            //患者不存在订单并且存在有效的处方单
+            return CollectionUtils.isEmpty(recipeOrders) && CollectionUtils.isNotEmpty(effectiveRecipes);
         }
         return false;
     }
@@ -2851,7 +2843,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             //机构配置列表
             List<String> cardList = Arrays.asList(cardTypes);
             //判断终端：取药凭证中是否存在医保卡
-            Boolean medCardFlag = (Boolean) Arrays.asList(medCardList).contains("2");
+            Boolean medCardFlag = Arrays.asList(medCardList).contains("2");
             //终端支持就诊卡医保卡    机构支持就诊卡医保卡--返回就诊卡和医保卡
             if (cardList.contains("2") && cardList.contains("3") && medCardFlag && patientCardFlag) {
                 //支持就诊卡和医保卡

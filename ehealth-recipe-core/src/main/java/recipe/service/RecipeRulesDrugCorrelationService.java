@@ -96,9 +96,11 @@ public class RecipeRulesDrugCorrelationService implements IRulesDrugCorrelationS
             for (RecipeRulesDrugCorrelationVO ruleDTO : rulesList) {
                 RecipeRulesDrugCorrelation rule = ObjectCopyUtils.convert(ruleDTO, RecipeRulesDrugCorrelation.class);
                 RecipeRulesDrugCorrelation drugCorrelation = recipeRulesDrugCorrelationDAO.getDrugCorrelationByCodeAndRulesId(rulesId, rule.getDrugId(), rule.getCorrelationDrugId());
-                if (Objects.nonNull(drugCorrelation)) {
+                RecipeRulesDrugCorrelation drugCorrelationReverse = recipeRulesDrugCorrelationDAO.getDrugCorrelationByCodeAndRulesId(rulesId, rule.getCorrelationDrugId(), rule.getDrugId());
+                if (Objects.nonNull(drugCorrelation) || Objects.nonNull(drugCorrelationReverse)) {
                     throw new DAOException(DAOException.VALUE_NEEDED, "保存数据【" + rule.getDrugName() + "】规则关联【" + rule.getCorrelationDrugName() + "】关联关系数据已存在!");
                 }
+
                 rule.setCreateDt(new Date());
                 rule.setLastModify(new Date());
                 recipeRulesDrugCorrelationDAO.save(rule);
