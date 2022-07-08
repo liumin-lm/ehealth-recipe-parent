@@ -2,6 +2,7 @@ package com.ngari.recipe.recipe.model;
 
 import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
+import ctd.schema.annotation.Schema;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -13,6 +14,7 @@ import java.util.Date;
  * @date： 2022-06-27 13:44
  */
 @Data
+@Schema
 public class RecipeOrderWaybillDTO implements Serializable {
     private static final long serialVersionUID = -7911217958266693327L;
 

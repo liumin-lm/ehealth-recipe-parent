@@ -159,7 +159,8 @@ public class RecipeOrderOpenAtop extends BaseAtop implements IRecipeOrderAtopSer
     }
 
     @Override
-    public MedicalSettleInfoVO getMedicalSettleInfo(Integer recipeId) {
-        return recipeOrderService.getMedicalSettleInfo(recipeId);
+    public Integer thirdCreateOrder(ThirdCreateOrderReqDTO thirdCreateOrderReqDTO) {
+        logger.info("RecipeOrderOpenAtop thirdCreateOrder thirdCreateOrderReqDTO:{}.", JSONUtils.toString(thirdCreateOrderReqDTO));
+        return recipeOrderService.thirdCreateOrder(thirdCreateOrderReqDTO);
     }
 }

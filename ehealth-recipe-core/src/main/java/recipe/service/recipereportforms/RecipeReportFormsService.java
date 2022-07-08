@@ -115,8 +115,13 @@ public class RecipeReportFormsService {
         Args.notNull(request.getStart(), "start");
         Args.notNull(request.getLimit(), "limit");
         List<Integer> organIdList = getQueryOrganIdList(request);
+        //将日期处理成如下格式：2022-01-01 00:00:00 ~ 2022-01-31 23:59:59
+        String fistDateOfMonth = DateConversion.getFirstDateOfMonth(request.getYear(), request.getMonth());
+        String endDateOfMonth = DateConversion.getEndDayOfMonth(request.getYear(), request.getMonth());
+        request.setFirstDate(DateConversion.parseDate(fistDateOfMonth, DateConversion.DEFAULT_DATE_TIME));
+        request.setEndDate(DateConversion.parseDate(endDateOfMonth, DateConversion.DEFAULT_DATE_TIME));
         try {
-            List<RecipeMonthAccountCheckResponse> responses = recipeOrderDAO.findRecipeMonthAccountCheckList(organIdList, request.getYear(), request.getMonth(), request.getStart(), request.getLimit());
+            List<RecipeMonthAccountCheckResponse> responses = recipeOrderDAO.findRecipeMonthAccountCheckList(organIdList, request.getStart(), request.getLimit(), request.getFirstDate(), request.getEndDate());
             if (CollectionUtils.isNotEmpty(responses)) {
                 resultMap.put("total", responses.get(0).getTotal());
             } else {

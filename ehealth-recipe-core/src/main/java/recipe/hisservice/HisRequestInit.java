@@ -306,6 +306,7 @@ public class HisRequestInit {
         RecipeSendRequestTO requestTO = new RecipeSendRequestTO();
         EmploymentService iEmploymentService = ApplicationUtils.getBasicService(EmploymentService.class);
         requestTO.setRecipeID(recipe.getRecipeId().toString());
+        requestTO.setMedicalFlag(recipe.getMedicalFlag());
         requestTO.setOrganID((null != recipe.getClinicOrgan()) ? Integer.toString(recipe.getClinicOrgan()) : null);
         requestTO.setDatein(recipe.getSignDate());
         requestTO.setStartDate(recipe.getSignDate());

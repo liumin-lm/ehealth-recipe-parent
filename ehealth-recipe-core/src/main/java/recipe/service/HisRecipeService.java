@@ -253,9 +253,11 @@ public class HisRecipeService {
             // 有订单跳转订单
             hisRecipeVO.setJumpPageType(1);
             hisRecipeVO.setOrganDiseaseName(hisRecipeListBean1.getDiseaseName());
-            Recipe recipe = collect.get(hisRecipeListBean1.getRecipeId()).get(0);
-            if (Objects.nonNull(recipeOrder)) {
-                hisRecipeVO.setStatusText(getTipsByStatusForPatient(recipe, recipeOrder));
+            if (collect != null) {
+                Recipe recipe = collect.get(hisRecipeListBean1.getRecipeId()).get(0);
+                if (Objects.nonNull(recipeOrder)) {
+                    hisRecipeVO.setStatusText(getTipsByStatusForPatient(recipe, recipeOrder));
+                }
             }
             list.add(hisRecipeVO);
             recipeIds.add(hisRecipeListBean1.getHisRecipeID());
@@ -466,6 +468,9 @@ public class HisRecipeService {
 
     private Map<Integer, List<Recipe>> getRecipeMap(List<HisRecipeListBean> hisRecipeListByMPIIds) {
         Set<Integer> recipes = hisRecipeListByMPIIds.stream().filter(hisRecipeListBean -> hisRecipeListBean.getRecipeId() != null).collect(Collectors.groupingBy(HisRecipeListBean::getRecipeId)).keySet();
+        if (CollectionUtils.isEmpty(recipes)) {
+            return null;
+        }
         List<Recipe> byRecipes = recipeDAO.findByRecipeIds(recipes);
         Map<Integer, List<Recipe>> collect = null;
         if (CollectionUtils.isNotEmpty(byRecipes)) {
@@ -1506,12 +1511,10 @@ public class HisRecipeService {
                     }
 
                 } else if (RecipeBussConstant.GIVEMODE_TFDS.equals(giveMode) && StringUtils.isNotEmpty(recipe.getOrderCode())) {
-                    if (OrderStatusConstant.HAS_DRUG.equals(orderStatus)) {
-                        if (payFlag == 0) {
-                            tips = "待支付";
-                        } else {
-                            tips = "待取药";
-                        }
+                    if (payFlag == 0) {
+                        tips = "待支付";
+                    } else {
+                        tips = "待取药";
                     }
                 } else if (RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE.equals(giveMode)) {
                     tips = "已完成";

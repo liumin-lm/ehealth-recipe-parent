@@ -30,8 +30,7 @@ public class MedicationRulesService {
      */
     @RpcService
     public List<MedicationRulesDTO> queryMedicationRulesBynameAndRecipeType(final String name, final Integer recipeType) {
-        List<MedicationRulesDTO> medicationRules = medicationRulesDAO.queryMedicationRulesBynameAndRecipeType(name, recipeType);
-        return medicationRules;
+        return medicationRulesDAO.queryMedicationRulesByNameAndRecipeType(name, recipeType);
     }
 
 

@@ -106,16 +106,20 @@ public class RecipeDetailValidateTool {
         //剂量单位是否与机构药品目录单位一致
         if (StringUtils.isEmpty(OrganDrugListManager.getUseDoseUnit(recipeDetail.getUseDoseUnit(), organDrug))) {
             recipeDetail.setUseDoseUnit(null);
+            recipeDetail.setUseDose(null);
             recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
-            recipeDetail.setValidateStatusText("机构药品药物使用规格单位或者最小单位错误");
+            recipeDetail.setValidateStatusText("机构药品药物使用规格单位或者最小单位错误UseDoseUnit｜" + recipeDetail.getUseDoseUnit()
+                    + "->" + organDrug.getUseDoseUnit() + "|" + organDrug.getUseDoseSmallestUnit());
         }
 
         //开药单位是否与机构药品目录单位一致，不一致，重新填写开具数量
         if (StringUtils.isEmpty(OrganDrugListManager.getDrugUnit(recipeDetail.getDrugUnit(), organDrug))) {
             recipeDetail.setUseTotalDose(null);
             recipeDetail.setPack(null);
+            recipeDetail.setUseDose(null);
+            recipeDetail.setDrugUnit(organDrug.getUnit());
             recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
-            recipeDetail.setValidateStatusText("机构药品药物单位错误");
+            recipeDetail.setValidateStatusText("机构药品药物单位错误DrugUnit｜" + recipeDetail.getDrugUnit() + "->" + organDrug.getUnit());
         }
 
         //开药天数
@@ -125,7 +129,7 @@ public class RecipeDetailValidateTool {
             //每次剂量
             if (ValidateUtil.validateObjects(recipeDetail.getUseDose())) {
                 recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
-                recipeDetail.setValidateStatusText("机构药品每次剂量错误");
+                recipeDetail.setValidateStatusText("机构药品每次剂量是空UseDos");
             }
             //校验中药嘱托
             entrustValidate(recipeDetail, drugEntrustNameMap);
@@ -136,17 +140,17 @@ public class RecipeDetailValidateTool {
             //超量原因
             if (null != version && drugSuperScalarValidate(organId, recipeDetail)) {
                 recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
-                recipeDetail.setValidateStatusText("机构药品药品超量错误");
+                recipeDetail.setValidateStatusText("机构药品药品超量错误天数问题UseDays");
             }
             //每次剂量
             if (ValidateUtil.validateObjects(recipeDetail.getUseDose()) && !"适量".equals(recipeDetail.getUseDoseStr())) {
                 recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
-                recipeDetail.setValidateStatusText("机构药品每次剂量错误");
+                recipeDetail.setValidateStatusText("机构药品每次剂量是空UseDos");
             }
             //开药总数是否为空
             if (ValidateUtil.validateObjects(recipeDetail.getUseTotalDose())) {
                 recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
-                recipeDetail.setValidateStatusText("机构药品开药总数错误");
+                recipeDetail.setValidateStatusText("机构药品开药总数是空UseTotalDose");
             }
             //用药频次，用药途径是否在机构字典范围内ecipeDetailService validateDrug organDrug is null OrganDrugCode
             if (medicationsValidate(organDrug.getOrganId(), recipeDetail)) {

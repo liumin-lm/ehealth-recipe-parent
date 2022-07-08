@@ -37,6 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
+import recipe.aop.LogRecord;
 import recipe.business.StockBusinessService;
 import recipe.client.DepartClient;
 import recipe.client.RevisitClient;
@@ -251,7 +252,6 @@ public class BaseOfflineToOnlineService {
      *
      * @param hisRecipeListBeans
      * @param organId
-     * @param mpiId
      * @param giveModeButtonBean
      * @param start
      * @param limit
@@ -325,9 +325,11 @@ public class BaseOfflineToOnlineService {
             // 有订单跳转订单
             hisRecipeVO.setJumpPageType(1);
             hisRecipeVO.setOrganDiseaseName(hisRecipeListBean.getDiseaseName());
-            Recipe recipe = recipeMap.get(hisRecipeListBean.getRecipeId()).get(0);
-            if (Objects.nonNull(recipeOrder)) {
-                hisRecipeVO.setStatusText(RecipeUtil.getTipsByStatusForPatient(recipe, recipeOrder));
+            if (recipeMap != null) {
+                Recipe recipe = recipeMap.get(hisRecipeListBean.getRecipeId()).get(0);
+                if (Objects.nonNull(recipeOrder)) {
+                    hisRecipeVO.setStatusText(RecipeUtil.getTipsByStatusForPatient(recipe, recipeOrder));
+                }
             }
             recipeIds.add(hisRecipeVO.getHisRecipeID());
             hisRecipeVos.add(hisRecipeVO);
@@ -374,6 +376,9 @@ public class BaseOfflineToOnlineService {
 
     private Map<Integer, List<Recipe>> getRecipeMap(List<HisRecipeListBean> hisRecipeListByMpiIds) {
         Set<Integer> recipes = hisRecipeListByMpiIds.stream().filter(hisRecipeListBean -> hisRecipeListBean.getRecipeId() != null).collect(Collectors.groupingBy(HisRecipeListBean::getRecipeId)).keySet();
+        if (CollectionUtils.isEmpty(recipes)) {
+            return null;
+        }
         List<Recipe> byRecipes = recipeDAO.findByRecipeIds(recipes);
         Map<Integer, List<Recipe>> collect = null;
         if (CollectionUtils.isNotEmpty(byRecipes)) {
@@ -401,10 +406,26 @@ public class BaseOfflineToOnlineService {
      * @param recipeCode  recipeCode
      * @param clinicOrgan clinicOrgan
      */
+    @LogRecord
     void setOtherInfo(HisRecipeVO hisRecipeVO, String mpiId, String recipeCode, Integer clinicOrgan) {
         Recipe recipe = recipeDAO.getByHisRecipeCodeAndClinicOrganAndMpiid(mpiId, recipeCode, clinicOrgan);
+        List<HisRecipe> hisRecipes = hisRecipeDao.findHisRecipeByRecipeCodeAndClinicOrgan(clinicOrgan, Arrays.asList(recipeCode));
+        HisRecipe hisRecipe = new HisRecipe();
+        if (CollectionUtils.isNotEmpty(hisRecipes)) {
+            hisRecipe = hisRecipes.get(0);
+        }
         if (recipe == null) {
-            hisRecipeVO.setStatusText("待处理");
+            if (hisRecipe != null && null != hisRecipe.getStatus()) {
+                if (HisRecipeConstant.HISRECIPESTATUS_ALREADYIDEAL.equals(hisRecipe.getStatus())) {
+                    hisRecipeVO.setStatusText("已处理");
+                } else if (HisRecipeConstant.HISRECIPESTATUS_EXPIRED.equals(hisRecipe.getStatus())) {
+                    hisRecipeVO.setStatusText("已失效");
+                } else {
+                    hisRecipeVO.setStatusText("待处理");
+                }
+            } else {
+                hisRecipeVO.setStatusText("待处理");
+            }
             hisRecipeVO.setFromFlag(1);
             hisRecipeVO.setJumpPageType(0);
         } else {
@@ -413,7 +434,17 @@ public class BaseOfflineToOnlineService {
             if (RecipeSourceTypeEnum.OFFLINE_RECIPE.getType().equals(recipe.getRecipeSourceType())) {
                 //表示该处方来源于HIS
                 if (StringUtils.isEmpty(recipe.getOrderCode())) {
-                    hisRecipeVO.setStatusText("待处理");
+                    if (hisRecipe != null && null != hisRecipe.getStatus()) {
+                        if (HisRecipeConstant.HISRECIPESTATUS_ALREADYIDEAL.equals(hisRecipe.getStatus())) {
+                            hisRecipeVO.setStatusText("已处理");
+                        } else if (HisRecipeConstant.HISRECIPESTATUS_EXPIRED.equals(hisRecipe.getStatus())) {
+                            hisRecipeVO.setStatusText("已失效");
+                        } else {
+                            hisRecipeVO.setStatusText("待处理");
+                        }
+                    } else {
+                        hisRecipeVO.setStatusText("待处理");
+                    }
                     hisRecipeVO.setJumpPageType(0);
                 } else {
                     RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
@@ -485,10 +516,10 @@ public class BaseOfflineToOnlineService {
                 throw new DAOException(609, "该处方单已被他人支付！");
             }
             if (PayConstant.RESULT_WAIT.equals(payFlag)) {
-                throw new DAOException(609, "该处方单已被他人正在处理！");
+                throw new DAOException(609, "该处方单被他人正在处理中！");
             }
             if (PayConstant.ERROR.equals(payFlag)) {
-                throw new DAOException(609, "掉用支付平台异常！");
+                throw new DAOException(609, "调用支付平台异常！");
             }
         }
 
@@ -684,6 +715,7 @@ public class BaseOfflineToOnlineService {
         }
         //中药医嘱跟着处方 西药医嘱跟着药品（见药品详情）
         recipe.setRecipeMemo(hisRecipe.getRecipeMemo());
+        recipe.setFastRecipeFlag(0);
         recipe = recipeDAO.saveOrUpdate(recipe);
 
         LOGGER.info("BaseOfflineToOnlineService saveRecipeFromHisRecipe res:{}", JSONUtils.toString(recipe));
@@ -756,6 +788,13 @@ public class BaseOfflineToOnlineService {
             } else {
                 if (CollectionUtils.isNotEmpty(organDrugLists)) {
                     recipedetail.setDrugName(organDrugLists.get(0).getDrugName());
+                }
+            }
+            if (StringUtils.isNotEmpty(hisRecipeDetail.getSaleName())) {
+                recipedetail.setSaleName(hisRecipeDetail.getSaleName());
+            } else {
+                if (CollectionUtils.isNotEmpty(organDrugLists)) {
+                    recipedetail.setSaleName(organDrugLists.get(0).getSaleName());
                 }
             }
             if (StringUtils.isNotEmpty(hisRecipeDetail.getDrugUnit())) {

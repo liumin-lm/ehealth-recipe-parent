@@ -50,6 +50,8 @@ public class PayClient extends BaseClient {
     @Autowired
     private INgariRefundService refundService;
 
+    @Autowired
+    private IEasyPayServiceInterface payService;
     /**
      * 获取优惠券
      *
@@ -79,7 +81,7 @@ public class PayClient extends BaseClient {
 
         // 1.获取参数
         // 1.1获取payWay
-        PayWayEnum payWayEnum = PayWayEnum.fromCode(recipeOrder.getWnPayWay());
+        PayWayEnum payWayEnum = PayWayEnum.fromCode(recipeOrder.getWxPayWay());
         if (Objects.isNull(payWayEnum)) {
             throw new ServiceException("当前订单无法获取到支付方式！");
         }
@@ -109,7 +111,7 @@ public class PayClient extends BaseClient {
 //        orderQueryParam.setTradeNo(recipeOrder.getTradeNo());
 
         CommonParam commonParam = new CommonParam();
-        commonParam.setOrganId(recipeOrder.getOrderId() + "");
+        commonParam.setOrganId(recipeOrder.getPayOrganId());
         // 1 支付宝；2 微信；3 一网通
         commonParam.setPayType(payWayEnum.getPayType());
         commonParam.setService(PayServiceConstant.ORDER_QUERY);
@@ -122,7 +124,6 @@ public class PayClient extends BaseClient {
         // 3.调用2.2.订单状态查询(order.query)
         try {
             logger.info("order.query commonParam={}", JSON.toJSONString(commonParam));
-            IEasyPayServiceInterface payService = AppContextHolder.getBean("easypay.payService", IEasyPayServiceInterface.class);
             result = payService.gateWay(commonParam);
             logger.info("order.query result={}", JsonUtil.toString(result));
             JSONObject jsonObject = JSONObject.parseObject(result);
@@ -132,9 +133,12 @@ public class PayClient extends BaseClient {
             if (code != null && code.equals("200")) {
                 //WAIT_BUYER_PAY（交易等待支付）、CLOSED（未付款交易超时关闭，或支付完成后全额退款）、SUCCESS（交易支付成功）、FINISHED（交易结束，不可退款）
                 tradeStatus = (String) jsonObject.getJSONObject("data").get("trade_status");
+            } else if (code != null && code.equals("406")) {//订单不存在
+//                tradeStatus = "ORDER_NOT_EXIST";
             } else {
+
                 //支付平台异常，调用失败
-                logger.info("order.query 掉用失败");
+                logger.info("order.query 调用失败");
             }
             logger.info("返回支付平台查询结果：" + resultMap);
         } catch (Exception e) {

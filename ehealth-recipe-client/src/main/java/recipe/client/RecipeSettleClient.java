@@ -42,7 +42,7 @@ public class RecipeSettleClient extends BaseClient {
             LOGGER.info("三次后还是异常");
             throw new DAOException(609, "重试三次后还是接口异常");
         }
-        CashSettleResultReqTo cashSettleResultReqTo = CashSettleResultReqTo.builder().orderCode(req.getOrderCode()).organId(Integer.valueOf(req.getOrganID())).recipeCode(req.getRecipeCodeS()).build();
+        CashSettleResultReqTo cashSettleResultReqTo = CashSettleResultReqTo.builder().orderCode(req.getOrderCode()).organId(Integer.valueOf(req.getOrganID())).recipeCode(req.getRecipeNoS()).build();
         Retryer<HisResponseTO> retryer = RetryerBuilder.<HisResponseTO>newBuilder()
                 //抛出指定异常重试
                 .retryIfExceptionOfType(Exception.class)
@@ -56,7 +56,7 @@ public class RecipeSettleClient extends BaseClient {
         HisResponseTO hisResponse = new HisResponseTO();
         try {
             hisResponse = retryer.call(() -> {
-                    LOGGER.info("RecipeSettleClient.retrySettle retry");
+                    LOGGER.info("RecipeSettleClient.retrySettle retry cashSettleResultReqTo={}", JsonUtil.toString(cashSettleResultReqTo));
                     HisResponseTO hisResponseTO = hisService.cashSettleResult(cashSettleResultReqTo);
                     LOGGER.info("RecipeSettleClient.retrySettle hisResponseTO={}", JsonUtil.toString(hisResponseTO));
                     return hisResponseTO;

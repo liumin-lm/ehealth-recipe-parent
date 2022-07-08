@@ -1,7 +1,6 @@
 package recipe.dao;
 
 import com.ngari.recipe.commonrecipe.model.MedicationRulesDTO;
-import com.ngari.recipe.commonrecipe.model.RulesDrugCorrelationDTO;
 import com.ngari.recipe.entity.MedicationRules;
 import ctd.persistence.support.hibernate.HibernateSupportDelegateDAO;
 import ctd.persistence.support.hibernate.template.AbstractHibernateStatelessResultAction;
@@ -30,7 +29,7 @@ public class MedicationRulesDAO extends HibernateSupportDelegateDAO<MedicationRu
         this.setKeyField("id");
     }
 
-    public List<MedicationRulesDTO> queryMedicationRulesBynameAndRecipeType(final String name,
+    public List<MedicationRulesDTO> queryMedicationRulesByNameAndRecipeType(final String name,
                                                                             final Integer recipeType) {
         HibernateStatelessResultAction<List<MedicationRulesDTO>> action = new AbstractHibernateStatelessResultAction<List<MedicationRulesDTO>>() {
             @Override

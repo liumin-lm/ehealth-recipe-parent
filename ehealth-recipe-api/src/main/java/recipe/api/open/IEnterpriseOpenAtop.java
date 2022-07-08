@@ -3,8 +3,11 @@ package recipe.api.open;
 import ctd.util.annotation.RpcService;
 import recipe.vo.second.CheckAddressVo;
 import recipe.vo.second.enterpriseOrder.EnterpriseConfirmOrderVO;
+import recipe.vo.second.enterpriseOrder.EnterpriseDrugVO;
 import recipe.vo.second.enterpriseOrder.EnterpriseResultBean;
 import recipe.vo.second.enterpriseOrder.EnterpriseSendOrderVO;
+
+import java.util.List;
 
 /**
  * @description： 药企open atop
@@ -47,4 +50,12 @@ public interface IEnterpriseOpenAtop {
      */
     @RpcService
     EnterpriseResultBean finishOrder(EnterpriseSendOrderVO enterpriseSendOrderVO);
+
+    /**
+     * 药企药品信息同步接口
+     * @param enterpriseDrugVOList
+     * @return
+     */
+    @RpcService
+    EnterpriseResultBean renewDrugInfo(List<EnterpriseDrugVO> enterpriseDrugVOList);
 }

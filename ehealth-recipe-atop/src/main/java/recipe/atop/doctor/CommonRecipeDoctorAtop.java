@@ -216,8 +216,8 @@ public class CommonRecipeDoctorAtop extends BaseAtop {
             detailBean.setDrugUnit(a.getDrugUnit());
             detailBean.setUsingRateText(a.getUsingRate());
             detailBean.setUsePathwaysText(a.getUsePathWays());
-            detailBean.setUseDays(a.getUseDays()+"");
-            detailBean.setUseTotalDose(null != a.getUseTotalDose()?a.getUseTotalDose().doubleValue():0.0);
+            detailBean.setUseDays(null == a.getUseDays() ? null : a.getUseDays().toString());
+            detailBean.setUseTotalDose(null != a.getUseTotalDose() ? a.getUseTotalDose().doubleValue() : 0.0);
             if (StringUtils.isNotEmpty(commonRecipe.getPharmacyCode()) && StringUtils.isEmpty(a.getPharmacyCode())) {
                 detailBean.setPharmacyCode(commonRecipe.getPharmacyCode());
             }

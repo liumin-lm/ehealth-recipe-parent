@@ -17,6 +17,8 @@ import java.math.BigDecimal;
 @Setter
 public class EnterpriseAddressAndPrice implements Serializable {
     private static final long serialVersionUID = -9081127975058522117L;
+
+    private Integer drugDistributionPriceId;
     @ItemProperty(alias = "药企序号")
     private Integer enterpriseId;
 

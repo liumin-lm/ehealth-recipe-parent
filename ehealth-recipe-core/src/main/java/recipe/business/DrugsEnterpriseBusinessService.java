@@ -2,8 +2,11 @@ package recipe.business;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.his.recipe.mode.DrugTakeChangeReqTO;
+import com.ngari.patient.service.AddrAreaService;
 import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.drugsenterprise.model.EnterpriseAddressAndPrice;
 import com.ngari.recipe.drugsenterprise.model.EnterpriseDecoctionAddressReq;
@@ -21,6 +24,7 @@ import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.commons.lang3.time.DateUtils;
+import org.apache.curator.shaded.com.google.common.collect.Lists;
 import org.joda.time.DateTime;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,10 +69,13 @@ import recipe.vo.patient.CheckAddressReq;
 import recipe.vo.patient.CheckAddressRes;
 import recipe.vo.second.CheckAddressVo;
 import recipe.vo.second.enterpriseOrder.EnterpriseConfirmOrderVO;
+import recipe.vo.second.enterpriseOrder.EnterpriseDrugVO;
 import recipe.vo.second.enterpriseOrder.EnterpriseResultBean;
 import recipe.vo.second.enterpriseOrder.EnterpriseSendOrderVO;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 /**
@@ -108,6 +115,8 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
     private RecipeManager recipeManager;
     @Autowired
     private DrugDistributionPriceDAO drugDistributionPriceDAO;
+    @Autowired
+    private SaleDrugListDAO saleDrugListDAO;
 
     @Override
     public Boolean existEnterpriseByName(String name) {
@@ -232,6 +241,11 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
     }
 
     @Override
+    public List<OrganAndDrugsepRelation> findOrganAndDrugsDepRelationBeanByOrganId(Integer organId){
+        return organAndDrugsepRelationDAO.findByOrganId(organId);
+    }
+
+    @Override
     public List<EnterpriseDecoctionList> findEnterpriseDecoctionList(Integer enterpriseId, Integer organId) {
         OrganAndDrugsepRelation relation = organAndDrugsepRelationDAO.getOrganAndDrugsepByOrganIdAndEntId(organId, enterpriseId);
         if (Objects.isNull(relation)) {
@@ -278,11 +292,15 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
         List<EnterpriseDecoctionAddress> enterpriseDecoctionAddressList = enterpriseDecoctionAddressDAO.findEnterpriseDecoctionAddressList(checkAddressReq.getOrganId(),
                 checkAddressReq.getEnterpriseId(),
                 checkAddressReq.getDecoctionId());
+        String checkAddress = checkAddressReq.getAddress3();
+//        if (StringUtils.isNotEmpty(checkAddressReq.getAddress4())) {
+//            checkAddress = checkAddressReq.getAddress4();
+//        }
         if (CollectionUtils.isEmpty(enterpriseDecoctionAddressList)) {
             List<EnterpriseAddress> list = enterpriseAddressDAO.findByEnterPriseId(checkAddressReq.getEnterpriseId());
             if (CollectionUtils.isNotEmpty(list)) {
                 List<EnterpriseDecoctionAddress> enterpriseDecoctionAddresses = BeanCopyUtils.copyList(list, EnterpriseDecoctionAddress::new);
-                if (addressCanSend(enterpriseDecoctionAddresses, checkAddressReq.getAddress3())) {
+                if (addressCanSend(enterpriseDecoctionAddresses, checkAddress)) {
                     sendFlag = true;
                     checkAddressRes.setSendFlag(sendFlag);
                     return checkAddressRes;
@@ -299,7 +317,7 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
         }).filter(Objects::nonNull).collect(Collectors.toList());
         checkAddressRes.setAreaList(list);
         // 配送地址精确到区域,区域可以配送就可以配送
-        if (addressCanSend(enterpriseDecoctionAddressList, checkAddressReq.getAddress3())) {
+        if (addressCanSend(enterpriseDecoctionAddressList, checkAddress)) {
             sendFlag = true;
         }
         checkAddressRes.setSendFlag(sendFlag);
@@ -470,13 +488,13 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
     }
 
     @Override
-    public Boolean updateEnterprisePriorityLevel(Integer depId, Integer level) {
-        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(depId);
-        if (ObjectUtils.isEmpty(drugsEnterprise)) {
+    public Boolean updateEnterprisePriorityLevel(Integer organId, Integer depId, Integer level) {
+        OrganAndDrugsepRelation organAndDrugsepRelation = organAndDrugsepRelationDAO.getOrganAndDrugsepByOrganIdAndEntId(organId, depId);
+        if (ObjectUtils.isEmpty(organAndDrugsepRelation)) {
             throw new DAOException("药企不存在");
         }
-        drugsEnterprise.setPriorityLevel(level);
-        drugsEnterpriseDAO.update(drugsEnterprise);
+        organAndDrugsepRelation.setPriorityLevel(level);
+        organAndDrugsepRelationDAO.update(organAndDrugsepRelation);
         return true;
     }
 
@@ -484,7 +502,7 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
     public List<EnterpriseAddressAndPrice> findEnterpriseAddressAndPrice(Integer enterpriseId,String area) {
         List<EnterpriseAddress> enterpriseAddresses = enterpriseAddressDAO.findByEnterPriseIdAndArea(enterpriseId,area);
         if (CollectionUtils.isEmpty(enterpriseAddresses)) {
-            throw new DAOException("药企配送地址为空");
+            return Lists.newArrayList();
         }
         List<DrugDistributionPrice> drugDistributionPrices = drugDistributionPriceDAO.findByEnterpriseId(enterpriseId);
         if (CollectionUtils.isEmpty(drugDistributionPrices)){
@@ -497,10 +515,72 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
                 List<DrugDistributionPrice> prices = listMap.get(enterpriseAddress.getAddress());
                 enterpriseAddressAndPrice.setDistributionPrice(prices.get(0).getDistributionPrice());
                 enterpriseAddressAndPrice.setBuyFreeShipping(prices.get(0).getBuyFreeShipping());
+                enterpriseAddressAndPrice.setDrugDistributionPriceId(prices.get(0).getId());
+
             }
             return enterpriseAddressAndPrice;
         }).collect(Collectors.toList());
         return collect;
+    }
+
+    @Override
+    public List<EnterpriseAddressAndPrice> findEnterpriseAddressProvince(Integer enterpriseId) {
+        List<EnterpriseAddress> enterpriseAddresses = enterpriseAddressDAO.findByEnterPriseId(enterpriseId);
+        if(CollectionUtils.isEmpty(enterpriseAddresses)){
+            return Lists.newArrayList();
+        }
+
+        List<EnterpriseAddressAndPrice> list = enterpriseAddresses.stream().map(enterpriseAddress -> {
+            EnterpriseAddressAndPrice enterpriseAddressAndPrice = new EnterpriseAddressAndPrice();
+            enterpriseAddressAndPrice.setEnterpriseId(enterpriseAddress.getEnterpriseId());
+            enterpriseAddressAndPrice.setAddress(enterpriseAddress.getAddress().substring(0, 2));
+
+            return enterpriseAddressAndPrice;
+        }).filter(distinctByKey(e -> e.getAddress())).collect(Collectors.toList());
+        return list;
+    }
+
+
+    @Override
+    public EnterpriseResultBean renewDrugInfo(List<EnterpriseDrugVO> enterpriseDrugVOList) {
+        Map<String, List<EnterpriseDrugVO>> enterpriseDrugVOListMap = enterpriseDrugVOList.stream().collect(Collectors.groupingBy(EnterpriseDrugVO::getAppKey));
+        final List<String> updateData = new ArrayList<>();
+        for (Map.Entry<String, List<EnterpriseDrugVO>> entry : enterpriseDrugVOListMap.entrySet()) {
+            String appKey = entry.getKey();
+            DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getByAppKey(appKey);
+            if (null == drugsEnterprise) {
+                continue;
+            }
+            List<EnterpriseDrugVO> enterpriseDrugVOS = entry.getValue();
+            List<String> drugCodeList = enterpriseDrugVOS.stream().map(EnterpriseDrugVO::getDrugCode).collect(Collectors.toList());
+            Map<String, EnterpriseDrugVO> enterpriseDrugVOMap = enterpriseDrugVOS.stream().collect(Collectors.toMap(EnterpriseDrugVO::getDrugCode,a->a,(k1,k2)->k1));
+            List<SaleDrugList> saleDrugListList = saleDrugListDAO.findByOrganIdAndDrugCodes(drugsEnterprise.getId(), drugCodeList);
+            saleDrugListList.forEach(saleDrugList -> {
+                EnterpriseDrugVO enterpriseDrugVO = enterpriseDrugVOMap.get(saleDrugList.getOrganDrugCode());
+                if (StringUtils.isNotEmpty(enterpriseDrugVO.getDrugName())) {
+                    saleDrugList.setDrugName(enterpriseDrugVO.getDrugName());
+                }
+                if (StringUtils.isNotEmpty(enterpriseDrugVO.getSaleName())) {
+                    saleDrugList.setSaleName(enterpriseDrugVO.getSaleName());
+                }
+                if (StringUtils.isNotEmpty(enterpriseDrugVO.getDrugSpec())) {
+                    saleDrugList.setDrugSpec(enterpriseDrugVO.getDrugSpec());
+                }
+                if (null != enterpriseDrugVO.getPrice()) {
+                    saleDrugList.setPrice(enterpriseDrugVO.getPrice());
+                }
+                if (null != enterpriseDrugVO.getInventory()) {
+                    saleDrugList.setInventory(enterpriseDrugVO.getInventory());
+                }
+                if (saleDrugListDAO.updateNonNullFieldByPrimaryKey(saleDrugList)){
+                    updateData.add(saleDrugList.getOrganDrugCode());
+                }
+            });
+        }
+        EnterpriseResultBean resultBean = new EnterpriseResultBean();
+        resultBean.setCode(EnterpriseResultBean.SUCCESS);
+        resultBean.setMsg("传入条数:" + enterpriseDrugVOList.size() + ",更新条数:"+ updateData.size());
+        return resultBean;
     }
 
     private void syncFinishOrderHandle(List<Integer> recipeIdList, RecipeOrder recipeOrder, boolean isSendFlag) {
@@ -604,5 +684,11 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
             }
         }
         return flag;
+    }
+
+
+    private static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {
+        Map<Object, Boolean> seen = new ConcurrentHashMap<>();
+        return t -> seen.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
     }
 }
