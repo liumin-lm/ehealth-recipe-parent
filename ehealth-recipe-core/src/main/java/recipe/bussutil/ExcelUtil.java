@@ -2,8 +2,10 @@ package recipe.bussutil;
 
 
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.openxml4j.opc.OPCPackage;
+import org.apache.poi.ss.util.CellReference;
 import org.apache.poi.xssf.eventusermodel.ReadOnlySharedStringsTable;
 import org.apache.poi.xssf.eventusermodel.XSSFReader;
 import org.apache.poi.xssf.eventusermodel.XSSFSheetXMLHandler;
@@ -157,8 +159,8 @@ public class ExcelUtil {
     /**
      * 默认sheet内容处理器
      *
-     * @author zhangrihui
-     * @date 2020/6/30 07:42:26
+     * @author liumin
+     * @date 2022/7060 07:42:26
      */
     private class DefaultSheetHandler implements SheetContentsHandler {
 
@@ -178,14 +180,36 @@ public class ExcelUtil {
             rowHandler.handle(rowData);
         }
 
+//        private boolean firstCellOfRow = false;
+        private int currentCol = -1;
+
+        /**
+         * liumin
+         * @param cellReference
+         * @param formattedValue
+         * @param comment
+         */
         @Override
         public void cell(String cellReference, String formattedValue, XSSFComment comment) {
-            rowData.add(formattedValue);
+            int thisCol = (new CellReference(cellReference)).getCol();//当前列的坐标
+            int missedCols = thisCol - currentCol - 1;
+            for (int i=0; i<missedCols; i++) {
+                rowData.add("");
+            }
+            currentCol = thisCol;//记录上一次有值列的坐标
+            if(StringUtils.isNotEmpty(formattedValue)){
+                rowData.add(formattedValue);
+            }else{
+                rowData.add("");
+            }
+
         }
 
         @Override
         public void headerFooter(String text, boolean isHeader, String tagName) {
         }
+
+
 
     }
 

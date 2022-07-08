@@ -61,6 +61,22 @@ public class ImportDrugRecord implements java.io.Serializable {
     @FileToken
     private String fileId;
 
+    @ItemProperty(alias = "空行数")
+    private Integer bankNumber;
+
+    @Transient
+    public Integer getBankNumber() {
+        if(this.bankNumber==null){
+            return 0;
+        }else{
+            return bankNumber;
+        }
+    }
+
+    public void setBankNumber(Integer bankNumber) {
+        this.bankNumber = bankNumber;
+    }
+
     public Integer getStatus() {
         return status;
     }
@@ -99,7 +115,11 @@ public class ImportDrugRecord implements java.io.Serializable {
 
     @Column(name = "AddNum")
     public Integer getAddNum() {
-        return addNum;
+        if(this.addNum==null){
+            return 0;
+        }else{
+            return addNum;
+        }
     }
 
     public void setAddNum(Integer addNum) {
@@ -108,7 +128,11 @@ public class ImportDrugRecord implements java.io.Serializable {
 
     @Column(name = "UpdateNum")
     public Integer getUpdateNum() {
-        return updateNum;
+        if(this.updateNum==null){
+            return 0;
+        }else{
+            return updateNum;
+        }
     }
 
     public void setUpdateNum(Integer updateNum) {
@@ -117,7 +141,11 @@ public class ImportDrugRecord implements java.io.Serializable {
 
     @Column(name = "FailNum")
     public Integer getFailNum() {
-        return failNum;
+        if(this.failNum==null){
+            return 0;
+        }else{
+            return failNum;
+        }
     }
 
     public void setFailNum(Integer failNum) {

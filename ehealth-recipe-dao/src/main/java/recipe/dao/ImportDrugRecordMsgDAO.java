@@ -9,6 +9,7 @@ import ctd.persistence.support.impl.dictionary.DBDictionaryItemLoader;
 import ctd.util.annotation.RpcSupportDAO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import recipe.dao.comment.ExtendDao;
 
 import java.util.List;
 
@@ -19,7 +20,7 @@ import java.util.List;
  */
 @RpcSupportDAO
 public abstract class ImportDrugRecordMsgDAO extends HibernateSupportDelegateDAO<ImportDrugRecordMsg>
-        implements DBDictionaryItemLoader<ImportDrugRecordMsg> {
+        implements ExtendDao<ImportDrugRecordMsg> {
 
     /**
      * LOGGER
@@ -33,7 +34,7 @@ public abstract class ImportDrugRecordMsgDAO extends HibernateSupportDelegateDAO
         this.setKeyField("id");
     }
 
-    @DAOMethod(sql = "from ImportDrugRecordMsg where importdrugRecordId =:importdrugRecordId",limit=0)
+    @DAOMethod(sql = "from ImportDrugRecordMsg where importDrugRecordId =:importdrugRecordId",limit=0)
     public abstract List<ImportDrugRecordMsg> findImportDrugRecordMsgByImportdrugRecordId(@DAOParam("importdrugRecordId") Integer importdrugRecordId);
 
 

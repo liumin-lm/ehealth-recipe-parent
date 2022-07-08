@@ -3,6 +3,10 @@ package com.ngari.recipe.entity;
 
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
+import org.hibernate.annotations.SQLInsert;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -18,6 +22,9 @@ import static javax.persistence.GenerationType.IDENTITY;
 @Schema
 @Table(name = "base_importdrug_record_msg")
 @Access(AccessType.PROPERTY)
+@NoArgsConstructor
+@DynamicUpdate
+@DynamicInsert
 public class ImportDrugRecordMsg implements java.io.Serializable {
     public static final long serialVersionUID = -3983203173007645688L;
 
@@ -43,7 +50,7 @@ public class ImportDrugRecordMsg implements java.io.Serializable {
     @GeneratedValue(strategy = IDENTITY)
     @Column(name = "id", unique = true, nullable = false)
     public Integer getId() {
-        return id;
+        return this.id;
     }
 
     public void setId(Integer id) {

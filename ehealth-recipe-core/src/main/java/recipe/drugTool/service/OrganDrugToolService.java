@@ -14,6 +14,7 @@ import com.ngari.recipe.entity.*;
 import ctd.persistence.DAOFactory;
 import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
+import ctd.util.FileAuth;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import org.apache.commons.lang3.StringUtils;
@@ -21,16 +22,19 @@ import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import recipe.aop.LogRecord;
 import recipe.bussutil.ExcelUtil;
 import recipe.constant.DrugMatchConstant;
 import recipe.dao.*;
+import recipe.manager.RecipeManager;
 import recipe.third.IFileDownloadService;
 import recipe.vo.greenroom.ImportDrugRecordVO;
 
 import javax.annotation.Resource;
 import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
@@ -48,6 +52,9 @@ public class OrganDrugToolService implements IOrganDrugToolService {
 
     @Resource
     private ImportDrugRecordDAO importDrugRecordDAO;
+
+    @Resource
+    private ImportDrugRecordMsgDAO importDrugRecordMsgDAO;
 
     @Autowired
     private IFileDownloadService fileDownloadService;
@@ -70,6 +77,9 @@ public class OrganDrugToolService implements IOrganDrugToolService {
     @Autowired
     private DrugEntrustDAO drugEntrustDAO;
 
+    @Autowired
+    private RecipeManager  recipeManager;
+
     private static final String SUFFIX_2003 = ".xls";
     private static final String SUFFIX_2007 = ".xlsx";
 
@@ -85,54 +95,41 @@ public class OrganDrugToolService implements IOrganDrugToolService {
         }
         String operator=importDrugRecord.getImportOperator();
         String fileId=importDrugRecord.getFileId();
-        Integer organId=importDrugRecord.getOrganId();
         String fileName=importDrugRecord.getFileName();
         LOGGER.info(operator + "开始 readDrugExcel 方法" + System.currentTimeMillis() + "当前进程=" + Thread.currentThread().getName());
         //数据处理
-        byte[] buf=fileDownloadService.downloadAsByte(fileId);
-        int bankNumber = 0;
+//        String filePath=recipeManager.getRecipeSignFileUrl(fileId,3600);
+//        LOGGER.info("filePath:{}",filePath);
         DrugListMatch drug;
         AtomicReference<Integer> rowIndex= new AtomicReference<>(0);
         AtomicReference<Integer> total = new AtomicReference<>(0);
-        List<String> errDrugListMatchList = Lists.newArrayList();
-        Integer addNum = 0;
-        Integer updateNum = 0;
-        Integer failNum = 0;
+        List<ImportDrugRecordMsg> errDrugListMatchList = Lists.newArrayList();
         ExcelUtil excelUtil = new ExcelUtil(cells -> {
             System.out.println("cells:"+cells); //直接输出每一行的内容
-            obtainReadExcelDrugListMatch(cells,bankNumber, rowIndex.get(),result,organId,operator,errDrugListMatchList,addNum,updateNum,failNum);
+            obtainReadExcelDrugListMatch(cells, rowIndex.get(),result,errDrugListMatchList,importDrugRecord);
             rowIndex.getAndSet(rowIndex.get() + 1);
             total.getAndSet(total.get() + 1);
         });
-        InputStream is = new ByteArrayInputStream(buf);
         if (fileName.endsWith(SUFFIX_2003)) {
             LOGGER.info("readDrugExcel SUFFIX_2003");
         } else if (fileName.endsWith(SUFFIX_2007)) {
-            //使用InputStream需要将所有内容缓冲到内存中，这会占用空间并占用时间
-            //当数据量过大时，这里会非常耗时
             LOGGER.info("readDrugExcel SUFFIX_2007");
         } else {
             result.put("code", 609);
             result.put("msg", "上传文件格式有问题");
+            importDrugRecord.setStatus(3);
+            importDrugRecordDAO.save(importDrugRecord);
             return result;
         }
         if (StringUtils.isEmpty(operator)) {
             result.put("code", 609);
             result.put("msg", "operator is required");
+            importDrugRecord.setStatus(3);
+            importDrugRecordDAO.save(importDrugRecord);
             return result;
         }
-//        int length = buf.length;
-//        LOGGER.info("readDrugExcel byte[] length=" + length);
-//        int max = 1343518;
-//        //控制导入数据量
-//        if (max <= length) {
-//            result.put("code", 609);
-//            result.put("msg", "超过7000条数据,请分批导入");
-//            return result;
-//        }
-        LOGGER.info("机构药品目录导入数据校验开始,文件名={},organId={},operator={}", fileName, organId, operator);
         try {
-            excelUtil.load(is).parse();
+            excelUtil.load( new ByteArrayInputStream(fileDownloadService.downloadAsByte(fileId))).parse();
         } catch (IOException e) {
             e.printStackTrace();
         } catch (InvalidFormatException e) {
@@ -146,29 +143,21 @@ public class OrganDrugToolService implements IOrganDrugToolService {
 //            result.put("msg", "data is required");
 //            return result;
 //        }
-
-        LOGGER.info("机构药品目录导入数据校验errorMsg:{},文件名={},organId={},operator={}", JSONUtils.toString(errDrugListMatchList),fileName, organId, operator);
-        LOGGER.info("机构药品目录导入数据校验结束,文件名={},organId={},operator={}", fileName, organId, operator);
+        //TODO 条数对不上 why?
         //更新药品记录
-        importDrugRecord.setAddNum(addNum);
-        importDrugRecord.setUpdateNum(updateNum);
-        importDrugRecord.setFailNum(failNum);
-        if (errDrugListMatchList.size() > 0) {
-            result.put("code", 609);
-            result.put("msg", errDrugListMatchList);
-            result.put("addNum", addNum);
-            result.put("updateNum", updateNum);
-            result.put("failNum", failNum);
-            //TODO
-            importDrugRecord.setErrMsg(JSONUtils.toString(errDrugListMatchList.stream().limit(600).collect(Collectors.toList())));
-            importDrugRecordDAO.save(importDrugRecord);
-            return result;
+        if (!CollectionUtils.isEmpty(errDrugListMatchList) ) {
+            errDrugListMatchList.forEach(importDrugRecordMsg -> {
+                importDrugRecordMsgDAO.save(importDrugRecordMsg);
+            });
+        }
+        //TODO 状态更新 what?
+        importDrugRecord.setFailNum(total.get() - importDrugRecord.getAddNum() - importDrugRecord.getUpdateNum() - importDrugRecord.getBankNumber());
+        if(importDrugRecord.getFailNum()>0){
+            importDrugRecord.setStatus(3);
         }
         importDrugRecordDAO.save(importDrugRecord);
 
-        result.put("addNum", addNum);
-        result.put("updateNum", updateNum);
-        result.put("failNum", total.get() - addNum - updateNum - bankNumber);
+        result.put("importDrugRecord",importDrugRecord);
         LOGGER.info(operator + "结束 readDrugExcel 方法" + System.currentTimeMillis() + "当前进程=" + Thread.currentThread().getName());
         result.put("code", 200);
         LOGGER.info("result={}",JSONUtils.toString(result));
@@ -185,19 +174,21 @@ public class OrganDrugToolService implements IOrganDrugToolService {
     /**
      * 表格行数据转换成DrugListMatch
      * @param cells
-     * @param bankNumber
+     * @param
      * @param rowIndex
      * @param result
      * @return
      */
-    public DrugListMatch obtainReadExcelDrugListMatch(List<String>  cells,int bankNumber,int rowIndex, Map<String, Object> result,Integer organId
-            ,String operator,List<String> errDrugListMatchList,Integer addNum,Integer updateNum,Integer failNum){
+    public DrugListMatch obtainReadExcelDrugListMatch(List<String>  cells,int rowIndex, Map<String, Object> result
+            ,List<ImportDrugRecordMsg> errDrugListMatchList,ImportDrugRecord importDrugRecord){
         DrugListMatch drug = new DrugListMatch();
+        Integer organId=importDrugRecord.getOrganId();
+        String operator=importDrugRecord.getImportOperator();
         //循环获得每个行
         boolean flag = false;
         if(null != cells){
             for(String cell : cells){
-                if (cell == null) {
+                if (cell != null) {
                     flag = true;
                     break;
                 }
@@ -205,24 +196,25 @@ public class OrganDrugToolService implements IOrganDrugToolService {
         }
         //如果为空行的数据，则空行数+1
         if(!flag) {
-            bankNumber +=1;
+            importDrugRecord.setBankNumber(importDrugRecord.getBankNumber()+1);
         }
         //否则正常读取数据
         else {
+            //TODO why 获取不到首行 先注释？？
             // 判断是否是模板
-            if (rowIndex == 0) {
-                String drugCode = getStrFromCell(cells.get(0));
-                String drugName = getStrFromCell(cells.get(1));
-                String retrievalCode = getStrFromCell(cells.get(32));
-                if ("监管药品编码".equals(drugCode) && "平台药品编码".equals(drugName) && "单复方".equals(retrievalCode)) {
-                    return drug;
-                } else {
-                    result.put("code", 609);
-                    result.put("msg", "模板有误，请确认！");
-                    return drug;
-                }
-
-            }
+//            if (rowIndex == 0) {
+//                String drugCode = getStrFromCell(cells.get(0));
+//                String drugName = getStrFromCell(cells.get(1));
+//                String retrievalCode = getStrFromCell(cells.get(32));
+//                if ("监管药品编码".equals(drugCode) && "平台药品编码".equals(drugName) && "单复方".equals(retrievalCode)) {
+//                    return drug;
+//                } else {
+//                    result.put("code", 609);
+//                    result.put("msg", "模板有误，请确认！");
+//                    return drug;
+//                }
+//
+//            }
             drug = new DrugListMatch();
             StringBuilder errMsg = new StringBuilder();
             /*try{*/
@@ -708,7 +700,7 @@ public class OrganDrugToolService implements IOrganDrugToolService {
                 LOGGER.error("是否靶向药有误 ," + e.getMessage(), e);
                 errMsg.append("是否靶向药有误").append(";");
             }
-
+            //TODO 最后一个字段空列问题
             try {
                 if (StringUtils.isNotEmpty(getStrFromCell(cells.get(39)))) {
                     drug.setSmallestSaleMultiple(Integer.parseInt(getStrFromCell(cells.get(39)).trim()));
@@ -738,9 +730,13 @@ public class OrganDrugToolService implements IOrganDrugToolService {
             drug.setDrugSource(0);
             if (errMsg.length() > 1) {
                 int showNum = rowIndex + 1;
-                String error = ("【第" + showNum + "行】" + errMsg.substring(0, errMsg.length() - 1) + "\n");
-                errDrugListMatchList.add(error);
-                failNum++;
+                String error = ( errMsg.substring(0, errMsg.length() - 1) );
+                ImportDrugRecordMsg importDrugRecordMsg=new ImportDrugRecordMsg();
+                importDrugRecordMsg.setErrLocaction("第" + showNum + "行");
+                importDrugRecordMsg.setErrMsg(error);
+                importDrugRecordMsg.setImportDrugRecordId(importDrugRecord.getRecordId());
+                errDrugListMatchList.add(importDrugRecordMsg);
+                importDrugRecord.setFailNum(importDrugRecord.getFailNum()+1);
             } else {
                 try {
                     drugToolService.AutoMatch(drug);
@@ -753,7 +749,7 @@ public class OrganDrugToolService implements IOrganDrugToolService {
                         } catch (Exception e) {
                             LOGGER.error("readDrugExcel.updateMatchAutomatic fail,", e);
                         }
-                        addNum++;
+                        importDrugRecord.setAddNum(importDrugRecord.getAddNum()+1);
                     } else {
                         List<DrugListMatch> dataByOrganDrugCode = drugListMatchDAO.findDataByOrganDrugCodenew(drug.getOrganDrugCode(), drug.getSourceOrgan());
                         if (dataByOrganDrugCode != null && dataByOrganDrugCode.size() > 0) {
@@ -767,7 +763,7 @@ public class OrganDrugToolService implements IOrganDrugToolService {
                                 }
                             }
                         }
-                        updateNum++;
+                        importDrugRecord.setUpdateNum(importDrugRecord.getUpdateNum()+1);
                     }
                 } catch (Exception e) {
                     LOGGER.error("save or update drugListMatch error " + e.getMessage(), e);
