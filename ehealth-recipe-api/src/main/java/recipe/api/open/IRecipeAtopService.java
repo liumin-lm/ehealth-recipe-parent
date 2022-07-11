@@ -110,6 +110,15 @@ public interface IRecipeAtopService {
     Boolean updateAuditState(Integer recipeId, Integer state);
 
     /**
+     * 修改处方状态
+     * @param recipeId
+     * @param processState
+     * @param subState
+     * @return
+     */
+    Boolean updateRecipeState(Integer recipeId, Integer processState, Integer subState);
+
+    /**
      * 根据his处方号和挂号序号机构查询处方
      *
      * @param recipeCode his处方号

@@ -416,6 +416,11 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     }
 
     @Override
+    public Boolean updateRecipeState(Integer recipeId, RecipeStateEnum processState, RecipeStateEnum subState) {
+        return stateManager.updateRecipeState(recipeId, processState, subState);
+    }
+
+    @Override
     public RecipeBean getByRecipeCodeAndRegisterIdAndOrganId(String recipeCode, String registerId, int organId) {
         Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeCode, organId);
         logger.info("RecipeBusinessService getByRecipeCodeAndRegisterIdAndOrganId recipe:{}", JSON.toJSONString(recipe));
