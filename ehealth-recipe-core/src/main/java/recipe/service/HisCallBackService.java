@@ -33,6 +33,7 @@ import recipe.dao.RecipeOrderDAO;
 import recipe.enumerate.status.OrderStateEnum;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.status.WriteHisEnum;
 import recipe.hisservice.syncdata.SyncExecutorService;
 import recipe.manager.StateManager;
 import recipe.purchase.CommonOrder;
@@ -133,7 +134,7 @@ public class HisCallBackService {
             memo = "HIS审核返回：写入his成功，审核未通过";
         }
 
-        Integer writeHisState = null == result.getWriteHisState() ? 3 : result.getWriteHisState();
+        Integer writeHisState = null == result.getWriteHisState() ? WriteHisEnum.WRITE_HIS_STATE_ORDER.getType() : result.getWriteHisState();
         attrMap.put("writeHisState", writeHisState);
         //添加医院审方后保存审核日志
         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), memo);
@@ -158,8 +159,6 @@ public class HisCallBackService {
                 detailAttrMap = Maps.newHashMap();
                 detailAttrMap.put("drugGroup", detail.getDrugGroup());
                 detailAttrMap.put("orderNo", detail.getOrderNo());
-//                detailAttrMap.put("pharmNo", detail.getPharmNo());
-
                 //因为从HIS返回回来的数据不是很全，所以要从DB获取一次
                 Recipedetail recipedetail = detailDAO.getByRecipeDetailId(detail.getRecipeDetailId());
                 //根据医院传入的价格更新药品总价

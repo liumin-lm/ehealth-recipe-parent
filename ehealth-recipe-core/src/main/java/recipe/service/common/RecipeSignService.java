@@ -42,6 +42,7 @@ import recipe.dao.*;
 import recipe.drugTool.validate.RecipeDetailValidateTool;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.status.WriteHisEnum;
 import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
 import recipe.manager.CaManager;
@@ -553,7 +554,7 @@ public class RecipeSignService {
         Recipe recipe = new Recipe();
         recipe.setRecipeId(recipeBean.getRecipeId());
         recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_CHECKING_HOS.getType());
-        recipe.setWriteHisState(1);
+        recipe.setWriteHisState(WriteHisEnum.WRITE_HIS_STATE_SUBMIT.getType());
         recipeDAO.updateNonNullFieldByPrimaryKey(recipe);
         //可通过缓存控制是互联网方式发送处方(his来查)还是平台模式发送处方(平台推送)
         Set<String> organIdList = redisClient.sMembers(CacheConstant.KEY_NGARI_SENDRECIPETOHIS_LIST);

@@ -35,6 +35,8 @@ import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.OrganDrugListDAO;
 import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.enumerate.status.RecipeStateEnum;
+import recipe.enumerate.status.SignEnum;
+import recipe.enumerate.status.WriteHisEnum;
 import recipe.enumerate.type.BussSourceTypeEnum;
 import recipe.manager.DepartManager;
 import recipe.util.ByteUtils;
@@ -249,8 +251,8 @@ public class RecipeUtil {
         recipe.setProcessState(RecipeStateEnum.PROCESS_STATE_SUBMIT.getType());
         recipe.setSubState(RecipeStateEnum.SUB_SUBMIT_TEMPORARY.getType());
         recipe.setAuditState(RecipeAuditStateEnum.DEFAULT.getType());
-        recipe.setWriteHisState(0);
-        recipe.setDoctorSignState(0);
+        recipe.setWriteHisState(WriteHisEnum.NONE.getType());
+        recipe.setDoctorSignState(SignEnum.NONE.getType());
         recipe.setCheckFlag(0);
         recipe.setMedicalFlag(0);
         //默认为西药
