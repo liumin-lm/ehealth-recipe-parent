@@ -12,6 +12,7 @@ import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.vo.*;
 import recipe.enumerate.status.RecipeAuditStateEnum;
+import recipe.enumerate.status.RecipeStateEnum;
 import recipe.vo.doctor.PatientOptionalDrugVO;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.greenroom.DrugUsageLabelResp;
@@ -144,6 +145,15 @@ public interface IRecipeBusinessService {
      * @return
      */
     Boolean updateAuditState(Integer recipeId, RecipeAuditStateEnum recipeAuditStateEnum);
+
+    /**
+     * 修改处方状态
+     * @param recipeId
+     * @param processState
+     * @param subState
+     * @return
+     */
+    Boolean updateRecipeState(Integer recipeId, RecipeStateEnum processState, RecipeStateEnum subState);
 
     RecipeBean getByRecipeCodeAndRegisterIdAndOrganId(String recipeCode, String registerId, int organId);
 

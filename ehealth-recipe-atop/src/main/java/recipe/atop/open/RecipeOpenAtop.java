@@ -23,6 +23,7 @@ import recipe.core.api.IRevisitBusinessService;
 import recipe.core.api.patient.IOfflineRecipeBusinessService;
 import recipe.core.api.patient.IPatientBusinessService;
 import recipe.enumerate.status.RecipeAuditStateEnum;
+import recipe.enumerate.status.RecipeStateEnum;
 import recipe.util.ObjectCopyUtils;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.patient.PatientOptionalDrugVo;
@@ -167,6 +168,11 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
     @Override
     public Boolean updateAuditState(Integer recipeId, Integer state) {
         return recipeBusinessService.updateAuditState(recipeId, RecipeAuditStateEnum.getRecipeAuditStateEnum(state));
+    }
+
+    @Override
+    public Boolean updateRecipeState(Integer recipeId, Integer processState, Integer subState){
+        return recipeBusinessService.updateRecipeState(recipeId, RecipeStateEnum.getRecipeStateEnum(processState), RecipeStateEnum.getRecipeStateEnum(subState));
     }
 
     @Override
