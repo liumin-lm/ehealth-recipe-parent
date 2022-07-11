@@ -855,7 +855,7 @@ public class RecipeService extends RecipeBaseService {
 //    }
 
     /**
-     * his回调签名处理
+     * his回调后 ca签名处理
      *
      * @param recipeId
      */
