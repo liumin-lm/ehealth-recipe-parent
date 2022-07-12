@@ -281,6 +281,13 @@ public class RecipeServiceSub {
                         if(StringUtils.isNotEmpty(recipeExtend.getTerminalId())){
                             recipeExtend.setTerminalType(1);
                         }
+                        if (new Integer(6).equals(recipeExtend.getRecipeChooseChronicDisease())) {
+                            //从复诊获取病种编码和名称
+                            if (new Integer(4).equals(revisitExDTO.getInsureTypeCode())) {
+                                recipeExtend.setChronicDiseaseCode(revisitExDTO.getMtTypeCode());
+                                recipeExtend.setChronicDiseaseName(revisitExDTO.getMtTypeName());
+                            }
+                        }
                     }
                     if(null != hosRecordDTO){
                         recipeExtend.setSideCourtYardType(hosRecordDTO.getType());
