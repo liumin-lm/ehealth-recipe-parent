@@ -350,6 +350,8 @@ public class HisRequestInit {
             requestTO.setPatientId(recipe.getPatientID());
             //处方扩展信息
             requestTO.setRecipeExtend(ObjectCopyUtils.convert(recipeExtend, RecipeExtendBean.class));
+            //终端是否为自助机
+            requestTO.getRecipeExtend().setSelfServiceMachineFlag(new Integer(1).equals(recipeExtend.getTerminalType()));
             try {
                 //制法Code 煎法Code 中医证候Code
                 DrugDecoctionWayDao drugDecoctionWayDao = DAOFactory.getDAO(DrugDecoctionWayDao.class);
