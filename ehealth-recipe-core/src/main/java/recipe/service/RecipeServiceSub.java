@@ -278,7 +278,9 @@ public class RecipeServiceSub {
                         recipeExtend.setIllnessType(revisitExDTO.getDbType());
                         recipeExtend.setIllnessName(revisitExDTO.getDbTypeName());
                         recipeExtend.setTerminalId(revisitExDTO.getSelfServiceMachineNo());
-                        recipeExtend.setTerminalType(1);
+                        if(StringUtils.isNotEmpty(recipeExtend.getTerminalId())){
+                            recipeExtend.setTerminalType(1);
+                        }
                     }
                     if(null != hosRecordDTO){
                         recipeExtend.setSideCourtYardType(hosRecordDTO.getType());
