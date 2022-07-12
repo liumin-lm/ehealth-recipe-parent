@@ -253,6 +253,7 @@ public class RecipeUtil {
         recipe.setAuditState(RecipeAuditStateEnum.DEFAULT.getType());
         recipe.setWriteHisState(WriteHisEnum.NONE.getType());
         recipe.setDoctorSignState(SignEnum.NONE.getType());
+        recipe.setCheckerSignState(SignEnum.NONE.getType());
         recipe.setCheckFlag(0);
         recipe.setMedicalFlag(0);
         //默认为西药
