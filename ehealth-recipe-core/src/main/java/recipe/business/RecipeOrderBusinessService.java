@@ -417,7 +417,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                 RecipeExtend recipeExtend = recipeExtendMap.get(recipe.getRecipeId());
                 ObjectCopyUtils.copyProperties(downRecipeVO, recipeExtend);
                 List<Recipedetail> recipeDetailListFromMap = recipeDetailListMap.get(recipe.getRecipeId());
-                recipeDetailListFromMap.forEach(recipeDetail -> {
+                for (Recipedetail recipeDetail : recipeDetailListFromMap) {
                     BaseRecipeDetailVO baseRecipeDetailVO = new BaseRecipeDetailVO();
                     baseRecipeDetailVO.setUnit(recipeDetail.getDrugUnit());
                     ObjectCopyUtils.copyProperties(baseRecipeDetailVO, recipeDetail);
@@ -426,11 +426,11 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                         baseRecipeDetailVO.setSaleDrugCode(saleDrugList.getSaleDrugCode());
                     }
                     if (null != recipeDetail.getActualSalePrice()) {
-                        recipeFee.add(recipeDetail.getActualSalePrice().multiply(new BigDecimal(recipeDetail.getUseTotalDose())).setScale(4, BigDecimal.ROUND_HALF_UP)).setScale(2, BigDecimal.ROUND_HALF_UP);
+                        recipeFee = recipeFee.add(recipeDetail.getActualSalePrice().multiply(new BigDecimal(recipeDetail.getUseTotalDose())).setScale(4, BigDecimal.ROUND_HALF_UP)).setScale(2, BigDecimal.ROUND_HALF_UP);
                         baseRecipeDetailVO.setSalePrice(recipeDetail.getActualSalePrice());
                     }
                     baseRecipeDetailVOList.add(baseRecipeDetailVO);
-                });
+                }
                 if (null == downRecipeVO.getRecipeFee()) {
                     downRecipeVO.setRecipeFee(recipeFee);
                 }
