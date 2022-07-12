@@ -277,6 +277,8 @@ public class RecipeServiceSub {
                         recipeExtend.setMedicalRecordNumber(revisitExDTO.getMedicalRecordNo());
                         recipeExtend.setIllnessType(revisitExDTO.getDbType());
                         recipeExtend.setIllnessName(revisitExDTO.getDbTypeName());
+                        recipeExtend.setTerminalId(revisitExDTO.getSelfServiceMachineNo());
+                        recipeExtend.setTerminalType(1);
                     }
                     if(null != hosRecordDTO){
                         recipeExtend.setSideCourtYardType(hosRecordDTO.getType());
