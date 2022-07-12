@@ -245,4 +245,10 @@ public interface IRecipeBusinessService {
 
     AdvanceWarningResVO getAdvanceWarning(AdvanceWarningReqVO advanceWarningReqDTO);
 
+    /**
+     * 药师签名 只是获取药师手签更新PDF
+     * @param recipeId
+     */
+    void pharmacyToRecipePDF(Integer recipeId);
+
 }

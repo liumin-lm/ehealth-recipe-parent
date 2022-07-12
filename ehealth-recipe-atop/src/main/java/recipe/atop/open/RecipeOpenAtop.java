@@ -237,4 +237,13 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
         return recipeBusinessService.findRelatedRecipeRecordByRegisterNo(recipeId, doctorId, recipeTypeList, organIds);
     }
 
+    /**
+     * 药师签名 只是获取药师手签更新PDF
+     * @param recipeId
+     */
+    @Override
+    public void pharmacyToRecipePDF(Integer recipeId) {
+        recipeBusinessService.pharmacyToRecipePDF(recipeId);
+    }
+
 }

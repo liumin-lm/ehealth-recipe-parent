@@ -30,6 +30,7 @@ import recipe.audit.auditmode.AuditModeContext;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
+import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.IConfigurationClient;
 import recipe.client.OfflineRecipeClient;
 import recipe.client.PatientClient;
@@ -110,11 +111,11 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     @Autowired
     private RecipeHisService recipeHisService;
     @Autowired
-    private DrugsEnterpriseDAO drugsEnterpriseDAO;
-    @Autowired
     private RecipeExtendDAO recipeExtendDAO;
     @Autowired
     private EnterpriseManager enterpriseManager;
+    @Autowired
+    private CreatePdfFactory createPdfFactory;
 
 
     /**
@@ -742,7 +743,11 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     public AdvanceWarningResVO getAdvanceWarning(AdvanceWarningReqVO advanceWarningReqVO) {
         AdvanceWarningResDTO advanceWarningResDTO = recipeManager.getAdvanceWarning(ObjectCopyUtils.convert(advanceWarningReqVO, AdvanceWarningReqDTO.class));
         return ObjectCopyUtils.convert(advanceWarningResDTO, AdvanceWarningResVO.class);
+    }
 
+    @Override
+    public void pharmacyToRecipePDF(Integer recipeId) {
+        createPdfFactory.updateCheckNamePdf(recipeId);
     }
 }
 

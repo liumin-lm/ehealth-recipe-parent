@@ -192,4 +192,11 @@ public interface IRecipeAtopService {
     @RpcService(mvcDisabled = true)
     List<RecipeInfoVO> findRelatedRecipeRecordByRegisterNo(Integer recipeId, Integer doctorId,
                                                            List<Integer> recipeTypeList, List<Integer> organIds);
+
+    /**
+     * 药师签名 只是获取药师手签更新PDF
+     * @param recipeId
+     */
+    @RpcService(mvcDisabled = true)
+    void pharmacyToRecipePDF(Integer recipeId);
 }
