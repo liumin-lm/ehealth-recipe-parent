@@ -170,39 +170,6 @@ public class QueryRecipeInfoDTO implements Serializable {
     )
     private Integer certificateType;
 
-    @ItemProperty(alias = "终端ID")
-    private String terminalId;
-
-    @ItemProperty(alias = "终端类型 1 自助机")
-    private Integer terminalType;
-
-    @ItemProperty(alias = "是否是自助机")
-    private Boolean selfServiceMachineFlag;
-
-    public String getTerminalId() {
-        return terminalId;
-    }
-
-    public void setTerminalId(String terminalId) {
-        this.terminalId = terminalId;
-    }
-
-    public Integer getTerminalType() {
-        return terminalType;
-    }
-
-    public void setTerminalType(Integer terminalType) {
-        this.terminalType = terminalType;
-    }
-
-    public Boolean isSelfServiceMachineFlag() {
-        return selfServiceMachineFlag;
-    }
-
-    public void setSelfServiceMachineFlag(Boolean selfServiceMachineFlag) {
-        this.selfServiceMachineFlag = selfServiceMachineFlag;
-    }
-
     public Map<String, Object> getMedicalInfoBean() {
         return medicalInfoBean;
     }

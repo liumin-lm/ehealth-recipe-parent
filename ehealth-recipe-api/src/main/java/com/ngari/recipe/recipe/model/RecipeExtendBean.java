@@ -228,6 +228,39 @@ public class RecipeExtendBean implements Serializable {
     @ItemProperty(alias = "业务办理类型 2父母 3子女 4自愿者代办")
     private String handleType;
 
+    @ItemProperty(alias = "终端ID")
+    private String terminalId;
+
+    @ItemProperty(alias = "终端类型 1 自助机")
+    private Integer terminalType;
+
+    @ItemProperty(alias = "是否是自助机")
+    private Boolean selfServiceMachineFlag;
+
+    public String getTerminalId() {
+        return terminalId;
+    }
+
+    public void setTerminalId(String terminalId) {
+        this.terminalId = terminalId;
+    }
+
+    public Integer getTerminalType() {
+        return terminalType;
+    }
+
+    public void setTerminalType(Integer terminalType) {
+        this.terminalType = terminalType;
+    }
+
+    public Boolean isSelfServiceMachineFlag() {
+        return selfServiceMachineFlag;
+    }
+
+    public void setSelfServiceMachineFlag(Boolean selfServiceMachineFlag) {
+        this.selfServiceMachineFlag = selfServiceMachineFlag;
+    }
+
     public String getIllnessName() {
         return illnessName;
     }
