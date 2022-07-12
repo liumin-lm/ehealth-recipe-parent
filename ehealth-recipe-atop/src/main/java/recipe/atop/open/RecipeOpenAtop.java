@@ -246,4 +246,14 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
         recipeBusinessService.pharmacyToRecipePDF(recipeId);
     }
 
+    /**
+     * 药师签名并进行CA操作
+     * @param recipeId
+     * @param checker
+     */
+    @Override
+    public void pharmacyToRecipePDFAndCa(Integer recipeId, Integer checker) {
+        recipeBusinessService.pharmacyToRecipePDFAndCa(recipeId, checker);
+    }
+
 }

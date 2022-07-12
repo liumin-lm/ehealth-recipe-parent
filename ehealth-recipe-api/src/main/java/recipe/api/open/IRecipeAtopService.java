@@ -199,4 +199,12 @@ public interface IRecipeAtopService {
      */
     @RpcService(mvcDisabled = true)
     void pharmacyToRecipePDF(Integer recipeId);
+
+    /**
+     * 药师签名并进行CA操作
+     * @param recipeId
+     * @param checker
+     */
+    @RpcService(mvcDisabled = true)
+    void pharmacyToRecipePDFAndCa(Integer recipeId, Integer checker);
 }
