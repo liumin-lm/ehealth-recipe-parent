@@ -1,5 +1,6 @@
 package recipe.core.api;
 
+import com.ngari.recipe.dto.DoSignRecipeDTO;
 import com.ngari.recipe.dto.EnterpriseStock;
 import com.ngari.recipe.dto.RecipeDTO;
 import com.ngari.recipe.entity.Recipe;
@@ -41,6 +42,7 @@ public interface IStockBusinessService {
      * @param recipeId 处方id
      * @return 是否可以开方
      */
+    @Deprecated
     Map<String, Object> enterpriseStockMap(Integer recipeId);
 
     /**
@@ -52,6 +54,15 @@ public interface IStockBusinessService {
      * @return 药品信息 一定存在于出参
      */
     EnterpriseStock enterpriseStockCheck(Recipe recipe, List<Recipedetail> recipeDetails, Integer enterpriseId);
+
+    /**
+     * 校验 某个药企下 药品库存 的库存数量
+     *
+     * @param recipeDTO    药品信息 drugId，code
+     * @param enterpriseId 指定某药企id
+     * @return 药品信息 一定存在于出参
+     */
+    EnterpriseStock enterpriseStockCheckV1(RecipeDTO recipeDTO, Integer enterpriseId);
 
     /**
      * 医生端 查询购药方式下有库存的药品
@@ -70,11 +81,20 @@ public interface IStockBusinessService {
     List<EnterpriseStock> drugRecipeStock(RecipeDTO recipeDTO);
 
     /**
+     * 查询药品能支持的够药方式
+     *
+     * @param recipe
+     * @return
+     */
+    DoSignRecipeDTO drugRecipeStockGiveMode(RecipeDTO recipe);
+
+    /**
      * 获取药品库存
+     *
      * @param recipeIds
      * @param enterpriseId
      * @return
      */
-    Boolean getOrderStockFlag(List<Integer> recipeIds, Integer enterpriseId,String giveModeKey);
+    Boolean getOrderStockFlag(List<Integer> recipeIds, Integer enterpriseId, String giveModeKey);
 
 }
