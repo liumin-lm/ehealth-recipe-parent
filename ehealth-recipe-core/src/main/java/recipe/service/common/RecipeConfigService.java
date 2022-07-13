@@ -102,9 +102,9 @@ public class RecipeConfigService {
     @RpcService
     @LogRecord
     public String getRecipeModeByAppKeyAndOrganId(String appKey,Integer organId) {
-        String val = RecipeBussConstant.RECIPEMODE_NGARIHEALTH;
+        String val = "";
         if (organId == null) {
-            return val;
+            return getRecipeMode(appKey);
         }
         Integer recipeModeRadioConfig = (Integer) configService.getConfiguration(organId, "recipeModeRadioConfig");
         //"options":{ "0":"无", "1":"浙里平台模式", "2":"纳里平台模式" }
