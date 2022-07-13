@@ -25,6 +25,7 @@ import recipe.constant.RecipeMsgEnum;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.status.WriteHisEnum;
 import recipe.manager.EmrRecipeManager;
 import recipe.manager.RecipeDetailManager;
 import recipe.service.DrugsEnterpriseService;
@@ -128,7 +129,7 @@ public class RecipeToHisCallbackService {
             if (Objects.nonNull(response.getRecipeFee())) {
                 result.setTotalMoney(response.getRecipeFee());
             }
-            result.setWriteHisState(null == response.getWriteHisState() ? 3 : response.getWriteHisState());
+            result.setWriteHisState(null == response.getWriteHisState() ? WriteHisEnum.WRITE_HIS_STATE_ORDER.getType() : response.getWriteHisState());
             String recipeCostNumber = StringUtils.isNotBlank(response.getRecipeCostNumber()) ? response.getRecipeCostNumber() : recipeNo;
             result.setRecipeCostNumber(recipeCostNumber);
             result.setRecipeId(Integer.valueOf(response.getRecipeId()));
@@ -213,7 +214,7 @@ public class RecipeToHisCallbackService {
         Recipe updateRecipe = new Recipe();
         updateRecipe.setRecipeId(recipeId);
         updateRecipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_HIS_FAIL.getType());
-        updateRecipe.setWriteHisState(2);
+        updateRecipe.setWriteHisState(WriteHisEnum.WRITE_HIS_STATE_AUDIT.getType());
         recipeDAO.updateNonNullFieldByPrimaryKey(updateRecipe);
         RecipeExtend recipeExtend = new RecipeExtend();
         recipeExtend.setRecipeId(recipeId);

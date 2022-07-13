@@ -12,6 +12,7 @@ import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.vo.*;
 import recipe.enumerate.status.RecipeAuditStateEnum;
+import recipe.enumerate.status.RecipeStateEnum;
 import recipe.vo.doctor.PatientOptionalDrugVO;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.greenroom.DrugUsageLabelResp;
@@ -145,6 +146,15 @@ public interface IRecipeBusinessService {
      */
     Boolean updateAuditState(Integer recipeId, RecipeAuditStateEnum recipeAuditStateEnum);
 
+    /**
+     * 修改处方状态
+     * @param recipeId
+     * @param processState
+     * @param subState
+     * @return
+     */
+    Boolean updateRecipeState(Integer recipeId, RecipeStateEnum processState, RecipeStateEnum subState);
+
     RecipeBean getByRecipeCodeAndRegisterIdAndOrganId(String recipeCode, String registerId, int organId);
 
     /**
@@ -234,5 +244,18 @@ public interface IRecipeBusinessService {
     List<DrugUsageLabelResp> queryRecipeDrugUsageLabelByOrder(Integer orderId);
 
     AdvanceWarningResVO getAdvanceWarning(AdvanceWarningReqVO advanceWarningReqDTO);
+
+    /**
+     * 药师签名 只是获取药师手签更新PDF
+     * @param recipeId
+     */
+    void pharmacyToRecipePDF(Integer recipeId);
+
+    /**
+     * 药师签名并进行CA操作
+     * @param recipeId
+     * @param checker
+     */
+    void pharmacyToRecipePDFAndCa(Integer recipeId, Integer checker);
 
 }

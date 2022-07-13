@@ -69,6 +69,7 @@ public class PlatformCreatePdfServiceImpl extends BaseCreatePdf implements Creat
         if (StringUtils.isNotEmpty(recipe.getSignFile())) {
             byte[] fileByte = CreateRecipePdfUtil.signFileByte(recipe.getSignFile());
             if (null != fileByte) {
+                logger.info("PlatformCreatePdfServiceImpl recipe={}", recipe.getRecipeId());
                 return fileByte;
             }
         }

@@ -34,8 +34,11 @@ public interface ITextService {
 
     /**
      * 快捷购药获取模板数据
+     *
      * @param fastRecipeReqVO
      * @return
      */
     FastRecipeAndDetailResVO getFastRecipeJson(FastRecipeReqVO fastRecipeReqVO);
+
+    void generateRecipePdf(Integer recipeId);
 }

@@ -33,13 +33,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
-import recipe.ca.impl.BeijingYwxCAImpl;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.dao.sign.SignDoctorCaInfoDAO;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
-import recipe.service.RecipeCAService;
 import recipe.manager.EmrRecipeManager;
+import recipe.service.RecipeCAService;
 
 import java.util.*;
 
@@ -128,35 +127,6 @@ public class SignInfoService implements ISignInfoService {
 
     @RpcService
     public String getTaskCode2(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList, boolean isDoctor){
-//        logger.info("getTaskCode2 info RecipeBean={}=detailBeanList={}=", JSONUtils.toString(recipeBean) , JSONUtils.toString(detailBeanList));
-//        BeijingYwxCAImpl beijingYwxCA = AppContextHolder.getBean("BeijingYCA", BeijingYwxCAImpl.class);
-//        RecipeCAService recipeCAService = ApplicationUtils.getRecipeService(RecipeCAService.class);
-//        RegulationRecipeIndicatorsReq request = null;
-//        request = recipeCAService.getCATaskRecipeReq(recipeBean, detailBeanList);
-//        logger.info("getTaskCode2 组装的处方对象{}", JSONUtils.toString(request));
-//        CaAccountRequestTO caAccountRequestTO = new CaAccountRequestTO();
-//        IConfigurationCenterUtilsService configurationService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
-//        String thirdCASign = (String) configurationService.getConfiguration(recipeBean.getClinicOrgan(), "thirdCASign");
-//        if ("bjYwxCA".equals(thirdCASign)) {
-//            String token = beijingYwxCA.caTokenBussiness(recipeBean.getClinicOrgan());
-//            String openId = beijingYwxCA.getDocStatusForPC(recipeBean.getClinicOrgan(),recipeBean.getDoctor()).getUserAccount();
-//            caAccountRequestTO.setUserName(token);
-//            caAccountRequestTO.setUserAccount(StringUtils.isNotEmpty(recipeBean.getCaPassword()) ? recipeBean.getCaPassword():openId);
-//        }
-//        else {
-//            caAccountRequestTO.setUserAccount(recipeBean.getCaPassword());
-//        }
-//        caAccountRequestTO.setOrganId(recipeBean.getClinicOrgan());
-//        caAccountRequestTO.setBusType(isDoctor?4:5);
-//        caAccountRequestTO.setRegulationRecipeIndicatorsReq(Arrays.asList(request));
-//        logger.info("getTaskCode2 request info={}=", JSONUtils.toString(caAccountRequestTO));
-//        ICaHisService iCaHisService = AppContextHolder.getBean("his.iCaHisService",ICaHisService.class);
-//        HisResponseTO<CaAccountResponseTO> responseTO = iCaHisService.caUserBusiness(caAccountRequestTO);
-//        logger.info("getTaskCode2 result info={}=", JSONObject.toJSONString(responseTO));
-//        if ("-1".equals(responseTO.getMsgCode()) && null != responseTO.getData()){
-//
-//            throw new DAOException(609,responseTO.getData().getMsg());
-//        }
         CaAccountResponseTO result = synBussData(recipeBean, detailBeanList, isDoctor);
         if (result != null){
             return result.getMsg();
@@ -217,7 +187,6 @@ public class SignInfoService implements ISignInfoService {
      */
     public CaAccountResponseTO synBussData(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList, boolean isDoctor){
         logger.info("getTaskCode2 info RecipeBean={}=detailBeanList={}=", JSONUtils.toString(recipeBean) , JSONUtils.toString(detailBeanList));
-        BeijingYwxCAImpl beijingYwxCA = AppContextHolder.getBean("BeijingYCA", BeijingYwxCAImpl.class);
         RecipeCAService recipeCAService = ApplicationUtils.getRecipeService(RecipeCAService.class);
         RegulationRecipeIndicatorsReq request = null;
         request = recipeCAService.getCATaskRecipeReq(recipeBean, detailBeanList);
@@ -226,10 +195,12 @@ public class SignInfoService implements ISignInfoService {
         IConfigurationCenterUtilsService configurationService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
         String thirdCASign = (String) configurationService.getConfiguration(recipeBean.getClinicOrgan(), "thirdCASign");
         if ("bjYwxCA".equals(thirdCASign)) {
-            String token = beijingYwxCA.caTokenBussiness(recipeBean.getClinicOrgan());
-            String openId = beijingYwxCA.getDocStatusForPC(recipeBean.getClinicOrgan(),recipeBean.getDoctor()).getUserAccount();
-            caAccountRequestTO.setUserName(token);
-            caAccountRequestTO.setUserAccount(StringUtils.isNotEmpty(recipeBean.getCaPassword()) ? recipeBean.getCaPassword():openId);
+//            BeijingYwxCAImpl beijingYwxCA = AppContextHolder.getBean("BeijingYCA", BeijingYwxCAImpl.class);
+//            String token = beijingYwxCA.caTokenBussiness(recipeBean.getClinicOrgan());
+//            String openId = beijingYwxCA.getDocStatusForPC(recipeBean.getClinicOrgan(),recipeBean.getDoctor()).getUserAccount();
+//            caAccountRequestTO.setUserName(token);
+//            caAccountRequestTO.setUserAccount(StringUtils.isNotEmpty(recipeBean.getCaPassword()) ? recipeBean.getCaPassword():openId);
+//
         }
         else {
             caAccountRequestTO.setUserAccount(recipeBean.getCaPassword());

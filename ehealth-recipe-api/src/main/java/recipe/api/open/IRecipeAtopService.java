@@ -110,6 +110,15 @@ public interface IRecipeAtopService {
     Boolean updateAuditState(Integer recipeId, Integer state);
 
     /**
+     * 修改处方状态
+     * @param recipeId
+     * @param processState
+     * @param subState
+     * @return
+     */
+    Boolean updateRecipeState(Integer recipeId, Integer processState, Integer subState);
+
+    /**
      * 根据his处方号和挂号序号机构查询处方
      *
      * @param recipeCode his处方号
@@ -183,4 +192,19 @@ public interface IRecipeAtopService {
     @RpcService(mvcDisabled = true)
     List<RecipeInfoVO> findRelatedRecipeRecordByRegisterNo(Integer recipeId, Integer doctorId,
                                                            List<Integer> recipeTypeList, List<Integer> organIds);
+
+    /**
+     * 药师签名 只是获取药师手签更新PDF
+     * @param recipeId
+     */
+    @RpcService(mvcDisabled = true)
+    void pharmacyToRecipePDF(Integer recipeId);
+
+    /**
+     * 药师签名并进行CA操作
+     * @param recipeId
+     * @param checker
+     */
+    @RpcService(mvcDisabled = true)
+    void pharmacyToRecipePDFAndCa(Integer recipeId, Integer checker);
 }

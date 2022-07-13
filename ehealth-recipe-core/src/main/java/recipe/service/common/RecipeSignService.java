@@ -34,6 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.aop.LogRecord;
 import recipe.bean.CheckYsInfoBean;
+import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.DocIndexClient;
 import recipe.constant.*;
 import recipe.core.api.IStockBusinessService;
@@ -41,6 +42,7 @@ import recipe.dao.*;
 import recipe.drugTool.validate.RecipeDetailValidateTool;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.status.WriteHisEnum;
 import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
 import recipe.manager.CaManager;
@@ -91,6 +93,8 @@ public class RecipeSignService {
     private DocIndexClient docIndexClient;
     @Resource
     private CaManager caManager;
+    @Autowired
+    private CreatePdfFactory createPdfFactory;
 
     /**
      * 武昌模式签名方法
@@ -199,10 +203,10 @@ public class RecipeSignService {
 
         //签名
         RecipeBusiThreadPool.execute(() -> {
-            RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
             try {
                 //生成pdf并签名
-                recipeService.generateRecipePdfAndSign(recipeId);
+                Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+                createPdfFactory.queryPdfOssId(recipe);
             } catch (Exception e) {
                 LOG.error("sign 签名服务异常，recipeId={}", recipeId, e);
             }
@@ -276,18 +280,6 @@ public class RecipeSignService {
             sendYsCheck = true;
         }
         recipeDAO.updateRecipeInfoByRecipeId(recipeId, status, attrMap);
-
-        //HIS同步处理
-        if (!RecipeBussConstant.GIVEMODE_FREEDOM.equals(giveMode)) {
-            RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
-            RecipeResultBean hisResult = hisService.recipeDrugTake(recipeId, PayConstant.PAY_FLAG_NOT_PAY, null);
-            //TODO HIS处理失败暂时略过
-//        if (RecipeResultBean.FAIL.equals(hisResult.getCode())) {
-//            LOG.warn("sign recipeId=[{}]更改取药方式失败，error={}", recipeId, hisResult.getError());
-//            response.setMsg("HIS更改取药方式失败");
-//            return response;
-//        }
-        }
 
         //根据配置判断是否需要人工审核, 配送到家处理在支付完成后回调 RecipeOrderService finishOrderPay
         if (RecipeBussConstant.GIVEMODE_TFDS.equals(giveMode) || RecipeBussConstant.GIVEMODE_FREEDOM.equals(giveMode)) {
@@ -562,7 +554,7 @@ public class RecipeSignService {
         Recipe recipe = new Recipe();
         recipe.setRecipeId(recipeBean.getRecipeId());
         recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_CHECKING_HOS.getType());
-        recipe.setWriteHisState(1);
+        recipe.setWriteHisState(WriteHisEnum.WRITE_HIS_STATE_SUBMIT.getType());
         recipeDAO.updateNonNullFieldByPrimaryKey(recipe);
         //可通过缓存控制是互联网方式发送处方(his来查)还是平台模式发送处方(平台推送)
         Set<String> organIdList = redisClient.sMembers(CacheConstant.KEY_NGARI_SENDRECIPETOHIS_LIST);

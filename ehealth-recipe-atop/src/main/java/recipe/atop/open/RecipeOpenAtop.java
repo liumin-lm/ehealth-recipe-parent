@@ -23,6 +23,7 @@ import recipe.core.api.IRevisitBusinessService;
 import recipe.core.api.patient.IOfflineRecipeBusinessService;
 import recipe.core.api.patient.IPatientBusinessService;
 import recipe.enumerate.status.RecipeAuditStateEnum;
+import recipe.enumerate.status.RecipeStateEnum;
 import recipe.util.ObjectCopyUtils;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.patient.PatientOptionalDrugVo;
@@ -170,6 +171,11 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
     }
 
     @Override
+    public Boolean updateRecipeState(Integer recipeId, Integer processState, Integer subState){
+        return recipeBusinessService.updateRecipeState(recipeId, RecipeStateEnum.getRecipeStateEnum(processState), RecipeStateEnum.getRecipeStateEnum(subState));
+    }
+
+    @Override
     public RecipeBean getByRecipeCodeAndRegisterIdAndOrganId(String recipeCode, String registerId, int organId) {
         validateAtop(recipeCode, organId);
         return recipeBusinessService.getByRecipeCodeAndRegisterIdAndOrganId(recipeCode, registerId, organId);
@@ -229,6 +235,25 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
     public List<RecipeInfoVO> findRelatedRecipeRecordByRegisterNo(Integer recipeId, Integer doctorId,
                                                                   List<Integer> recipeTypeList, List<Integer> organIds) {
         return recipeBusinessService.findRelatedRecipeRecordByRegisterNo(recipeId, doctorId, recipeTypeList, organIds);
+    }
+
+    /**
+     * 药师签名 只是获取药师手签更新PDF
+     * @param recipeId
+     */
+    @Override
+    public void pharmacyToRecipePDF(Integer recipeId) {
+        recipeBusinessService.pharmacyToRecipePDF(recipeId);
+    }
+
+    /**
+     * 药师签名并进行CA操作
+     * @param recipeId
+     * @param checker
+     */
+    @Override
+    public void pharmacyToRecipePDFAndCa(Integer recipeId, Integer checker) {
+        recipeBusinessService.pharmacyToRecipePDFAndCa(recipeId, checker);
     }
 
 }

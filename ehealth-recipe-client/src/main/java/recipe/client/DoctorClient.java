@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSON;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.DoctorExtendDTO;
 import com.ngari.patient.service.DoctorExtendService;
-import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.EmploymentService;
 import com.ngari.recipe.dto.ApothecaryDTO;
 import com.ngari.recipe.entity.Recipe;
@@ -23,8 +22,6 @@ import recipe.util.ValidateUtil;
  */
 @Service
 public class DoctorClient extends BaseClient {
-    @Autowired
-    private DoctorService doctorService;
     @Autowired
     private IConfigurationClient configurationClient;
     @Autowired

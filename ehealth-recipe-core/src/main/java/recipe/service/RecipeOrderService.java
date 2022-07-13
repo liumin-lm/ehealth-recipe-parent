@@ -67,7 +67,7 @@ import recipe.bean.RecipePayModeSupportBean;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.client.IConfigurationClient;
-import recipe.client.RefundClient;
+import recipe.client.PayClient;
 import recipe.common.CommonConstant;
 import recipe.common.ResponseUtils;
 import recipe.constant.*;
@@ -160,7 +160,7 @@ public class RecipeOrderService extends RecipeBaseService {
     @Autowired
     private RecipeOrderPayFlowManager recipeOrderPayFlowManager;
     @Autowired
-    private RefundClient refundClient;
+    private PayClient payClient;
     @Autowired
     private ButtonManager buttonManager;
     @Autowired
@@ -1467,7 +1467,7 @@ public class RecipeOrderService extends RecipeBaseService {
                                 recipeOrderPayFlowManager.updateNonNullFieldByPrimaryKey(recipeOrderPayFlow);
                             } else {
                                 //说明需要正常退审方费
-                                refundClient.refund(order.getOrderId(), PayBusTypeEnum.OTHER_BUS_TYPE.getName());
+                                payClient.refund(order.getOrderId(), PayBusTypeEnum.OTHER_BUS_TYPE.getName());
                             }
                         }
                     }
@@ -2292,6 +2292,11 @@ public class RecipeOrderService extends RecipeBaseService {
                 //支付成功后，对来源于HIS的处方单状态更新为已处理
                 updateHisRecieStatus(recipes);
                 purchaseService.setRecipePayWay(order);
+                // 下载处方笺 已支付后就完成订单
+                if(GiveModeEnum.GIVE_MODE_DOWNLOAD_RECIPE.getType().equals(nowRecipe.getGiveMode())){
+                    stateManager.updateRecipeState(nowRecipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_DONE, RecipeStateEnum.SUB_DONE_DOWNLOAD);
+                    stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_DISPENSING, OrderStateEnum.SUB_DONE_DOWNLOAD);
+                }
             } else if (PayConstant.PAY_FLAG_NOT_PAY == payFlag && null != order) {
                 attrMap.put("status", getPayStatus(reviewType, giveMode, nowRecipe));
                 //支付前调用

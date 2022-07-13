@@ -1,5 +1,6 @@
 package recipe.sign;
 
+import ca.vo.CaSignResultVo;
 import com.alibaba.fastjson.JSONObject;
 import com.ngari.base.department.service.IDepartmentService;
 import com.ngari.patient.dto.DoctorExtendDTO;
@@ -27,7 +28,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
-import recipe.ca.vo.CaSignResultVo;
 import recipe.constant.ErrorCode;
 import recipe.dao.RecipeExtendDAO;
 import recipe.dao.sign.SignDoctorRecipeInfoDAO;

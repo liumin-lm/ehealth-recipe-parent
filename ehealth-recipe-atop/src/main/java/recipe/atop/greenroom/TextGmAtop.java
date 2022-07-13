@@ -65,4 +65,14 @@ public class TextGmAtop {
     public void saveCommonDrug(Integer recipeId, Integer doctorId) {
         drugBusinessService.saveCommonDrug(recipeId, doctorId);
     }
+
+    /**
+     * 生产pdf文件
+     *
+     * @param recipeId
+     */
+    @RpcService
+    public void generateRecipePdf(Integer recipeId) {
+        textBusinessService.generateRecipePdf(recipeId);
+    }
 }

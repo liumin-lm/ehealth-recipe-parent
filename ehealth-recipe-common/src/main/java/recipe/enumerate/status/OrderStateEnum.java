@@ -1,13 +1,13 @@
 package recipe.enumerate.status;
 
 /**
- * 处方状态枚举
+ * 订单状态枚举
  *
  * @author fuzi
  */
 public enum OrderStateEnum {
     /**
-     * 处方父状态
+     * 订单父状态
      */
     NONE(0, "默认", ""),
     PROCESS_STATE_SUBMIT(1, "预下单", ""),
@@ -17,7 +17,17 @@ public enum OrderStateEnum {
     PROCESS_STATE_CANCELLATION(9, "已作废", ""),
 
     /**
-     * 处方子状态:作废
+     * 订单子状态:已完成
+     */
+    SUB_DONE_DOWNLOAD(41,"下载处方签",""),
+    SUB_DONE_OD_PAYMENT(42,"门诊缴费下单",""),
+    SUB_DONE_UPLOAD_THIRD(43,"上传到第三方",""),
+    SUB_DONE_SELF_TAKE(44,"自取核销",""),
+    SUB_DONE_SEND(45,"发药签收",""),
+
+
+    /**
+     * 订单子状态:作废
      */
     SUB_CANCELLATION_DOCTOR_REPEAL(91, "医生撤销", ""),
     SUB_CANCELLATION_AUDIT_NOT_PASS(92, "药师审核未通过", "药师审核不通过"),

@@ -42,6 +42,7 @@ import recipe.dao.*;
 import recipe.drugsenterprise.AccessDrugEnterpriseService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.enumerate.status.OrderStateEnum;
+import recipe.enumerate.status.RecipeStateEnum;
 import recipe.manager.EmrRecipeManager;
 import recipe.manager.StateManager;
 import recipe.service.*;
@@ -455,6 +456,8 @@ public class PrescribeService {
                         //日志记录
                         RecipeLogService.saveRecipeLog(recipeId, dbRecipe.getStatus(), RecipeStatusConstant.FINISH,
                                 "HIS推送状态：配送到家已完成");
+                        stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_DONE, RecipeStateEnum.SUB_DONE_SEND);
+
                     } else {
                         //医院取药完成处理
                         attrMap.put("chooseFlag", 1);
@@ -486,7 +489,7 @@ public class PrescribeService {
 
                             }
                         }
-
+                        stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_DONE, RecipeStateEnum.SUB_DONE_SELF_TAKE);
                         //日志记录
                         RecipeLogService.saveRecipeLog(recipeId, dbRecipe.getStatus(), RecipeStatusConstant.FINISH,
                                 "HIS推送状态：医院取药已完成");

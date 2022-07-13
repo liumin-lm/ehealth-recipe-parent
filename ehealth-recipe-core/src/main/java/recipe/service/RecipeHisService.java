@@ -73,6 +73,7 @@ import recipe.drugsenterprise.AccessDrugEnterpriseService;
 import recipe.drugsenterprise.CommonRemoteService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.status.WriteHisEnum;
 import recipe.hisservice.HisRequestInit;
 import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.hisservice.RecipeToHisService;
@@ -157,7 +158,7 @@ public class RecipeHisService extends RecipeBaseService {
         Recipe updateRecipe = new Recipe();
         updateRecipe.setRecipeId(recipeId);
         updateRecipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_CHECKING_HOS.getType());
-        updateRecipe.setWriteHisState(1);
+        updateRecipe.setWriteHisState(WriteHisEnum.WRITE_HIS_STATE_SUBMIT.getType());
         recipeDAO.updateNonNullFieldByPrimaryKey(updateRecipe);
         //中药处方由于不需要跟HIS交互，故读写分离后有可能查询不到数据
         if (skipHis(recipe)) {
@@ -246,7 +247,7 @@ public class RecipeHisService extends RecipeBaseService {
         orderRepTO.setRecipeNo(String.valueOf(recipe.getRecipeId()));
         repList.add(orderRepTO);
         response.setData(repList);
-        response.setWriteHisState(0);
+        response.setWriteHisState(WriteHisEnum.NONE.getType());
         service.sendSuccess(response);
         LOGGER.info("skip his success!!! recipeId={}", recipe.getRecipeId());
     }
@@ -444,9 +445,6 @@ public class RecipeHisService extends RecipeBaseService {
             result.setError("处方不存在");
             return result;
         }
-//        if (skipHis(recipe)) {
-//            return result;
-//        }
 
         Integer status = recipe.getStatus();
         if (isHisEnable(recipe.getClinicOrgan())) {

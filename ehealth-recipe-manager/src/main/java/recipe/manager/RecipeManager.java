@@ -4,15 +4,13 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.dto.UsingRateDTO;
-import com.ngari.common.mode.HisResponseTO;
 import com.ngari.consult.common.model.ConsultExDTO;
 import com.ngari.follow.utils.ObjectCopyUtil;
-import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.platform.recipe.mode.*;
-import com.ngari.recipe.dto.*;
 import com.ngari.recipe.dto.EmrDetailDTO;
 import com.ngari.recipe.dto.RecipeDTO;
+import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import com.ngari.revisit.RevisitBean;
 import com.ngari.revisit.common.model.RevisitExDTO;
@@ -24,7 +22,6 @@ import eh.recipeaudit.api.IRecipeCheckService;
 import eh.recipeaudit.model.RecipeCheckBean;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -39,15 +36,14 @@ import recipe.dao.SaleDrugListDAO;
 import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.status.WriteHisEnum;
 import recipe.enumerate.type.AppointEnterpriseTypeEnum;
 import recipe.enumerate.type.RecipeShowQrConfigEnum;
 import recipe.util.DictionaryUtil;
-import recipe.util.RSAEncryptUtils;
 import recipe.util.ValidateUtil;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
-import java.security.interfaces.RSAPublicKey;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -427,7 +423,7 @@ public class RecipeManager extends BaseManager {
             }
         }
         updateRecipe.setRecipeCode(recipeResult.getRecipeCode());
-        updateRecipe.setWriteHisState(3);
+        updateRecipe.setWriteHisState(WriteHisEnum.WRITE_HIS_STATE_ORDER.getType());
         recipeDAO.updateNonNullFieldByPrimaryKey(updateRecipe);
         logger.info("RecipeManager updatePushHisRecipe updateRecipe:{}.", JSON.toJSONString(updateRecipe));
     }
