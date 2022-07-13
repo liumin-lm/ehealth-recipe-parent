@@ -4,6 +4,8 @@ import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
+import java.math.BigDecimal;
+
 /**
  * 药企配送地址
  *
@@ -30,7 +32,31 @@ public class EnterpriseAddressDTO implements java.io.Serializable {
     @ItemProperty(alias = "配送地址状态")
     private Integer status;
 
+
+    @ItemProperty(alias = "配送价格")
+    private BigDecimal distributionPrice;
+
+
+    @ItemProperty(alias = "金额满多少包邮")
+    private BigDecimal buyFreeShipping;
+
     public EnterpriseAddressDTO() {
+    }
+
+    public BigDecimal getDistributionPrice() {
+        return distributionPrice;
+    }
+
+    public void setDistributionPrice(BigDecimal distributionPrice) {
+        this.distributionPrice = distributionPrice;
+    }
+
+    public BigDecimal getBuyFreeShipping() {
+        return buyFreeShipping;
+    }
+
+    public void setBuyFreeShipping(BigDecimal buyFreeShipping) {
+        this.buyFreeShipping = buyFreeShipping;
     }
 
     public Integer getId() {

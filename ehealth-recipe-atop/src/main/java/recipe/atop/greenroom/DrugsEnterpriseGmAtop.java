@@ -45,6 +45,17 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
     /**
      * 根据药企获取药企配送地址快递费
      *
+     * @param enterpriseAddressDTOS
+     */
+    @RpcService
+    public void updateEnterpriseAddressAndPrice(List<EnterpriseAddressDTO> enterpriseAddressDTOS) {
+        validateAtop(enterpriseAddressDTOS);
+        enterpriseBusinessService.updateEnterpriseAddressAndPrice(enterpriseAddressDTOS);
+    }
+
+    /**
+     * 根据药企获取药企配送地址快递费
+     *
      * @param enterpriseId
      */
     @RpcService

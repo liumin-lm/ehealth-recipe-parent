@@ -24,6 +24,9 @@ public class EnterpriseDecoctionAddressReq implements Serializable {
     @ItemProperty(alias = "机构id")
     private Integer organId;
 
+    @ItemProperty(alias = "区域编码")
+    private String area;
+
     @ItemProperty(alias = "药企配送地址合集")
     private List<EnterpriseDecoctionAddressDTO> enterpriseDecoctionAddressDTOS;
 }

@@ -1,10 +1,7 @@
 package recipe.core.api;
 
 import com.ngari.recipe.drugdistributionprice.model.DrugDistributionPriceBean;
-import com.ngari.recipe.drugsenterprise.model.EnterpriseAddressAndPrice;
-import com.ngari.recipe.drugsenterprise.model.EnterpriseDecoctionAddressDTO;
-import com.ngari.recipe.drugsenterprise.model.EnterpriseDecoctionAddressReq;
-import com.ngari.recipe.drugsenterprise.model.EnterpriseDecoctionList;
+import com.ngari.recipe.drugsenterprise.model.*;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.EnterpriseDecoctionAddress;
 import com.ngari.recipe.entity.OrganAndDrugsepRelation;
@@ -213,4 +210,10 @@ public interface IDrugsEnterpriseBusinessService {
      * @return
      */
     EnterpriseResultBean renewDrugInfo(List<EnterpriseDrugVO> enterpriseDrugVOList);
+
+    /**
+     * 修改药企支持的配送地址
+     * @param enterpriseAddressDTOS
+     */
+    void updateEnterpriseAddressAndPrice(List<EnterpriseAddressDTO> enterpriseAddressDTOS);
 }
