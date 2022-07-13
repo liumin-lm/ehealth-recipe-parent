@@ -102,6 +102,17 @@ public class HisRecipeDetail implements Serializable{
     @ItemProperty(alias = "药品嘱托编码")
     private String drugEntrustCode;
 
+    @ItemProperty(alias = "腹透液  空0否  1是  ")
+    private Integer peritonealDialysisFluidType;
+
+    @Column(name = "peritoneal_dialysis_fluid_type")
+    public Integer getPeritonealDialysisFluidType() {
+        return peritonealDialysisFluidType;
+    }
+
+    public void setPeritonealDialysisFluidType(Integer peritonealDialysisFluidType) {
+        this.peritonealDialysisFluidType = peritonealDialysisFluidType;
+    }
 
     @Column(name = "useDoseStr")
     public String getUseDoseStr() {

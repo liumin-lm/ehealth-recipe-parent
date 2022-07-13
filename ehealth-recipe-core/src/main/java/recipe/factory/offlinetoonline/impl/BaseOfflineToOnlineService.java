@@ -753,6 +753,7 @@ public class BaseOfflineToOnlineService {
                 targetedDrugType = 1;
             }
             Recipedetail recipedetail = new Recipedetail();
+            recipedetail=ObjectCopyUtils.convert(hisRecipeDetail, Recipedetail.class);
             recipedetail.setRecipeId(recipeId);
             recipedetail.setUseDoseUnit(hisRecipeDetail.getUseDoseUnit());
             //用量纯数字的存useDose,非数字的存useDoseStr
@@ -849,6 +850,11 @@ public class BaseOfflineToOnlineService {
             }
             if (StringUtils.isNotEmpty(hisRecipeDetail.getPharmacyName())) {
                 recipedetail.setPharmacyName(hisRecipeDetail.getPharmacyName());
+            }
+            if (hisRecipeDetail.getPeritonealDialysisFluidType()!=null) {
+                recipedetail.setPeritonealDialysisFluidType(hisRecipeDetail.getPeritonealDialysisFluidType());
+            }else{
+                recipedetail.setPeritonealDialysisFluidType(0);
             }
             recipedetail.setTcmContraindicationCause(hisRecipeDetail.getTcmContraindicationCause());
             recipedetail.setTcmContraindicationType(hisRecipeDetail.getTcmContraindicationType());
