@@ -4535,6 +4535,9 @@ public class RecipeService extends RecipeBaseService {
             LOGGER.info("updateHisOrganDrug 机构药品空");
             return;
         }
+        if (!ObjectUtils.isEmpty(drug.getDrugform())) {
+            organDrug.setDrugForm(drug.getDrugform());
+        }
         //获取金额
         if (StringUtils.isNotEmpty(drug.getPrice())) {
             BigDecimal drugPrice = new BigDecimal(drug.getPrice());
