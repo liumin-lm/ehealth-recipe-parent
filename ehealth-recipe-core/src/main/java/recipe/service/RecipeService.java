@@ -1141,7 +1141,7 @@ public class RecipeService extends RecipeBaseService {
             //第三步校验库存
             Integer appointEnterpriseType = recipeBean.getRecipeExtend().getAppointEnterpriseType();
             if ((continueFlag == 0 || continueFlag == 4) && ValidateUtil.integerIsEmpty(appointEnterpriseType)) {
-                rMap = drugEnterpriseBusinessService.enterpriseStock(recipeBean.getRecipeId());
+                rMap = drugEnterpriseBusinessService.enterpriseStockMap(recipeBean.getRecipeId());
                 boolean signResult = Boolean.valueOf(rMap.get("signResult").toString());
                 if (!signResult) {
                     return rMap;
@@ -4534,6 +4534,9 @@ public class RecipeService extends RecipeBaseService {
         if (null == organDrug) {
             LOGGER.info("updateHisOrganDrug 机构药品空");
             return;
+        }
+        if (!ObjectUtils.isEmpty(drug.getDrugform())) {
+            organDrug.setDrugForm(drug.getDrugform());
         }
         //获取金额
         if (StringUtils.isNotEmpty(drug.getPrice())) {

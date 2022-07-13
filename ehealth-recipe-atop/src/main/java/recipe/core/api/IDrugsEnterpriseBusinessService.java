@@ -1,7 +1,9 @@
 package recipe.core.api;
 
-import com.ngari.recipe.drugdistributionprice.model.DrugDistributionPriceBean;
-import com.ngari.recipe.drugsenterprise.model.*;
+import com.ngari.recipe.drugsenterprise.model.EnterpriseAddressAndPrice;
+import com.ngari.recipe.drugsenterprise.model.EnterpriseAddressDTO;
+import com.ngari.recipe.drugsenterprise.model.EnterpriseDecoctionAddressReq;
+import com.ngari.recipe.drugsenterprise.model.EnterpriseDecoctionList;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.EnterpriseDecoctionAddress;
 import com.ngari.recipe.entity.OrganAndDrugsepRelation;
@@ -13,6 +15,7 @@ import recipe.vo.greenroom.OrganEnterpriseRelationVo;
 import recipe.vo.greenroom.PharmacyVO;
 import recipe.vo.patient.CheckAddressReq;
 import recipe.vo.patient.CheckAddressRes;
+import recipe.vo.patient.MedicineStationVO;
 import recipe.vo.second.CheckAddressVo;
 import recipe.vo.second.enterpriseOrder.EnterpriseConfirmOrderVO;
 import recipe.vo.second.enterpriseOrder.EnterpriseDrugVO;
@@ -206,13 +209,36 @@ public interface IDrugsEnterpriseBusinessService {
 
     /**
      * 药企药品信息同步接口
+     *
      * @param enterpriseDrugVOList
      * @return
      */
     EnterpriseResultBean renewDrugInfo(List<EnterpriseDrugVO> enterpriseDrugVOList);
 
+
+    /**
+     * 机构药企销售配置
+     *
+     * @param organId
+     * @param drugsEnterpriseId
+     * @return
+     */
+    OrganDrugsSaleConfig getOrganDrugsSaleConfig(Integer organId, Integer drugsEnterpriseId);
+
+
+    /**
+     * 获取药企配送的站点
+     *
+     * @param medicineStationVO 取药站点的信息
+     * @return 可以取药站点的列表
+     */
+    List<MedicineStationVO> getMedicineStationList(MedicineStationVO medicineStationVO);
+
+    OrganDrugsSaleConfig getOrganDrugsSaleConfigOfPatient(Integer organId, Integer drugsEnterpriseId);
+
     /**
      * 修改药企支持的配送地址
+     *
      * @param enterpriseAddressDTOS
      */
     void updateEnterpriseAddressAndPrice(List<EnterpriseAddressDTO> enterpriseAddressDTOS);

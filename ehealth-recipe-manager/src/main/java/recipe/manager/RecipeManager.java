@@ -225,6 +225,10 @@ public class RecipeManager extends BaseManager {
         return recipeInfoDTO;
     }
 
+    public RecipeDTO getRecipe(Integer recipeId) {
+        return super.getRecipeDTO(recipeId);
+    }
+
     /**
      * 获取处方相关信息
      *

@@ -4,13 +4,17 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
+import com.ngari.base.organ.model.OrganBean;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.his.recipe.mode.DrugTakeChangeReqTO;
 import com.ngari.patient.service.OrganService;
+import com.ngari.platform.recipe.mode.DrugsEnterpriseBean;
+import com.ngari.platform.recipe.mode.MedicineStationDTO;
 import com.ngari.recipe.drugsenterprise.model.EnterpriseAddressAndPrice;
 import com.ngari.recipe.drugsenterprise.model.EnterpriseAddressDTO;
 import com.ngari.recipe.drugsenterprise.model.EnterpriseDecoctionAddressReq;
 import com.ngari.recipe.drugsenterprise.model.EnterpriseDecoctionList;
+import com.ngari.recipe.dto.OrganDTO;
 import com.ngari.recipe.dto.PatientDTO;
 import com.ngari.recipe.entity.*;
 import ctd.account.UserRoleToken;
@@ -33,6 +37,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
+import recipe.client.EnterpriseClient;
+import recipe.client.OrganClient;
 import recipe.client.PatientClient;
 import recipe.common.CommonConstant;
 import recipe.common.response.CommonResponse;
@@ -41,6 +47,7 @@ import recipe.constant.RecipeStatusConstant;
 import recipe.core.api.IDrugsEnterpriseBusinessService;
 import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
+import recipe.enumerate.status.GiveModeEnum;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.PayFlagEnum;
@@ -57,10 +64,7 @@ import recipe.service.RecipeHisService;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeMsgService;
 import recipe.thread.RecipeBusiThreadPool;
-import recipe.util.ByteUtils;
-import recipe.util.DateConversion;
-import recipe.util.ObjectCopyUtils;
-import recipe.util.ValidateUtil;
+import recipe.util.*;
 import recipe.vo.greenroom.DrugsEnterpriseVO;
 import recipe.vo.greenroom.OrganDrugsSaleConfigVo;
 import recipe.vo.greenroom.OrganEnterpriseRelationVo;
@@ -68,16 +72,17 @@ import recipe.vo.greenroom.PharmacyVO;
 import recipe.vo.patient.AddressAreaVo;
 import recipe.vo.patient.CheckAddressReq;
 import recipe.vo.patient.CheckAddressRes;
+import recipe.vo.patient.MedicineStationVO;
 import recipe.vo.second.CheckAddressVo;
 import recipe.vo.second.enterpriseOrder.EnterpriseConfirmOrderVO;
 import recipe.vo.second.enterpriseOrder.EnterpriseDrugVO;
 import recipe.vo.second.enterpriseOrder.EnterpriseResultBean;
 import recipe.vo.second.enterpriseOrder.EnterpriseSendOrderVO;
 
+import javax.annotation.Resource;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.FutureTask;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 /**
@@ -119,6 +124,11 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
     private DrugDistributionPriceDAO drugDistributionPriceDAO;
     @Autowired
     private SaleDrugListDAO saleDrugListDAO;
+    @Autowired
+    private OrganClient organClient;
+    @Resource
+    private EnterpriseClient enterpriseClient;
+
 
     @Override
     public Boolean existEnterpriseByName(String name) {
@@ -242,7 +252,7 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
     @Override
     public List<EnterpriseDecoctionAddress> findEnterpriseDecoctionAddressList(EnterpriseDecoctionAddressReq enterpriseDecoctionAddressReq) {
         return enterpriseManager.findEnterpriseDecoctionAddressList(enterpriseDecoctionAddressReq.getOrganId(), enterpriseDecoctionAddressReq.getEnterpriseId(),
-                enterpriseDecoctionAddressReq.getDecoctionId(),enterpriseDecoctionAddressReq.getArea());
+                enterpriseDecoctionAddressReq.getDecoctionId(), enterpriseDecoctionAddressReq.getArea());
     }
 
     @Override
@@ -583,15 +593,55 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
                 if (null != enterpriseDrugVO.getInventory()) {
                     saleDrugList.setInventory(enterpriseDrugVO.getInventory());
                 }
-                if (saleDrugListDAO.updateNonNullFieldByPrimaryKey(saleDrugList)){
+                if (saleDrugListDAO.updateNonNullFieldByPrimaryKey(saleDrugList)) {
                     updateData.add(saleDrugList.getOrganDrugCode());
                 }
             });
         }
         EnterpriseResultBean resultBean = new EnterpriseResultBean();
         resultBean.setCode(EnterpriseResultBean.SUCCESS);
-        resultBean.setMsg("传入条数:" + enterpriseDrugVOList.size() + ",更新条数:"+ updateData.size());
+        resultBean.setMsg("传入条数:" + enterpriseDrugVOList.size() + ",更新条数:" + updateData.size());
         return resultBean;
+    }
+
+    @Override
+    public OrganDrugsSaleConfig getOrganDrugsSaleConfig(Integer organId, Integer drugsEnterpriseId) {
+        return enterpriseManager.getOrganDrugsSaleConfig(organId, drugsEnterpriseId, GiveModeEnum.GIVE_MODE_HOSPITAL_DRUG.getType());
+    }
+
+    @Override
+    public OrganDrugsSaleConfig getOrganDrugsSaleConfigOfPatient(Integer organId, Integer drugsEnterpriseId) {
+        return enterpriseManager.getOrganDrugsSaleConfigOfPatient(organId, drugsEnterpriseId);
+    }
+
+    @Override
+    public List<MedicineStationVO> getMedicineStationList(MedicineStationVO medicineStationVO) {
+        logger.info("getMedicineStationList medicineStationVO:{}", JSONUtils.toString(medicineStationVO));
+        OrganDTO organDTO = organClient.organDTO(medicineStationVO.getOrganId());
+        DrugsEnterprise drugsEnterprise = enterpriseManager.drugsEnterprise(medicineStationVO.getEnterpriseId());
+        DrugsEnterpriseBean enterpriseBean = com.ngari.patient.utils.ObjectCopyUtils.convert(drugsEnterprise, DrugsEnterpriseBean.class);
+        MedicineStationDTO medicineStationDTO = com.ngari.patient.utils.ObjectCopyUtils.convert(medicineStationVO, MedicineStationDTO.class);
+        OrganBean organBean = com.ngari.patient.utils.ObjectCopyUtils.convert(organDTO, OrganBean.class);
+        //获取取药站点列表
+        List<MedicineStationDTO> medicineStationDTOList = enterpriseClient.getMedicineStationList(medicineStationDTO, organBean, enterpriseBean);
+        List<MedicineStationVO> medicineStationVOList = com.ngari.patient.utils.ObjectCopyUtils.convert(medicineStationDTOList, MedicineStationVO.class);
+
+        //根据坐标计算距离
+        medicineStationVOList.forEach(medicineStation -> {
+            try {
+                if (StringUtils.isNotEmpty(medicineStation.getLat()) && StringUtils.isNotEmpty(medicineStation.getLng())) {
+                    Double distance = DistanceUtil.getDistance(Double.parseDouble(medicineStationVO.getLat()), Double.parseDouble(medicineStationVO.getLng()),
+                            Double.parseDouble(medicineStation.getLat()), Double.parseDouble(medicineStation.getLng()));
+                    medicineStation.setDistance(Double.parseDouble(String.format("%.2f", distance)));
+                } else {
+                    medicineStation.setDistance(0D);
+                }
+            } catch (Exception e) {
+                logger.error("getMedicineStationList error", e);
+                medicineStation.setDistance(0D);
+            }
+        });
+        return medicineStationVOList;
     }
 
     @Override
@@ -641,7 +691,7 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
         RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
         List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIdList);
         RecipeBusiThreadPool.execute(() -> {
-            recipeList.forEach(recipe->{
+            recipeList.forEach(recipe -> {
                 //HIS消息发送
                 hisService.recipeFinish(recipe.getRecipeId());
                 //更新pdf
@@ -746,13 +796,14 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
     }
 
 
-    private String batchAddEnterpriseDecoctionAddress(List<EnterpriseDecoctionAddress> enterpriseDecoctionAddresses) {
+    private String batchAddEnterpriseDecoctionAddress
+            (List<EnterpriseDecoctionAddress> enterpriseDecoctionAddresses) {
         for (EnterpriseDecoctionAddress enterpriseDecoctionAddress : enterpriseDecoctionAddresses) {
 
             try {
                 if (Objects.isNull(enterpriseDecoctionAddress.getId())) {
                     enterpriseDecoctionAddressDAO.save(enterpriseDecoctionAddress);
-                }else {
+                } else {
                     enterpriseDecoctionAddressDAO.update(enterpriseDecoctionAddress);
                 }
             } catch (Exception e) {

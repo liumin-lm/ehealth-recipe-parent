@@ -28,7 +28,6 @@ import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
-import ctd.util.AppContextHolder;
 import ctd.util.FileAuth;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -46,7 +45,6 @@ import recipe.bean.cqjgptbussdata.RecipeDocSignatureXML;
 import recipe.business.CaBusinessService;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.XstreamUtil;
-import recipe.caNew.AbstractCaProcessType;
 import recipe.caNew.CaAfterProcessType;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.common.UrlConfig;
@@ -61,7 +59,6 @@ import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.status.SignEnum;
 import recipe.manager.CaManager;
 import recipe.manager.EmrRecipeManager;
-import recipe.service.common.RecipeSignService;
 import recipe.util.ByteUtils;
 import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
@@ -109,7 +106,6 @@ public class RecipeCAService {
     private CaBusinessService caBusinessService;
     @Resource
     private IStockBusinessService drugEnterpriseBusinessService;
-
     @Autowired
     private CaManager caManager;
 
@@ -197,14 +193,6 @@ public class RecipeCAService {
         }
         LOGGER.info("packageCAFromRecipe caRequest：{}", JSONUtils.toString(caRequest));
         return caRequest;
-    }
-
-    private String calculationToken(String fileId) {
-//        String signStr = "fileid="+fileId+"?e=1571367872";
-//        Sign = hmac_sha1(signStr, 'MY_SECRET_KEY')
-//        EncodedSign = urlsafe_base64_encode(Sign)
-        FileAuth.instance().createToken("6246b575b262447d61a58848", 3600);
-        return "";
     }
 
     /**
@@ -483,83 +471,83 @@ public class RecipeCAService {
         LOGGER.info("getCATaskRecipeReq request:{}", JSONUtils.toString(request));
         return request;
     }
-
-    //TODO 这个方法给哪个机构做的个性华？？
-    @Deprecated
-    @RpcService
-    public Map<String, Object> doSignRecipeCABefore(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList, int continueFlag) {
-        if (null == recipeBean) {
-            LOGGER.warn("当前签名处方信息为空！");
-        }
-        //当前方法提供CA改造后的签名方法
-        //改造点：1.根据CA配置项，前置=》流程：新增；后置=》流程：新增+推his
-        //2.新增后处方状态为：医生签名中
-
-        LOGGER.info("doSignRecipeCABefore param: recipeBean={} detailBean={}", JSONUtils.toString(recipeBean), JSONUtils.toString(detailBeanList));
-        caManager.setCaPassWord(recipeBean.getClinicOrgan(), recipeBean.getDoctor(), recipeBean.getCaPassword());
-        Map<String, Object> rMap = new HashMap<String, Object>();
-        rMap.put("signResult", true);
-        try {
-            recipeBean.setDistributionFlag(continueFlag);
-            //第一步暂存处方（处方状态未签名）
-            recipeService.doSignRecipeSave(recipeBean, detailBeanList);
-
-            //第二步预校验
-            if (continueFlag == 0) {
-                //his处方预检查
-                RecipeSignService recipeSignService = AppContextHolder.getBean("eh.recipeSignService", RecipeSignService.class);
-                boolean b = recipeSignService.hisRecipeCheck(rMap, recipeBean);
-                if (!b) {
-                    rMap.put("signResult", false);
-                    rMap.put("recipeId", recipeBean.getRecipeId());
-                    rMap.put("errorFlag", true);
-                    return rMap;
-                }
-            }
-            //第三步校验库存
-            if (continueFlag == 0 || continueFlag == 4) {
-                rMap = drugEnterpriseBusinessService.enterpriseStock(recipeBean.getRecipeId());
-                Boolean signResult = Boolean.valueOf(rMap.get("signResult").toString());
-                if (signResult != null && false == signResult) {
-                    return rMap;
-                }
-            }
-            //跳转所需要的复诊信息
-            Integer consultId = recipeBean.getClinicId();
-            Integer bussSource = recipeBean.getBussSource();
-            if (consultId != null) {
-                if (null != rMap && null == rMap.get("consultId")) {
-                    rMap.put("consultId", consultId);
-                    rMap.put("bussSource", bussSource);
-                }
-            }
-            Integer CANewOldWay = CA_OLD_TYPE;
-            Object caProcessType = configService.getConfiguration(recipeBean.getClinicOrgan(), "CAProcessType");
-            if (null != caProcessType) {
-                CANewOldWay = Integer.parseInt(caProcessType.toString());
-            }
-            //触发CA前置操作
-            if (CA_NEW_TYPE.equals(CANewOldWay)) {
-                AbstractCaProcessType.getCaProcessFactory(recipeBean.getClinicOrgan()).signCABeforeRecipeFunction(recipeBean, detailBeanList);
-            } else {
-                //老版默认走后置的逻辑，直接将处方推his
-                caAfterProcessType.signCABeforeRecipeFunction(recipeBean, detailBeanList);
-            }
-
-        } catch (Exception e) {
-            LOGGER.error("doSignRecipeCABefore error", e);
-            throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, e.getMessage());
-        }
-
-        rMap.put("signResult", true);
-        rMap.put("recipeId", recipeBean.getRecipeId());
-        rMap.put("consultId", recipeBean.getClinicId());
-        rMap.put("errorFlag", false);
-        rMap.put("canContinueFlag", "0");
-        LOGGER.info("doSignRecipeCABefore execute ok! rMap:" + JSONUtils.toString(rMap));
-        return rMap;
-    }
 //
+//    //TODO 这个方法给哪个机构做的个性华？？
+//    @Deprecated
+//    @RpcService
+//    public Map<String, Object> doSignRecipeCABefore(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList, int continueFlag) {
+//        if (null == recipeBean) {
+//            LOGGER.warn("当前签名处方信息为空！");
+//        }
+//        //当前方法提供CA改造后的签名方法
+//        //改造点：1.根据CA配置项，前置=》流程：新增；后置=》流程：新增+推his
+//        //2.新增后处方状态为：医生签名中
+//
+//        LOGGER.info("doSignRecipeCABefore param: recipeBean={} detailBean={}", JSONUtils.toString(recipeBean), JSONUtils.toString(detailBeanList));
+//        caManager.setCaPassWord(recipeBean.getClinicOrgan(), recipeBean.getDoctor(), recipeBean.getCaPassword());
+//        Map<String, Object> rMap = new HashMap<String, Object>();
+//        rMap.put("signResult", true);
+//        try {
+//            recipeBean.setDistributionFlag(continueFlag);
+//            //第一步暂存处方（处方状态未签名）
+//            recipeService.doSignRecipeSave(recipeBean, detailBeanList);
+//
+//            //第二步预校验
+//            if (continueFlag == 0) {
+//                //his处方预检查
+//                RecipeSignService recipeSignService = AppContextHolder.getBean("eh.recipeSignService", RecipeSignService.class);
+//                boolean b = recipeSignService.hisRecipeCheck(rMap, recipeBean);
+//                if (!b) {
+//                    rMap.put("signResult", false);
+//                    rMap.put("recipeId", recipeBean.getRecipeId());
+//                    rMap.put("errorFlag", true);
+//                    return rMap;
+//                }
+//            }
+//            //第三步校验库存
+//            if (continueFlag == 0 || continueFlag == 4) {
+//                rMap = drugEnterpriseBusinessService.enterpriseStock(recipeBean.getRecipeId());
+//                Boolean signResult = Boolean.valueOf(rMap.get("signResult").toString());
+//                if (signResult != null && false == signResult) {
+//                    return rMap;
+//                }
+//            }
+//            //跳转所需要的复诊信息
+//            Integer consultId = recipeBean.getClinicId();
+//            Integer bussSource = recipeBean.getBussSource();
+//            if (consultId != null) {
+//                if (null != rMap && null == rMap.get("consultId")) {
+//                    rMap.put("consultId", consultId);
+//                    rMap.put("bussSource", bussSource);
+//                }
+//            }
+//            Integer CANewOldWay = CA_OLD_TYPE;
+//            Object caProcessType = configService.getConfiguration(recipeBean.getClinicOrgan(), "CAProcessType");
+//            if (null != caProcessType) {
+//                CANewOldWay = Integer.parseInt(caProcessType.toString());
+//            }
+//            //触发CA前置操作
+//            if (CA_NEW_TYPE.equals(CANewOldWay)) {
+//                AbstractCaProcessType.getCaProcessFactory(recipeBean.getClinicOrgan()).signCABeforeRecipeFunction(recipeBean, detailBeanList);
+//            } else {
+//                //老版默认走后置的逻辑，直接将处方推his
+//                caAfterProcessType.signCABeforeRecipeFunction(recipeBean, detailBeanList);
+//            }
+//
+//        } catch (Exception e) {
+//            LOGGER.error("doSignRecipeCABefore error", e);
+//            throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, e.getMessage());
+//        }
+//
+//        rMap.put("signResult", true);
+//        rMap.put("recipeId", recipeBean.getRecipeId());
+//        rMap.put("consultId", recipeBean.getClinicId());
+//        rMap.put("errorFlag", false);
+//        rMap.put("canContinueFlag", "0");
+//        LOGGER.info("doSignRecipeCABefore execute ok! rMap:" + JSONUtils.toString(rMap));
+//        return rMap;
+//    }
+////
 //    @RpcService
 //    @Deprecated
 //    //这里因为是签名的回调函数，前端暂时不捕捉回调的返 回，就算捕捉了是否要添加交互
