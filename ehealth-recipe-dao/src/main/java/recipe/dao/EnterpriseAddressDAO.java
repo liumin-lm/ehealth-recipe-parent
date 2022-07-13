@@ -15,6 +15,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Query;
+import org.hibernate.SQLQuery;
 import org.hibernate.StatelessSession;
 import org.hibernate.Transaction;
 import org.springframework.util.ObjectUtils;
@@ -225,4 +226,20 @@ public abstract class EnterpriseAddressDAO extends HibernateSupportDelegateDAO<E
 
     @DAOMethod(sql = "From EnterpriseAddress where enterpriseId =:enterpriseId and status=1 and address in (:strings)", limit = 0)
     public abstract List<EnterpriseAddress> findEnterpriseAddressProvince(@DAOParam("enterpriseId")Integer enterpriseId, @DAOParam("strings") List<String> strings);
+
+    public void cancelEnterpriseAddress(Integer enterpriseId, String area){
+        HibernateStatelessResultAction<Integer> action = new AbstractHibernateStatelessResultAction<Integer>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder("UPDATE cdr_enterprise_address set  status = 0 where enterpriseId =:enterpriseId and address like :area");
+                SQLQuery sQLQuery = ss.createSQLQuery(hql.toString());
+                sQLQuery.setParameter("enterpriseId", enterpriseId);
+                sQLQuery.setParameter("area", area + "%");
+                sQLQuery.executeUpdate();
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+
+    }
+
 }

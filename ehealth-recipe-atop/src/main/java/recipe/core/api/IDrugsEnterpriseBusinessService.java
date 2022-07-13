@@ -216,4 +216,17 @@ public interface IDrugsEnterpriseBusinessService {
      * @param enterpriseAddressDTOS
      */
     void updateEnterpriseAddressAndPrice(List<EnterpriseAddressDTO> enterpriseAddressDTOS);
+
+    /**
+     * 清除当前区域下的所有配送信息
+     * @param enterpriseId
+     * @param area
+     */
+    void cancelEnterpriseAddress(Integer enterpriseId, String area);
+
+    /**
+     * 清除当前煎法下的所有配送信息
+     * @param enterpriseDecoctionAddressReq
+     */
+    void cancelEnterpriseDecoctionAddress(EnterpriseDecoctionAddressReq enterpriseDecoctionAddressReq);
 }

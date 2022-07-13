@@ -6,7 +6,6 @@ import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.his.recipe.mode.DrugTakeChangeReqTO;
-import com.ngari.patient.service.AddrAreaService;
 import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.drugsenterprise.model.EnterpriseAddressAndPrice;
 import com.ngari.recipe.drugsenterprise.model.EnterpriseAddressDTO;
@@ -625,6 +624,16 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
             logger.error("updateEnterpriseAddressAndPrice error ", e);
             throw new DAOException(DAOException.VALUE_NEEDED, "address error");
         }
+    }
+
+    @Override
+    public void cancelEnterpriseAddress(Integer enterpriseId, String area) {
+        enterpriseAddressDAO.cancelEnterpriseAddress(enterpriseId, area);
+    }
+
+    @Override
+    public void cancelEnterpriseDecoctionAddress(EnterpriseDecoctionAddressReq enterpriseDecoctionAddressReq) {
+        enterpriseDecoctionAddressDAO.cancelEnterpriseDecoctionAddress(enterpriseDecoctionAddressReq.getOrganId(), enterpriseDecoctionAddressReq.getEnterpriseId(), enterpriseDecoctionAddressReq.getDecoctionId());
     }
 
     private void syncFinishOrderHandle(List<Integer> recipeIdList, RecipeOrder recipeOrder, boolean isSendFlag) {
