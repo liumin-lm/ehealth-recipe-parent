@@ -79,10 +79,7 @@ import recipe.bean.DrugEnterpriseResult;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.RecipeValidateUtil;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
-import recipe.client.ConsultClient;
-import recipe.client.DepartClient;
-import recipe.client.RecipeAuditClient;
-import recipe.client.RefundClient;
+import recipe.client.*;
 import recipe.common.CommonConstant;
 import recipe.constant.*;
 import recipe.dao.*;
@@ -170,6 +167,8 @@ public class RecipeServiceSub {
     private static StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
 
     private static IRevisitHosRecordService iRevisitHosRecordService = AppContextHolder.getBean("revisit.revisitHosRecordApiService", IRevisitHosRecordService.class);
+
+    private static IConfigurationClient configurationClient = AppContextHolder.getBean("IConfigurationClient", IConfigurationClient.class);
     /**
      * @param recipeBean
      * @param detailBeanList
@@ -241,15 +240,10 @@ public class RecipeServiceSub {
                 e.printStackTrace();
                 LOGGER.info("recipeExtend.setRecipeBusinessType error :{}", recipeBean.getBussSource());
             }
+            Integer recipeChooseChronicDisease = configurationClient.getValueCatchReturnInteger(recipeBean.getClinicOrgan(), "recipeChooseChronicDisease", 0);
             //慢病开关
             if (recipeExtend.getRecipeChooseChronicDisease() == null) {
-                try {
-                    IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-                    Integer recipeChooseChronicDisease = (Integer) configurationService.getConfiguration(recipeBean.getClinicOrgan(), "recipeChooseChronicDisease");
-                    recipeExtend.setRecipeChooseChronicDisease(recipeChooseChronicDisease);
-                } catch (Exception e) {
-                    LOGGER.error("doWithRecipeExtend 获取开关异常", e);
-                }
+                recipeExtend.setRecipeChooseChronicDisease(recipeChooseChronicDisease);
             }
 
             if (null != patient) {
@@ -281,11 +275,9 @@ public class RecipeServiceSub {
                         if(StringUtils.isNotEmpty(recipeExtend.getTerminalId())){
                             recipeExtend.setTerminalType(1);
                         }
-                        if (new Integer(6).equals(recipeExtend.getRecipeChooseChronicDisease())) {
+                        if (new Integer(6).equals(recipeChooseChronicDisease)) {
                             //从复诊获取病种编码和名称
-                            LOGGER.info("doWithRecipeExtend test");
                             if ("4".equals(revisitExDTO.getInsureTypeCode())) {
-                                LOGGER.info("doWithRecipeExtend test 1212");
                                 recipeExtend.setChronicDiseaseCode(revisitExDTO.getMtTypeCode());
                                 recipeExtend.setChronicDiseaseName(revisitExDTO.getMtTypeName());
                             }
