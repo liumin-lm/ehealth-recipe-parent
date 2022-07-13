@@ -5,6 +5,7 @@ import lombok.Setter;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
 /**
  * 运营平台处方订单退费
@@ -15,7 +16,7 @@ import java.util.Date;
 @Setter
 public class RecipeOrderRefundReqDTO implements Serializable {
     private static final long serialVersionUID = -3009122469403595160L;
-
+    private List<Integer> organIds;
     private Integer busType;
     private Integer organId;
     private Integer orderStatus;

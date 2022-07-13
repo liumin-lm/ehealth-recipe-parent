@@ -23,6 +23,9 @@ public class RecipeOrderDetailExportDTO implements Serializable {
     @ItemProperty(alias = "患者唯一标识")
     private String mpiId;
 
+    @ItemProperty(alias = "快捷购药处方标识 0 非快捷处方 1 快捷处方")
+    private String fastRecipeFlag;
+
     @ItemProperty(alias = "订单号")
     private String orderCode;
 
@@ -127,6 +130,14 @@ public class RecipeOrderDetailExportDTO implements Serializable {
 
     public void setOrderCode(String orderCode) {
         this.orderCode = orderCode;
+    }
+
+    public String getFastRecipeFlag() {
+        return fastRecipeFlag;
+    }
+
+    public void setFastRecipeFlag(String fastRecipeFlag) {
+        this.fastRecipeFlag = fastRecipeFlag;
     }
 
     public String getProcessState() {
