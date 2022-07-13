@@ -283,7 +283,9 @@ public class RecipeServiceSub {
                         }
                         if (new Integer(6).equals(recipeExtend.getRecipeChooseChronicDisease())) {
                             //从复诊获取病种编码和名称
-                            if (new Integer(4).equals(revisitExDTO.getInsureTypeCode())) {
+                            LOGGER.info("doWithRecipeExtend test");
+                            if ("4".equals(revisitExDTO.getInsureTypeCode())) {
+                                LOGGER.info("doWithRecipeExtend test 1212");
                                 recipeExtend.setChronicDiseaseCode(revisitExDTO.getMtTypeCode());
                                 recipeExtend.setChronicDiseaseName(revisitExDTO.getMtTypeName());
                             }
