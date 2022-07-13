@@ -11,6 +11,7 @@ import com.ngari.patient.service.OrganService;
 import com.ngari.platform.recipe.mode.DrugsEnterpriseBean;
 import com.ngari.platform.recipe.mode.MedicineStationDTO;
 import com.ngari.recipe.drugsenterprise.model.EnterpriseAddressAndPrice;
+import com.ngari.recipe.drugsenterprise.model.EnterpriseAddressDTO;
 import com.ngari.recipe.drugsenterprise.model.EnterpriseDecoctionAddressReq;
 import com.ngari.recipe.drugsenterprise.model.EnterpriseDecoctionList;
 import com.ngari.recipe.dto.OrganDTO;
@@ -21,6 +22,7 @@ import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
+import ctd.util.event.GlobalEventExecFactory;
 import eh.utils.BeanCopyUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
@@ -80,6 +82,7 @@ import recipe.vo.second.enterpriseOrder.EnterpriseSendOrderVO;
 import javax.annotation.Resource;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.FutureTask;
 import java.util.stream.Collectors;
 
 /**
@@ -216,9 +219,6 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
 
     @Override
     public void addEnterpriseDecoctionAddressList(EnterpriseDecoctionAddressReq enterpriseDecoctionAddressReq) {
-        // 先删除所有机构药企煎法关联的地址
-        enterpriseManager.deleteEnterpriseDecoctionAddress(enterpriseDecoctionAddressReq.getOrganId(), enterpriseDecoctionAddressReq.getEnterpriseId(), enterpriseDecoctionAddressReq.getDecoctionId());
-
         //如果没有具体的煎法关联地址传进来,默认不需要更新
         if (CollectionUtils.isEmpty(enterpriseDecoctionAddressReq.getEnterpriseDecoctionAddressDTOS())) {
             return;
@@ -226,12 +226,33 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
 
         // 更新机构药企煎法关联的地址
         List<EnterpriseDecoctionAddress> enterpriseDecoctionAddresses = BeanCopyUtils.copyList(enterpriseDecoctionAddressReq.getEnterpriseDecoctionAddressDTOS(), EnterpriseDecoctionAddress::new);
-        enterpriseManager.addEnterpriseDecoctionAddressList(enterpriseDecoctionAddresses);
+
+        List<FutureTask<String>> futureTasks = new LinkedList<>();
+        List<List<EnterpriseDecoctionAddress>> groupList = com.google.common.collect.Lists.partition(enterpriseDecoctionAddresses, 500);
+        groupList.forEach(a -> {
+            FutureTask<String> ft = new FutureTask<>(() -> batchAddEnterpriseDecoctionAddress(a));
+            futureTasks.add(ft);
+            GlobalEventExecFactory.instance().getExecutor().submit(ft);
+        });
+        String result = "";
+        try {
+            for (FutureTask<String> futureTask : futureTasks) {
+                String str = futureTask.get();
+                if (!"200".equals(str)) {
+                    result = str;
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            logger.error("addEnterpriseAddressList error ", e);
+            throw new DAOException(DAOException.VALUE_NEEDED, "address error");
+        }
     }
 
     @Override
     public List<EnterpriseDecoctionAddress> findEnterpriseDecoctionAddressList(EnterpriseDecoctionAddressReq enterpriseDecoctionAddressReq) {
-        return enterpriseManager.findEnterpriseDecoctionAddressList(enterpriseDecoctionAddressReq.getOrganId(), enterpriseDecoctionAddressReq.getEnterpriseId(), enterpriseDecoctionAddressReq.getDecoctionId());
+        return enterpriseManager.findEnterpriseDecoctionAddressList(enterpriseDecoctionAddressReq.getOrganId(), enterpriseDecoctionAddressReq.getEnterpriseId(),
+                enterpriseDecoctionAddressReq.getDecoctionId(), enterpriseDecoctionAddressReq.getArea());
     }
 
     @Override
@@ -513,22 +534,13 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
         if (CollectionUtils.isEmpty(enterpriseAddresses)) {
             return Lists.newArrayList();
         }
-        List<DrugDistributionPrice> drugDistributionPrices = drugDistributionPriceDAO.findByEnterpriseId(enterpriseId);
-        if (CollectionUtils.isEmpty(drugDistributionPrices)){
-            return BeanCopyUtils.copyList(enterpriseAddresses,EnterpriseAddressAndPrice::new);
-        }
-        Map<String, List<DrugDistributionPrice>> listMap = drugDistributionPrices.stream().collect(Collectors.groupingBy(DrugDistributionPrice::getAddrArea));
         List<EnterpriseAddressAndPrice> collect = enterpriseAddresses.stream().map(enterpriseAddress -> {
             EnterpriseAddressAndPrice enterpriseAddressAndPrice = BeanCopyUtils.copyProperties(enterpriseAddress, EnterpriseAddressAndPrice::new);
-            if (MapUtils.isNotEmpty(listMap) && CollectionUtils.isNotEmpty(listMap.get(enterpriseAddress.getAddress()))) {
-                List<DrugDistributionPrice> prices = listMap.get(enterpriseAddress.getAddress());
-                enterpriseAddressAndPrice.setDistributionPrice(prices.get(0).getDistributionPrice());
-                enterpriseAddressAndPrice.setBuyFreeShipping(prices.get(0).getBuyFreeShipping());
-                enterpriseAddressAndPrice.setDrugDistributionPriceId(prices.get(0).getId());
-
-            }
+            enterpriseAddressAndPrice.setDrugDistributionPriceId(enterpriseAddress.getId());
             return enterpriseAddressAndPrice;
         }).collect(Collectors.toList());
+
+
         return collect;
     }
 
@@ -630,6 +642,38 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
             }
         });
         return medicineStationVOList;
+    }
+
+    @Override
+    public void updateEnterpriseAddressAndPrice(List<EnterpriseAddressDTO> enterpriseAddressDTOS) {
+        //如果没有具体的,默认不需要更新
+        if (CollectionUtils.isEmpty(enterpriseAddressDTOS)) {
+            return;
+        }
+
+        // 更新机构药企关联的地址
+        List<EnterpriseAddress> enterpriseAddresses = BeanCopyUtils.copyList(enterpriseAddressDTOS, EnterpriseAddress::new);
+
+        List<FutureTask<String>> futureTasks = new LinkedList<>();
+        List<List<EnterpriseAddress>> groupList = com.google.common.collect.Lists.partition(enterpriseAddresses, 500);
+        groupList.forEach(a -> {
+            FutureTask<String> ft = new FutureTask<>(() -> batchAddEnterpriseAddress(a));
+            futureTasks.add(ft);
+            GlobalEventExecFactory.instance().getExecutor().submit(ft);
+        });
+        String result = "";
+        try {
+            for (FutureTask<String> futureTask : futureTasks) {
+                String str = futureTask.get();
+                if (!"200".equals(str)) {
+                    result = str;
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            logger.error("updateEnterpriseAddressAndPrice error ", e);
+            throw new DAOException(DAOException.VALUE_NEEDED, "address error");
+        }
     }
 
     private void syncFinishOrderHandle(List<Integer> recipeIdList, RecipeOrder recipeOrder, boolean isSendFlag) {
@@ -740,4 +784,41 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
         Map<Object, Boolean> seen = new ConcurrentHashMap<>();
         return t -> seen.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
     }
+
+
+    private String batchAddEnterpriseDecoctionAddress
+            (List<EnterpriseDecoctionAddress> enterpriseDecoctionAddresses) {
+        for (EnterpriseDecoctionAddress enterpriseDecoctionAddress : enterpriseDecoctionAddresses) {
+
+            try {
+                if (Objects.isNull(enterpriseDecoctionAddress.getId())) {
+                    enterpriseDecoctionAddressDAO.save(enterpriseDecoctionAddress);
+                } else {
+                    enterpriseDecoctionAddressDAO.update(enterpriseDecoctionAddress);
+                }
+            } catch (Exception e) {
+                logger.warn("batchAddEnterpriseDecoctionAddress error EnterpriseDecoctionAddress = {}", JSON.toJSONString(enterpriseDecoctionAddress), e);
+                return e.getMessage();
+            }
+        }
+        return "200";
+    }
+
+    private String batchAddEnterpriseAddress(List<EnterpriseAddress> enterpriseAddresses) {
+        for (EnterpriseAddress enterpriseAddress : enterpriseAddresses) {
+
+            try {
+                if (Objects.isNull(enterpriseAddress.getId())) {
+                    enterpriseAddressDAO.save(enterpriseAddress);
+                } else {
+                    enterpriseAddressDAO.update(enterpriseAddress);
+                }
+            } catch (Exception e) {
+                logger.warn("batchAddEnterpriseDecoctionAddress error EnterpriseDecoctionAddress = {}", JSON.toJSONString(enterpriseAddress), e);
+                return e.getMessage();
+            }
+        }
+        return "200";
+    }
+
 }

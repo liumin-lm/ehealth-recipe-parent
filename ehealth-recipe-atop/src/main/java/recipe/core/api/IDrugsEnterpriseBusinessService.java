@@ -1,6 +1,7 @@
 package recipe.core.api;
 
 import com.ngari.recipe.drugsenterprise.model.EnterpriseAddressAndPrice;
+import com.ngari.recipe.drugsenterprise.model.EnterpriseAddressDTO;
 import com.ngari.recipe.drugsenterprise.model.EnterpriseDecoctionAddressReq;
 import com.ngari.recipe.drugsenterprise.model.EnterpriseDecoctionList;
 import com.ngari.recipe.entity.DrugsEnterprise;
@@ -234,4 +235,11 @@ public interface IDrugsEnterpriseBusinessService {
     List<MedicineStationVO> getMedicineStationList(MedicineStationVO medicineStationVO);
 
     OrganDrugsSaleConfig getOrganDrugsSaleConfigOfPatient(Integer organId, Integer drugsEnterpriseId);
+
+    /**
+     * 修改药企支持的配送地址
+     *
+     * @param enterpriseAddressDTOS
+     */
+    void updateEnterpriseAddressAndPrice(List<EnterpriseAddressDTO> enterpriseAddressDTOS);
 }

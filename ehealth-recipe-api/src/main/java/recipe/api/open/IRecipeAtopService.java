@@ -116,7 +116,17 @@ public interface IRecipeAtopService {
      * @param subState
      * @return
      */
+    @RpcService(mvcDisabled = true)
     Boolean updateRecipeState(Integer recipeId, Integer processState, Integer subState);
+
+    /**
+     * 更新药师的签名状态
+     * @param recipeId
+     * @param checkerSignState
+     * @return
+     */
+    @RpcService(mvcDisabled = true)
+    Boolean updateCheckerSignState(Integer recipeId, Integer checkerSignState);
 
     /**
      * 根据his处方号和挂号序号机构查询处方

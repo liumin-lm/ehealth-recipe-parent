@@ -38,10 +38,7 @@ import recipe.constant.ErrorCode;
 import recipe.constant.RecipeStatusConstant;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.dao.*;
-import recipe.enumerate.status.OrderStateEnum;
-import recipe.enumerate.status.RecipeAuditStateEnum;
-import recipe.enumerate.status.RecipeStateEnum;
-import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.status.*;
 import recipe.enumerate.type.BussSourceTypeEnum;
 import recipe.enumerate.type.DrugBelongTypeEnum;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
@@ -419,6 +416,11 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     @Override
     public Boolean updateRecipeState(Integer recipeId, RecipeStateEnum processState, RecipeStateEnum subState) {
         return stateManager.updateRecipeState(recipeId, processState, subState);
+    }
+
+    @Override
+    public Boolean updateCheckerSignState(Integer recipeId, SignStateEnum checkerSignState) {
+        return stateManager.updateCheckerSignState(recipeId, checkerSignState);
     }
 
     @Override

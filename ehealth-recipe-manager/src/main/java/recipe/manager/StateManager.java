@@ -99,6 +99,21 @@ public class StateManager extends BaseManager {
     }
 
     /**
+     * 更改药师签名状态
+     * @param recipeId
+     * @param checkerSignState
+     * @return
+     */
+    @LogRecord
+    public Boolean updateCheckerSignState(Integer recipeId, SignStateEnum checkerSignState) {
+        Recipe updateRecipe = new Recipe();
+        updateRecipe.setRecipeId(recipeId);
+        updateRecipe.setCheckerSignState(checkerSignState.getType());
+        recipeDAO.updateNonNullFieldByPrimaryKey(updateRecipe);
+        return true;
+    }
+
+    /**
      * 兼容修改老状态
      *
      * @param recipeId

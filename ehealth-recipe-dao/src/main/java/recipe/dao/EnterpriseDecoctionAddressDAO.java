@@ -1,6 +1,7 @@
 package recipe.dao;
 
 import com.ngari.recipe.drugsenterprise.model.DrugEnterpriseLogisticsBean;
+import com.ngari.recipe.entity.EnterpriseAddress;
 import com.ngari.recipe.entity.EnterpriseDecoctionAddress;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;
@@ -13,6 +14,7 @@ import ctd.util.annotation.RpcSupportDAO;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hibernate.Query;
 import org.hibernate.StatelessSession;
 import org.hibernate.Transaction;
 
@@ -72,4 +74,21 @@ public abstract class EnterpriseDecoctionAddressDAO extends HibernateSupportDele
 
     @DAOMethod(sql = "from EnterpriseDecoctionAddress  where enterpriseId=:enterpriseId and organId=:organId", limit = 0)
     public abstract List<EnterpriseDecoctionAddress> findEnterpriseDecoctionAddressListByOrganIdAndEntId(@DAOParam("organId") Integer organId, @DAOParam("enterpriseId")Integer enterpriseId);
+
+    public List<EnterpriseDecoctionAddress> findEnterpriseDecoctionAddressListByArea(Integer organId, Integer enterpriseId, Integer decoctionId, String area){
+        HibernateStatelessResultAction<List<EnterpriseDecoctionAddress>> action = new AbstractHibernateStatelessResultAction<List<EnterpriseDecoctionAddress>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder("from EnterpriseDecoctionAddress where  enterpriseId=:enterpriseId and decoctionId=:decoctionId and organId=:organId and address like :area");
+                Query q = ss.createQuery(hql.toString());
+                q.setParameter("enterpriseId", enterpriseId);
+                q.setParameter("decoctionId", decoctionId);
+                q.setParameter("organId", organId);
+                q.setParameter("area", area + "%");
+                setResult(q.list());
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    };
 }

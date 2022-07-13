@@ -11,6 +11,7 @@ import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.vo.*;
+import recipe.enumerate.status.SignStateEnum;
 import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.vo.doctor.PatientOptionalDrugVO;
@@ -154,6 +155,14 @@ public interface IRecipeBusinessService {
      * @return
      */
     Boolean updateRecipeState(Integer recipeId, RecipeStateEnum processState, RecipeStateEnum subState);
+
+    /**
+     * 更新药师的签名状态
+     * @param recipeId
+     * @param checkerSignState
+     * @return
+     */
+    Boolean updateCheckerSignState(Integer recipeId, SignStateEnum checkerSignState);
 
     RecipeBean getByRecipeCodeAndRegisterIdAndOrganId(String recipeCode, String registerId, int organId);
 
