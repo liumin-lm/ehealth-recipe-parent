@@ -36,6 +36,11 @@ public class RecipeConfigService {
     @Autowired
     private IConfigurationCenterUtilsService configService;
 
+    private String ZL_YS = "1";
+
+    private String NL_YS = "2";
+
+
     /**
      *  根据APPKEY获取处方流转模式
      *  老版本调用
@@ -97,20 +102,21 @@ public class RecipeConfigService {
     @RpcService
     @LogRecord
     public String getRecipeModeByAppKeyAndOrganId(String appKey,Integer organId) {
-        //配置key:recipeCirculationMode
         String val = RecipeBussConstant.RECIPEMODE_NGARIHEALTH;
-        //获取医保支付流程配置（2-原省医保 3-长三角）
+        if(organId==null){
+            return val;
+        }
         Integer recipeModeRadioConfig = (Integer) configService.getConfiguration(organId, "recipeModeRadioConfig");
         //"options":{ "0":"无", "1":"浙里平台模式", "2":"纳里平台模式" }
-        if (new Integer(1).equals(recipeModeRadioConfig)) {
+        if (ZL_YS.equals(recipeModeRadioConfig)) {
             val = RecipeBussConstant.RECIPEMODE_ZJJGPT;
             return val;
-        } else if (new Integer(2).equals(recipeModeRadioConfig)) {
+        } else if (NL_YS.equals(recipeModeRadioConfig)) {
             val = RecipeBussConstant.RECIPEMODE_NGARIHEALTH;
             return val;
         } else {
             return getRecipeMode(appKey);
-        }
+
     }
 
 }
