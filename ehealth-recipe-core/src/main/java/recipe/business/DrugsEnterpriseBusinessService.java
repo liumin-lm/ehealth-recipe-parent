@@ -525,22 +525,13 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
         if (CollectionUtils.isEmpty(enterpriseAddresses)) {
             return Lists.newArrayList();
         }
-        List<DrugDistributionPrice> drugDistributionPrices = drugDistributionPriceDAO.findByEnterpriseId(enterpriseId);
-        if (CollectionUtils.isEmpty(drugDistributionPrices)){
-            return BeanCopyUtils.copyList(enterpriseAddresses,EnterpriseAddressAndPrice::new);
-        }
-        Map<String, List<DrugDistributionPrice>> listMap = drugDistributionPrices.stream().collect(Collectors.groupingBy(DrugDistributionPrice::getAddrArea));
         List<EnterpriseAddressAndPrice> collect = enterpriseAddresses.stream().map(enterpriseAddress -> {
             EnterpriseAddressAndPrice enterpriseAddressAndPrice = BeanCopyUtils.copyProperties(enterpriseAddress, EnterpriseAddressAndPrice::new);
-            if (MapUtils.isNotEmpty(listMap) && CollectionUtils.isNotEmpty(listMap.get(enterpriseAddress.getAddress()))) {
-                List<DrugDistributionPrice> prices = listMap.get(enterpriseAddress.getAddress());
-                enterpriseAddressAndPrice.setDistributionPrice(prices.get(0).getDistributionPrice());
-                enterpriseAddressAndPrice.setBuyFreeShipping(prices.get(0).getBuyFreeShipping());
-                enterpriseAddressAndPrice.setDrugDistributionPriceId(prices.get(0).getId());
-
-            }
+            enterpriseAddressAndPrice.setDrugDistributionPriceId(enterpriseAddress.getId());
             return enterpriseAddressAndPrice;
         }).collect(Collectors.toList());
+
+
         return collect;
     }
 
