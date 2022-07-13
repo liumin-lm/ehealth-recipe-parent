@@ -5,7 +5,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.service.IRecipeService;
 import ctd.mvc.upload.FileMetaRecord;
 import ctd.mvc.upload.FileService;
@@ -18,9 +17,7 @@ import eh.base.constant.ErrorCode;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import recipe.audit.auditmode.AuditModeContext;
 import recipe.caNew.pdf.CreatePdfFactory;
-import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDAO;
 import sun.misc.BASE64Decoder;
 
@@ -107,7 +104,6 @@ public class RecipeServiceEsignExt {
                     attrMap.put("signFile", fileId);
                 }
                 attrMap.put("signDate", new Date());
-//                attrMap.put("Status", RecipeStatusConstant.READY_CHECK_YS);
             } else {
                 //药师签名时间戳
                 if (!StringUtils.isEmpty(signCADate)) {
@@ -122,17 +118,7 @@ public class RecipeServiceEsignExt {
                     attrMap.put("chemistSignFile", fileId);
                 }
                 attrMap.put("CheckDateYs", new Date());
-
-                RecipeBean recipe = recipeService.get(recipeId);
-                AuditModeContext auditModeContext = new AuditModeContext();
-                int recipeStatus = auditModeContext.getAuditModes(recipe.getReviewType()).afterAuditRecipeChange();
-                if (recipe.canMedicalPay()) {
-                    //如果是可医保支付的单子，审核是在用户看到之前，所以审核通过之后变为待处理状态
-                    recipeStatus = RecipeStatusConstant.CHECK_PASS;
-                }
-                //attrMap.put("Status", recipeStatus);
             }
-
             //保存签名值
             boolean upResult = recipeService.updateRecipeInfoByRecipeId(recipeId, attrMap);
             LOGGER.info("saveSignRecipePDF 保存签名  upResult={}=recipeId={}=attrMap={}=", upResult, recipeId, attrMap.toString());
@@ -157,7 +143,6 @@ public class RecipeServiceEsignExt {
                                              String signRecipeCode, Boolean isDoctor, String fileId) {
         LOGGER.info("saveSignRecipePDFCA start in pdfBase64={}, recipeId={}, loginId={},signCADate={},signRecipeCode={},isDoctor={}",
                 pdfBase64, recipeId, loginId, signCADate, signRecipeCode, isDoctor);
-//        String fileId = null;
         try {
             if (null != pdfBase64) {
                 //组装生成pdf的参数

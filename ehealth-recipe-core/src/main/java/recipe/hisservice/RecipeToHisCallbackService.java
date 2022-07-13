@@ -24,9 +24,12 @@ import recipe.constant.ErrorCode;
 import recipe.constant.RecipeMsgEnum;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeExtendDAO;
+import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.status.WriteHisEnum;
 import recipe.manager.EmrRecipeManager;
 import recipe.manager.RecipeDetailManager;
+import recipe.manager.StateManager;
 import recipe.service.DrugsEnterpriseService;
 import recipe.service.HisCallBackService;
 import recipe.service.RecipeLogService;
@@ -44,10 +47,6 @@ import java.util.Objects;
  */
 @RpcBean("recipeToHisCallbackService")
 public class RecipeToHisCallbackService {
-
-    /**
-     * LOGGER
-     */
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipeToHisCallbackService.class);
     @Autowired
     private EmrRecipeManager emrRecipeManager;
@@ -59,6 +58,9 @@ public class RecipeToHisCallbackService {
     private RecipeDAO recipeDAO;
     @Autowired
     private RecipeDetailManager recipeDetailManager;
+    @Autowired
+    private StateManager stateManager;
+
     /**
      * 上海六院的模式是在患者选择完购药方式后推送处方，所以这里有调用两次
      * 一次是跳过前置机后调用保证流程正常下去，二次是真正推送处方给his之后，如果成功则不需要处理，失败需要标记
@@ -128,7 +130,7 @@ public class RecipeToHisCallbackService {
             if (Objects.nonNull(response.getRecipeFee())) {
                 result.setTotalMoney(response.getRecipeFee());
             }
-            result.setWriteHisState(null == response.getWriteHisState() ? 3 : response.getWriteHisState());
+            result.setWriteHisState(null == response.getWriteHisState() ? WriteHisEnum.WRITE_HIS_STATE_ORDER.getType() : response.getWriteHisState());
             String recipeCostNumber = StringUtils.isNotBlank(response.getRecipeCostNumber()) ? response.getRecipeCostNumber() : recipeNo;
             result.setRecipeCostNumber(recipeCostNumber);
             result.setRecipeId(Integer.valueOf(response.getRecipeId()));
@@ -213,8 +215,9 @@ public class RecipeToHisCallbackService {
         Recipe updateRecipe = new Recipe();
         updateRecipe.setRecipeId(recipeId);
         updateRecipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_HIS_FAIL.getType());
-        updateRecipe.setWriteHisState(2);
+        updateRecipe.setWriteHisState(WriteHisEnum.WRITE_HIS_STATE_AUDIT.getType());
         recipeDAO.updateNonNullFieldByPrimaryKey(updateRecipe);
+        stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_WRITE_HIS_NOT_ORDER);
         RecipeExtend recipeExtend = new RecipeExtend();
         recipeExtend.setRecipeId(recipeId);
         recipeExtend.setCancellation(response.getMsg());

@@ -33,6 +33,7 @@ import recipe.dao.RecipeOrderDAO;
 import recipe.enumerate.status.OrderStateEnum;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.status.WriteHisEnum;
 import recipe.hisservice.syncdata.SyncExecutorService;
 import recipe.manager.StateManager;
 import recipe.purchase.CommonOrder;
@@ -133,7 +134,7 @@ public class HisCallBackService {
             memo = "HIS审核返回：写入his成功，审核未通过";
         }
 
-        Integer writeHisState = null == result.getWriteHisState() ? 3 : result.getWriteHisState();
+        Integer writeHisState = null == result.getWriteHisState() ? WriteHisEnum.WRITE_HIS_STATE_ORDER.getType() : result.getWriteHisState();
         attrMap.put("writeHisState", writeHisState);
         //添加医院审方后保存审核日志
         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), memo);
@@ -158,8 +159,6 @@ public class HisCallBackService {
                 detailAttrMap = Maps.newHashMap();
                 detailAttrMap.put("drugGroup", detail.getDrugGroup());
                 detailAttrMap.put("orderNo", detail.getOrderNo());
-//                detailAttrMap.put("pharmNo", detail.getPharmNo());
-
                 //因为从HIS返回回来的数据不是很全，所以要从DB获取一次
                 Recipedetail recipedetail = detailDAO.getByRecipeDetailId(detail.getRecipeDetailId());
                 //根据医院传入的价格更新药品总价
@@ -181,8 +180,7 @@ public class HisCallBackService {
                 organDrugListService.saveOrganDrug(recipe.getClinicOrgan(), detail);
             }
         }
-        //date 20200507
-        //调用医生重新签名的逻辑
+        //ca签名处理
         recipeService.retryDoctorSignCheck(result.getRecipeId());
     }
 
@@ -442,20 +440,20 @@ public class HisCallBackService {
                     // 已支付,只对到院取药的数据更新 未支付,全部都更新
                     String orderCode = recipe.getOrderCode();
                     if (Objects.isNull(orderCode)) {
-                        finishForHis(recipe, attrMap, recipeDAO);
+                        finishForHis(recipe, attrMap, recipeDAO,null);
                         continue;
                     }
                     RecipeOrder byOrderCode = recipeOrderDAO.getByOrderCode(orderCode);
                     if (Objects.isNull(byOrderCode)) {
-                        finishForHis(recipe, attrMap, recipeDAO);
+                        finishForHis(recipe, attrMap, recipeDAO,null);
                         continue;
                     }
                     if (Integer.valueOf(1).equals(byOrderCode.getPayFlag()) && RecipeBussConstant.GIVEMODE_TO_HOS.equals(recipe.getGiveMode())) {
-                        finishForHis(recipe, attrMap, recipeDAO);
+                        finishForHis(recipe, attrMap, recipeDAO,byOrderCode);
                         continue;
                     }
                     if (Integer.valueOf(0).equals(byOrderCode.getPayFlag())) {
-                        finishForHis(recipe, attrMap, recipeDAO);
+                        finishForHis(recipe, attrMap, recipeDAO,byOrderCode);
                         continue;
                     }
 
@@ -464,7 +462,7 @@ public class HisCallBackService {
         }
     }
 
-    private static void finishForHis(Recipe recipe, Map<String, Object> attrMap, RecipeDAO recipeDAO) {
+    private static void finishForHis(Recipe recipe, Map<String, Object> attrMap, RecipeDAO recipeDAO,RecipeOrder order) {
         Integer recipeId = recipe.getRecipeId();
         Integer beforeStatus = recipe.getStatus();
 
@@ -494,6 +492,12 @@ public class HisCallBackService {
                 //监管平台核销上传
                 SyncExecutorService syncExecutorService = ApplicationUtils.getRecipeService(SyncExecutorService.class);
                 syncExecutorService.uploadRecipeVerificationIndicators(recipe.getRecipeId());
+
+                // 更新处方新状态
+                stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_DONE, RecipeStateEnum.SUB_DONE_DOWNLOAD);
+                if(Objects.nonNull(order)) {
+                    stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_DISPENSING, OrderStateEnum.SUB_DONE_DOWNLOAD);
+                }
             }
         }
     }

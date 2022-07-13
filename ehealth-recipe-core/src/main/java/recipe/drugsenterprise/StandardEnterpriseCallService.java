@@ -345,6 +345,7 @@ public class StandardEnterpriseCallService {
                 attrMap.put("payDate", DateTime.now().toDate());
                 //更新处方信息
                 Boolean rs = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.FINISH, attrMap);
+
                 if (rs) {
                     RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
                     RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
@@ -376,6 +377,12 @@ public class StandardEnterpriseCallService {
                 //HOS处方发送完成短信
                 if (RecipeBussConstant.FROMFLAG_HIS_USE == dbRecipe.getFromflag()) {
                     RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_FINISH_4HIS, dbRecipe);
+                }
+
+                stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_DONE, RecipeStateEnum.SUB_DONE_SELF_TAKE);
+                RecipeOrder order = orderDAO.getByOrderCode(dbRecipe.getOrderCode());
+                if(Objects.nonNull(order)) {
+                    stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_DISPENSING, OrderStateEnum.SUB_DONE_SELF_TAKE);
                 }
 
             } else {

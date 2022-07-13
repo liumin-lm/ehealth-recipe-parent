@@ -83,6 +83,7 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
         if (StringUtils.isNotEmpty(recipe.getSignFile())) {
             byte[] fileByte = CreateRecipePdfUtil.signFileByte(recipe.getSignFile());
             if (null != fileByte) {
+                logger.info("CustomCreatePdfServiceImpl recipe={}", recipe.getRecipeId());
                 return fileByte;
             }
         }

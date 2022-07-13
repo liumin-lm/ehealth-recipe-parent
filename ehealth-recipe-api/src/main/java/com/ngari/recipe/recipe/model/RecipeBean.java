@@ -437,6 +437,17 @@ public class RecipeBean implements Serializable {
     @ItemProperty(alias = "线下处方总价 目前用于保密组方")
     private BigDecimal offlineRecipeTotalPrice;
 
+    @ItemProperty(alias = "0：默认(未签名)，1：签名中，2：签名失败，3：签名成功")
+    private Integer doctorSignState;
+
+    public Integer getDoctorSignState() {
+        return doctorSignState;
+    }
+
+    public void setDoctorSignState(Integer doctorSignState) {
+        this.doctorSignState = doctorSignState;
+    }
+
     public List<Integer> getGroupRecipeIdList() {
         return groupRecipeIdList;
     }

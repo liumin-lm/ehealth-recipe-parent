@@ -7,12 +7,9 @@ import com.ngari.his.recipe.mode.RecipeCashPreSettleInfo;
 import com.ngari.his.recipe.mode.RecipeCashPreSettleReqTO;
 import com.ngari.his.visit.mode.NeedPaymentRecipeReqTo;
 import com.ngari.his.visit.mode.NeedPaymentRecipeResTo;
-import com.ngari.platform.recipe.mode.EnterpriseResTo;
-import com.ngari.recipe.dto.OrderFeeSetCondition;
 import com.ngari.recipe.dto.PatientDTO;
 import com.ngari.recipe.entity.*;
 import coupon.api.vo.Coupon;
-import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
@@ -21,7 +18,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.aop.LogRecord;
 import recipe.client.*;
-import recipe.constant.ErrorCode;
 import recipe.constant.ParameterConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.ReviewTypeConstant;
@@ -30,9 +26,10 @@ import recipe.dao.DrugDistributionPriceDAO;
 import recipe.dao.HisRecipeDAO;
 import recipe.dao.RecipeParameterDao;
 import recipe.enumerate.status.RecipeSourceTypeEnum;
-import recipe.enumerate.type.*;
+import recipe.enumerate.type.DecoctionDeployTypeEnum;
+import recipe.enumerate.type.ExpressFeePayWayEnum;
+import recipe.enumerate.type.RecipeOrderFeeTypeEnum;
 import recipe.util.LocalStringUtil;
-import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -40,7 +37,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import static ctd.persistence.DAOFactory.getDAO;
@@ -57,11 +53,9 @@ public class OrderFeeManager extends BaseManager {
     @Autowired
     private RecipeRedisClient recipeRedisClient;
     @Autowired
-    private RecipeDetailManager recipeDetailManager;
-    @Autowired
     private DrugDistributionPriceDAO drugDistributionPriceDAO;
     @Autowired
-    private CouponClient couponClient;
+    private PayClient payClient;
     @Autowired
     private OfflineRecipeClient offlineRecipeClient;
     @Autowired
@@ -507,7 +501,7 @@ public class OrderFeeManager extends BaseManager {
      * @param order
      */
     public void setCouponFee(RecipeOrder order) {
-        Coupon coupon = couponClient.getCouponById(order.getCouponId(), order.getTotalFee());
+        Coupon coupon = payClient.getCouponById(order.getCouponId(), order.getTotalFee());
         if (null == coupon) {
             return;
         }

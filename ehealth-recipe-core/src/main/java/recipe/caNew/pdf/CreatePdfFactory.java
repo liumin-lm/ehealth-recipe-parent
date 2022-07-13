@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.ngari.base.esign.model.CoOrdinateVO;
 import com.ngari.base.esign.model.SignRecipePdfVO;
 import com.ngari.his.ca.model.CaSealRequestTO;
+import com.ngari.patient.dto.DoctorExtendDTO;
 import com.ngari.recipe.dto.ApothecaryDTO;
 import com.ngari.recipe.dto.AttachSealPicDTO;
 import com.ngari.recipe.entity.Recipe;
@@ -19,12 +20,14 @@ import recipe.bussutil.CreateRecipePdfUtil;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.SignImgNode;
 import recipe.caNew.pdf.service.CreatePdfService;
+import recipe.client.DoctorClient;
 import recipe.client.IConfigurationClient;
 import recipe.constant.ErrorCode;
 import recipe.constant.OperationConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.enumerate.type.SignImageTypeEnum;
+import recipe.manager.CaManager;
 import recipe.manager.SignManager;
 import recipe.service.RecipeLogService;
 import recipe.thread.RecipeBusiThreadPool;
@@ -33,6 +36,7 @@ import recipe.util.ValidateUtil;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.List;
 
 import static recipe.util.DictionaryUtil.getDictionary;
@@ -45,6 +49,8 @@ import static recipe.util.DictionaryUtil.getDictionary;
 @Service
 public class CreatePdfFactory {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
+    private static List<String> beforeCAList = Arrays.asList("gdsign", "gdsign|2", "jiangsuCA", "beijingCA", "bjYwxCA");
+
     @Resource(name = "platformCreatePdfServiceImpl")
     private CreatePdfService platformCreatePdfServiceImpl;
     @Resource(name = "customCreatePdfServiceImpl")
@@ -57,6 +63,43 @@ public class CreatePdfFactory {
     private RecipeOrderDAO orderDAO;
     @Autowired
     private SignManager signManager;
+    @Autowired
+    protected DoctorClient doctorClient;
+    @Resource
+    private CaManager caManager;
+
+    /**
+     * 判断不同签名机构 进行pdf生成
+     * 返回新老模式类型
+     *
+     * @param recipe
+     * @return
+     * @throws Exception
+     */
+    public boolean generateRecipePdf(Recipe recipe) throws Exception {
+        String thirdCASign = configurationClient.getValueCatch(recipe.getClinicOrgan(), "thirdCASign", "");
+        String memo;
+        boolean old = true;
+        if ("esign".equals(thirdCASign)) {
+            //老模式不走ca回调
+            memo = "esign签名上传文件成功";
+            this.queryPdfOssId(recipe);
+            logger.info("generateRecipePdfAndSign 签名成功 recipeId={}", recipe.getRecipeId());
+        } else if (beforeCAList.contains(thirdCASign)) {
+            //老模式不走ca回调
+            memo = "签名成功,高州CA方式";
+            this.updateDoctorNamePdf(recipe);
+            logger.info("generateRecipePdfAndSign 签名成功. 高州CA模式, recipeId={}", recipe.getRecipeId());
+        } else {
+            old = false;
+            memo = "old签名标准对接CA方式";
+            //生成pdf文件
+            CaSealRequestTO requestSealTO = this.updateDoctorNamePdfV1(recipe);
+            caManager.oldCommonCASign(requestSealTO, recipe);
+        }
+        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), memo);
+        return old;
+    }
 
     /**
      * 获取pdf oss id
@@ -120,13 +163,15 @@ public class CreatePdfFactory {
         logger.info("CreatePdfFactory updateDoctorNamePdfV1 recipe:{}", recipe.getRecipeId());
         CreatePdfService createPdfService = createPdfService(recipe);
         byte[] data = createPdfService.queryPdfByte(recipe);
-        try {
-            updateDoctorNamePdf(recipe, data, createPdfService);
-        } catch (Exception e) {
-            logger.error("CreatePdfFactory updateDoctorNamePdfV1 使用平台医生部分pdf的,生成失败 recipe:{}", recipe.getRecipeId(), e);
-            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "医生部分pdf的生成失败V1");
+        updateDoctorNamePdf(recipe, data, createPdfService);
+        CaSealRequestTO requestSealTO = createPdfService.queryPdfBase64(data, recipe.getRecipeId());
+        requestSealTO.setSealBase64Str("");
+        //获取签章图片
+        DoctorExtendDTO doctorExtendDTO = doctorClient.getDoctorExtendDTO(recipe.getDoctor());
+        if (null != doctorExtendDTO && null != doctorExtendDTO.getSealData()) {
+            requestSealTO.setSealBase64Str(doctorExtendDTO.getSealData());
         }
-        return createPdfService.queryPdfBase64(data, recipe.getRecipeId());
+        return requestSealTO;
     }
 
     /**
@@ -455,9 +500,6 @@ public class CreatePdfFactory {
         RecipeBusiThreadPool.execute(() -> {
             long start = System.currentTimeMillis();
             Recipe recipe = validate(recipeId);
-//            if (RecipeUtil.isTcmType(recipe.getRecipeType())) {
-//                return;
-//            }
             try {
                 String signFile = "";
                 if (SignImageTypeEnum.SIGN_IMAGE_TYPE_DOCTOR.getType().equals(signImageType)) {
