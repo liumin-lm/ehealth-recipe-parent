@@ -128,6 +128,23 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
     }
 
     @Override
+    public EnterpriseStock enterpriseStockCheckV1(RecipeDTO recipeDTO, Integer enterpriseId) {
+        //药企库存
+        Recipe recipe = recipeDTO.getRecipe();
+        List<Recipedetail> recipeDetails = recipeDTO.getRecipeDetails();
+        RecipeExtend recipeExtend = recipeDTO.getRecipeExtend();
+        List<EnterpriseStock> enterpriseStockList = this.enterpriseStockCheckAll(recipe, recipeExtend.getDecoctionId(), recipeDetails, enterpriseId);
+        if (CollectionUtils.isEmpty(enterpriseStockList)) {
+            return null;
+        }
+        List<EnterpriseStock> list = enterpriseStockList.stream().filter(EnterpriseStock::getStock).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(list)) {
+            return null;
+        }
+        return list.get(0);
+    }
+
+    @Override
     public List<DrugForGiveModeVO> drugForGiveMode(DrugQueryVO drugQueryVO) {
         logger.info("drugForGiveMode DrugQueryVO={}", JSONArray.toJSONString(drugQueryVO));
         List<String> drugNames = new ArrayList<>();

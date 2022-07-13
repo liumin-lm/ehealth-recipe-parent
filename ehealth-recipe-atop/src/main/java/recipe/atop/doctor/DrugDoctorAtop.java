@@ -133,7 +133,6 @@ public class DrugDoctorAtop extends BaseAtop {
         return result.stream().anyMatch(EnterpriseStock::getStock);
     }
 
-
     /**
      * 查询药品能支持的够药方式
      *
@@ -148,6 +147,19 @@ public class DrugDoctorAtop extends BaseAtop {
             return doSignRecipe.getMsg();
         }
         return "";
+    }
+
+    /**
+     * 查询某个药企下 药品库存 的库存数量
+     *
+     * @param drugQueryVO
+     * @return
+     */
+    @RpcService
+    public EnterpriseStock enterpriseStockCheck(DrugQueryVO drugQueryVO) {
+        RecipeDTO recipeDTO = this.recipeDTO(drugQueryVO);
+        EnterpriseStock result = iStockBusinessService.enterpriseStockCheckV1(recipeDTO, drugQueryVO.getEnterpriseId());
+        return result;
     }
 
     /**
