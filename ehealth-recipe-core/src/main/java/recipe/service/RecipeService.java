@@ -768,8 +768,6 @@ public class RecipeService extends RecipeBaseService {
         if (ReviewTypeConstant.Preposition_Check == recipe.getReviewType()) {
             auditModeContext.getAuditModes(recipe.getReviewType()).afterCheckPassYs(recipe);
         }
-
-
     }
 
     //重试二次医生审核不通过签名
