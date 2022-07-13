@@ -366,10 +366,14 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                 List<BaseRecipeDetailVO> baseRecipeDetailVOList = new ArrayList<>();
                 ObjectCopyUtils.copyProperties(downRecipeVO, recipe);
                 downRecipeVO.setOrganId(recipe.getClinicOrgan());
+                OrganDTO organDTO = organClient.organDTO(recipe.getClinicOrgan());
+                if (null != organDTO) {
+                    downRecipeVO.setOrganizeCode(organDTO.getOrganizeCode());
+                }
                 if (null != recipe.getCheckOrgan()) {
                     downRecipeVO.setCheckerName(recipe.getCheckerText());
-                    com.ngari.recipe.dto.OrganDTO organDTO = organClient.organDTO(recipe.getCheckOrgan());
-                    downRecipeVO.setCheckOrganName(organDTO.getName());
+                    com.ngari.recipe.dto.OrganDTO checkOrgan= organClient.organDTO(recipe.getCheckOrgan());
+                    downRecipeVO.setCheckOrganName(checkOrgan.getName());
                 }
                 //设置签名文件的url
                 if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
