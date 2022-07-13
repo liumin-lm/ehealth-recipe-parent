@@ -1,10 +1,7 @@
 package recipe.manager;
 
 import com.ngari.recipe.dto.RecipeDTO;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeExtend;
-import com.ngari.recipe.entity.RecipeLog;
-import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.entity.*;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -64,6 +61,8 @@ public class BaseManager {
     protected ConsultClient consultClient;
     @Resource
     protected OfflineRecipeClient offlineRecipeClient;
+    @Autowired
+    DrugDecoctionWayDao drugDecoctionWayDao;
 
     /**
      * 获取处方相关信息
@@ -79,6 +78,12 @@ public class BaseManager {
         List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipeId);
         recipeDTO.setRecipeDetails(recipeDetails);
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+        if (StringUtils.isNotBlank(recipeExtend.getDecoctionId())) {
+            DecoctionWay decoctionWay = drugDecoctionWayDao.get(Integer.parseInt(recipeExtend.getDecoctionId()));
+            if (null != decoctionWay) {
+                recipeExtend.setDecoctionPrice(decoctionWay.getDecoctionPrice());
+            }
+        }
         recipeDTO.setRecipeExtend(recipeExtend);
         return recipeDTO;
     }

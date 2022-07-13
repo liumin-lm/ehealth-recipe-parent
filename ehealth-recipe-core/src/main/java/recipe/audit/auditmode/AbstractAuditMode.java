@@ -79,7 +79,7 @@ public abstract class AbstractAuditMode implements IAuditMode {
         //发送消息--待审核或者待处理消息
         RecipeMsgService.batchSendMsg(recipe.getRecipeId(), status);
         //处方审核
-        recipeAudit(recipe.getRecipeId());
+        startRecipeAuditProcess(recipe.getRecipeId());
     }
 
     @Override
@@ -173,7 +173,7 @@ public abstract class AbstractAuditMode implements IAuditMode {
      * 处方审核
      * @param recipeId
      */
-    protected void recipeAudit(Integer recipeId){
+    protected void startRecipeAuditProcess(Integer recipeId){
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
@@ -182,7 +182,7 @@ public abstract class AbstractAuditMode implements IAuditMode {
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
         List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
         RecipeAuditClient recipeAuditClient = AppContextHolder.getBean("recipeAuditClient", RecipeAuditClient.class);
-        recipeAuditClient.recipeAudit(recipe, recipeExtend, recipeDetailList);
+        recipeAuditClient.startRecipeAuditProcess(recipe, recipeExtend, recipeDetailList);
     }
 
     /**

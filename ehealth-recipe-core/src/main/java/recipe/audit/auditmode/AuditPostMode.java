@@ -119,7 +119,7 @@ public class AuditPostMode extends AbstractAuditMode {
                 dbRecipe.setCheckFlag(0);
                 recipeDAO.updateNonNullFieldByPrimaryKey(dbRecipe);
                 RecipeMsgService.batchSendMsg(dbRecipe.getRecipeId(), status);
-                super.recipeAudit(dbRecipe.getRecipeId());
+                super.startRecipeAuditProcess(dbRecipe.getRecipeId());
             }
             //设置新的审方状态
             super.setAuditStateToPendingReview(dbRecipe.getRecipeId(),status);

@@ -1214,6 +1214,7 @@ public class Recipe implements Serializable {
     public Integer getGrabOrderStatus() {
         return grabOrderStatus;
     }
+
     public void setGrabOrderStatus(Integer grabOrderStatus) {
         this.grabOrderStatus = grabOrderStatus;
     }
@@ -1227,6 +1228,7 @@ public class Recipe implements Serializable {
     public Integer getAuditState() {
         return auditState;
     }
+
     public void setAuditState(Integer auditState) {
         this.auditState = auditState;
     }
@@ -1236,6 +1238,7 @@ public class Recipe implements Serializable {
     public Integer getSupportMode() {
         return supportMode;
     }
+
     public void setSupportMode(Integer supportMode) {
         this.supportMode = supportMode;
     }
@@ -1266,11 +1269,13 @@ public class Recipe implements Serializable {
         this.recipeId = recipeId;
         this.supplementaryMemo = supplementaryMemo;
     }
+
     public Recipe(Integer recipeId, Integer clinicOrgan, Integer recipeType) {
         this.recipeId = recipeId;
         this.clinicOrgan = clinicOrgan;
         this.recipeType = recipeType;
     }
+
     public Recipe(Integer recipeId, Date signDate) {
         this.recipeId = recipeId;
         this.signDate = signDate;

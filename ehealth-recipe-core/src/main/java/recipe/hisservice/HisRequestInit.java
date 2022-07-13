@@ -316,7 +316,7 @@ public class HisRequestInit {
         //处方附带信息
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-        LOGGER.info("initRecipeSendRequestTO recipeExtend={}",JSONUtils.toString(recipeExtend));
+        LOGGER.info("initRecipeSendRequestTO recipeExtend={}", JSONUtils.toString(recipeExtend));
         // 简要病史
         if (null != recipeExtend) {
             EmrDetailDTO emrDetail = docIndexClient.getEmrDetails(recipeExtend.getDocIndexId());
@@ -360,9 +360,10 @@ public class HisRequestInit {
                         requestTO.setGenerationisOfDecoction(decoctionWay.getGenerationisOfDecoction());
                         requestTO.setDecoctionCode(decoctionWay.getDecoctionCode());
                         requestTO.setDecoctionText(decoctionWay.getDecoctionText());
+                        requestTO.setDecoctionUnitPrice(decoctionWay.getDecoctionPrice());
                     }
                 }
-                if(StringUtils.isNotBlank(recipeExtend.getDoctorIsDecoction())){
+                if (StringUtils.isNotBlank(recipeExtend.getDoctorIsDecoction())) {
                     requestTO.setGenerationisOfDecoction(recipeExtend.getDoctorIsDecoction().equals("1"));
                 }
                 if (StringUtils.isNotBlank(recipeExtend.getMakeMethodId())) {
@@ -565,7 +566,7 @@ public class HisRequestInit {
             LOGGER.error("initRecipeSendRequestTO error ", e);
         }
         requestTO.setOrderList(orderList);
-        LOGGER.info("initRecipeSendRequestTO recipeId:{},requestTO:{}",recipe.getRecipeId(),JSONUtils.toString(requestTO));
+        LOGGER.info("initRecipeSendRequestTO recipeId:{},requestTO:{}", recipe.getRecipeId(), JSONUtils.toString(requestTO));
         return requestTO;
     }
 
@@ -675,7 +676,7 @@ public class HisRequestInit {
                             requestTO.setTcmFeeNo(order.getTcmFeeNo());
                             requestTO.setOrderCode(order.getOrderCode());
                         }
-                    }catch (Exception e){
+                    } catch (Exception e) {
                         LOGGER.error("MedicalPreSettleService 代缴费用有误");
                     }
 
@@ -1004,12 +1005,12 @@ public class HisRequestInit {
                 drugCodeMap.put(detail.getRecipeDetailId(), detail.getDrugCode());
                 try {
                     OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(recipe.getClinicOrgan(), detail.getOrganDrugCode(), detail.getDrugId());
-                    LOGGER.info("recipeAudit organDrugList={}",JSONUtils.toString(organDrugList));
-                    if(null != organDrugList){
-                        drugItemCodeMap.put(detail.getRecipeDetailId(),organDrugList.getDrugItemCode());
+                    LOGGER.info("recipeAudit organDrugList={}", JSONUtils.toString(organDrugList));
+                    if (null != organDrugList) {
+                        drugItemCodeMap.put(detail.getRecipeDetailId(), organDrugList.getDrugItemCode());
                     }
-                }catch (Exception e){
-                    LOGGER.error("recipeAudit error",e);
+                } catch (Exception e) {
+                    LOGGER.error("recipeAudit error", e);
                 }
             }
             RecipeAuditDetailReqTO auditDetail;

@@ -404,10 +404,11 @@ public class OfflineRecipeClient extends BaseClient {
 
     /**
      * 自费预结算
+     *
      * @param request 预结算参数
      * @return 预结算返回值
      */
-    public RecipeCashPreSettleInfo recipeCashPreSettle(RecipeCashPreSettleReqTO request){
+    public RecipeCashPreSettleInfo recipeCashPreSettle(RecipeCashPreSettleReqTO request) {
         logger.info("OfflineRecipeClient recipeCashPreSettle request:{}.", JSONUtils.toString(request));
         try {
             HisResponseTO<RecipeCashPreSettleInfo> response = recipeHisService.recipeCashPreSettle(request);
@@ -423,9 +424,9 @@ public class OfflineRecipeClient extends BaseClient {
     /**
      * 获取用药提醒的线下处方
      *
-     * @param organId 机构id
+     * @param organId          机构id
      * @param remindRecipeFlag 暂时的标记
-     * @param dateTime 指定查询时间
+     * @param dateTime         指定查询时间
      * @return
      */
     public List<RecipeInfoDTO> queryRemindRecipe(Integer organId, String remindRecipeFlag, String dateTime) throws Exception {
@@ -433,7 +434,7 @@ public class OfflineRecipeClient extends BaseClient {
         remindRecipeDTO.setOrganId(organId);
         remindRecipeDTO.setLimit(90000);
         remindRecipeDTO.setStart(1);
-        Date sTime,eTime;
+        Date sTime, eTime;
         if (StringUtils.isNotEmpty(dateTime)) {
             Date date = DateConversion.parseDate(dateTime, DateConversion.DEFAULT_DATE_TIME);
             sTime = DateConversion.firstSecondsOfDay(date);
@@ -620,10 +621,11 @@ public class OfflineRecipeClient extends BaseClient {
 
     /**
      * 用药提醒获取线下处方增加重试机制
+     *
      * @param remindRecipeDTO
      * @return
      */
-    private List<com.ngari.platform.recipe.mode.RecipeDTO> queryRemindRecipeRetry(RemindRecipeDTO remindRecipeDTO){
+    private List<com.ngari.platform.recipe.mode.RecipeDTO> queryRemindRecipeRetry(RemindRecipeDTO remindRecipeDTO) {
         Retryer<List<com.ngari.platform.recipe.mode.RecipeDTO>> retry = RetryerBuilder.<List<com.ngari.platform.recipe.mode.RecipeDTO>>newBuilder()
                 //抛出指定异常重试
                 .retryIfExceptionOfType(Exception.class)
@@ -657,8 +659,8 @@ public class OfflineRecipeClient extends BaseClient {
      * @throws Exception
      */
     private com.ngari.platform.recipe.mode.RecipeDTO packageRecipeDTO(Integer pushType, RecipeInfoDTO recipePdfDTO,
-                                                               EmrDetailDTO emrDetail, Map<Integer, PharmacyTcm> pharmacyIdMap,
-                                                               String giveModeKey) throws Exception {
+                                                                      EmrDetailDTO emrDetail, Map<Integer, PharmacyTcm> pharmacyIdMap,
+                                                                      String giveModeKey) throws Exception {
         com.ngari.platform.recipe.mode.RecipeDTO recipeDTO = new com.ngari.platform.recipe.mode.RecipeDTO();
         recipeDTO.setPushType(pushType);
         recipeDTO.setOrganId(recipePdfDTO.getRecipe().getClinicOrgan());
@@ -666,6 +668,7 @@ public class OfflineRecipeClient extends BaseClient {
         if (null != recipePdfDTO.getRecipeExtend() && StringUtils.isNotEmpty(recipePdfDTO.getRecipeExtend().getCardType())) {
             recipeDTO.getRecipeExtendBean().setCardTypeStr(recipePdfDTO.getRecipeExtend().getCardType());
         }
+        recipeDTO.getRecipeExtendBean().setDecoctionUnitPrice(recipeDTO.getRecipeExtendBean().getDecoctionPrice());
         recipeDTO.setPatientDTO(ObjectCopyUtils.convert(recipePdfDTO.getPatientBean(), PatientDTO.class));
         com.ngari.platform.recipe.mode.EmrDetailDTO emrDetailDTO = new com.ngari.platform.recipe.mode.EmrDetailDTO();
         BeanUtils.copyProperties(emrDetail, emrDetailDTO);

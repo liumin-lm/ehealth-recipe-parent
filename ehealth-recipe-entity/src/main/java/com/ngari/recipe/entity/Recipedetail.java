@@ -26,25 +26,25 @@ public class Recipedetail implements java.io.Serializable {
 
 	@ItemProperty(alias="处方明细序号")
 	private Integer recipeDetailId;
-	
+
 	@ItemProperty(alias="处方序号")
 	private Integer recipeId;
-	
+
 	@ItemProperty(alias="药品组号")
 	private String drugGroup;
-	
+
 	@ItemProperty(alias="药品序号")
 	private Integer drugId;
-	
+
 	@ItemProperty(alias="机构唯一索引")
 	private String organDrugCode;
 
 	@ItemProperty(alias="机构药品编号")
 	private String drugItemCode;
-	
+
 	@ItemProperty(alias="药物名称")
 	private String drugName;
-	
+
 	@ItemProperty(alias="药物规格")
 	private String drugSpec;
 
@@ -275,6 +275,18 @@ public class Recipedetail implements java.io.Serializable {
 
 	@ItemProperty(alias = "his开方或预结算时返回的药品单价")
 	private BigDecimal hisReturnSalePrice;
+
+	@ItemProperty(alias = "腹透液  空0否  1是  ")
+	private Integer peritonealDialysisFluidType;
+
+	@Column(name = "peritoneal_dialysis_fluid_type")
+	public Integer getPeritonealDialysisFluidType() {
+		return peritonealDialysisFluidType;
+	}
+
+	public void setPeritonealDialysisFluidType(Integer peritonealDialysisFluidType) {
+		this.peritonealDialysisFluidType = peritonealDialysisFluidType;
+	}
 
 	@Column(name = "his_return_sale_price")
 	public BigDecimal getHisReturnSalePrice() {
