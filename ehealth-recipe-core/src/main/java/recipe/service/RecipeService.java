@@ -768,8 +768,6 @@ public class RecipeService extends RecipeBaseService {
         if (ReviewTypeConstant.Preposition_Check == recipe.getReviewType()) {
             auditModeContext.getAuditModes(recipe.getReviewType()).afterCheckPassYs(recipe);
         }
-
-
     }
 
     //重试二次医生审核不通过签名
@@ -996,11 +994,13 @@ public class RecipeService extends RecipeBaseService {
             //说明处方签名失败
             LOGGER.info("当前审核处方{}签名失败！", recipeId);
             recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.SIGN_ERROR_CODE_PHA, null);
+            stateManager.updateCheckerSignState(recipeId, SignStateEnum.SIGN_FAIL);
             recipeLogDAO.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), checkResult.getMsg());
             return;
         } else {
             //说明处方签名成功，记录日志，走签名成功逻辑
             LOGGER.info("当前审核处方{}签名成功！", recipeId);
+            stateManager.updateCheckerSignState(recipeId, SignStateEnum.SIGN_SUC);
             recipeLogDAO.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "当前审核处方签名成功");
             if (MapUtils.isNotEmpty(esignResponseMap)) {
                 String recipeFileId = MapValueUtil.getString(esignResponseMap, "fileId");
