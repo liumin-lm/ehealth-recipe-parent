@@ -103,7 +103,7 @@ public class RecipeConfigService {
     @LogRecord
     public String getRecipeModeByAppKeyAndOrganId(String appKey,Integer organId) {
         String val = RecipeBussConstant.RECIPEMODE_NGARIHEALTH;
-        if(organId==null){
+        if (organId == null) {
             return val;
         }
         Integer recipeModeRadioConfig = (Integer) configService.getConfiguration(organId, "recipeModeRadioConfig");
@@ -117,6 +117,6 @@ public class RecipeConfigService {
         } else {
             return getRecipeMode(appKey);
 
+        }
     }
-
 }
