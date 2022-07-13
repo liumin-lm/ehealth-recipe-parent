@@ -36,7 +36,8 @@ public class StateManager extends BaseManager {
         boolean result;
         switch (processState) {
             case PROCESS_STATE_CANCELLATION:
-                result = this.cancelOrder(recipeOrder, processState, subState);
+            case PROCESS_STATE_DISPENSING:
+                result = this.defaultOrder(recipeOrder, processState, subState);
                 break;
             default:
                 result = false;
@@ -44,6 +45,7 @@ public class StateManager extends BaseManager {
         }
         return result;
     }
+
 
     /**
      * 修改处方状态
@@ -68,6 +70,9 @@ public class StateManager extends BaseManager {
             case PROCESS_STATE_DELETED:
             case PROCESS_STATE_CANCELLATION:
                 result = this.cancellation(recipe, processState, subState);
+                break;
+            case PROCESS_STATE_DONE:
+                result = this.defaultRecipe(recipe, processState, subState);
                 break;
             default:
                 result = false;
@@ -120,7 +125,7 @@ public class StateManager extends BaseManager {
      * @param subState     子状态枚举
      * @return
      */
-    private Boolean cancelOrder(RecipeOrder order, OrderStateEnum processState, OrderStateEnum subState) {
+    private Boolean defaultOrder(RecipeOrder order, OrderStateEnum processState, OrderStateEnum subState) {
         RecipeOrder updateOrder = new RecipeOrder(order.getOrderId(),processState.getType(),subState.getType());
         logger.info("updateOrder:{}",JSONArray.toJSONString(updateOrder));
         updateOrder.setOrderId(order.getOrderId());
@@ -189,6 +194,23 @@ public class StateManager extends BaseManager {
             sub = RecipeStateEnum.SUB_SUBMIT_DOC_SIGN_FAIL;
         }
         updateRecipe.setSubState(sub.getType());
+        recipeDAO.updateNonNullFieldByPrimaryKey(updateRecipe);
+        return true;
+    }
+
+
+    /**
+     * 更改处方新状态走默认
+     * @param recipe
+     * @param processState
+     * @param subState
+     * @return
+     */
+    private boolean defaultRecipe(Recipe recipe, RecipeStateEnum processState, RecipeStateEnum subState) {
+        Recipe updateRecipe = new Recipe();
+        updateRecipe.setRecipeId(recipe.getRecipeId());
+        updateRecipe.setProcessState(processState.getType());
+        updateRecipe.setSubState(subState.getType());
         recipeDAO.updateNonNullFieldByPrimaryKey(updateRecipe);
         return true;
     }
