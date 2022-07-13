@@ -1,5 +1,6 @@
 package recipe.core.api;
 
+import com.ngari.recipe.dto.DoSignRecipeDTO;
 import com.ngari.recipe.dto.EnterpriseStock;
 import com.ngari.recipe.dto.RecipeDTO;
 import com.ngari.recipe.entity.Recipe;
@@ -70,11 +71,20 @@ public interface IStockBusinessService {
     List<EnterpriseStock> drugRecipeStock(RecipeDTO recipeDTO);
 
     /**
+     * 查询药品能支持的够药方式
+     *
+     * @param recipe
+     * @return
+     */
+    DoSignRecipeDTO drugRecipeStockGiveMode(RecipeDTO recipe);
+
+    /**
      * 获取药品库存
+     *
      * @param recipeIds
      * @param enterpriseId
      * @return
      */
-    Boolean getOrderStockFlag(List<Integer> recipeIds, Integer enterpriseId,String giveModeKey);
+    Boolean getOrderStockFlag(List<Integer> recipeIds, Integer enterpriseId, String giveModeKey);
 
 }
