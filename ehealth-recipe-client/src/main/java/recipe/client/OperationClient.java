@@ -197,9 +197,7 @@ public class OperationClient extends BaseClient {
     public List<GiveModeButtonDTO> getOrganGiveModeMap(Integer organId) {
         logger.info("ButtonManager.getGiveModeMap organId={}", organId);
         //添加按钮配置项key
-        GiveModeShowButtonDTO giveModeShowButtonVO = getGiveModeSettingFromYypt(organId);
-        List<GiveModeButtonDTO> giveModeButtonBeans = giveModeShowButtonVO.getGiveModeButtons();
-        return giveModeButtonBeans;
+        return getGiveModeSettingFromYypt(organId).getGiveModeButtons();
     }
 
     /**
