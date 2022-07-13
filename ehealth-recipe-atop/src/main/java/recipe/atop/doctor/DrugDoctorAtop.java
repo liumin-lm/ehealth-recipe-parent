@@ -141,9 +141,13 @@ public class DrugDoctorAtop extends BaseAtop {
      * @return
      */
     @RpcService
-    public DoSignRecipeDTO drugRecipeStockGiveMode(DrugQueryVO drugQueryVO) {
+    public String drugRecipeStockGiveMode(DrugQueryVO drugQueryVO) {
         RecipeDTO recipeDTO = this.recipeDTO(drugQueryVO);
-        return iStockBusinessService.drugRecipeStockGiveMode(recipeDTO);
+        DoSignRecipeDTO doSignRecipe = iStockBusinessService.drugRecipeStockGiveMode(recipeDTO);
+        if (doSignRecipe.getErrorFlag()) {
+            return doSignRecipe.getMsg();
+        }
+        return "";
     }
 
     /**
