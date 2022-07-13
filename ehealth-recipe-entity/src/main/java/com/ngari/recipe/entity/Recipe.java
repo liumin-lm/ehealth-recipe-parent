@@ -348,6 +348,7 @@ public class Recipe implements Serializable {
     @ItemProperty(alias = "0：默认(未签名)，1：签名中，2：签名失败，3：签名成功")
     private Integer checkerSignState;
 
+    @Column(name = "doctor_sign_state")
     public Integer getDoctorSignState() {
         return doctorSignState;
     }
@@ -356,6 +357,7 @@ public class Recipe implements Serializable {
         this.doctorSignState = doctorSignState;
     }
 
+    @Column(name = "checker_sign_state")
     public Integer getCheckerSignState() {
         return checkerSignState;
     }
