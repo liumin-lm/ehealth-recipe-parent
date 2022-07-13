@@ -26,7 +26,7 @@ public enum RecipeStateEnum {
     /**
      * 处方子状态:待提交
      */
-    SUB_SUBMIT_TEMPORARY(11, "暂存处方", ""),
+    SUB_SUBMIT_TEMPORARY(11, "请尽快提交处方", ""),
     SUB_SUBMIT_CHECKING_HOS(12, "您已提交，等待医院HIS确认", ""),
     SUB_SUBMIT_HIS_FAIL(13, "医院HIS确认失败，您可以进行续方操作重新开具本张处方", ""),
     SUB_SUBMIT_DOC_SIGN_ING(14, "您已提交，等待签名完成", "医生签名中"),
@@ -65,7 +65,7 @@ public enum RecipeStateEnum {
     SUB_CANCELLATION_RETURN_DRUG(94, "售药方退药", "已退药"),
     SUB_CANCELLATION_TIMEOUT_NOT_MEDICINE(95, "患者超时未取药", "患者未取药"),
     SUB_CANCELLATION_TIMEOUT_NOT_ORDER(96, "已过有效期未下单", "过期处方（未支付过期 /未处理过期）"),
-
+    SUB_CANCELLATION_WRITE_HIS_NOT_ORDER(97, "写入his失败", ""),
 
     ;
 

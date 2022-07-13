@@ -82,7 +82,7 @@ public class AuditPreMode extends AbstractAuditMode {
         // 设置新的审方状态
         currentRecipe.setStatus(status);
         currentRecipe.setCheckFlag(0);
-        currentRecipe.setSubState(RecipeStateEnum.NONE.getType());
+        currentRecipe.setSubState(RecipeStateEnum.SUB_AUDIT_READY_SUPPORT.getType());
         currentRecipe.setProcessState(RecipeStateEnum.PROCESS_STATE_AUDIT.getType());
         currentRecipe.setAuditState(RecipeAuditStateEnum.PENDING_REVIEW.getType());
         recipeDAO.updateNonNullFieldByPrimaryKey(currentRecipe);
