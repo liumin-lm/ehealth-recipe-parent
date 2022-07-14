@@ -19,7 +19,7 @@ public abstract class ClinicCartDAO extends HibernateSupportDelegateDAO<ClinicCa
 
     public ClinicCartDAO() {
         super();
-        this.setEntityName(CommonRecipe.class.getName());
+        this.setEntityName(ClinicCart.class.getName());
         this.setKeyField("id");
     }
 
