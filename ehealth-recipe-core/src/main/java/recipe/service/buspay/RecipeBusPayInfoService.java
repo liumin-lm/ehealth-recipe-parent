@@ -417,6 +417,12 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService,IBusPayServ
                 String departName = departmentService.getNameById(departId);
                 simpleBusObject.setDepartName(StringUtils.isNotEmpty(departName) ? departName : "");
             }
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(busId);
+            if(Objects.nonNull(recipeExtend)){
+                if(StringUtils.isNotEmpty(recipeExtend.getTerminalId())){
+                    simpleBusObject.setTerminalId(recipeExtend.getTerminalId());
+                }
+            }
         } else {
             simpleBusObject.setBusId(busId);
             simpleBusObject.setPrice(order.getTotalFee().stripTrailingZeros().doubleValue());
@@ -442,6 +448,9 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService,IBusPayServ
             if (recipeExtend != null) {
                 simpleBusObject.setCardId(recipeExtend.getCardNo());
                 simpleBusObject.setCardType(recipeExtend.getCardType());
+                if(StringUtils.isNotEmpty(recipeExtend.getTerminalId())){
+                    simpleBusObject.setTerminalId(recipeExtend.getTerminalId());
+                }
             }
             //杭州互联网流程
             if (order.getRegisterNo() != null) {
