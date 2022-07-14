@@ -1,7 +1,6 @@
 package recipe.dao;
 
 import com.ngari.recipe.entity.ClinicCart;
-import com.ngari.recipe.entity.CommonRecipe;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;
 import ctd.persistence.support.hibernate.HibernateSupportDelegateDAO;
