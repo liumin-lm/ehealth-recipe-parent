@@ -58,6 +58,7 @@ public class DrugDoctorAtop extends BaseAtop {
 
     /**
      * 医生端 查询购药方式下有库存的药品
+     * todo 新：giveModeDrugStockList
      *
      * @param drugQueryVO
      * @return
@@ -179,13 +180,9 @@ public class DrugDoctorAtop extends BaseAtop {
      * @return
      */
     @RpcService
-    public String drugRecipeStockGiveMode(DrugQueryVO drugQueryVO) {
+    public DoSignRecipeDTO drugRecipeStockGiveMode(DrugQueryVO drugQueryVO) {
         RecipeDTO recipeDTO = this.recipeDTO(drugQueryVO);
-        DoSignRecipeDTO doSignRecipe = iStockBusinessService.drugRecipeStockGiveMode(recipeDTO);
-        if (doSignRecipe.getErrorFlag()) {
-            return doSignRecipe.getMsg();
-        }
-        return "";
+        return iStockBusinessService.drugRecipeStockGiveMode(recipeDTO);
     }
 
     /**
