@@ -119,4 +119,11 @@ public class DrugPatientAtop extends BaseAtop {
         return clinicCartService.addClinicCart(clinicCartVO);
     }
 
+
+    @RpcService
+    public Boolean deleteClinicCartById(Integer id) {
+        validateAtop(id);
+        return clinicCartService.deleteClinicCartById(id);
+    }
+
 }

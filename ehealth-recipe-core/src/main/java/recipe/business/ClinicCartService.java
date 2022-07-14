@@ -37,7 +37,15 @@ public class ClinicCartService implements IClinicCartBusinessService {
     @Override
     public Integer addClinicCart(ClinicCartVO clinicCartVO) {
         ClinicCart clinicCart = BeanUtils.map(clinicCartVO, ClinicCart.class);
+        clinicCart.setDeleteFlag(0);
         ClinicCart result = clinicCartDAO.save(clinicCart);
         return result.getId();
     }
+
+    @Override
+    public Boolean deleteClinicCartById(Integer id) {
+        clinicCartDAO.updateDeleteFlagById(id, 1);
+        return true;
+    }
+
 }
