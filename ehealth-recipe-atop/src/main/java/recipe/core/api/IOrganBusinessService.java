@@ -1,5 +1,6 @@
 package recipe.core.api;
 
+import com.ngari.recipe.dto.GiveModeButtonDTO;
 import com.ngari.recipe.recipe.model.GiveModeButtonBean;
 import recipe.vo.second.OrganVO;
 
@@ -58,8 +59,17 @@ public interface IOrganBusinessService {
 
     /**
      * 判断运营平台账户越权校验
-     * @param key
+     *
+     * @param organId
      * @return
      */
     Boolean isAuthorisedOrgan(Integer organId);
+
+    /**
+     * 通过机构ID从运营平台获取购药方式的基本配置项
+     *
+     * @param organId 机构id
+     * @return
+     */
+    List<GiveModeButtonDTO> organGiveMode(Integer organId);
 }
