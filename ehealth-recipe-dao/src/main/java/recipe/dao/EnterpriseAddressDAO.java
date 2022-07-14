@@ -213,7 +213,7 @@ public abstract class EnterpriseAddressDAO extends HibernateSupportDelegateDAO<E
         HibernateStatelessResultAction<List<EnterpriseAddress>> action = new AbstractHibernateStatelessResultAction<List<EnterpriseAddress>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                StringBuilder hql = new StringBuilder("from EnterpriseAddress where enterpriseId =:enterpriseId and status = 1 and address like :area");
+                StringBuilder hql = new StringBuilder("from EnterpriseAddress where enterpriseId =:enterpriseId  and address like :area");
                 Query q = ss.createQuery(hql.toString());
                 q.setParameter("enterpriseId", enterpriseId);
                 q.setParameter("area", area + "%");
