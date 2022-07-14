@@ -22,12 +22,12 @@ public abstract class ClinicCartDAO extends HibernateSupportDelegateDAO<ClinicCa
         this.setKeyField("id");
     }
 
-    @DAOMethod(sql = "from ClinicCart where organId = :organId and userId = :userId and deleteFlag = 0")
+    @DAOMethod(sql = "FROM ClinicCart WHERE organId = :organId AND userId = :userId AND deleteFlag = 0")
     public abstract List<ClinicCart> findClinicCartsByOrganIdAndUserId(@DAOParam("organId") Integer organId,
                                                                        @DAOParam("userId") String userId);
 
-    @DAOMethod(sql = "UPDATE ClinicCart SET deleteFlag = :deleteFlag where id = :id")
-    public abstract void updateDeleteFlagById(@DAOParam("id") Integer id,
-                                              @DAOParam("deleteFlag") Integer deleteFlag);
+    @DAOMethod(sql = "UPDATE ClinicCart SET deleteFlag = :deleteFlag WHERE id IN (:ids)")
+    public abstract void deleteClinicCartByIds(@DAOParam("ids") List<Integer> ids,
+                                               @DAOParam("deleteFlag") Integer deleteFlag);
 }
 

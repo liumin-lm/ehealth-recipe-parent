@@ -12,6 +12,7 @@ import recipe.vo.second.ClinicCartVO;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @Description
@@ -43,9 +44,21 @@ public class ClinicCartService implements IClinicCartBusinessService {
     }
 
     @Override
-    public Boolean deleteClinicCartById(Integer id) {
-        clinicCartDAO.updateDeleteFlagById(id, 1);
+    public Boolean deleteClinicCartByIds(List<Integer> ids) {
+        clinicCartDAO.deleteClinicCartByIds(ids, 1);
         return true;
+    }
+
+    @Override
+    public Boolean updateClinicCartById(ClinicCartVO clinicCartVO) {
+        ClinicCart clinicCart = clinicCartDAO.get(clinicCartVO.getId());
+        if (Objects.nonNull(clinicCart)) {
+            clinicCart.setAmount(clinicCartVO.getAmount());
+            clinicCartDAO.update(clinicCart);
+            return true;
+        } else {
+            return false;
+        }
     }
 
 }
