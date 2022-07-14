@@ -86,6 +86,7 @@ public class DrugDoctorAtop extends BaseAtop {
      * @param drugQueryVO
      * @return
      */
+    @RpcService
     public List<DrugForGiveModeListVO> giveModeDrugStockList(DrugQueryVO drugQueryVO) {
         RecipeDTO recipeDTO = this.recipeDTO(drugQueryVO);
         List<DrugForGiveModeListVO> list = iStockBusinessService.drugForGiveModeV1(recipeDTO);

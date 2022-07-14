@@ -108,8 +108,7 @@ public class RecipeDetailValidateTool {
             recipeDetail.setUseDoseUnit(null);
             recipeDetail.setUseDose(null);
             recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
-            recipeDetail.setValidateStatusText("机构药品药物使用规格单位或者最小单位错误UseDoseUnit｜" + recipeDetail.getUseDoseUnit()
-                    + "->" + organDrug.getUseDoseUnit() + "|" + organDrug.getUseDoseSmallestUnit());
+            recipeDetail.setValidateStatusText("机构药品药物使用规格单位或者最小单位错误UseDoseUnit");
         }
 
         //开药单位是否与机构药品目录单位一致，不一致，重新填写开具数量
@@ -119,7 +118,7 @@ public class RecipeDetailValidateTool {
             recipeDetail.setUseDose(null);
             recipeDetail.setDrugUnit(organDrug.getUnit());
             recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
-            recipeDetail.setValidateStatusText("机构药品药物单位错误DrugUnit｜" + recipeDetail.getDrugUnit() + "->" + organDrug.getUnit());
+            recipeDetail.setValidateStatusText("机构药品药物单位错误DrugUnit");
         }
 
         //开药天数
