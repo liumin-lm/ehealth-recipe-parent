@@ -272,4 +272,14 @@ public class RecipePatientAtop extends BaseAtop {
 
     }
 
+    /**
+     * 是否有待处理处方
+     * @param mpiId
+     * @return
+     */
+    @RpcService
+    public Boolean isHaveReadyRecipeFlag(String mpiId){
+        return recipePatientService.isHaveReadyRecipeFlag(mpiId);
+    }
+
 }
