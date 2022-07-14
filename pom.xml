@@ -50,6 +50,7 @@
         <ngari.account.version>4.1.1.9.master-SNAPSHOT</ngari.account.version>
         <ngari.revisit.version>4.7.1.4.master-SNAPSHOT</ngari.revisit.version>
         <ngari.entity.version>4.7.1.4.master-SNAPSHOT</ngari.entity.version>
+        <ehealth-pay-api.version>4.1.1.9.master-SNAPSHOT</ehealth-pay-api.version>
     </properties>
 
     <build>

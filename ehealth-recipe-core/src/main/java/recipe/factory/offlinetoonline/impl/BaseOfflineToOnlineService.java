@@ -504,12 +504,6 @@ public class BaseOfflineToOnlineService {
         Map<String, Object> recipeDetailMap;
         Recipe recipe = recipeDAO.get(recipeId);
         HisRecipe hisRecipe = hisRecipeDao.get(hisRecipeId);
-
-//        if (!UserRoleToken.getCurrent().getOwnMpiId().equals(recipe.getMpiid())
-//                && HisRecipeConstant.HISRECIPESTATUS_ALREADYIDEAL.equals(hisRecipe.getStatus())) {
-//            throw new DAOException(609, "该处方单已被他人处理！");
-//        }
-        //TODO lium
         if (!UserRoleToken.getCurrent().getOwnMpiId().equals(recipe.getMpiid())) {
             String payFlag = hisRecipeManager.obtainPayStatus(hisRecipe.getRecipeCode(), hisRecipe.getClinicOrgan());
             if (PayConstant.RESULT_SUCCESS.equals(payFlag)) {
