@@ -117,7 +117,7 @@ public class DrugDoctorAtop extends BaseAtop {
         RecipeDTO recipeDTO = this.recipeDTO(drugQueryVO);
         EnterpriseStock result = iStockBusinessService.enterpriseStockCheckV1(recipeDTO, drugQueryVO.getEnterpriseId(), drugQueryVO.getAppointEnterpriseType());
         if (null == result) {
-            return null;
+            return new ArrayList<>();
         }
         return ObjectCopyUtils.convert(result.getDrugInfoList(), DrugStockVO.class);
     }
