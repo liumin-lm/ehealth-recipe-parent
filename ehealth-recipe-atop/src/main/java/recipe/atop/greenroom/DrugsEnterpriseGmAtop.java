@@ -70,7 +70,7 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
      *
      * @param enterpriseAddressDTOS
      */
-    @RpcService
+    @RpcService(timeout = 60)
     public void updateEnterpriseAddressAndPrice(List<EnterpriseAddressDTO> enterpriseAddressDTOS) {
         validateAtop(enterpriseAddressDTOS);
         enterpriseBusinessService.updateEnterpriseAddressAndPrice(enterpriseAddressDTOS);
