@@ -78,12 +78,6 @@ public class BaseManager {
         List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipeId);
         recipeDTO.setRecipeDetails(recipeDetails);
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
-        if (StringUtils.isNotBlank(recipeExtend.getDecoctionId())) {
-            DecoctionWay decoctionWay = drugDecoctionWayDao.get(Integer.parseInt(recipeExtend.getDecoctionId()));
-            if (null != decoctionWay) {
-                recipeExtend.setDecoctionPrice(decoctionWay.getDecoctionPrice());
-            }
-        }
         recipeDTO.setRecipeExtend(recipeExtend);
         return recipeDTO;
     }
