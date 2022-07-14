@@ -10,5 +10,7 @@ public interface IClinicCartBusinessService {
 
     Integer addClinicCart(ClinicCartVO clinicCartVO);
 
-    Boolean deleteClinicCartById(Integer id);
+    Boolean deleteClinicCartByIds(List<Integer> id);
+
+    Boolean updateClinicCartById(ClinicCartVO clinicCartVO);
 }
