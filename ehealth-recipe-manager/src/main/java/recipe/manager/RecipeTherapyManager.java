@@ -2,10 +2,13 @@ package recipe.manager;
 
 import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.dto.*;
+import com.ngari.recipe.entity.DecoctionWay;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeTherapy;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -78,6 +81,13 @@ public class RecipeTherapyManager extends BaseManager {
         recipeInfoDTO.setPatientBean(patientBean);
         RecipeTherapy recipeTherapy = recipeTherapyDAO.getByRecipeId(recipeId);
         recipeInfoDTO.setRecipeTherapy(recipeTherapy);
+        RecipeExtend recipeExtend=recipeInfoDTO.getRecipeExtend();
+        if (null!=recipeExtend && StringUtils.isNotBlank(recipeExtend.getDecoctionId())) {
+            DecoctionWay decoctionWay = drugDecoctionWayDao.get(Integer.parseInt(recipeExtend.getDecoctionId()));
+            if (null != decoctionWay) {
+                recipeExtend.setDecoctionPrice(decoctionWay.getDecoctionPrice());
+            }
+        }
         logger.info("RecipeTherapyManager getRecipeTherapyDTO recipeInfoDTO:{}.", JSON.toJSONString(recipeInfoDTO));
         return recipeInfoDTO;
     }
