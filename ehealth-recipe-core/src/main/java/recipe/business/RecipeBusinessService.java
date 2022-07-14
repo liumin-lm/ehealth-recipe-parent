@@ -756,5 +756,20 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     public void pharmacyToRecipePDFAndCa(Integer recipeId, Integer checker) {
         createPdfFactory.updateCheckNamePdfESign(recipeId);
     }
+
+    @Override
+    public List<Map<String, Object>> findRecipeDetailsByOrderCode(String orderCode) {
+        List<Recipe> recipeOrderList = recipeDAO.findRecipeByOrderCode(orderCode);
+        List<Map<String, Object>> mapList = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(recipeOrderList)) {
+            List<Integer> recipeIdList = recipeOrderList.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
+            recipeIdList.forEach(recipeId -> {
+                Map<String, Object> map = remoteRecipeService.findRecipeAndDetailsAndCheckById(recipeId);
+                mapList.add(map);
+            });
+
+        }
+        return mapList;
+    }
 }
 

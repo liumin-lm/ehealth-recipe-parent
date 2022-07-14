@@ -299,6 +299,12 @@ public class RecipeManager extends BaseManager {
                 recipeExtend.setCardNo(recipeExtend.getCardNo().substring(0, 10));
             }
         }
+        if (StringUtils.isNotBlank(recipeExtend.getDecoctionId())) {
+            DecoctionWay decoctionWay = drugDecoctionWayDao.get(Integer.parseInt(recipeExtend.getDecoctionId()));
+            if (null != decoctionWay) {
+                recipeExtend.setDecoctionPrice(decoctionWay.getDecoctionPrice());
+            }
+        }
         return recipeDTO;
     }
 
