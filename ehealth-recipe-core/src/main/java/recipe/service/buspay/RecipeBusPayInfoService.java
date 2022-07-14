@@ -747,10 +747,8 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService,IBusPayServ
         if (consultExDTO != null) {
             registerId = consultExDTO.getRegisterNo();
             cardId = null == consultExDTO.getCardId() ? "" : consultExDTO.getCardId();
-            if (new Integer(6).equals(recipeChooseChronicDisease)) {
-                insureTypeCode = null == consultExDTO.getInsureTypeCode() ? "" : consultExDTO.getInsureTypeCode();
-                mtTypeCode = null == consultExDTO.getMtTypeCode() ? "" : consultExDTO.getMtTypeCode();
-            }
+            insureTypeCode = null == consultExDTO.getInsureTypeCode() ? "" : consultExDTO.getInsureTypeCode();
+            mtTypeCode = null == consultExDTO.getMtTypeCode() ? "" : consultExDTO.getMtTypeCode();
             insureTypeName = null == consultExDTO.getInsureTypeName() ? "" : consultExDTO.getInsureTypeName();
             insureType = null == consultExDTO.getMedicalFlag() ? "0" : consultExDTO.getMedicalFlag().toString();
 
@@ -809,10 +807,9 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService,IBusPayServ
                 log.info("newWnExtBusCdrRecipe 获取封装郑州医保签发号异常)");
             }
             if (StringUtils.isEmpty(wnExtBusCdrRecipe.getYbrc())) {
-                Boolean inNeedMedicalInsurance = configurationClient.getValueBooleanCatch(recipeOrder.getOrganId(), "inNeedMedicalInsurance", true);
-                log.info("the inNeedMedicalInsurance=[{}]，organId=[{}]", inNeedMedicalInsurance, recipeOrder.getOrganId());
+
                 //复诊前端选了医保类型(必填)
-                if ((inNeedMedicalInsurance && !consultExDTO.getInsureTypeCode().equals("0")) || (CollectionUtils.isNotEmpty(clinicFieldList) && clinicFieldList.contains("1"))) {
+                if ((new Integer(6).equals(recipeChooseChronicDisease)) || (CollectionUtils.isNotEmpty(clinicFieldList) && clinicFieldList.contains("1"))) {
                     StringBuilder builder = new StringBuilder();
                     builder.append("<MedCardNo>");
                     builder.append(cardId);
