@@ -21,10 +21,7 @@ import recipe.client.*;
 import recipe.constant.ParameterConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.ReviewTypeConstant;
-import recipe.dao.DrugDecoctionWayDao;
-import recipe.dao.DrugDistributionPriceDAO;
-import recipe.dao.HisRecipeDAO;
-import recipe.dao.RecipeParameterDao;
+import recipe.dao.*;
 import recipe.enumerate.status.RecipeSourceTypeEnum;
 import recipe.enumerate.type.DecoctionDeployTypeEnum;
 import recipe.enumerate.type.ExpressFeePayWayEnum;
@@ -68,6 +65,8 @@ public class OrderFeeManager extends BaseManager {
     private HisRecipeDAO hisRecipeDAO;
     @Autowired
     private RecipeParameterDao recipeParameterDao;
+    @Autowired
+    private EnterpriseAddressDAO enterpriseAddressDAO;
 
 
     @LogRecord
@@ -467,25 +466,26 @@ public class OrderFeeManager extends BaseManager {
         //快递费线上支付的需要计算是否满足包邮
         if (null != order.getExpressFee() && null != order.getEnterpriseId()) {
             List<String> addrs = Lists.newArrayList(order.getAddress1(), order.getAddress2(), order.getAddress3());
-            List<DrugDistributionPrice> idAddrs = drugDistributionPriceDAO.findByEnterpriseIdAddrs(order.getEnterpriseId(), addrs);
+            List<EnterpriseAddress> idAddrs = enterpriseAddressDAO.findByEnterpriseIdAddrs(order.getEnterpriseId(), addrs);
+
             if(CollectionUtils.isEmpty(idAddrs)){
                 return ;
             }
-            idAddrs.forEach(drugDistributionPrice -> {
-                if (order.getAddress3().equals(drugDistributionPrice.getAddrArea())) {
-                    if (Objects.nonNull(drugDistributionPrice.getBuyFreeShipping()) && order.getRecipeFee().compareTo(drugDistributionPrice.getBuyFreeShipping()) > -1) {
+            idAddrs.forEach(enterpriseAddress -> {
+                if (order.getAddress3().equals(enterpriseAddress.getAddress())) {
+                    if (Objects.nonNull(enterpriseAddress.getBuyFreeShipping()) && order.getRecipeFee().compareTo(enterpriseAddress.getBuyFreeShipping()) > -1) {
                         order.setExpressFee(BigDecimal.ZERO);
                     }
                     return;
                 }
-                if (order.getAddress2().equals(drugDistributionPrice.getAddrArea())) {
-                    if (Objects.nonNull(drugDistributionPrice.getBuyFreeShipping()) && order.getRecipeFee().compareTo(drugDistributionPrice.getBuyFreeShipping()) > -1) {
+                if (order.getAddress2().equals(enterpriseAddress.getAddress())) {
+                    if (Objects.nonNull(enterpriseAddress.getBuyFreeShipping()) && order.getRecipeFee().compareTo(enterpriseAddress.getBuyFreeShipping()) > -1) {
                         order.setExpressFee(BigDecimal.ZERO);
                     }
                     return;
                 }
-                if (order.getAddress1().equals(drugDistributionPrice.getAddrArea())) {
-                    if (Objects.nonNull(drugDistributionPrice.getBuyFreeShipping()) && order.getRecipeFee().compareTo(drugDistributionPrice.getBuyFreeShipping()) > -1) {
+                if (order.getAddress1().equals(enterpriseAddress.getAddress())) {
+                    if (Objects.nonNull(enterpriseAddress.getBuyFreeShipping()) && order.getRecipeFee().compareTo(enterpriseAddress.getBuyFreeShipping()) > -1) {
                         order.setExpressFee(BigDecimal.ZERO);
                     }
                     return;

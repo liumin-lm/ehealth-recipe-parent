@@ -1,7 +1,6 @@
 package recipe.dao;
 
 import com.ngari.recipe.entity.EnterpriseAddress;
-import com.ngari.recipe.entity.EnterpriseDecoctionAddress;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;
 import ctd.persistence.bean.QueryResult;
@@ -11,13 +10,11 @@ import ctd.persistence.support.hibernate.template.AbstractHibernateStatelessResu
 import ctd.persistence.support.hibernate.template.HibernateSessionTemplate;
 import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction;
 import ctd.util.annotation.RpcSupportDAO;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Query;
 import org.hibernate.SQLQuery;
 import org.hibernate.StatelessSession;
-import org.hibernate.Transaction;
 import org.springframework.util.ObjectUtils;
 
 import java.util.*;
@@ -31,6 +28,15 @@ import java.util.*;
 public abstract class EnterpriseAddressDAO extends HibernateSupportDelegateDAO<EnterpriseAddress> {
 
     private static final Log LOGGER = LogFactory.getLog(EnterpriseAddressDAO.class);
+
+    /**
+     * 根据药企获取配送信息
+     * @param enterpriseId
+     * @param addrs
+     * @return
+     */
+    @DAOMethod(sql = " from EnterpriseAddress where enterpriseId =:enterpriseId and addrArea in (:addrs) and status = 1", limit=0)
+    public abstract List<EnterpriseAddress> findByEnterpriseIdAddrs(@DAOParam("enterpriseId") Integer enterpriseId, @DAOParam("addrs") List<String> addrs);
 
 
     /**
