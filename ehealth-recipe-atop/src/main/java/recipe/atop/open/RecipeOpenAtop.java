@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.api.open.IRecipeAtopService;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
+import recipe.core.api.IClinicCartBusinessService;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.core.api.IRevisitBusinessService;
 import recipe.core.api.patient.IOfflineRecipeBusinessService;
@@ -30,6 +31,7 @@ import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.patient.PatientOptionalDrugVo;
 import recipe.vo.second.RevisitRecipeTraceVo;
 
+import javax.annotation.Resource;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -54,6 +56,10 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
 
     @Autowired
     private IPatientBusinessService recipePatientService;
+
+    @Resource
+    private IClinicCartBusinessService clinicCartService;
+
 
     @Override
     public Boolean existUncheckRecipe(Integer bussSource, Integer clinicId) {
@@ -260,6 +266,11 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
     @Override
     public void pharmacyToRecipePDFAndCa(Integer recipeId, Integer checker) {
         recipeBusinessService.pharmacyToRecipePDFAndCa(recipeId, checker);
+    }
+
+    @Override
+    public Boolean deleteClinicCartByIds(List<Integer> ids) {
+        return clinicCartService.deleteClinicCartByIds(ids);
     }
 
 }

@@ -10,6 +10,7 @@ import com.ngari.recipe.vo.FormWorkRecipeVO;
 import ctd.util.annotation.RpcService;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.patient.PatientOptionalDrugVo;
+import recipe.vo.second.ClinicCartVO;
 import recipe.vo.second.RevisitRecipeTraceVo;
 
 import java.util.Date;
@@ -217,4 +218,14 @@ public interface IRecipeAtopService {
      */
     @RpcService(mvcDisabled = true)
     void pharmacyToRecipePDFAndCa(Integer recipeId, Integer checker);
+
+
+    /**
+     * 方便门诊购物车删除
+     *
+     * @param ids
+     * @return
+     */
+    @RpcService(mvcDisabled = true)
+    Boolean deleteClinicCartByIds(List<Integer> ids);
 }
