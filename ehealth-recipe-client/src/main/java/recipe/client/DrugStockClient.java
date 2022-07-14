@@ -124,7 +124,6 @@ public class DrugStockClient extends BaseClient {
             logger.info("DrugStockClient scanDrugStock response={}", JSON.toJSONString(response));
             List<DrugInfoTO> drugInfoList = oldCodeCompatibility(response, data);
             List<DrugInfoDTO> list = getDrugInfoDTO(drugInfoList);
-
             DrugStockAmountDTO drugStockAmountDTO = new DrugStockAmountDTO();
             drugStockAmountDTO.setResult(true);
             drugStockAmountDTO.setDrugInfoList(list);
@@ -231,6 +230,7 @@ public class DrugStockClient extends BaseClient {
         }
         detailList.forEach(a -> {
             DrugInfoDTO drugInfoDTO = new DrugInfoDTO();
+            drugInfoDTO.setUseTotalDose(String.valueOf(a.getUseTotalDose()));
             drugInfoDTO.setDrugId(a.getDrugId());
             drugInfoDTO.setOrganDrugCode(a.getOrganDrugCode());
             drugInfoDTO.setStock(stock);
@@ -257,6 +257,7 @@ public class DrugStockClient extends BaseClient {
         List<DrugInfoDTO> list = new ArrayList<>();
         drugInfoList.forEach(a -> {
             DrugInfoDTO drugInfoDTO = new DrugInfoDTO();
+            drugInfoDTO.setUseTotalDose(String.valueOf(a.getUseTotalDose()));
             drugInfoDTO.setDrugId(a.getDrugId());
             drugInfoDTO.setOrganId(a.getOrganId());
             drugInfoDTO.setOrganDrugCode(a.getDrcode());
@@ -291,6 +292,7 @@ public class DrugStockClient extends BaseClient {
         List<DrugInfoDTO> list = new ArrayList<>();
         scanDrugList.forEach(a -> {
             DrugInfoDTO drugInfoDTO = new DrugInfoDTO();
+            drugInfoDTO.setUseTotalDose(a.getTotal());
             drugInfoDTO.setOrganDrugCode(a.getDrugCode());
             drugInfoDTO.setDrugName(a.getGname());
             drugInfoDTO.setDrugId(a.getDrugId());

@@ -23,4 +23,8 @@ public class DrugQueryVO implements Serializable {
     private String decoctionId;
     private List<RecipeDetailBean> recipeDetails;
     private Integer enterpriseId;
+    /**
+     *  0默认，1查询医院，2查询药企
+     */
+    private Integer appointEnterpriseType;
 }

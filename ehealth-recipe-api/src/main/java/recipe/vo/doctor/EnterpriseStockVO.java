@@ -3,6 +3,7 @@ package recipe.vo.doctor;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.List;
 
 @Data
 public class EnterpriseStockVO implements Serializable {
@@ -31,4 +32,8 @@ public class EnterpriseStockVO implements Serializable {
      * 库存数量中文
      */
     private String stockAmountChin;
+    /**
+     * 前端药品库存出参
+     */
+    private List<DrugStockVO> drugStockList;
 }

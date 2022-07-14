@@ -1,7 +1,6 @@
 package recipe.purchase;
 
 import com.alibaba.fastjson.JSON;
-import com.google.common.collect.ImmutableMap;
 import com.ngari.his.recipe.mode.TakeMedicineByToHos;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.OrganService;
@@ -160,7 +159,7 @@ public class PayModeToHos implements IPurchaseService {
         } else {
             // 到院取药校验机构库存
             List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeIdList(recipeIdLists);
-            EnterpriseStock organStock = organDrugListManager.organStock(dbRecipes.get(0).getClinicOrgan(), recipeDetails);
+            EnterpriseStock organStock = organDrugListManager.organStock(dbRecipes.get(0), recipeDetails);
             if (Objects.isNull(organStock) || !organStock.getStock()) {
                 result.setCode(RecipeResultBean.FAIL);
                 result.setMsg("抱歉，医院没有库存，无法到医院取药，请选择其他购药方式。");
@@ -472,7 +471,7 @@ public class PayModeToHos implements IPurchaseService {
 
         //点击到院取药再次判断库存--防止之前开方的时候有库存流转到此无库存
         // 到院取药校验机构库存
-        EnterpriseStock organStock = organDrugListManager.organStock(recipe.getClinicOrgan(), detailList);
+        EnterpriseStock organStock = organDrugListManager.organStock(recipe, detailList);
         if (Objects.isNull(organStock) || !organStock.getStock()) {
             resultBean.setCode(RecipeResultBean.FAIL);
             resultBean.setMsg("抱歉，医院没有库存，无法到医院取药，请选择其他购药方式。");

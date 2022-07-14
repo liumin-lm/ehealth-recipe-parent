@@ -6,6 +6,7 @@ import com.ngari.recipe.dto.RecipeDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
 import recipe.vo.doctor.DrugEnterpriseStockVO;
+import recipe.vo.doctor.DrugForGiveModeListVO;
 import recipe.vo.doctor.DrugForGiveModeVO;
 import recipe.vo.doctor.DrugQueryVO;
 
@@ -58,11 +59,12 @@ public interface IStockBusinessService {
     /**
      * 校验 某个药企下 药品库存 的库存数量
      *
-     * @param recipeDTO    药品信息 drugId，code
-     * @param enterpriseId 指定某药企id
+     * @param recipeDTO 药品信息 drugId，code
+     * @param id        指定某药企id
+     * @param type      0默认，1查询医院，2查询药企
      * @return 药品信息 一定存在于出参
      */
-    EnterpriseStock enterpriseStockCheckV1(RecipeDTO recipeDTO, Integer enterpriseId);
+    EnterpriseStock enterpriseStockCheckV1(RecipeDTO recipeDTO, Integer id, Integer type);
 
     /**
      * 医生端 查询购药方式下有库存的药品
@@ -70,7 +72,10 @@ public interface IStockBusinessService {
      * @param drugQueryVO
      * @return
      */
+    @Deprecated
     List<DrugForGiveModeVO> drugForGiveMode(DrugQueryVO drugQueryVO);
+
+    List<DrugForGiveModeListVO> drugForGiveModeV1(RecipeDTO recipeDTO);
 
     /**
      * 查询药品能否开在一张处方上
@@ -79,6 +84,7 @@ public interface IStockBusinessService {
      * @return
      */
     List<EnterpriseStock> drugRecipeStock(RecipeDTO recipeDTO);
+
 
     /**
      * 查询药品能支持的够药方式

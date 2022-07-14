@@ -63,6 +63,7 @@ public class DrugDoctorAtop extends BaseAtop {
      * @return
      */
     @RpcService
+    @Deprecated
     public List<DrugForGiveModeListVO>  drugForGiveMode(DrugQueryVO drugQueryVO) {
         validateAtop(drugQueryVO, drugQueryVO.getRecipeDetails(), drugQueryVO.getOrganId());
         List<DrugForGiveModeVO> list = iStockBusinessService.drugForGiveMode(drugQueryVO);
@@ -77,6 +78,45 @@ public class DrugDoctorAtop extends BaseAtop {
             result.add(drugForGiveModeListVO);
         });
         return result;
+    }
+
+    /**
+     * 医生端 查询购药方式下有库存的药品
+     *
+     * @param drugQueryVO
+     * @return
+     */
+    public List<DrugForGiveModeListVO> giveModeDrugStockList(DrugQueryVO drugQueryVO) {
+        RecipeDTO recipeDTO = this.recipeDTO(drugQueryVO);
+        List<DrugForGiveModeListVO> list = iStockBusinessService.drugForGiveModeV1(recipeDTO);
+        if (CollectionUtils.isEmpty(list)) {
+            return null;
+        }
+        List<DrugForGiveModeListVO> drugForGiveModeList = new ArrayList<>();
+        Map<String, List<EnterpriseStockVO>> map = list.stream().collect(Collectors.groupingBy(DrugForGiveModeListVO::getSupportKey
+                , Collectors.mapping(DrugForGiveModeListVO::getEnterpriseStock, Collectors.toList())));
+        map.forEach((k, v) -> {
+            DrugForGiveModeListVO drugForGiveMode = new DrugForGiveModeListVO();
+            drugForGiveMode.setSupportKey(k);
+            drugForGiveMode.setEnterpriseStockList(v);
+        });
+        return drugForGiveModeList;
+    }
+
+    /**
+     * 查询某个药企下 药品库存 的库存数量
+     *
+     * @param drugQueryVO
+     * @return
+     */
+    @RpcService
+    public List<DrugStockVO> giveModeDrugStock(DrugQueryVO drugQueryVO) {
+        RecipeDTO recipeDTO = this.recipeDTO(drugQueryVO);
+        EnterpriseStock result = iStockBusinessService.enterpriseStockCheckV1(recipeDTO, drugQueryVO.getEnterpriseId(), drugQueryVO.getAppointEnterpriseType());
+        if (null == result) {
+            return null;
+        }
+        return ObjectCopyUtils.convert(result.getDrugInfoList(), DrugStockVO.class);
     }
 
     /**
@@ -147,19 +187,6 @@ public class DrugDoctorAtop extends BaseAtop {
             return doSignRecipe.getMsg();
         }
         return "";
-    }
-
-    /**
-     * 查询某个药企下 药品库存 的库存数量
-     *
-     * @param drugQueryVO
-     * @return
-     */
-    @RpcService
-    public EnterpriseStock enterpriseStockCheck(DrugQueryVO drugQueryVO) {
-        RecipeDTO recipeDTO = this.recipeDTO(drugQueryVO);
-        EnterpriseStock result = iStockBusinessService.enterpriseStockCheckV1(recipeDTO, drugQueryVO.getEnterpriseId());
-        return result;
     }
 
     /**

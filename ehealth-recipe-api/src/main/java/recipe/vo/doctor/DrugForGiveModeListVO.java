@@ -24,4 +24,12 @@ public class DrugForGiveModeListVO implements Serializable {
      * 对应的药企药品信息
      */
     List<DrugForGiveModeVO> drugForGiveModeVOS;
+    /**
+     * 药企信息
+     */
+    private EnterpriseStockVO enterpriseStock;
+    /**
+     * 药企信息
+     */
+    private List<EnterpriseStockVO> enterpriseStockList;
 }
