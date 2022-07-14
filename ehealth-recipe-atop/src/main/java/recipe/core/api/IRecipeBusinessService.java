@@ -22,6 +22,7 @@ import recipe.vo.second.MedicalDetailVO;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author yinsheng
@@ -266,5 +267,7 @@ public interface IRecipeBusinessService {
      * @param checker
      */
     void pharmacyToRecipePDFAndCa(Integer recipeId, Integer checker);
+
+    List<Map<String, Object>> findRecipeDetailsByOrderCode(String orderCode);
 
 }
