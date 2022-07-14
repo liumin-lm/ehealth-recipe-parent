@@ -21,7 +21,7 @@ import recipe.client.IConfigurationClient;
 import recipe.client.RecipeAuditClient;
 import recipe.core.api.IRevisitBusinessService;
 import recipe.dao.*;
-import recipe.easypay.IEasyPayService;
+import recipe.third.IEasyPayService;
 import recipe.manager.*;
 import recipe.util.ValidateUtil;
 import recipe.vo.second.RevisitRecipeTraceVo;

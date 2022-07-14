@@ -7,6 +7,6 @@
 						http://www.ngarihealth.com/schema/ngari/ngari.xsd">
 
     <reference id="easypay.busPaySettlement" interface="com.ngari.pay.api.service.bus.IBusPaySettlementFacade"/>
-    <reference id="easypay.payService" interface="recipe.easypay.IEasyPayService"/>
-    <reference id="easypay.commonPayService" interface="com.ngari.pay.api.service.trade.ICommonPayFacade"/>
+    <reference id="easypay.payService" interface="recipe.third.IEasyPayService"/>
+<!--    <reference id="easypay.commonPayService" interface="com.ngari.pay.api.service.trade.ICommonPayFacade"/>-->
 </s:beans>

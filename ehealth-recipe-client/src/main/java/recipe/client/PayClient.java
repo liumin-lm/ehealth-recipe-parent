@@ -5,7 +5,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.his.recipe.mode.RecipeRefundReqTO;
 import com.ngari.his.recipe.mode.RecipeRefundResTO;
-import com.ngari.pay.api.service.trade.ICommonPayFacade;
 import com.ngari.recipe.dto.PatientDTO;
 import com.ngari.recipe.dto.RefundResultDTO;
 import com.ngari.recipe.entity.Recipe;
@@ -29,6 +28,7 @@ import org.springframework.stereotype.Service;
 import recipe.aop.LogRecord;
 import recipe.constant.PayServiceConstant;
 import recipe.enumerate.status.PayWayEnum;
+import recipe.third.IEasyPayService;
 import recipe.util.JsonUtil;
 
 import java.math.BigDecimal;
@@ -49,8 +49,12 @@ public class PayClient extends BaseClient {
     @Autowired
     private INgariRefundService refundService;
 
+//    @Autowired
+//    private ICommonPayFacade commonPayFacade;
+
     @Autowired
-    private ICommonPayFacade commonPayFacade;
+    private IEasyPayService iEasyPayService;
+
     /**
      * 获取优惠券
      *
@@ -123,7 +127,7 @@ public class PayClient extends BaseClient {
         // 3.调用2.2.订单状态查询(order.query)
         try {
             logger.info("order.query commonParam={}", JSON.toJSONString(commonParam));
-            result = commonPayFacade.gateWay(commonParam);
+            result = iEasyPayService.gateWay(commonParam);
             logger.info("order.query result={}", JsonUtil.toString(result));
             JSONObject jsonObject = JSONObject.parseObject(result);
             String code = (String) jsonObject.get("code");

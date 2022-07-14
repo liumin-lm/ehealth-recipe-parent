@@ -1,8 +1,9 @@
-package recipe.easypay;
+package recipe.third;
 
 import com.ngari.pay.api.dto.param.WnAccountSplitParam;
 import ctd.util.annotation.RpcService;
 import easypay.entity.po.AccountResult;
+import easypay.entity.vo.param.CommonParam;
 
 import java.util.List;
 
@@ -23,5 +24,7 @@ public interface IEasyPayService {
     @RpcService
     List<AccountResult> queryPaymentDetailByApplyNo(String applyNo);
 
+    @RpcService
+    String gateWay(CommonParam commonParam);
 
 }
