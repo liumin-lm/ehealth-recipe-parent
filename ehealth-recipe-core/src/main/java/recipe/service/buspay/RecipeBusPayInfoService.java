@@ -796,52 +796,48 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService,IBusPayServ
         List<String> clinicFieldList = configurationClient.getValueListCatch(recipeOrder.getOrganId(), "clinicFieldsForRecipeConsult", new ArrayList<>());
         log.info("the clinicFields=[{}]，organId=[{}]", JSONUtils.toString(clinicFieldList), recipeOrder.getOrganId());
 
-        if (extend != null && StringUtils.isNotEmpty(extend.getMedicalSettleData())) {
-            wnExtBusCdrRecipe.setYbrc(Base64.encodeToString(extend.getMedicalSettleData().getBytes(), 1));
-            log.info("newWnExtBusCdrRecipe medicalSettleData={}", extend.getMedicalSettleData());
+        if ((new Integer(6).equals(recipeChooseChronicDisease)) || (CollectionUtils.isNotEmpty(clinicFieldList) && clinicFieldList.contains("1"))) {
+            StringBuilder builder = new StringBuilder();
+            builder.append("<MedCardNo>");
+            builder.append(cardId);
+            builder.append("</MedCardNo>");
+            builder.append("<MedCardPwd>111111</MedCardPwd>");
+            builder.append("<InsureTypeCode>");
+            builder.append(insureTypeCode);
+            builder.append("</InsureTypeCode>");
+            builder.append("<MtTypeCode>");
+            builder.append(mtTypeCode);
+            builder.append("</MtTypeCode>");
+            builder.append("<InsureTypeName>");
+            builder.append(insureTypeName);
+            builder.append("</InsureTypeName>");
+            builder.append("<InsureType>");
+            builder.append(insureType);
+            builder.append("</InsureType>");
+            builder.append("<ChronicDiseaseFlag>");
+            builder.append(chronicDiseaseFlag);
+            builder.append("</ChronicDiseaseFlag>");
+            builder.append("<ChronicDiseaseCode>");
+            builder.append(chronicDiseaseCode);
+            builder.append("</ChronicDiseaseCode>");
+            builder.append("<ChronicDiseaseName>");
+            builder.append(chronicDiseaseName);
+            builder.append("</ChronicDiseaseName>");
+            builder.append("<Complication>");
+            builder.append(complication);
+            builder.append("</Complication>");
+            wnExtBusCdrRecipe.setYbrc(ctd.util.Base64.encodeToString(builder.toString().getBytes(), 2));
+            log.info("newWnExtBusCdrRecipe clinicId={} builder={}", recipeBean.getClinicId(), builder.toString());
         } else {
+            if (extend != null && StringUtils.isNotEmpty(extend.getMedicalSettleData())) {
+                wnExtBusCdrRecipe.setYbrc(Base64.encodeToString(extend.getMedicalSettleData().getBytes(), 1));
+                log.info("newWnExtBusCdrRecipe medicalSettleData={}", extend.getMedicalSettleData());
+            }
             //获取封装郑州医保签发号，异常不能影响正常调用流程
             try {
                 zhengzhouMedicalSet(recipeOrder, patient, wnExtBusCdrRecipe);
             } catch (Exception e) {
                 log.info("newWnExtBusCdrRecipe 获取封装郑州医保签发号异常)");
-            }
-            if (StringUtils.isEmpty(wnExtBusCdrRecipe.getYbrc())) {
-
-                //复诊前端选了医保类型(必填)
-                if ((new Integer(6).equals(recipeChooseChronicDisease)) || (CollectionUtils.isNotEmpty(clinicFieldList) && clinicFieldList.contains("1"))) {
-                    StringBuilder builder = new StringBuilder();
-                    builder.append("<MedCardNo>");
-                    builder.append(cardId);
-                    builder.append("</MedCardNo>");
-                    builder.append("<MedCardPwd>111111</MedCardPwd>");
-                    builder.append("<InsureTypeCode>");
-                    builder.append(insureTypeCode);
-                    builder.append("</InsureTypeCode>");
-                    builder.append("<MtTypeCode>");
-                    builder.append(mtTypeCode);
-                    builder.append("</MtTypeCode>");
-                    builder.append("<InsureTypeName>");
-                    builder.append(insureTypeName);
-                    builder.append("</InsureTypeName>");
-                    builder.append("<InsureType>");
-                    builder.append(insureType);
-                    builder.append("</InsureType>");
-                    builder.append("<ChronicDiseaseFlag>");
-                    builder.append(chronicDiseaseFlag);
-                    builder.append("</ChronicDiseaseFlag>");
-                    builder.append("<ChronicDiseaseCode>");
-                    builder.append(chronicDiseaseCode);
-                    builder.append("</ChronicDiseaseCode>");
-                    builder.append("<ChronicDiseaseName>");
-                    builder.append(chronicDiseaseName);
-                    builder.append("</ChronicDiseaseName>");
-                    builder.append("<Complication>");
-                    builder.append(complication);
-                    builder.append("</Complication>");
-                    wnExtBusCdrRecipe.setYbrc(ctd.util.Base64.encodeToString(builder.toString().getBytes(), 2));
-                    log.info("newWnExtBusCdrRecipe clinicId={} builder={}", recipeBean.getClinicId(), builder.toString());
-                }
             }
         }
 
