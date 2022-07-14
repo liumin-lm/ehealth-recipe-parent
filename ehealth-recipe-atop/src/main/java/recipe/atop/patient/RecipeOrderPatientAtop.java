@@ -210,4 +210,9 @@ public class RecipeOrderPatientAtop extends BaseAtop {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "当前处方撤销失败");
         }
     }
+
+    @RpcService
+    public Integer getOrderPayFlag(Integer orderId){
+        return 1;
+    }
 }
