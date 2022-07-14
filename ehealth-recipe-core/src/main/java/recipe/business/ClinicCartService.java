@@ -41,4 +41,11 @@ public class ClinicCartService implements IClinicCartBusinessService {
         ClinicCart result = clinicCartDAO.save(clinicCart);
         return result.getId();
     }
+
+    @Override
+    public Boolean deleteClinicCartById(Integer id) {
+        clinicCartDAO.updateDeleteFlagById(id, 1);
+        return true;
+    }
+
 }
