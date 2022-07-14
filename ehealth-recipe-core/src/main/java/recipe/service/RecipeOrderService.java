@@ -241,7 +241,7 @@ public class RecipeOrderService extends RecipeBaseService {
         //根据药企ID获取具体跳转的url地址
         try {
             RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
-            AccessDrugEnterpriseService remoteService = remoteDrugEnterpriseService.getServiceByDep(drugsEnterprise);
+            AccessDrugEnterpriseService remoteService = RemoteDrugEnterpriseService.getServiceByDep(drugsEnterprise);
             remoteService.getJumpUrl(response, recipe, drugsEnterprise);
         } catch (Exception e) {
             LOGGER.error("获取跳转实现异常--", e);
@@ -320,7 +320,7 @@ public class RecipeOrderService extends RecipeBaseService {
         if (null != order.getEnterpriseId()) {
             DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
             if (null != drugsEnterprise) {
-                remoteService = remoteDrugEnterpriseService.getServiceByDep(drugsEnterprise);
+                remoteService = RemoteDrugEnterpriseService.getServiceByDep(drugsEnterprise);
                 //设置配送费支付方式
                 order.setExpressFeePayWay(drugsEnterprise.getExpressFeePayWay());
             }
@@ -650,7 +650,7 @@ public class RecipeOrderService extends RecipeBaseService {
         if (null != order.getEnterpriseId()) {
             DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
             if (null != drugsEnterprise) {
-                remoteService = remoteDrugEnterpriseService.getServiceByDep(drugsEnterprise);
+                remoteService = RemoteDrugEnterpriseService.getServiceByDep(drugsEnterprise);
             }
         }
         if (null == remoteService) {
@@ -1122,7 +1122,7 @@ public class RecipeOrderService extends RecipeBaseService {
             DrugsEnterpriseDAO drugsEnterpriseDAO = getDAO(DrugsEnterpriseDAO.class);
             DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
             if (drugsEnterprise != null) {
-                AccessDrugEnterpriseService remoteService = remoteDrugEnterpriseService.getServiceByDep(drugsEnterprise);
+                AccessDrugEnterpriseService remoteService = RemoteDrugEnterpriseService.getServiceByDep(drugsEnterprise);
                 //药品匹配成功标识
                 order.setEnterpriseName(remoteService.appEnterprise(order));
             }
@@ -2115,7 +2115,7 @@ public class RecipeOrderService extends RecipeBaseService {
         try {
             LOGGER.info("checkGetOrderDetail orderCode:{}", orderCode);
             //线下处方目前一个订单只会对应一个处方
-            List<Recipe> recipes = recipeDAO.findRecipeByOrdercode(orderCode);
+            List<Recipe> recipes = recipeDAO.findRecipeByOrderCodeAndSourceType(orderCode, 2);
             if (CollectionUtils.isEmpty(recipes)) {
                 return;
             }
@@ -2853,11 +2853,7 @@ public class RecipeOrderService extends RecipeBaseService {
      * @return
      */
     public boolean isUsefulCoupon(Integer couponId) {
-        if (null != couponId && couponId > 0) {
-            return true;
-        }
-
-        return false;
+        return null != couponId && couponId > 0;
     }
 
     /*

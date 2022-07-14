@@ -297,8 +297,6 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         return action.getResult();
     }
 
-    ;
-
     /**
      * 根据订单编号更新订单编号为空
      *
@@ -745,7 +743,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
             public void execute(StatelessSession ss) throws DAOException {
                 String hql = getBaseHqlByConditions(false, recipeStatus, conditionOper, containDel);
                 if (StringUtils.isNotEmpty(hql)) {
-                    Query q = ss.createQuery(hql.toString());
+                    Query q = ss.createQuery(hql);
                     q.setParameter("doctorId", doctorId);
                     setResult((Long) q.uniqueResult());
                 } else {
@@ -2610,8 +2608,12 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     @DAOMethod(sql = "select recipeId from Recipe where clinicOrgan in:organIds and status =8 and fromflag = 1")
     public abstract List<Integer> findReadyAuditRecipeIdsByOrganIds(@DAOParam("organIds") List<Integer> organIds);
 
-    @DAOMethod(sql = "from Recipe where recipeSourceType = 2 and orderCode = :orderCode", limit = 0)
-    public abstract List<Recipe> findRecipeByOrdercode(@DAOParam("orderCode") String orderCode);
+    @DAOMethod(sql = "from Recipe where recipeSourceType = :recipeSourceType and orderCode = :orderCode", limit = 0)
+    public abstract List<Recipe> findRecipeByOrderCodeAndSourceType(@DAOParam("orderCode") String orderCode,
+                                                                    @DAOParam("recipeSourceType") Integer recipeSourceType);
+
+    @DAOMethod(sql = "from Recipe where orderCode = :orderCode", limit = 0)
+    public abstract List<Recipe> findRecipeByOrderCode(@DAOParam("orderCode") String orderCode);
 
 
     public List<Recipe> findRecipeListForStatus(final int status, final String startDt, final String endDt) {
@@ -3761,7 +3763,6 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 hql.append("from Recipe r where doctor=:doctorId and fromflag=1 and recipeId<:recipeId and status!=10  ");
                 //通过条件查询status
                 if (tapStatus == null || tapStatus == 0) {
-                    ;
                 } else if (tapStatus == 1) {
                     hql.append("and status= " + RecipeStatusConstant.UNSIGN);//未签名
                 } else if (tapStatus == 2) {
@@ -3796,7 +3797,6 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 hql.append("from Recipe r where doctor=:doctorId and fromflag=1 and status!=10 and recipeSourceType!= 3 ");
                 //通过条件查询status
                 if (tapStatus == null || tapStatus == 0) {
-                    ;
                 } else if (tapStatus == 1) {
                     hql.append("and status= " + RecipeStatusConstant.UNSIGN);//未签名
                 } else if (tapStatus == 2) {

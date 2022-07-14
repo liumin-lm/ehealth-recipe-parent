@@ -1,23 +1,20 @@
 package recipe.atop.greenroom;
 
-import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.recipe.model.RecipeOrderWaybillDTO;
 import com.ngari.recipe.vo.CodeEnum;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
-import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
-import recipe.constant.ErrorCode;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.core.api.patient.IRecipeOrderBusinessService;
-import recipe.util.ValidateUtil;
 import recipe.vo.ResultBean;
 import recipe.vo.greenroom.DrugUsageLabelResp;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -30,8 +27,10 @@ public class RecipeGmAtop extends BaseAtop {
 
     @Autowired
     IRecipeBusinessService recipeBusinessService;
+
     @Autowired
     private IRecipeOrderBusinessService recipeOrderService;
+
 
     /**
      * 运营平台查询处方单用法标签
@@ -96,6 +95,12 @@ public class RecipeGmAtop extends BaseAtop {
     public List<RecipeOrderWaybillDTO> findOrderByMpiId(String mpiId) {
         validateAtop(mpiId);
         return recipeOrderService.findOrderByMpiId(mpiId);
+    }
+
+    @RpcService
+    public List<Map<String, Object>> findRecipeListByOrderCode(String orderCode) {
+        validateAtop(orderCode);
+        return recipeBusinessService.findRecipeDetailsByOrderCode(orderCode);
     }
 
 }
