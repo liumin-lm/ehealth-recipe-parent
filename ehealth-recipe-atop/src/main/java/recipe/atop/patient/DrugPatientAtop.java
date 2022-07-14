@@ -8,6 +8,7 @@ import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.vo.HospitalDrugListReqVO;
 import com.ngari.recipe.vo.HospitalDrugListVO;
+import recipe.core.api.IClinicCartBusinessService;
 import recipe.vo.patient.PatientContinueRecipeCheckDrugReq;
 import com.ngari.recipe.vo.SearchDrugReqVO;
 import ctd.persistence.exception.DAOException;
@@ -19,6 +20,7 @@ import recipe.core.api.IDrugBusinessService;
 import recipe.core.api.IStockBusinessService;
 import recipe.util.ObjectCopyUtils;
 import recipe.vo.patient.PatientContinueRecipeCheckDrugRes;
+import recipe.vo.second.ClinicCartVO;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -33,8 +35,12 @@ public class DrugPatientAtop extends BaseAtop {
 
     @Resource
     private IDrugBusinessService drugBusinessService;
+
     @Resource
     private IStockBusinessService stockBusinessService;
+
+    @Resource
+    private IClinicCartBusinessService clinicCartService;
 
     /**
      * 患者端获取药品详情
@@ -99,6 +105,18 @@ public class DrugPatientAtop extends BaseAtop {
     public PatientContinueRecipeCheckDrugRes patientContinueRecipeCheckDrug(PatientContinueRecipeCheckDrugReq patientContinueRecipeCheckDrugReq){
         validateAtop(patientContinueRecipeCheckDrugReq,patientContinueRecipeCheckDrugReq.getOrganId());
         return drugBusinessService.patientContinueRecipeCheckDrug(patientContinueRecipeCheckDrugReq);
+    }
+
+
+    @RpcService
+    public List<ClinicCartVO> findClinicCartsByOrganIdAndUserId(Integer organId, String userId){
+        validateAtop(organId, userId);
+        return clinicCartService.findClinicCartsByOrganIdAndUserId(organId, userId);
+    }
+
+    @RpcService
+    public Integer addClinicCart(ClinicCartVO clinicCartVO){
+        return clinicCartService.addClinicCart(clinicCartVO);
     }
 
 }

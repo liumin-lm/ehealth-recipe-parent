@@ -18,7 +18,7 @@ public class BaseAtop {
     protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
-    IOrganBusinessService organBusinessService;
+    protected IOrganBusinessService organBusinessService;
 
     /**
      * Atop层 入参参数校验：自定义msg
