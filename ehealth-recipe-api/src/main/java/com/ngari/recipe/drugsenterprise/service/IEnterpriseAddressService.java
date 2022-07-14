@@ -26,6 +26,15 @@ public interface IEnterpriseAddressService extends IBaseService<EnterpriseAddres
     @RpcService(timeout = 60)
     void addEnterpriseAddressList(List<EnterpriseAddressDTO> enterpriseAddressDTOList, Integer enterpriseId);
 
+    /**
+     * 使用新接口 checkSendAddressForOrder
+     * @param depId
+     * @param address1
+     * @param address2
+     * @param address3
+     * @return
+     */
     @RpcService
+    @Deprecated
     public int allAddressCanSendForOrder(Integer depId, String address1, String address2, String address3) ;
 }
