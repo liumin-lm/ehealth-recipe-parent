@@ -2,6 +2,7 @@ package recipe.api.open;
 
 import ctd.util.annotation.RpcService;
 import recipe.vo.second.CheckAddressVo;
+import recipe.vo.second.CheckOrderAddressVo;
 import recipe.vo.second.enterpriseOrder.EnterpriseConfirmOrderVO;
 import recipe.vo.second.enterpriseOrder.EnterpriseDrugVO;
 import recipe.vo.second.enterpriseOrder.EnterpriseResultBean;
@@ -16,6 +17,19 @@ import java.util.List;
  */
 public interface IEnterpriseOpenAtop {
 
+    /**
+     * 端校验订单配送地址
+     * @param checkOrderAddressVo
+     * @return
+     */
+    @RpcService
+    Integer checkSendAddressForOrder(CheckOrderAddressVo checkOrderAddressVo);
+
+    /**
+     * 复诊校验订单配送地址
+     * @param checkAddressVo
+     * @return
+     */
     @RpcService
     Boolean checkSendAddress(CheckAddressVo checkAddressVo);
 

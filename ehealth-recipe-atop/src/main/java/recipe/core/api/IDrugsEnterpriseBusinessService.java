@@ -17,6 +17,7 @@ import recipe.vo.patient.CheckAddressReq;
 import recipe.vo.patient.CheckAddressRes;
 import recipe.vo.patient.MedicineStationVO;
 import recipe.vo.second.CheckAddressVo;
+import recipe.vo.second.CheckOrderAddressVo;
 import recipe.vo.second.enterpriseOrder.EnterpriseConfirmOrderVO;
 import recipe.vo.second.enterpriseOrder.EnterpriseDrugVO;
 import recipe.vo.second.enterpriseOrder.EnterpriseResultBean;
@@ -255,4 +256,11 @@ public interface IDrugsEnterpriseBusinessService {
      * @param enterpriseDecoctionAddressReq
      */
     void cancelEnterpriseDecoctionAddress(EnterpriseDecoctionAddressReq enterpriseDecoctionAddressReq);
+
+    /**
+     * 端校验地址入参
+     * @param checkAddressVo
+     * @return
+     */
+    Integer checkSendAddressForOrder(CheckOrderAddressVo checkAddressVo);
 }
