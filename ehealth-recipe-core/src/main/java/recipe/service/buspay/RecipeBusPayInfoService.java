@@ -743,11 +743,14 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService,IBusPayServ
         //医保类型名称
         String insureTypeName = "";
         String insureType = "";
+        Integer recipeChooseChronicDisease = configurationClient.getValueCatchReturnInteger(recipeBean.getClinicOrgan(), "recipeChooseChronicDisease", 0);
         if (consultExDTO != null) {
             registerId = consultExDTO.getRegisterNo();
             cardId = null == consultExDTO.getCardId() ? "" : consultExDTO.getCardId();
-            insureTypeCode = null == consultExDTO.getInsureTypeCode() ? "" : consultExDTO.getInsureTypeCode();
-            mtTypeCode = null == consultExDTO.getMtTypeCode() ? "" : consultExDTO.getMtTypeCode();
+            if (new Integer(6).equals(recipeChooseChronicDisease)) {
+                insureTypeCode = null == consultExDTO.getInsureTypeCode() ? "" : consultExDTO.getInsureTypeCode();
+                mtTypeCode = null == consultExDTO.getMtTypeCode() ? "" : consultExDTO.getMtTypeCode();
+            }
             insureTypeName = null == consultExDTO.getInsureTypeName() ? "" : consultExDTO.getInsureTypeName();
             insureType = null == consultExDTO.getMedicalFlag() ? "0" : consultExDTO.getMedicalFlag().toString();
 
