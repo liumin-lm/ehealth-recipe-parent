@@ -71,4 +71,11 @@ public interface IPatientBusinessService {
      * @param recipeId
      */
     void updateRecipeIdByConsultId(Integer recipeId, Integer clinicId);
+
+    /**
+     * 是否有待处理处方
+     * @param mpiId
+     * @return
+     */
+    Boolean isHaveReadyRecipeFlag(String mpiId);
 }

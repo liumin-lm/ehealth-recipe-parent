@@ -58,6 +58,7 @@ public class DrugDoctorAtop extends BaseAtop {
 
     /**
      * 医生端 查询购药方式下有库存的药品
+     * todo 新：giveModeDrugStockList
      *
      * @param drugQueryVO
      * @return
@@ -117,7 +118,7 @@ public class DrugDoctorAtop extends BaseAtop {
         RecipeDTO recipeDTO = this.recipeDTO(drugQueryVO);
         EnterpriseStock result = iStockBusinessService.enterpriseStockCheckV1(recipeDTO, drugQueryVO.getEnterpriseId(), drugQueryVO.getAppointEnterpriseType());
         if (null == result) {
-            return null;
+            return new ArrayList<>();
         }
         return ObjectCopyUtils.convert(result.getDrugInfoList(), DrugStockVO.class);
     }
@@ -179,13 +180,9 @@ public class DrugDoctorAtop extends BaseAtop {
      * @return
      */
     @RpcService
-    public String drugRecipeStockGiveMode(DrugQueryVO drugQueryVO) {
+    public DoSignRecipeDTO validateRecipeGiveMode(DrugQueryVO drugQueryVO) {
         RecipeDTO recipeDTO = this.recipeDTO(drugQueryVO);
-        DoSignRecipeDTO doSignRecipe = iStockBusinessService.drugRecipeStockGiveMode(recipeDTO);
-        if (doSignRecipe.getErrorFlag()) {
-            return doSignRecipe.getMsg();
-        }
-        return "";
+        return iStockBusinessService.validateRecipeGiveMode(recipeDTO);
     }
 
     /**

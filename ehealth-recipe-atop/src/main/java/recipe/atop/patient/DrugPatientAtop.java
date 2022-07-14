@@ -108,22 +108,52 @@ public class DrugPatientAtop extends BaseAtop {
     }
 
 
+    /**
+     * 方便门诊购物车列表查询
+     *
+     * @param organId
+     * @param userId
+     * @return
+     */
     @RpcService
     public List<ClinicCartVO> findClinicCartsByOrganIdAndUserId(Integer organId, String userId){
         validateAtop(organId, userId);
         return clinicCartService.findClinicCartsByOrganIdAndUserId(organId, userId);
     }
 
+    /**
+     * 方便门诊购物车新增
+     *
+     * @param clinicCartVO
+     * @return
+     */
     @RpcService
     public Integer addClinicCart(ClinicCartVO clinicCartVO){
         return clinicCartService.addClinicCart(clinicCartVO);
     }
 
 
+    /**
+     * 方便门诊购物车删除
+     *
+     * @param ids
+     * @return
+     */
     @RpcService
-    public Boolean deleteClinicCartById(Integer id) {
-        validateAtop(id);
-        return clinicCartService.deleteClinicCartById(id);
+    public Boolean deleteClinicCartByIds(List<Integer> ids) {
+        validateAtop(ids);
+        return clinicCartService.deleteClinicCartByIds(ids);
+    }
+
+    /**
+     * 方便门诊购物车 修改某一条记录（目前只需要修改数量）
+     * @param clinicCartVO
+     * @return
+     */
+    @RpcService
+    public Boolean updateClinicCartById(ClinicCartVO clinicCartVO) {
+        validateAtop(clinicCartVO);
+        return clinicCartService.updateClinicCartById(clinicCartVO);
     }
 
 }
