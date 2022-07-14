@@ -9,6 +9,7 @@ import recipe.atop.BaseAtop;
 import recipe.core.api.IDrugsEnterpriseBusinessService;
 import recipe.util.DateConversion;
 import recipe.vo.second.CheckAddressVo;
+import recipe.vo.second.CheckOrderAddressVo;
 import recipe.vo.second.enterpriseOrder.EnterpriseConfirmOrderVO;
 import recipe.vo.second.enterpriseOrder.EnterpriseDrugVO;
 import recipe.vo.second.enterpriseOrder.EnterpriseResultBean;
@@ -26,6 +27,12 @@ import java.util.List;
 public class EnterpriseOpenAtop  extends BaseAtop implements IEnterpriseOpenAtop {
     @Autowired
     private IDrugsEnterpriseBusinessService enterpriseBusinessService;
+
+    @Override
+    public Integer checkSendAddressForOrder(CheckOrderAddressVo checkAddressVo) {
+        validateAtop(checkAddressVo, checkAddressVo.getEnterpriseId());
+        return enterpriseBusinessService.checkSendAddressForOrder(checkAddressVo);
+    }
 
     @Override
     public Boolean checkSendAddress(CheckAddressVo checkAddressVo) {

@@ -18,6 +18,7 @@ import com.ngari.recipe.dto.OrganDTO;
 import com.ngari.recipe.dto.PatientDTO;
 import com.ngari.recipe.entity.*;
 import ctd.account.UserRoleToken;
+import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
@@ -42,6 +43,7 @@ import recipe.client.OrganClient;
 import recipe.client.PatientClient;
 import recipe.common.CommonConstant;
 import recipe.common.response.CommonResponse;
+import recipe.constant.ErrorCode;
 import recipe.constant.RecipeMsgEnum;
 import recipe.constant.RecipeStatusConstant;
 import recipe.core.api.IDrugsEnterpriseBusinessService;
@@ -74,6 +76,7 @@ import recipe.vo.patient.CheckAddressReq;
 import recipe.vo.patient.CheckAddressRes;
 import recipe.vo.patient.MedicineStationVO;
 import recipe.vo.second.CheckAddressVo;
+import recipe.vo.second.CheckOrderAddressVo;
 import recipe.vo.second.enterpriseOrder.EnterpriseConfirmOrderVO;
 import recipe.vo.second.enterpriseOrder.EnterpriseDrugVO;
 import recipe.vo.second.enterpriseOrder.EnterpriseResultBean;
@@ -323,9 +326,9 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
                 checkAddressReq.getEnterpriseId(),
                 checkAddressReq.getDecoctionId());
         String checkAddress = checkAddressReq.getAddress3();
-//        if (StringUtils.isNotEmpty(checkAddressReq.getAddress4())) {
-//            checkAddress = checkAddressReq.getAddress4();
-//        }
+        if (StringUtils.isNotEmpty(checkAddressReq.getAddress4())) {
+            checkAddress = checkAddressReq.getAddress4();
+        }
         if (CollectionUtils.isEmpty(enterpriseDecoctionAddressList)) {
             List<EnterpriseAddress> list = enterpriseAddressDAO.findByEnterPriseId(checkAddressReq.getEnterpriseId());
             if (CollectionUtils.isNotEmpty(list)) {
@@ -684,6 +687,50 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
     @Override
     public void cancelEnterpriseDecoctionAddress(EnterpriseDecoctionAddressReq enterpriseDecoctionAddressReq) {
         enterpriseDecoctionAddressDAO.cancelEnterpriseDecoctionAddress(enterpriseDecoctionAddressReq.getOrganId(), enterpriseDecoctionAddressReq.getEnterpriseId(), enterpriseDecoctionAddressReq.getDecoctionId());
+    }
+
+    @Override
+    public Integer checkSendAddressForOrder(CheckOrderAddressVo checkAddressVo) {
+        EnterpriseAddressDAO enterpriseAddressDAO = DAOFactory.getDAO(EnterpriseAddressDAO.class);
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        //查询对应药企配送的地址
+        //没有子订单而且配送药企为空，则提示
+        if (null == checkAddressVo.getEnterpriseId()) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "药企ID为空");
+        }
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(checkAddressVo.getEnterpriseId());
+        if (drugsEnterprise != null && drugsEnterprise.getOrderType() == 0) {
+            //标识跳转到第三方支付,不需要对配送地址进行校验
+            return 0;
+        }
+        List<EnterpriseAddress> list = enterpriseAddressDAO.findByEnterPriseId(checkAddressVo.getEnterpriseId());
+        if (CollectionUtils.isEmpty(list)) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "该药企没有配送地址");
+        }
+        //0-能配送 1-省不能配送 2-市不能配送 3-区域不能配送 4-街道不能配送
+        int flag = 0;
+        if (!addressCan(list, checkAddressVo.getAddress1())) {
+            logger.error("address1不能配送！depId:" + checkAddressVo.getEnterpriseId() + ",address1:" + checkAddressVo.getAddress1());
+            flag = 1;
+            return flag;
+        }
+        if (!addressCan(list, checkAddressVo.getAddress2())) {
+            logger.error("address2不能配送！depId:" + checkAddressVo.getEnterpriseId() + ",address2:" + checkAddressVo.getAddress2());
+            flag = 2;
+            return flag;
+        }
+        if (!addressCan(list, checkAddressVo.getAddress3())) {
+            logger.error("address3不能配送！depId:" + checkAddressVo.getEnterpriseId() + ",address3:" + checkAddressVo.getAddress3());
+            flag = 3;
+            return flag;
+        }
+        // 目前不是所有机构都用了街道,所以需要先判空
+        if (StringUtils.isNotEmpty(checkAddressVo.getAddress4()) && !addressCan(list, checkAddressVo.getAddress4())) {
+            logger.error("address3不能配送！depId:" + checkAddressVo.getEnterpriseId() + ",address4:" + checkAddressVo.getAddress4());
+            flag = 4;
+            return flag;
+        }
+        return flag;
     }
 
     private void syncFinishOrderHandle(List<Integer> recipeIdList, RecipeOrder recipeOrder, boolean isSendFlag) {
