@@ -213,6 +213,11 @@ public class RecipeOrderPatientAtop extends BaseAtop {
 
     @RpcService
     public Integer getOrderPayFlag(Integer orderId){
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         return 1;
     }
 }
