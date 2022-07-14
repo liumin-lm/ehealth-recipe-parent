@@ -187,7 +187,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
                 list.add(drugForGiveModeVO);
             });
         }
-        logger.info("drugForGiveMode result={}", JSONArray.toJSONString(list));
+        logger.info("StockBusinessService drugForGiveMode result={}", JSONArray.toJSONString(list));
         return list;
     }
 
@@ -219,6 +219,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
                 giveModeList.add(giveMode);
             });
         });
+        logger.info("StockBusinessService drugForGiveModeV1 giveModeList={}", JSONArray.toJSONString(giveModeList));
         return giveModeList;
     }
 

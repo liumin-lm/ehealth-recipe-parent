@@ -1,5 +1,6 @@
 package recipe.atop.doctor;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.google.common.collect.Lists;
 import com.ngari.recipe.drug.model.CommonDrugListDTO;
@@ -16,7 +17,6 @@ import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.vo.SearchDrugReqVO;
 import ctd.persistence.exception.DAOException;
-import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
@@ -96,10 +96,12 @@ public class DrugDoctorAtop extends BaseAtop {
         List<DrugForGiveModeListVO> drugForGiveModeList = new ArrayList<>();
         Map<String, List<EnterpriseStockVO>> map = list.stream().collect(Collectors.groupingBy(DrugForGiveModeListVO::getSupportKey
                 , Collectors.mapping(DrugForGiveModeListVO::getEnterpriseStock, Collectors.toList())));
+        logger.info("DrugDoctorAtop giveModeDrugStockList map={}", JSON.toJSONString(map));
         map.forEach((k, v) -> {
             DrugForGiveModeListVO drugForGiveMode = new DrugForGiveModeListVO();
             drugForGiveMode.setSupportKey(k);
             drugForGiveMode.setEnterpriseStockList(v);
+            drugForGiveModeList.add(drugForGiveMode);
         });
         return drugForGiveModeList;
     }
@@ -149,12 +151,8 @@ public class DrugDoctorAtop extends BaseAtop {
      */
     @RpcService
     public List<PatientOptionalDrugVO> findPatientOptionalDrugDTO(Integer clinicId) {
-        logger.info("OffLineRecipeAtop findPatientOptionalDrugDTO clinicId={}", clinicId);
         validateAtop(clinicId);
-        List<PatientOptionalDrugVO> result = recipeBusinessService.findPatientOptionalDrugDTO(clinicId);
-        logger.info("OffLineRecipeAtop findPatientOptionalDrugDTO result = {}", JSONUtils.toString(result));
-        return result;
-
+        return recipeBusinessService.findPatientOptionalDrugDTO(clinicId);
     }
 
     /**
