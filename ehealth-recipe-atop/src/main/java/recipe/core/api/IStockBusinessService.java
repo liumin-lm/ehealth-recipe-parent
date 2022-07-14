@@ -92,7 +92,7 @@ public interface IStockBusinessService {
      * @param recipe
      * @return
      */
-    DoSignRecipeDTO drugRecipeStockGiveMode(RecipeDTO recipe);
+    DoSignRecipeDTO validateRecipeGiveMode(RecipeDTO recipe);
 
     /**
      * 获取药品库存

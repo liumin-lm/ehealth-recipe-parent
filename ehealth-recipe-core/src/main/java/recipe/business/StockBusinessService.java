@@ -103,7 +103,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
     }
 
     @Override
-    public DoSignRecipeDTO drugRecipeStockGiveMode(RecipeDTO recipe) {
+    public DoSignRecipeDTO validateRecipeGiveMode(RecipeDTO recipe) {
         return this.enterpriseStock(recipe);
     }
 
