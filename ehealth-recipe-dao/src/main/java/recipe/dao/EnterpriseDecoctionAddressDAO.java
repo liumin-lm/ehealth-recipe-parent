@@ -73,7 +73,7 @@ public abstract class EnterpriseDecoctionAddressDAO extends HibernateSupportDele
     @DAOMethod(sql = "from EnterpriseDecoctionAddress  where enterpriseId=:enterpriseId and decoctionId=:decoctionId and organId=:organId", limit = 0)
     public abstract List<EnterpriseDecoctionAddress> findEnterpriseDecoctionAddressList(@DAOParam("organId") Integer organId, @DAOParam("enterpriseId") Integer enterpriseId, @DAOParam("decoctionId") Integer decoctionId);
 
-    @DAOMethod(sql = "from EnterpriseDecoctionAddress  where enterpriseId=:enterpriseId and organId=:organId", limit = 0)
+    @DAOMethod(sql = "from EnterpriseDecoctionAddress  where enterpriseId=:enterpriseId and organId=:organId and status=1", limit = 0)
     public abstract List<EnterpriseDecoctionAddress> findEnterpriseDecoctionAddressListByOrganIdAndEntId(@DAOParam("organId") Integer organId, @DAOParam("enterpriseId")Integer enterpriseId);
 
     public List<EnterpriseDecoctionAddress> findEnterpriseDecoctionAddressListByArea(Integer organId, Integer enterpriseId, Integer decoctionId, String area){
