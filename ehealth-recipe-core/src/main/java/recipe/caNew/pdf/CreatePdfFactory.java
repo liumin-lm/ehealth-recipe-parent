@@ -98,7 +98,7 @@ public class CreatePdfFactory {
             old = false;
             memo = "old签名标准对接CA方式";
             //生成pdf文件
-            CaSealRequestTO requestSealTO = this.queryPdfByte(recipe.getRecipeId());
+            CaSealRequestTO requestSealTO = this.queryPdfByte(recipe.getRecipeId(),true);
             RecipeServiceEsignExt.updateInitRecipePDF(true, recipe, requestSealTO.getPdfBase64Str());
             caManager.oldCommonCASign(requestSealTO, recipe);
         }
@@ -139,8 +139,9 @@ public class CreatePdfFactory {
      * @param recipeId
      * @return
      */
-    public CaSealRequestTO queryPdfByte(Integer recipeId) {
+    public CaSealRequestTO queryPdfByte(Integer recipeId,boolean isDoctor) {
         logger.info("CreatePdfFactory queryPdfByte recipe:{}", recipeId);
+        Integer doctor;
         Recipe recipe = validate(recipeId);
         CreatePdfService createPdfService = createPdfService(recipe);
         try {
@@ -148,8 +149,13 @@ public class CreatePdfFactory {
             CaSealRequestTO caSealRequest = createPdfService.queryPdfBase64(data, recipe.getRecipeId());
             if (null == caSealRequest) {
                 caSealRequest.setSealBase64Str("");
+                if (isDoctor) {
+                    doctor=recipe.getDoctor();
+                }else{
+                    doctor=recipe.getChecker();
+                }
                 //获取签章图片
-                DoctorExtendDTO doctorExtendDTO = doctorClient.getDoctorExtendDTO(recipe.getDoctor());
+                DoctorExtendDTO doctorExtendDTO = doctorClient.getDoctorExtendDTO(doctor);
                 if (null != doctorExtendDTO && null != doctorExtendDTO.getSealData()) {
                     caSealRequest.setSealBase64Str(doctorExtendDTO.getSealData());
                 }

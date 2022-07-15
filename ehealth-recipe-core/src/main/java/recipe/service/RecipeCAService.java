@@ -166,7 +166,7 @@ public class RecipeCAService {
 
             //3.在组装通用的签名签章数据
             //获取签章pdf数据。签名原文
-            CaSealRequestTO requestSealTO = createPdfFactory.queryPdfByte(recipeId);
+            CaSealRequestTO requestSealTO = createPdfFactory.queryPdfByte(recipeId,isDoctor);
             if (null == requestSealTO) {
                 LOGGER.warn("当前CA组装【pdf】和【签章数据】信息返回空，中断当前CA");
                 return null;

@@ -53,7 +53,7 @@ public class RecipeServiceEsignExt {
         CreatePdfFactory createPdfFactory = AppContextHolder.getBean("createPdfFactory", CreatePdfFactory.class);
         CaSealRequestTO caBean;
         if (isDoctor) {
-            caBean = createPdfFactory.queryPdfByte(recipeId);
+            caBean = createPdfFactory.queryPdfByte(recipeId,true);
         } else {
             caBean = createPdfFactory.queryCheckPdfByte(recipeId);
         }
