@@ -273,4 +273,9 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
         return clinicCartService.deleteClinicCartByIds(ids);
     }
 
+    @Override
+    public List<RecipeBean> findRecipeByMpiidAndrecipeStatus(String mpiid, List<Integer> recipeStatus,Integer terminalType) {
+        return com.ngari.patient.utils.ObjectCopyUtils.convert(recipeBusinessService.findRecipeByMpiidAndrecipeStatus(mpiid,recipeStatus,terminalType), RecipeBean.class);
+    }
+
 }

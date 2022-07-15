@@ -270,4 +270,5 @@ public interface IRecipeBusinessService {
 
     List<Map<String, Object>> findRecipeDetailsByOrderCode(String orderCode);
 
+    List<Recipe> findRecipeByMpiidAndrecipeStatus(String mpiid, List<Integer> recipeStatus, Integer terminalType);
 }
