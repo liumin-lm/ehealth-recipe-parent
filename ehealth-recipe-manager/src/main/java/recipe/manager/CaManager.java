@@ -7,6 +7,7 @@ import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.aop.LogRecord;
@@ -125,7 +126,20 @@ public class CaManager extends BaseManager {
      * @param resultVo
      * @param isDoctor
      */
-    public void oldCaCallBack(Recipe recipe, List<Recipedetail> details, CaSignResultVo resultVo, boolean isDoctor) {
+    public void oldCaCallBack(Recipe recipe, List<Recipedetail> details, CaSignResultVo resultVo, boolean isDoctor, String base64) {
+        boolean usePlatform = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "recipeUsePlatformCAPDF", true);
+        if (!usePlatform && StringUtils.isNotEmpty(base64)) {
+            try {
+                String fileId = caClient.signFileByte(base64, "recipe_" + recipe.getRecipeId() + ".pdf");
+                Recipe recipeUpdate = new Recipe();
+                recipeUpdate.setRecipeId(recipe.getRecipeId());
+                recipeUpdate.setSignFile(fileId);
+                recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
+                resultVo.setFileId(fileId);
+            } catch (Exception e) {
+                logger.info("CaManager oldCaCallBack recipeId={}", recipe.getRecipeId(), e);
+            }
+        }
         caClient.signRecipeInfoSave(recipe.getRecipeId(), isDoctor, resultVo, recipe.getClinicOrgan());
         caClient.signUpdate(recipe, details);
     }
