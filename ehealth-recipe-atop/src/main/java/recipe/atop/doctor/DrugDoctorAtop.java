@@ -7,10 +7,7 @@ import com.ngari.recipe.drug.model.CommonDrugListDTO;
 import com.ngari.recipe.drug.model.DispensatoryDTO;
 import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
 import com.ngari.recipe.drug.model.UseDoseAndUnitRelationBean;
-import com.ngari.recipe.dto.DoSignRecipeDTO;
-import com.ngari.recipe.dto.DrugInfoDTO;
-import com.ngari.recipe.dto.EnterpriseStock;
-import com.ngari.recipe.dto.RecipeDTO;
+import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.constant.RecipeTypeEnum;
 import com.ngari.recipe.recipe.model.RecipeBean;
@@ -29,6 +26,7 @@ import recipe.core.api.IConfigStatusBusinessService;
 import recipe.core.api.IDrugBusinessService;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.core.api.IStockBusinessService;
+import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.util.ByteUtils;
 import recipe.util.ObjectCopyUtils;
 import recipe.util.RecipeUtil;
@@ -90,18 +88,29 @@ public class DrugDoctorAtop extends BaseAtop {
     @RpcService
     public List<DrugForGiveModeListVO> giveModeDrugStockList(DrugQueryVO drugQueryVO) {
         RecipeDTO recipeDTO = this.recipeDTO(drugQueryVO);
+        //机构够药方式配置
+        List<GiveModeButtonDTO> organGiveModeList = organBusinessService.organGiveMode(drugQueryVO.getOrganId());
+        List<GiveModeButtonDTO> organGiveModes = organGiveModeList.stream().filter(a -> !RecipeSupportGiveModeEnum.DOWNLOAD_RECIPE.getText().equals(a.getShowButtonKey())).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(organGiveModes)) {
+            return null;
+        }
+        //查询购药方式下有库存的药品
         List<DrugForGiveModeListVO> list = iStockBusinessService.drugForGiveModeV1(recipeDTO);
         if (CollectionUtils.isEmpty(list)) {
             return null;
         }
-        List<DrugForGiveModeListVO> drugForGiveModeList = new ArrayList<>();
         Map<String, List<EnterpriseStockVO>> map = list.stream().collect(Collectors.groupingBy(DrugForGiveModeListVO::getSupportKey
                 , Collectors.mapping(DrugForGiveModeListVO::getEnterpriseStock, Collectors.toList())));
         logger.info("DrugDoctorAtop giveModeDrugStockList map={}", JSON.toJSONString(map));
-        map.forEach((k, v) -> {
+        List<DrugForGiveModeListVO> drugForGiveModeList = new ArrayList<>();
+        organGiveModes.forEach(a -> {
             DrugForGiveModeListVO drugForGiveMode = new DrugForGiveModeListVO();
-            drugForGiveMode.setSupportKey(k);
-            drugForGiveMode.setEnterpriseStockList(v);
+            drugForGiveMode.setSupportKey(a.getShowButtonKey());
+            drugForGiveMode.setSupportKeyText(a.getShowButtonName());
+            List<EnterpriseStockVO> enterpriseStockList = map.get(a.getShowButtonKey());
+            if (CollectionUtils.isNotEmpty(enterpriseStockList)) {
+                drugForGiveMode.setEnterpriseStockList(enterpriseStockList);
+            }
             drugForGiveModeList.add(drugForGiveMode);
         });
         return drugForGiveModeList;

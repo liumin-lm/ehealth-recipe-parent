@@ -376,6 +376,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
                                                       List<Recipedetail> recipeDetails, Map<Integer, List<Integer>> enterpriseDrugIdGroup) {
         enterpriseStock.setStock(false);
         try {
+            Thread.sleep(11000L);
             //药企无对应的购药按钮则 无需查询库存-返回无库存
             if (CollectionUtils.isEmpty(enterpriseStock.getGiveModeButton())) {
                 enterpriseStock.setDrugInfoList(DrugStockClient.getDrugInfoDTO(recipeDetails, false));
