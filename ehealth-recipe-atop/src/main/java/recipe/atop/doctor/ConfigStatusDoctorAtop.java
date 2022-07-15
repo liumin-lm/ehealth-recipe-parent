@@ -1,6 +1,5 @@
 package recipe.atop.doctor;
 
-import com.ngari.recipe.dto.GiveModeButtonDTO;
 import com.ngari.recipe.vo.ConfigStatusCheckVO;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -8,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.core.api.IConfigStatusBusinessService;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
-import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -49,17 +47,5 @@ public class ConfigStatusDoctorAtop extends BaseAtop {
                     || RecipeOrderStatusEnum.ORDER_STATUS_DONE.getType().equals(configStatusCheckVO.getTarget()))).collect(Collectors.toList());
         }
         return configStatusCheckList;
-    }
-
-    /**
-     * 通过机构ID从运营平台获取购药方式的基本配置项
-     *
-     * @param organId 机构id
-     * @return
-     */
-    @RpcService
-    public List<GiveModeButtonDTO> organGiveMode(Integer organId) {
-        List<GiveModeButtonDTO> list = organBusinessService.organGiveMode(organId);
-        return list.stream().filter(a -> !RecipeSupportGiveModeEnum.DOWNLOAD_RECIPE.getText().equals(a.getShowButtonKey())).collect(Collectors.toList());
     }
 }
