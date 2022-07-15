@@ -29,7 +29,7 @@ public class BaseService {
         int timeOut = 10000;
         for (int i = 0; i < futureTasks.size(); i++) {
             if (i > 0) {
-                timeOut = 1;
+                timeOut = 100;
             }
             try {
                 T futureTaskCallbackBean = futureTasks.get(i).get(timeOut, TimeUnit.MILLISECONDS);
