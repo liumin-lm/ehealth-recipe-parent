@@ -248,4 +248,6 @@ public abstract class EnterpriseAddressDAO extends HibernateSupportDelegateDAO<E
 
     }
 
+    @DAOMethod(sql = "From EnterpriseAddress where enterpriseId =:enterpriseId and status=1 and address =:address", limit = 0)
+    public abstract EnterpriseAddress getByEnterpriseIdAndAddress(@DAOParam("enterpriseId")Integer enterpriseId, @DAOParam("address")String address);
 }

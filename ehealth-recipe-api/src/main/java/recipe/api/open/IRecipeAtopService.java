@@ -230,9 +230,9 @@ public interface IRecipeAtopService {
 
 
     /**
-     * 根据mpiid,recipeStatus获取处方
+     * 根据mpiid,recipeStatus获取处方  自助机用
      */
-    @RpcService(mvcDisabled = true)
+    @RpcService
     List<RecipeBean> findRecipeByMpiidAndrecipeStatus(String mpiid, List<Integer> recipeStatus,Integer terminalType);
 
 }

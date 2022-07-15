@@ -605,19 +605,19 @@ public class OrderFeeManager extends BaseManager {
      */
     public BigDecimal getPlatformExpressFee(Integer enterpriseId, String addrArea) {
         logger.info("OrderFeeManager getPlatformExpressFee enterpriseId:{}, addrArea:{}.", enterpriseId, addrArea);
-        DrugDistributionPrice drugDistributionPrice;
+        EnterpriseAddress enterpriseAddress;
         int length = addrArea.length();
         do {
-            drugDistributionPrice = drugDistributionPriceDAO.getByEnterpriseIdAndAddrArea(enterpriseId, addrArea.substring(0, length));
-            if (null != drugDistributionPrice) {
+             enterpriseAddress = enterpriseAddressDAO.getByEnterpriseIdAndAddress(enterpriseId, addrArea.substring(0, length));
+            if (null != enterpriseAddress) {
                 break;
             }
         } while ((length = length - 2) > 0);
-        logger.info("OrderFeeManager getPlatformExpressFee drugDistributionPrice:{}.", JSONUtils.toString(drugDistributionPrice));
-        if (null == drugDistributionPrice) {
+        logger.info("OrderFeeManager getPlatformExpressFee drugDistributionPrice:{}.", JSONUtils.toString(enterpriseAddress));
+        if (null == enterpriseAddress) {
             return null;
         }
-        return drugDistributionPrice.getDistributionPrice();
+        return enterpriseAddress.getDistributionPrice();
     }
 
     /**
