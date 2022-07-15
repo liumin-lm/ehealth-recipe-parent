@@ -443,6 +443,17 @@ public class RecipeBean implements Serializable {
     @ItemProperty(alias = "0：默认")
     private Integer version;
 
+    @ItemProperty(alias = "0：默认(未签名)，1：签名中，2：签名失败，3：签名成功")
+    private Integer checkerSignState;
+
+    public Integer getCheckerSignState() {
+        return checkerSignState;
+    }
+
+    public void setCheckerSignState(Integer checkerSignState) {
+        this.checkerSignState = checkerSignState;
+    }
+
     public Integer getVersion() {
         return version;
     }
