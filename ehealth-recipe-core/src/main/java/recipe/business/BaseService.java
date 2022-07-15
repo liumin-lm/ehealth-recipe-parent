@@ -28,7 +28,7 @@ public class BaseService {
         List<T> futureTaskCallbackBeanList = new LinkedList<>();
         for (FutureTask<T> futureTask : futureTasks) {
             try {
-                T futureTaskCallbackBean = futureTask.get(8000, TimeUnit.MILLISECONDS);
+                T futureTaskCallbackBean = futureTask.get(10000, TimeUnit.MILLISECONDS);
                 futureTaskCallbackBeanList.add(futureTaskCallbackBean);
             } catch (Exception e) {
                 logger.error("BaseService futureTaskCallbackBeanList futureTaskEnterpriseStockList error", e);
