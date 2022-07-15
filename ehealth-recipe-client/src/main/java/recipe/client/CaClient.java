@@ -9,11 +9,14 @@ import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.upload.service.IFileUploadService;
 import eh.utils.params.ParamUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.util.ByteUtils;
+import sun.misc.BASE64Decoder;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -30,6 +33,8 @@ public class CaClient extends BaseClient {
     private IConfigurationClient iConfigurationClient;
     @Autowired
     private ICaRemoteService iCaRemoteService;
+    @Autowired
+    private IFileUploadService iFileUploadService;
 
     public void signRecipeInfoSave(Integer recipeId, boolean isDoctor, CaSignResultVo signResultVo, Integer organId) {
         String thirdCASign = iConfigurationClient.getValueCatch(organId, "thirdCASign", "");
@@ -74,4 +79,42 @@ public class CaClient extends BaseClient {
         ca.vo.model.RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, ca.vo.model.RecipeBean.class);
         iCaRemoteService.commonCASignAndSealForRecipe(requestSeal, recipeBean, recipe.getClinicOrgan(), idNumber, caPassword);
     }
+
+
+    /**
+     * 上传文件到oss服务器
+     *
+     * @param base64   文件
+     * @param fileName 文件名
+     * @return
+     */
+    public String signFileByte(String base64, String fileName) {
+        if (null == base64) {
+            return null;
+        }
+        BASE64Decoder d = new BASE64Decoder();
+        byte[] data = new byte[0];
+        try {
+            data = d.decodeBuffer(base64);
+        } catch (IOException e) {
+            logger.info("CreateRecipePdfUtil signFileByte e ", e);
+        }
+        return signFileByte(data, fileName);
+    }
+
+    /**
+     * 上传文件到oss服务器
+     *
+     * @param bytes    文件
+     * @param fileName 文件名
+     * @return
+     */
+    private String signFileByte(byte[] bytes, String fileName) {
+        String fileId = iFileUploadService.uploadFileWithoutUrt(bytes, fileName);
+        if (null == fileId) {
+            return "";
+        }
+        return fileId;
+    }
+
 }

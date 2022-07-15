@@ -29,6 +29,7 @@ import recipe.util.DateConversion;
 import recipe.util.ObjectCopyUtils;
 import recipe.util.ValidateUtil;
 import recipe.vo.doctor.RecipeInfoVO;
+import recipe.vo.patient.SkipReadyRecipeRes;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -274,12 +275,12 @@ public class RecipePatientAtop extends BaseAtop {
 
     /**
      * 是否有待处理处方
-     * @param mpiId
+     * @param orderId 订单号
      * @return
      */
     @RpcService
-    public Boolean isHaveReadyRecipeFlag(String mpiId){
-        return recipePatientService.isHaveReadyRecipeFlag(mpiId);
+    public SkipReadyRecipeRes skipReadyRecipe(Integer orderId){
+        return new SkipReadyRecipeRes();
     }
 
 }

@@ -70,7 +70,8 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         //机构库存
         EnterpriseStock organStock = organDrugListManager.organStock(organId, recipeDetails);
         //药企库存
-        List<EnterpriseStock> enterpriseStock = this.enterpriseStockCheck(organId, recipeType, decoctionId, recipeDetails);
+        List<EnterpriseStock> enterpriseList = buttonManager.enterpriseStockCheck(organId, recipeType, decoctionId);
+        List<EnterpriseStock> enterpriseStock = this.enterpriseStockCheck(organId, enterpriseList, recipeDetails);
         //处理库存数据结构 逆转为 药品-药企
         List<EnterpriseStockVO> enterpriseStockList = this.getEnterpriseStockVO(organStock, enterpriseStock);
         Map<Integer, List<EnterpriseStockVO>> enterpriseStockGroup = enterpriseStockList.stream().collect(Collectors.groupingBy(EnterpriseStockVO::getDrugId));
@@ -158,12 +159,13 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         //机构库存
         EnterpriseStock organStock = organDrugListManager.organStock(drugQueryVO.getOrganId(), recipeDetails);
         //药企库存
-        List<EnterpriseStock> enterpriseStock = this.enterpriseStockCheck(drugQueryVO.getOrganId(), drugQueryVO.getRecipeType(), drugQueryVO.getDecoctionId(), recipeDetails);
+        List<EnterpriseStock> enterpriseList = buttonManager.enterpriseStockCheck(drugQueryVO.getOrganId(), drugQueryVO.getRecipeType(), drugQueryVO.getDecoctionId());
+        List<EnterpriseStock> enterpriseStock = this.enterpriseStockCheck(drugQueryVO.getOrganId(), enterpriseList, recipeDetails);
         enterpriseStock.add(organStock);
         logger.info("drugForGiveMode enterpriseStock={}", JSONArray.toJSONString(enterpriseStock));
         List<DrugForGiveModeVO> list = Lists.newArrayList();
         for (EnterpriseStock stock : enterpriseStock) {
-            if(Objects.isNull(stock)){
+            if (Objects.isNull(stock)) {
                 continue;
             }
             List<GiveModeButtonDTO> giveModeButton = stock.getGiveModeButton();
@@ -197,27 +199,33 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         List<Recipedetail> recipeDetails = recipeDTO.getRecipeDetails();
         RecipeExtend recipeExtend = recipeDTO.getRecipeExtend();
         //药企库存
-        List<EnterpriseStock> enterpriseStock = this.enterpriseStockCheck(recipe.getClinicOrgan(), recipe.getRecipeType(), recipeExtend.getDecoctionId(), recipeDetails);
+        List<EnterpriseStock> enterpriseList = buttonManager.enterpriseStockCheck(recipe.getClinicOrgan(), recipe.getRecipeType(), recipeExtend.getDecoctionId());
+        List<EnterpriseStock> enterpriseStock = this.enterpriseStockCheck(recipe.getClinicOrgan(), enterpriseList, recipeDetails);
+        Map<Integer, EnterpriseStock> enterpriseStockMap = enterpriseStock.stream().collect(Collectors.toMap(EnterpriseStock::getDrugsEnterpriseId, a -> a, (k1, k2) -> k1));
         //机构库存
         EnterpriseStock organStock = organDrugListManager.organStock(recipe, recipeDetails);
         if (null != organStock) {
-            enterpriseStock.add(organStock);
+            enterpriseList.add(organStock);
         }
         List<DrugForGiveModeListVO> giveModeList = new ArrayList<>();
-        enterpriseStock.forEach(a -> {
-            List<GiveModeButtonDTO> giveModeButton = a.getGiveModeButton();
+        enterpriseList.forEach(a -> {
+            EnterpriseStock stock = enterpriseStockMap.get(a.getDrugsEnterpriseId());
+            if (null == stock) {
+                stock = a;
+            }
+            List<GiveModeButtonDTO> giveModeButton = stock.getGiveModeButton();
             if (CollectionUtils.isEmpty(giveModeButton)) {
                 return;
             }
-            giveModeButton.forEach(b -> {
+            for (GiveModeButtonDTO button : giveModeButton) {
                 DrugForGiveModeListVO giveMode = new DrugForGiveModeListVO();
-                giveMode.setSupportKey(b.getShowButtonKey());
-                EnterpriseStockVO enterpriseStockVO = ObjectCopyUtils.convert(a, EnterpriseStockVO.class);
-                List<DrugStockVO> drugStockList = ObjectCopyUtils.convert(a.getDrugInfoList(), DrugStockVO.class);
+                giveMode.setSupportKey(button.getShowButtonKey());
+                EnterpriseStockVO enterpriseStockVO = ObjectCopyUtils.convert(stock, EnterpriseStockVO.class);
+                List<DrugStockVO> drugStockList = ObjectCopyUtils.convert(stock.getDrugInfoList(), DrugStockVO.class);
                 enterpriseStockVO.setDrugStockList(drugStockList);
                 giveMode.setEnterpriseStock(enterpriseStockVO);
                 giveModeList.add(giveMode);
-            });
+            }
         });
         logger.info("StockBusinessService drugForGiveModeV1 giveModeList={}", JSONArray.toJSONString(giveModeList));
         return giveModeList;
@@ -309,17 +317,16 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
     /**
      * 校验 药品库存 指定药企的库存数量
      *
-     * @param organId       机构id
-     * @param recipeDetails 药品信息 drugId，code
-     * @param decoctionId   煎法id
+     * @param organId        机构id
+     * @param recipeDetails  药品信息 drugId，code
+     * @param enterpriseList 药企信息
      * @return 药品信息 一定存在于出参
      */
-    private List<EnterpriseStock> enterpriseStockCheck(Integer organId, Integer recipeType, String decoctionId, List<Recipedetail> recipeDetails) {
-        List<EnterpriseStock> enterpriseStockList = buttonManager.enterpriseStockCheck(organId, recipeType, decoctionId);
+    private List<EnterpriseStock> enterpriseStockCheck(Integer organId, List<EnterpriseStock> enterpriseList, List<Recipedetail> recipeDetails) {
         //校验药企库存
         List<FutureTask<EnterpriseStock>> futureTasks = new LinkedList<>();
         //根据药企配置查询 库存
-        for (EnterpriseStock enterpriseStock : enterpriseStockList) {
+        for (EnterpriseStock enterpriseStock : enterpriseList) {
             Recipe recipe = new Recipe();
             recipe.setClinicOrgan(organId);
             FutureTask<EnterpriseStock> ft = new FutureTask<>(() -> enterpriseStockFutureTask(enterpriseStock, recipe, recipeDetails, null));
@@ -376,7 +383,6 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
                                                       List<Recipedetail> recipeDetails, Map<Integer, List<Integer>> enterpriseDrugIdGroup) {
         enterpriseStock.setStock(false);
         try {
-            Thread.sleep(9000L);
             //药企无对应的购药按钮则 无需查询库存-返回无库存
             if (CollectionUtils.isEmpty(enterpriseStock.getGiveModeButton())) {
                 enterpriseStock.setDrugInfoList(DrugStockClient.getDrugInfoDTO(recipeDetails, false));
