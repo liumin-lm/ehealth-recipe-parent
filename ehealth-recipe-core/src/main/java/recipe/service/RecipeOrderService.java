@@ -903,12 +903,12 @@ public class RecipeOrderService extends RecipeBaseService {
                     Map<String, Object> expressFeeResult = drugEnterpriseService.getExpressFee(parames);
                     if ("0".equals(expressFeeResult.get("expressFeeType").toString())) {
                         //需要从平台获取
-                        expressFee = getExpressFee(order.getEnterpriseId(), address.getAddress3());
+                        expressFee = orderFeeManager.getPlatformExpressFee(order.getEnterpriseId(), address.getAddress3());
                     } else {
                         expressFee = new BigDecimal(expressFeeResult.get("expressFee").toString());
                     }
                 } else {
-                    expressFee = getExpressFee(order.getEnterpriseId(), address.getAddress3());
+                    expressFee = orderFeeManager.getPlatformExpressFee(order.getEnterpriseId(), address.getAddress3());
                 }
             }
             LOGGER.info("setOrderAddress recipeIds:{}, expressFee:{}.", JSONUtils.toString(recipeIds), expressFee);
