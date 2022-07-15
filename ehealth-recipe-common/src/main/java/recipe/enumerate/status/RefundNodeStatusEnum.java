@@ -7,6 +7,7 @@ public enum RefundNodeStatusEnum {
 
     NO_APPLY(-1, "未申请"),
     WAIT_AUDIT(0, "申请审核中"),
+    DOCTOR_AGREE(4, "医生已审核成功，待进一步审核"),
     AGREE_SUCCESS(1, "已同意 退款成功"),
     AGREE_FAIL(2, "已同意 退款失败"),
     NO_AGREE(3, "不同意");

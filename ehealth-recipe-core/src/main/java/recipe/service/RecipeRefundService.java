@@ -432,7 +432,7 @@ public class RecipeRefundService extends RecipeBaseService {
                 updateRecipeRefundStatus(recipe, RefundNodeStatusConstant.REFUND_NODE_NOPASS_AUDIT_STATUS);
                 busActionLogService.recordBusinessLogRpcNew("电子处方详情页-退费审核", recipe.getClinicId() + "", recipe.getDoctor() + "", "电子处方订单【" + recipe.getRecipeCode() + "】退费审核不通过", recipe.getOrganName());
             } else {
-                updateRecipeRefundStatus(recipe, RefundNodeStatusConstant.REFUND_NODE_READY_AUDIT_STATUS);
+                updateRecipeRefundStatus(recipe, RefundNodeStatusConstant.REFUND_NODE_DOCTOR_PASS_AUDIT_STATUS);
                 busActionLogService.recordBusinessLogRpcNew("电子处方详情页-退费审核", recipe.getClinicId() + "", recipe.getDoctor() + "", "电子处方订单【" + recipe.getRecipeCode() + "】退费审核通过", recipe.getOrganName());
             }
         } else {

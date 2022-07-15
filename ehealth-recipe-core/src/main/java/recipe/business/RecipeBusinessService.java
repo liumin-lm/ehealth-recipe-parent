@@ -772,9 +772,10 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         return mapList;
     }
 
+
     @Override
-    public List<Recipe> findRecipeByMpiidAndrecipeStatus(String mpiid, List<Integer> recipeStatus, Integer terminalType) {
-        return recipeDAO.findRecipeByMpiidAndrecipeStatus(mpiid,recipeStatus,terminalType);
+    public List<Recipe> findRecipeByMpiidAndrecipeStatus(String mpiid, List<Integer> recipeStatus, Integer terminalType, Integer organId) {
+        return recipeDAO.findRecipeByMpiidAndrecipeStatus(mpiid,recipeStatus,terminalType,organId);
     }
 }
 

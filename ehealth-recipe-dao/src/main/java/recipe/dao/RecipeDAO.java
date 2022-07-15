@@ -4599,7 +4599,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         return action.getResult();
     }
 
-    public List<Recipe> findRecipeByMpiidAndrecipeStatus(final String mpiid, final List<Integer> recipeStatus, Integer terminalType) {
+    public List<Recipe> findRecipeByMpiidAndrecipeStatus(final String mpiid, final List<Integer> recipeStatus, Integer terminalType,Integer organId) {
         HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
@@ -4607,15 +4607,25 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 if (terminalType!=null) {
                     hql += " and  re.terminalType= :terminalType";
                 }
-
-                hql += " and r.status IN (:recipeStatus)  order by createDate desc ";
+                if (organId!=null) {
+                    hql += " and  r.clinicOrgan= :organId";
+                }
+                if(CollectionUtils.isNotEmpty(recipeStatus)){
+                    hql += " and r.status IN (:recipeStatus)  order by createDate desc ";
+                }
                 Query query = ss.createQuery(hql);
 
                 if (terminalType != null) {
                     query.setParameter("terminalType", terminalType);
                 }
+                if (organId != null) {
+                    query.setParameter("organId", organId);
+                }
                 query.setParameter("mpiid", mpiid);
-                query.setParameterList("recipeStatus", recipeStatus);
+                if(CollectionUtils.isNotEmpty(recipeStatus)){
+                    query.setParameterList("recipeStatus", recipeStatus);
+                }
+
                 setResult(query.list());
             }
         };
