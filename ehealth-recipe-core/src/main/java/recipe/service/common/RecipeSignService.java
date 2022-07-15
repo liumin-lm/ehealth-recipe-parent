@@ -405,7 +405,7 @@ public class RecipeSignService {
                     return rMap;
                 }
             }
-            //更新审方信息
+            //更新审方信息recipeTempMark
             RecipeBusiThreadPool.execute(new SaveAutoReviewRunnable(recipeBean, detailBeanList));
             //发送HIS处方开具消息
             sendRecipeToHIS(recipeBean);
