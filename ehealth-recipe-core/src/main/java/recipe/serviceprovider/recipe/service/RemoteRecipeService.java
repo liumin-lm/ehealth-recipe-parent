@@ -2151,14 +2151,13 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         List<Recipedetail> details = recipeDetailDAO.findByRecipeId(recipeId);
         try {
             if (Integer.valueOf(200).equals(resultVo.getCode())) {
+                createPdfFactory.updateDoctorNamePdf(recipe);
                 //非使用平台CA模式的使用返回中的PdfBase64生成pdf文件
                 String fileId = null;
                 RecipeServiceEsignExt.saveSignRecipePDFCA(resultVo.getPdfBase64(), recipeId, null, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), true, fileId);
                 resultVo.setFileId(fileId);
                 //todo 这里判断特指ca前置？
-                if (CA_NEW_TYPE.equals(caType)) {
-                    createPdfFactory.updateDoctorNamePdf(recipe);
-                } else {
+                if (!CA_NEW_TYPE.equals(caType)) {
                     //老流程保存sign，新流程已经移动至CA保存 /保存签名值、时间戳、电子签章文件
                     caManager.oldCaCallBack(recipe, details, resultVo, true);
                 }
