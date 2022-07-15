@@ -163,7 +163,6 @@ public class CreatePdfFactory {
         logger.info("CreatePdfFactory updateDoctorNamePdfV1 recipe:{}", recipe.getRecipeId());
         CreatePdfService createPdfService = createPdfService(recipe);
         byte[] data = createPdfService.queryPdfByte(recipe);
-        updateDoctorNamePdf(recipe, data, createPdfService);
         CaSealRequestTO requestSealTO = createPdfService.queryPdfBase64(data, recipe.getRecipeId());
         requestSealTO.setSealBase64Str("");
         //获取签章图片
