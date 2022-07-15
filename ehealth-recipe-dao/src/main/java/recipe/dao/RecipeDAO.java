@@ -4622,6 +4622,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         HibernateSessionTemplate.instance().execute(action);
 
         List<Recipe> recipes = action.getResult();
+        if(CollectionUtils.isNotEmpty(recipes)){
+            LOGGER.info("size:{}",recipes.size());
+        }
         return recipes;
     }
 }
