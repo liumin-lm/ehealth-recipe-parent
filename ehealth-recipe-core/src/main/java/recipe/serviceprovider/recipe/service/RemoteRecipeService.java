@@ -2215,6 +2215,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     }
 
 
+    @LogRecord
     private CaSignResultVo makeCaSignResultVoFromCABean(CaSignResultUpgradeBean resultVo) {
         CaSignResultVo caSignResultVo = new CaSignResultVo();
         caSignResultVo.setResultCode(resultVo.getResultStatus());
