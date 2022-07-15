@@ -30,6 +30,7 @@ import recipe.enumerate.type.SignImageTypeEnum;
 import recipe.manager.CaManager;
 import recipe.manager.SignManager;
 import recipe.service.RecipeLogService;
+import recipe.service.RecipeServiceEsignExt;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.ByteUtils;
 import recipe.util.ValidateUtil;
@@ -94,7 +95,8 @@ public class CreatePdfFactory {
             old = false;
             memo = "old签名标准对接CA方式";
             //生成pdf文件
-            CaSealRequestTO requestSealTO = this.updateDoctorNamePdfV1(recipe);
+            CaSealRequestTO requestSealTO = this.queryPdfByte(recipe.getRecipeId());
+            RecipeServiceEsignExt.updateInitRecipePDF(true, recipe, requestSealTO.getPdfBase64Str());
             caManager.oldCommonCASign(requestSealTO, recipe);
         }
         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), memo);
@@ -103,7 +105,7 @@ public class CreatePdfFactory {
 
     /**
      * 获取pdf oss id
-     *
+     * 生成pdf并更新signFile esign使用
      * @param recipe
      * @return
      */
@@ -142,6 +144,12 @@ public class CreatePdfFactory {
             byte[] data = createPdfService.queryPdfByte(recipe);
             CaSealRequestTO caSealRequest = createPdfService.queryPdfBase64(data, recipe.getRecipeId());
             if (null == caSealRequest) {
+                caSealRequest.setSealBase64Str("");
+                //获取签章图片
+                DoctorExtendDTO doctorExtendDTO = doctorClient.getDoctorExtendDTO(recipe.getDoctor());
+                if (null != doctorExtendDTO && null != doctorExtendDTO.getSealData()) {
+                    caSealRequest.setSealBase64Str(doctorExtendDTO.getSealData());
+                }
                 RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "获取pdf_byte格式生成null");
             }
             return caSealRequest;
@@ -163,6 +171,7 @@ public class CreatePdfFactory {
         logger.info("CreatePdfFactory updateDoctorNamePdfV1 recipe:{}", recipe.getRecipeId());
         CreatePdfService createPdfService = createPdfService(recipe);
         byte[] data = createPdfService.queryPdfByte(recipe);
+        updateDoctorNamePdf(recipe, data, createPdfService);
         CaSealRequestTO requestSealTO = createPdfService.queryPdfBase64(data, recipe.getRecipeId());
         requestSealTO.setSealBase64Str("");
         //获取签章图片
