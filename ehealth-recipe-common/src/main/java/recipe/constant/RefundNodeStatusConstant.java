@@ -14,4 +14,6 @@ public class RefundNodeStatusConstant {
     public static final Integer REFUND_NODE_FAIL_AUDIT_STATUS = 2;
     //3-审核不通过
     public static final Integer REFUND_NODE_NOPASS_AUDIT_STATUS = 3;
+    //4-医生已审核成功，待进一步审核
+    public static final Integer REFUND_NODE_DOCTOR_PASS_AUDIT_STATUS = 4;
 }
