@@ -10,7 +10,6 @@ import com.ngari.recipe.vo.FormWorkRecipeVO;
 import ctd.util.annotation.RpcService;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.patient.PatientOptionalDrugVo;
-import recipe.vo.second.ClinicCartVO;
 import recipe.vo.second.RevisitRecipeTraceVo;
 
 import java.util.Date;
@@ -228,4 +227,12 @@ public interface IRecipeAtopService {
      */
     @RpcService(mvcDisabled = true)
     Boolean deleteClinicCartByIds(List<Integer> ids);
+
+
+    /**
+     * 根据mpiid,recipeStatus获取处方
+     */
+    @RpcService(mvcDisabled = true)
+    List<RecipeBean> findRecipeByMpiidAndrecipeStatus(String mpiid, List<Integer> recipeStatus,Integer terminalType);
+
 }
