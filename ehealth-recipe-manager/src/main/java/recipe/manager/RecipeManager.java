@@ -31,7 +31,6 @@ import recipe.common.UrlConfig;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.DrugsEnterpriseDAO;
-import recipe.dao.RecipeParameterDao;
 import recipe.dao.SaleDrugListDAO;
 import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.enumerate.status.RecipeStateEnum;
@@ -86,8 +85,6 @@ public class RecipeManager extends BaseManager {
     private IRecipeCheckService iRecipeCheckService;
     @Autowired
     private RecipeClient recipeClient;
-    @Autowired
-    private RecipeParameterDao recipeParameterDao;
 
     /**
      * 保存处方信息
