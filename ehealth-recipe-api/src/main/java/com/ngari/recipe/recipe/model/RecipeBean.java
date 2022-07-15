@@ -440,6 +440,17 @@ public class RecipeBean implements Serializable {
     @ItemProperty(alias = "0：默认(未签名)，1：签名中，2：签名失败，3：签名成功")
     private Integer doctorSignState;
 
+    @ItemProperty(alias = "0：默认")
+    private Integer version;
+
+    public Integer getVersion() {
+        return version;
+    }
+
+    public void setVersion(Integer version) {
+        this.version = version;
+    }
+
     public Integer getDoctorSignState() {
         return doctorSignState;
     }
