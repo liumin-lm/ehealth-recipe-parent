@@ -28,4 +28,8 @@ public class DoSignRecipeDTO implements Serializable {
     private String msg;
     private Integer recipeId;
     private Integer checkFlag;
+    /**
+     * 处方支持的购药方式,逗号分隔
+     */
+    private String recipeSupportGiveMode;
 }
