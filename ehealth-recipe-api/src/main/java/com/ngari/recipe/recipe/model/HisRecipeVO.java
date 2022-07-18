@@ -115,6 +115,7 @@ public class HisRecipeVO implements Serializable {
     private String chronicDiseaseName;
     @ItemProperty(alias = "处方流转模式")
     private String recipeMode;
-
+    @ItemProperty(alias = "是否包含腹透液  空0否  1是  ")
+    private Integer peritonealDialysisFluidType;
 
 }

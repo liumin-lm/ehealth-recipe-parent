@@ -2,6 +2,7 @@ package recipe.factory.offlinetoonline.impl;
 
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.QueryHisRecipResTO;
+import com.ngari.his.recipe.mode.RecipeDetailTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.recipe.dto.GiveModeButtonDTO;
 import com.ngari.recipe.dto.GroupRecipeConfDTO;
@@ -219,6 +220,16 @@ class NoPayStrategyImpl extends BaseOfflineToOnlineService implements IOfflineTo
             } else {
                 hisRecipeVO.setChronicDiseaseName("");
             }
+            //腹透液不能合并支付
+            if (null != queryHisRecipResTo.getDrugList()) {
+                for (RecipeDetailTO recipeDetailTo : queryHisRecipResTo.getDrugList()) {
+                    if(new Integer("1").equals(recipeDetailTo.getPeritonealDialysisFluidType())){
+                        hisRecipeVO.setPeritonealDialysisFluidType(1);
+                        hisRecipeVO.setRegisteredId("-1");
+                        break;
+                    }
+                }
+            }
             hisRecipeVos.add(hisRecipeVO);
         }
         LOGGER.info("NoPayServiceImpl covertHisRecipeObject response hisRecipeVOs:{}", JSONUtils.toString(hisRecipeVos));
@@ -245,7 +256,7 @@ class NoPayStrategyImpl extends BaseOfflineToOnlineService implements IOfflineTo
                 Map<String, List<HisRecipeVO>> registerIdRelation = request.stream().collect(Collectors.groupingBy(HisRecipeVO::getRegisteredId));
                 for (Map.Entry<String, List<HisRecipeVO>> entry : registerIdRelation.entrySet()) {
                     List<HisRecipeVO> recipes = entry.getValue();
-                    if (StringUtils.isEmpty(entry.getKey())) {
+                    if (StringUtils.isEmpty(entry.getKey())||"-1".equals(entry.getKey())) {
                         //表示挂号序号为空,不能进行处方合并
                         covertMergeRecipeVO(null, false, null, null, giveModeButtonBean.getButtonSkipType(), recipes, result);
                     } else {
