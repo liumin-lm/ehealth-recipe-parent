@@ -755,7 +755,7 @@ public class BaseOfflineToOnlineService {
             List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugCodes(hisRecipe.getClinicOrgan(), Arrays.asList(hisRecipeDetail.getDrugCode()));
             LOGGER.info("hisRecipe.organDrugLists:{}", JSONUtils.toString(organDrugLists));
             if (CollectionUtils.isEmpty(organDrugLists)) {
-                LOGGER.info("处方中的药品信息未维护到线上平台药品目录:{},{},{}", hisRecipe.getRecipeCode(), hisRecipeDetail.getDrugCode(), hisRecipeDetail.getDrugCode());
+                LOGGER.info("处方中的药品信息未维护到线上平台药品目录:{},{},{}", hisRecipe.getRecipeCode(), hisRecipeDetail.getDrugCode(), hisRecipe.getClinicOrgan());
                 Set<String> recipeCodes = new HashSet<>();
                 recipeCodes.add(hisRecipe.getRecipeCode());
                 hisRecipeManager.deleteSetRecipeCode(hisRecipe.getClinicOrgan(), recipeCodes);
