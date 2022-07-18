@@ -1617,7 +1617,7 @@ public class HisRecipeService {
 
         /**判断处方是否删除*/
         List<Integer> hisRecipeIds = hisRecipeList.stream().map(HisRecipe::getHisRecipeID).distinct().collect(Collectors.toList());
-        List<HisRecipeDetail> hisRecipeDetailList = hisRecipeDetailDAO.findByHisRecipeIds(hisRecipeIds);
+        List<HisRecipeDetail> hisRecipeDetailList = hisRecipeDetailDAO.findNoPayByHisRecipeIds(hisRecipeIds);
         LOGGER.info("hisRecipeInfoCheck hisRecipeDetailList = {}", JSONUtils.toString(hisRecipeDetailList));
         if (CollectionUtils.isEmpty(hisRecipeDetailList)) {
             return;

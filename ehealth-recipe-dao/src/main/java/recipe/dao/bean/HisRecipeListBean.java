@@ -125,6 +125,8 @@ public class HisRecipeListBean implements Serializable {
     private String orderStatusText;
     @ItemProperty(alias = "诊断名称")
     private String organDiseaseName;
+    @ItemProperty(alias = "是否包含腹透液  空0否  1是  ")
+    private Integer peritonealDialysisFluidType;
 
     public HisRecipeListBean(String diseaseName, Integer hisRecipeID, String registeredId, String mpiId, String recipeCode, Integer clinicOrgan, String departCode, String departName, Date createDate, String doctorCode, String doctorName, String chronicDiseaseCode, String chronicDiseaseName, String patientName, String memo, Integer recipeType, Integer fromFlag, Integer recipeId, String orderCode, Integer status) {
         this.diseaseName = diseaseName;

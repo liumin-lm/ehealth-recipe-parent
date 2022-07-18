@@ -31,7 +31,17 @@ public abstract class HisRecipeDetailDAO extends HibernateSupportDelegateDAO<His
      * @return
      */
     @DAOMethod(sql = "from HisRecipeDetail where hisRecipeId in (:hisRecipeIds) and status=1")
+    public abstract List<HisRecipeDetail> findNoPayByHisRecipeIds(@DAOParam("hisRecipeIds") List<Integer> hisRecipeIds);
+
+    /**
+     * 批量查询
+     *
+     * @param hisRecipeIds his处方id
+     * @return
+     */
+    @DAOMethod(sql = "from HisRecipeDetail where hisRecipeId in (:hisRecipeIds) ")
     public abstract List<HisRecipeDetail> findByHisRecipeIds(@DAOParam("hisRecipeIds") List<Integer> hisRecipeIds);
+
 
     /**
      * 根据处方id批量删除

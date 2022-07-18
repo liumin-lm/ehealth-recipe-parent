@@ -225,7 +225,7 @@ class NoPayStrategyImpl extends BaseOfflineToOnlineService implements IOfflineTo
                 for (RecipeDetailTO recipeDetailTo : queryHisRecipResTo.getDrugList()) {
                     if(new Integer("1").equals(recipeDetailTo.getPeritonealDialysisFluidType())){
                         hisRecipeVO.setPeritonealDialysisFluidType(1);
-                        hisRecipeVO.setRegisteredId("-1");
+                        hisRecipeVO.setRegisteredId(hisRecipeVO.getRegisteredId()+"noMerge");
                         break;
                     }
                 }
@@ -256,12 +256,12 @@ class NoPayStrategyImpl extends BaseOfflineToOnlineService implements IOfflineTo
                 Map<String, List<HisRecipeVO>> registerIdRelation = request.stream().collect(Collectors.groupingBy(HisRecipeVO::getRegisteredId));
                 for (Map.Entry<String, List<HisRecipeVO>> entry : registerIdRelation.entrySet()) {
                     List<HisRecipeVO> recipes = entry.getValue();
-                    if (StringUtils.isEmpty(entry.getKey())||"-1".equals(entry.getKey())) {
+                    if (StringUtils.isEmpty(entry.getKey())||entry.getKey().contains("noMerge")) {
                         //表示挂号序号为空,不能进行处方合并
-                        covertMergeRecipeVO(null, false, null, null, giveModeButtonBean.getButtonSkipType(), recipes, result);
+                        covertMergeRecipeVO(null, mergeRecipeFlag, mergeRecipeWayAfter, null, giveModeButtonBean.getButtonSkipType(), recipes, result);
                     } else {
                         //可以进行合并支付
-                        covertMergeRecipeVO(recipes.get(0).getRegisteredId(), true, mergeRecipeWayAfter, recipes.get(0).getHisRecipeID(), giveModeButtonBean.getButtonSkipType(), recipes, result);
+                        covertMergeRecipeVO(recipes.get(0).getRegisteredId(), mergeRecipeFlag, mergeRecipeWayAfter, recipes.get(0).getHisRecipeID(), giveModeButtonBean.getButtonSkipType(), recipes, result);
                     }
                 }
             } else {
