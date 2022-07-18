@@ -1,21 +1,20 @@
 package recipe.client;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.ngari.base.currentuserinfo.model.SimpleThirdBean;
 import com.ngari.base.currentuserinfo.model.SimpleWxAccountBean;
 import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
 import com.ngari.base.organ.model.OrganBean;
 import com.ngari.common.mode.HisResponseTO;
-import com.ngari.his.recipe.mode.RecipePDFToHisTO;
-import com.ngari.his.recipe.mode.RecipeThirdUrlReqTO;
-import com.ngari.his.recipe.mode.TakeMedicineByToHos;
-import com.ngari.his.recipe.mode.TakeMedicineByToHosReqDTO;
+import com.ngari.his.recipe.mode.*;
 import com.ngari.his.recipe.service.IRecipeEnterpriseService;
 import com.ngari.infra.invoice.mode.InvoiceRecordDto;
 import com.ngari.infra.invoice.service.InvoiceRecordService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.*;
 import com.ngari.platform.recipe.mode.enterpriseOrder.InvoiceRecordDTO;
+import com.ngari.recipe.dto.OutPatientRecipeDTO;
 import com.ngari.recipe.dto.SkipThirdDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
@@ -31,6 +30,7 @@ import recipe.util.ByteUtils;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -181,9 +181,10 @@ public class EnterpriseClient extends BaseClient {
 
     /**
      * 到院取药获取取药点
-     * @param organBean 机构信息
+     *
+     * @param organBean         机构信息
      * @param recipeDetailBeans 处方药品详情
-     * @param recipeBean 处方信息
+     * @param recipeBean        处方信息
      * @return
      */
     public List<TakeMedicineByToHos> getTakeMedicineByToHosList(OrganBean organBean, List<RecipeDetailBean> recipeDetailBeans, RecipeBean recipeBean) {
@@ -208,10 +209,11 @@ public class EnterpriseClient extends BaseClient {
 
     /**
      * 获取第三方配送费
+     *
      * @param enterpriseResTo
      * @return
      */
-    public BigDecimal getExpressFee(EnterpriseResTo enterpriseResTo){
+    public BigDecimal getExpressFee(EnterpriseResTo enterpriseResTo) {
         logger.info("EnterpriseClient getExpressFee enterpriseResTo:{}.", JSONUtils.toString(enterpriseResTo));
         if (null == enterpriseResTo || StringUtils.isEmpty(enterpriseResTo.getDepId())) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "参数为空");
@@ -243,12 +245,12 @@ public class EnterpriseClient extends BaseClient {
         addressBean.setDistrict(getAddress(recipeOrder.getAddress3()));
         addressBean.setStreetAddress(getAddress(recipeOrder.getStreetAddress()));
         addressBean.setAddress(getAddress(recipeOrder.getAddress4()));
-        addressBean.setProvinceCode(StringUtils.isNotEmpty(recipeOrder.getAddress1())?recipeOrder.getAddress1()+"0000":"");
-        addressBean.setCityCode(StringUtils.isNotEmpty(recipeOrder.getAddress2())?recipeOrder.getAddress2()+"00":"");
-        addressBean.setDistrictCode(StringUtils.isNotEmpty(recipeOrder.getAddress3())?recipeOrder.getAddress3():"");
-        addressBean.setStreetAddressCode(StringUtils.isNotEmpty(recipeOrder.getStreetAddress())?recipeOrder.getStreetAddress():"");
-        addressBean.setCommunityCode(StringUtils.isNotEmpty(recipeOrder.getAddress5())?recipeOrder.getAddress5():"");
-        addressBean.setCommunityName(StringUtils.isNotEmpty(recipeOrder.getAddress5Text())?recipeOrder.getAddress5Text():"");
+        addressBean.setProvinceCode(StringUtils.isNotEmpty(recipeOrder.getAddress1()) ? recipeOrder.getAddress1() + "0000" : "");
+        addressBean.setCityCode(StringUtils.isNotEmpty(recipeOrder.getAddress2()) ? recipeOrder.getAddress2() + "00" : "");
+        addressBean.setDistrictCode(StringUtils.isNotEmpty(recipeOrder.getAddress3()) ? recipeOrder.getAddress3() : "");
+        addressBean.setStreetAddressCode(StringUtils.isNotEmpty(recipeOrder.getStreetAddress()) ? recipeOrder.getStreetAddress() : "");
+        addressBean.setCommunityCode(StringUtils.isNotEmpty(recipeOrder.getAddress5()) ? recipeOrder.getAddress5() : "");
+        addressBean.setCommunityName(StringUtils.isNotEmpty(recipeOrder.getAddress5Text()) ? recipeOrder.getAddress5Text() : "");
         pushRecipeAndOrder.setAddressBean(addressBean);
         if (null != recipeOrder.getInvoiceRecordId()) {
             InvoiceRecordDto invoiceRecordDto = invoiceRecordService.findInvoiceRecordInfo(recipeOrder.getInvoiceRecordId());
@@ -258,4 +260,15 @@ public class EnterpriseClient extends BaseClient {
         }
     }
 
+
+    public List<Date> getFTYSendTime(FTYSendTimeReqDTO ftySendTimeReqDTO) {
+        logger.info("EnterpriseClient getFTYSendTime ftySendTimeReqDTO:{}.", JSONUtils.toString(ftySendTimeReqDTO));
+        try {
+            HisResponseTO<List<Date>> ftySendTime = recipeEnterpriseService.getFTYSendTime(ftySendTimeReqDTO);
+            return getResponse(ftySendTime);
+        } catch (Exception e) {
+            logger.error("EnterpriseClient getFTYSendTime hisResponse", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
+    }
 }

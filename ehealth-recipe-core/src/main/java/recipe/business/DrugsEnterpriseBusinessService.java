@@ -7,6 +7,7 @@ import com.google.common.base.Predicate;
 import com.ngari.base.organ.model.OrganBean;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.his.recipe.mode.DrugTakeChangeReqTO;
+import com.ngari.his.recipe.mode.FTYSendTimeReqDTO;
 import com.ngari.patient.service.OrganService;
 import com.ngari.platform.recipe.mode.DrugsEnterpriseBean;
 import com.ngari.platform.recipe.mode.MedicineStationDTO;
@@ -732,7 +733,8 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
 
     @Override
     public List<Date> getFTYSendTime(FTYSendTimeReq ftySendTimeREQ) {
-        return null;
+        FTYSendTimeReqDTO ftySendTimeReqDTO = BeanCopyUtils.copyProperties(ftySendTimeREQ, FTYSendTimeReqDTO::new);
+        return enterpriseClient.getFTYSendTime(ftySendTimeReqDTO);
     }
 
     private void syncFinishOrderHandle(List<Integer> recipeIdList, RecipeOrder recipeOrder, boolean isSendFlag) {
