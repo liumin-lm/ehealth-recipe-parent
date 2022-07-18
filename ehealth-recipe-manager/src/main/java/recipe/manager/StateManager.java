@@ -173,7 +173,6 @@ public class StateManager extends BaseManager {
                 && RecipeAuditStateEnum.PENDING_REVIEW.getType().equals(recipe.getAuditState())) {
             updateRecipe.setAuditState(RecipeAuditStateEnum.NO_REVIEW.getType());
         }
-
         updateRecipe.setRecipeId(recipe.getRecipeId());
         updateRecipe.setProcessState(processState.getType());
         updateRecipe.setSubState(subState.getType());
@@ -198,9 +197,6 @@ public class StateManager extends BaseManager {
         RecipeStateEnum sub = RecipeStateEnum.SUB_SUBMIT_TEMPORARY;
         if (WriteHisEnum.WRITE_HIS_STATE_SUBMIT.getType().equals(recipe.getWriteHisState())) {
             sub = RecipeStateEnum.SUB_SUBMIT_CHECKING_HOS;
-        }
-        if (WriteHisEnum.WRITE_HIS_STATE_AUDIT.getType().equals(recipe.getWriteHisState())) {
-            sub = RecipeStateEnum.SUB_SUBMIT_HIS_FAIL;
         }
         if (SignEnum.SIGN_STATE_SUBMIT.getType().equals(recipe.getDoctorSignState())) {
             sub = RecipeStateEnum.SUB_SUBMIT_DOC_SIGN_ING;

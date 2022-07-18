@@ -1,7 +1,7 @@
 package recipe.enumerate.status;
 
 /**
- * 签名状态枚举
+ * 写入his状态枚举
  *
  * @author fuzi
  */

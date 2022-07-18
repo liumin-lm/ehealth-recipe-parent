@@ -72,15 +72,13 @@ import recipe.dao.bean.DrugInfoHisBean;
 import recipe.drugsenterprise.AccessDrugEnterpriseService;
 import recipe.drugsenterprise.CommonRemoteService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
+import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.status.WriteHisEnum;
 import recipe.hisservice.HisRequestInit;
 import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.hisservice.RecipeToHisService;
-import recipe.manager.DepartManager;
-import recipe.manager.OrderManager;
-import recipe.manager.PharmacyManager;
-import recipe.manager.RecipeTherapyManager;
+import recipe.manager.*;
 import recipe.presettle.factory.PreSettleFactory;
 import recipe.presettle.settle.IRecipeSettleService;
 import recipe.retry.RecipeRetryService;
@@ -140,6 +138,8 @@ public class RecipeHisService extends RecipeBaseService {
     private RecipeDAO recipeDAO;
     @Autowired
     private RecipeSettleClient recipeSettleClient;
+    @Autowired
+    private StateManager stateManager;
 
     /**
      * 发送处方
@@ -160,6 +160,7 @@ public class RecipeHisService extends RecipeBaseService {
         updateRecipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_CHECKING_HOS.getType());
         updateRecipe.setWriteHisState(WriteHisEnum.WRITE_HIS_STATE_SUBMIT.getType());
         recipeDAO.updateNonNullFieldByPrimaryKey(updateRecipe);
+        stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_SUBMIT, RecipeStateEnum.NONE);
         //中药处方由于不需要跟HIS交互，故读写分离后有可能查询不到数据
         if (skipHis(recipe)) {
             LOGGER.info("skip his!!! recipeId={}", recipeId);

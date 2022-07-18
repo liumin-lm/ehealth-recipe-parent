@@ -217,11 +217,11 @@ public class RecipeToHisCallbackService {
         updateRecipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_HIS_FAIL.getType());
         updateRecipe.setWriteHisState(WriteHisEnum.WRITE_HIS_STATE_AUDIT.getType());
         recipeDAO.updateNonNullFieldByPrimaryKey(updateRecipe);
-        stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_WRITE_HIS_NOT_ORDER);
         RecipeExtend recipeExtend = new RecipeExtend();
         recipeExtend.setRecipeId(recipeId);
         recipeExtend.setCancellation(response.getMsg());
         recipeExtendDAO.updateNonNullFieldByPrimaryKey(recipeExtend);
+        stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_WRITE_HIS_NOT_ORDER);
         //发送消息
         RecipeMsgService.batchSendMsg(recipeId, RecipeStatusEnum.RECIPE_STATUS_HIS_FAIL.getType());
         //复诊开方HIS确认失败 发送环信消息

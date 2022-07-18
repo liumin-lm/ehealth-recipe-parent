@@ -93,7 +93,6 @@ import recipe.audit.service.OperationPlatformRecipeService;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bussutil.RecipeUtil;
 import recipe.caNew.AbstractCaProcessType;
-import recipe.caNew.CaAfterProcessType;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.DoctorClient;
 import recipe.client.PatientClient;
@@ -201,8 +200,6 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     private CaManager caManager;
     @Autowired
     private SmsClient smsClient;
-    @Resource
-    private CaAfterProcessType caAfterProcessType;
 
     @RpcService
     @Override
