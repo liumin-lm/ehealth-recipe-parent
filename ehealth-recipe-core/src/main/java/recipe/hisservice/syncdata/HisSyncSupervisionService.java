@@ -857,7 +857,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(recipe.getGiveMode())) {
                 req.setDeliveryType("1");
                 req.setDeliverySTDate(recipe.getStartSendDate());
-                req.setDeliveryFee(order.getExpressFee().toPlainString());
+                req.setDeliveryFee(order.getExpressFee()==null?null:order.getExpressFee().toPlainString());
                 DrugsEnterprise enterprise = enterpriseDAO.get(order.getEnterpriseId());
                 if (null != enterprise) {
                     req.setDeliveryFirm(enterprise.getName());
