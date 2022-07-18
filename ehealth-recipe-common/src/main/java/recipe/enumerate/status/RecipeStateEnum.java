@@ -60,7 +60,7 @@ public enum RecipeStateEnum {
     SUB_CANCELLATION_RETURN_DRUG(94, "售药方退药", "已退药"),
     SUB_CANCELLATION_TIMEOUT_NOT_MEDICINE(95, "患者超时未取药", "患者未取药"),
     SUB_CANCELLATION_TIMEOUT_NOT_ORDER(96, "已过有效期未下单", "过期处方（未支付过期 /未处理过期）"),
-    SUB_CANCELLATION_WRITE_HIS_NOT_ORDER(97, "医院his确认失败", ""),
+    SUB_CANCELLATION_WRITE_HIS_NOT_ORDER(97, "医院his确认失败:", ""),
 
     ;
 
