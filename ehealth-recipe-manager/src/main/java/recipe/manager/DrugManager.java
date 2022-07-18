@@ -532,6 +532,12 @@ public class DrugManager extends BaseManager {
         return this.saveCommonDrug(recipeDAO.getByRecipeId(recipeId));
     }
 
+    /**
+     * 保存常用药
+     *
+     * @param recipe
+     * @return
+     */
     public Integer saveCommonDrug(Recipe recipe) {
         if (ValidateUtil.validateObjects(recipe, recipe.getClinicOrgan(), recipe.getDoctor())) {
             return null;

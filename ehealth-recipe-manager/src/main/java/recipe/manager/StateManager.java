@@ -58,7 +58,7 @@ public class StateManager extends BaseManager {
     @LogRecord
     public Boolean updateRecipeState(Integer recipeId, RecipeStateEnum processState, RecipeStateEnum subState) {
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        logger.info("StateManager updateRecipeState recipe:{}", JSON.toJSONString(recipe));
+        logger.info("StateManager updateRecipeState recipe:{},processState{}", JSON.toJSONString(recipe), processState.getType());
         if (null == recipe) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "该处方不存在");
         }
