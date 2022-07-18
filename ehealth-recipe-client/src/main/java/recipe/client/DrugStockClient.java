@@ -235,7 +235,7 @@ public class DrugStockClient extends BaseClient {
             drugInfoDTO.setOrganDrugCode(a.getOrganDrugCode());
             drugInfoDTO.setStock(stock);
             if (stock) {
-                drugInfoDTO.setStockAmount((int) Math.floor(a.getUseTotalDose()));
+                drugInfoDTO.setStockAmount((int) Math.ceil(a.getUseTotalDose()));
                 drugInfoDTO.setStockAmountChin("有库存");
             } else {
                 drugInfoDTO.setStockAmount(0);
@@ -399,7 +399,7 @@ public class DrugStockClient extends BaseClient {
             scanDrugListBean.setChannelCode(finalChannelCode);
             scanDrugListBean.setDrugCode(saleDrugLists1.get(0).getOrganDrugCode());
             scanDrugListBean.setDrugId(recipedetail.getDrugId());
-            scanDrugListBean.setTotal(String.valueOf((int) Math.floor(recipedetail.getUseTotalDose())));
+            scanDrugListBean.setTotal(String.valueOf((int) Math.ceil(recipedetail.getUseTotalDose())));
 
             OrganDrugList organDrug = organDrugMap.get(recipedetail.getDrugId());
             scanDrugListBean.setUnit(organDrug.getUnit());
