@@ -71,10 +71,7 @@ import recipe.vo.greenroom.DrugsEnterpriseVO;
 import recipe.vo.greenroom.OrganDrugsSaleConfigVo;
 import recipe.vo.greenroom.OrganEnterpriseRelationVo;
 import recipe.vo.greenroom.PharmacyVO;
-import recipe.vo.patient.AddressAreaVo;
-import recipe.vo.patient.CheckAddressReq;
-import recipe.vo.patient.CheckAddressRes;
-import recipe.vo.patient.MedicineStationVO;
+import recipe.vo.patient.*;
 import recipe.vo.second.CheckAddressVo;
 import recipe.vo.second.CheckOrderAddressVo;
 import recipe.vo.second.enterpriseOrder.EnterpriseConfirmOrderVO;
@@ -731,6 +728,11 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
             return flag;
         }
         return flag;
+    }
+
+    @Override
+    public List<Date> getFTYSendTime(FTYSendTimeReq ftySendTimeREQ) {
+        return null;
     }
 
     private void syncFinishOrderHandle(List<Integer> recipeIdList, RecipeOrder recipeOrder, boolean isSendFlag) {

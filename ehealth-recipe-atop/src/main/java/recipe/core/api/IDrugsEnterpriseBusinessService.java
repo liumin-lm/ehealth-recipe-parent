@@ -15,6 +15,7 @@ import recipe.vo.greenroom.OrganEnterpriseRelationVo;
 import recipe.vo.greenroom.PharmacyVO;
 import recipe.vo.patient.CheckAddressReq;
 import recipe.vo.patient.CheckAddressRes;
+import recipe.vo.patient.FTYSendTimeReq;
 import recipe.vo.patient.MedicineStationVO;
 import recipe.vo.second.CheckAddressVo;
 import recipe.vo.second.CheckOrderAddressVo;
@@ -23,6 +24,7 @@ import recipe.vo.second.enterpriseOrder.EnterpriseDrugVO;
 import recipe.vo.second.enterpriseOrder.EnterpriseResultBean;
 import recipe.vo.second.enterpriseOrder.EnterpriseSendOrderVO;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -263,4 +265,11 @@ public interface IDrugsEnterpriseBusinessService {
      * @return
      */
     Integer checkSendAddressForOrder(CheckOrderAddressVo checkAddressVo);
+
+    /**
+     * 腹透液配送时间获取
+     * @param ftySendTimeREQ
+     * @return
+     */
+    List<Date> getFTYSendTime(FTYSendTimeReq ftySendTimeREQ);
 }

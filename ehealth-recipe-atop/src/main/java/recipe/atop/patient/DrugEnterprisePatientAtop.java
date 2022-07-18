@@ -11,9 +11,11 @@ import recipe.core.api.IStockBusinessService;
 import recipe.vo.greenroom.OrganDrugsSaleConfigVo;
 import recipe.vo.patient.CheckAddressReq;
 import recipe.vo.patient.CheckAddressRes;
+import recipe.vo.patient.FTYSendTimeReq;
 import recipe.vo.patient.MedicineStationVO;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -83,5 +85,16 @@ public class DrugEnterprisePatientAtop extends BaseAtop {
     public OrganDrugsSaleConfig getOrganDrugsSaleConfigOfPatient(Integer organId , Integer drugsEnterpriseId){
         validateAtop(drugsEnterpriseId);
         return enterpriseBusinessService.getOrganDrugsSaleConfigOfPatient(organId, drugsEnterpriseId);
+    }
+
+    /**
+     * 腹透液配送时间获取
+     * @param ftySendTimeREQ
+     * @return
+     */
+    @RpcService
+    public List<Date> getFTYSendTime(FTYSendTimeReq ftySendTimeREQ){
+        validateAtop(ftySendTimeREQ,ftySendTimeREQ.getOrganId(),ftySendTimeREQ.getProvince(),ftySendTimeREQ.getCity(),ftySendTimeREQ.getDistrict(),ftySendTimeREQ.getStartDate(),ftySendTimeREQ.getEndDate());
+        return enterpriseBusinessService.getFTYSendTime(ftySendTimeREQ);
     }
 }
