@@ -39,5 +39,7 @@ sendRecipeToHIS->recipeStatusToHis(MQ发送消息)->HisMQService.recordRecipeTmp
 findRecipesForPatientAndTabStatusNew 患者端列表展示
 getPatientRecipeById 患者端处方详情
 药师CA异步回调：retryCaPharmacistCallBackToRecipe
+门诊处方药品说明书：recipeaudit.prescriptionService getDrugSpecificationV1
+门诊处方用药指导：recipe.outRecipePatientAtop getMedicationGuide
 ```
 ### End
