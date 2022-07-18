@@ -135,7 +135,17 @@ public class DrugDoctorAtop extends BaseAtop {
         if (null == result) {
             return new ArrayList<>();
         }
-        return ObjectCopyUtils.convert(result.getDrugInfoList(), DrugStockVO.class);
+        List<DrugStockVO> list = ObjectCopyUtils.convert(result.getDrugInfoList(), DrugStockVO.class);
+        Map<String, String> detailUnitMap;
+        try {
+            detailUnitMap = drugQueryVO.getRecipeDetails().stream().collect(Collectors.toMap(RecipeDetailBean::getOrganDrugCode, RecipeDetailBean::getShowUnit));
+        } catch (Exception e) {
+            detailUnitMap = new HashMap<>();
+        }
+        for (DrugStockVO drug : list) {
+            drug.setShowUnit(detailUnitMap.get(drug.getOrganDrugCode()));
+        }
+        return list;
     }
 
     /**
