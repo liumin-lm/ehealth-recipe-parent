@@ -294,7 +294,7 @@ public class HisRecipeManager extends BaseManager {
             HisRecipeDataDel hisRecipeDataDel = new HisRecipeDataDel();
             List<HisRecipe> hisRecipes = hisRecipeDao.findHisRecipeByhisRecipeIds(hisRecipeIds);
             List<HisRecipeExt> hisRecipeExts = hisRecipeExtDAO.findHisRecipeByhisRecipeIds(hisRecipeIds);
-            List<HisRecipeDetail> hisRecipeDetails = hisRecipeDetailDAO.findByHisRecipeIds(hisRecipeIds);
+            List<HisRecipeDetail> hisRecipeDetails = hisRecipeDetailDAO.findNoPayByHisRecipeIds(hisRecipeIds);
             Map<Integer, List<HisRecipeExt>> hisRecipeExtsMap = hisRecipeExts.stream().collect(Collectors.groupingBy(HisRecipeExt::getHisRecipeId));
             Map<Integer, List<HisRecipeDetail>> hisRecipeDetailsMap = hisRecipeDetails.stream().collect(Collectors.groupingBy(HisRecipeDetail::getHisRecipeId));
             Map<String, Recipe> recipeListMap = recipeList.stream().collect(Collectors.toMap(k -> k.getRecipeCode() + k.getClinicOrgan(), a -> a, (k1, k2) -> k1));

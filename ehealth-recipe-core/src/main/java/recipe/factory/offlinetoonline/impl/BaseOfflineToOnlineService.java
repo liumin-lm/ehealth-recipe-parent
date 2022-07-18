@@ -260,12 +260,11 @@ public class BaseOfflineToOnlineService {
     List<MergeRecipeVO> listShow(List<HisRecipeListBean> hisRecipeListBeans, Integer organId, String mpiId, GiveModeButtonDTO giveModeButtonBean, Integer start, Integer limit) {
         LOGGER.info("BaseOfflineToOnlineService listShow hisRecipeListBeans:{},organId:{},mpiId:{},giveModeButtonBean:{}", JSONUtils.toString(hisRecipeListBeans), organId, mpiId, JSONUtils.toString(giveModeButtonBean));
         List<MergeRecipeVO> result = new ArrayList<>();
+        //处理过的recipeId
         Set<Integer> recipeIds = new HashSet<>();
-
         Map<String, List<HisRecipeListBean>> hisRecipeListBeanMap = hisRecipeListBeans.stream().filter(hisRecipeListBean -> hisRecipeListBean.getOrderCode() != null).collect(Collectors.groupingBy(HisRecipeListBean::getOrderCode));
         Map<Integer, List<Recipe>> recipeMap = getRecipeMap(hisRecipeListBeans);
         Map<String, List<RecipeOrder>> recipeOrderMap = getRecipeOrderMap(hisRecipeListBeanMap.keySet());
-
         // 获取合并处方显示配置项
         GroupRecipeConfDTO groupRecipeConfDTO = groupRecipeManager.getMergeRecipeSetting();
         String mergeRecipeWay = groupRecipeConfDTO.getMergeRecipeWayAfter();
@@ -282,13 +281,14 @@ public class BaseOfflineToOnlineService {
                     // 慢病名称
                     grpupField = hisRecipeListBean.getChronicDiseaseName();
                 }
-
+                //门诊缴费
                 if (StringUtils.isEmpty(orderCode)) {
                     HisRecipeVO hisRecipeVO = ObjectCopyUtils.convert(hisRecipeListBean, HisRecipeVO.class);
                     setOtherInfo(hisRecipeVO, mpiId, hisRecipeListBean.getRecipeCode(), organId);
                     recipeIds.add(hisRecipeVO.getHisRecipeID());
                     hisRecipeVos.add(hisRecipeVO);
                 } else {
+                    //线上支付 订单维度
                     List<HisRecipeListBean> hisRecipeListBeansList = hisRecipeListBeanMap.get(orderCode);
                     List<RecipeOrder> recipeOrders = recipeOrderMap.get(orderCode);
                     RecipeOrder recipeOrder = null;
@@ -357,7 +357,14 @@ public class BaseOfflineToOnlineService {
             mergeRecipeVO.setGroupField(grpupFiled);
             mergeRecipeVO.setMergeRecipeFlag(mergeRecipeFlag);
             mergeRecipeVO.setMergeRecipeWay(mergeRecipeWay);
-            mergeRecipeVO.setRecipe(recipes);
+            if(CollectionUtils.isNotEmpty(recipes)){
+                recipes.forEach(recipe->{
+                    if(StringUtils.isNotEmpty(recipe.getRegisteredId())&&recipe.getRegisteredId().contains("noMerge")){
+                        recipe.setRegisteredId(recipe.getRegisteredId().replace("noMerge",""));
+                    }
+                });
+                mergeRecipeVO.setRecipe(recipes);
+            }
             mergeRecipeVO.setFirstRecipeId(firstRecipeId);
             mergeRecipeVO.setListSkipType(listSkipType);
             result.add(mergeRecipeVO);
@@ -365,6 +372,9 @@ public class BaseOfflineToOnlineService {
             for (HisRecipeVO hisRecipeVO : recipes) {
                 MergeRecipeVO mergeRecipeVO = new MergeRecipeVO();
                 mergeRecipeVO.setMergeRecipeFlag(mergeRecipeFlag);
+                if(StringUtils.isNotEmpty(hisRecipeVO.getRegisteredId())&&hisRecipeVO.getRegisteredId().contains("noMerge")){
+                    hisRecipeVO.setRegisteredId(hisRecipeVO.getRegisteredId().replace("noMerge",""));
+                }
                 mergeRecipeVO.setRecipe(Arrays.asList(hisRecipeVO));
                 mergeRecipeVO.setListSkipType(listSkipType);
                 result.add(mergeRecipeVO);
@@ -375,14 +385,14 @@ public class BaseOfflineToOnlineService {
 
 
     private Map<Integer, List<Recipe>> getRecipeMap(List<HisRecipeListBean> hisRecipeListByMpiIds) {
-        Set<Integer> recipes = hisRecipeListByMpiIds.stream().filter(hisRecipeListBean -> hisRecipeListBean.getRecipeId() != null).collect(Collectors.groupingBy(HisRecipeListBean::getRecipeId)).keySet();
-        if (CollectionUtils.isEmpty(recipes)) {
+        Set<Integer> recipeIds = hisRecipeListByMpiIds.stream().filter(hisRecipeListBean -> hisRecipeListBean.getRecipeId() != null).collect(Collectors.groupingBy(HisRecipeListBean::getRecipeId)).keySet();
+        if (CollectionUtils.isEmpty(recipeIds)) {
             return null;
         }
-        List<Recipe> byRecipes = recipeDAO.findByRecipeIds(recipes);
+        List<Recipe> recipesDb = recipeDAO.findByRecipeIds(recipeIds);
         Map<Integer, List<Recipe>> collect = null;
-        if (CollectionUtils.isNotEmpty(byRecipes)) {
-            collect = byRecipes.stream().collect(Collectors.groupingBy(Recipe::getRecipeId));
+        if (CollectionUtils.isNotEmpty(recipesDb)) {
+            collect = recipesDb.stream().collect(Collectors.groupingBy(Recipe::getRecipeId));
         }
         return collect;
     }
@@ -1296,7 +1306,7 @@ public class BaseOfflineToOnlineService {
         //获取未处理的线下处方Ids，用来获取线下处方详情
         List<Integer> hisRecipeIds = hisRecipeList.stream().map(HisRecipe::getHisRecipeID).distinct().collect(Collectors.toList());
         //获取未处理的线下处方详情
-        List<HisRecipeDetail> hisRecipeDetailList = hisRecipeDetailDAO.findByHisRecipeIds(hisRecipeIds);
+        List<HisRecipeDetail> hisRecipeDetailList = hisRecipeDetailDAO.findNoPayByHisRecipeIds(hisRecipeIds);
         LOGGER.info("hisRecipeInfoCheck hisRecipeDetailList = {}", JSONUtils.toString(hisRecipeDetailList));
         //诊断变更，更新诊断
         hisRecipeManager.updateDisease(hisRecipeTo, recipeList, hisRecipeMap);

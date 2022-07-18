@@ -397,7 +397,7 @@ public class PurchaseService {
             List<Integer> hisRecipeIds = new ArrayList<>();
             Map<String, HisRecipe> hisRecipeMap = new HashMap<>();
             hisRecipeIds.add(hisRecipe.getHisRecipeID());
-            List<HisRecipeDetail> hisRecipeDetailList = hisRecipeDetailDAO.findByHisRecipeIds(hisRecipeIds);
+            List<HisRecipeDetail> hisRecipeDetailList = hisRecipeDetailDAO.findNoPayByHisRecipeIds(hisRecipeIds);
             hisRecipeMap.put(hisRecipe.getRecipeCode(), hisRecipe);
             Set<String> deleteSetRecipeCode = hisRecipeManager.obtainDeleteRecipeCodes(hisRecipeInfos.getData(), hisRecipeMap, hisRecipeDetailList, dbRecipe.getMpiid());
             if (!CollectionUtils.isEmpty(deleteSetRecipeCode)) {
