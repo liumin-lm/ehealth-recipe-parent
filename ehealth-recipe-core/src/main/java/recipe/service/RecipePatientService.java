@@ -56,6 +56,7 @@ import recipe.core.api.patient.IOfflineRecipeBusinessService;
 import recipe.core.api.patient.IPatientBusinessService;
 import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
+import recipe.enumerate.status.RecipeSourceTypeEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.*;
 import recipe.hisservice.RecipeToHisService;
@@ -117,6 +118,8 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
     private EmrRecipeManager emrRecipeManager;
     @Autowired
     private RecipeDAO recipeDAO;
+    @Autowired
+    private RecipeOrderDAO recipeOrderDAO;
 
     /**
      * 根据取药方式过滤药企
@@ -913,13 +916,29 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
 
     /**
      * 是否有待处理处方
-     * @param mpiId
+     * @param orderId
      * @return
      */
     @Override
-    public Boolean isHaveReadyRecipeFlag(String mpiId) {
-        List<Recipe> recipeList = recipeDAO.findRecipeByMpiId(mpiId);
-        if (CollectionUtils.isNotEmpty(recipeList)) {
+    public Boolean getReadyRecipeFlag(Integer orderId) {
+        //获取该订单对应的处方
+        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderId(orderId);
+        if (null == recipeOrder) {
+            return false;
+        }
+        String orderCode = recipeOrder.getOrderCode();
+        List<Recipe> recipeList = recipeDAO.findByOrderCode(Arrays.asList(orderCode));
+        //查询是否为线下处方单
+        if (CollectionUtils.isEmpty(recipeList)) {
+            return false;
+        }
+        Recipe recipe = recipeList.get(0);
+        if (null != recipe && RecipeSourceTypeEnum.OFFLINE_RECIPE.getType().equals(recipe.getRecipeSourceType())) {
+            return false;
+        }
+        String mpiId = recipeOrder.getMpiId();
+        List<Recipe> recipes = recipeDAO.findRecipeByMpiId(mpiId);
+        if (CollectionUtils.isNotEmpty(recipes)) {
             return true;
         }
         return false;
