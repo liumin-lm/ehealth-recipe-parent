@@ -14,11 +14,13 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.common.CommonConstant;
 import recipe.common.response.CommonResponse;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDAO;
+import recipe.manager.OrganManager;
 import recipe.service.RecipeLogService;
 import recipe.util.DateConversion;
 
@@ -43,6 +45,9 @@ public class SyncExecutorService {
 
     private static final String REGULATION_GD = "gdsjgpt";
 
+    @Autowired
+    private OrganManager organManager;
+
     /**
      * 上传核销信息
      * @param recipeId
@@ -58,16 +63,25 @@ public class SyncExecutorService {
         CommonResponse response = null;
         HisSyncSupervisionService hisSyncService = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
         try {
-            response = hisSyncService.uploadRecipeVerificationIndicators(Arrays.asList(recipe));
-            if (CommonConstant.SUCCESS.equals(response.getCode())){
-                //记录日志
-                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(),
-                        recipe.getStatus(), "监管平台上传核销信息成功");
-                LOGGER.info("uploadRecipeVerificationIndicators execute success. recipeId={}", recipe.getRecipeId());
-            } else{
-                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(),
-                        recipe.getStatus(), "监管平台上传核销信息失败,"+response.getMsg());
-                LOGGER.warn("uploadRecipeVerificationIndicators execute error. recipe={}", JSONUtils.toString(recipe));
+            //false纳里环境(Regulation有值)    true浙江省互联网监管平台环境（Regulation无数据）
+            IHisServiceConfigService configService = AppDomainContext.getBean("his.hisServiceConfig", IHisServiceConfigService.class);
+            Boolean regulationEnv=configService.getRegulationFlag();
+
+            Boolean isRelationJgpt=organManager.isRelationJgpt(recipe.getClinicOrgan());
+            LOGGER.info("uploadRecipeVerificationIndicators recipeId={},isRelationJgpt={},regulationEnv={}",recipeId,isRelationJgpt,regulationEnv);
+
+            if( isRelationJgpt || regulationEnv ){
+                response = hisSyncService.uploadRecipeVerificationIndicators(Arrays.asList(recipe));
+                if (CommonConstant.SUCCESS.equals(response.getCode())){
+                    //记录日志
+                    RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(),
+                            recipe.getStatus(), "监管平台上传核销信息成功");
+                    LOGGER.info("uploadRecipeVerificationIndicators execute success. recipeId={}", recipe.getRecipeId());
+                } else{
+                    RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(),
+                            recipe.getStatus(), "监管平台上传核销信息失败,"+response.getMsg());
+                    LOGGER.warn("uploadRecipeVerificationIndicators execute error. recipe={}", JSONUtils.toString(recipe));
+                }
             }
         } catch (Exception e) {
             LOGGER.error("uploadRecipeVerificationIndicators exception recipe={}", JSONUtils.toString(recipe), e);

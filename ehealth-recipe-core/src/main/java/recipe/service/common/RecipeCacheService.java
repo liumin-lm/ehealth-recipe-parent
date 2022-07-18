@@ -95,6 +95,28 @@ public class RecipeCacheService {
     }
 
     /**
+     * 刷新 recipe_parameter 表的数据，缓存保持一周
+     * @param field
+     * @return
+     */
+    @RpcService
+    public String reloadRecipeParam(String field) {
+        LOGGER.info("recipeCacheService reloadRecipeParam field={}", field);
+        if (StringUtils.isEmpty(field)) {
+            return "";
+        }
+
+        RecipeParameterDao parameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
+        String val = parameterDao.getByName(field);
+        if (StringUtils.isNotEmpty(val)) {
+            redisClient.hsetEx(CacheConstant.RECIPE_CACHE_KEY, field, val, 7 * 24 * 3600L);
+        }
+
+        //缓存获取
+        return redisClient.hget(CacheConstant.RECIPE_CACHE_KEY, field);
+    }
+
+    /**
      * 获取临时缓存数据，默认一天失效
      * @param key
      * @return

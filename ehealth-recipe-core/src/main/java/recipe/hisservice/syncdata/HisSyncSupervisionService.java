@@ -63,11 +63,14 @@ import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.CommonRemoteService;
+import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.SettlementModeTypeEnum;
 import recipe.hisservice.EleInvoiceService;
 import recipe.manager.EmrRecipeManager;
+import recipe.manager.OrganManager;
 import recipe.service.RecipeExtendService;
+import recipe.service.RecipeLogService;
 import recipe.service.RecipeService;
 import recipe.service.SymptomService;
 import recipe.util.ByteUtils;
@@ -117,6 +120,10 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
     private DepartmentService departmentService;
     @Autowired
     private IRegulationUploadMsgResultService iRegulationUploadMsgResultService;
+
+    @Autowired
+    private OrganManager organManager;
+
     /**
      * logger
      */
@@ -1266,18 +1273,13 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             Recipe recipe = recipeDAO.get(recipeIds.get(0));
             try {
                 if (null != recipe && order != null) {
-                    IHisServiceConfigService configService = AppDomainContext.getBean("his.hisServiceConfig", IHisServiceConfigService.class);
-                    //获取所有监管平台机构列表
-                    List<ServiceConfigResponseTO> serviceConfigResponseTOS = configService.findAllRegulationOrgan();
-                    if (CollectionUtils.isEmpty(serviceConfigResponseTOS)) {
-                        LOGGER.warn("uploadRecipePayToRegulation  regulationOrganList is null.");
-                        return;
+
+                    Boolean isRelationJgpt=organManager.isRelationJgpt(recipe.getClinicOrgan());
+                    if (!isRelationJgpt) {
+                        LOGGER.warn("pakRegulationSendMedicineReq organId={},isRelationJgpt={},没有关联监管平台或关联了不上传的监管平台", recipe.getClinicOrgan(),isRelationJgpt);
+                        return ;
                     }
-                    List<Integer> organList = serviceConfigResponseTOS.stream().map(ServiceConfigResponseTO::getOrganid).collect(Collectors.toList());
-                    if (!organList.contains(recipe.getClinicOrgan())) {
-                        LOGGER.warn("uploadRecipePayToRegulation organId={},没有关联监管平台", recipe.getClinicOrgan());
-                        return;
-                    }
+
                     RegulationOutpatientPayReq req = new RegulationOutpatientPayReq();
                     //留着兼容
                     req.setRecipeId(recipe.getRecipeId());
@@ -1411,6 +1413,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
     public CommonResponse uploadSendMedicine(Integer recipeId) {
         CommonResponse commonResponse = ResponseUtils.getFailResponse(CommonResponse.class, "");
         try {
+            //组装参数(已判断recipe是否为空，监管平台是否关联)
             RegulationSendMedicineReq req = pakRegulationSendMedicineReq(recipeId);
             if (null == req) {
                 return commonResponse;
@@ -1423,11 +1426,19 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             LOGGER.info("调用regulation接口，上传派药信息，res = {}", JSONUtils.toString(hisResponseTO));
 
 
-            if (hisResponseTO.isSuccess()) {
+            RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
+            Recipe recipe = recipeDAO.get(recipeId);
+
+            if (hisResponseTO!=null && hisResponseTO.isSuccess()) {
                 commonResponse.setCode(CommonConstant.SUCCESS);
+                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), RecipeOrderStatusEnum.ORDER_STATUS_PROCEED_SHIPPING.getType(),
+                        "监管平台配送信息[派药]上传成功");
             } else {
-                commonResponse.setMsg(hisResponseTO.getMsg());
+                commonResponse.setMsg(hisResponseTO==null?"res=null":hisResponseTO.getMsg());
+                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), RecipeOrderStatusEnum.ORDER_STATUS_PROCEED_SHIPPING.getType(),
+                        "监管平台配送信息[派药]上传失败：" + commonResponse.getMsg());
             }
+
 
         } catch (Exception e) {
             LOGGER.error("调用regulation接口，上传派药信息，busId = {}", recipeId, e);
@@ -1444,6 +1455,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
     public CommonResponse uploadFinishMedicine(Integer recipeId) {
         CommonResponse commonResponse = ResponseUtils.getFailResponse(CommonResponse.class, "");
         try {
+            //组装参数(已判断recipe是否为空，监管平台是否关联)
             RegulationSendMedicineReq req = pakRegulationSendMedicineReq(recipeId);
             if (null == req) {
                 return commonResponse;
@@ -1453,11 +1465,17 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             HisResponseTO hisResponseTO = regulationService.uploadFinishMedicine(Integer.valueOf(req.getOrganId()), req);
             LOGGER.info("调用regulation接口，上传[配送到家-处方完成]信息，res = {}", JSONUtils.toString(hisResponseTO));
 
+            RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
+            Recipe recipe = recipeDAO.get(recipeId);
 
-            if (hisResponseTO.isSuccess()) {
+            if (hisResponseTO!=null && hisResponseTO.isSuccess()) {
                 commonResponse.setCode(CommonConstant.SUCCESS);
+                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), RecipeStatusEnum.RECIPE_STATUS_FINISH.getType(),
+                        "监管平台配送信息[配送到家-处方完成]上传成功");
             } else {
-                commonResponse.setMsg(hisResponseTO.getMsg());
+                commonResponse.setMsg(hisResponseTO==null?"res=null":hisResponseTO.getMsg());
+                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), RecipeStatusEnum.RECIPE_STATUS_FINISH.getType(),
+                        "监管平台配送信息[配送到家-处方完成]上传失败：" + commonResponse.getMsg());
             }
         } catch (Exception e) {
             LOGGER.error("组装参数pakRegulationSendMedicineReq报错，busId = {}", recipeId, e);
@@ -1671,16 +1689,10 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
 
             RecipeOrder order = recipeOrderDAO.getByOrderCode(orderCode);
             if (null != recipe && order != null) {
-                IHisServiceConfigService configService = AppDomainContext.getBean("his.hisServiceConfig", IHisServiceConfigService.class);
                 //获取所有监管平台机构列表
-                List<ServiceConfigResponseTO> serviceConfigResponseTOS = configService.findAllRegulationOrgan();
-                if (CollectionUtils.isEmpty(serviceConfigResponseTOS)) {
-                    LOGGER.warn("pakRegulationSendMedicineReq  regulationOrganList is null.");
-                    return null;
-                }
-                List<Integer> organList = serviceConfigResponseTOS.stream().map(ServiceConfigResponseTO::getOrganid).collect(Collectors.toList());
-                if (!organList.contains(recipe.getClinicOrgan())) {
-                    LOGGER.warn("pakRegulationSendMedicineReq organId={},没有关联监管平台", recipe.getClinicOrgan());
+                Boolean isRelationJgpt=organManager.isRelationJgpt(recipe.getClinicOrgan());
+                if (!isRelationJgpt) {
+                    LOGGER.warn("pakRegulationSendMedicineReq organId={},isRelationJgpt={},没有关联监管平台或关联了不上传的监管平台", recipe.getClinicOrgan(),isRelationJgpt);
                     return null;
                 }
 

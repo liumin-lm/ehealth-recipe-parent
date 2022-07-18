@@ -10,6 +10,7 @@ import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
+import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -96,9 +97,7 @@ public class HomeDeliveryImpl extends AbstractGiveMode {
             //监管平台上传配送信息(配送到家-处方完成)
             RecipeBusiThreadPool.execute(() -> {
                 HisSyncSupervisionService hisSyncService = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
-                CommonResponse response = hisSyncService.uploadFinishMedicine(recipeId);
-                RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusEnum.RECIPE_STATUS_FINISH.getType(),
-                        "监管平台配送信息[完成]上传code" + response.getCode() + ",msg:" + response.getMsg());
+                hisSyncService.uploadFinishMedicine(recipeId);
             });
         }
 

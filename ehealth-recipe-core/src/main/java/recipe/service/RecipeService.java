@@ -244,7 +244,10 @@ public class RecipeService extends RecipeBaseService {
     private DrugManager drugManager;
     @Resource
     private CaManager caManager;
-   
+    @Autowired
+    private OrganManager organManager;
+
+
     /**
      * 药师审核不通过
      */
@@ -3824,23 +3827,31 @@ public class RecipeService extends RecipeBaseService {
      **/
     @RpcService
     public void patientRefundForRecipe(int recipeId) {
+        //退款
         wxPayRefundForRecipe(5, recipeId, "患者手动申请退款");
 
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
 
+        //上传监管平台
         CommonResponse response = null;
         HisSyncSupervisionService hisSyncService = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
+        Boolean isRelationJgpt=recipe!=null && organManager.isRelationJgpt(recipe.getClinicOrgan());
+        LOGGER.info("patientRefundForRecipe recipeId={} isRelationJgpt={}",recipe.getRecipeId(),isRelationJgpt);
         try {
-            response = hisSyncService.uploadRecipeVerificationIndicators(Arrays.asList(recipe));
-            if (CommonConstant.SUCCESS.equals(response.getCode())) {
-                //记录日志
-                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "监管平台上传处方退款信息成功");
-                LOGGER.info("patientRefundForRecipe execute success. recipeId={}", recipe.getRecipeId());
-            } else {
-                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "监管平台上传处方退款信息失败," + response.getMsg());
-                LOGGER.warn("patientRefundForRecipe execute error. recipe={}", JSONUtils.toString(recipe));
+
+            if( isRelationJgpt ){
+                response = hisSyncService.uploadRecipeVerificationIndicators(Arrays.asList(recipe));
+                if (CommonConstant.SUCCESS.equals(response.getCode())) {
+                    //记录日志
+                    RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "监管平台上传处方退款信息成功");
+                    LOGGER.info("patientRefundForRecipe execute success. recipeId={}", recipe.getRecipeId());
+                } else {
+                    RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "监管平台上传处方退款信息失败," + response.getMsg());
+                    LOGGER.warn("patientRefundForRecipe execute error. recipe={}", JSONUtils.toString(recipe));
+                }
             }
+
         } catch (Exception e) {
             LOGGER.warn("patientRefundForRecipe exception recipe={}", JSONUtils.toString(recipe), e);
         }
