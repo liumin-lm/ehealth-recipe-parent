@@ -116,7 +116,17 @@ public interface IRecipeAtopService {
      * @param subState
      * @return
      */
+    @RpcService(mvcDisabled = true)
     Boolean updateRecipeState(Integer recipeId, Integer processState, Integer subState);
+
+    /**
+     * 更新药师的签名状态
+     * @param recipeId
+     * @param checkerSignState
+     * @return
+     */
+    @RpcService(mvcDisabled = true)
+    Boolean updateCheckerSignState(Integer recipeId, Integer checkerSignState);
 
     /**
      * 根据his处方号和挂号序号机构查询处方
@@ -207,4 +217,22 @@ public interface IRecipeAtopService {
      */
     @RpcService(mvcDisabled = true)
     void pharmacyToRecipePDFAndCa(Integer recipeId, Integer checker);
+
+
+    /**
+     * 方便门诊购物车删除
+     *
+     * @param ids
+     * @return
+     */
+    @RpcService(mvcDisabled = true)
+    Boolean deleteClinicCartByIds(List<Integer> ids);
+
+
+    /**
+     * 根据mpiid,recipeStatus获取处方  自助机用
+     */
+    @RpcService
+    List<RecipeBean> findRecipeByMpiidAndrecipeStatus(String mpiid, List<Integer> recipeStatus,Integer terminalType,Integer organId);
+
 }

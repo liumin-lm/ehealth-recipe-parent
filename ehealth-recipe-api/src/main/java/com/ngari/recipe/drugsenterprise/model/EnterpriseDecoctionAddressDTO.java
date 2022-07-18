@@ -2,6 +2,7 @@ package com.ngari.recipe.drugsenterprise.model;
 
 import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
+import ctd.schema.annotation.Schema;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -14,7 +15,11 @@ import java.io.Serializable;
  */
 @Getter
 @Setter
+@Schema
 public class EnterpriseDecoctionAddressDTO implements Serializable {
+
+    @ItemProperty(alias = "药企地址序号")
+    private Integer id;
 
     @ItemProperty(alias = "药企序号")
     private Integer enterpriseId;

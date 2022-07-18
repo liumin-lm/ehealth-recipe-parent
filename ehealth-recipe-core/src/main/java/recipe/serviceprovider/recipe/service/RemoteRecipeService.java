@@ -2130,7 +2130,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     /**
      * ca回调：医生
      *
-     * @param caSignResultVo
+     * @param caSignResultVo ca端回调入参
      */
     @LogRecord
     @RpcService
@@ -2151,16 +2151,10 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         List<Recipedetail> details = recipeDetailDAO.findByRecipeId(recipeId);
         try {
             if (Integer.valueOf(200).equals(resultVo.getCode())) {
-                //非使用平台CA模式的使用返回中的PdfBase64生成pdf文件
-                String fileId = null;
-                RecipeServiceEsignExt.saveSignRecipePDFCA(resultVo.getPdfBase64(), recipeId, null, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), true, fileId);
-                resultVo.setFileId(fileId);
-                //todo 这里判断特指ca前置？
-                if (CA_NEW_TYPE.equals(caType)) {
-                    createPdfFactory.updateDoctorNamePdf(recipe);
-                } else {
+                RecipeServiceEsignExt.saveSignRecipePDFCA(null, recipeId, null, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), true, null);
+                if (!CA_NEW_TYPE.equals(caType)) {
                     //老流程保存sign，新流程已经移动至CA保存 /保存签名值、时间戳、电子签章文件
-                    caManager.oldCaCallBack(recipe, details, resultVo, true);
+                    caManager.oldCaCallBack(recipe, details, resultVo, true, resultVo.getPdfBase64());
                 }
             } else {
                 smsClient.pushMsgData2OnsExtendValue(recipe.getRecipeId(), recipe.getDoctor());
@@ -2199,6 +2193,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "当前签名处方签名成功");
         stateManager.updateStatus(recipeId, RecipeStatusEnum.RECIPE_STATUS_SIGN_SUCCESS_CODE_DOC, SignEnum.SIGN_STATE_ORDER);
         stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_SUBMIT, RecipeStateEnum.NONE);
+        createPdfFactory.updateDoctorNamePdf(recipe, resultVo.getPdfBase64());
         RecipeBean recipeBean = getByRecipeId(recipeId);
         List<RecipeDetailBean> detailBeanList = ObjectCopyUtils.convert(details, RecipeDetailBean.class);
         AbstractCaProcessType.getCaProcessFactory(recipeBean.getClinicOrgan()).signCAAfterRecipeCallBackFunction(recipeBean, detailBeanList);
@@ -2220,6 +2215,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     }
 
 
+    @LogRecord
     private CaSignResultVo makeCaSignResultVoFromCABean(CaSignResultUpgradeBean resultVo) {
         CaSignResultVo caSignResultVo = new CaSignResultVo();
         caSignResultVo.setResultCode(resultVo.getResultStatus());

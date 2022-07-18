@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
+import recipe.aop.LogRecord;
 import recipe.constant.CacheConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.util.LocalStringUtil;
@@ -32,12 +33,22 @@ public class RecipeConfigService {
     @Autowired
     private RedisClient redisClient;
 
+    @Autowired
+    private IConfigurationCenterUtilsService configService;
+
+    private String ZL_YS = "1";
+
+    private String NL_YS = "2";
+
+
     /**
      *  根据APPKEY获取处方流转模式
+     *  老版本调用
      * @param appKey
      * @return
      */
     @RpcService
+    @LogRecord
     public String getRecipeMode(String appKey){
         //配置key:recipeCirculationMode
         String val = RecipeBussConstant.RECIPEMODE_NGARIHEALTH;
@@ -63,7 +74,6 @@ public class RecipeConfigService {
                     LOG.warn("getRecipeMode clientConfigDTO is null. appKey={}", appKey);
                     return val;
                 }
-                IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
                 Object obj;
                 if("PC".equals(clientConfigDTO.getType())){
                     //5---pc端配置  2----app端配置
@@ -84,4 +94,30 @@ public class RecipeConfigService {
         return val;
     }
 
+    /**
+     *  根据APPKEY、organId获取处方流转模式
+     * @param appKey
+     * @return
+     */
+    @RpcService
+    @LogRecord
+    public String getRecipeModeByAppKeyAndOrganId(String appKey,Integer organId) {
+        String val = "";
+        if (organId == null) {
+            return getRecipeMode(appKey);
+        }
+        Integer recipeModeRadioConfig = (Integer) configService.getConfiguration(organId, "recipeModeRadioConfig");
+        LOG.info("getRecipeModeByAppKeyAndOrganId recipeModeRadioConfig:{}",JSONUtils.toString(recipeModeRadioConfig));
+        //"options":{ "0":"无", "1":"浙里平台模式", "2":"纳里平台模式" }
+        if (ZL_YS.equals(recipeModeRadioConfig)) {
+            val = RecipeBussConstant.RECIPEMODE_ZJJGPT;
+            return val;
+        } else if (NL_YS.equals(recipeModeRadioConfig)) {
+            val = RecipeBussConstant.RECIPEMODE_NGARIHEALTH;
+            return val;
+        } else {
+            return getRecipeMode(appKey);
+
+        }
+    }
 }

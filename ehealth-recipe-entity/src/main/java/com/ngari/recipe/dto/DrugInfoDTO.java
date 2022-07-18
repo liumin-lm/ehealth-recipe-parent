@@ -53,4 +53,9 @@ public class DrugInfoDTO {
      * 药品适用业务 历史数据默认 1    1-药品处方 2-诊疗处方  保存方式类似  1,2
      */
     private String applyBusiness;
+
+    /**
+     * 药物使用总数量
+     */
+    private String useTotalDose;
 }

@@ -397,14 +397,15 @@ public class RecipeSignService {
             }
             //第三步校验库存
             Integer appointEnterpriseType = recipeBean.getRecipeExtend().getAppointEnterpriseType();
-            if ((continueFlag == 0 || continueFlag == 4) && ValidateUtil.integerIsEmpty(appointEnterpriseType)) {
-                rMap = drugEnterpriseBusinessService.enterpriseStock(recipeBean.getRecipeId());
+            if ((continueFlag == 0 || continueFlag == 4) && ValidateUtil.integerIsEmpty(appointEnterpriseType)
+                    && ValidateUtil.integerIsEmpty(recipeBean.getVersion())) {
+                rMap = drugEnterpriseBusinessService.enterpriseStockMap(recipeBean.getRecipeId());
                 boolean signResult = Boolean.parseBoolean(rMap.get("signResult").toString());
                 if (!signResult) {
                     return rMap;
                 }
             }
-            //更新审方信息
+            //更新审方信息recipeTempMark
             RecipeBusiThreadPool.execute(new SaveAutoReviewRunnable(recipeBean, detailBeanList));
             //发送HIS处方开具消息
             sendRecipeToHIS(recipeBean);

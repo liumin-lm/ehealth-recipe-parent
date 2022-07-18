@@ -768,8 +768,6 @@ public class RecipeService extends RecipeBaseService {
         if (ReviewTypeConstant.Preposition_Check == recipe.getReviewType()) {
             auditModeContext.getAuditModes(recipe.getReviewType()).afterCheckPassYs(recipe);
         }
-
-
     }
 
     //重试二次医生审核不通过签名
@@ -952,12 +950,6 @@ public class RecipeService extends RecipeBaseService {
                             }
                             //只有当使用CApdf的时候才去赋值
                             pdfString = resultVo.getPdfBase64();
-                        } else {
-                            //需要调整逻辑：
-                            //老流程上一层已经统一走了pdf优化生成，新流程统一在当前回调函数里进行
-                            if (CA_NEW_TYPE.equals(caType)) {
-                                pharmacyToRecipePDF(recipeId);
-                            }
                         }
                         //保存签名值、时间戳、电子签章文件
                         checkResult.setCode(RecipeResultBean.SUCCESS);
@@ -996,11 +988,14 @@ public class RecipeService extends RecipeBaseService {
             //说明处方签名失败
             LOGGER.info("当前审核处方{}签名失败！", recipeId);
             recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.SIGN_ERROR_CODE_PHA, null);
+            stateManager.updateCheckerSignState(recipeId, SignStateEnum.SIGN_FAIL);
             recipeLogDAO.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), checkResult.getMsg());
             return;
         } else {
             //说明处方签名成功，记录日志，走签名成功逻辑
             LOGGER.info("当前审核处方{}签名成功！", recipeId);
+            stateManager.updateCheckerSignState(recipeId, SignStateEnum.SIGN_SUC);
+            pharmacyToRecipePDF(recipeId);
             recipeLogDAO.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "当前审核处方签名成功");
             if (MapUtils.isNotEmpty(esignResponseMap)) {
                 String recipeFileId = MapValueUtil.getString(esignResponseMap, "fileId");
@@ -1140,8 +1135,9 @@ public class RecipeService extends RecipeBaseService {
             }
             //第三步校验库存
             Integer appointEnterpriseType = recipeBean.getRecipeExtend().getAppointEnterpriseType();
-            if ((continueFlag == 0 || continueFlag == 4) && ValidateUtil.integerIsEmpty(appointEnterpriseType)) {
-                rMap = drugEnterpriseBusinessService.enterpriseStock(recipeBean.getRecipeId());
+            if ((continueFlag == 0 || continueFlag == 4) && ValidateUtil.integerIsEmpty(appointEnterpriseType)
+                    && ValidateUtil.integerIsEmpty(recipeBean.getVersion())) {
+                rMap = drugEnterpriseBusinessService.enterpriseStockMap(recipeBean.getRecipeId());
                 boolean signResult = Boolean.valueOf(rMap.get("signResult").toString());
                 if (!signResult) {
                     return rMap;
@@ -4534,6 +4530,9 @@ public class RecipeService extends RecipeBaseService {
         if (null == organDrug) {
             LOGGER.info("updateHisOrganDrug 机构药品空");
             return;
+        }
+        if (!ObjectUtils.isEmpty(drug.getDrugform())) {
+            organDrug.setDrugForm(drug.getDrugform());
         }
         //获取金额
         if (StringUtils.isNotEmpty(drug.getPrice())) {

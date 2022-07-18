@@ -131,6 +131,12 @@ public class RevisitRecipeTraceVo implements Serializable {
         @ItemProperty(alias = "处方金额")
         private BigDecimal totalMoney;
 
+        @ItemProperty(alias = "0：默认(未签名)，1：签名中，2：签名失败，3：签名成功")
+        private Integer doctorSignState;
+
+        @ItemProperty(alias = "0：默认(未签名)，1：签名中，2：签名失败，3：签名成功")
+        private Integer checkerSignState;
+
     }
 
 

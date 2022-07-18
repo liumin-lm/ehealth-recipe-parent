@@ -2,6 +2,7 @@ package recipe.business;
 
 import com.alibaba.fastjson.JSON;
 import com.ngari.base.scratchable.model.ScratchableBean;
+import com.ngari.recipe.dto.GiveModeButtonDTO;
 import com.ngari.recipe.dto.OrganDTO;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.recipe.model.GiveModeButtonBean;
@@ -82,7 +83,7 @@ public class OrganBusinessService extends BaseService implements IOrganBusinessS
     }
 
     @Override
-    public OrganVO getOrganVOByOrganId(Integer organId){
+    public OrganVO getOrganVOByOrganId(Integer organId) {
         OrganDTO organDTO = organClient.organDTO(organId);
         return ObjectCopyUtils.convert(organDTO, OrganVO.class);
     }
@@ -91,4 +92,11 @@ public class OrganBusinessService extends BaseService implements IOrganBusinessS
     public Boolean isAuthorisedOrgan(Integer organId) {
         return operationClient.isAuthorisedOrgan(organId);
     }
+
+
+    @Override
+    public List<GiveModeButtonDTO> organGiveMode(Integer organId) {
+        return operationClient.getOrganGiveModeMap(organId);
+    }
+
 }

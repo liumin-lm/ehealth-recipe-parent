@@ -1,14 +1,14 @@
 package recipe.core.api;
 
+import com.ngari.recipe.dto.DoSignRecipeDTO;
 import com.ngari.recipe.dto.EnterpriseStock;
-import com.ngari.recipe.entity.OrganDrugsSaleConfig;
+import com.ngari.recipe.dto.RecipeDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
 import recipe.vo.doctor.DrugEnterpriseStockVO;
+import recipe.vo.doctor.DrugForGiveModeListVO;
 import recipe.vo.doctor.DrugForGiveModeVO;
 import recipe.vo.doctor.DrugQueryVO;
-import recipe.vo.patient.CheckAddressReq;
-import recipe.vo.patient.MedicineStationVO;
 
 import java.util.List;
 import java.util.Map;
@@ -31,11 +31,10 @@ public interface IStockBusinessService {
     /**
      * 医生指定药企列表-查库存
      *
-     * @param recipe        处方数据
-     * @param recipeDetails 处方明细
+     * @param recipeDTO 处方数据
      * @return
      */
-    List<EnterpriseStock> stockList(Recipe recipe, String decoctionId, List<Recipedetail> recipeDetails);
+    List<EnterpriseStock> stockList(RecipeDTO recipeDTO);
 
     /**
      * 校验 药品库存 在同一个药企下的库存数量
@@ -44,7 +43,8 @@ public interface IStockBusinessService {
      * @param recipeId 处方id
      * @return 是否可以开方
      */
-    Map<String, Object> enterpriseStock(Integer recipeId);
+    @Deprecated
+    Map<String, Object> enterpriseStockMap(Integer recipeId);
 
     /**
      * 校验 某个药企下 药品库存 的库存数量
@@ -57,45 +57,50 @@ public interface IStockBusinessService {
     EnterpriseStock enterpriseStockCheck(Recipe recipe, List<Recipedetail> recipeDetails, Integer enterpriseId);
 
     /**
+     * 校验 某个药企下 药品库存 的库存数量
+     *
+     * @param recipeDTO 药品信息 drugId，code
+     * @param id        指定某药企id
+     * @param type      0默认，1查询医院，2查询药企
+     * @return 药品信息 一定存在于出参
+     */
+    EnterpriseStock enterpriseStockCheckV1(RecipeDTO recipeDTO, Integer id, Integer type);
+
+    /**
      * 医生端 查询购药方式下有库存的药品
      *
      * @param drugQueryVO
      * @return
      */
+    @Deprecated
     List<DrugForGiveModeVO> drugForGiveMode(DrugQueryVO drugQueryVO);
+
+    List<DrugForGiveModeListVO> drugForGiveModeV1(RecipeDTO recipeDTO);
 
     /**
      * 查询药品能否开在一张处方上
      *
-     * @param organId
-     * @param detailList
+     * @param recipeDTO
      * @return
      */
-    List<EnterpriseStock> drugRecipeStock(Integer organId, Integer recipeType, String decoctionId, List<Recipedetail> detailList);
+    List<EnterpriseStock> drugRecipeStock(RecipeDTO recipeDTO);
+
+
+    /**
+     * 查询药品能支持的够药方式
+     *
+     * @param recipe
+     * @return
+     */
+    DoSignRecipeDTO validateRecipeGiveMode(RecipeDTO recipe);
 
     /**
      * 获取药品库存
+     *
      * @param recipeIds
      * @param enterpriseId
      * @return
      */
-    Boolean getOrderStockFlag(List<Integer> recipeIds, Integer enterpriseId,String giveModeKey);
-
-    /**
-     * 机构药企销售配置
-     * @param organId
-     * @param drugsEnterpriseId
-     * @return
-     */
-    OrganDrugsSaleConfig getOrganDrugsSaleConfig(Integer organId, Integer drugsEnterpriseId);
-
-    /**
-     * 获取药企配送的站点
-     * @param medicineStationVO 取药站点的信息
-     * @return 可以取药站点的列表
-     */
-    List<MedicineStationVO> getMedicineStationList(MedicineStationVO medicineStationVO);
-
-    OrganDrugsSaleConfig getOrganDrugsSaleConfigOfPatient(Integer organId, Integer drugsEnterpriseId);
+    Boolean getOrderStockFlag(List<Integer> recipeIds, Integer enterpriseId, String giveModeKey);
 
 }

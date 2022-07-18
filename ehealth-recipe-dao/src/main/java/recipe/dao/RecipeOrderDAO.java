@@ -1780,7 +1780,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
             if (new Integer(0).equals(recipeOrderRefundReqDTO.getRefundStatus())) {
                 hql.append(" AND (c.refundNodeStatus is null || c.refundNodeStatus = 2 || c.refundNodeStatus = 3) ");
             } else if (new Integer(1).equals(recipeOrderRefundReqDTO.getRefundStatus())) {
-                hql.append(" AND c.refundNodeStatus = 0 ");
+                hql.append(" AND c.refundNodeStatus in(0,4) ");
             } else {
                 hql.append(" AND c.refundNodeStatus = 1 ");
             }

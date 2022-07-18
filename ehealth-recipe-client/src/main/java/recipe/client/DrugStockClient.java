@@ -124,7 +124,6 @@ public class DrugStockClient extends BaseClient {
             logger.info("DrugStockClient scanDrugStock response={}", JSON.toJSONString(response));
             List<DrugInfoTO> drugInfoList = oldCodeCompatibility(response, data);
             List<DrugInfoDTO> list = getDrugInfoDTO(drugInfoList);
-
             DrugStockAmountDTO drugStockAmountDTO = new DrugStockAmountDTO();
             drugStockAmountDTO.setResult(true);
             drugStockAmountDTO.setDrugInfoList(list);
@@ -231,6 +230,8 @@ public class DrugStockClient extends BaseClient {
         }
         detailList.forEach(a -> {
             DrugInfoDTO drugInfoDTO = new DrugInfoDTO();
+            drugInfoDTO.setUseTotalDose(String.valueOf(a.getUseTotalDose()));
+            drugInfoDTO.setDrugName(a.getDrugName());
             drugInfoDTO.setDrugId(a.getDrugId());
             drugInfoDTO.setOrganDrugCode(a.getOrganDrugCode());
             drugInfoDTO.setStock(stock);
@@ -257,10 +258,11 @@ public class DrugStockClient extends BaseClient {
         List<DrugInfoDTO> list = new ArrayList<>();
         drugInfoList.forEach(a -> {
             DrugInfoDTO drugInfoDTO = new DrugInfoDTO();
+            drugInfoDTO.setUseTotalDose(String.valueOf(a.getUseTotalDose()));
+            drugInfoDTO.setDrugName(a.getDrname());
             drugInfoDTO.setDrugId(a.getDrugId());
             drugInfoDTO.setOrganId(a.getOrganId());
             drugInfoDTO.setOrganDrugCode(a.getDrcode());
-            drugInfoDTO.setDrugName(a.getDrname());
             drugInfoDTO.setPharmacyCode(a.getPharmacyCode());
             drugInfoDTO.setPharmacy(a.getPharmacy());
             drugInfoDTO.setProducerCode(a.getProducerCode());
@@ -291,8 +293,9 @@ public class DrugStockClient extends BaseClient {
         List<DrugInfoDTO> list = new ArrayList<>();
         scanDrugList.forEach(a -> {
             DrugInfoDTO drugInfoDTO = new DrugInfoDTO();
-            drugInfoDTO.setOrganDrugCode(a.getDrugCode());
+            drugInfoDTO.setUseTotalDose(a.getTotal());
             drugInfoDTO.setDrugName(a.getGname());
+            drugInfoDTO.setOrganDrugCode(a.getDrugCode());
             drugInfoDTO.setDrugId(a.getDrugId());
             drugInfoDTO.setStockAmount(a.getStockAmount());
             drugInfoDTO.setPharmacyCode(a.getPharmacyCode());

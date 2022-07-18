@@ -31,7 +31,6 @@ import recipe.common.UrlConfig;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.DrugsEnterpriseDAO;
-import recipe.dao.RecipeParameterDao;
 import recipe.dao.SaleDrugListDAO;
 import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.enumerate.status.RecipeStateEnum;
@@ -86,8 +85,6 @@ public class RecipeManager extends BaseManager {
     private IRecipeCheckService iRecipeCheckService;
     @Autowired
     private RecipeClient recipeClient;
-    @Autowired
-    private RecipeParameterDao recipeParameterDao;
 
     /**
      * 保存处方信息
@@ -225,6 +222,10 @@ public class RecipeManager extends BaseManager {
         return recipeInfoDTO;
     }
 
+    public RecipeDTO getRecipe(Integer recipeId) {
+        return super.getRecipeDTO(recipeId);
+    }
+
     /**
      * 获取处方相关信息
      *
@@ -293,6 +294,12 @@ public class RecipeManager extends BaseManager {
             boolean hospitalCardLengthControl = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "hospitalCardLengthControl", false);
             if (hospitalCardLengthControl && StringUtils.isNotBlank(recipeExtend.getCardNo()) && recipeExtend.getCardNo().length() == 28) {
                 recipeExtend.setCardNo(recipeExtend.getCardNo().substring(0, 10));
+            }
+        }
+        if (StringUtils.isNotBlank(recipeExtend.getDecoctionId())) {
+            DecoctionWay decoctionWay = drugDecoctionWayDao.get(Integer.parseInt(recipeExtend.getDecoctionId()));
+            if (null != decoctionWay) {
+                recipeExtend.setDecoctionPrice(decoctionWay.getDecoctionPrice());
             }
         }
         return recipeDTO;

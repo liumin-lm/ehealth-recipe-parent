@@ -297,8 +297,6 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         return action.getResult();
     }
 
-    ;
-
     /**
      * 根据订单编号更新订单编号为空
      *
@@ -745,7 +743,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
             public void execute(StatelessSession ss) throws DAOException {
                 String hql = getBaseHqlByConditions(false, recipeStatus, conditionOper, containDel);
                 if (StringUtils.isNotEmpty(hql)) {
-                    Query q = ss.createQuery(hql.toString());
+                    Query q = ss.createQuery(hql);
                     q.setParameter("doctorId", doctorId);
                     setResult((Long) q.uniqueResult());
                 } else {
@@ -2610,8 +2608,12 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     @DAOMethod(sql = "select recipeId from Recipe where clinicOrgan in:organIds and status =8 and fromflag = 1")
     public abstract List<Integer> findReadyAuditRecipeIdsByOrganIds(@DAOParam("organIds") List<Integer> organIds);
 
-    @DAOMethod(sql = "from Recipe where recipeSourceType = 2 and orderCode = :orderCode", limit = 0)
-    public abstract List<Recipe> findRecipeByOrdercode(@DAOParam("orderCode") String orderCode);
+    @DAOMethod(sql = "from Recipe where recipeSourceType = :recipeSourceType and orderCode = :orderCode", limit = 0)
+    public abstract List<Recipe> findRecipeByOrderCodeAndSourceType(@DAOParam("orderCode") String orderCode,
+                                                                    @DAOParam("recipeSourceType") Integer recipeSourceType);
+
+    @DAOMethod(sql = "from Recipe where orderCode = :orderCode", limit = 0)
+    public abstract List<Recipe> findRecipeByOrderCode(@DAOParam("orderCode") String orderCode);
 
 
     public List<Recipe> findRecipeListForStatus(final int status, final String startDt, final String endDt) {
@@ -2955,7 +2957,8 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         HibernateStatelessResultAction<List<WorkLoadTopDTO>> action = new AbstractHibernateStatelessResultAction<List<WorkLoadTopDTO>>() {
             @Override
             public void execute(StatelessSession statelessSession) throws Exception {
-                String sql = "SELECT\n" + "\to.dispensingApothecaryName AS dispensingApothecaryName,\n" + "\tcount(recipeId) AS recipeCount,\n" + "\tsum(totalMoney) totalMoney\n" + "FROM\n" + "\tcdr_recipe r\n" + "LEFT JOIN cdr_recipeorder o ON (r.ordercode = o.ordercode)\n" + "WHERE\n" + "\tr.ordercode IS NOT NULL\n" + "AND o.OrganId = :organId\n" + (StringUtils.isNotEmpty(doctorName) ? "AND o.dispensingApothecaryName like :dispensingApothecaryName\n" : "") + "AND o.status in (" + orderStatus + ")\n" + "AND o.dispensingStatusAlterTime BETWEEN '" + startDate + "'\n" + "AND '" + endDate + "'\n" + (StringUtils.isNotEmpty(recipeType) ? "AND r.recipeType in (:recipeType)\n" : "") + "GROUP BY\n" + "\to.dispensingApothecaryName";
+                String sql = "SELECT\n" + "\to.dispensingApothecaryName AS dispensingApothecaryName,\n" + "\tcount(recipeId) AS recipeCount,\n" + "\tsum(totalMoney) totalMoney\n" + "FROM\n" + "\tcdr_recipe r\n" + "LEFT JOIN cdr_recipeorder o ON (r.ordercode = o.ordercode)\n" + "WHERE\n" + "\tr.ordercode IS NOT NULL\n" + "AND o.OrganId = :organId\n" + (StringUtils.isNotEmpty(doctorName) ? "AND o.dispensingApothecaryName like :dispensingApothecaryName\n" : "") + "AND o." +
+                        " (" + orderStatus + ")\n" + "AND o.dispensingStatusAlterTime BETWEEN '" + startDate + "'\n" + "AND '" + endDate + "'\n" + (StringUtils.isNotEmpty(recipeType) ? "AND r.recipeType in (:recipeType)\n" : "") + "GROUP BY\n" + "\to.dispensingApothecaryName";
                 Query q = statelessSession.createSQLQuery(sql);
                 q.setParameter("organId", organId);
                 if (StringUtils.isNotEmpty(doctorName)) {
@@ -3761,7 +3764,6 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 hql.append("from Recipe r where doctor=:doctorId and fromflag=1 and recipeId<:recipeId and status!=10  ");
                 //通过条件查询status
                 if (tapStatus == null || tapStatus == 0) {
-                    ;
                 } else if (tapStatus == 1) {
                     hql.append("and status= " + RecipeStatusConstant.UNSIGN);//未签名
                 } else if (tapStatus == 2) {
@@ -3796,7 +3798,6 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 hql.append("from Recipe r where doctor=:doctorId and fromflag=1 and status!=10 and recipeSourceType!= 3 ");
                 //通过条件查询status
                 if (tapStatus == null || tapStatus == 0) {
-                    ;
                 } else if (tapStatus == 1) {
                     hql.append("and status= " + RecipeStatusConstant.UNSIGN);//未签名
                 } else if (tapStatus == 2) {
@@ -4092,6 +4093,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
 
     @DAOMethod(sql = " From Recipe where clinicOrgan=:clinicOrgan and recipeId in (:recipeIdList) and status in(14) ")
     public abstract List<Recipe> findRecipeByRecipeIdAndClinicOrgan(@DAOParam("clinicOrgan") int clinicOrgan, @DAOParam("recipeIdList") List<Integer> recipeIdList);
+
+    @DAOMethod(sql = " From Recipe where (mpiId =:mpiId or requestMpiId =:mpiId) and recipeSourceType = 1 and orderCode is null and status = 2 ")
+    public abstract List<Recipe> findRecipeByMpiId(@DAOParam("mpiId") String mpiId);
+
 
 
     /**
@@ -4593,4 +4598,45 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
+
+    public List<Recipe> findRecipeByMpiidAndrecipeStatus(final String mpiid, final List<Integer> recipeStatus, Integer terminalType,Integer organId) {
+        HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                String hql = "SELECT r FROM Recipe r ,RecipeExtend re WHERE r.recipeId=re.recipeId  and mpiid=:mpiid  ";
+                if (terminalType!=null) {
+                    hql += " and  re.terminalType= :terminalType";
+                }
+                if (organId!=null) {
+                    hql += " and  r.clinicOrgan= :organId";
+                }
+                if(CollectionUtils.isNotEmpty(recipeStatus)){
+                    hql += " and r.status IN (:recipeStatus)  order by createDate desc ";
+                }
+                Query query = ss.createQuery(hql);
+
+                if (terminalType != null) {
+                    query.setParameter("terminalType", terminalType);
+                }
+                if (organId != null) {
+                    query.setParameter("organId", organId);
+                }
+                query.setParameter("mpiid", mpiid);
+                if(CollectionUtils.isNotEmpty(recipeStatus)){
+                    query.setParameterList("recipeStatus", recipeStatus);
+                }
+
+                setResult(query.list());
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+
+        List<Recipe> recipes = action.getResult();
+        if(CollectionUtils.isNotEmpty(recipes)){
+            LOGGER.info("size:{}",recipes.size());
+        }
+        return recipes;
+    }
 }
+
+

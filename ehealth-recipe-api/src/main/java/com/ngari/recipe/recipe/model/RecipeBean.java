@@ -440,6 +440,31 @@ public class RecipeBean implements Serializable {
     @ItemProperty(alias = "0：默认(未签名)，1：签名中，2：签名失败，3：签名成功")
     private Integer doctorSignState;
 
+    @ItemProperty(alias = "0：默认")
+    private Integer version;
+
+    @ItemProperty(alias = "0：默认(未签名)，1：签名中，2：签名失败，3：签名成功")
+    private Integer checkerSignState;
+
+    @ItemProperty(alias = "临时处方单标记")
+    private String recipeTempMark;
+
+    public Integer getCheckerSignState() {
+        return checkerSignState;
+    }
+
+    public void setCheckerSignState(Integer checkerSignState) {
+        this.checkerSignState = checkerSignState;
+    }
+
+    public Integer getVersion() {
+        return version;
+    }
+
+    public void setVersion(Integer version) {
+        this.version = version;
+    }
+
     public Integer getDoctorSignState() {
         return doctorSignState;
     }
@@ -1306,7 +1331,7 @@ public class RecipeBean implements Serializable {
 
     public boolean canMedicalPay() {
         Integer useMedicalFlag = 1;
-        return (useMedicalFlag.equals(medicalPayFlag)) ? true : false;
+        return useMedicalFlag.equals(medicalPayFlag);
     }
 
     public Integer getBussSource() {
@@ -1612,5 +1637,13 @@ public class RecipeBean implements Serializable {
 
     public void setOfflineRecipeTotalPrice(BigDecimal offlineRecipeTotalPrice) {
         this.offlineRecipeTotalPrice = offlineRecipeTotalPrice;
+    }
+
+    public String getRecipeTempMark() {
+        return recipeTempMark;
+    }
+
+    public void setRecipeTempMark(String recipeTempMark) {
+        this.recipeTempMark = recipeTempMark;
     }
 }

@@ -43,6 +43,40 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
     private IDrugDistributionPriceService drugDistributionPriceService;
 
     /**
+     * 清除当前煎法下的所有配送信息
+     *
+     * @param enterpriseDecoctionAddressReq
+     */
+    @RpcService
+    public void cancelEnterpriseDecoctionAddress(EnterpriseDecoctionAddressReq enterpriseDecoctionAddressReq){
+        validateAtop(enterpriseDecoctionAddressReq, enterpriseDecoctionAddressReq.getDecoctionId(),enterpriseDecoctionAddressReq.getEnterpriseId(),enterpriseDecoctionAddressReq.getOrganId());
+        enterpriseBusinessService.cancelEnterpriseDecoctionAddress(enterpriseDecoctionAddressReq);
+    }
+
+    /**
+     * 清除当前区域下的所有配送信息
+     *
+     * @param enterpriseId
+     * @param area
+     */
+    @RpcService
+    public void cancelEnterpriseAddress(Integer enterpriseId, String area) {
+        validateAtop(enterpriseId, area);
+        enterpriseBusinessService.cancelEnterpriseAddress(enterpriseId, area);
+    }
+
+    /**
+     * 根据药企获取药企配送地址快递费
+     *
+     * @param enterpriseAddressDTOS
+     */
+    @RpcService(timeout = 60)
+    public void updateEnterpriseAddressAndPrice(List<EnterpriseAddressDTO> enterpriseAddressDTOS) {
+        validateAtop(enterpriseAddressDTOS);
+        enterpriseBusinessService.updateEnterpriseAddressAndPrice(enterpriseAddressDTOS);
+    }
+
+    /**
      * 根据药企获取药企配送地址快递费
      *
      * @param enterpriseId

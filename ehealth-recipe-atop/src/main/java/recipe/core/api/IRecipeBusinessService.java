@@ -11,6 +11,7 @@ import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.vo.*;
+import recipe.enumerate.status.SignStateEnum;
 import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.vo.doctor.PatientOptionalDrugVO;
@@ -21,6 +22,7 @@ import recipe.vo.second.MedicalDetailVO;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author yinsheng
@@ -155,6 +157,14 @@ public interface IRecipeBusinessService {
      */
     Boolean updateRecipeState(Integer recipeId, RecipeStateEnum processState, RecipeStateEnum subState);
 
+    /**
+     * 更新药师的签名状态
+     * @param recipeId
+     * @param checkerSignState
+     * @return
+     */
+    Boolean updateCheckerSignState(Integer recipeId, SignStateEnum checkerSignState);
+
     RecipeBean getByRecipeCodeAndRegisterIdAndOrganId(String recipeCode, String registerId, int organId);
 
     /**
@@ -258,4 +268,7 @@ public interface IRecipeBusinessService {
      */
     void pharmacyToRecipePDFAndCa(Integer recipeId, Integer checker);
 
+    List<Map<String, Object>> findRecipeDetailsByOrderCode(String orderCode);
+
+    List<Recipe> findRecipeByMpiidAndrecipeStatus(String mpiid, List<Integer> recipeStatus, Integer terminalType,Integer organId);
 }

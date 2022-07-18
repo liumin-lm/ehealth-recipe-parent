@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSON;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.OutPatientRecipeDTO;
-import com.ngari.recipe.dto.OutPatientRecipeDetailDTO;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.vo.*;
 import ctd.persistence.exception.DAOException;
@@ -25,7 +24,6 @@ import recipe.enumerate.type.BussSourceTypeEnum;
 import recipe.enumerate.type.DrugBelongTypeEnum;
 import recipe.enumerate.type.OutRecipeGiveModeEnum;
 import recipe.enumerate.type.OutRecipeRecipeTypeEnum;
-import recipe.util.DateConversion;
 import recipe.util.ObjectCopyUtils;
 import recipe.util.ValidateUtil;
 import recipe.vo.doctor.RecipeInfoVO;
@@ -33,7 +31,6 @@ import recipe.vo.doctor.RecipeInfoVO;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -270,6 +267,16 @@ public class RecipePatientAtop extends BaseAtop {
         recipePatientService.updateRecipeIdByConsultId(recipeId, recipeInfoVO.getRecipeBean().getClinicId());
         return recipeId;
 
+    }
+
+    /**
+     * 是否有待处理处方
+     * @param orderId 订单号
+     * @return
+     */
+    @RpcService
+    public Boolean isHaveReadyRecipeFlag(Integer orderId) {
+        return recipePatientService.getReadyRecipeFlag(orderId);
     }
 
 }

@@ -1055,6 +1055,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
 
     /**
      * 医生端 搜索药品页和常用药品页----实时显示药品库存
+     * 安卓在用：需要安卓换方法
      *
      * @param req
      * @return

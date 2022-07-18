@@ -442,10 +442,6 @@ public class RecipeTestService {
         return null;
     }
 
-    @RpcService
-    public void enterpriseStockTest(Integer recipeId){
-        stockBusinessService.enterpriseStock(recipeId);
-    }
 
     @RpcService
     public Map<String, Object> readDrugExcelTest(String filePath, int organId, String operator){

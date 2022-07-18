@@ -1,6 +1,5 @@
 package recipe.atop.doctor;
 
-import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.vo.ConfigStatusCheckVO;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -30,15 +29,7 @@ public class ConfigStatusDoctorAtop extends BaseAtop {
      */
     @RpcService
     public List<ConfigStatusCheckVO> getConfigStatus(Integer location) {
-        logger.info("ConfigStatusService getConfigStatus location = {}", location);
-        try {
-            List<ConfigStatusCheckVO> configStatusCheckList = configStatusService.getConfigStatus(location);
-            logger.info("ConfigStatusService getConfigStatus configStatusCheckList = {}", JSON.toJSONString(configStatusCheckList));
-            return configStatusCheckList;
-        } catch (Exception e) {
-            logger.error("ConfigStatusService getConfigStatus error", e);
-        }
-        return null;
+        return configStatusService.getConfigStatus(location);
     }
 
     /**
@@ -50,18 +41,11 @@ public class ConfigStatusDoctorAtop extends BaseAtop {
      */
     @RpcService
     public List<ConfigStatusCheckVO> getConfigStatusBySource(Integer location, Integer source, Integer organId) {
-        logger.info("ConfigStatusService getConfigStatus location = {}", location);
-        try {
-            List<ConfigStatusCheckVO> configStatusCheckList = configStatusService.findByLocationAndSource(location, source);
-            if (new Integer(1003991).equals(organId)) {
-                return configStatusCheckList.stream().filter(configStatusCheckVO -> !(RecipeOrderStatusEnum.ORDER_STATUS_PROCEED_SHIPPING.getType().equals(configStatusCheckVO.getTarget())
-                        || RecipeOrderStatusEnum.ORDER_STATUS_DONE.getType().equals(configStatusCheckVO.getTarget()))).collect(Collectors.toList());
-            }
-            logger.info("ConfigStatusService getConfigStatus configStatusCheckList = {}", JSON.toJSONString(configStatusCheckList));
-            return configStatusCheckList;
-        } catch (Exception e) {
-            logger.error("ConfigStatusService getConfigStatus error", e);
+        List<ConfigStatusCheckVO> configStatusCheckList = configStatusService.findByLocationAndSource(location, source);
+        if (new Integer(1003991).equals(organId)) {
+            return configStatusCheckList.stream().filter(configStatusCheckVO -> !(RecipeOrderStatusEnum.ORDER_STATUS_PROCEED_SHIPPING.getType().equals(configStatusCheckVO.getTarget())
+                    || RecipeOrderStatusEnum.ORDER_STATUS_DONE.getType().equals(configStatusCheckVO.getTarget()))).collect(Collectors.toList());
         }
-        return null;
+        return configStatusCheckList;
     }
 }

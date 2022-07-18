@@ -56,6 +56,7 @@ import recipe.core.api.patient.IOfflineRecipeBusinessService;
 import recipe.core.api.patient.IPatientBusinessService;
 import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
+import recipe.enumerate.status.RecipeSourceTypeEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.*;
 import recipe.hisservice.RecipeToHisService;
@@ -115,6 +116,10 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
     private IJumperAuthorizationService jumperAuthorizationService;
     @Autowired
     private EmrRecipeManager emrRecipeManager;
+    @Autowired
+    private RecipeDAO recipeDAO;
+    @Autowired
+    private RecipeOrderDAO recipeOrderDAO;
 
     /**
      * 根据取药方式过滤药企
@@ -882,33 +887,6 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         return recipe.getRecipeId();
     }
 
-    private void validateData(RecipeInfoVO recipeInfoVO) {
-        LOGGER.info("validateData recipeInfoVO:{}", JSON.toJSONString(recipeInfoVO));
-        recipeInfoVO.getRecipeDetails().forEach(recipeDetailBean -> {
-            Integer drugId = recipeDetailBean.getDrugId();
-            Integer organId = recipeInfoVO.getRecipeBean().getClinicOrgan();
-            String organDrugCode = recipeDetailBean.getOrganDrugCode();
-            OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(organId, organDrugCode, drugId);
-            if (null == organDrugList) {
-                LOGGER.error("validateData organDrugName:{},organDrugCode:{}", recipeDetailBean.getDrugName(), recipeDetailBean.getOrganDrugCode());
-                throw new DAOException(ErrorCode.SERVICE_ERROR, "药品"+ recipeDetailBean.getDrugName() +"目录缺失无法开具");
-            }
-        });
-        String fastRecipeChecker = configurationClient.getValueCatch(recipeInfoVO.getRecipeBean().getClinicOrgan(), "fastRecipeChecker", "");
-        if (StringUtils.isEmpty(fastRecipeChecker)) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "没有指定审方药师");
-        } else {
-            Integer checker = Integer.parseInt(fastRecipeChecker);
-            DoctorDTO doctorDTO = doctorClient.getDoctor(checker);
-            recipeInfoVO.getRecipeBean().setChecker(checker);
-            recipeInfoVO.getRecipeBean().setCheckerText(doctorDTO.getName());
-            recipeInfoVO.getRecipeBean().setCheckDate(new Date());
-            recipeInfoVO.getRecipeBean().setCheckDateYs(new Date());
-            recipeInfoVO.getRecipeBean().setCheckOrgan(doctorDTO.getOrgan());
-            recipeInfoVO.getRecipeBean().setCheckFlag(1);
-        }
-    }
-
     @Override
     public Integer esignRecipeCa(Integer recipeId) {
         try {
@@ -930,9 +908,40 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
      * @param recipeId
      * @param clinicId
      */
+    @Override
     public void updateRecipeIdByConsultId(Integer recipeId, Integer clinicId) {
         LOGGER.info("updateRecipeIdByConsultId recipeId:{},clinicId:{}", recipeId, clinicId);
         revisitClient.updateRecipeIdByConsultId(recipeId, clinicId);
+    }
+
+    /**
+     * 是否有待处理处方
+     * @param orderId
+     * @return
+     */
+    @Override
+    public Boolean getReadyRecipeFlag(Integer orderId) {
+        //获取该订单对应的处方
+        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderId(orderId);
+        if (null == recipeOrder) {
+            return false;
+        }
+        String orderCode = recipeOrder.getOrderCode();
+        List<Recipe> recipeList = recipeDAO.findByOrderCode(Arrays.asList(orderCode));
+        //查询是否为线下处方单
+        if (CollectionUtils.isEmpty(recipeList)) {
+            return false;
+        }
+        Recipe recipe = recipeList.get(0);
+        if (null != recipe && RecipeSourceTypeEnum.OFFLINE_RECIPE.getType().equals(recipe.getRecipeSourceType())) {
+            return false;
+        }
+        String mpiId = recipeOrder.getMpiId();
+        List<Recipe> recipes = recipeDAO.findRecipeByMpiId(mpiId);
+        if (CollectionUtils.isNotEmpty(recipes)) {
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -977,5 +986,32 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         LOGGER.info("setRecipeSupportGiveMode recipeSupportGiveMode:{}", recipeSupportGiveMode.toString());
         recipeSupportGiveMode.deleteCharAt(recipeSupportGiveMode.lastIndexOf(","));
         recipe.setRecipeSupportGiveMode(recipeSupportGiveMode.toString());
+    }
+
+    private void validateData(RecipeInfoVO recipeInfoVO) {
+        LOGGER.info("validateData recipeInfoVO:{}", JSON.toJSONString(recipeInfoVO));
+        recipeInfoVO.getRecipeDetails().forEach(recipeDetailBean -> {
+            Integer drugId = recipeDetailBean.getDrugId();
+            Integer organId = recipeInfoVO.getRecipeBean().getClinicOrgan();
+            String organDrugCode = recipeDetailBean.getOrganDrugCode();
+            OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(organId, organDrugCode, drugId);
+            if (null == organDrugList) {
+                LOGGER.error("validateData organDrugName:{},organDrugCode:{}", recipeDetailBean.getDrugName(), recipeDetailBean.getOrganDrugCode());
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "药品"+ recipeDetailBean.getDrugName() +"目录缺失无法开具");
+            }
+        });
+        String fastRecipeChecker = configurationClient.getValueCatch(recipeInfoVO.getRecipeBean().getClinicOrgan(), "fastRecipeChecker", "");
+        if (StringUtils.isEmpty(fastRecipeChecker)) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "没有指定审方药师");
+        } else {
+            Integer checker = Integer.parseInt(fastRecipeChecker);
+            DoctorDTO doctorDTO = doctorClient.getDoctor(checker);
+            recipeInfoVO.getRecipeBean().setChecker(checker);
+            recipeInfoVO.getRecipeBean().setCheckerText(doctorDTO.getName());
+            recipeInfoVO.getRecipeBean().setCheckDate(new Date());
+            recipeInfoVO.getRecipeBean().setCheckDateYs(new Date());
+            recipeInfoVO.getRecipeBean().setCheckOrgan(doctorDTO.getOrgan());
+            recipeInfoVO.getRecipeBean().setCheckFlag(1);
+        }
     }
 }

@@ -5,7 +5,6 @@ import com.ngari.recipe.vo.*;
 import recipe.vo.doctor.RecipeInfoVO;
 
 import java.util.List;
-import com.ngari.recipe.vo.*;
 
 /**
  * @author yinsheng
@@ -71,4 +70,11 @@ public interface IPatientBusinessService {
      * @param recipeId
      */
     void updateRecipeIdByConsultId(Integer recipeId, Integer clinicId);
+
+    /**
+     * 是否有待处理处方
+     * @param orderId
+     * @return
+     */
+    Boolean getReadyRecipeFlag(Integer orderId);
 }

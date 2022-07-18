@@ -109,7 +109,7 @@ public class EnterpriseAddressService extends BaseService<EnterpriseAddressDTO> 
     }
 
     /**
-     * 订单地址是否可配送
+     * 订单地址是否可配送  使用新接口 checkSendAddressForOrder
      *
      * @param depId
      * @param address1
@@ -118,6 +118,7 @@ public class EnterpriseAddressService extends BaseService<EnterpriseAddressDTO> 
      * @return
      */
     @RpcService
+    @Deprecated
     public int allAddressCanSendForOrder(Integer depId, String address1, String address2, String address3) {
         EnterpriseAddressDAO enterpriseAddressDAO = DAOFactory.getDAO(EnterpriseAddressDAO.class);
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);

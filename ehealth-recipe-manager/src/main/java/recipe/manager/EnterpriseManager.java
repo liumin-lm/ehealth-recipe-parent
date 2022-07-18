@@ -955,8 +955,12 @@ public class EnterpriseManager extends BaseManager {
      * @param decoctionId
      * @return
      */
-    public List<EnterpriseDecoctionAddress> findEnterpriseDecoctionAddressList(Integer organId, Integer enterpriseId, Integer decoctionId) {
-        return enterpriseDecoctionAddressDAO.findEnterpriseDecoctionAddressList(organId,enterpriseId,decoctionId);
+    public List<EnterpriseDecoctionAddress> findEnterpriseDecoctionAddressList(Integer organId, Integer enterpriseId, Integer decoctionId,String area) {
+        if (StringUtils.isEmpty(area)) {
+            return enterpriseDecoctionAddressDAO.findEnterpriseDecoctionAddressList(organId, enterpriseId, decoctionId);
+        } else {
+            return enterpriseDecoctionAddressDAO.findEnterpriseDecoctionAddressListByArea(organId, enterpriseId, decoctionId,area);
+        }
     }
 
     public OrganDrugsSaleConfig getOrganDrugsSaleConfigOfPatient(Integer organId, Integer drugsEnterpriseId) {

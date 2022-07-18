@@ -719,7 +719,7 @@ public class PurchaseService {
             case RECIPE_STATUS_CHECK_PASS:
                 String invalidTime = getInvalidTime(recipe);
                 if (StringUtils.isNotEmpty(orderCode) && payFlag == 0 && order.getActualPrice() > 0) {
-                    tips = "订单待支付，请于" + invalidTime + "内完成购药，否则处方将失效";
+                    tips = "待支付，请在" + invalidTime + "内完成支付";
                 } else if (StringUtils.isEmpty(orderCode)) {
                     tips = "处方单待处理，请于" + invalidTime + "内完成购药，否则处方将失效";
                 } else {

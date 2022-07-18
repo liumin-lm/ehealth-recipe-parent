@@ -38,10 +38,7 @@ import recipe.constant.ErrorCode;
 import recipe.constant.RecipeStatusConstant;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.dao.*;
-import recipe.enumerate.status.OrderStateEnum;
-import recipe.enumerate.status.RecipeAuditStateEnum;
-import recipe.enumerate.status.RecipeStateEnum;
-import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.status.*;
 import recipe.enumerate.type.BussSourceTypeEnum;
 import recipe.enumerate.type.DrugBelongTypeEnum;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
@@ -422,6 +419,11 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     }
 
     @Override
+    public Boolean updateCheckerSignState(Integer recipeId, SignStateEnum checkerSignState) {
+        return stateManager.updateCheckerSignState(recipeId, checkerSignState);
+    }
+
+    @Override
     public RecipeBean getByRecipeCodeAndRegisterIdAndOrganId(String recipeCode, String registerId, int organId) {
         Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeCode, organId);
         logger.info("RecipeBusinessService getByRecipeCodeAndRegisterIdAndOrganId recipe:{}", JSON.toJSONString(recipe));
@@ -753,6 +755,27 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     @Override
     public void pharmacyToRecipePDFAndCa(Integer recipeId, Integer checker) {
         createPdfFactory.updateCheckNamePdfESign(recipeId);
+    }
+
+    @Override
+    public List<Map<String, Object>> findRecipeDetailsByOrderCode(String orderCode) {
+        List<Recipe> recipeOrderList = recipeDAO.findRecipeByOrderCode(orderCode);
+        List<Map<String, Object>> mapList = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(recipeOrderList)) {
+            List<Integer> recipeIdList = recipeOrderList.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
+            recipeIdList.forEach(recipeId -> {
+                Map<String, Object> map = remoteRecipeService.findRecipeAndDetailsAndCheckById(recipeId);
+                mapList.add(map);
+            });
+
+        }
+        return mapList;
+    }
+
+
+    @Override
+    public List<Recipe> findRecipeByMpiidAndrecipeStatus(String mpiid, List<Integer> recipeStatus, Integer terminalType, Integer organId) {
+        return recipeDAO.findRecipeByMpiidAndrecipeStatus(mpiid,recipeStatus,terminalType,organId);
     }
 }
 

@@ -239,6 +239,30 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "跨院复诊类型 0：院内 1：院外")
     private String sideCourtYardType;
 
+    @ItemProperty(alias = "终端ID")
+    private String terminalId;
+
+    @ItemProperty(alias = "终端类型 1 自助机")
+    private Integer terminalType;
+
+    @Column(name = "terminal_id")
+    public String getTerminalId() {
+        return terminalId;
+    }
+
+    public void setTerminalId(String terminalId) {
+        this.terminalId = terminalId;
+    }
+
+    @Column(name = "terminal_type")
+    public Integer getTerminalType() {
+        return terminalType;
+    }
+
+    public void setTerminalType(Integer terminalType) {
+        this.terminalType = terminalType;
+    }
+
     @Column(name = "illness_name")
     public String getIllnessName() {
         return illnessName;

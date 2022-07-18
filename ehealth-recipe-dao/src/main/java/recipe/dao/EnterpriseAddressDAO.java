@@ -1,7 +1,6 @@
 package recipe.dao;
 
 import com.ngari.recipe.entity.EnterpriseAddress;
-import com.ngari.recipe.entity.EnterpriseDecoctionAddress;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;
 import ctd.persistence.bean.QueryResult;
@@ -11,12 +10,11 @@ import ctd.persistence.support.hibernate.template.AbstractHibernateStatelessResu
 import ctd.persistence.support.hibernate.template.HibernateSessionTemplate;
 import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction;
 import ctd.util.annotation.RpcSupportDAO;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Query;
+import org.hibernate.SQLQuery;
 import org.hibernate.StatelessSession;
-import org.hibernate.Transaction;
 import org.springframework.util.ObjectUtils;
 
 import java.util.*;
@@ -30,6 +28,15 @@ import java.util.*;
 public abstract class EnterpriseAddressDAO extends HibernateSupportDelegateDAO<EnterpriseAddress> {
 
     private static final Log LOGGER = LogFactory.getLog(EnterpriseAddressDAO.class);
+
+    /**
+     * 根据药企获取配送信息
+     * @param enterpriseId
+     * @param addrs
+     * @return
+     */
+    @DAOMethod(sql = " from EnterpriseAddress where enterpriseId =:enterpriseId and addrArea in (:addrs) and status = 1", limit=0)
+    public abstract List<EnterpriseAddress> findByEnterpriseIdAddrs(@DAOParam("enterpriseId") Integer enterpriseId, @DAOParam("addrs") List<String> addrs);
 
 
     /**
@@ -212,7 +219,7 @@ public abstract class EnterpriseAddressDAO extends HibernateSupportDelegateDAO<E
         HibernateStatelessResultAction<List<EnterpriseAddress>> action = new AbstractHibernateStatelessResultAction<List<EnterpriseAddress>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                StringBuilder hql = new StringBuilder("from EnterpriseAddress where enterpriseId =:enterpriseId and status = 1 and address like :area");
+                StringBuilder hql = new StringBuilder("from EnterpriseAddress where enterpriseId =:enterpriseId  and address like :area");
                 Query q = ss.createQuery(hql.toString());
                 q.setParameter("enterpriseId", enterpriseId);
                 q.setParameter("area", area + "%");
@@ -225,4 +232,22 @@ public abstract class EnterpriseAddressDAO extends HibernateSupportDelegateDAO<E
 
     @DAOMethod(sql = "From EnterpriseAddress where enterpriseId =:enterpriseId and status=1 and address in (:strings)", limit = 0)
     public abstract List<EnterpriseAddress> findEnterpriseAddressProvince(@DAOParam("enterpriseId")Integer enterpriseId, @DAOParam("strings") List<String> strings);
+
+    public void cancelEnterpriseAddress(Integer enterpriseId, String area){
+        HibernateStatelessResultAction<Integer> action = new AbstractHibernateStatelessResultAction<Integer>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder("UPDATE cdr_enterprise_address set  status = 0 where enterpriseId =:enterpriseId and address like :area");
+                SQLQuery sQLQuery = ss.createSQLQuery(hql.toString());
+                sQLQuery.setParameter("enterpriseId", enterpriseId);
+                sQLQuery.setParameter("area", area + "%");
+                sQLQuery.executeUpdate();
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+
+    }
+
+    @DAOMethod(sql = "From EnterpriseAddress where enterpriseId =:enterpriseId and status=1 and address =:address", limit = 0)
+    public abstract EnterpriseAddress getByEnterpriseIdAndAddress(@DAOParam("enterpriseId")Integer enterpriseId, @DAOParam("address")String address);
 }

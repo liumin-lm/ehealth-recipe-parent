@@ -1,8 +1,7 @@
 package recipe.core.api;
 
-import com.ngari.recipe.drugdistributionprice.model.DrugDistributionPriceBean;
 import com.ngari.recipe.drugsenterprise.model.EnterpriseAddressAndPrice;
-import com.ngari.recipe.drugsenterprise.model.EnterpriseDecoctionAddressDTO;
+import com.ngari.recipe.drugsenterprise.model.EnterpriseAddressDTO;
 import com.ngari.recipe.drugsenterprise.model.EnterpriseDecoctionAddressReq;
 import com.ngari.recipe.drugsenterprise.model.EnterpriseDecoctionList;
 import com.ngari.recipe.entity.DrugsEnterprise;
@@ -16,12 +15,16 @@ import recipe.vo.greenroom.OrganEnterpriseRelationVo;
 import recipe.vo.greenroom.PharmacyVO;
 import recipe.vo.patient.CheckAddressReq;
 import recipe.vo.patient.CheckAddressRes;
+import recipe.vo.patient.FTYSendTimeReq;
+import recipe.vo.patient.MedicineStationVO;
 import recipe.vo.second.CheckAddressVo;
+import recipe.vo.second.CheckOrderAddressVo;
 import recipe.vo.second.enterpriseOrder.EnterpriseConfirmOrderVO;
 import recipe.vo.second.enterpriseOrder.EnterpriseDrugVO;
 import recipe.vo.second.enterpriseOrder.EnterpriseResultBean;
 import recipe.vo.second.enterpriseOrder.EnterpriseSendOrderVO;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -209,8 +212,64 @@ public interface IDrugsEnterpriseBusinessService {
 
     /**
      * 药企药品信息同步接口
+     *
      * @param enterpriseDrugVOList
      * @return
      */
     EnterpriseResultBean renewDrugInfo(List<EnterpriseDrugVO> enterpriseDrugVOList);
+
+
+    /**
+     * 机构药企销售配置
+     *
+     * @param organId
+     * @param drugsEnterpriseId
+     * @return
+     */
+    OrganDrugsSaleConfig getOrganDrugsSaleConfig(Integer organId, Integer drugsEnterpriseId);
+
+
+    /**
+     * 获取药企配送的站点
+     *
+     * @param medicineStationVO 取药站点的信息
+     * @return 可以取药站点的列表
+     */
+    List<MedicineStationVO> getMedicineStationList(MedicineStationVO medicineStationVO);
+
+    OrganDrugsSaleConfig getOrganDrugsSaleConfigOfPatient(Integer organId, Integer drugsEnterpriseId);
+
+    /**
+     * 修改药企支持的配送地址
+     *
+     * @param enterpriseAddressDTOS
+     */
+    void updateEnterpriseAddressAndPrice(List<EnterpriseAddressDTO> enterpriseAddressDTOS);
+
+    /**
+     * 清除当前区域下的所有配送信息
+     * @param enterpriseId
+     * @param area
+     */
+    void cancelEnterpriseAddress(Integer enterpriseId, String area);
+
+    /**
+     * 清除当前煎法下的所有配送信息
+     * @param enterpriseDecoctionAddressReq
+     */
+    void cancelEnterpriseDecoctionAddress(EnterpriseDecoctionAddressReq enterpriseDecoctionAddressReq);
+
+    /**
+     * 端校验地址入参
+     * @param checkAddressVo
+     * @return
+     */
+    Integer checkSendAddressForOrder(CheckOrderAddressVo checkAddressVo);
+
+    /**
+     * 腹透液配送时间获取
+     * @param ftySendTimeREQ
+     * @return
+     */
+    List<Date> getFTYSendTime(FTYSendTimeReq ftySendTimeREQ);
 }

@@ -15,20 +15,24 @@ import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import recipe.aop.LogRecord;
 import recipe.api.open.IRecipeAtopService;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
+import recipe.core.api.IClinicCartBusinessService;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.core.api.IRevisitBusinessService;
 import recipe.core.api.patient.IOfflineRecipeBusinessService;
 import recipe.core.api.patient.IPatientBusinessService;
 import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.enumerate.status.RecipeStateEnum;
+import recipe.enumerate.status.SignStateEnum;
 import recipe.util.ObjectCopyUtils;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.patient.PatientOptionalDrugVo;
 import recipe.vo.second.RevisitRecipeTraceVo;
 
+import javax.annotation.Resource;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -53,6 +57,10 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
 
     @Autowired
     private IPatientBusinessService recipePatientService;
+
+    @Resource
+    private IClinicCartBusinessService clinicCartService;
+
 
     @Override
     public Boolean existUncheckRecipe(Integer bussSource, Integer clinicId) {
@@ -171,8 +179,13 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
     }
 
     @Override
-    public Boolean updateRecipeState(Integer recipeId, Integer processState, Integer subState){
+    public Boolean updateRecipeState(Integer recipeId, Integer processState, Integer subState) {
         return recipeBusinessService.updateRecipeState(recipeId, RecipeStateEnum.getRecipeStateEnum(processState), RecipeStateEnum.getRecipeStateEnum(subState));
+    }
+
+    @Override
+    public Boolean updateCheckerSignState(Integer recipeId, Integer checkerSignState) {
+        return recipeBusinessService.updateCheckerSignState(recipeId, SignStateEnum.getSignStateEnum(checkerSignState));
     }
 
     @Override
@@ -254,6 +267,17 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
     @Override
     public void pharmacyToRecipePDFAndCa(Integer recipeId, Integer checker) {
         recipeBusinessService.pharmacyToRecipePDFAndCa(recipeId, checker);
+    }
+
+    @Override
+    public Boolean deleteClinicCartByIds(List<Integer> ids) {
+        return clinicCartService.deleteClinicCartByIds(ids);
+    }
+
+    @Override
+    @LogRecord
+    public List<RecipeBean> findRecipeByMpiidAndrecipeStatus(String mpiid, List<Integer> recipeStatus,Integer terminalType,Integer organId) {
+        return com.ngari.patient.utils.ObjectCopyUtils.convert(recipeBusinessService.findRecipeByMpiidAndrecipeStatus(mpiid,recipeStatus,terminalType,organId), RecipeBean.class);
     }
 
 }
