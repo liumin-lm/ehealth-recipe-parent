@@ -36,4 +36,8 @@ public class DrugStockVO extends DrugsResVo implements Serializable {
      * 药物使用总数量
      */
     private String useTotalDose;
+    /**
+     * 仅给前端展示使用
+     */
+    private String showUnit;
 }

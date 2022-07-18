@@ -68,6 +68,7 @@ public interface IStockBusinessService {
 
     /**
      * 医生端 查询购药方式下有库存的药品
+     * todo 新 drugForGiveModeV1
      *
      * @param drugQueryVO
      * @return
@@ -75,7 +76,14 @@ public interface IStockBusinessService {
     @Deprecated
     List<DrugForGiveModeVO> drugForGiveMode(DrugQueryVO drugQueryVO);
 
-    List<DrugForGiveModeListVO> drugForGiveModeV1(RecipeDTO recipeDTO);
+    /**
+     * 医生端 查询购药方式下有库存的药品
+     *
+     * @param recipeDTO     药品信息
+     * @param detailUnitMap 药品单位map
+     * @return
+     */
+    List<DrugForGiveModeListVO> drugForGiveModeV1(RecipeDTO recipeDTO, Map<String, String> detailUnitMap);
 
     /**
      * 查询药品能否开在一张处方上
