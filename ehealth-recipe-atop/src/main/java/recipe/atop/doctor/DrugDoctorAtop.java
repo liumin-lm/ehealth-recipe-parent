@@ -94,7 +94,12 @@ public class DrugDoctorAtop extends BaseAtop {
         if (CollectionUtils.isEmpty(organGiveModes)) {
             return null;
         }
-        Map<String, String> detailUnitMap = drugQueryVO.getRecipeDetails().stream().collect(Collectors.toMap(RecipeDetailBean::getOrganDrugCode, RecipeDetailBean::getShowUnit));
+        Map<String, String> detailUnitMap;
+        try {
+            detailUnitMap = drugQueryVO.getRecipeDetails().stream().collect(Collectors.toMap(RecipeDetailBean::getOrganDrugCode, RecipeDetailBean::getShowUnit));
+        } catch (Exception e) {
+            detailUnitMap = new HashMap<>();
+        }
         //查询购药方式下有库存的药品
         List<DrugForGiveModeListVO> list = iStockBusinessService.drugForGiveModeV1(recipeDTO, detailUnitMap);
         if (CollectionUtils.isEmpty(list)) {
