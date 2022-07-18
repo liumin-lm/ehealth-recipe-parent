@@ -105,7 +105,7 @@ public class StateManager extends BaseManager {
      * @return
      */
     @LogRecord
-    public Boolean updateCheckerSignState(Integer recipeId, SignStateEnum checkerSignState) {
+    public Boolean updateCheckerSignState(Integer recipeId, SignEnum checkerSignState) {
         Recipe updateRecipe = new Recipe();
         updateRecipe.setRecipeId(recipeId);
         updateRecipe.setCheckerSignState(checkerSignState.getType());

@@ -419,7 +419,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     }
 
     @Override
-    public Boolean updateCheckerSignState(Integer recipeId, SignStateEnum checkerSignState) {
+    public Boolean updateCheckerSignState(Integer recipeId, SignEnum checkerSignState) {
         return stateManager.updateCheckerSignState(recipeId, checkerSignState);
     }
 

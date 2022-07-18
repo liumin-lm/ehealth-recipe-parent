@@ -989,13 +989,13 @@ public class RecipeService extends RecipeBaseService {
             //说明处方签名失败
             LOGGER.info("当前审核处方{}签名失败！", recipeId);
             recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.SIGN_ERROR_CODE_PHA, null);
-            stateManager.updateCheckerSignState(recipeId, SignStateEnum.SIGN_FAIL);
+            stateManager.updateCheckerSignState(recipeId, SignEnum.SIGN_STATE_AUDIT);
             recipeLogDAO.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), checkResult.getMsg());
             return;
         } else {
             //说明处方签名成功，记录日志，走签名成功逻辑
             LOGGER.info("当前审核处方{}签名成功！", recipeId);
-            stateManager.updateCheckerSignState(recipeId, SignStateEnum.SIGN_SUC);
+            stateManager.updateCheckerSignState(recipeId, SignEnum.SIGN_STATE_ORDER);
             pharmacyToRecipePDF(recipeId);
             recipeLogDAO.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "当前审核处方签名成功");
             if (MapUtils.isNotEmpty(esignResponseMap)) {
