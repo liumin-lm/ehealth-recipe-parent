@@ -52,8 +52,6 @@ public class TherapyRecipeBusinessService extends BaseService implements ITherap
     @Autowired
     private OrganClient organClient;
     @Autowired
-    private ItemListManager itemListManager;
-    @Autowired
     private EmrRecipeManager emrRecipeManager;
     @Resource
     private RevisitClient revisitClient;
@@ -153,7 +151,7 @@ public class TherapyRecipeBusinessService extends BaseService implements ITherap
 
     @Override
     public List<ItemListVO> searchItemListByKeyWord(ItemListVO itemListVO) {
-        List<ItemList> itemLists = itemListManager.findItemList(itemListVO.getOrganId(), itemListVO.getStatus(), itemListVO.getItemName(), itemListVO.getStart(), itemListVO.getLimit(), itemListVO.getId(), itemListVO.getItemCode());
+        List<ItemList> itemLists = recipeTherapyManager.findItemList(itemListVO.getOrganId(), itemListVO.getStatus(), itemListVO.getItemName(), itemListVO.getStart(), itemListVO.getLimit(), itemListVO.getId(), itemListVO.getItemCode());
         return ObjectCopyUtils.convert(itemLists, ItemListVO.class);
     }
 

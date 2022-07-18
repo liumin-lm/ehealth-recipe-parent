@@ -27,9 +27,9 @@ import recipe.bussutil.SignImgNode;
 import recipe.constant.ErrorCode;
 import recipe.dao.RecipeExtendDAO;
 import recipe.enumerate.type.DrugBelongTypeEnum;
+import recipe.manager.CaManager;
 import recipe.manager.RecipeDetailManager;
 import recipe.manager.RedisManager;
-import recipe.manager.SignManager;
 import recipe.util.ByteUtils;
 import recipe.util.DictionaryUtil;
 import recipe.util.RecipeUtil;
@@ -59,7 +59,7 @@ public class PlatformCreatePdfServiceImpl extends BaseCreatePdf implements Creat
     @Autowired
     private RecipeExtendDAO recipeExtendDAO;
     @Autowired
-    private SignManager signManager;
+    private CaManager caManager;
     @Autowired
     private RecipeDetailManager recipeDetailManager;
 
@@ -347,7 +347,7 @@ public class PlatformCreatePdfServiceImpl extends BaseCreatePdf implements Creat
         logger.info("PlatformCreatePdfServiceImpl queryPdfBytePdf recipe:{}", JSON.toJSONString(recipe));
         //获取pdf值对象
         RecipeInfoDTO recipePdfDTO = recipeManager.getRecipeInfoDictionary(recipe.getRecipeId());
-        ApothecaryDTO apothecaryDTO = signManager.attachSealPic(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getChecker(), recipe.getGiveUser(), recipe.getRecipeId());
+        ApothecaryDTO apothecaryDTO = caManager.attachSealPic(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getChecker(), recipe.getGiveUser(), recipe.getRecipeId());
         recipePdfDTO.setApothecary(apothecaryDTO);
         Map<String, List<RecipeLabelDTO>> result = operationClient.queryRecipeLabel(recipePdfDTO);
         List<RecipeLabelDTO> list = result.get("moduleThree");

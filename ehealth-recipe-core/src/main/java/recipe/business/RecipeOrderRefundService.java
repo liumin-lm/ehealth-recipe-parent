@@ -26,12 +26,15 @@ import recipe.constant.RecipeRefundRoleConstant;
 import recipe.constant.RefundNodeStatusConstant;
 import recipe.core.api.greenroom.IRecipeOrderRefundService;
 import recipe.dao.*;
-import recipe.enumerate.status.*;
+import recipe.enumerate.status.OrderStateEnum;
+import recipe.enumerate.status.PayModeEnum;
+import recipe.enumerate.status.RecipeOrderStatusEnum;
+import recipe.enumerate.status.RefundNodeStatusEnum;
 import recipe.enumerate.type.PayFlagEnum;
 import recipe.manager.EnterpriseManager;
+import recipe.manager.OrderFeeManager;
 import recipe.manager.OrderManager;
 import recipe.manager.RecipeManager;
-import recipe.manager.RecipeRefundManage;
 import recipe.service.RecipeService;
 import recipe.util.DateConversion;
 import recipe.util.ObjectCopyUtils;
@@ -66,7 +69,7 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
     @Autowired
     private RecipeRefundDAO recipeRefundDAO;
     @Autowired
-    private RecipeRefundManage recipeRefundManage;
+    private OrderFeeManager orderFeeManager;
     @Autowired
     private RecipeManager recipeManager;
     @Autowired
@@ -168,7 +171,7 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
         recipeOrderRefundDetailVO.setPatientDTO(ObjectCopyUtils.convert(patientDTO, com.ngari.patient.dto.PatientDTO.class));
         List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
         List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIdList);
-        orderRefundInfoVO.setAuditNodeType(recipeRefundManage.getRecipeRefundNode(recipeIdList.get(0), recipeOrder.getOrganId()));
+        orderRefundInfoVO.setAuditNodeType(orderFeeManager.getRecipeRefundNode(recipeIdList.get(0), recipeOrder.getOrganId()));
         List<RecipeRefund> recipeRefundList = recipeRefundDAO.findRecipeRefundByRecipeIdAndNodeAndStatus(recipeIdList.get(0), RecipeRefundRoleConstant.RECIPE_REFUND_ROLE_ADMIN);
         List<RecipeRefund> recipeRefunds = recipeRefundDAO.findRefundListByRecipeId(recipeIdList.get(0));
         if (CollectionUtils.isNotEmpty(recipeRefundList)) {
@@ -255,7 +258,7 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
             recipeRefund.setStatus(2);
             recipeRefund.setNode(RecipeRefundRoleConstant.RECIPE_REFUND_ROLE_THIRD);
             recipeRefund.setReason(auditRefundVO.getReason());
-            recipeRefundManage.recipeReFundSave(auditRefundVO.getOrderCode(), recipeRefund);
+            orderFeeManager.recipeReFundSave(auditRefundVO.getOrderCode(), recipeRefund);
             refundStatus = RefundNodeStatusConstant.REFUND_NODE_NOPASS_AUDIT_STATUS;
         }
         List<Recipe> recipes = orderManager.getRecipesByOrderCode(recipeOrder.getOrderCode());

@@ -56,7 +56,7 @@ public class RevisitBusinessService extends BaseService implements IRevisitBusin
     @Autowired
     private OrganDrugListDAO organDrugListDAO;
     @Autowired
-    private SignManager signManager;
+    private CaManager caManager;
     @Autowired
     private DoctorClient doctorClient;
     @Autowired
@@ -107,7 +107,7 @@ public class RevisitBusinessService extends BaseService implements IRevisitBusin
                     if (recipeExtendMap != null && recipeExtendMap.get(recipe.getRecipeId()) != null) {
                         BeanUtils.copy(recipeExtendMap.get(recipe.getRecipeId()), innerRecipe);
                     }
-                    ApothecaryDTO apothecaryDTO = signManager.attachSealPic(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getChecker(), recipe.getRecipeId());
+                    ApothecaryDTO apothecaryDTO = caManager.attachSealPic(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getChecker(), recipe.getRecipeId());
                     innerRecipe.setDoctorSign(apothecaryDTO.getDoctorSignImg());
                     if (new Integer(2).equals(recipe.getRecipeSourceType())) {
                         innerRecipe.setFromflag(0);

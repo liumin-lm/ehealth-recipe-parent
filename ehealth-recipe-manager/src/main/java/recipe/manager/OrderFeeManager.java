@@ -10,6 +10,9 @@ import com.ngari.his.visit.mode.NeedPaymentRecipeResTo;
 import com.ngari.recipe.dto.PatientDTO;
 import com.ngari.recipe.entity.*;
 import coupon.api.vo.Coupon;
+import ctd.controller.exception.ControllerException;
+import ctd.dictionary.DictionaryController;
+import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
@@ -20,6 +23,7 @@ import recipe.aop.LogRecord;
 import recipe.client.*;
 import recipe.constant.ParameterConstant;
 import recipe.constant.RecipeBussConstant;
+import recipe.constant.RecipeRefundRoleConstant;
 import recipe.constant.ReviewTypeConstant;
 import recipe.dao.*;
 import recipe.enumerate.status.RecipeSourceTypeEnum;
@@ -67,7 +71,8 @@ public class OrderFeeManager extends BaseManager {
     private RecipeParameterDao recipeParameterDao;
     @Autowired
     private EnterpriseAddressDAO enterpriseAddressDAO;
-
+    @Autowired
+    private RecipeRefundDAO recipeRefundDAO;
 
     @LogRecord
     public void setSHWFAccountFee(RecipeOrder order) {
@@ -594,6 +599,52 @@ public class OrderFeeManager extends BaseManager {
             return new BigDecimal(recipeCashPreSettleInfo.getZhzf());
         }
         return null;
+    }
+
+
+    public void recipeReFundSave(String orderCode, RecipeRefund recipeRefund) {
+        //处理合并支付问题
+        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(orderCode);
+        List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
+        List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIdList);
+        recipes.forEach(recipe -> {
+            recipeRefund.setBusId(recipe.getRecipeId());
+            recipeRefund.setOrganId(recipe.getClinicOrgan());
+            recipeRefund.setMpiid(recipe.getMpiid());
+            recipeRefund.setPatientName(recipe.getPatientName());
+            Boolean doctorReviewRefund = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "doctorReviewRefund", false);
+            if (doctorReviewRefund) {
+                recipeRefund.setDoctorId(recipe.getDoctor());
+            }
+            String memo = null;
+            try {
+                memo = DictionaryController.instance().get("eh.cdr.dictionary.RecipeRefundNode").getText(recipeRefund.getNode()) +
+                        DictionaryController.instance().get("eh.cdr.dictionary.RecipeRefundCheckStatus").getText(recipeRefund.getStatus());
+            } catch (ControllerException e) {
+                logger.error("recipeReFundSave-未获取到处方单信息. recipeId={}, node={}, recipeRefund={}", recipe, JSONUtils.toString(recipeRefund));
+                throw new DAOException("退费相关字典获取失败");
+            }
+            recipeRefund.setMemo(memo);
+            if (recipeRefund.getNode() == RecipeRefundRoleConstant.RECIPE_REFUND_ROLE_PATIENT) {
+                recipeRefund.setStatus(0);
+                recipeRefund.setMemo("患者发起退费申请");
+            }
+            recipeRefund.setNode(recipeRefund.getNode());
+            recipeRefund.setStatus(recipeRefund.getStatus());
+            recipeRefund.setApplyTime(new Date());
+            recipeRefund.setCheckTime(new Date());
+            //保存记录
+            recipeRefundDAO.saveRefund(recipeRefund);
+        });
+    }
+
+    public Integer getRecipeRefundNode(Integer recipeId, Integer organId) {
+        Boolean doctorReviewRefund = configurationClient.getValueBooleanCatch(organId, "doctorReviewRefund", false);
+        List<RecipeRefund> recipeRefundList = recipeRefundDAO.findRefundListByRecipeId(recipeId);
+        if (doctorReviewRefund && CollectionUtils.isNotEmpty(recipeRefundList) && new Integer(-1).equals(recipeRefundList.get(0).getNode())) {
+            return 1;
+        }
+        return 2;
     }
 
     /**

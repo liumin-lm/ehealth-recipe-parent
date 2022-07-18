@@ -9,7 +9,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.core.api.doctor.ITherapyItemBusinessService;
-import recipe.manager.ItemListManager;
+import recipe.manager.RecipeTherapyManager;
 
 import java.util.Arrays;
 import java.util.Date;
@@ -28,34 +28,34 @@ public class TherapyItemBusinessService extends BaseService implements ITherapyI
     public final String ITEM_CODE = "itemCode";
 
     @Autowired
-    private ItemListManager itemListManager;
+    private RecipeTherapyManager recipeTherapyManager;
 
     @Override
     public List<ItemList> listItemList(ItemListVO itemListVO) {
-        return itemListManager.findItemList(itemListVO.getOrganId(), itemListVO.getStatus(), itemListVO.getItemName(), itemListVO.getStart(), itemListVO.getLimit(), itemListVO.getId(), itemListVO.getItemCode());
+        return recipeTherapyManager.findItemList(itemListVO.getOrganId(), itemListVO.getStatus(), itemListVO.getItemName(), itemListVO.getStart(), itemListVO.getLimit(), itemListVO.getId(), itemListVO.getItemCode());
     }
 
     @Override
     public QueryResult<ItemList> pageItemList(ItemListVO itemListVO) {
-        QueryResult<ItemList> itemLists = itemListManager.pageItemList(itemListVO.getOrganId(), itemListVO.getStatus(), itemListVO.getItemName(), itemListVO.getStart(), itemListVO.getLimit(), itemListVO.getId(), itemListVO.getItemCode());
+        QueryResult<ItemList> itemLists = recipeTherapyManager.pageItemList(itemListVO.getOrganId(), itemListVO.getStatus(), itemListVO.getItemName(), itemListVO.getStart(), itemListVO.getLimit(), itemListVO.getId(), itemListVO.getItemCode());
         return itemLists;
     }
 
     @Override
     public boolean saveItemList(ItemList itemList) {
         if (StringUtils.isNotEmpty(itemList.getItemName())) {
-            List<ItemList> resByItemName = itemListManager.findItemListByOrganIdAndItemNameOrCode(itemList.getOrganID(), itemList.getItemName(), null);
+            List<ItemList> resByItemName = recipeTherapyManager.findItemListByOrganIdAndItemNameOrCode(itemList.getOrganID(), itemList.getItemName(), null);
             if (CollectionUtils.isNotEmpty(resByItemName)) {
                 return false;
             }
         }
         if (StringUtils.isNotEmpty(itemList.getItemCode())) {
-            List<ItemList> resByItemName = itemListManager.findItemListByOrganIdAndItemNameOrCode(itemList.getOrganID(), null, itemList.getItemCode());
+            List<ItemList> resByItemName = recipeTherapyManager.findItemListByOrganIdAndItemNameOrCode(itemList.getOrganID(), null, itemList.getItemCode());
             if (CollectionUtils.isNotEmpty(resByItemName)) {
                 return false;
             }
         }
-        itemListManager.saveItemList(itemList);
+        recipeTherapyManager.saveItemList(itemList);
         return true;
     }
 
@@ -63,7 +63,7 @@ public class TherapyItemBusinessService extends BaseService implements ITherapyI
     public boolean updateItemList(ItemList itemList) {
         AtomicBoolean res = new AtomicBoolean(true);
         if (StringUtils.isNotEmpty(itemList.getItemName())) {
-            List<ItemList> itemListsByItemName = itemListManager.findItemListByOrganIdAndItemNameOrCode(itemList.getOrganID(), itemList.getItemName(), null);
+            List<ItemList> itemListsByItemName = recipeTherapyManager.findItemListByOrganIdAndItemNameOrCode(itemList.getOrganID(), itemList.getItemName(), null);
             itemListsByItemName.forEach(itemListByItemName -> {
                 //存在一条id与当前传入itemList.getId不相同的就为false
                 if (itemListByItemName != null && !itemList.getId().equals(itemListByItemName.getId())) {
@@ -72,7 +72,7 @@ public class TherapyItemBusinessService extends BaseService implements ITherapyI
             });
         }
         if (StringUtils.isNotEmpty(itemList.getItemCode())) {
-            List<ItemList> itemListsByItemCode = itemListManager.findItemListByOrganIdAndItemNameOrCode(itemList.getOrganID(), null, itemList.getItemCode());
+            List<ItemList> itemListsByItemCode = recipeTherapyManager.findItemListByOrganIdAndItemNameOrCode(itemList.getOrganID(), null, itemList.getItemCode());
             itemListsByItemCode.forEach(itemListByItemCode -> {
                 //存在一条id与当前传入itemList.getId不相同的就为false
                 if (itemListByItemCode != null && !itemList.getId().equals(itemListByItemCode.getId())) {
@@ -84,32 +84,32 @@ public class TherapyItemBusinessService extends BaseService implements ITherapyI
             return false;
         }
         itemList.setGmtModified(new Date());
-        itemListManager.updateItemList(itemList);
+        recipeTherapyManager.updateItemList(itemList);
         return true;
     }
 
     @Override
     public ItemList getItemListById(ItemList itemList) {
-        return itemListManager.getItemListById(itemList);
+        return recipeTherapyManager.getItemListById(itemList);
     }
 
     @Override
     public void batchUpdateItemList(List<ItemList> itemLists) {
         itemLists.forEach(itemList -> {
             if (itemList != null && itemList.getId() != null) {
-                itemListManager.updateItemList(itemList);
+                recipeTherapyManager.updateItemList(itemList);
             }
         });
     }
 
     @Override
     public List<ItemList> findItemListByOrganIdAndItemNameOrCode(Integer organId, String itemName, String itemCode) {
-        return itemListManager.findItemListByOrganIdAndItemNameOrCode(organId, itemName, itemCode);
+        return recipeTherapyManager.findItemListByOrganIdAndItemNameOrCode(organId, itemName, itemCode);
     }
 
     @Override
     public List<ItemList> findItemListByOrganIdAndItemNameOrCode2(Integer organId, String itemName, String itemCode) {
-        return itemListManager.findItemListByOrganIdAndItemNameOrCode2(organId, itemName, itemCode);
+        return recipeTherapyManager.findItemListByOrganIdAndItemNameOrCode2(organId, itemName, itemCode);
     }
 
     @Override
@@ -122,7 +122,7 @@ public class TherapyItemBusinessService extends BaseService implements ITherapyI
         if (itemList.getId() != null) {
             //修改
             if (StringUtils.isNotEmpty(itemList.getItemName())) {
-                List<ItemList> itemListsByItemName = itemListManager.findItemListByOrganIdAndItemNameOrCode(itemList.getOrganID(), itemList.getItemName(), null);
+                List<ItemList> itemListsByItemName = recipeTherapyManager.findItemListByOrganIdAndItemNameOrCode(itemList.getOrganID(), itemList.getItemName(), null);
                 itemListsByItemName.forEach(itemListByItemName -> {
                     //存在一条id与当前传入itemList.getId不相同的就为false
                     if (itemListByItemName != null && !itemList.getId().equals(itemListByItemName.getId())) {
@@ -132,7 +132,7 @@ public class TherapyItemBusinessService extends BaseService implements ITherapyI
                 });
             }
             if (StringUtils.isNotEmpty(itemList.getItemCode())) {
-                List<ItemList> itemListsByItemCode = itemListManager.findItemListByOrganIdAndItemNameOrCode(itemList.getOrganID(), null, itemList.getItemCode());
+                List<ItemList> itemListsByItemCode = recipeTherapyManager.findItemListByOrganIdAndItemNameOrCode(itemList.getOrganID(), null, itemList.getItemCode());
                 itemListsByItemCode.forEach(itemListByItemCode -> {
                     //存在一条id与当前传入itemList.getId不相同的就为false
                     if (itemListByItemCode != null && !itemList.getId().equals(itemListByItemCode.getId())) {
@@ -144,14 +144,14 @@ public class TherapyItemBusinessService extends BaseService implements ITherapyI
         } else {
             //新增
             if (StringUtils.isNotEmpty(itemList.getItemName())) {
-                List<ItemList> resByItemName = itemListManager.findItemListByOrganIdAndItemNameOrCode(itemList.getOrganID(), itemList.getItemName(), null);
+                List<ItemList> resByItemName = recipeTherapyManager.findItemListByOrganIdAndItemNameOrCode(itemList.getOrganID(), itemList.getItemName(), null);
                 if (CollectionUtils.isNotEmpty(resByItemName)) {
                     result.set(false);
                     cause.set(0, ITEM_NAME);
                 }
             }
             if (StringUtils.isNotEmpty(itemList.getItemCode())) {
-                List<ItemList> resByItemName = itemListManager.findItemListByOrganIdAndItemNameOrCode(itemList.getOrganID(), null, itemList.getItemCode());
+                List<ItemList> resByItemName = recipeTherapyManager.findItemListByOrganIdAndItemNameOrCode(itemList.getOrganID(), null, itemList.getItemCode());
                 if (CollectionUtils.isNotEmpty(resByItemName)) {
                     result.set(false);
                     cause.set(1, ITEM_CODE);

@@ -2,12 +2,10 @@ package recipe.manager;
 
 import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.dto.*;
-import com.ngari.recipe.entity.DecoctionWay;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeExtend;
-import com.ngari.recipe.entity.RecipeTherapy;
+import com.ngari.recipe.entity.*;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
+import ctd.util.JSONUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,11 +14,13 @@ import org.springframework.util.CollectionUtils;
 import recipe.client.PatientClient;
 import recipe.common.CommonConstant;
 import recipe.constant.ErrorCode;
+import recipe.dao.ItemListDAO;
 import recipe.dao.RecipeTherapyDAO;
 import recipe.enumerate.status.TherapyStatusEnum;
 import recipe.enumerate.type.TherapyCancellationTypeEnum;
 import recipe.util.ValidateUtil;
 
+import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -37,7 +37,8 @@ public class RecipeTherapyManager extends BaseManager {
     private RecipeTherapyDAO recipeTherapyDAO;
     @Autowired
     private PatientClient patientClient;
-
+    @Resource
+    private ItemListDAO itemListDAO;
 
     /**
      * 保存诊疗处方关联信息
@@ -214,5 +215,40 @@ public class RecipeTherapyManager extends BaseManager {
 
     public QueryResult<RecipeTherapyOpBean> findTherapyByInfo(RecipeTherapyOpQueryDTO recipeTherapyOpQueryVO) {
         return recipeTherapyDAO.findTherapyByInfo(recipeTherapyOpQueryVO);
+    }
+
+
+    public List<ItemList> findItemList(Integer organId, Integer status, String itemName, Integer start, Integer limit, Integer id, String itemCode) {
+        List<ItemList> itemLists = itemListDAO.findItemList(organId, status, itemName, start, limit, id, itemCode);
+        logger.info("ItemListManager findItemList itemLists:{}.", JSON.toJSONString(itemLists));
+        return itemLists;
+    }
+
+    public QueryResult<ItemList> pageItemList(Integer organId, Integer status, String itemName, Integer start, Integer limit, Integer id, String itemCode) {
+        QueryResult<ItemList> itemLists = itemListDAO.pageItemList(organId, status, itemName, start, limit, id, itemCode);
+        logger.info("ItemListManager pageItemList itemLists:{}.", JSON.toJSONString(itemLists));
+        return itemLists;
+    }
+
+    public ItemList saveItemList(ItemList itemList) {
+        ItemList itemList1 = itemListDAO.save(itemList);
+        logger.info("saveItemList result:{}", JSONUtils.toString(itemList1));
+        return itemList1;
+    }
+
+    public void updateItemList(ItemList itemList) {
+        itemListDAO.updateNonNullFieldByPrimaryKey(itemList);
+    }
+
+    public ItemList getItemListById(ItemList itemList) {
+        return itemListDAO.get(itemList.getId());
+    }
+
+    public List<ItemList> findItemListByOrganIdAndItemNameOrCode(Integer organId, String itemName, String itemCode) {
+        return itemListDAO.findItemListByOrganIdAndItemNameOrCode(organId, itemName, itemCode);
+    }
+
+    public List<ItemList> findItemListByOrganIdAndItemNameOrCode2(Integer organId, String itemName, String itemCode) {
+        return itemListDAO.findItemListByOrganIdAndItemNameOrCode2(organId, itemName, itemCode);
     }
 }

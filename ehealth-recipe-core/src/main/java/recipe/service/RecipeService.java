@@ -181,8 +181,6 @@ public class RecipeService extends RecipeBaseService {
     @Autowired
     private RecipeManager recipeManager;
     @Autowired
-    private SignManager signManager;
-    @Autowired
     private OperationClient operationClient;
     @Autowired
     private PharmacyTcmDAO pharmacyTcmDAO;
@@ -3426,7 +3424,7 @@ public class RecipeService extends RecipeBaseService {
     public Map<String, List<RecipeLabelDTO>> queryRecipeLabelById(int recipeId, Integer organId) {
         RecipeInfoDTO recipePdfDTO = recipeManager.getRecipeInfoDictionary(recipeId);
         Recipe recipe = recipePdfDTO.getRecipe();
-        ApothecaryDTO apothecaryDTO = signManager.attachSealPic(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getChecker(), recipe.getGiveUser(), recipe.getRecipeId());
+        ApothecaryDTO apothecaryDTO = caManager.attachSealPic(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getChecker(), recipe.getGiveUser(), recipe.getRecipeId());
         recipePdfDTO.setApothecary(apothecaryDTO);
         RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
         if (null == recipeOrder || null == recipeOrder.getDispensingTime()) {

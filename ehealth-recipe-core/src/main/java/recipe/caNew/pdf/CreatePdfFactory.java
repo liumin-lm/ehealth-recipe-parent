@@ -29,7 +29,6 @@ import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.enumerate.type.SignImageTypeEnum;
 import recipe.manager.CaManager;
-import recipe.manager.SignManager;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeServiceEsignExt;
 import recipe.thread.RecipeBusiThreadPool;
@@ -63,8 +62,6 @@ public class CreatePdfFactory {
     private RecipeDAO recipeDAO;
     @Autowired
     private RecipeOrderDAO orderDAO;
-    @Autowired
-    private SignManager signManager;
     @Autowired
     protected DoctorClient doctorClient;
     @Resource
@@ -249,7 +246,7 @@ public class CreatePdfFactory {
             return;
         }
         //获取签名图片
-        AttachSealPicDTO sttachSealPicDTO = signManager.attachSealPic(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getChecker(), recipeId);
+        AttachSealPicDTO sttachSealPicDTO = caManager.attachSealPic(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getChecker(), recipeId);
         String signImageId = sttachSealPicDTO.getCheckerSignImg();
         updateCheckNamePdfDefault(recipeId,signImageId);
     }
@@ -485,7 +482,7 @@ public class CreatePdfFactory {
             logger.error("CreatePdfFactory updateGiveUser updateDispensingTimePdf  recipe: {}", recipe.getRecipeId(), e);
         }
         //获取 核对发药药师签名id
-        ApothecaryDTO apothecaryDTO = signManager.giveUser(recipe.getClinicOrgan(), recipe.getGiveUser(), recipe.getRecipeId());
+        ApothecaryDTO apothecaryDTO = caManager.giveUser(recipe.getClinicOrgan(), recipe.getGiveUser(), recipe.getRecipeId());
         if (StringUtils.isEmpty(apothecaryDTO.getGiveUserSignImg())) {
             return;
         }
@@ -635,7 +632,7 @@ public class CreatePdfFactory {
      */
     private void updateDoctorNamePdf(Recipe recipe, byte[] data, CreatePdfService createPdfService) throws Exception {
         //设置签名图片
-        AttachSealPicDTO sttachSealPicDTO = signManager.attachSealPic(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getChecker(), recipe.getRecipeId());
+        AttachSealPicDTO sttachSealPicDTO = caManager.attachSealPic(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getChecker(), recipe.getRecipeId());
         SignImgNode signImgNode = new SignImgNode();
         signImgNode.setRecipeId(recipe.getRecipeId().toString());
         signImgNode.setSignImgFileId(sttachSealPicDTO.getDoctorSignImg());

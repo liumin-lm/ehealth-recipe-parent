@@ -129,8 +129,7 @@ public class RecipeServiceSub {
 
     private static final String UNCHECK = "uncheck";
 
-    private static SignManager signManager = AppContextHolder.getBean("signManager", SignManager.class);
-
+    private static CaManager caManager = AppContextHolder.getBean("caManager", CaManager.class);
     private static HisRecipeManager hisRecipeManager = AppContextHolder.getBean("hisRecipeManager", HisRecipeManager.class);
 
     private static GroupRecipeManager groupRecipeManager = AppContextHolder.getBean("groupRecipeManager", GroupRecipeManager.class);
@@ -2013,7 +2012,7 @@ public class RecipeServiceSub {
      */
     public static Map<String, String> attachSealPic(Integer clinicOrgan, Integer doctorId, Integer checker, Integer recipeId) {
         Map<String, String> map = new HashMap<>();
-        AttachSealPicDTO sttachSealPicDTO = signManager.attachSealPic(clinicOrgan, doctorId, checker, recipeId);
+        AttachSealPicDTO sttachSealPicDTO = caManager.attachSealPic(clinicOrgan, doctorId, checker, recipeId);
         map.put("doctorSignImg", sttachSealPicDTO.getDoctorSignImg());
         map.put("checkerSignImg", sttachSealPicDTO.getCheckerSignImg());
         return map;
