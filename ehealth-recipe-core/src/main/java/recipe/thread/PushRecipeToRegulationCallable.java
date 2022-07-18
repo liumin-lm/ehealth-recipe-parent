@@ -9,6 +9,7 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import ctd.persistence.DAOFactory;
 import ctd.spring.AppDomainContext;
+import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -23,6 +24,7 @@ import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
+import recipe.manager.OrganManager;
 import recipe.service.RecipeLogService;
 
 import java.util.Arrays;
@@ -122,7 +124,13 @@ public class PushRecipeToRegulationCallable implements Callable<String> {
                                 //配置了审方后上传 status=1时不上传
                                 return null;
                             }
-                            response = service.uploadRecipeIndicators(Arrays.asList(recipe));
+                            OrganManager organManager = AppContextHolder.getBean("organManager", OrganManager.class);
+                            Boolean isRelationJgpt=organManager.isRelationJgpt(recipe.getClinicOrgan());
+                            logger.info("uploadRecipeVerificationIndicators recipeId={},isRelationJgpt={}",recipeId,isRelationJgpt);
+                            if (isRelationJgpt) {
+                                response = service.uploadRecipeIndicators(Arrays.asList(recipe));
+                            }
+
                         }
                     }else {
                         //互联网模式

@@ -11,9 +11,9 @@ import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.vo.*;
-import recipe.enumerate.status.SignStateEnum;
 import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.enumerate.status.RecipeStateEnum;
+import recipe.enumerate.status.SignEnum;
 import recipe.vo.doctor.PatientOptionalDrugVO;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.greenroom.DrugUsageLabelResp;
@@ -163,7 +163,7 @@ public interface IRecipeBusinessService {
      * @param checkerSignState
      * @return
      */
-    Boolean updateCheckerSignState(Integer recipeId, SignStateEnum checkerSignState);
+    Boolean updateCheckerSignState(Integer recipeId, SignEnum checkerSignState);
 
     RecipeBean getByRecipeCodeAndRegisterIdAndOrganId(String recipeCode, String registerId, int organId);
 

@@ -405,4 +405,16 @@ public class IConfigurationClient extends BaseClient {
     public List<Integer> organIdList(String propertyKey, String boo) {
         return configService.findOrganByPropertyKeyAndValue(propertyKey, boo);
     }
+
+    /**
+     * 查询关联的监管平台，未关联监管平台时，配置为null
+     * 默认未关联，是null，
+     关联空，0，
+     关联上海监管平台 17，shsjgpt
+     * @param organId
+     * @return
+     */
+    public Integer getRelationJgptId(Integer organId) {
+        return (Integer)configService.getConfiguration(organId, "relatedJgpt");
+    }
 }

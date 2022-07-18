@@ -26,7 +26,7 @@ import recipe.core.api.patient.IOfflineRecipeBusinessService;
 import recipe.core.api.patient.IPatientBusinessService;
 import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.enumerate.status.RecipeStateEnum;
-import recipe.enumerate.status.SignStateEnum;
+import recipe.enumerate.status.SignEnum;
 import recipe.util.ObjectCopyUtils;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.patient.PatientOptionalDrugVo;
@@ -185,7 +185,7 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
 
     @Override
     public Boolean updateCheckerSignState(Integer recipeId, Integer checkerSignState) {
-        return recipeBusinessService.updateCheckerSignState(recipeId, SignStateEnum.getSignStateEnum(checkerSignState));
+        return recipeBusinessService.updateCheckerSignState(recipeId, SignEnum.getSignEnum(checkerSignState));
     }
 
     @Override

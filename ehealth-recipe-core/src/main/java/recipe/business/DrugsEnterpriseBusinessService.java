@@ -7,6 +7,7 @@ import com.google.common.base.Predicate;
 import com.ngari.base.organ.model.OrganBean;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.his.recipe.mode.DrugTakeChangeReqTO;
+import com.ngari.his.recipe.mode.FTYSendTimeReqDTO;
 import com.ngari.patient.service.OrganService;
 import com.ngari.platform.recipe.mode.DrugsEnterpriseBean;
 import com.ngari.platform.recipe.mode.MedicineStationDTO;
@@ -732,7 +733,8 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
 
     @Override
     public List<Date> getFTYSendTime(FTYSendTimeReq ftySendTimeREQ) {
-        return null;
+        FTYSendTimeReqDTO ftySendTimeReqDTO = BeanCopyUtils.copyProperties(ftySendTimeREQ, FTYSendTimeReqDTO::new);
+        return enterpriseClient.getFTYSendTime(ftySendTimeReqDTO);
     }
 
     private void syncFinishOrderHandle(List<Integer> recipeIdList, RecipeOrder recipeOrder, boolean isSendFlag) {
@@ -747,16 +749,7 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
                 CommonOrder.finishGetDrugUpdatePdf(recipe.getRecipeId());
                 HisSyncSupervisionService hisSyncService = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
                 if (isSendFlag) {
-                    CommonResponse response = hisSyncService.uploadFinishMedicine(recipe.getRecipeId());
-                    if (CommonConstant.SUCCESS.equals(response.getCode())) {
-                        //记录日志
-                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), RecipeStatusEnum.RECIPE_STATUS_FINISH.getType(),
-                                "监管平台配送信息[配送到家-处方完成]上传成功");
-                    } else {
-                        //记录日志
-                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), RecipeStatusEnum.RECIPE_STATUS_FINISH.getType(),
-                                "监管平台配送信息[配送到家-处方完成]上传失败：" + response.getMsg());
-                    }
+                    hisSyncService.uploadFinishMedicine(recipe.getRecipeId());
                 } else {
                     SyncExecutorService syncExecutorService = ApplicationUtils.getRecipeService(SyncExecutorService.class);
                     syncExecutorService.uploadRecipeVerificationIndicators(recipe.getRecipeId());
@@ -795,16 +788,8 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
 
                     //监管平台上传配送信息(派药)
                     HisSyncSupervisionService hisSyncService = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
-                    CommonResponse response = hisSyncService.uploadSendMedicine(recipe.getRecipeId());
-                    if (CommonConstant.SUCCESS.equals(response.getCode())) {
-                        //记录日志
-                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), RecipeOrderStatusEnum.ORDER_STATUS_PROCEED_SHIPPING.getType(),
-                                "监管平台配送信息[派药]上传成功");
-                    } else {
-                        //记录日志
-                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), RecipeOrderStatusEnum.ORDER_STATUS_PROCEED_SHIPPING.getType(),
-                                "监管平台配送信息[派药]上传失败：" + response.getMsg());
-                    }
+                    hisSyncService.uploadSendMedicine(recipe.getRecipeId());
+
                 });
             }
         });

@@ -30,4 +30,19 @@ public enum SignEnum {
     public String getName() {
         return name;
     }
+
+    /**
+     * 根据类型 获取枚举类型
+     *
+     * @param type
+     * @return
+     */
+    public static SignEnum getSignEnum(Integer type) {
+        for (SignEnum e : SignEnum.values()) {
+            if (e.type.equals(type)) {
+                return e;
+            }
+        }
+        return NONE;
+    }
 }

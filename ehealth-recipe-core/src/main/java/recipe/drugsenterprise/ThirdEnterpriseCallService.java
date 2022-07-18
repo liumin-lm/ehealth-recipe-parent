@@ -453,16 +453,8 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                 //监管平台上传配送信息(派药)
                 RecipeBusiThreadPool.submit(() -> {
                     HisSyncSupervisionService hisSyncService = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
-                    CommonResponse response = hisSyncService.uploadSendMedicine(recipeId);
-                    if (CommonConstant.SUCCESS.equals(response.getCode())) {
-                        //记录日志
-                        RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusConstant.IN_SEND,
-                                "监管平台配送信息[派药]上传成功");
-                    } else {
-                        //记录日志
-                        RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusConstant.IN_SEND,
-                                "监管平台配送信息[派药]上传失败：" + response.getMsg());
-                    }
+                    hisSyncService.uploadSendMedicine(recipeId);
+
                     return null;
                 });
             }
@@ -544,16 +536,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                 LOGGER.info("finishRecipe start");
                 long start = System.currentTimeMillis();
                 HisSyncSupervisionService hisSyncService = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
-                CommonResponse response = hisSyncService.uploadFinishMedicine(recipeId);
-                if (CommonConstant.SUCCESS.equals(response.getCode())) {
-                    //记录日志
-                    RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusConstant.FINISH,
-                            "监管平台配送信息[配送到家-处方完成]上传成功");
-                } else {
-                    //记录日志
-                    RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusConstant.FINISH,
-                            "监管平台配送信息[配送到家-处方完成]上传失败：" + response.getMsg());
-                }
+                hisSyncService.uploadFinishMedicine(recipeId);
                 long elapsedTime = System.currentTimeMillis() - start;
                 LOGGER.info("RecipeBusiThreadPool finishRecipe 监管平台上传配送信息(配送到家-处方完成) 执行时间:{}.", elapsedTime);
                 return null;
