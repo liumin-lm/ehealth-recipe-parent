@@ -275,6 +275,17 @@ public class RecipeDetailBean implements java.io.Serializable {
     @ItemProperty(alias = "his开方或预结算时返回的药品单价")
     private BigDecimal hisReturnSalePrice;
 
+    @ItemProperty(alias = "腹透液  空0否  1是  ")
+    private Integer peritonealDialysisFluidType;
+
+    public Integer getPeritonealDialysisFluidType() {
+        return peritonealDialysisFluidType;
+    }
+
+    public void setPeritonealDialysisFluidType(Integer peritonealDialysisFluidType) {
+        this.peritonealDialysisFluidType = peritonealDialysisFluidType;
+    }
+
     public BigDecimal getHisReturnSalePrice() {
         return hisReturnSalePrice;
     }
