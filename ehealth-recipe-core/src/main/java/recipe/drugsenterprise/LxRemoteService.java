@@ -95,6 +95,7 @@ public class LxRemoteService extends AccessDrugEnterpriseService {
             recipeDetails.forEach(recipeDetail -> {
                 DrugInfoDTO drugInfoDTO = new DrugInfoDTO();
                 BeanUtils.copyProperties(recipeDetail, drugInfoDTO);
+                drugInfoDTO.setUseTotalDose(String.valueOf(recipeDetail.getUseTotalDose().intValue()));
                 SaleDrugList saleDrugList = saleDrugListMap.get(recipeDetail.getDrugId());
                 if (null != saleDrugList && saleDrugList.getStatus() == 1) {
                     drugInfoDTO.setStock("有库存".equals(inventoryMap.get(saleDrugList.getOrganDrugCode())));

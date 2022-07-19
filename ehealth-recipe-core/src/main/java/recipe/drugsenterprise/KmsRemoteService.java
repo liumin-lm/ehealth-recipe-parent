@@ -13,7 +13,6 @@ import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
-import ctd.util.annotation.RpcBean;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -136,6 +135,7 @@ public class KmsRemoteService extends AccessDrugEnterpriseService {
         recipeDetails.forEach(recipeDetail -> {
             DrugInfoDTO drugInfoDTO = new DrugInfoDTO();
             BeanUtils.copyProperties(recipeDetail, drugInfoDTO);
+            drugInfoDTO.setUseTotalDose(String.valueOf(recipeDetail.getUseTotalDose().intValue()));
             SaleDrugList saleDrugList = saleDrugListMap.get(recipeDetail.getDrugId());
             if (null != saleDrugList && saleDrugList.getStatus() == 1) {
                 drugInfoDTO.setStock("有库存".equals(inventoryMap.get(saleDrugList.getOrganDrugCode())));

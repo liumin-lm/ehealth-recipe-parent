@@ -79,11 +79,10 @@ public interface IStockBusinessService {
     /**
      * 医生端 查询购药方式下有库存的药品
      *
-     * @param recipeDTO     药品信息
-     * @param detailUnitMap 药品单位map
+     * @param recipeDTO 药品信息
      * @return
      */
-    List<DrugForGiveModeListVO> drugForGiveModeV1(RecipeDTO recipeDTO, Map<String, String> detailUnitMap);
+    List<DrugForGiveModeListVO> drugForGiveModeV1(RecipeDTO recipeDTO);
 
     /**
      * 查询药品能否开在一张处方上

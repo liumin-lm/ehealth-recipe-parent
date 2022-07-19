@@ -150,6 +150,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
             drugInfoDTO.setDrugId(recipeDetail.getDrugId());
             drugInfoDTO.setDrugName(recipeDetail.getDrugName());
             drugInfoDTO.setOrganDrugCode(recipeDetail.getOrganDrugCode());
+            drugInfoDTO.setUseTotalDose(String.valueOf(recipeDetail.getUseTotalDose().intValue()));
             if (null != saleDrugList) {
                 String inventory = getDrugInventory(recipeDetail.getDrugId(), drugsEnterprise, recipe.getClinicOrgan());
                 if (!"0".equals(inventory)) {
