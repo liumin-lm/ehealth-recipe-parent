@@ -94,14 +94,8 @@ public class DrugDoctorAtop extends BaseAtop {
         if (CollectionUtils.isEmpty(organGiveModes)) {
             return null;
         }
-        Map<String, String> detailUnitMap;
-        try {
-            detailUnitMap = drugQueryVO.getRecipeDetails().stream().collect(Collectors.toMap(RecipeDetailBean::getOrganDrugCode, RecipeDetailBean::getShowUnit));
-        } catch (Exception e) {
-            detailUnitMap = new HashMap<>();
-        }
         //查询购药方式下有库存的药品
-        List<DrugForGiveModeListVO> list = iStockBusinessService.drugForGiveModeV1(recipeDTO, detailUnitMap);
+        List<DrugForGiveModeListVO> list = iStockBusinessService.drugForGiveModeV1(recipeDTO);
         if (CollectionUtils.isEmpty(list)) {
             return null;
         }
@@ -135,17 +129,7 @@ public class DrugDoctorAtop extends BaseAtop {
         if (null == result) {
             return new ArrayList<>();
         }
-        List<DrugStockVO> list = ObjectCopyUtils.convert(result.getDrugInfoList(), DrugStockVO.class);
-        Map<String, String> detailUnitMap;
-        try {
-            detailUnitMap = drugQueryVO.getRecipeDetails().stream().collect(Collectors.toMap(RecipeDetailBean::getOrganDrugCode, RecipeDetailBean::getShowUnit));
-        } catch (Exception e) {
-            detailUnitMap = new HashMap<>();
-        }
-        for (DrugStockVO drug : list) {
-            drug.setShowUnit(detailUnitMap.get(drug.getOrganDrugCode()));
-        }
-        return list;
+        return ObjectCopyUtils.convert(result.getDrugInfoList(), DrugStockVO.class);
     }
 
     /**

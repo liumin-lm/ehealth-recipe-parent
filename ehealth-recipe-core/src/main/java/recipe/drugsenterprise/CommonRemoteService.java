@@ -29,7 +29,6 @@ import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.DrugEnterpriseConstant;
 import recipe.dao.*;
-import recipe.service.RecipeLogService;
 import recipe.thread.CommonSyncDrugCallable;
 import recipe.thread.PushRecipToEpCallable;
 import recipe.thread.RecipeBusiThreadPool;
@@ -367,6 +366,7 @@ public class CommonRemoteService extends AccessDrugEnterpriseService {
                 DrugInfoDTO drugInfoDTO = new DrugInfoDTO();
                 BeanUtils.copyProperties(recipeDetail, drugInfoDTO);
                 drugInfoDTO.setStock(false);
+                drugInfoDTO.setUseTotalDose(String.valueOf(recipeDetail.getUseTotalDose().intValue()));
                 SaleDrugList saleDrugList = saleDrugListMap.get(recipeDetail.getDrugId());
                 if (null != saleDrugList) {
                     String result = getInvertoryResult(recipeDetail.getDrugId(), drugsEnterprise, recipeDetail.getUseTotalDose().toString());

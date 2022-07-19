@@ -28,9 +28,11 @@ import recipe.drugsenterprise.bean.HdDrugRequestData;
 import recipe.drugsenterprise.bean.HdPosition;
 import recipe.drugsenterprise.bean.YnsPharmacyAndStockRequest;
 import recipe.util.MapValueUtil;
-import recipe.util.ObjectCopyUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
 * @Description: YnsRemoteService 类（或接口）是 对接云南省医药服务接口
@@ -81,6 +83,7 @@ public class YnsRemoteService extends AccessDrugEnterpriseService {
             recipeDetails.forEach(recipeDetail -> {
                 DrugInfoDTO drugInfoDTO = new DrugInfoDTO();
                 BeanUtils.copyProperties(recipeDetail, drugInfoDTO);
+                drugInfoDTO.setUseTotalDose(String.valueOf(recipeDetail.getUseTotalDose().intValue()));
                 drugInfoDTO.setStock(false);
                 String inventory = getDrugInventory(recipeDetail.getDrugId(), drugsEnterprise, recipe.getClinicOrgan());
                 if ("有库存".equals(inventory)) {

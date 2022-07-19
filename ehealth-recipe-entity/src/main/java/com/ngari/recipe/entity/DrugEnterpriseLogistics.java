@@ -33,82 +33,20 @@ public class DrugEnterpriseLogistics {
 
     @ItemProperty(alias = "物流公司")
     private Integer logisticsCompany;
+
     @ItemProperty(alias = "物流公司名称")
     private String logisticsCompanyName;
+
+    @ItemProperty(alias = "是否同城快递")
+    private Integer isExpressDelivery;
+
+    @ItemProperty(alias = "发件城市编码")
+    private String consignorCityCode;
 
     @ItemProperty(alias = "创建时间")
     private Date createTime;
 
     @ItemProperty(alias = "最后修改时间")
     private Date updateTime;
-
-
-//    @Id
-//    @GeneratedValue(strategy = IDENTITY)
-//    @Column(name = "id", unique = true, nullable = false)
-//    public Integer getId() {
-//        return id;
-//    }
-//
-//    public void setId(Integer id) {
-//        this.id = id;
-//    }
-//
-//    @Column(name = "drugs_enterprise_id")
-//    public Integer getDrugsEnterpriseId() {
-//        return drugsEnterpriseId;
-//    }
-//
-//    public void setDrugsEnterpriseId(Integer drugsEnterpriseId) {
-//        this.drugsEnterpriseId = drugsEnterpriseId;
-//    }
-//
-//    @Column(name = "is_default")
-//    public Integer getIsDefault() {
-//        return isDefault;
-//    }
-//
-//    public void setIsDefault(Integer isDefault) {
-//        this.isDefault = isDefault;
-//    }
-//
-//    @Column(name = "logistics_company")
-//    public Integer getLogisticsCompany() {
-//        return logisticsCompany;
-//    }
-//
-//    public void setLogisticsCompany(Integer logisticsCompany) {
-//        this.logisticsCompany = logisticsCompany;
-//    }
-//
-//    @Column(name = "logistics_company_name")
-//    public String getLogisticsCompanyName() {
-//        return logisticsCompanyName;
-//    }
-//
-//    public void setLogisticsCompanyName(String logisticsCompanyName) {
-//        this.logisticsCompanyName = logisticsCompanyName;
-//    }
-//
-//
-//    @Column(name = "create_time")
-//    public Date getCreateTime() {
-//        return createTime;
-//    }
-//
-//    public void setCreateTime(Date createTime) {
-//        this.createTime = createTime;
-//    }
-//
-//
-//    @Column(name = "update_time")
-//    public Date getUpdateTime() {
-//        return updateTime;
-//    }
-//
-//    public void setUpdateTime(Date updateTime) {
-//        this.updateTime = updateTime;
-//    }
-
 
 }

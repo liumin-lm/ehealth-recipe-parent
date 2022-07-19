@@ -155,6 +155,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
             recipeDetails.forEach(recipeDetail -> {
                 DrugInfoDTO drugInfoDTO = new DrugInfoDTO();
                 BeanUtils.copyProperties(recipeDetail, drugInfoDTO);
+                drugInfoDTO.setUseTotalDose(String.valueOf(recipeDetail.getUseTotalDose().intValue()));
                 SaleDrugList saleDrugList = saleDrugListMap.get(recipeDetail.getDrugId());
                 DrugInfoDTO haveDrug = drugInfoDTOMap.get(recipeDetail.getDrugId());
                 if (null != saleDrugList && saleDrugList.getStatus() == 1 && null != haveDrug) {

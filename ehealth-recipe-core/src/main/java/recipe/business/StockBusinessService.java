@@ -194,7 +194,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
     }
 
     @Override
-    public List<DrugForGiveModeListVO> drugForGiveModeV1(RecipeDTO recipeDTO, Map<String, String> detailUnitMap) {
+    public List<DrugForGiveModeListVO> drugForGiveModeV1(RecipeDTO recipeDTO) {
         Recipe recipe = recipeDTO.getRecipe();
         List<Recipedetail> recipeDetails = recipeDTO.getRecipeDetails();
         RecipeExtend recipeExtend = recipeDTO.getRecipeExtend();
@@ -222,7 +222,6 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
                 giveMode.setSupportKey(button.getShowButtonKey());
                 EnterpriseStockVO enterpriseStockVO = ObjectCopyUtils.convert(stock, EnterpriseStockVO.class);
                 List<DrugStockVO> drugStockList = ObjectCopyUtils.convert(stock.getDrugInfoList(), DrugStockVO.class);
-                Optional.ofNullable(drugStockList).orElseGet(Collections::emptyList).forEach(b -> b.setShowUnit(detailUnitMap.get(b.getOrganDrugCode())));
                 enterpriseStockVO.setDrugStockList(drugStockList);
                 giveMode.setEnterpriseStock(enterpriseStockVO);
                 giveModeList.add(giveMode);

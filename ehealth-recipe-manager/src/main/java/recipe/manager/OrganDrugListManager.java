@@ -142,6 +142,11 @@ public class OrganDrugListManager extends BaseManager {
 
         // 请求his
         List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugIds(recipe.getClinicOrgan(), drugIdList);
+        if (CollectionUtils.isEmpty(organDrugList)) {
+            drugStockAmountDTO.setResult(false);
+            drugStockAmountDTO.setDrugInfoList(DrugStockClient.getDrugInfoDTO(detailList, false));
+            return drugStockAmountDTO;
+        }
         List<PharmacyTcm> pharmacyTcmByIds = pharmacyTcmDAO.getPharmacyTcmByIds(pharmaIds);
         return drugStockClient.scanDrugStock(detailList, recipe.getClinicOrgan(), organDrugList, pharmacyTcmByIds);
     }

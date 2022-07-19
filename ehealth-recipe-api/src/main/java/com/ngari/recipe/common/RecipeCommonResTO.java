@@ -11,6 +11,14 @@ public class RecipeCommonResTO extends RecipeCommonBaseTO{
 
     protected String msg;
 
+    public RecipeCommonResTO() {
+    }
+
+    public RecipeCommonResTO(Integer code, String msg) {
+        this.code = code;
+        this.msg = msg;
+    }
+
     public Integer getCode() {
         return code;
     }
