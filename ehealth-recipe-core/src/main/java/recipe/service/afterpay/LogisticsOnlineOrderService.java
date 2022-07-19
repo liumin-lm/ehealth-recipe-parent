@@ -268,6 +268,7 @@ public class LogisticsOnlineOrderService implements IAfterPayBussService{
         logisticsOrder.setConsignorStreet(organLogisticsManageDto.getConsignorStreet());
         // 寄件人详细地址
         logisticsOrder.setConsignorAddress(organLogisticsManageDto.getConsignorAddress());
+        logisticsOrder.setAmount(order.getRecipeFee());
         // 收件人名称
         logisticsOrder.setAddresseeName(order.getReceiver());
         // 收件人手机号
