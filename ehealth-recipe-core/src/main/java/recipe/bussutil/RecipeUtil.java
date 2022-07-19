@@ -305,6 +305,7 @@ public class RecipeUtil {
         }
         //设置接方模式
         boolean supportMode = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(),"supportReciveRecipe", false);
+        LOGGER.info("supportMode 接方模式:{}", supportMode);
         if (supportMode) {
             recipe.setSupportMode(1);
         } else {
