@@ -122,7 +122,7 @@ public class AuditPostMode extends AbstractAuditMode {
                 super.startRecipeAuditProcess(dbRecipe.getRecipeId());
             }
             //设置新的审方状态
-            super.setAuditStateToPendingReview(dbRecipe.getRecipeId(),status);
+            super.setAuditStateToPendingReview(dbRecipe,status);
             if (RecipeStatusConstant.CHECK_PASS_YS == status) {
                 //说明是可进行医保支付的单子或者是中药或膏方处方
                 RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);

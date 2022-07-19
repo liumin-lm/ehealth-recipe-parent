@@ -32,6 +32,7 @@ import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.SignImageTypeEnum;
+import recipe.enumerate.type.SupportModeTypeEnum;
 import recipe.manager.RecipeManager;
 import recipe.manager.StateManager;
 import recipe.service.RecipeLogService;
@@ -218,10 +219,14 @@ public abstract class AbstractAuditMode implements IAuditMode {
         }
     }
 
-    protected void setAuditStateToPendingReview(Integer recipeId,Integer status) {
-        if (status == recipe.constant.RecipeStatusConstant.READY_CHECK_YS) {
+    protected void setAuditStateToPendingReview(Recipe recipe,Integer status) {
+        if (status == RecipeStatusEnum.RECIPE_STATUS_READY_CHECK_YS.getType()) {
             StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
-            stateManager.updateAuditState(recipeId, RecipeAuditStateEnum.PENDING_REVIEW);
+            if (SupportModeTypeEnum.SUPPORT_MODE_ACCEPT.getType().equals(recipe.getSupportMode())) {
+                stateManager.updateAuditState(recipe.getRecipeId(), RecipeAuditStateEnum.DEFAULT);
+            } else {
+                stateManager.updateAuditState(recipe.getRecipeId(), RecipeAuditStateEnum.PENDING_REVIEW);
+            }
         }
     }
 }
