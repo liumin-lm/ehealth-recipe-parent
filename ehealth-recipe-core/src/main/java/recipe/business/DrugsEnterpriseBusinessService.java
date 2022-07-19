@@ -324,7 +324,8 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
                 checkAddressReq.getEnterpriseId(),
                 checkAddressReq.getDecoctionId());
         String checkAddress = checkAddressReq.getAddress3();
-        if (StringUtils.isNotEmpty(checkAddressReq.getAddress4())) {
+        boolean b = checkAddressDecoctionHaveStreet(enterpriseDecoctionAddressList, checkAddress);
+        if (b && StringUtils.isNotEmpty(checkAddressReq.getAddress4())) {
             checkAddress = checkAddressReq.getAddress4();
         }
         if (CollectionUtils.isEmpty(enterpriseDecoctionAddressList)) {
@@ -353,6 +354,15 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
         }
         checkAddressRes.setSendFlag(sendFlag);
         return checkAddressRes;
+    }
+
+    private boolean checkAddressDecoctionHaveStreet(List<EnterpriseDecoctionAddress> list, String address) {
+        for (EnterpriseDecoctionAddress e : list) {
+            if (e.getAddress().startsWith(address) && e.getAddress().length() > 6) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
