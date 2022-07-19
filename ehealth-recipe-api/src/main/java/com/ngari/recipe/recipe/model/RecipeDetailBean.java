@@ -277,18 +277,6 @@ public class RecipeDetailBean implements java.io.Serializable {
 
     @ItemProperty(alias = "腹透液  空0否  1是  ")
     private Integer peritonealDialysisFluidType;
-    /**
-     * 仅给前端展示使用
-     */
-    private String showUnit;
-
-    public String getShowUnit() {
-        return showUnit;
-    }
-
-    public void setShowUnit(String showUnit) {
-        this.showUnit = showUnit;
-    }
 
     public Integer getPeritonealDialysisFluidType() {
         return peritonealDialysisFluidType;
