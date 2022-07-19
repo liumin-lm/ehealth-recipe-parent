@@ -723,12 +723,28 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
             return flag;
         }
         // 目前不是所有机构都用了街道,所以需要先判空
-        if (StringUtils.isNotEmpty(checkAddressVo.getAddress4()) && !addressCan(list, checkAddressVo.getAddress4())) {
-            logger.error("address3不能配送！depId:" + checkAddressVo.getEnterpriseId() + ",address4:" + checkAddressVo.getAddress4());
+        Boolean haveStreet = checkAddressHaveStreet(checkAddressVo.getAddress3(), list);
+        if (haveStreet && StringUtils.isNotEmpty(checkAddressVo.getAddress4()) && !addressCan(list, checkAddressVo.getAddress4())) {
+            logger.error("address4不能配送！depId:" + checkAddressVo.getEnterpriseId() + ",address4:" + checkAddressVo.getAddress4());
             flag = 4;
             return flag;
         }
         return flag;
+    }
+
+    /**
+     * 判断有误街道数据
+     * @param address
+     * @param list
+     * @return
+     */
+    private Boolean checkAddressHaveStreet(String address, List<EnterpriseAddress> list) {
+        for (EnterpriseAddress e : list) {
+            if (e.getAddress().startsWith(address) && e.getAddress().length() > 6) {
+               return true;
+            }
+        }
+        return false;
     }
 
     @Override
