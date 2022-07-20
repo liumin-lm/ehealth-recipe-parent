@@ -87,6 +87,7 @@ public class DrugDoctorAtop extends BaseAtop {
      */
     @RpcService
     public List<DrugForGiveModeListVO> giveModeDrugStockList(DrugQueryVO drugQueryVO) {
+        logger.info("DrugDoctorAtop giveModeDrugStockList drugQueryVO={}", JSON.toJSONString(drugQueryVO));
         RecipeDTO recipeDTO = this.recipeDTO(drugQueryVO);
         //机构够药方式配置
         List<GiveModeButtonDTO> organGiveModeList = organBusinessService.organGiveMode(drugQueryVO.getOrganId());

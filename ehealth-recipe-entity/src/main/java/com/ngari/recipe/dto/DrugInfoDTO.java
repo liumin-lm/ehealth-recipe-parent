@@ -57,5 +57,5 @@ public class DrugInfoDTO {
     /**
      * 药物使用总数量
      */
-    private String useTotalDose;
+    private Double useTotalDose;
 }
