@@ -39,12 +39,16 @@ public class AfterPayBusService{
             return;
         }
         if (recipeOrder != null && PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag && RecipeResultBean.SUCCESS.equals(result.getCode())) {
-            //上传记账信息
-            keepAccountService.uploadKeepAccount(recipeOrder, recipes);
-            //发送支付后消息
-            paySendMsgService.sendPayMsg(recipeOrder, recipes);
-            //推送复诊用药提醒
-            drugRemindRevisitService.drugRemind(recipeOrder,recipes);
+            try {
+                //上传记账信息
+                keepAccountService.uploadKeepAccount(recipeOrder, recipes);
+                //发送支付后消息
+                paySendMsgService.sendPayMsg(recipeOrder, recipes);
+                //推送复诊用药提醒
+                drugRemindRevisitService.drugRemind(recipeOrder,recipes);
+            } catch (Exception e) {
+                LOGGER.error("AfterPayBusService handle error", e);
+            }
         }
         //上传健康卡
         healthCardService.uploadHealthCard(recipes);
