@@ -269,7 +269,7 @@ public class DrugStockClient extends BaseClient {
             if (null == a.getStockAmount()) {
                 drugInfoDTO.setStockAmount(0);
             } else {
-                drugInfoDTO.setStockAmount((int) Math.floor(a.getStockAmount()));
+                drugInfoDTO.setStockAmount((int) Math.ceil(a.getStockAmount()));
             }
             if (StringUtils.isNotEmpty(a.getNoInventoryTip())) {
                 drugInfoDTO.setStockAmountChin(a.getNoInventoryTip());

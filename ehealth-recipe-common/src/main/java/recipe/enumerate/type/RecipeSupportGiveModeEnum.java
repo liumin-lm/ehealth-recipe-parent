@@ -218,12 +218,12 @@ public enum RecipeSupportGiveModeEnum {
      * 1->(2/3)
      * 2->(2/3)
      * 3->1
-     * 4->5
+     * 4->6
      * 7->1,(2/3)
      * 8->1,(2/3)
-     * 9->1,(2/3)
+     * 9->1,6,(2/3)
      *
-     * @param payModeSupport 配送模式支持 0:不支持 1:线上付款 2:货到付款 3:药店取药 4:例外支付 8:货到付款和药店取药 9:都支持
+     * @param payModeSupport 配送模式支持 0:不支持 1:线上付款 2:货到付款 3:药店取药 4:例外支付,7:配送到家和药店取药 8:货到付款和药店取药 9:都支持
      * @param sendType       配送主体类型 1医院配送 2 药企配送
      * @return 购药方式枚举
      */
@@ -236,11 +236,15 @@ public enum RecipeSupportGiveModeEnum {
             giveModeButtonList.add(giveModeButtonDTO(SUPPORT_TFDS));
             return giveModeButtonList;
         }
-        if(RecipeBussConstant.SUPPORT_MEDICAL_PAYMENT.equals(payModeSupport)){
+        if (RecipeBussConstant.SUPPORT_MEDICAL_PAYMENT.equals(payModeSupport)) {
             giveModeButtonList.add(giveModeButtonDTO(SUPPORT_MEDICAL_PAYMENT));
             return giveModeButtonList;
         }
-        if (RecipeDistributionFlagEnum.drugsEnterpriseAll.contains(payModeSupport)) {
+        if (RecipeBussConstant.DEP_SUPPORT_ONLINE_TFDS.equals(payModeSupport)
+                || RecipeBussConstant.DEP_SUPPORT_COD_TFDS.equals(payModeSupport)) {
+            giveModeButtonList.add(giveModeButtonDTO(SUPPORT_TFDS));
+        }
+        if (RecipeBussConstant.DEP_SUPPORT_ALL.equals(payModeSupport)) {
             giveModeButtonList.add(giveModeButtonDTO(SUPPORT_TFDS));
             giveModeButtonList.add(giveModeButtonDTO(SUPPORT_MEDICAL_PAYMENT));
         }
