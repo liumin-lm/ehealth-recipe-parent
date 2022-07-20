@@ -316,7 +316,7 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
         recipeDetails.forEach(recipeDetail -> {
             DrugInfoDTO drugInfoDTO = new DrugInfoDTO();
             BeanUtils.copyProperties(recipeDetail, drugInfoDTO);
-            drugInfoDTO.setUseTotalDose(String.valueOf(recipeDetail.getUseTotalDose().intValue()));
+            drugInfoDTO.setUseTotalDose(recipeDetail.getUseTotalDose());
             String result = getDrugInventory(recipeDetail.getDrugId(), drugsEnterprise, recipe.getClinicOrgan());
             drugInfoDTO.setStock("有库存".equals(result));
             drugInfoDTO.setStockAmountChin(result);

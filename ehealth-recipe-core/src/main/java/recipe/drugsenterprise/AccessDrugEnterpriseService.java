@@ -208,7 +208,7 @@ public abstract class AccessDrugEnterpriseService {
         recipeDetails.forEach(recipeDetail -> {
             DrugInfoDTO drugInfoDTO = new DrugInfoDTO();
             BeanUtils.copyProperties(recipeDetail, drugInfoDTO);
-            drugInfoDTO.setUseTotalDose(String.valueOf(recipeDetail.getUseTotalDose().intValue()));
+            drugInfoDTO.setUseTotalDose(recipeDetail.getUseTotalDose());
             drugInfoDTO.setDrugName(recipeDetail.getDrugName());
             drugInfoDTO.setStock(false);
             drugInfoDTO.setStockAmountChin("无库存");

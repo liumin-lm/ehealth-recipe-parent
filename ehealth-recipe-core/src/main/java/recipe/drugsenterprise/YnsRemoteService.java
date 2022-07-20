@@ -83,7 +83,7 @@ public class YnsRemoteService extends AccessDrugEnterpriseService {
             recipeDetails.forEach(recipeDetail -> {
                 DrugInfoDTO drugInfoDTO = new DrugInfoDTO();
                 BeanUtils.copyProperties(recipeDetail, drugInfoDTO);
-                drugInfoDTO.setUseTotalDose(String.valueOf(recipeDetail.getUseTotalDose().intValue()));
+                drugInfoDTO.setUseTotalDose(recipeDetail.getUseTotalDose());
                 drugInfoDTO.setStock(false);
                 String inventory = getDrugInventory(recipeDetail.getDrugId(), drugsEnterprise, recipe.getClinicOrgan());
                 if ("有库存".equals(inventory)) {

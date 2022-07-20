@@ -81,7 +81,7 @@ public class ShyyRemoteService  extends AccessDrugEnterpriseService {
         recipeDetails.forEach(recipeDetail -> {
             DrugInfoDTO drugInfoDTO = new DrugInfoDTO();
             BeanUtils.copyProperties(recipeDetail, drugInfoDTO);
-            drugInfoDTO.setUseTotalDose(String.valueOf(recipeDetail.getUseTotalDose().intValue()));
+            drugInfoDTO.setUseTotalDose(recipeDetail.getUseTotalDose());
             SaleDrugList saleDrugList = saleDrugListMap.get(recipeDetail.getDrugId());
             if (null != saleDrugList && saleDrugList.getStatus() == 1
                     && null != saleDrugList.getInventory()) {
