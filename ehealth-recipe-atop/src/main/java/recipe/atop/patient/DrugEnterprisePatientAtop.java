@@ -93,7 +93,7 @@ public class DrugEnterprisePatientAtop extends BaseAtop {
      * @return
      */
     @RpcService
-    public List<Date> getFTYSendTime(FTYSendTimeReq ftySendTimeREQ){
+    public List<String> getFTYSendTime(FTYSendTimeReq ftySendTimeREQ){
         validateAtop(ftySendTimeREQ,ftySendTimeREQ.getOrganId(),ftySendTimeREQ.getProvince(),ftySendTimeREQ.getCity(),ftySendTimeREQ.getDistrict(),ftySendTimeREQ.getStartDate(),ftySendTimeREQ.getEndDate());
         return enterpriseBusinessService.getFTYSendTime(ftySendTimeREQ);
     }

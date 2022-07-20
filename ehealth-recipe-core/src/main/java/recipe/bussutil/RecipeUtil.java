@@ -309,7 +309,7 @@ public class RecipeUtil {
         if (supportMode) {
             recipe.setSupportMode(1);
         } else {
-            recipe.setSupportMode(0);
+            recipe.setSupportMode(2);
         }
         //默认剂数为1
         if (recipe.getRecipeType() == 1 || recipe.getRecipeType() == 2) {

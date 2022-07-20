@@ -53,11 +53,9 @@ public class KafkaDrugsSyncObserver implements Observer<String> {
 
     @Override
     public void onMessage(String message) {
-        LOG.info("KafkaDrugsSyncObserver  message={}", JSONUtils.toString(message));
         try {
             //message示例 {"data":[{"DrugId":"1","DrugName":"阿莫西林胶囊","SaleName":"阿莫灵 阿莫西林胶囊","DrugSpec":"0.25g*24粒","Pack":"24","Unit":"盒","DrugType":"1","DrugClass":"0101","UseDose":"0.250","UseDoseUnit":"g","UsingRate":"tid","UsePathways":"po","Producer":"香港澳美制药厂","Instructions":null,"DrugPic":null,"Price1":"9.39000","Price2":"9.39000","Status":"1","SourceOrgan":null,"Indications":"\\急性病3天量\\慢性病14天量（需有慢性诊断）\\","PyCode":"","CreateDt":"2016-07-01 00:00:00","LastModify":"2022-03-17 09:55:27","AllPyCode":"","ApprovalNumber":"","licenseNumber":"","standardCode":"","drugForm":"","packingMaterials":"","baseDrug":null,"drugCode":"1","usingRateId":"4","usePathwaysId":null,"isRegulation":"0","isPrescriptions":"0","isStandardDrug":"0"}],"database":"eh_recipe_devtest","es":1647482127000,"id":10366,"isDdl":false,"mysqlType":{"DrugId":"int(11)","DrugName":"varchar(100)","SaleName":"varchar(100)","DrugSpec":"varchar(100)","Pack":"smallint(5) unsigned","Unit":"varchar(6)","DrugType":"int(11)","DrugClass":"varchar(20)","UseDose":"decimal(10,3)","UseDoseUnit":"varchar(6)","UsingRate":"varchar(10)","UsePathways":"varchar(10)","Producer":"varchar(255)","Instructions":"int(11)","DrugPic":"varchar(50)","Price1":"decimal(11,5)","Price2":"decimal(11,5)","Status":"int(11)","SourceOrgan":"int(11)","Indications":"varchar(255)","PyCode":"varchar(100)","CreateDt":"timestamp","LastModify":"timestamp","AllPyCode":"varchar(255)","ApprovalNumber":"varchar(100)","licenseNumber":"varchar(30)","standardCode":"varchar(30)","drugForm":"varchar(20)","packingMaterials":"varchar(50)","baseDrug":"tinyint(1) unsigned","drugCode":"varchar(30)","usingRateId":"varchar(20)","usePathwaysId":"varchar(20)","isRegulation":"tinyint(2)","isPrescriptions":"tinyint(2)","isStandardDrug":"tinyint(2)"},"old":[{"DrugClass":"01010","LastModify":"2022-03-17 09:55:20"}],"pkNames":["DrugId"],"sql":"","sqlType":{"DrugId":4,"DrugName":12,"SaleName":12,"DrugSpec":12,"Pack":5,"Unit":12,"DrugType":4,"DrugClass":12,"UseDose":3,"UseDoseUnit":12,"UsingRate":12,"UsePathways":12,"Producer":12,"Instructions":4,"DrugPic":12,"Price1":3,"Price2":3,"Status":4,"SourceOrgan":4,"Indications":12,"PyCode":12,"CreateDt":93,"LastModify":93,"AllPyCode":12,"ApprovalNumber":12,"licenseNumber":12,"standardCode":12,"drugForm":12,"packingMaterials":12,"baseDrug":-6,"drugCode":12,"usingRateId":12,"usePathwaysId":12,"isRegulation":-6,"isPrescriptions":-6,"isStandardDrug":-6},"table":"base_druglist","ts":1647482127297,"type":"UPDATE"}
             JSONObject value = JSONObject.parseObject(message);
-            LOG.info("message value:" + value);
             String type = value.getString("type");
             if (!TYPE_LIST.contains(type)) {
                 return;
@@ -69,6 +67,7 @@ public class KafkaDrugsSyncObserver implements Observer<String> {
             LOG.info("data:" + JSONArray.toJSONString(array));
 
             if (DRUG_LIST.equals(table)) {
+                LOG.info("KafkaDrugsSyncObserver  message={}", JSONUtils.toString(message));
                 List<DrugList> drugLists = JSONObject.parseArray(JSONObject.toJSONString(array), DrugList.class);
                 // 武昌药品数据变更要同步his
                 List<DrugList> finalDrugList = drugLists;
@@ -91,8 +90,9 @@ public class KafkaDrugsSyncObserver implements Observer<String> {
                 LOG.info("KafkaDrugsSyncObserver " + DRUG_LIST + " modify organDrugList size={}", organDrugLists.size());
                 drugManager.updateOrganDrugListToEs(organDrugLists, deleteFlag, drugLists);
             } else if (ORGAN_DRUG_LIST.equals(table)) {
+                LOG.info("KafkaDrugsSyncObserver  message={}", JSONUtils.toString(message));
                 List<OrganDrugList> organDrugLists = JSONObject.parseArray(JSONObject.toJSONString(array), OrganDrugList.class);
-                drugManager.updateOrganDrugListToEs(organDrugLists, deleteFlag,null);
+                drugManager.updateOrganDrugListToEs(organDrugLists, deleteFlag, null);
             }
 
         } catch (Exception e) {
