@@ -56,6 +56,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.util.ObjectUtils;
+import recipe.ApplicationUtils;
 import recipe.aop.LogRecord;
 import recipe.client.DepartClient;
 import recipe.client.IConfigurationClient;
@@ -310,6 +311,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService,IBusPayServ
             RecipeBean nowRecipeBean = recipeService.getByRecipeId(recipeId);
             Integer depId = MapValueUtil.getInteger(extInfo, "depId");
             Integer payMode = MapValueUtil.getInteger(extInfo, "payMode");
+            Integer addressId = MapValueUtil.getInteger(extInfo, "addressId");
             DrugsEnterpriseBean drugsEnterpriseBean = null;
             if (depId != null) {
                 drugsEnterpriseBean = drugsEnterpriseService.get(depId);
@@ -349,6 +351,16 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService,IBusPayServ
                 map.put("reviewType", nowRecipeBean.getReviewType().toString());
             }
             log.info("setConfirmOrderExtInfo payMode:{}, drugsEnterpriseBean:{}.", payMode, JSONUtils.toString(drugsEnterpriseBean));
+            if (null != addressId) {
+                AddressService addressService = ApplicationUtils.getBasicService(AddressService.class);
+                AddressDTO addressDTO = addressService.getByAddressId(order.getAddressID());
+                if (null != addressDTO && null != addressDTO.getLatitude()) {
+                    map.put("latitude", addressDTO.getLatitude().toString());
+                }
+                if (null != addressDTO && null != addressDTO.getLongitude()) {
+                    map.put("longitude", addressDTO.getLongitude().toString());
+                }
+            }
             //药店取药 支付方式
             if (new Integer(4).equals(payMode) && drugsEnterpriseBean != null) {
                 //@ItemProperty(alias = "0:不支付药品费用，1:全部支付 【 1线上支付  非1就是线下支付】")
