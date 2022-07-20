@@ -1363,7 +1363,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
             recipeDetails.forEach(recipeDetail -> {
                 DrugInfoDTO drugInfoDTO = new DrugInfoDTO();
                 BeanUtils.copyProperties(recipeDetail, drugInfoDTO);
-                drugInfoDTO.setUseTotalDose(String.valueOf(recipeDetail.getUseTotalDose().intValue()));
+                drugInfoDTO.setUseTotalDose(recipeDetail.getUseTotalDose());
                 String saleDrugCode = saleDrugListMap.get(recipeDetail.getDrugId());
                 drugInfoDTO.setStock(false);
                 drugInfoDTO.setStockAmount(0);
