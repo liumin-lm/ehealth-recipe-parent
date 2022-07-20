@@ -58,8 +58,8 @@ public class RecipeOrderStatusProxy implements ApplicationContextAware {
         //根据订单状态 设置处方状态
         factoryService.updateStatus(orderStatus, recipeOrder, recipe);
         orderStatus.setTargetRecipeStatus(recipe.getStatus());
-        if (RecipeStatusEnum.RECIPE_STATUS_FINISH.getType().equals(orderStatus.getTargetRecipeOrderStatus())) {
-            recipe.setProcessState(RecipeStateEnum.PROCESS_STATE_DISPENSING.getType());
+        if (RecipeStatusEnum.RECIPE_STATUS_FINISH.getType().equals(recipe.getStatus())) {
+            recipe.setProcessState(RecipeStateEnum.PROCESS_STATE_DONE.getType());
             recipe.setSubState(RecipeStateEnum.SUB_DONE_SELF_TAKE.getType());
         }
         //更新处方状态
