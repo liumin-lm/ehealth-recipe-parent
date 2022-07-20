@@ -18,6 +18,7 @@ import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.DocIndexShowEnum;
 import recipe.enumerate.type.SupportModeTypeEnum;
 import recipe.manager.EnterpriseManager;
+import recipe.manager.StateManager;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeMsgService;
 import recipe.service.RecipeServiceSub;
@@ -38,7 +39,7 @@ public class AuditPreMode extends AbstractAuditMode {
 
     @Override
     public int afterAuditRecipeChange() {
-        return RecipeStatusConstant.CHECK_PASS;
+        return RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType();
     }
 
     @Override
@@ -48,6 +49,7 @@ public class AuditPreMode extends AbstractAuditMode {
         RecipeDetailDAO detailDAO = getDAO(RecipeDetailDAO.class);
         Integer recipeId = recipe.getRecipeId();
         String recipeMode = recipe.getRecipeMode();
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         EnterpriseManager enterpriseManager = AppContextHolder.getBean("enterpriseManager", EnterpriseManager.class);
         //药师审方后推送给前置机（扁鹊）
         enterpriseManager.pushRecipeForThird(recipe, 0, "");
@@ -57,12 +59,15 @@ public class AuditPreMode extends AbstractAuditMode {
             if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipeMode)) {
                 RecipeServiceSub.sendRecipeTagToPatient(recipe, detailDAO.findByRecipeId(recipeId), null, true);
                 //向患者推送处方消息
-                RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.CHECK_PASS);
+                RecipeMsgService.batchSendMsg(recipe, RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType());
             } else {
                 //平台前置发送审核通过消息 /向患者推送处方消息 处方通知您有一张处方单需要处理，请及时查看。
-                RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.CHECK_PASS_YS);
+                RecipeMsgService.batchSendMsg(recipe, RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS_YS.getType());
             }
         }
+        recipe.setSubState(RecipeStateEnum.NONE.getType());
+        recipe.setProcessState(RecipeStateEnum.NONE.getType());
+        recipeDAO.updateNonNullFieldByPrimaryKey(recipe);
         // 病历处方-状态修改成显示
         DocIndexClient docIndexClient = AppContextHolder.getBean("docIndexClient", DocIndexClient.class);
         docIndexClient.updateStatusByBussIdBussType(recipe.getRecipeId(), DocIndexShowEnum.SHOW.getCode());
@@ -83,14 +88,14 @@ public class AuditPreMode extends AbstractAuditMode {
         // 设置新的审方状态
         currentRecipe.setStatus(status);
         currentRecipe.setCheckFlag(0);
-        currentRecipe.setSubState(RecipeStateEnum.SUB_AUDIT_READY_SUPPORT.getType());
-        currentRecipe.setProcessState(RecipeStateEnum.PROCESS_STATE_AUDIT.getType());
         if (SupportModeTypeEnum.SUPPORT_MODE_ACCEPT.getType().equals(recipe.getSupportMode())) {
             currentRecipe.setAuditState(RecipeAuditStateEnum.DEFAULT.getType());
         } else {
             currentRecipe.setAuditState(RecipeAuditStateEnum.PENDING_REVIEW.getType());
         }
         recipeDAO.updateNonNullFieldByPrimaryKey(currentRecipe);
+        StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
+        stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_AUDIT, RecipeStateEnum.SUB_AUDIT_READY_SUPPORT);
         List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
         // 平台模式前置需要发送卡片 待审核只有平台发
         if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
