@@ -80,6 +80,7 @@ public class DrugRemindRevisitService {
                 LocalDateTime remind4Day = payDate.plusDays(minLongRecipeDetail.getUseDays()).minusDays(4);
                 remindDates.add(remind4Day);
             }
+            LOGGER.info("DrugRemindRevisitService drugRemind remindDates:{}", JSON.toJSONString(remindDates));
             revisitManager.remindDrugForRevisit(recipe, remindDates);
         });
     }
