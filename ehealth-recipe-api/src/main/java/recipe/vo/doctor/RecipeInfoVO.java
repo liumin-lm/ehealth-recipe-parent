@@ -53,4 +53,13 @@ public class RecipeInfoVO {
      * 审方状态
      */
     private Integer auditState;
+    /**
+     * 签名状态
+     */
+    private Integer checkerSignState;
+
+    /**
+     * 新的审核状态
+     */
+    private Integer recipeAuditShowState;
 }
