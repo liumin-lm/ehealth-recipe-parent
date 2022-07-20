@@ -47,6 +47,7 @@ import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
 import recipe.manager.CaManager;
 import recipe.manager.RevisitManager;
+import recipe.manager.StateManager;
 import recipe.service.*;
 import recipe.thread.CardDataUploadRunable;
 import recipe.thread.PushRecipeToHisCallable;
@@ -79,6 +80,8 @@ public class RecipeSignService {
     private static final Logger LOG = LoggerFactory.getLogger(RecipeSignService.class);
     @Autowired
     private RecipeDAO recipeDAO;
+    @Autowired
+    private StateManager stateManager;
     @Autowired
     private RedisClient redisClient;
     @Autowired
@@ -557,6 +560,7 @@ public class RecipeSignService {
         recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_CHECKING_HOS.getType());
         recipe.setWriteHisState(WriteHisEnum.WRITE_HIS_STATE_SUBMIT.getType());
         recipeDAO.updateNonNullFieldByPrimaryKey(recipe);
+        stateManager.updateRecipeState(recipeBean.getRecipeId(), RecipeStateEnum.PROCESS_STATE_SUBMIT, RecipeStateEnum.NONE);
         //可通过缓存控制是互联网方式发送处方(his来查)还是平台模式发送处方(平台推送)
         Set<String> organIdList = redisClient.sMembers(CacheConstant.KEY_NGARI_SENDRECIPETOHIS_LIST);
         if (CollectionUtils.isNotEmpty(organIdList) && organIdList.contains(recipeBean.getClinicOrgan().toString())) {
