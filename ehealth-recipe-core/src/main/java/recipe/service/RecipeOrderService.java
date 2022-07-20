@@ -1549,6 +1549,10 @@ public class RecipeOrderService extends RecipeBaseService {
         RecipeResultBean recipeResultBean = getOrderDetailById(orderId);
         RecipeOrder order = recipeOrderDAO.get(orderId);
         recipeResultBean.getExt().put("completeAddress", orderManager.getCompleteAddress(order));
+        String orderTips = orderManager.getOrderTips(order);
+        if (StringUtils.isNotEmpty(orderTips)) {
+            recipeResultBean.getExt().put("tips", orderTips);
+        }
         LOGGER.info("getOrderDetailByIdV1 recipeResultBean={}", JSON.toJSONString(recipeResultBean));
         return recipeResultBean;
     }
@@ -2099,7 +2103,7 @@ public class RecipeOrderService extends RecipeBaseService {
         RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
         RecipeOrder order = orderDAO.getByOrderCode(orderCode);
         if (order != null) {
-//            checkUserHasPermission((Integer) JSONUtils.parse(order.getRecipeIdList(), List.class).get(0));
+            checkUserHasPermission((Integer) JSONUtils.parse(order.getRecipeIdList(), List.class).get(0));
             return this.getOrderDetailByIdV1(order.getOrderId());
         } else {
             throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR, "该处方单信息已变更，请退出重新获取处方信息。");

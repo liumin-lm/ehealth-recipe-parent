@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
+import recipe.client.IConfigurationClient;
 import recipe.constant.PayConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
@@ -296,24 +297,20 @@ public class RecipeUtil {
             }
         }
 
+        IConfigurationClient configurationClient = AppContextHolder.getBean("IConfigurationClient", IConfigurationClient.class);
         //设置运营平台设置的审方途径
         if (recipe.getCheckMode() == null) {
-            try {
-                IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-                Integer checkMode = (Integer) configurationService.getConfiguration(recipe.getClinicOrgan(), "isOpenHisCheckRecipeFlag");
-                if (checkMode == null) {
-                    //默认平台审方
-                    recipe.setCheckMode(1);
-                } else {
-                    recipe.setCheckMode(checkMode);
-                }
-            } catch (Exception e) {
-                LOGGER.error("获取运营平台审方途径配置异常", e);
-                //默认平台审方
-                recipe.setCheckMode(1);
-            }
+            Integer checkMode = configurationClient.getValueCatchReturnInteger(recipe.getClinicOrgan(), "isOpenHisCheckRecipeFlag", 1);
+            recipe.setCheckMode(checkMode);
         }
-
+        //设置接方模式
+        boolean supportMode = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(),"supportReciveRecipe", false);
+        LOGGER.info("supportMode 接方模式:{}", supportMode);
+        if (supportMode) {
+            recipe.setSupportMode(1);
+        } else {
+            recipe.setSupportMode(2);
+        }
         //默认剂数为1
         if (recipe.getRecipeType() == 1 || recipe.getRecipeType() == 2) {
             recipe.setCopyNum(0);

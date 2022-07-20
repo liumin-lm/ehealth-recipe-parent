@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -25,8 +26,8 @@ public class RecipeOrderRefundReqVO implements Serializable {
     private String giveModeKey;
     private String orderCode;
     private String patientName;
-    private String beginTime;
-    private String endTime;
+    private Date beginTime;
+    private Date endTime;
     private Integer invoiceStatus;
     private Integer fastRecipeFlag;
     private Integer start;

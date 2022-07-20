@@ -34,6 +34,7 @@ import recipe.client.*;
 import recipe.constant.DrugEnterpriseConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.dao.*;
+import recipe.enumerate.status.OrderStateEnum;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.*;
@@ -760,5 +761,13 @@ public class OrderManager extends BaseManager {
         }
         logger.info("findReimbursementDetail reimbursementDetailDTO={}",JSONUtils.toString(reimbursementDetailDTO));
         return reimbursementDetailDTO;
+    }
+
+    public String getOrderTips(RecipeOrder order) {
+        if(OrderStateEnum.PROCESS_STATE_DISPENSING.getType().equals(order.getProcessState())){
+            return "已完成";
+        }
+
+        return null;
     }
 }

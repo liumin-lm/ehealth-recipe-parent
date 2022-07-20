@@ -9,6 +9,8 @@ import com.ngari.infra.logistics.mode.WriteBackLogisticsOrderDto;
 import com.ngari.infra.logistics.service.ILogisticsOrderService;
 import com.ngari.infra.logistics.service.IOrganLogisticsManageService;
 import com.ngari.infra.logistics.service.IWaybillService;
+import com.ngari.patient.dto.AddressDTO;
+import com.ngari.patient.service.AddressService;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
@@ -229,6 +231,7 @@ public class LogisticsOnlineOrderService implements IAfterPayBussService{
     @LogRecord
     private CreateLogisticsOrderDto getCreateLogisticsOrderDto(RecipeOrder order, Recipe recipe, DrugsEnterprise enterprise) {
         List<OrganLogisticsManageDto>  organLogisticsManageDtos=organLogisticsManageService.findLogisticsManageByOrganIdAndLogisticsCompanyIdAndAccount(enterprise.getId(),order.getLogisticsCompany()+"",DrugEnterpriseConstant.BUSINESS_TYPE,0);
+        AddressService addressService = ApplicationUtils.getBasicService(AddressService.class);
         LOGGER.info("getCreateLogisticsOrderDto organLogisticsManageDtos:{}",JSONUtils.toString(organLogisticsManageDtos));
         OrganLogisticsManageDto organLogisticsManageDto=new OrganLogisticsManageDto();
         if(CollectionUtils.isNotEmpty(organLogisticsManageDtos) && organLogisticsManageDtos.get(0)!=null){
@@ -245,7 +248,7 @@ public class LogisticsOnlineOrderService implements IAfterPayBussService{
         }
         logisticsOrder.setType(0);
         logisticsOrder.setOrganId(enterprise.getId());
-
+        AddressDTO addressDTO = addressService.getByAddressId(order.getAddressID());
         // 平台用户id
         logisticsOrder.setUserId(recipe.getMpiid());
         // 业务类型
@@ -268,6 +271,11 @@ public class LogisticsOnlineOrderService implements IAfterPayBussService{
         logisticsOrder.setConsignorStreet(organLogisticsManageDto.getConsignorStreet());
         // 寄件人详细地址
         logisticsOrder.setConsignorAddress(organLogisticsManageDto.getConsignorAddress());
+        logisticsOrder.setAmount(order.getRecipeFee());
+        if (null != addressDTO) {
+            logisticsOrder.setLatitude(addressDTO.getLatitude());
+            logisticsOrder.setLongitude(addressDTO.getLongitude());
+        }
         // 收件人名称
         logisticsOrder.setAddresseeName(order.getReceiver());
         // 收件人手机号

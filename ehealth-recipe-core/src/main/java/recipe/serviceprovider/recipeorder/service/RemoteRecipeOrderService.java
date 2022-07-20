@@ -478,12 +478,8 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
         if (null == recipeOrderRefundReqVO.getEndTime()) {
             throw new DAOException(DAOException.VALUE_NEEDED, "统计结束时间不能为空");
         }
-        Date beginDate = DateConversion.parseDate(recipeOrderRefundReqVO.getBeginTime(), DateConversion.DEFAULT_DATE_TIME);
-        Date endDate = DateConversion.parseDate(recipeOrderRefundReqVO.getEndTime(), DateConversion.DEFAULT_DATE_TIME);
-        RecipeOrderRefundReqDTO recipeOrderRefundReqDTO = ObjectCopyUtils.convert(recipeOrderRefundReqVO, RecipeOrderRefundReqDTO.class);
-        recipeOrderRefundReqDTO.setBeginTime(beginDate);
-        recipeOrderRefundReqDTO.setEndTime(endDate);
-        List<RecipeOrderDetailExportDTO> recipeOrderDetailVOList = recipeOrderDAO.getRecipeOrderDetail(recipeOrderRefundReqDTO);
+        List<RecipeOrderDetailExportDTO> recipeOrderDetailVOList =
+                recipeOrderDAO.getRecipeOrderDetail(ObjectCopyUtils.convert(recipeOrderRefundReqVO, RecipeOrderRefundReqDTO.class));
         LOGGER.info("getRecipeOrderDetail recipeOrderDetailVOList={}",JSONUtils.toString(recipeOrderDetailVOList));
         return recipeOrderDetailVOList;
     }

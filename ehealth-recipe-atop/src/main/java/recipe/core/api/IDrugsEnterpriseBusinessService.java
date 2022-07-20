@@ -271,5 +271,5 @@ public interface IDrugsEnterpriseBusinessService {
      * @param ftySendTimeREQ
      * @return
      */
-    List<Date> getFTYSendTime(FTYSendTimeReq ftySendTimeREQ);
+    List<String> getFTYSendTime(FTYSendTimeReq ftySendTimeREQ);
 }
