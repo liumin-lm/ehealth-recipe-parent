@@ -49,7 +49,6 @@ public class AuditPreMode extends AbstractAuditMode {
         RecipeDetailDAO detailDAO = getDAO(RecipeDetailDAO.class);
         Integer recipeId = recipe.getRecipeId();
         String recipeMode = recipe.getRecipeMode();
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         EnterpriseManager enterpriseManager = AppContextHolder.getBean("enterpriseManager", EnterpriseManager.class);
         //药师审方后推送给前置机（扁鹊）
         enterpriseManager.pushRecipeForThird(recipe, 0, "");
@@ -65,9 +64,8 @@ public class AuditPreMode extends AbstractAuditMode {
                 RecipeMsgService.batchSendMsg(recipe, RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS_YS.getType());
             }
         }
-        recipe.setSubState(RecipeStateEnum.NONE.getType());
-        recipe.setProcessState(RecipeStateEnum.NONE.getType());
-        recipeDAO.updateNonNullFieldByPrimaryKey(recipe);
+        StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
+        stateManager.audit(recipe, RecipeStateEnum.PROCESS_STATE_AUDIT, RecipeStateEnum.SUB_AUDIT_READY_DONE);
         // 病历处方-状态修改成显示
         DocIndexClient docIndexClient = AppContextHolder.getBean("docIndexClient", DocIndexClient.class);
         docIndexClient.updateStatusByBussIdBussType(recipe.getRecipeId(), DocIndexShowEnum.SHOW.getCode());
