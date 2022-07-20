@@ -4482,7 +4482,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                     if (StringUtils.isNoneBlank(startTime) && StringUtils.isNoneBlank(endTime)) {
                         hql.append(" and  r.CreateDate >= :startTime and  r.CreateDate <= :endTime");
                     }
-                    hql.append(" ORDER BY canUrgentAuditRecipe desc, r.grabOrderStatus DESC, signdate desc");
+                    hql.append(" ORDER BY canUrgentAuditRecipe desc, r.grabOrderStatus DESC, signdate asc");
                 }
                 //1是审核通过
                 else if (flag == 1) {
