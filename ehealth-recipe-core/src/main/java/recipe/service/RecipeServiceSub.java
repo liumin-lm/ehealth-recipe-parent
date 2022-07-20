@@ -189,8 +189,6 @@ public class RecipeServiceSub {
         Recipe recipe = ObjectCopyUtils.convert(recipeBean, Recipe.class);
         List<Recipedetail> details = ObjectCopyUtils.convert(detailBeanList, Recipedetail.class);
         setRecipeMoreInfo(recipe, details, recipeBean, flag);
-        // 保存接方状态
-        //recipe.setSupportMode(this.getSupportMode(recipe.getOriginClinicOrgan()));
         Integer recipeId = recipeDAO.updateOrSaveRecipeAndDetail(recipe, details, false);
         recipe.setRecipeId(recipeId);
         PatientDTO patient = patientService.get(recipe.getMpiid());
@@ -3072,9 +3070,7 @@ public class RecipeServiceSub {
     public static void setUseDaysBToDetali(List<Recipedetail> recipeDetails) {
         for (Recipedetail recipedetail : recipeDetails) {
             if (StringUtils.isEmpty(recipedetail.getUseDaysB())) {
-
                 recipedetail.setUseDaysB(null != recipedetail.getUseDays() ? recipedetail.getUseDays().toString() : "0");
-
             }
         }
     }
@@ -3127,12 +3123,11 @@ public class RecipeServiceSub {
      * @Author liumin
      */
     private static QueryHisRecipResTO getRecipeInfoByRecipeCode(HisResponseTO<List<QueryHisRecipResTO>> responseTO, String recipeCode) {
-        LOGGER.info("getRecipeInfoByRecipeCode recipecode:{} , param:{}", recipeCode, JSONUtils.toString(responseTO));
+        LOGGER.info("getRecipeInfoByRecipeCode recipeCode:{} , param:{}", recipeCode, JSONUtils.toString(responseTO));
         QueryHisRecipResTO response = new QueryHisRecipResTO();
         if (!StringUtils.isEmpty(recipeCode)) {
             if (responseTO != null) {
                 List<QueryHisRecipResTO> queryHisRecipResTOs = responseTO.getData();
-                List<QueryHisRecipResTO> queryHisRecipResTOFilters = new ArrayList<>();
                 if (!CollectionUtils.isEmpty(queryHisRecipResTOs)) {
                     for (QueryHisRecipResTO queryHisRecipResTO : queryHisRecipResTOs) {
                         if (recipeCode.equals(queryHisRecipResTO.getRecipeCode())) {
@@ -3142,7 +3137,7 @@ public class RecipeServiceSub {
                 }
             }
         }
-        LOGGER.info("getRecipeInfoByRecipeCode recipecode:{} , response:{}", recipeCode, JSONUtils.toString(response));
+        LOGGER.info("getRecipeInfoByRecipeCode recipeCode:{} , response:{}", recipeCode, JSONUtils.toString(response));
         return response;
     }
 
@@ -3174,28 +3169,6 @@ public class RecipeServiceSub {
         LOGGER.info("isCQOrgan response false ");
         return false;
     }
-
-    /**
-     * @param OriginId
-     * @return
-     * @dsec 接方模式
-     * @author maoze
-     */
-    public Integer getSupportMode(Integer OriginId) {
-        try {
-            IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-            Boolean supportReciveRecipe = (Boolean) configurationService.getConfiguration(OriginId, "supportReciveRecipe");
-            if (Boolean.TRUE.equals(supportReciveRecipe)) {
-                return 1;
-            } else if (Boolean.FALSE.equals(supportReciveRecipe)) {
-                return 2;
-            }
-        } catch (Exception e) {
-            LOGGER.info("RecipeServiceSub getSupportMode exception ", e);
-        }
-        return 0;
-    }
-
 
 }
 
