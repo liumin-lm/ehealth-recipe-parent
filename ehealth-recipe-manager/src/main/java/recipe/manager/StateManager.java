@@ -93,7 +93,7 @@ public class StateManager extends BaseManager {
      * @param subState
      * @return
      */
-    private Boolean audit(Recipe recipe, RecipeStateEnum processState, RecipeStateEnum subState) {
+    public Boolean audit(Recipe recipe, RecipeStateEnum processState, RecipeStateEnum subState) {
         Recipe updateRecipe = new Recipe();
         updateRecipe.setRecipeId(recipe.getRecipeId());
         updateRecipe.setProcessState(processState.getType());
