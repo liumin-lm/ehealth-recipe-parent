@@ -5,6 +5,7 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +44,10 @@ public class DrugRemindRevisitService {
         List<RecipeExtend> recipeExtendList = recipeExtendDAO.queryRecipeExtendByRecipeIds(recipeIds);
         //获取长处方的处方单号
         List<Integer> longRecipeIds = recipeExtendList.stream().filter(recipeExtend -> "1".equals(recipeExtend.getIsLongRecipe())).map(RecipeExtend::getRecipeId).collect(Collectors.toList());
-        List<Recipedetail> longRecipeDetailList = recipeDetailDAO.findByRecipeIds(longRecipeIds);
+        List<Recipedetail> longRecipeDetailList = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(longRecipeIds)) {
+            longRecipeDetailList = recipeDetailDAO.findByRecipeIds(longRecipeIds);
+        }
         Map<Integer, List<Recipedetail>> longRecipeDetailMap = longRecipeDetailList.stream().collect(Collectors.groupingBy(Recipedetail::getRecipeId));
         //获取全部的处方明细
         List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeIds(recipeIds);
