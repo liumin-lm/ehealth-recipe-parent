@@ -39,7 +39,7 @@ public class AuditPreMode extends AbstractAuditMode {
 
     @Override
     public int afterAuditRecipeChange() {
-        return RecipeStatusConstant.CHECK_PASS;
+        return RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType();
     }
 
     @Override
@@ -49,6 +49,7 @@ public class AuditPreMode extends AbstractAuditMode {
         RecipeDetailDAO detailDAO = getDAO(RecipeDetailDAO.class);
         Integer recipeId = recipe.getRecipeId();
         String recipeMode = recipe.getRecipeMode();
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         EnterpriseManager enterpriseManager = AppContextHolder.getBean("enterpriseManager", EnterpriseManager.class);
         //药师审方后推送给前置机（扁鹊）
         enterpriseManager.pushRecipeForThird(recipe, 0, "");
@@ -58,12 +59,15 @@ public class AuditPreMode extends AbstractAuditMode {
             if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipeMode)) {
                 RecipeServiceSub.sendRecipeTagToPatient(recipe, detailDAO.findByRecipeId(recipeId), null, true);
                 //向患者推送处方消息
-                RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.CHECK_PASS);
+                RecipeMsgService.batchSendMsg(recipe, RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType());
             } else {
                 //平台前置发送审核通过消息 /向患者推送处方消息 处方通知您有一张处方单需要处理，请及时查看。
-                RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.CHECK_PASS_YS);
+                RecipeMsgService.batchSendMsg(recipe, RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS_YS.getType());
             }
         }
+        recipe.setSubState(RecipeStateEnum.NONE.getType());
+        recipe.setProcessState(RecipeStateEnum.NONE.getType());
+        recipeDAO.updateNonNullFieldByPrimaryKey(recipe);
         // 病历处方-状态修改成显示
         DocIndexClient docIndexClient = AppContextHolder.getBean("docIndexClient", DocIndexClient.class);
         docIndexClient.updateStatusByBussIdBussType(recipe.getRecipeId(), DocIndexShowEnum.SHOW.getCode());
