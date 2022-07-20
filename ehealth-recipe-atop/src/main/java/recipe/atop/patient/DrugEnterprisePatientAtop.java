@@ -1,21 +1,34 @@
 package recipe.atop.patient;
 
+import com.ngari.recipe.dto.EnterpriseStock;
+import com.ngari.recipe.dto.RecipeDTO;
 import com.ngari.recipe.entity.OrganDrugsSaleConfig;
+import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeExtend;
+import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.recipe.model.RecipeBean;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
+import recipe.constant.ErrorCode;
 import recipe.core.api.IDrugsEnterpriseBusinessService;
 import recipe.core.api.IStockBusinessService;
+import recipe.util.ObjectCopyUtils;
+import recipe.util.RecipeUtil;
+import recipe.vo.doctor.ValidateDetailVO;
 import recipe.vo.greenroom.OrganDrugsSaleConfigVo;
 import recipe.vo.patient.CheckAddressReq;
 import recipe.vo.patient.CheckAddressRes;
 import recipe.vo.patient.FTYSendTimeReq;
 import recipe.vo.patient.MedicineStationVO;
 
+import java.math.BigDecimal;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -89,12 +102,59 @@ public class DrugEnterprisePatientAtop extends BaseAtop {
 
     /**
      * 腹透液配送时间获取
+     *
      * @param ftySendTimeREQ
      * @return
      */
     @RpcService
-    public List<String> getFTYSendTime(FTYSendTimeReq ftySendTimeREQ){
-        validateAtop(ftySendTimeREQ,ftySendTimeREQ.getOrganId(),ftySendTimeREQ.getProvince(),ftySendTimeREQ.getCity(),ftySendTimeREQ.getDistrict(),ftySendTimeREQ.getStartDate(),ftySendTimeREQ.getEndDate());
+    public List<String> getFTYSendTime(FTYSendTimeReq ftySendTimeREQ) {
+        validateAtop(ftySendTimeREQ, ftySendTimeREQ.getOrganId(), ftySendTimeREQ.getProvince(), ftySendTimeREQ.getCity(), ftySendTimeREQ.getDistrict(), ftySendTimeREQ.getStartDate(), ftySendTimeREQ.getEndDate());
         return enterpriseBusinessService.getFTYSendTime(ftySendTimeREQ);
     }
+
+
+    /**
+     * 医生指定药企列表
+     * todo :drugDoctorAtop
+     *
+     * @param validateDetailVO
+     * @return
+     */
+    @RpcService
+    @Deprecated
+    public List<EnterpriseStock> enterpriseStockList(ValidateDetailVO validateDetailVO) {
+        validateAtop(validateDetailVO, validateDetailVO.getRecipeBean(), validateDetailVO.getRecipeDetails());
+        RecipeBean recipeBean = validateDetailVO.getRecipeBean();
+        validateAtop(recipeBean.getRecipeType(), recipeBean.getClinicOrgan());
+        List<RecipeDetailBean> recipeDetails = validateDetailVO.getRecipeDetails();
+        boolean organDrugCode = recipeDetails.stream().anyMatch(a -> StringUtils.isEmpty(a.getOrganDrugCode()));
+        if (organDrugCode) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "医院配置药品存在编号为空的数据");
+        }
+        List<Recipedetail> detailList = ObjectCopyUtils.convert(validateDetailVO.getRecipeDetails(), Recipedetail.class);
+        if (RecipeUtil.isTcmType(recipeBean.getRecipeType())) {
+            validateAtop(recipeBean.getCopyNum());
+            detailList.forEach(a -> {
+                if (a.getUseDose() != null) {
+                    a.setUseTotalDose(BigDecimal.valueOf(recipeBean.getCopyNum()).multiply(BigDecimal.valueOf(a.getUseDose())).doubleValue());
+                }
+            });
+        }
+        Recipe recipe = ObjectCopyUtils.convert(recipeBean, Recipe.class);
+        RecipeExtend recipeExtend = ObjectCopyUtils.convert(validateDetailVO.getRecipeExtendBean(), RecipeExtend.class);
+        if (null == recipeExtend) {
+            recipeExtend = new RecipeExtend();
+        }
+        RecipeDTO recipeDTO = new RecipeDTO();
+        recipeDTO.setRecipe(recipe);
+        recipeDTO.setRecipeDetails(detailList);
+        recipeDTO.setRecipeExtend(recipeExtend);
+        List<EnterpriseStock> result = iStockBusinessService.stockList(recipeDTO);
+        result.forEach(a -> {
+            a.setDrugsEnterprise(null);
+            a.setDrugInfoList(null);
+        });
+        return result;
+    }
+
 }
