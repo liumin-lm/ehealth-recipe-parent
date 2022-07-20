@@ -10,6 +10,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.client.IConfigurationClient;
+import recipe.enumerate.status.RecipeStateEnum;
 
 import java.util.HashSet;
 import java.util.List;
@@ -41,6 +42,7 @@ public class GroupRecipeManager extends BaseManager {
         }
         RecipeOrder recipeOrder = recipeOrderDAO.getByOrderId(orderId);
         updateGroupRecipe(recipeOrder.getRecipeIdList(), recipe.getRecipeId(), recipe.getStatus());
+
     }
 
     /**

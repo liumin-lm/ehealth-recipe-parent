@@ -146,6 +146,12 @@ public class ObtainConfirmOrderObjectResNoDS implements Serializable {
     @ItemProperty(alias = "详细地址")
     private String address4;
 
+    @ItemProperty(alias = "经度")
+    private Double latitude;
+
+    @ItemProperty(alias = "纬度")
+    private Double longitude;
+
     @ItemProperty(alias = "邮政编码")
     private String zipCode;
 
@@ -1142,5 +1148,21 @@ public class ObtainConfirmOrderObjectResNoDS implements Serializable {
 
     public void setAccountFee(BigDecimal accountFee) {
         this.accountFee = accountFee;
+    }
+
+    public Double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(Double latitude) {
+        this.latitude = latitude;
+    }
+
+    public Double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(Double longitude) {
+        this.longitude = longitude;
     }
 }
