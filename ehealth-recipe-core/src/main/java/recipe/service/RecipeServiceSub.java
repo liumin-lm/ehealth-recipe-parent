@@ -190,7 +190,7 @@ public class RecipeServiceSub {
         List<Recipedetail> details = ObjectCopyUtils.convert(detailBeanList, Recipedetail.class);
         setRecipeMoreInfo(recipe, details, recipeBean, flag);
         // 保存接方状态
-        recipe.setSupportMode(this.getSupportMode(recipe.getOriginClinicOrgan()));
+        //recipe.setSupportMode(this.getSupportMode(recipe.getOriginClinicOrgan()));
         Integer recipeId = recipeDAO.updateOrSaveRecipeAndDetail(recipe, details, false);
         recipe.setRecipeId(recipeId);
         PatientDTO patient = patientService.get(recipe.getMpiid());

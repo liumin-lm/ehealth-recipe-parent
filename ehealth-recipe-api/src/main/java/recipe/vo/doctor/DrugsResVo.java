@@ -43,4 +43,13 @@ public class DrugsResVo implements Serializable {
 
     @ItemProperty(alias = "价格")
     private BigDecimal salePrice;
+
+    @ItemProperty(alias = "通用名/药品名")
+    private String drugName;
+
+    @ItemProperty(alias = "药品规格")
+    private String drugSpec;
+
+    @ItemProperty(alias = "最小售卖单位")
+    private String unit;
 }
