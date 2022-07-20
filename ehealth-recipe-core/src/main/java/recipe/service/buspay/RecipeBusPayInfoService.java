@@ -253,6 +253,17 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService,IBusPayServ
             confirmOrder.setActualPrice(orderAmount.stripTrailingZeros().toPlainString());
         }
         confirmOrder.setOrderAmount(orderAmount.stripTrailingZeros().toPlainString());
+        Integer addressId = MapValueUtil.getInteger(extInfo, "addressId");
+        if (null != addressId) {
+            AddressService addressService = ApplicationUtils.getBasicService(AddressService.class);
+            AddressDTO addressDTO = addressService.getByAddressId(order.getAddressID());
+            if (null != addressDTO && null != addressDTO.getLatitude()) {
+                order.setLatitude(addressDTO.getLatitude());
+            }
+            if (null != addressDTO && null != addressDTO.getLongitude()) {
+                order.setLongitude(addressDTO.getLongitude());
+            }
+        }
         confirmOrder.setBusObject(order);
         //设置confirmOrder的扩展信息ext----一些配置信息
         confirmOrder.setExt(setConfirmOrderExtInfo(order1, recipeId, extInfo, recipeExtend, otherFee, map));
@@ -311,7 +322,6 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService,IBusPayServ
             RecipeBean nowRecipeBean = recipeService.getByRecipeId(recipeId);
             Integer depId = MapValueUtil.getInteger(extInfo, "depId");
             Integer payMode = MapValueUtil.getInteger(extInfo, "payMode");
-            Integer addressId = MapValueUtil.getInteger(extInfo, "addressId");
             DrugsEnterpriseBean drugsEnterpriseBean = null;
             if (depId != null) {
                 drugsEnterpriseBean = drugsEnterpriseService.get(depId);
@@ -351,16 +361,6 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService,IBusPayServ
                 map.put("reviewType", nowRecipeBean.getReviewType().toString());
             }
             log.info("setConfirmOrderExtInfo payMode:{}, drugsEnterpriseBean:{}.", payMode, JSONUtils.toString(drugsEnterpriseBean));
-            if (null != addressId) {
-                AddressService addressService = ApplicationUtils.getBasicService(AddressService.class);
-                AddressDTO addressDTO = addressService.getByAddressId(order.getAddressID());
-                if (null != addressDTO && null != addressDTO.getLatitude()) {
-                    map.put("latitude", addressDTO.getLatitude().toString());
-                }
-                if (null != addressDTO && null != addressDTO.getLongitude()) {
-                    map.put("longitude", addressDTO.getLongitude().toString());
-                }
-            }
             //药店取药 支付方式
             if (new Integer(4).equals(payMode) && drugsEnterpriseBean != null) {
                 //@ItemProperty(alias = "0:不支付药品费用，1:全部支付 【 1线上支付  非1就是线下支付】")
