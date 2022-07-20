@@ -194,7 +194,7 @@ public class StateManager extends BaseManager {
         Recipe updateRecipe = new Recipe();
         updateRecipe.setRecipeId(recipe.getRecipeId());
         updateRecipe.setProcessState(processState.getType());
-        RecipeStateEnum sub = RecipeStateEnum.SUB_SUBMIT_TEMPORARY;
+        RecipeStateEnum sub = RecipeStateEnum.SUB_SUBMIT_PATIENT;
         if (WriteHisEnum.WRITE_HIS_STATE_SUBMIT.getType().equals(recipe.getWriteHisState())) {
             sub = RecipeStateEnum.SUB_SUBMIT_CHECKING_HOS;
         }
@@ -203,6 +203,11 @@ public class StateManager extends BaseManager {
         }
         if (SignEnum.SIGN_STATE_AUDIT.getType().equals(recipe.getDoctorSignState())) {
             sub = RecipeStateEnum.SUB_SUBMIT_DOC_SIGN_FAIL;
+        }
+        if (SignEnum.SIGN_STATE_ORDER.getType().equals(recipe.getDoctorSignState())
+                && WriteHisEnum.WRITE_HIS_STATE_ORDER.getType().equals(recipe.getWriteHisState())) {
+            updateRecipe.setSubState(RecipeStateEnum.NONE.getType());
+            updateRecipe.setProcessState(RecipeStateEnum.NONE.getType());
         }
         updateRecipe.setSubState(sub.getType());
         recipeDAO.updateNonNullFieldByPrimaryKey(updateRecipe);
