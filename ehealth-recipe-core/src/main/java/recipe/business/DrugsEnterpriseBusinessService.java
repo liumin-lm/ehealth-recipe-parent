@@ -758,9 +758,14 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
     }
 
     @Override
-    public List<Date> getFTYSendTime(FTYSendTimeReq ftySendTimeREQ) {
+    public List<String> getFTYSendTime(FTYSendTimeReq ftySendTimeREQ) {
         FTYSendTimeReqDTO ftySendTimeReqDTO = BeanCopyUtils.copyProperties(ftySendTimeREQ, FTYSendTimeReqDTO::new);
-        return enterpriseClient.getFTYSendTime(ftySendTimeReqDTO);
+        List<Date> ftySendTime = enterpriseClient.getFTYSendTime(ftySendTimeReqDTO);
+        List<String> list = ftySendTime.stream().map(f -> {
+            return DateFormatUtils.format(f, "yyyy-MM-dd");
+        }).collect(Collectors.toList());
+
+        return list;
     }
 
     private void syncFinishOrderHandle(List<Integer> recipeIdList, RecipeOrder recipeOrder, boolean isSendFlag) {
