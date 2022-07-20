@@ -31,6 +31,7 @@ public enum RecipeStateEnum {
     SUB_SUBMIT_DOC_SIGN_ING(13, "您已提交，等待签名完成", "医生签名中"),
     SUB_SUBMIT_DOC_SIGN_FAIL(14, "签名失败，您可以重新发起签名", "医生签名失败"),
     SUB_SUBMIT_PATIENT(15, "等待患者处理", ""),
+    
     /**
      * 处方子状态:待审核
      */
