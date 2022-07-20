@@ -1629,6 +1629,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 Long total = Long.valueOf(String.valueOf((sqlQuery.uniqueResult())));
                 // 查询结果
                 Query query = ss.createSQLQuery(sbHql.append(" order by a.CreateTime DESC").toString()).addEntity(RecipeOrder.class);
+                logger.info("RecipeOderDAO findWaitApplyRefundRecipeOrder sbHql={}",sbHql);
                 setRefundParameter(query, recipeOrderRefundReqDTO);
                 query.setFirstResult(recipeOrderRefundReqDTO.getStart());
                 query.setMaxResults(recipeOrderRefundReqDTO.getLimit());
@@ -1641,10 +1642,8 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
     }
 
     public QueryResult<RecipeOrder> findPushFailRecipeOrder(RecipeOrderRefundReqDTO recipeOrderRefundReqDTO) {
-        final StringBuilder sbHql = this.generateRecipeHQL(recipeOrderRefundReqDTO);
-        sbHql.append(" AND a.pushFlag = -1 and a.payFlag = 1 AND b.giveMode in (1,3) ");
-        final StringBuilder sbHqlCount = this.generateRecipeHQLCount(recipeOrderRefundReqDTO);
-        sbHqlCount.append(" AND a.pushFlag = -1 and a.payFlag = 1 AND b.giveMode in (1,3) ");
+        final StringBuilder sbHql = this.generatePushFailRecipeHQL(recipeOrderRefundReqDTO);
+        final StringBuilder sbHqlCount = this.generatePushFailRecipeHQLCount(recipeOrderRefundReqDTO);
         HibernateStatelessResultAction<QueryResult<RecipeOrder>> action = new AbstractHibernateStatelessResultAction<QueryResult<RecipeOrder>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
@@ -1654,6 +1653,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 Long total = Long.valueOf(String.valueOf((sqlQuery.uniqueResult())));
                 // 查询结果
                 Query query = ss.createSQLQuery(sbHql.append(" order by a.CreateTime DESC").toString()).addEntity(RecipeOrder.class);
+                logger.info("RecipeOderDAO findPushFailRecipeOrder sbHql={}",sbHql);
                 setRefundParameter(query, recipeOrderRefundReqDTO);
                 query.setFirstResult(recipeOrderRefundReqDTO.getStart());
                 query.setMaxResults(recipeOrderRefundReqDTO.getLimit());
@@ -1677,6 +1677,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 Long total = Long.valueOf(String.valueOf((sqlQuery.uniqueResult())));
                 // 查询结果
                 Query query = ss.createSQLQuery(sbHql.append(" order by a.CreateTime DESC").toString()).addEntity(RecipeOrder.class);
+                logger.info("RecipeOderDAO findRefundRecipeOrder sbHql={}", sbHql);
                 setRefundParameter(query, recipeOrderRefundReqDTO);
                 query.setFirstResult(recipeOrderRefundReqDTO.getStart());
                 query.setMaxResults(recipeOrderRefundReqDTO.getLimit());
@@ -1739,6 +1740,20 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         return getRefundStringBuilder(recipeOrderRefundReqDTO, hql);
     }
 
+    private StringBuilder generatePushFailRecipeHQL(RecipeOrderRefundReqDTO recipeOrderRefundReqDTO) {
+        StringBuilder hql = new StringBuilder("select DISTINCT(a.OrderCode), a.* from cdr_recipeorder a,cdr_recipe b,cdr_recipe_ext c where a.orderCode = b.orderCode AND b.recipeId = c.recipeId ");
+        getRefundStringBuilder(recipeOrderRefundReqDTO, hql);
+        hql.append(" AND a.pushFlag = -1 and a.payFlag = 1 AND b.giveMode in (1,3) ");
+        return hql;
+    }
+
+    private StringBuilder generatePushFailRecipeHQLCount(RecipeOrderRefundReqDTO recipeOrderRefundReqDTO) {
+        StringBuilder hql = new StringBuilder("select count(DISTINCT(a.OrderCode)) from cdr_recipeorder a,cdr_recipe b,cdr_recipe_ext c where a.orderCode = b.orderCode AND b.recipeId = c.recipeId ");
+        getRefundStringBuilder(recipeOrderRefundReqDTO, hql);
+        hql.append(" AND a.pushFlag = -1 and a.payFlag = 1 AND b.giveMode in (1,3) ");
+        return hql;
+    }
+
     private StringBuilder getRefundStringBuilder(RecipeOrderRefundReqDTO recipeOrderRefundReqDTO, StringBuilder hql) {
         //默认查询所有
         if (CollectionUtils.isNotEmpty(recipeOrderRefundReqDTO.getOrganIds())) {
@@ -1747,7 +1762,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
             for (Integer i : recipeOrderRefundReqDTO.getOrganIds()) {
                 if (i != null) {
                     if (flag) {
-                        hql.append(" AND r.clinicOrgan in(");
+                        hql.append(" AND b.clinicOrgan in(");
                         flag = false;
                     }
                     hql.append(i + ",");
