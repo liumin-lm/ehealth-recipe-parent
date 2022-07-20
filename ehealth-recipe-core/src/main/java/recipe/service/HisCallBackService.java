@@ -140,6 +140,7 @@ public class HisCallBackService {
         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), memo);
         LOGGER.info("checkPassSuccess recipeId:{} attrMap{}", recipe.getRecipeId(), JSONUtils.toString(attrMap));
         recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), attrMap);
+        stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_SUBMIT, RecipeStateEnum.NONE);
         if (!recipeExtUpdateDataMap.isEmpty()) {
             recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), recipeExtUpdateDataMap);
         }

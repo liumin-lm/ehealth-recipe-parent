@@ -41,6 +41,7 @@ import recipe.core.api.patient.IOfflineRecipeBusinessService;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.enumerate.status.OfflineToOnlineEnum;
+import recipe.enumerate.status.RecipeStateEnum;
 import recipe.factory.offlinetoonline.IOfflineToOnlineStrategy;
 import recipe.factory.offlinetoonline.OfflineToOnlineFactory;
 import recipe.manager.*;
@@ -78,7 +79,9 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
     @Autowired
     private OfflineRecipeClient offlineRecipeClient;
     @Autowired
-    protected RecipeManager recipeManager;
+    private RecipeManager recipeManager;
+    @Autowired
+    private StateManager stateManager;
     @Autowired
     private RecipeTherapyManager recipeTherapyManager;
     @Autowired
@@ -324,6 +327,7 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
             result.getRecipe().setClinicId(recipe.getClinicId());
             recipeManager.updatePushHisRecipe(result.getRecipe(), recipeId, pushType);
             recipeManager.updatePushHisRecipeExt(result.getRecipeExtend(), recipeId, pushType);
+            stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_SUBMIT, RecipeStateEnum.NONE);
             logger.info("RecipeBusinessService pushRecipe end recipeId:{}", recipeId);
             return result;
         } catch (Exception e) {
