@@ -106,7 +106,7 @@ public class RecipeConfigService {
         if (organId == null) {
             return getRecipeMode(appKey);
         }
-        String recipeModeRadioConfig = (String) configService.getConfiguration(organId, "recipeModeRadioConfig");
+        String recipeModeRadioConfig = String.valueOf(configService.getConfiguration(organId, "recipeModeRadioConfig"));
         LOG.info("getRecipeModeByAppKeyAndOrganId recipeModeRadioConfig:{}",JSONUtils.toString(recipeModeRadioConfig));
         //"options":{ "0":"无", "1":"浙里平台模式", "2":"纳里平台模式" }
         if (ZL_YS.equals(recipeModeRadioConfig)) {
