@@ -67,12 +67,15 @@ public class StateManager extends BaseManager {
             case PROCESS_STATE_SUBMIT:
                 result = this.submit(recipe, processState);
                 break;
-            case PROCESS_STATE_DELETED:
-            case PROCESS_STATE_CANCELLATION:
-                result = this.cancellation(recipe, processState, subState);
+            case PROCESS_STATE_AUDIT:
+                result = this.audit(recipe, processState, subState);
                 break;
             case PROCESS_STATE_DONE:
                 result = this.defaultRecipe(recipe, processState, subState);
+                break;
+            case PROCESS_STATE_DELETED:
+            case PROCESS_STATE_CANCELLATION:
+                result = this.cancellation(recipe, processState, subState);
                 break;
             default:
                 result = false;
@@ -81,6 +84,63 @@ public class StateManager extends BaseManager {
         saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), subState.getName());
         return result;
     }
+
+    /**
+     * 待审核处方
+     *
+     * @param recipe
+     * @param processState
+     * @param subState
+     * @return
+     */
+    @LogRecord
+    public Boolean audit(Recipe recipe, RecipeStateEnum processState, RecipeStateEnum subState) {
+        Recipe updateRecipe = new Recipe();
+        updateRecipe.setRecipeId(recipe.getRecipeId());
+        updateRecipe.setProcessState(processState.getType());
+        updateRecipe.setSubState(subState.getType());
+        if (RecipeStateEnum.PROCESS_STATE_AUDIT == processState && RecipeStateEnum.SUB_AUDIT_READY_DONE == subState) {
+            updateRecipe.setSubState(RecipeStateEnum.NONE.getType());
+            updateRecipe.setProcessState(RecipeStateEnum.NONE.getType());
+        }
+        recipeDAO.updateNonNullFieldByPrimaryKey(updateRecipe);
+        return true;
+    }
+
+    /**
+     * 待提交处方
+     *
+     * @param recipe
+     * @param processState
+     * @param
+     * @return
+     */
+    private Boolean submit(Recipe recipe, RecipeStateEnum processState) {
+        logger.info("StateManager submit recipeId={} writeHisState:{}，doctorSignState={}"
+                , recipe.getRecipeId(), recipe.getWriteHisState(), recipe.getDoctorSignState());
+        Recipe updateRecipe = new Recipe();
+        updateRecipe.setRecipeId(recipe.getRecipeId());
+        updateRecipe.setProcessState(processState.getType());
+        RecipeStateEnum sub = RecipeStateEnum.SUB_SUBMIT_PATIENT;
+        if (WriteHisEnum.WRITE_HIS_STATE_SUBMIT.getType().equals(recipe.getWriteHisState())) {
+            sub = RecipeStateEnum.SUB_SUBMIT_CHECKING_HOS;
+        }
+        if (SignEnum.SIGN_STATE_SUBMIT.getType().equals(recipe.getDoctorSignState())) {
+            sub = RecipeStateEnum.SUB_SUBMIT_DOC_SIGN_ING;
+        }
+        if (SignEnum.SIGN_STATE_AUDIT.getType().equals(recipe.getDoctorSignState())) {
+            sub = RecipeStateEnum.SUB_SUBMIT_DOC_SIGN_FAIL;
+        }
+        if (SignEnum.SIGN_STATE_ORDER.getType().equals(recipe.getDoctorSignState())
+                && WriteHisEnum.WRITE_HIS_STATE_ORDER.getType().equals(recipe.getWriteHisState())) {
+            updateRecipe.setSubState(RecipeStateEnum.NONE.getType());
+            updateRecipe.setProcessState(RecipeStateEnum.NONE.getType());
+        }
+        updateRecipe.setSubState(sub.getType());
+        recipeDAO.updateNonNullFieldByPrimaryKey(updateRecipe);
+        return true;
+    }
+
 
     /**
      * 更新审核状态
@@ -179,41 +239,6 @@ public class StateManager extends BaseManager {
         recipeDAO.updateNonNullFieldByPrimaryKey(updateRecipe);
         return true;
     }
-
-    /**
-     * 待提交处方
-     *
-     * @param recipe
-     * @param processState
-     * @param
-     * @return
-     */
-    private Boolean submit(Recipe recipe, RecipeStateEnum processState) {
-        logger.info("StateManager submit recipeId={} writeHisState:{}，doctorSignState={}"
-                , recipe.getRecipeId(), recipe.getWriteHisState(), recipe.getDoctorSignState());
-        Recipe updateRecipe = new Recipe();
-        updateRecipe.setRecipeId(recipe.getRecipeId());
-        updateRecipe.setProcessState(processState.getType());
-        RecipeStateEnum sub = RecipeStateEnum.SUB_SUBMIT_PATIENT;
-        if (WriteHisEnum.WRITE_HIS_STATE_SUBMIT.getType().equals(recipe.getWriteHisState())) {
-            sub = RecipeStateEnum.SUB_SUBMIT_CHECKING_HOS;
-        }
-        if (SignEnum.SIGN_STATE_SUBMIT.getType().equals(recipe.getDoctorSignState())) {
-            sub = RecipeStateEnum.SUB_SUBMIT_DOC_SIGN_ING;
-        }
-        if (SignEnum.SIGN_STATE_AUDIT.getType().equals(recipe.getDoctorSignState())) {
-            sub = RecipeStateEnum.SUB_SUBMIT_DOC_SIGN_FAIL;
-        }
-        if (SignEnum.SIGN_STATE_ORDER.getType().equals(recipe.getDoctorSignState())
-                && WriteHisEnum.WRITE_HIS_STATE_ORDER.getType().equals(recipe.getWriteHisState())) {
-            updateRecipe.setSubState(RecipeStateEnum.NONE.getType());
-            updateRecipe.setProcessState(RecipeStateEnum.NONE.getType());
-        }
-        updateRecipe.setSubState(sub.getType());
-        recipeDAO.updateNonNullFieldByPrimaryKey(updateRecipe);
-        return true;
-    }
-
 
     /**
      * 更改处方新状态走默认

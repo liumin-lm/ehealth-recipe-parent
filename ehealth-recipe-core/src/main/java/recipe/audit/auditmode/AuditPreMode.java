@@ -18,6 +18,7 @@ import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.DocIndexShowEnum;
 import recipe.enumerate.type.SupportModeTypeEnum;
 import recipe.manager.EnterpriseManager;
+import recipe.manager.StateManager;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeMsgService;
 import recipe.service.RecipeServiceSub;
@@ -83,14 +84,14 @@ public class AuditPreMode extends AbstractAuditMode {
         // 设置新的审方状态
         currentRecipe.setStatus(status);
         currentRecipe.setCheckFlag(0);
-        currentRecipe.setSubState(RecipeStateEnum.SUB_AUDIT_READY_SUPPORT.getType());
-        currentRecipe.setProcessState(RecipeStateEnum.PROCESS_STATE_AUDIT.getType());
         if (SupportModeTypeEnum.SUPPORT_MODE_ACCEPT.getType().equals(recipe.getSupportMode())) {
             currentRecipe.setAuditState(RecipeAuditStateEnum.DEFAULT.getType());
         } else {
             currentRecipe.setAuditState(RecipeAuditStateEnum.PENDING_REVIEW.getType());
         }
         recipeDAO.updateNonNullFieldByPrimaryKey(currentRecipe);
+        StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
+        stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_AUDIT, RecipeStateEnum.SUB_AUDIT_READY_SUPPORT);
         List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
         // 平台模式前置需要发送卡片 待审核只有平台发
         if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
