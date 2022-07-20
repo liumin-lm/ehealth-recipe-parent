@@ -3,6 +3,7 @@ package recipe.business;
 import com.alibaba.fastjson.JSON;
 import com.ngari.infra.invoice.mode.InvoiceRecordDto;
 import com.ngari.infra.invoice.service.InvoiceRecordService;
+import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.dto.PatientDTO;
 import com.ngari.recipe.dto.RecipeOrderRefundReqDTO;
@@ -11,8 +12,10 @@ import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
+import ctd.account.UserRoleToken;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
+import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -80,12 +83,17 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
     @Override
     public RecipeOrderRefundPageVO findRefundRecipeOrder(RecipeOrderRefundReqVO recipeOrderRefundReqVO) {
         RecipeOrderRefundPageVO recipeOrderRefundPageVO = new RecipeOrderRefundPageVO();
-        Date beginDate = DateConversion.parseDate(recipeOrderRefundReqVO.getBeginTime(), DateConversion.DEFAULT_DATE_TIME);
-        Date endDate = DateConversion.parseDate(recipeOrderRefundReqVO.getEndTime(), DateConversion.DEFAULT_DATE_TIME);
-        RecipeOrderRefundReqDTO recipeOrderRefundReqDTO = ObjectCopyUtils.convert(recipeOrderRefundReqVO, RecipeOrderRefundReqDTO.class);
-        recipeOrderRefundReqDTO.setBeginTime(beginDate);
-        recipeOrderRefundReqDTO.setEndTime(endDate);
-        QueryResult<RecipeOrder> recipeOrderQueryResult = orderManager.findRefundRecipeOrder(recipeOrderRefundReqDTO);
+        UserRoleToken urt = UserRoleToken.getCurrent();
+        String manageUnit = urt.getManageUnit();
+        if (!"eh".equals(manageUnit) && !manageUnit.startsWith("yq")) {
+            List<Integer> organIds = new ArrayList<>();
+            OrganService organService = AppContextHolder.getBean("basic.organService", OrganService.class);
+            organIds = organService.queryOrganByManageUnitList(manageUnit, organIds);
+            logger.info("RecipeOrderRefundService findRefundRecipeOrder organIds:{}", JSON.toJSONString(organIds));
+            recipeOrderRefundReqVO.setOrganIds(organIds);
+        }
+        QueryResult<RecipeOrder> recipeOrderQueryResult =
+                orderManager.findRefundRecipeOrder(Objects.requireNonNull(ObjectCopyUtils.convert(recipeOrderRefundReqVO, RecipeOrderRefundReqDTO.class)));
         logger.info("RecipeOrderRefundService findRefundRecipeOrder recipeOrderQueryResult:{}", JSON.toJSONString(recipeOrderQueryResult));
         if (CollectionUtils.isEmpty(recipeOrderQueryResult.getItems())) {
             return recipeOrderRefundPageVO;
