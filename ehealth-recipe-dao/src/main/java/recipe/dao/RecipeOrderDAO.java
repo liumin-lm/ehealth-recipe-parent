@@ -1951,7 +1951,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         hql.append("case when c.refundNodeStatus is null || c.refundNodeStatus = 2 || c.refundNodeStatus = 3  then '未退款' when c.refundNodeStatus = 0 then '退款中' when c.refundNodeStatus = 1 then '已退款' else '其他' end as refundNodeStatus,");
         hql.append("a.giveModeText,a.DrugStoreName,a.CreateTime as orderTime,a.PayTime,a.TotalFee,a.RecipeFee,a.ExpressFee,a.DecoctionFee,a.TCMFee,a.RegisterFee,a.AuditFee,a.TradeNo,a.RecMobile as mobile,");
         hql.append("c.decoctionText,d.DrugName,d.OrganDrugCode,d.salePrice,d.useTotalDose,d.drugUnit,");
-        hql.append("cd.Name,bs.OrganDrugCode as saleDrugCode,dd.generationis_of_decoction as generationisOfDecoction ");
+        hql.append("cd.Name,bs.OrganDrugCode as saleDrugCode,case when dd.generationis_of_decoction = 0 then '否' when dd.generationis_of_decoction = 1 then '是' end as generationisOfDecoction ");
         return generateRecipeOrderDetailHQLStatistics(recipeOrderRefundReqDTO,hql);
     }
 
