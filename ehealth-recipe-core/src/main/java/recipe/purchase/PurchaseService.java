@@ -310,6 +310,7 @@ public class PurchaseService {
      */
     @RpcService
     public OrderCreateResult orderForRecipeNew(List<Integer> recipeIds, Map<String, String> extInfo) {
+        LOG.info("orderForRecipeNew param: recipeIds={},extInfo={}", JSONUtils.toString(recipeIds), JSONUtils.toString(extInfo));
         OrderCreateResult orderCreateResult = checkOrderInfo(recipeIds, extInfo);
         if (RecipeResultBean.CHECKFAIL == orderCreateResult.getCode()) {
             return orderCreateResult;

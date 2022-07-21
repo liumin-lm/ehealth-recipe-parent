@@ -349,7 +349,7 @@ public class RecipeService extends RecipeBaseService {
         if (canCreateRecipe) {
             ConsultSetDTO set = consultSetService.getBeanByDoctorId(doctorId);
             if (null != set && null != set.getMedicarePrescription()) {
-                medicalFlag = (true == set.getMedicarePrescription()) ? true : false;
+                medicalFlag = true == set.getMedicarePrescription();
             }
         }
 
@@ -415,7 +415,7 @@ public class RecipeService extends RecipeBaseService {
         if (haveDrug) {
             ConsultSetDTO set = consultSetService.getBeanByDoctorId(doctorId);
             if (null != set && null != set.getMedicarePrescription()) {
-                medicalFlag = (true == set.getMedicarePrescription()) ? true : false;
+                medicalFlag = true == set.getMedicarePrescription();
             }
         }
         //开处方时增加无法配送时间文案提示
@@ -698,7 +698,7 @@ public class RecipeService extends RecipeBaseService {
             }
         }
     }
-    
+
     /**
      * 生成pdf并签名
      *
@@ -1194,11 +1194,15 @@ public class RecipeService extends RecipeBaseService {
      */
     public static void handleRecipeInvalidTime(Integer clinicOrgan, Integer recipeId, Date signDate) {
         try {
+            RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
+            if (Objects.isNull(signDate)) {
+                signDate = recipeDAO.getByRecipeId(recipeId).getSignDate();
+            }
+
             // 获取失效时间及类型
             RecipeInvalidDTO invalidDTO = getRecipeInvalidInfo(clinicOrgan, recipeId, signDate);
-            if (invalidDTO != null && null != invalidDTO.getInvalidDate()) {
+            if (null != invalidDTO.getInvalidDate()) {
                 // 更新处方失效时间
-                RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
                 Map<String, Object> attMap = new HashMap<>();
                 attMap.put("invalidTime", invalidDTO.getInvalidDate());
                 recipeDAO.updateRecipeInfoByRecipeId(recipeId, attMap);
@@ -1255,7 +1259,7 @@ public class RecipeService extends RecipeBaseService {
                         calendar.add(Calendar.DATE, invalidValue.intValue());
                         Date afterDate = calendar.getTime();
                         LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(afterDate.getTime()), ZoneId.systemDefault());
-                        ;
+
                         LocalDateTime endOfDay = localDateTime.with(LocalTime.MAX);
                         invalidDate = Date.from(endOfDay.atZone(ZoneId.systemDefault()).toInstant());
                         break;
@@ -2191,7 +2195,7 @@ public class RecipeService extends RecipeBaseService {
     @RpcService
     public Long getTimeByOrganId(Integer organId) throws ParseException {
         long minutes = 0L;
-        Map<String, Object> hget = (Map<String, Object>) redisClient.get(KEY_THE_DRUG_SYNC + organId.toString());
+        Map<String, Object> hget = redisClient.get(KEY_THE_DRUG_SYNC + organId.toString());
         if (hget != null) {
             Integer status = (Integer) hget.get("Status");
             String date = (String) hget.get("Date");
@@ -2279,7 +2283,7 @@ public class RecipeService extends RecipeBaseService {
     @LogRecord
     @RpcService(timeout = 600000)
     public Map<String, Object> drugInfoSynMovement(Integer organId, List<String> drugForms) throws ParseException {
-        Map<String, Object> hget = (Map<String, Object>) redisClient.get(KEY_THE_DRUG_SYNC + organId.toString());
+        Map<String, Object> hget = redisClient.get(KEY_THE_DRUG_SYNC + organId.toString());
         if (hget != null) {
             Integer status = (Integer) hget.get("Status");
             String date = (String) hget.get("Date");
@@ -2582,7 +2586,7 @@ public class RecipeService extends RecipeBaseService {
      */
     @RpcService(timeout = 6000000)
     public Map<String, Object> drugInfoSynMovementD(Integer organId, List<String> drugForms) throws ParseException {
-        Map<String, Object> hget = (Map<String, Object>) redisClient.get(KEY_THE_DRUG_SYNC + organId.toString());
+        Map<String, Object> hget = redisClient.get(KEY_THE_DRUG_SYNC + organId.toString());
         if (hget != null) {
             Integer status = (Integer) hget.get("Status");
             String date = (String) hget.get("Date");
@@ -2942,7 +2946,7 @@ public class RecipeService extends RecipeBaseService {
                     if (RecipeServiceSub.isBQEnterpriseBydepId(recipe.getEnterpriseId())) {
                         continue;
                     }
-                    this.sendDrugEnterproseMsg(recipe);
+                    sendDrugEnterproseMsg(recipe);
                     memo.delete(0, memo.length());
                     int recipeId = recipe.getRecipeId();
                     //相应订单处理
@@ -3185,9 +3189,8 @@ public class RecipeService extends RecipeBaseService {
             for (DrugsEnterprise drugsEnterprise : drugsEnterprises) {
                 if ("aldyf".equals(drugsEnterprise.getCallSys()) || ("tmdyf".equals(drugsEnterprise.getCallSys()) && recipe.getPushFlag() == 1)) {
                     //向药企推送处方过期的通知
-                    RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
                     try {
-                        AccessDrugEnterpriseService remoteService = remoteDrugEnterpriseService.getServiceByDep(drugsEnterprise);
+                        AccessDrugEnterpriseService remoteService = RemoteDrugEnterpriseService.getServiceByDep(drugsEnterprise);
                         DrugEnterpriseResult drugEnterpriseResult = remoteService.updatePrescriptionStatus(recipe.getRecipeCode(), AlDyfRecipeStatusConstant.EXPIRE);
                         LOGGER.info("向药企推送处方过期通知,{}", JSONUtils.toString(drugEnterpriseResult));
                     } catch (Exception e) {
@@ -3728,7 +3731,7 @@ public class RecipeService extends RecipeBaseService {
         List<DrugEnterpriseResult> backList = new ArrayList<>();
         //线上支付能力判断
         boolean hisStatus = iHisConfigService.isHisEnable(organId);
-        boolean onlinePay = hisStatus ? true : false;
+        boolean onlinePay = hisStatus;
 
         //检测配送的药品是否按照完整的包装开的药，如 1*20支，开了10支，则不进行选择，数据库里主要是useTotalDose不为小数
         List<Double> totalDoses = recipeDetailDAO.findUseTotalDoseByRecipeId(recipeId);
@@ -5196,7 +5199,7 @@ public class RecipeService extends RecipeBaseService {
             YtRemoteService ytRemoteService;
             HdRemoteService hdRemoteService;
             for (DrugsEnterprise drugsEnterprise : drugsEnterprises) {
-                AccessDrugEnterpriseService enterpriseService = service.getServiceByDep(drugsEnterprise);
+                AccessDrugEnterpriseService enterpriseService = RemoteDrugEnterpriseService.getServiceByDep(drugsEnterprise);
                 if (null == enterpriseService) {
                     LOGGER.error("recipeCanDelivery 当前药企没有对接{}.", enterpriseService);
                     continue;
@@ -5257,7 +5260,7 @@ public class RecipeService extends RecipeBaseService {
         boolean canRecipe = false;//默认不可开处方
         //从opbase配置项获取允许开处方患者年龄 findCanRecipeByAge
         IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
-        Object findCanRecipeByAge = configService.getConfiguration(Integer.parseInt(params.get("organId")), "findCanRecipeByAge");
+        Integer findCanRecipeByAge = (Integer)configService.getConfiguration(Integer.parseInt(params.get("organId")), "findCanRecipeByAge");
         LOGGER.info("findCanRecipeByAge 从opbase配置项获取允许开处方患者年龄{}", findCanRecipeByAge);
         if (findCanRecipeByAge == null) {
             canRecipe = true;//查询不到设置值或默认值或没配置配置项 设置可开处方
@@ -5281,7 +5284,7 @@ public class RecipeService extends RecipeBaseService {
                     e.printStackTrace();
                 }
                 //实际年龄>=配置年龄 设置可开处方
-                if (age >= (Integer) findCanRecipeByAge) {
+                if (age >= findCanRecipeByAge) {
                     canRecipe = true;
                 }
             }
@@ -5347,12 +5350,9 @@ public class RecipeService extends RecipeBaseService {
 
     public void doAfterCheckNotPassYs(Recipe recipe) {
         LOGGER.info("RecipeService doAfterCheckNotPassYs recipeId= {}，clinicOrgan={}", recipe.getRecipeId(), recipe.getClinicOrgan());
-        boolean secondsignflag = RecipeServiceSub.canSecondAudit(recipe.getClinicOrgan());
-        /*IOrganConfigService iOrganConfigService = ApplicationUtils.getBaseService(IOrganConfigService.class);
-        boolean secondsignflag = iOrganConfigService.getEnableSecondsignByOrganId(recipe.getClinicOrgan());*/
-        //不支持二次签名的机构直接执行后续操作
-        if (!secondsignflag) {
-            //一次审核不通过的需要将优惠券释放
+        boolean secondSignFlag = RecipeServiceSub.canSecondAudit(recipe.getClinicOrgan());
+        if (!secondSignFlag) {
+            //不支持二次签名的机构直接执行后续操作, 一次审核不通过的需要将优惠券释放
             RecipeCouponService recipeCouponService = ApplicationUtils.getRecipeService(RecipeCouponService.class);
             recipeCouponService.unuseCouponByRecipeId(recipe.getRecipeId());
             //TODO 根据审方模式改变
@@ -5461,9 +5461,8 @@ public class RecipeService extends RecipeBaseService {
                     for (DrugsEnterprise drugsEnterprise : drugsEnterprises) {
                         if (("aldyf".equals(drugsEnterprise.getCallSys()) || "tmdyf".equals(drugsEnterprise.getCallSys())) && recipe.getPushFlag() == 1) {
                             //向药企推送处方过期的通知
-                            RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
                             try {
-                                AccessDrugEnterpriseService remoteService = remoteDrugEnterpriseService.getServiceByDep(drugsEnterprise);
+                                AccessDrugEnterpriseService remoteService = RemoteDrugEnterpriseService.getServiceByDep(drugsEnterprise);
                                 DrugEnterpriseResult drugEnterpriseResult = remoteService.updatePrescriptionStatus(recipe.getRecipeCode(), AlDyfRecipeStatusConstant.EXPIRE);
                                 LOGGER.info("向药企推送处方过期通知,{}", JSONUtils.toString(drugEnterpriseResult));
                             } catch (Exception e) {
@@ -5556,7 +5555,7 @@ public class RecipeService extends RecipeBaseService {
                             //向药企推送处方过期的通知
                             RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
                             try {
-                                AccessDrugEnterpriseService remoteService = remoteDrugEnterpriseService.getServiceByDep(drugsEnterprise);
+                                AccessDrugEnterpriseService remoteService = RemoteDrugEnterpriseService.getServiceByDep(drugsEnterprise);
                                 DrugEnterpriseResult drugEnterpriseResult = remoteService.updatePrescriptionStatus(recipe.getRecipeCode(), AlDyfRecipeStatusConstant.EXPIRE);
                                 LOGGER.info("向药企推送处方过期通知,{}", JSONUtils.toString(drugEnterpriseResult));
                             } catch (Exception e) {
@@ -5623,7 +5622,7 @@ public class RecipeService extends RecipeBaseService {
                                 //向药企推送处方过期的通知
                                 RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
                                 try {
-                                    AccessDrugEnterpriseService remoteService = remoteDrugEnterpriseService.getServiceByDep(drugsEnterprise);
+                                    AccessDrugEnterpriseService remoteService = RemoteDrugEnterpriseService.getServiceByDep(drugsEnterprise);
                                     DrugEnterpriseResult drugEnterpriseResult = remoteService.updatePrescriptionStatus(recipe.getRecipeCode(), AlDyfRecipeStatusConstant.EXPIRE);
                                     LOGGER.info("向药企推送处方过期通知,{}", JSONUtils.toString(drugEnterpriseResult));
                                 } catch (Exception e) {
