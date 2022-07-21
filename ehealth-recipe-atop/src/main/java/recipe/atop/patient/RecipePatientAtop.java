@@ -27,6 +27,7 @@ import recipe.enumerate.type.OutRecipeRecipeTypeEnum;
 import recipe.util.ObjectCopyUtils;
 import recipe.util.ValidateUtil;
 import recipe.vo.doctor.RecipeInfoVO;
+import recipe.vo.patient.ReadyRecipeVO;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -275,7 +276,7 @@ public class RecipePatientAtop extends BaseAtop {
      * @return
      */
     @RpcService
-    public Boolean isHaveReadyRecipeFlag(Integer orderId) {
+    public ReadyRecipeVO skipReadyRecipe(Integer orderId) {
         return recipePatientService.getReadyRecipeFlag(orderId);
     }
 
