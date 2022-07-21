@@ -13,6 +13,7 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.RecipeOrderBill;
 import com.ngari.recipe.entity.RecipeRefund;
+import com.ngari.recipe.recipe.model.RecipeOrderDetailExportBean;
 import com.ngari.recipe.recipe.model.RecipeOrderDetailExportDTO;
 import com.ngari.recipe.recipe.model.RecipeRefundBean;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
@@ -44,6 +45,7 @@ import recipe.dao.bean.BillRecipeDetailBean;
 import recipe.dao.bean.RecipeBillBean;
 import recipe.drugsenterprise.ThirdEnterpriseCallService;
 import recipe.enumerate.status.OrderStateEnum;
+import recipe.enumerate.status.RefundNodeStatusEnum;
 import recipe.enumerate.type.PayBusTypeEnum;
 import recipe.manager.StateManager;
 import recipe.service.PayModeGiveModeUtil;
@@ -57,10 +59,7 @@ import recipe.util.ObjectCopyUtils;
 import recipe.vo.greenroom.RecipeOrderRefundReqVO;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * company: ngarihealth
@@ -470,7 +469,7 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
     }
 
     @Override
-    public List<RecipeOrderDetailExportDTO> getRecipeOrderDetail(RecipeOrderRefundReqVO recipeOrderRefundReqVO) {
+    public List<RecipeOrderDetailExportBean> getRecipeOrderDetail(RecipeOrderRefundReqVO recipeOrderRefundReqVO) {
         LOGGER.info("getRecipeOrderDetail recipeOrderRefundReqVO={}",JSONUtils.toString(recipeOrderRefundReqVO));
         if (null == recipeOrderRefundReqVO.getBeginTime()) {
             throw new DAOException(DAOException.VALUE_NEEDED, "统计开始时间不能为空");
@@ -481,7 +480,16 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
         List<RecipeOrderDetailExportDTO> recipeOrderDetailVOList =
                 recipeOrderDAO.getRecipeOrderDetail(ObjectCopyUtils.convert(recipeOrderRefundReqVO, RecipeOrderRefundReqDTO.class));
         LOGGER.info("getRecipeOrderDetail recipeOrderDetailVOList={}",JSONUtils.toString(recipeOrderDetailVOList));
-        return recipeOrderDetailVOList;
+        List<RecipeOrderDetailExportBean> recipeOrderDetailExportBeanList = new ArrayList<>();
+        for(RecipeOrderDetailExportDTO recipeOrderDetailExportDTO : recipeOrderDetailVOList){
+            RecipeOrderDetailExportBean recipeOrderDetailExportBean = ObjectCopyUtils.convert(recipeOrderDetailExportDTO, RecipeOrderDetailExportBean.class);
+            if(Objects.nonNull(recipeOrderDetailExportBean)){
+                recipeOrderDetailExportBean.setProcessState(OrderStateEnum.getOrderStateEnum(recipeOrderDetailExportDTO.getProcessState()).getName());
+                recipeOrderDetailExportBean.setRefundNodeStatus(RefundNodeStatusEnum.getRefundStatus(recipeOrderDetailExportDTO.getRefundNodeStatus()));
+            }
+            recipeOrderDetailExportBeanList.add(recipeOrderDetailExportBean);
+        }
+        return recipeOrderDetailExportBeanList;
     }
 
 }
