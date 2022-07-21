@@ -72,4 +72,11 @@ public interface IOrganBusinessService {
      * @return
      */
     List<GiveModeButtonDTO> organGiveMode(Integer organId);
+
+    /**
+     * 返回订单支付状态
+     * @param orderId
+     * @return
+     */
+    Integer getOrderPayFlag(Integer orderId);
 }
