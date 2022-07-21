@@ -2076,4 +2076,11 @@ public class HisRecipeService {
         return deleteSetRecipeCode;
     }
 
+
+    @RpcService
+    public void testObtainPayStatus(String recipeCode,Integer organId) throws JsonProcessingException {
+        hisRecipeManager.obtainPayStatus(recipeCode, organId);
+    }
+
+
 }

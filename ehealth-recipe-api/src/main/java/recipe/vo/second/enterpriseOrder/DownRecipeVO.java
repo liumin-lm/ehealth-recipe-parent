@@ -26,6 +26,9 @@ public class DownRecipeVO extends BaseRecipeVO implements Serializable {
     @ItemProperty(alias = "开方机构")
     private Integer organId;
 
+    @ItemProperty(alias = "组织机构代码")
+    private String organizeCode;
+
     @ItemProperty(alias = "签名文件的URL")
     private String signFileUrl;
 
@@ -55,6 +58,7 @@ public class DownRecipeVO extends BaseRecipeVO implements Serializable {
     //后续病人性别如果要对外使用这个字段
     private String gender;
 
+    @ItemProperty(alias = "病人性别")
     private String sexName;
 
     @ItemProperty(alias = "处方费用")

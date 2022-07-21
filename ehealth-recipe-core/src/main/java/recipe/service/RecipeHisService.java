@@ -1445,7 +1445,18 @@ public class RecipeHisService extends RecipeBaseService {
 
         }
 
-
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeBean.getRecipeId());
+        if(Objects.nonNull(recipeExtend)){
+            if(StringUtils.isNotEmpty(recipeExtend.getTerminalId())){
+                hisCheckRecipeReqTO.setTerminalId(recipeExtend.getTerminalId());
+            }
+            if (recipeExtend.getTerminalType() != null) {
+                //终端类型 1 自助机
+                hisCheckRecipeReqTO.setTerminalType(recipeExtend.getTerminalType());
+            }
+            //终端是否为自助机
+            hisCheckRecipeReqTO.setSelfServiceMachineFlag(new Integer(1).equals(recipeExtend.getTerminalType()));
+        }
         RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
         LOGGER.info("hisRecipeCheck req={}", JSONUtils.toString(hisCheckRecipeReqTO));
         HisResponseTO hisResult = service.hisCheckRecipe(hisCheckRecipeReqTO);

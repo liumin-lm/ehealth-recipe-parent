@@ -1,4 +1,4 @@
-package recipe.easypay;
+package recipe.third;
 
 import com.ngari.pay.api.dto.param.WnAccountSplitParam;
 import ctd.util.annotation.RpcService;
@@ -26,4 +26,5 @@ public interface IEasyPayService {
 
     @RpcService
     String gateWay(CommonParam commonParam);
+
 }

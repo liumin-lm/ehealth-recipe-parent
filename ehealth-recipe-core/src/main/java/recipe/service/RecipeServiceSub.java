@@ -79,10 +79,7 @@ import recipe.bean.DrugEnterpriseResult;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.RecipeValidateUtil;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
-import recipe.client.ConsultClient;
-import recipe.client.DepartClient;
-import recipe.client.PayClient;
-import recipe.client.RecipeAuditClient;
+import recipe.client.*;
 import recipe.common.CommonConstant;
 import recipe.constant.*;
 import recipe.dao.*;
@@ -169,6 +166,8 @@ public class RecipeServiceSub {
     private static StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
 
     private static IRevisitHosRecordService iRevisitHosRecordService = AppContextHolder.getBean("revisit.revisitHosRecordApiService", IRevisitHosRecordService.class);
+
+    private static IConfigurationClient configurationClient = AppContextHolder.getBean("IConfigurationClient", IConfigurationClient.class);
     /**
      * @param recipeBean
      * @param detailBeanList
@@ -189,6 +188,8 @@ public class RecipeServiceSub {
         Recipe recipe = ObjectCopyUtils.convert(recipeBean, Recipe.class);
         List<Recipedetail> details = ObjectCopyUtils.convert(detailBeanList, Recipedetail.class);
         setRecipeMoreInfo(recipe, details, recipeBean, flag);
+        // 保存接方状态
+        recipe.setSupportMode(this.getSupportMode(recipe.getOriginClinicOrgan()));
         Integer recipeId = recipeDAO.updateOrSaveRecipeAndDetail(recipe, details, false);
         recipe.setRecipeId(recipeId);
         PatientDTO patient = patientService.get(recipe.getMpiid());
@@ -238,15 +239,10 @@ public class RecipeServiceSub {
                 e.printStackTrace();
                 LOGGER.info("recipeExtend.setRecipeBusinessType error :{}", recipeBean.getBussSource());
             }
+            Integer recipeChooseChronicDisease = configurationClient.getValueCatchReturnInteger(recipeBean.getClinicOrgan(), "recipeChooseChronicDisease", 0);
             //慢病开关
             if (recipeExtend.getRecipeChooseChronicDisease() == null) {
-                try {
-                    IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-                    Integer recipeChooseChronicDisease = (Integer) configurationService.getConfiguration(recipeBean.getClinicOrgan(), "recipeChooseChronicDisease");
-                    recipeExtend.setRecipeChooseChronicDisease(recipeChooseChronicDisease);
-                } catch (Exception e) {
-                    LOGGER.error("doWithRecipeExtend 获取开关异常", e);
-                }
+                recipeExtend.setRecipeChooseChronicDisease(recipeChooseChronicDisease);
             }
 
             if (null != patient) {
@@ -274,6 +270,17 @@ public class RecipeServiceSub {
                         recipeExtend.setMedicalRecordNumber(revisitExDTO.getMedicalRecordNo());
                         recipeExtend.setIllnessType(revisitExDTO.getDbType());
                         recipeExtend.setIllnessName(revisitExDTO.getDbTypeName());
+                        recipeExtend.setTerminalId(revisitExDTO.getSelfServiceMachineNo());
+                        if(StringUtils.isNotEmpty(recipeExtend.getTerminalId())){
+                            recipeExtend.setTerminalType(1);
+                        }
+                        if (new Integer(6).equals(recipeChooseChronicDisease)) {
+                            //从复诊获取病种编码和名称
+                            if ("4".equals(revisitExDTO.getInsureTypeCode())) {
+                                recipeExtend.setChronicDiseaseCode(revisitExDTO.getMtTypeCode());
+                                recipeExtend.setChronicDiseaseName(revisitExDTO.getMtTypeName());
+                            }
+                        }
                     }
                     if(null != hosRecordDTO){
                         recipeExtend.setSideCourtYardType(hosRecordDTO.getType());
@@ -450,6 +457,11 @@ public class RecipeServiceSub {
 
     private static void validateRecipeAndDetailData(Recipe recipe, List<Recipedetail> details) {
         RecipeValidateUtil.validateSaveRecipeData(recipe);
+//        if (null != details) {
+//            for (Recipedetail recipeDetail : details) {
+//                RecipeValidateUtil.validateRecipeDetailData(recipeDetail, recipe);
+//            }
+//        }
     }
 
 
@@ -3169,6 +3181,28 @@ public class RecipeServiceSub {
         LOGGER.info("isCQOrgan response false ");
         return false;
     }
+
+    /**
+     * @param OriginId
+     * @return
+     * @dsec 接方模式
+     * @author maoze
+     */
+    public Integer getSupportMode(Integer OriginId) {
+        try {
+            IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+            Boolean supportReciveRecipe = (Boolean) configurationService.getConfiguration(OriginId, "supportReciveRecipe");
+            if (Boolean.TRUE.equals(supportReciveRecipe)) {
+                return 1;
+            } else if (Boolean.FALSE.equals(supportReciveRecipe)) {
+                return 2;
+            }
+        } catch (Exception e) {
+            LOGGER.info("RecipeServiceSub getSupportMode exception ", e);
+        }
+        return 0;
+    }
+
 
 }
 

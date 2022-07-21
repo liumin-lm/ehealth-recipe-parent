@@ -1470,6 +1470,12 @@ public class RecipeService extends RecipeBaseService {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+            Integer recipeChooseChronicDisease = configurationClient.getValueCatchReturnInteger(recipeBean.getClinicOrgan(), "recipeChooseChronicDisease", 0);
+            if (!RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipeBean.getBussSource()) && new Integer(6).equals(recipeChooseChronicDisease)) {
+                recipeExtend.setRecipeChooseChronicDisease(null);
+                recipeExtend.setChronicDiseaseCode("");
+                recipeExtend.setChronicDiseaseName("");
+            }
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
             recipeExtendDAO.saveOrUpdateRecipeExtend(recipeExtend);
         }

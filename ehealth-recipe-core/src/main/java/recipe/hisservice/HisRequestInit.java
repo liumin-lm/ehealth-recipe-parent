@@ -350,6 +350,8 @@ public class HisRequestInit {
             requestTO.setPatientId(recipe.getPatientID());
             //处方扩展信息
             requestTO.setRecipeExtend(ObjectCopyUtils.convert(recipeExtend, RecipeExtendBean.class));
+            //终端是否为自助机
+            requestTO.getRecipeExtend().setSelfServiceMachineFlag(new Integer(1).equals(recipeExtend.getTerminalType()));
             try {
                 //制法Code 煎法Code 中医证候Code
                 DrugDecoctionWayDao drugDecoctionWayDao = DAOFactory.getDAO(DrugDecoctionWayDao.class);
@@ -629,6 +631,17 @@ public class HisRequestInit {
                     RecipeExtendDAO extendDAO = getDAO(RecipeExtendDAO.class);
                     RecipeExtend extend = extendDAO.getByRecipeId(recipe.getRecipeId());
                     if (extend != null) {
+                        if (StringUtils.isNotEmpty(extend.getTerminalId())) {
+                            //终端id
+                            requestTO.setTerminalId(extend.getTerminalId());
+                        }
+                        if (extend.getTerminalType() != null ) {
+                            //终端类型 1 自助机
+                            requestTO.setTerminalType(extend.getTerminalType());
+                        }
+                        //终端是否为自助机
+                        requestTO.setSelfServiceMachineFlag(new Integer(1).equals(extend.getTerminalType()));
+
                         if (StringUtils.isNotEmpty(extend.getIllnessType())) {
                             // 大病标识
                             requestTO.setIllnessType(extend.getIllnessType());

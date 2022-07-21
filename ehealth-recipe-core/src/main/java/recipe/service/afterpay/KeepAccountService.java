@@ -26,7 +26,7 @@ import recipe.constant.RecipeFeeEnum;
 import recipe.constant.RecipeSystemConstant;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.RecipeExtendDAO;
-import recipe.easypay.IEasyPayService;
+import recipe.third.IEasyPayService;
 import recipe.manager.DepartManager;
 
 import java.math.BigDecimal;

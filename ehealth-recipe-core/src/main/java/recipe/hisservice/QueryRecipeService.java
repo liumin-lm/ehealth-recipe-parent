@@ -239,6 +239,8 @@ public class QueryRecipeService implements IQueryRecipeService {
                 recipeDTO.setDiseaseValue(ObjectCopyUtils.convert(emrDetail.getDiseaseValue(), EmrDetailValueVO.class));
                 Map<String, Object> medicalInfoBean = docIndexService.getMedicalInfoByDocIndexId(recipeExtend.getDocIndexId());
                 recipeDTO.setMedicalInfoBean(medicalInfoBean);
+                //终端是否为自助机
+                recipeDTO.getRecipeExtendBean().setSelfServiceMachineFlag((new Integer(1).equals(recipeExtend.getTerminalType())));
             }
         } catch (Exception e) {
             LOGGER.error("QueryRecipeService splicingBackData  IDocIndexService error", e);

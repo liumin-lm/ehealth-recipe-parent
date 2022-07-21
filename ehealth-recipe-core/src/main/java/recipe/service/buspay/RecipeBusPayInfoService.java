@@ -104,7 +104,6 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService,IBusPayServ
 
     @Autowired
     private RemoteRecipeOrderService recipeOrderService;
-
     @Qualifier("remoteRecipeService")
     @Autowired
     private RemoteRecipeService recipeService;
@@ -128,15 +127,12 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService,IBusPayServ
     private IPatientService iPatientService;
     @Autowired
     private EnterpriseManager enterpriseManager;
-
     @Autowired
     private HealthCardService healthCardService;
-
     @Autowired
     private RecipeDAO recipeDAO;
     @Autowired
     private RecipeExtendDAO recipeExtendDAO;
-
 
     private IConfigurationCenterUtilsService utils = BaseAPI.getService(IConfigurationCenterUtilsService.class);
 
@@ -433,6 +429,12 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService,IBusPayServ
                 String departName = departmentService.getNameById(departId);
                 simpleBusObject.setDepartName(StringUtils.isNotEmpty(departName) ? departName : "");
             }
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(busId);
+            if(Objects.nonNull(recipeExtend)){
+                if(StringUtils.isNotEmpty(recipeExtend.getTerminalId())){
+                    simpleBusObject.setTerminalId(recipeExtend.getTerminalId());
+                }
+            }
         } else {
             simpleBusObject.setBusId(busId);
             simpleBusObject.setPrice(order.getTotalFee().stripTrailingZeros().doubleValue());
@@ -458,6 +460,9 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService,IBusPayServ
             if (recipeExtend != null) {
                 simpleBusObject.setCardId(recipeExtend.getCardNo());
                 simpleBusObject.setCardType(recipeExtend.getCardType());
+                if(StringUtils.isNotEmpty(recipeExtend.getTerminalId())){
+                    simpleBusObject.setTerminalId(recipeExtend.getTerminalId());
+                }
             }
             //杭州互联网流程
             if (order.getRegisterNo() != null) {
@@ -750,6 +755,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService,IBusPayServ
         //医保类型名称
         String insureTypeName = "";
         String insureType = "";
+        Integer recipeChooseChronicDisease = configurationClient.getValueCatchReturnInteger(recipeBean.getClinicOrgan(), "recipeChooseChronicDisease", 0);
         if (consultExDTO != null) {
             registerId = consultExDTO.getRegisterNo();
             cardId = null == consultExDTO.getCardId() ? "" : consultExDTO.getCardId();
@@ -798,13 +804,11 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService,IBusPayServ
         }
         String recipeCode = String.join(",", costNumbers);
         wnExtBusCdrRecipe.setCfxhhj(StringUtils.isBlank(recipeCode) ? "" : recipeCode);
-        //个性化处理
-        // 40378 【实施】【天津市武清人民医院】【A】-复诊界面增加医保类别及医保卡号选项，唤起收银台时传给互联网进行医保挂号、缴费
-        //运营平台新增配置 配置了则上传
-        String[] clinicFields = (String[]) utils.getConfiguration(recipeOrder.getOrganId(), "clinicFieldsForRecipeConsult");
-        List<String> clinicFieldList = Arrays.asList(clinicFields);
+
+        List<String> clinicFieldList = configurationClient.getValueListCatch(recipeOrder.getOrganId(), "clinicFieldsForRecipeConsult", new ArrayList<>());
         log.info("the clinicFields=[{}]，organId=[{}]", JSONUtils.toString(clinicFieldList), recipeOrder.getOrganId());
-        if (clinicFieldList.size() > 0 && clinicFieldList.contains("1")) {
+
+        if ((new Integer(6).equals(recipeChooseChronicDisease)) || (CollectionUtils.isNotEmpty(clinicFieldList) && clinicFieldList.contains("1"))) {
             StringBuilder builder = new StringBuilder();
             builder.append("<MedCardNo>");
             builder.append(cardId);
@@ -837,7 +841,6 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService,IBusPayServ
             wnExtBusCdrRecipe.setYbrc(ctd.util.Base64.encodeToString(builder.toString().getBytes(), 2));
             log.info("newWnExtBusCdrRecipe clinicId={} builder={}", recipeBean.getClinicId(), builder.toString());
         } else {
-            //医保入参--处方人脸识别token-base64加密
             if (extend != null && StringUtils.isNotEmpty(extend.getMedicalSettleData())) {
                 wnExtBusCdrRecipe.setYbrc(Base64.encodeToString(extend.getMedicalSettleData().getBytes(), 1));
                 log.info("newWnExtBusCdrRecipe medicalSettleData={}", extend.getMedicalSettleData());
@@ -848,8 +851,8 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService,IBusPayServ
             } catch (Exception e) {
                 log.info("newWnExtBusCdrRecipe 获取封装郑州医保签发号异常)");
             }
-
         }
+
         //获取医保支付开关机构配置
         IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
         //获取医保支付流程配置（1-无 2-省医保/杭州市医保 3-长三角）
@@ -959,12 +962,10 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService,IBusPayServ
         extraData.put("cid", recipeOrder.getOrderId() + "");
         req.setExtraData(extraData);
         SignNoRes res = authExtraService.getSignNoAndSaveData(req);
-        if (res != null && res.getYbrc() != null) {
+        if (res != null && StringUtils.isNotEmpty(res.getYbrc())) {
             String ybrc = JSONUtils.toString(res);
             log.info("zhengzhouMedicalSet ybrc={}", ybrc);
-//                wnExtBusCdrRecipe.setYbrc(Base64.encodeToString(ybrc.getBytes("UTF-8"), 1));
             wnExtBusCdrRecipe.setYbrc(res.getYbrc());
-
         }
     }
 

@@ -15,6 +15,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import recipe.ApplicationUtils;
+import recipe.aop.LogRecord;
 import recipe.constant.ErrorCode;
 import recipe.constant.RecipeBussConstant;
 import recipe.dao.DrugsEnterpriseDAO;
@@ -66,6 +67,7 @@ public class EnterpriseAddressService extends BaseService<EnterpriseAddressDTO> 
      * @return
      */
     @Deprecated
+    @LogRecord
     @RpcService
     public int allAddressCanSend(Integer recipeId, String address1, String address2, String address3) {
         EnterpriseAddressDAO dao = DAOFactory.getDAO(EnterpriseAddressDAO.class);
@@ -117,6 +119,7 @@ public class EnterpriseAddressService extends BaseService<EnterpriseAddressDTO> 
      * @param address3
      * @return
      */
+    @LogRecord
     @RpcService
     @Deprecated
     public int allAddressCanSendForOrder(Integer depId, String address1, String address2, String address3) {
