@@ -50,7 +50,9 @@ import recipe.enumerate.status.GiveModeEnum;
 import recipe.enumerate.status.OrderStateEnum;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.status.RecipeStateEnum;
+import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.HisRequestInit;
+import recipe.hisservice.RecipeToHisMqService;
 import recipe.hisservice.RecipeToHisService;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.hisservice.syncdata.SyncExecutorService;
@@ -853,8 +855,13 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                 orderService.finishOrder(recipe.getOrderCode(), orderAttr);
                 //记录日志
                 RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusConstant.FINISH, "到店取药订单完成");
-                //HIS消息发送
-                hisService.recipeFinish(recipeId);
+                if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())) {
+                    RecipeToHisMqService hisMqService = ApplicationUtils.getRecipeService(RecipeToHisMqService.class);
+                    hisMqService.recipeStatusToHis(HisMqRequestInit.initRecipeStatusToHisReq(recipe, HisBussConstant.TOHIS_RECIPE_STATUS_FINISH));
+                } else {
+                    //HIS消息发送
+                    hisService.recipeFinish(recipeId);
+                }
                 //发送取药完成消息
                 RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.RECIPE_TAKE_MEDICINE_FINISH);
 
