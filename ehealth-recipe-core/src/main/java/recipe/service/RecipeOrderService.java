@@ -2332,6 +2332,8 @@ public class RecipeOrderService extends RecipeBaseService {
             List<Integer> recipeIds = recipes.stream().map(Recipe::getRecipeId).distinct().collect(Collectors.toList());
             updateRecipeInfo(true, result, recipeIds, recipeInfo, order.getRecipeFee());
         }
+        //更新一下order信息
+        order = recipeOrderDAO.getByOrderCode(orderCode);
         //支付后需要完成【1 健康卡上传 2 记账  3 物流自动下单 4 推送消息】
         afterPayBusService.handle(result, order, recipes, payFlag);
         // 处方支付信息上传 监管平台
