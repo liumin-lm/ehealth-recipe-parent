@@ -39,8 +39,6 @@ public class RecipeOrderStatusProxy implements ApplicationContextAware {
     private RecipeOrderDAO recipeOrderDAO;
     @Autowired
     private RecipeDAO recipeDAO;
-    @Autowired
-    private StateManager stateManager;
 
     /**
      * 根据订单状态 更新处方状态
