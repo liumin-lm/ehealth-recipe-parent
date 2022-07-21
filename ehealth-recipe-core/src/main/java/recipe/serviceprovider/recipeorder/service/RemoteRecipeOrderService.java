@@ -486,11 +486,15 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
             if(Objects.nonNull(recipeOrderDetailExportBean)){
                 recipeOrderDetailExportBean.setProcessState(OrderStateEnum.getOrderStateEnum(recipeOrderDetailExportDTO.getProcessState()).getName());
                 recipeOrderDetailExportBean.setRefundNodeStatus(RefundNodeStatusEnum.getRefundStatus(recipeOrderDetailExportDTO.getRefundNodeStatus()));
-                PatientService patientService = BasicAPI.getService(PatientService.class);
-                PatientDTO patientDTO = patientService.get(recipeOrderDetailExportBean.getRequestMpiId());
-                if(Objects.nonNull(patientDTO)){
-                    recipeOrderDetailExportBean.setRequestPatientName(patientDTO.getPatientName());
-                    recipeOrderDetailExportBean.setMobile(patientDTO.getMobile());
+                try {
+                    PatientService patientService = BasicAPI.getService(PatientService.class);
+                    PatientDTO patientDTO = patientService.get(recipeOrderDetailExportBean.getRequestMpiId());
+                    if(Objects.nonNull(patientDTO)){
+                        recipeOrderDetailExportBean.setRequestPatientName(patientDTO.getPatientName());
+                        recipeOrderDetailExportBean.setMobile(patientDTO.getMobile());
+                    }
+                }catch (Exception e){
+                    LOGGER.error("getRecipeOrderDetail error",e);
                 }
             }
             recipeOrderDetailExportBeanList.add(recipeOrderDetailExportBean);
