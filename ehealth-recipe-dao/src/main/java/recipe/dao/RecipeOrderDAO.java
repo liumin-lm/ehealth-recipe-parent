@@ -1945,8 +1945,9 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
     protected StringBuilder generateRecipeOrderDetailHQL(RecipeOrderRefundReqDTO recipeOrderRefundReqDTO){
         StringBuilder hql = new StringBuilder("select ");
         hql.append("b.recipeId,case when b.recipeType = 1 then '西药' when b.recipeType = 2 then '中成药' when b.recipeType = 3 then '中药' when b.recipeType = 4 then '膏方' else '其他' end as recipeType,");
-        hql.append("b.recipeCode,b.appoint_depart_name as appointDepartName,b.doctorName,b.patientName,b.CreateDate,b.mpiid,case when b.fast_recipe_flag = 1 then '快捷购药订单' else '普通订单' end as fastRecipeFlag, ");
+        hql.append("b.recipeCode,b.appoint_depart_name as appointDepartName,b.doctorName,b.patientName,b.CreateDate,b.requestMpiId,case when b.fast_recipe_flag = 1 then '快捷购药订单' else '普通订单' end as fastRecipeFlag, ");
         hql.append("a.OrderCode,case when a.status = 1 then '待支付' when a.status in (2,3,4,12) then '处理中' when a.status = 5 then '已完成' else '默认' end as processState,");
+        hql.append("case when a.orderType in (1,2,3,4) then '医保' else '自费' end as orderTypeText,a.fundAmount,a.cashAmount,");
         hql.append("case when c.refundNodeStatus is null || c.refundNodeStatus = 2 || c.refundNodeStatus = 3  then '未退款' when c.refundNodeStatus = 0 then '退款中' when c.refundNodeStatus = 1 then '已退款' else '其他' end as refundNodeStatus,");
         hql.append("a.giveModeText,a.DrugStoreName,a.CreateTime as orderTime,a.PayTime,a.TotalFee,a.RecipeFee,a.ExpressFee,a.DecoctionFee,a.TCMFee,a.RegisterFee,a.AuditFee,a.TradeNo,a.RecMobile as mobile,");
         hql.append("c.decoctionText,d.DrugName,d.OrganDrugCode,d.salePrice,d.useTotalDose,d.drugUnit,");

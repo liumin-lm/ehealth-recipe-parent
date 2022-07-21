@@ -20,8 +20,8 @@ import static javax.persistence.GenerationType.IDENTITY;
 public class RecipeOrderDetailExportDTO implements Serializable {
     private static final long serialVersionUID = -8299461454513863587L;
 
-    @ItemProperty(alias = "患者唯一标识")
-    private String mpiId;
+    @ItemProperty(alias = "处方发起者id,用户标识")
+    private String requestMpiId;
 
     @ItemProperty(alias = "快捷购药处方标识 0 非快捷处方 1 快捷处方")
     private String fastRecipeFlag;
@@ -45,7 +45,7 @@ public class RecipeOrderDetailExportDTO implements Serializable {
     private String drugStoreName;
 
     @ItemProperty(alias = "下单人")
-    private String patientName;
+    private String requestPatientName;
 
     @ItemProperty(alias = "下单手机号")
     private String mobile;
@@ -61,6 +61,15 @@ public class RecipeOrderDetailExportDTO implements Serializable {
 
     @ItemProperty(alias = "订单金额")
     private BigDecimal totalFee;
+
+    @ItemProperty(alias = "结算类型")
+    private String orderTypeText;
+
+    @ItemProperty(alias = "医保金额")
+    private Double fundAmount;
+
+    @ItemProperty(alias = "自费金额")
+    private Double cashAmount;
 
     @ItemProperty(alias = "药品费")
     private BigDecimal recipeFee;
@@ -94,6 +103,9 @@ public class RecipeOrderDetailExportDTO implements Serializable {
 
     @ItemProperty(alias = "开方医生")
     private String doctorName;
+
+    @ItemProperty(alias = "就诊人姓名")
+    private String patientName;
 
     @ItemProperty(alias = "开方时间")
     private Date createDate;
@@ -388,11 +400,43 @@ public class RecipeOrderDetailExportDTO implements Serializable {
         this.generationisOfDecoction = generationisOfDecoction;
     }
 
-    public String getMpiId() {
-        return mpiId;
+    public String getRequestMpiId() {
+        return requestMpiId;
     }
 
-    public void setMpiId(String mpiId) {
-        this.mpiId = mpiId;
+    public void setRequestMpiId(String requestMpiId) {
+        this.requestMpiId = requestMpiId;
+    }
+
+    public String getOrderTypeText() {
+        return orderTypeText;
+    }
+
+    public void setOrderTypeText(String orderTypeText) {
+        this.orderTypeText = orderTypeText;
+    }
+
+    public Double getFundAmount() {
+        return fundAmount;
+    }
+
+    public void setFundAmount(Double fundAmount) {
+        this.fundAmount = fundAmount;
+    }
+
+    public Double getCashAmount() {
+        return cashAmount;
+    }
+
+    public void setCashAmount(Double cashAmount) {
+        this.cashAmount = cashAmount;
+    }
+
+    public String getRequestPatientName() {
+        return requestPatientName;
+    }
+
+    public void setRequestPatientName(String requestPatientName) {
+        this.requestPatientName = requestPatientName;
     }
 }
