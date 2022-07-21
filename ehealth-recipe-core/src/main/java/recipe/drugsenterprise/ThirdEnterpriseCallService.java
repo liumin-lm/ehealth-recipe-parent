@@ -528,8 +528,13 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             orderService.finishOrder(recipe.getOrderCode(), orderAttr);
             //记录日志
             RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.IN_SEND, RecipeStatusConstant.FINISH, "配送到家处方单完成,配送人：" + sender);
-            //HIS消息发送
-            hisService.recipeFinish(recipeId);
+            if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())) {
+                RecipeToHisMqService hisMqService = ApplicationUtils.getRecipeService(RecipeToHisMqService.class);
+                hisMqService.recipeStatusToHis(HisMqRequestInit.initRecipeStatusToHisReq(recipe, HisBussConstant.TOHIS_RECIPE_STATUS_FINISH));
+            } else {
+                //HIS消息发送
+                hisService.recipeFinish(recipeId);
+            }
             if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(recipe.getGiveMode())) {
                 //配送到家
                 RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.PATIENT_REACHPAY_FINISH);
