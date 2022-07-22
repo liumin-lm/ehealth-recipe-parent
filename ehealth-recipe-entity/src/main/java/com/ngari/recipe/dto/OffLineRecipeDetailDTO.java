@@ -1,7 +1,6 @@
 package com.ngari.recipe.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.ngari.recipe.entity.Recipedetail;
 import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
 import lombok.Getter;

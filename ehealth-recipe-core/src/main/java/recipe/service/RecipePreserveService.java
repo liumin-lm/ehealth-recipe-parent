@@ -494,6 +494,7 @@ public class RecipePreserveService {
                 HisRecipeDetailBean detailBean = ObjectCopyUtils.convert(recipeDetailTO, HisRecipeDetailBean.class);
                 detailBean.setDrugUnit(recipeDetailTO.getUnit());
                 detailBean.setUsingRateText(recipeDetailTO.getUsingRate());
+                //这定义的啥。。。detailBean.setUsePathwaysText(recipeDetailTO.getUsePathWays()); detailBean.setUsePathways(recipeDetailTO.getUsePathwaysCode());
                 detailBean.setUsePathwaysText(recipeDetailTO.getUsePathWays());
                 detailBean.setUseDays(recipeDetailTO.getDays());
                 detailBean.setUseTotalDose(recipeDetailTO.getAmount());

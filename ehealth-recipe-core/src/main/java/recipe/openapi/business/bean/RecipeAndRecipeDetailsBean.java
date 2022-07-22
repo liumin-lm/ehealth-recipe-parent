@@ -28,6 +28,8 @@ public class RecipeAndRecipeDetailsBean implements Serializable{
 
     private Double totalMoney;
 
+    private Integer status;
+
     private String statusText;
 
     private Integer statusCode;
