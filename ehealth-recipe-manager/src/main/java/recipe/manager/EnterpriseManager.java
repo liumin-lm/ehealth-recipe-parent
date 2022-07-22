@@ -241,8 +241,9 @@ public class EnterpriseManager extends BaseManager {
         return saleDrugListDAO.findByOrganIdAndDrugIds(enterpriseId, drugIds);
     }
 
-    public List<SaleDrugList> saleDrugListEffectivity(Integer enterpriseId, List<Integer> drugIds) {
-        return saleDrugListDAO.findByOrganIdAndDrugIdsEffectivity(enterpriseId, drugIds);
+    public Map<Integer, SaleDrugList> saleDrugListEffectivity(Integer enterpriseId, List<Integer> drugIds) {
+        List<SaleDrugList> saleDrugList = saleDrugListDAO.findByOrganIdAndDrugIdsEffectivity(enterpriseId, drugIds);
+        return saleDrugList.stream().collect(Collectors.toMap(SaleDrugList::getDrugId, a -> a, (k1, k2) -> k1));
     }
 
 
