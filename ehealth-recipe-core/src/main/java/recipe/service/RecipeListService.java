@@ -1608,6 +1608,7 @@ public class RecipeListService extends RecipeBaseService {
                     record.setDoctorName(recipe.getDoctorName());
                     record.setDepartName(DictionaryUtil.getDictionary("eh.base.dictionary.Depart", recipe.getDepart()));
                     record.setRecipeCode(recipe.getRecipeCode());
+                    record.setStatus(recipe.getStatus());
                 }
 
                 //药品详情
@@ -1622,6 +1623,7 @@ public class RecipeListService extends RecipeBaseService {
             } else if (LIST_TYPE_ORDER.equals(record.getRecordType())) {
                 recipe = recipeDAO.get(0 == record.getRecipeId() ? record.getRecordId() : record.getRecipeId());
                 record.setStatusText(getOrderStatusTabText(record.getStatusCode(), record.getGiveMode(), recipe.getStatus()));
+                record.setStatus(recipe.getStatus());
                 RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
                 RecipeResultBean resultBean = orderService.getOrderDetailById(record.getRecordId());
                 if (!RecipeResultBean.SUCCESS.equals(resultBean.getCode())) {
