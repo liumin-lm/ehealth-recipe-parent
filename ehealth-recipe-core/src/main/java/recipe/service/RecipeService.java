@@ -3189,7 +3189,6 @@ public class RecipeService extends RecipeBaseService {
             for (DrugsEnterprise drugsEnterprise : drugsEnterprises) {
                 if ("aldyf".equals(drugsEnterprise.getCallSys()) || ("tmdyf".equals(drugsEnterprise.getCallSys()) && recipe.getPushFlag() == 1)) {
                     //向药企推送处方过期的通知
-                    RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
                     try {
                         AccessDrugEnterpriseService remoteService = RemoteDrugEnterpriseService.getServiceByDep(drugsEnterprise);
                         DrugEnterpriseResult drugEnterpriseResult = remoteService.updatePrescriptionStatus(recipe.getRecipeCode(), AlDyfRecipeStatusConstant.EXPIRE);
@@ -5261,7 +5260,7 @@ public class RecipeService extends RecipeBaseService {
         boolean canRecipe = false;//默认不可开处方
         //从opbase配置项获取允许开处方患者年龄 findCanRecipeByAge
         IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
-        Object findCanRecipeByAge = configService.getConfiguration(Integer.parseInt(params.get("organId")), "findCanRecipeByAge");
+        Integer findCanRecipeByAge = (Integer)configService.getConfiguration(Integer.parseInt(params.get("organId")), "findCanRecipeByAge");
         LOGGER.info("findCanRecipeByAge 从opbase配置项获取允许开处方患者年龄{}", findCanRecipeByAge);
         if (findCanRecipeByAge == null) {
             canRecipe = true;//查询不到设置值或默认值或没配置配置项 设置可开处方
@@ -5462,7 +5461,6 @@ public class RecipeService extends RecipeBaseService {
                     for (DrugsEnterprise drugsEnterprise : drugsEnterprises) {
                         if (("aldyf".equals(drugsEnterprise.getCallSys()) || "tmdyf".equals(drugsEnterprise.getCallSys())) && recipe.getPushFlag() == 1) {
                             //向药企推送处方过期的通知
-                            RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
                             try {
                                 AccessDrugEnterpriseService remoteService = RemoteDrugEnterpriseService.getServiceByDep(drugsEnterprise);
                                 DrugEnterpriseResult drugEnterpriseResult = remoteService.updatePrescriptionStatus(recipe.getRecipeCode(), AlDyfRecipeStatusConstant.EXPIRE);
