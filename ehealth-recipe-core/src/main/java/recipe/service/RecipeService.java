@@ -4211,6 +4211,12 @@ public class RecipeService extends RecipeBaseService {
             Boolean updateResult = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.RECIPE_DOWNLOADED, searchMap);
             //更新处方log信息
             if (updateResult) {
+                stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_DONE, RecipeStateEnum.SUB_DONE_DOWNLOAD);
+                RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+                RecipeOrder order = orderDAO.getByOrderCode(recipe.getOrderCode());
+                if(Objects.nonNull(order)) {
+                    stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_DISPENSING, OrderStateEnum.SUB_DONE_DOWNLOAD);
+                }
                 RecipeLogService.saveRecipeLog(recipeId, beforStatus, RecipeStatusConstant.RECIPE_DOWNLOADED, "已下载状态修改成功");
             } else {
                 LOGGER.info("changeRecipeStatusInfo: [recipeId:" + recipeId + "] 处方更新已下载状态失败！");
