@@ -19,7 +19,7 @@ public enum OrderStateEnum {
     /**
      * 订单子状态:已完成
      */
-    SUB_DONE_DOWNLOAD(41,"下载处方签",""),
+    SUB_DONE_DOWNLOAD(41,"下载处方笺",""),
     SUB_DONE_OD_PAYMENT(42,"门诊缴费下单",""),
     SUB_DONE_UPLOAD_THIRD(43,"上传到第三方",""),
     SUB_DONE_SELF_TAKE(44,"自取核销",""),
