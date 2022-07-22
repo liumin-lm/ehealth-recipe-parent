@@ -23,6 +23,7 @@ import com.ngari.recipe.recipe.model.DrugListForThreeBean;
 import com.ngari.recipe.recipe.model.RecipeAndOrderDetailBeanNoDs;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
+import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
@@ -1077,6 +1078,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
     }
 
     private Recipe getRecipe(Map<String, Object> paramMap) {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Integer recipeId = MapValueUtil.getInteger(paramMap, "recipeId");
         Recipe recipe = null;
         if (null != recipeId) {
