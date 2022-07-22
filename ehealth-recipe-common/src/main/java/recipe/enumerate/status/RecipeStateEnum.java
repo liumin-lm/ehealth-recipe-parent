@@ -12,7 +12,7 @@ public enum RecipeStateEnum {
     /**
      * 处方父状态
      */
-    NONE(0, "默认", ""),
+    NONE(0, "", ""),
     PROCESS_STATE_SUBMIT(1, "待提交", ""),
     PROCESS_STATE_AUDIT(2, "待审核", ""),
     PROCESS_STATE_ORDER(3, "待下单", ""),
@@ -30,8 +30,7 @@ public enum RecipeStateEnum {
     SUB_SUBMIT_CHECKING_HOS(12, "您已提交，等待医院HIS确认", ""),
     SUB_SUBMIT_DOC_SIGN_ING(13, "您已提交，等待签名完成", "医生签名中"),
     SUB_SUBMIT_DOC_SIGN_FAIL(14, "签名失败，您可以重新发起签名", "医生签名失败"),
-    SUB_SUBMIT_PATIENT(15, "等待患者处理", ""),
-    
+
     /**
      * 处方子状态:待审核
      */

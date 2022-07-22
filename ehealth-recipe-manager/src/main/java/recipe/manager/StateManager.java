@@ -120,7 +120,7 @@ public class StateManager extends BaseManager {
         Recipe updateRecipe = new Recipe();
         updateRecipe.setRecipeId(recipe.getRecipeId());
         updateRecipe.setProcessState(processState.getType());
-        RecipeStateEnum sub = RecipeStateEnum.SUB_SUBMIT_PATIENT;
+        RecipeStateEnum sub = RecipeStateEnum.getRecipeStateEnum(recipe.getSubState());
         if (WriteHisEnum.WRITE_HIS_STATE_SUBMIT.getType().equals(recipe.getWriteHisState())) {
             sub = RecipeStateEnum.SUB_SUBMIT_CHECKING_HOS;
         }
