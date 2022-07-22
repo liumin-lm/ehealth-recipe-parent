@@ -96,9 +96,6 @@ public class ThirdRecipeService {
                     recipeAndRecipeDetailsBean.setPatientSex(patientTabStatusRecipeDTO.getPatientSex());
                     recipeAndRecipeDetailsBean.setOrganDiseaseName(patientTabStatusRecipeDTO.getOrganDiseaseName());
                     recipeAndRecipeDetailsBean.setSignDate(patientTabStatusRecipeDTO.getSignDate());
-                    if (null != patientTabStatusRecipeDTO.getTotalMoney()) {
-                        recipeAndRecipeDetailsBean.setTotalMoney(patientTabStatusRecipeDTO.getTotalMoney().doubleValue());
-                    }
                     recipeAndRecipeDetailsBean.setStatus(patientTabStatusRecipeDTO.getStatus());
                     recipeAndRecipeDetailsBean.setStatusText(patientTabStatusRecipeDTO.getStatusText());
                     recipeAndRecipeDetailsBean.setStatusCode(patientTabStatusRecipeDTO.getStatusCode());
@@ -106,12 +103,6 @@ public class ThirdRecipeService {
                     recipeAndRecipeDetailsBean.setRecipeType(patientTabStatusRecipeDTO.getRecipeType());
                     recipeAndRecipeDetailsBean.setLogisticsCompany(patientTabStatusRecipeDTO.getLogisticsCompany());
                     recipeAndRecipeDetailsBean.setTrackingNumber(patientTabStatusRecipeDTO.getTrackingNumber());
-                    List<ThirdRecipeDetailBean> recipeDetailBeans = new ArrayList<>();
-                    for (RecipeDetailBean recipeDetailBean : patientTabStatusRecipeDTO.getRecipeDetail()) {
-                        ThirdRecipeDetailBean thirdRecipeDetailBean = ObjectCopyUtils.convert(recipeDetailBean, ThirdRecipeDetailBean.class);
-                        recipeDetailBeans.add(thirdRecipeDetailBean);
-                    }
-                    recipeAndRecipeDetailsBean.setRecipeDetailBeans(recipeDetailBeans);
                     recipeAndRecipeDetailsBeans.add(recipeAndRecipeDetailsBean);
                 }
             }
