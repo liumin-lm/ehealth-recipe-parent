@@ -4,6 +4,7 @@ import ca.service.ICaRemoteService;
 import ca.service.ISignRecipeInfoService;
 import ca.vo.CaSignResultVo;
 import ca.vo.model.SignDoctorRecipeInfoDTO;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.patient.utils.ObjectCopyUtils;
@@ -78,6 +79,7 @@ public class CaClient extends BaseClient {
         //签名时的密码从redis中获取
         ca.vo.model.RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, ca.vo.model.RecipeBean.class);
         iCaRemoteService.commonCASignAndSealForRecipe(requestSeal, recipeBean, recipe.getClinicOrgan(), idNumber, caPassword);
+        logger.info("CaClient oldCommonCASign requestSeal=[{}]，recipeid={}", JSON.toJSONString(requestSeal), recipeBean.getRecipeId());
     }
 
 
