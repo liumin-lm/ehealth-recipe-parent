@@ -10,6 +10,7 @@ import recipe.dao.RecipeDAO;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.status.SignEnum;
+import recipe.enumerate.status.WriteHisEnum;
 import recipe.manager.StateManager;
 import recipe.service.RecipeLogService;
 
@@ -47,8 +48,14 @@ public class CaBusinessService extends BaseService implements ICaBusinessService
         if (status.getType().equals(recipe.getStatus())) {
             return;
         }
-        //将处方设置成医生签名失败
-        stateManager.updateStatus(recipeId, status, sign);
+        Recipe updateRecipe = new Recipe();
+        updateRecipe.setRecipeId(recipeId);
+        updateRecipe.setStatus(status.getType());
+        updateRecipe.setDoctorSignState(sign.getType());
+        if (RecipeStatusEnum.RECIPE_STATUS_UNSIGNED == status) {
+            updateRecipe.setWriteHisState(WriteHisEnum.NONE.getType());
+        }
+        recipeDAO.updateNonNullFieldByPrimaryKey(updateRecipe);
         stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_SUBMIT, RecipeStateEnum.NONE);
         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), status.getType(), sign.getName() + "设医生签名！");
     }
