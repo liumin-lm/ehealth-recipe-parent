@@ -48,6 +48,8 @@ public class PatientTabStatusRecipeDTO implements Serializable {
 
     private BigDecimal totalMoney;
 
+    private Integer status;
+
     private String statusText;
 
     private Integer statusCode;
@@ -496,5 +498,13 @@ public class PatientTabStatusRecipeDTO implements Serializable {
 
     public void setRecipeCode(String recipeCode) {
         this.recipeCode = recipeCode;
+    }
+
+    public Integer getStatus() {
+        return status;
+    }
+
+    public void setStatus(Integer status) {
+        this.status = status;
     }
 }
