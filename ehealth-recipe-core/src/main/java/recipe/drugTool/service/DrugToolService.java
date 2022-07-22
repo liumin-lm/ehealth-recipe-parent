@@ -1498,6 +1498,13 @@ public class DrugToolService implements IDrugToolService {
 
     }
 
+    /**
+     * TODO药品转换 3
+     * @param lists
+     * @param addFlag
+     * @param updateFlag
+     * @return
+     */
     private List<OrganDrugList> drugManualCommitNew(List<DrugListMatch> lists, Integer addFlag, Integer updateFlag) {
         IBusActionLogService busActionLogService = AppDomainContext.getBean("opbase.busActionLogService", IBusActionLogService.class);
         DrugListMatch drugListMatch = lists.get(0);

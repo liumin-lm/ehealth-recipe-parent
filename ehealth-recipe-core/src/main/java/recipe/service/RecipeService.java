@@ -4282,6 +4282,7 @@ public class RecipeService extends RecipeBaseService {
     /**
      * 当前新增药品数据到中间表
      *
+     * TODO药品转换 1 手工同步新增时用
      * @param drug
      * @param organId
      */
@@ -4538,7 +4539,7 @@ public class RecipeService extends RecipeBaseService {
 
     /**
      * 手动同步药品数据
-     *
+     * TODO药品转换 2 手工同步修改时用
      * @param drug
      * @param organDrug
      */
