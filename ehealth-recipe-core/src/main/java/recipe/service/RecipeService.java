@@ -1290,6 +1290,7 @@ public class RecipeService extends RecipeBaseService {
      * @return
      */
     @RpcService
+    @LogRecord
     public void doSignRecipeSave(RecipeBean recipe, List<RecipeDetailBean> details) {
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         PatientDTO patient = patientService.get(recipe.getMpiid());
