@@ -47,6 +47,7 @@ import recipe.drugsenterprise.ThirdEnterpriseCallService;
 import recipe.enumerate.status.OrderStateEnum;
 import recipe.enumerate.status.RefundNodeStatusEnum;
 import recipe.enumerate.type.PayBusTypeEnum;
+import recipe.manager.RecipeManager;
 import recipe.manager.StateManager;
 import recipe.service.PayModeGiveModeUtil;
 import recipe.service.RecipeMsgService;
@@ -77,6 +78,8 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
     private StateManager stateManager;
     @Autowired
     private RecipeOrderDAO recipeOrderDAO;
+    @Autowired
+    private RecipeManager recipeManager;
 
     @RpcService
     @Override
@@ -324,6 +327,7 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
                 if (PayBusTypeEnum.RECIPE_BUS_TYPE.getType().equals(busType)) {
                     recipeRefundService.recipeReFundSave(recipe, nowRecipeRefund);
                 }
+                recipeManager.updateRecipeRefundStatus(recipes, RefundNodeStatusConstant.REFUND_NODE_SUCCESS_STATUS);
                 break;
             case 4:
                 nowRecipeRefund.setReason("退费失败");
