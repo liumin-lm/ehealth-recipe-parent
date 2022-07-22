@@ -51,6 +51,9 @@ public class RecipeDetailDTO implements Serializable {
     @ItemProperty(alias = "用法名称")
     private String usePathWays;
 
+    @ItemProperty(alias = "用法名称")
+    private String usePathways;
+
     @ItemProperty(alias = "机构的频次代码")
     private String usingRateCode;
 
@@ -150,4 +153,20 @@ public class RecipeDetailDTO implements Serializable {
      * 返回his药品状态 原因
      */
     private String validateHisStatusText;
+
+    public String getUsePathWays() {
+        return usePathWays;
+    }
+
+    public void setUsePathWays(String usePathWays) {
+        this.usePathWays = usePathWays;
+    }
+
+    public String getUsePathways() {
+        return usePathways;
+    }
+
+    public void setUsePathways(String usePathways) {
+        this.usePathways = usePathways;
+    }
 }

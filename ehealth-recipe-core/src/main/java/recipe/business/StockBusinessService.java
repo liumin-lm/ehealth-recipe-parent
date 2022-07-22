@@ -424,8 +424,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
             throw new DAOException(ErrorCode.SERVICE_ERROR, drugsEnterprise.getName() + "checkInventoryFlag is null");
         }
         List<Integer> drugIds = recipeDetails.stream().map(Recipedetail::getDrugId).distinct().collect(Collectors.toList());
-        List<SaleDrugList> saleDrugList = enterpriseManager.saleDrugListEffectivity(drugsEnterprise.getId(), drugIds);
-        Map<Integer, SaleDrugList> saleDrugMap = saleDrugList.stream().collect(Collectors.toMap(SaleDrugList::getDrugId, a -> a, (k1, k2) -> k1));
+        Map<Integer, SaleDrugList> saleDrugMap = enterpriseManager.saleDrugListEffectivity(drugsEnterprise.getId(), drugIds);
         List<Recipedetail> recipeDetailList = recipeDetails.stream().filter(a -> null != saleDrugMap.get(a.getDrugId())).collect(Collectors.toList());
         if (CollectionUtils.isEmpty(recipeDetailList)) {
             enterpriseStock.setStock(false);
@@ -436,24 +435,30 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         if (0 == drugsEnterprise.getCheckInventoryFlag()) {
             //机构药企 药品列表对不上
             enterpriseStock.setStock(true);
-            enterpriseStock.setDrugInfoList(DrugStockClient.getDrugInfoDTO(recipeDetailList, true));
+            List<DrugInfoDTO> list = DrugStockClient.getDrugInfoDTO(recipeDetailList, true);
+            this.notRecipeDetailList(enterpriseStock, list, recipeDetails, saleDrugMap);
+            enterpriseStock.setDrugInfoList(list);
             logger.info("DrugEnterpriseBusinessService enterpriseStock 0 enterpriseStock= {}", JSON.toJSONString(enterpriseStock));
             return;
         }
         //医院自建药企-查询医院库存
         if (3 == drugsEnterprise.getCheckInventoryFlag()) {
-            DrugStockAmountDTO organStock = organDrugListManager.scanDrugStockByRecipeId(recipe, recipeDetailList);
-            enterpriseStock.setStock(organStock.isResult());
-            enterpriseStock.setDrugName(organStock.getNotDrugNames());
-            enterpriseStock.setDrugInfoList(organStock.getDrugInfoList());
+            DrugStockAmountDTO result = organDrugListManager.scanDrugStockByRecipeId(recipe, recipeDetailList);
+            enterpriseStock.setDrugName(result.getNotDrugNames());
+            enterpriseStock.setStock(result.isResult());
+            List<DrugInfoDTO> list = result.getDrugInfoList();
+            this.notRecipeDetailList(enterpriseStock, list, recipeDetails, saleDrugMap);
+            enterpriseStock.setDrugInfoList(list);
             logger.info("DrugEnterpriseBusinessService enterpriseStock 3 enterpriseStock= {}", JSON.toJSONString(enterpriseStock));
             return;
         }
         //通过前置机调用
         if (1 == drugsEnterprise.getOperationType()) {
-            DrugStockAmountDTO code = enterpriseManager.scanEnterpriseDrugStock(recipe, drugsEnterprise, recipeDetailList);
-            enterpriseStock.setStock(code.isResult());
-            enterpriseStock.setDrugInfoList(code.getDrugInfoList());
+            DrugStockAmountDTO result = enterpriseManager.scanEnterpriseDrugStock(recipe, drugsEnterprise, recipeDetailList);
+            enterpriseStock.setStock(result.isResult());
+            List<DrugInfoDTO> list = result.getDrugInfoList();
+            this.notRecipeDetailList(enterpriseStock, list, recipeDetails, saleDrugMap);
+            enterpriseStock.setDrugInfoList(list);
             logger.info("DrugEnterpriseBusinessService enterpriseStock 1 enterpriseStock= {}", JSON.toJSONString(enterpriseStock));
             return;
         }
@@ -461,10 +466,30 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         AccessDrugEnterpriseService drugEnterpriseService = RemoteDrugEnterpriseService.getServiceByDep(drugsEnterprise);
         DrugStockAmountDTO result = drugEnterpriseService.scanEnterpriseDrugStock(recipe, drugsEnterprise, recipeDetailList);
         enterpriseStock.setStock(result.isResult());
-        enterpriseStock.setDrugInfoList(result.getDrugInfoList());
+        List<DrugInfoDTO> list = result.getDrugInfoList();
+        this.notRecipeDetailList(enterpriseStock, list, recipeDetails, saleDrugMap);
+        enterpriseStock.setDrugInfoList(list);
         logger.info("DrugEnterpriseBusinessService enterpriseStock else enterpriseStock= {}", JSON.toJSONString(enterpriseStock));
     }
 
+    /**
+     * 药企中不存在的药品 设置为无库存
+     *
+     * @param enterpriseStock
+     * @param list
+     * @param recipeDetails
+     * @param saleDrugMap
+     */
+    private void notRecipeDetailList(EnterpriseStock enterpriseStock, List<DrugInfoDTO> list,
+                                     List<Recipedetail> recipeDetails, Map<Integer, SaleDrugList> saleDrugMap) {
+        List<Recipedetail> notRecipeDetailList = recipeDetails.stream().filter(a -> null == saleDrugMap.get(a.getDrugId())).collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(notRecipeDetailList)) {
+            List<DrugInfoDTO> notList = DrugStockClient.getDrugInfoDTO(notRecipeDetailList, false);
+            list.addAll(notList);
+            enterpriseStock.setStock(false);
+            logger.info("DrugEnterpriseBusinessService notRecipeDetailList = {}", JSON.toJSONString(notRecipeDetailList));
+        }
+    }
 
     /***
      * 组装药企药品一对一库存关系

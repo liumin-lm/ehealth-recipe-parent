@@ -30,10 +30,10 @@ public class RecipeOrderDetailExportDTO implements Serializable {
     private String orderCode;
 
     @ItemProperty(alias = "订单状态")
-    private String processState;
+    private Integer processState;
 
     @ItemProperty(alias = "退款状态")
-    private String refundNodeStatus;
+    private Integer refundNodeStatus;
 
     @ItemProperty(alias = "购药方式")
     private String giveModeText;
@@ -152,19 +152,19 @@ public class RecipeOrderDetailExportDTO implements Serializable {
         this.fastRecipeFlag = fastRecipeFlag;
     }
 
-    public String getProcessState() {
+    public Integer getProcessState() {
         return processState;
     }
 
-    public void setProcessState(String processState) {
+    public void setProcessState(Integer processState) {
         this.processState = processState;
     }
 
-    public String getRefundNodeStatus() {
+    public Integer getRefundNodeStatus() {
         return refundNodeStatus;
     }
 
-    public void setRefundNodeStatus(String refundNodeStatus) {
+    public void setRefundNodeStatus(Integer refundNodeStatus) {
         this.refundNodeStatus = refundNodeStatus;
     }
 
