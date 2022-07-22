@@ -286,6 +286,7 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
                 }
                 RecipeDetailDTO recipeDetailDTO = new RecipeDetailDTO();
                 BeanUtils.copy(drugList, recipeDetailDTO);
+                recipeDetailDTO.setUsePathways(drugList.getUsePathWays());
                 //拼接中药名称
                 if (RecipeTypeEnum.RECIPETYPE_WM.getType().equals(recipeType)) {
                     recipeDetailDTO.setDrugDisplaySplicedName(DrugDisplayNameProducer.getDrugName(recipeDetailDTO, configDrugNameMap, DrugNameDisplayUtil.getDrugNameConfigKey(recipeType)));
