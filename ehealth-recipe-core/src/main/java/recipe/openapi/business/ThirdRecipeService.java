@@ -99,6 +99,12 @@ public class ThirdRecipeService {
                     recipeAndRecipeDetailsBean.setStatus(patientTabStatusRecipeDTO.getStatus());
                     recipeAndRecipeDetailsBean.setStatusText(patientTabStatusRecipeDTO.getStatusText());
                     recipeAndRecipeDetailsBean.setStatusCode(patientTabStatusRecipeDTO.getStatusCode());
+                    if (patientTabStatusRecipeDTO.getStatusCode() == 2) {
+                        recipeAndRecipeDetailsBean.setStatus(3);
+                    }
+                    if (patientTabStatusRecipeDTO.getStatusCode() == 3) {
+                        recipeAndRecipeDetailsBean.setStatus(5);
+                    }
                     recipeAndRecipeDetailsBean.setRecipeSurplusHours(patientTabStatusRecipeDTO.getRecipeSurplusHours());
                     recipeAndRecipeDetailsBean.setRecipeType(patientTabStatusRecipeDTO.getRecipeType());
                     recipeAndRecipeDetailsBean.setLogisticsCompany(patientTabStatusRecipeDTO.getLogisticsCompany());
