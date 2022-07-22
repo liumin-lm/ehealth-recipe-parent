@@ -85,32 +85,36 @@ public class ThirdRecipeService {
         if (CollectionUtils.isEmpty(patientTabStatusMergeRecipeDTOS)) {
             return recipeAndRecipeDetailsBeans;
         }
-        for (PatientTabStatusMergeRecipeDTO patientTabStatusMergeRecipeDTO : patientTabStatusMergeRecipeDTOS) {
-            List<PatientTabStatusRecipeDTO> patientTabStatusRecipeDTOS = patientTabStatusMergeRecipeDTO.getRecipe();
-            for (PatientTabStatusRecipeDTO patientTabStatusRecipeDTO : patientTabStatusRecipeDTOS) {
-                RecipeAndRecipeDetailsBean recipeAndRecipeDetailsBean = new RecipeAndRecipeDetailsBean();
-                recipeAndRecipeDetailsBean.setRecipeId(patientTabStatusRecipeDTO.getRecipeId());
-                recipeAndRecipeDetailsBean.setPatientName(patientTabStatusRecipeDTO.getPatientName());
-                recipeAndRecipeDetailsBean.setPhoto(patientTabStatusRecipeDTO.getPhoto());
-                recipeAndRecipeDetailsBean.setPatientSex(patientTabStatusRecipeDTO.getPatientSex());
-                recipeAndRecipeDetailsBean.setOrganDiseaseName(patientTabStatusRecipeDTO.getOrganDiseaseName());
-                recipeAndRecipeDetailsBean.setSignDate(patientTabStatusRecipeDTO.getSignDate());
-                recipeAndRecipeDetailsBean.setTotalMoney(patientTabStatusRecipeDTO.getTotalMoney().doubleValue());
-                recipeAndRecipeDetailsBean.setStatus(patientTabStatusRecipeDTO.getStatus());
-                recipeAndRecipeDetailsBean.setStatusText(patientTabStatusRecipeDTO.getStatusText());
-                recipeAndRecipeDetailsBean.setStatusCode(patientTabStatusRecipeDTO.getStatusCode());
-                recipeAndRecipeDetailsBean.setRecipeSurplusHours(patientTabStatusRecipeDTO.getRecipeSurplusHours());
-                recipeAndRecipeDetailsBean.setRecipeType(patientTabStatusRecipeDTO.getRecipeType());
-                recipeAndRecipeDetailsBean.setLogisticsCompany(patientTabStatusRecipeDTO.getLogisticsCompany());
-                recipeAndRecipeDetailsBean.setTrackingNumber(patientTabStatusRecipeDTO.getTrackingNumber());
-                List<ThirdRecipeDetailBean> recipeDetailBeans = new ArrayList<>();
-                for (RecipeDetailBean recipeDetailBean : patientTabStatusRecipeDTO.getRecipeDetail()) {
-                    ThirdRecipeDetailBean thirdRecipeDetailBean = ObjectCopyUtils.convert(recipeDetailBean, ThirdRecipeDetailBean.class);
-                    recipeDetailBeans.add(thirdRecipeDetailBean);
+        try {
+            for (PatientTabStatusMergeRecipeDTO patientTabStatusMergeRecipeDTO : patientTabStatusMergeRecipeDTOS) {
+                List<PatientTabStatusRecipeDTO> patientTabStatusRecipeDTOS = patientTabStatusMergeRecipeDTO.getRecipe();
+                for (PatientTabStatusRecipeDTO patientTabStatusRecipeDTO : patientTabStatusRecipeDTOS) {
+                    RecipeAndRecipeDetailsBean recipeAndRecipeDetailsBean = new RecipeAndRecipeDetailsBean();
+                    recipeAndRecipeDetailsBean.setRecipeId(patientTabStatusRecipeDTO.getRecipeId());
+                    recipeAndRecipeDetailsBean.setPatientName(patientTabStatusRecipeDTO.getPatientName());
+                    recipeAndRecipeDetailsBean.setPhoto(patientTabStatusRecipeDTO.getPhoto());
+                    recipeAndRecipeDetailsBean.setPatientSex(patientTabStatusRecipeDTO.getPatientSex());
+                    recipeAndRecipeDetailsBean.setOrganDiseaseName(patientTabStatusRecipeDTO.getOrganDiseaseName());
+                    recipeAndRecipeDetailsBean.setSignDate(patientTabStatusRecipeDTO.getSignDate());
+                    recipeAndRecipeDetailsBean.setTotalMoney(patientTabStatusRecipeDTO.getTotalMoney().doubleValue());
+                    recipeAndRecipeDetailsBean.setStatus(patientTabStatusRecipeDTO.getStatus());
+                    recipeAndRecipeDetailsBean.setStatusText(patientTabStatusRecipeDTO.getStatusText());
+                    recipeAndRecipeDetailsBean.setStatusCode(patientTabStatusRecipeDTO.getStatusCode());
+                    recipeAndRecipeDetailsBean.setRecipeSurplusHours(patientTabStatusRecipeDTO.getRecipeSurplusHours());
+                    recipeAndRecipeDetailsBean.setRecipeType(patientTabStatusRecipeDTO.getRecipeType());
+                    recipeAndRecipeDetailsBean.setLogisticsCompany(patientTabStatusRecipeDTO.getLogisticsCompany());
+                    recipeAndRecipeDetailsBean.setTrackingNumber(patientTabStatusRecipeDTO.getTrackingNumber());
+                    List<ThirdRecipeDetailBean> recipeDetailBeans = new ArrayList<>();
+                    for (RecipeDetailBean recipeDetailBean : patientTabStatusRecipeDTO.getRecipeDetail()) {
+                        ThirdRecipeDetailBean thirdRecipeDetailBean = ObjectCopyUtils.convert(recipeDetailBean, ThirdRecipeDetailBean.class);
+                        recipeDetailBeans.add(thirdRecipeDetailBean);
+                    }
+                    recipeAndRecipeDetailsBean.setRecipeDetailBeans(recipeDetailBeans);
+                    recipeAndRecipeDetailsBeans.add(recipeAndRecipeDetailsBean);
                 }
-                recipeAndRecipeDetailsBean.setRecipeDetailBeans(recipeDetailBeans);
-                recipeAndRecipeDetailsBeans.add(recipeAndRecipeDetailsBean);
             }
+        } catch (Exception e) {
+            LOGGER.error("findRecipesForPatientAndTabStatus error", e);
         }
         //LOGGER.info("ThirdRecipeService findRecipesForPatientAndTabStatus recipeAndRecipeDetailsBeans:{}.", JSONUtils.toString(recipeAndRecipeDetailsBeans));
         return recipeAndRecipeDetailsBeans;
