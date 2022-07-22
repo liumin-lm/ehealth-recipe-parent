@@ -36,6 +36,7 @@ public enum RecipeStateEnum {
      */
     SUB_AUDIT_READY_SUPPORT(21, "等待药师审核", ""),
     SUB_AUDIT_READY_DONE(22, "药师审核完成", ""),
+    SUB_AUDIT_DOCTOR_READY(23, "药师审核未通过，医生确认中", ""),
 
     /**
      * 处方子状态:已完成

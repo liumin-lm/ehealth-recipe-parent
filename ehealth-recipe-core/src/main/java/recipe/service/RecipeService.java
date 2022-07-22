@@ -5383,6 +5383,7 @@ public class RecipeService extends RecipeBaseService {
             updateMap.put("checkStatus", RecipecCheckStatusConstant.First_Check_No_Pass);
             recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), updateMap);
             stateManager.updateAuditState(recipe.getRecipeId(), RecipeAuditStateEnum.FAIL_DOC_CONFIRMING);
+            stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_AUDIT, RecipeStateEnum.SUB_AUDIT_DOCTOR_READY);
         }
         //由于支持二次签名的机构第一次审方不通过时医生收不到消息。所以将审核不通过推送消息放这里处理
         sendCheckNotPassYsMsg(recipe);
