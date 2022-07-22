@@ -40,7 +40,7 @@ public class RecipeDetailVO implements Serializable {
     private String usingRate;
 
     @ItemProperty(alias = "用法名称")
-    private String usePathWays;
+    private String usePathways;
 
     @ItemProperty(alias = "机构的频次代码")
     private String usingRateCode;

@@ -169,7 +169,7 @@ public class DrugListMatch implements java.io.Serializable {
     @ItemProperty(alias = "医保剂型代码")
     private String medicalDrugFormCode;
 
-    @ItemProperty(alias = "HIS剂型代码")
+    @ItemProperty(alias = "HIS剂型代码 DrugFormCode")
     private String hisFormCode;
 
     @ItemProperty(alias = "平台药品id(drugList表主键)")
