@@ -1213,7 +1213,7 @@ public class RecipeHisService extends RecipeBaseService {
                     }
                     String showMsg = "由于" + Joiner.on(",").join(nameList) + "门诊药房库存不足，该处方仅支持配送，无法到院取药，是否继续？";
                     result.setCode(RecipeResultBean.FAIL);
-                    result.setError(showMsg.toString());
+                    result.setError(showMsg);
                     result.setExtendValue("1");
                     result.setObject(nameList);
                     LOGGER.error("scanDrugStock 存在无库存药品. response={} ", JSONUtils.toString(response));
@@ -1268,7 +1268,7 @@ public class RecipeHisService extends RecipeBaseService {
                 return false;
             }
         } catch (Exception e) {
-            LOGGER.error("skipHis error " + e.getMessage(), e);
+            LOGGER.error("skipHis error ", e);
             //按原来流程走-西药中成药默认对接his
             if (!RecipeUtil.isTcmType(recipe.getRecipeType())) {
                 return false;
@@ -1469,7 +1469,7 @@ public class RecipeHisService extends RecipeBaseService {
                 List<DrugsEnterprise> enterprises = relationDAO.findDrugsEnterpriseByOrganIdAndStatus(recipeBean.getClinicOrgan(), 1);
                 AccessDrugEnterpriseService remoteService = null;
                 if (CollectionUtils.isNotEmpty(enterprises)) {
-                    remoteService = remoteDrugEnterpriseService.getServiceByDep(enterprises.get(0));
+                    remoteService = RemoteDrugEnterpriseService.getServiceByDep(enterprises.get(0));
                 }
                 if (null == remoteService) {
                     remoteService = getBean("commonRemoteService", CommonRemoteService.class);

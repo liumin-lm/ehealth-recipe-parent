@@ -6,6 +6,7 @@ import com.ngari.recipe.dto.GiveModeButtonDTO;
 import com.ngari.recipe.dto.OrganDTO;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.recipe.model.GiveModeButtonBean;
+import ctd.persistence.exception.DAOException;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -97,6 +98,15 @@ public class OrganBusinessService extends BaseService implements IOrganBusinessS
     @Override
     public List<GiveModeButtonDTO> organGiveMode(Integer organId) {
         return operationClient.getOrganGiveModeMap(organId);
+    }
+
+    @Override
+    public Integer getOrderPayFlag(Integer orderId) {
+        RecipeOrder recipeOrder = orderManager.getRecipeOrderById(orderId);
+        if (null == recipeOrder) {
+            throw new DAOException("订单不存在");
+        }
+        return recipeOrder.getPayFlag();
     }
 
 }

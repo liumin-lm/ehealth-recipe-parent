@@ -45,9 +45,7 @@ import recipe.constant.HisRecipeConstant;
 import recipe.constant.PayConstant;
 import recipe.dao.*;
 import recipe.dao.bean.HisRecipeListBean;
-import recipe.enumerate.status.OfflineToOnlineEnum;
-import recipe.enumerate.status.RecipeSourceTypeEnum;
-import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.status.*;
 import recipe.enumerate.type.AppointEnterpriseTypeEnum;
 import recipe.factory.offlinetoonline.IOfflineToOnlineStrategy;
 import recipe.factory.offlinetoonline.OfflineToOnlineFactory;
@@ -726,10 +724,10 @@ public class BaseOfflineToOnlineService {
         //中药医嘱跟着处方 西药医嘱跟着药品（见药品详情）
         recipe.setRecipeMemo(hisRecipe.getRecipeMemo());
         recipe.setFastRecipeFlag(0);
-        recipe.setDoctorSignState(3);
-        recipe.setCheckerSignState(3);
+        recipe.setDoctorSignState(SignEnum.SIGN_STATE_ORDER.getType());
+        recipe.setWriteHisState(WriteHisEnum.WRITE_HIS_STATE_ORDER.getType());
+        recipe.setCheckerSignState(SignEnum.SIGN_STATE_ORDER.getType());
         recipe = recipeDAO.saveOrUpdate(recipe);
-
         LOGGER.info("BaseOfflineToOnlineService saveRecipeFromHisRecipe res:{}", JSONUtils.toString(recipe));
         return recipe;
     }

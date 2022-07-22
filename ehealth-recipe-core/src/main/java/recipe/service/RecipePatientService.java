@@ -68,6 +68,7 @@ import recipe.service.common.RecipeCacheService;
 import recipe.util.RedisClient;
 import recipe.util.ValidateUtil;
 import recipe.vo.doctor.RecipeInfoVO;
+import recipe.vo.patient.ReadyRecipeVO;
 
 import javax.annotation.Nullable;
 import java.math.BigDecimal;
@@ -920,28 +921,35 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
      * @return
      */
     @Override
-    public Boolean getReadyRecipeFlag(Integer orderId) {
+    public ReadyRecipeVO getReadyRecipeFlag(Integer orderId) {
+        ReadyRecipeVO readyRecipeVO = new ReadyRecipeVO();
         //获取该订单对应的处方
         RecipeOrder recipeOrder = recipeOrderDAO.getByOrderId(orderId);
         if (null == recipeOrder) {
-            return false;
+            throw new DAOException("订单不存在");
         }
         String orderCode = recipeOrder.getOrderCode();
         List<Recipe> recipeList = recipeDAO.findByOrderCode(Arrays.asList(orderCode));
-        //查询是否为线下处方单
         if (CollectionUtils.isEmpty(recipeList)) {
-            return false;
+            throw new DAOException("处方不存在");
         }
+        //查询是否为线下处方单
         Recipe recipe = recipeList.get(0);
         if (null != recipe && RecipeSourceTypeEnum.OFFLINE_RECIPE.getType().equals(recipe.getRecipeSourceType())) {
-            return false;
+            readyRecipeVO.setRecipeSource(2);
+            readyRecipeVO.setHaveRecipe(false);
+            return readyRecipeVO;
         }
+
+        readyRecipeVO.setRecipeSource(1);
         String mpiId = recipeOrder.getMpiId();
         List<Recipe> recipes = recipeDAO.findRecipeByMpiId(mpiId);
         if (CollectionUtils.isNotEmpty(recipes)) {
-            return true;
+            readyRecipeVO.setHaveRecipe(true);
+        } else {
+            readyRecipeVO.setHaveRecipe(false);
         }
-        return false;
+        return readyRecipeVO;
     }
 
     /**
