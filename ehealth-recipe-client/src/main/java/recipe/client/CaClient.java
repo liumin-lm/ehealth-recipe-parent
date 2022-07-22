@@ -79,7 +79,7 @@ public class CaClient extends BaseClient {
         //签名时的密码从redis中获取
         ca.vo.model.RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, ca.vo.model.RecipeBean.class);
         iCaRemoteService.commonCASignAndSealForRecipe(requestSeal, recipeBean, recipe.getClinicOrgan(), idNumber, caPassword);
-        logger.info("CaClient oldCommonCASign requestSeal=[{}]", JSON.toJSONString(requestSeal));
+        logger.info("CaClient oldCommonCASign requestSeal=[{}]，recipeid={}", JSON.toJSONString(requestSeal), recipeBean.getRecipeId());
     }
 
 

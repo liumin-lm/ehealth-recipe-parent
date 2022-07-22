@@ -1706,7 +1706,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         ca.service.ICaRemoteService iCaRemoteService = AppDomainContext.getBean("ca.iCaRemoteService", ca.service.ICaRemoteService.class);
         ca.vo.model.RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, ca.vo.model.RecipeBean.class);
         ca.vo.CaSignResultVo resultVo = iCaRemoteService.commonCASignAndSealForRecipe(requestSealTO, recipeBean, organId, userAccount, caPassword);
-        LOGGER.info("RemoteRecipeService commonCASignAndSealOrganId requestSealTO=[{}]", JSON.toJSONString(requestSealTO));
+        LOGGER.info("RemoteRecipeService commonCASignAndSealOrganId requestSealTO=[{}],recipeid={}", JSON.toJSONString(requestSealTO), recipeBean.getRecipeId());
         return ObjectCopyUtils.convert(resultVo, CaSignResultBean.class);
     }
 
@@ -1730,7 +1730,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         ca.service.ICaRemoteService iCaRemoteService = AppDomainContext.getBean("ca.iCaRemoteService", ca.service.ICaRemoteService.class);
         ca.vo.model.RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, ca.vo.model.RecipeBean.class);
         ca.vo.CaSignResultVo resultVo = iCaRemoteService.commonCASignAndSealForRecipe(requestSealTO, recipeBean, organId, userAccount, caPassword);
-        LOGGER.info("RemoteRecipeService commonSealOrganId requestSealTO=[{}]", JSON.toJSONString(requestSealTO));
+        LOGGER.info("RemoteRecipeService commonSealOrganId requestSealTO=[{}],recipeid={}", JSON.toJSONString(requestSealTO), recipeBean.getRecipeId());
         return ObjectCopyUtils.convert(resultVo, CaSignResultBean.class);
     }
 
