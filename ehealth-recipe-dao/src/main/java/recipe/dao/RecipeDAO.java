@@ -4478,7 +4478,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                             "FROM\n" +
                             "\tcdr_recipe r\n" +
                             "LEFT JOIN cdr_recipe_ext cre ON r.recipeid = cre.recipeid\n" +
-                            "WHERE cre.canUrgentAuditRecipe is not null and r.clinicOrgan in (:organ) and r.checkMode<2 and  (r.audit_state = 1 || (r.audit_state=0 && r.support_mode=1)) and  (r.recipeType in(:recipeTypes) or r.grabOrderStatus=1) ");
+                            "WHERE cre.canUrgentAuditRecipe is not null and r.clinicOrgan in (:organ) and r.checkMode<2 and  (r.audit_state = 1 || (r.audit_state=0 && r.support_mode=1)) and r.status not in (0,16,10,11,26,30) and  (r.recipeType in(:recipeTypes) or r.grabOrderStatus=1) ");
                     if (StringUtils.isNoneBlank(startTime) && StringUtils.isNoneBlank(endTime)) {
                         hql.append(" and  r.CreateDate >= :startTime and  r.CreateDate <= :endTime");
                     }
@@ -4552,7 +4552,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                             "FROM\n" +
                             "\tcdr_recipe r\n" +
                             "LEFT JOIN cdr_recipe_ext cre ON r.recipeid = cre.recipeid\n" +
-                            "WHERE cre.canUrgentAuditRecipe is not null and r.clinicOrgan in (:organ) and r.checkMode<2 and (r.audit_state = 1 || (r.audit_state=0 && r.support_mode=1)) and  (recipeType in(:recipeTypes) or grabOrderStatus=1) ");
+                            "WHERE cre.canUrgentAuditRecipe is not null and r.clinicOrgan in (:organ) and r.checkMode<2 and (r.audit_state = 1 || (r.audit_state=0 && r.support_mode=1)) and r.status not in (0,16,10,11,26,30) and  (recipeType in(:recipeTypes) or grabOrderStatus=1) ");
                 }
                 //1是审核通过
                 else if (flag == 1) {
