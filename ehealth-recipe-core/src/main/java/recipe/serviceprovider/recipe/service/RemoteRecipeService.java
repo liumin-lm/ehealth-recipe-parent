@@ -325,13 +325,19 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                     if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
                         RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
                         recipeOrder.setStatus(RecipeOrderStatusEnum.ORDER_STATUS_DONE.getType());
+                        recipeOrder.setProcessState(OrderStateEnum.PROCESS_STATE_DISPENSING.getType());
+                        recipeOrder.setSubState(OrderStateEnum.SUB_DONE_SEND.getType());
                         recipeOrderDAO.update(recipeOrder);
                     }
                     //配送完成
                     RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.PATIENT_REACHPAY_FINISH);
+                    recipe.setProcessState(RecipeStateEnum.PROCESS_STATE_DONE.getType());
+                    recipe.setSubState(RecipeStateEnum.SUB_DONE_SEND.getType());
                 } else if (new Integer(GiveModeEnum.GIVE_MODE_PHARMACY_DRUG.getType()).equals(recipe.getGiveMode())) {
                     //发送取药完成消息
                     RecipeMsgService.batchSendMsg(recipe.getRecipeId(), RecipeStatusConstant.RECIPE_TAKE_MEDICINE_FINISH);
+                    recipe.setProcessState(RecipeStateEnum.PROCESS_STATE_DONE.getType());
+                    recipe.setSubState(RecipeStateEnum.SUB_DONE_SELF_TAKE.getType());
                 }
             }
             recipe.setStatus(recipeStatusReqTO.getStatus());
@@ -572,12 +578,12 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         }
 
 
-        QueryResult<RecipesQueryResVO>  queryResVOList
+        QueryResult<RecipesQueryResVO> queryResVOList
                 = new QueryResult<RecipesQueryResVO>(
-                    recipeListResult.getTotal(),
-                    recipesQueryVO.getStart(),
-                    recipesQueryVO.getLimit(),
-                    resList);
+                recipeListResult.getTotal(),
+                recipesQueryVO.getStart(),
+                recipesQueryVO.getLimit(),
+                resList);
 
         return queryResVOList;
     }
@@ -1955,7 +1961,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                             attrMap.put("payDate", new Date());
                             //更新处方信息
                             recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), RecipeStatusConstant.FINISH, attrMap);
-                            stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_DONE_UPLOAD_THIRD);
+                            stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_DONE, RecipeStateEnum.SUB_DONE_UPLOAD_THIRD);
                             stringBuilder.append("[订单状态]该订单已完成;");
                             break;
                         case "5":
@@ -2168,8 +2174,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             return;
         }
 
-        try {
-            if (!Integer.valueOf(200).equals(resultVo.getCode())) {
+        if (!Integer.valueOf(200).equals(resultVo.getCode())) {
+            try {
                 //说明处方签名失败
                 RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "说明处方签名失败:" + resultVo.getMsg());
                 RecipeExtend recipeExtend = new RecipeExtend();
@@ -2183,11 +2189,12 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                     IRecipeOnLineRevisitService recipeOnLineRevisitService = RevisitAPI.getService(IRecipeOnLineRevisitService.class);
                     recipeOnLineRevisitService.sendRecipeDefeat(recipe.getRecipeId(), recipe.getClinicId());
                 }
-                return;
+            } catch (Exception e) {
+                LOGGER.error("retryCaDoctorCallBackToRecipe 说明处方签名失败异常  ", e);
             }
-        } catch (Exception e) {
-            LOGGER.error("checkPassSuccess 签名服务或者发送卡片异常. ", e);
+            return;
         }
+
         /**设置处方的状态************/
         RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "当前签名处方签名成功");
         stateManager.updateStatus(recipeId, RecipeStatusEnum.RECIPE_STATUS_SIGN_SUCCESS_CODE_DOC, SignEnum.SIGN_STATE_ORDER);
@@ -2223,7 +2230,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         caSignResultVo.setSignCADate(resultVo.getSignDate());
         caSignResultVo.setSignRecipeCode(resultVo.getSignCode());
         caSignResultVo.setCode(resultVo.getMsgCode());
-        caSignResultVo.setMsg(resultVo.getMsg());
+        caSignResultVo.setMsg(null == resultVo.getMsg() ? "" : resultVo.getMsg());
         caSignResultVo.setEsignResponseMap(resultVo.getEsignResponseMap());
         caSignResultVo.setRecipeId(resultVo.getBussId());
         caSignResultVo.setBussType(resultVo.getBusstype());

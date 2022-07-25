@@ -41,8 +41,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.aop.LogRecord;
 import recipe.bean.ThirdResultBean;
-import recipe.common.CommonConstant;
-import recipe.common.response.CommonResponse;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.drugsenterprise.bean.DrugsEnterpriseDTO;
@@ -111,33 +109,15 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
 
     private GroupRecipeManager groupRecipeManager = AppContextHolder.getBean("groupRecipeManager", GroupRecipeManager.class);
     @Autowired
-    private RecipeOrderDAO recipeOrderDAO;
-    @Autowired
     private OrderManager orderManager;
     @Autowired
     private InvoiceRecordService invoiceRecordService;
     @Autowired
     private IOrganLogisticsManageService iOrganLogisticsManageService;
     @Autowired
-    private RecipeDAO recipeDAO;
-    @Autowired
-    private RecipeDetailDAO recipeDetailDAO;
-    @Autowired
-    private RecipeExtendDAO recipeExtendDAO;
-    @Autowired
-    private SaleDrugListDAO saleDrugListDAO;
-    @Autowired
-    private EnterpriseManager enterpriseManager;
-    @Autowired
-    private DrugsEnterpriseDAO drugsEnterpriseDAO;
-    @Autowired
-    private OrganDrugListDAO organDrugListDAO;
-    @Autowired
     private AuditDrugListDAO auditDrugListDAO;
     @Autowired
     private RecipeParameterDao recipeParameterDao;
-    @Autowired
-    private StateManager stateManager;
 
     /**
      * 待配送状态
@@ -147,7 +127,9 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
     @RpcService
     public ThirdResultBean readyToSend(Map<String, Object> paramMap) {
         LOGGER.info("readyToSend param : " + JSONUtils.toString(paramMap));
-
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         ThirdResultBean backMsg = ThirdResultBean.getFail();
         Recipe recipe = getRecipe(paramMap);
         if (null == recipe) {
@@ -371,7 +353,10 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
     @LogRecord
     private void sendImpl(ThirdResultBean thirdResultBean, Map<String, Object> paramMap) {
         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
-
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+        EnterpriseManager enterpriseManager = AppContextHolder.getBean("enterpriseManager", EnterpriseManager.class);
         Recipe recipe = thirdResultBean.getRecipe();
         Integer recipeId = recipe.getRecipeId();
         String sendDateStr = MapValueUtil.getString(paramMap, "sendDate");
@@ -475,10 +460,11 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
     @RpcService
     public ThirdResultBean finishRecipe(Map<String, Object> paramMap) {
         LOGGER.info("finishRecipe param : " + JSONUtils.toString(paramMap));
-
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         ThirdResultBean backMsg = ThirdResultBean.getFail();
         int code = validateRecipe(paramMap, backMsg, OrderStatusConstant.SENDING, OrderStatusConstant.FINISH, CHECK_ORDER);
-
+        StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
         if (REQUEST_ERROR_REAPET == code) {
             backMsg.setCode(REQUEST_OK);
             return backMsg;
@@ -565,7 +551,8 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
     @RpcService
     public ThirdResultBean RecipeFall(Map<String, Object> paramMap) {
         LOGGER.info("RecipeFall param : " + JSONUtils.toString(paramMap));
-
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         ThirdResultBean backMsg = ThirdResultBean.getFail();
         int code = validateRecipe(paramMap, backMsg, null, OrderStatusConstant.FAIL, CHECK_ORDER);
 
@@ -638,7 +625,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
     public ThirdResultBean updateRecipeInfo(Map<String, Object> paramMap) {
         //国药会大量重复调用，故去掉该日志
         LOGGER.info("updateRecipeInfo param : " + JSONUtils.toString(paramMap));
-
+        RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         ThirdResultBean backMsg = ThirdResultBean.getFail();
         int code = validateRecipe(paramMap, backMsg, null, null, CHECK_RECIPE);
 
@@ -752,7 +739,8 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
     @RpcService
     public Map<String, Object> setDrugInventory(Map<String, Object> paramMap) {
         LOGGER.info("setDrugInventory param : " + JSONUtils.toString(paramMap));
-
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         Map<String, Object> map = Maps.newHashMap();
         int code = REQUEST_OK;
         String msg = "";
@@ -800,7 +788,8 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
     @RpcService
     public ThirdResultBean recordDrugStoreResult(Map<String, Object> paramMap) {
         LOGGER.info("recordDrugStoreResult param : " + JSONUtils.toString(paramMap));
-
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         ThirdResultBean backMsg = ThirdResultBean.getFail();
         int code = validateRecipe(paramMap, backMsg, null, null, CHECK_RECIPE);
 
@@ -811,7 +800,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
 
         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
         RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
-
+        StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
         Recipe recipe = backMsg.getRecipe();
         Integer recipeId = recipe.getRecipeId();
         String errorMsg = "";
@@ -865,7 +854,6 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         } else {
             //患者未取药
             Boolean rs = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.NO_DRUG, attrMap);
-            StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
             stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_TIMEOUT_NOT_MEDICINE);
             status = RecipeStatusConstant.NO_DRUG;
             if (rs) {
@@ -896,7 +884,8 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
     @RpcService
     public ThirdResultBean userConfirm(Map<String, Object> paramMap) {
         LOGGER.info("userConfirm param : " + JSONUtils.toString(paramMap));
-
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         ThirdResultBean backMsg = ThirdResultBean.getFail();
         int code = validateRecipe(paramMap, backMsg, null, null, CHECK_RECIPE);
 
@@ -1023,7 +1012,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             errorMsg = "该处方不存在";
             return code;
         }
-
+        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         RecipeOrder order = recipeOrderDAO.getOrderByRecipeId(recipe.getRecipeId());
         if (order == null) {
             code = REQUEST_ERROR;
@@ -1144,6 +1133,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
      * @param paramMap
      */
     private void updateRecipeDetainInfo(Recipe recipe, Map<String, Object> paramMap) {
+        RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         List<Map<String, String>> list = MapValueUtil.getList(paramMap, "details");
         if (CollectionUtils.isNotEmpty(list)) {
             List<Recipedetail> detailList = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
@@ -1187,6 +1177,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
      */
     @RpcService
     public List<DrugsEnterpriseBean> findDrugsEnterpriseByStatus(final Integer status) {
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         List<DrugsEnterprise> depList = drugsEnterpriseDAO.findAllDrugsEnterpriseByStatus(status);
         return getList(depList, DrugsEnterpriseBean.class);
     }
@@ -1200,6 +1191,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
      */
     @RpcService
     public DrugsEnterpriseBean addDrugsEnterprise(final DrugsEnterprise drugsEnterprise) {
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         if (null == drugsEnterprise) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "DrugsEnterprise is null");
         }
@@ -1227,6 +1219,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
      */
     @RpcService
     public DrugsEnterpriseBean updateDrugsEnterprise(final DrugsEnterprise drugsEnterprise) {
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         if (null == drugsEnterprise) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "DrugsEnterprise is null");
         }
@@ -1253,6 +1246,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
     @Deprecated
     public QueryResult<DrugsEnterpriseBean> queryDrugsEnterpriseByStartAndLimit(final String name, final Integer createType, final int start, final int limit) {
         Integer organId = null;
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         QueryResult result = drugsEnterpriseDAO.queryDrugsEnterpriseResultByStartAndLimit(name, createType, organId, start, limit);
         List<DrugsEnterpriseBean> list = getList(result.getItems(), DrugsEnterpriseBean.class);
         result.setItems(list);
@@ -1261,6 +1255,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
 
     @RpcService
     public List<DrugsEnterpriseBean> findByOrganId(Integer organId) {
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         List<DrugsEnterprise> list = drugsEnterpriseDAO.findByOrganId(organId);
         return getList(list, DrugsEnterpriseBean.class);
     }
@@ -1268,6 +1263,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
     @RpcService
     public DrugsEnterpriseDTO findByEnterpriseId(Integer id) {
         LOGGER.info("findByEnterpriseId id:{}", id);
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.get(id);
         if (Objects.isNull(drugsEnterprise)) {
             throw new DAOException(ErrorCode.SERVICE_SUCCEED, "DrugsEnterprise is null");
@@ -1309,7 +1305,8 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         LOGGER.info("钥世圈推送过来的药品信息：{}.", JSONUtils.toString(auditDrugListBean));
         StandardResultDTO result = new StandardResultDTO();
         result.setCode(StandardResultDTO.FAIL);
-
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         OrganService organService = BasicAPI.getService(OrganService.class);
         //校验入参
         validate(result, auditDrugListBean);
@@ -1457,6 +1454,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             result.setMsg("机构不存在");
             return result;
         }
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         Boolean succ = organDrugListDAO.updateOrganDrugListByOrganIdAndOrganDrugCode(organ.getOrganId(), upDownDrugBean.getOrganDrugCode(), ImmutableMap.of("status", upDownDrugBean.getStatus()));
         if (succ) {
             result.setCode(StandardResultDTO.SUCCESS);
@@ -1469,6 +1467,8 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
     @RpcService
     public StandardResultDTO recipeDownloadConfirmation(String appKey, List<Integer> recipeIds) {
         StandardResultDTO result = new StandardResultDTO();
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         LOGGER.info("ThirdEnterpriseCallService.recipeDownloadConfirmation appKey:{}, recipeIds", appKey, JSONUtils.toString(recipeIds));
         result.setCode(StandardResultDTO.SUCCESS);
         List<DrugsEnterprise> drugsEnterprises = drugsEnterpriseDAO.findByAppKey(appKey);
@@ -1498,6 +1498,8 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         LOGGER.info("scanStockEnterpriseForHis:{}.", JSONUtils.toString(paramMap));
         Integer organId = (Integer) paramMap.get("organId");
         String enterpriseCode = (String) paramMap.get("enterpriseCode");
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getByAppKey(enterpriseCode);
         if (drugsEnterprise == null) {
             LOGGER.info("scanStockEnterpriseForHis 没有查询到对应的药企");
@@ -1535,6 +1537,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
      * @return
      */
     private Integer execScanStockEnterpriseForMaLu(OrganDrugList organDrugList, DrugsEnterprise drugsEnterprise, String total) {
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         Integer result = 1;
         if (organDrugList != null) {
             SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(organDrugList.getDrugId(), drugsEnterprise.getId());
@@ -1572,6 +1575,12 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
     public StandardResultDTO downLoadRecipes(Map<String, Object> parames) {
         StandardResultDTO standardResult = new StandardResultDTO();
         standardResult.setCode(StandardResultDTO.SUCCESS);
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         String imgHead = "data:image/jpeg;base64,";
         LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes parames:{}.", JSONUtils.toString(parames));
         if (parames == null) {
@@ -1856,6 +1865,8 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
     @RpcService
     public StandardResultDTO synchronizeInventory(Map<String, Object> parames) {
         LOGGER.info("ThirdEnterpriseCallService synchronizeInventory parames:{}", JSONUtils.toString(parames));
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         StandardResultDTO standardResult = new StandardResultDTO();
         String appKey = (String) parames.get("appKey");
         List<Map<String, Object>> synchronizeDrugBeans = (List) parames.get("drugList");
@@ -1958,6 +1969,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
      * @param organ
      */
     private void updateSaleDrugList(List<Map<String, Object>> res, String organ) {
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         if (res != null) {
             Integer organId = Integer.parseInt(organ);
             for (Map<String, Object> map : res) {
