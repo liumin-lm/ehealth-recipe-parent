@@ -24,12 +24,12 @@ import eh.recipeaudit.model.recipe.RecipeExtendDTO;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ObjectUtils;
 import recipe.aop.LogRecord;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -132,7 +132,7 @@ public class RecipeAuditClient extends BaseClient {
         if (CollectionUtils.isEmpty(auditMedicineIssues)) {
             return recipeDangers;
         }
-        List<AuditMedicineIssueBean> resultMedicineIssues = auditMedicineIssues.stream().filter(a -> null == a.getMedicineId()).collect(Collectors.toList());
+        List<AuditMedicineIssueBean> resultMedicineIssues = auditMedicineIssues.stream().filter(a -> Objects.nonNull(a.getMedicineId())).collect(Collectors.toList());
         if (CollectionUtils.isEmpty(resultMedicineIssues)) {
             return recipeDangers;
         }
@@ -157,10 +157,7 @@ public class RecipeAuditClient extends BaseClient {
      */
     public Boolean isShowCheckCA(Integer recipeId) {
         RecipeCheckBean recipeCheckBean = getNowCheckResultByRecipeId(recipeId);
-        if (recipeCheckBean != null && CA_FAIL.equals(recipeCheckBean.getIsCheckCA())) {
-            return false;
-        }
-        return true;
+        return recipeCheckBean == null || !CA_FAIL.equals(recipeCheckBean.getIsCheckCA());
     }
 
     /**
@@ -181,10 +178,7 @@ public class RecipeAuditClient extends BaseClient {
             return false;
         }
         //判断有没有不通过的记录，没有就说明是直接审核通过的
-        if (null != recipeCheckBean.getCheckStatus() && 1 == recipeCheckBean.getCheckStatus() && CollectionUtils.isEmpty(recipeLogs)) {
-            return true;
-        }
-        return false;
+        return null != recipeCheckBean.getCheckStatus() && 1 == recipeCheckBean.getCheckStatus() && CollectionUtils.isEmpty(recipeLogs);
     }
 
     /**
