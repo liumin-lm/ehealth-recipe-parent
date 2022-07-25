@@ -1023,7 +1023,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             errorMsg = "该处方不存在";
             return code;
         }
-
+        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         RecipeOrder order = recipeOrderDAO.getOrderByRecipeId(recipe.getRecipeId());
         if (order == null) {
             code = REQUEST_ERROR;
@@ -1144,6 +1144,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
      * @param paramMap
      */
     private void updateRecipeDetainInfo(Recipe recipe, Map<String, Object> paramMap) {
+        RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         List<Map<String, String>> list = MapValueUtil.getList(paramMap, "details");
         if (CollectionUtils.isNotEmpty(list)) {
             List<Recipedetail> detailList = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
@@ -1535,6 +1536,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
      * @return
      */
     private Integer execScanStockEnterpriseForMaLu(OrganDrugList organDrugList, DrugsEnterprise drugsEnterprise, String total) {
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         Integer result = 1;
         if (organDrugList != null) {
             SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(organDrugList.getDrugId(), drugsEnterprise.getId());
