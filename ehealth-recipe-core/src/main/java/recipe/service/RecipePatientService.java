@@ -57,13 +57,11 @@ import recipe.core.api.patient.IPatientBusinessService;
 import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.enumerate.status.RecipeSourceTypeEnum;
+import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.*;
 import recipe.hisservice.RecipeToHisService;
-import recipe.manager.EmrRecipeManager;
-import recipe.manager.OrganDrugListManager;
-import recipe.manager.RecipeDetailManager;
-import recipe.manager.RecipeManager;
+import recipe.manager.*;
 import recipe.service.common.RecipeCacheService;
 import recipe.util.RedisClient;
 import recipe.util.ValidateUtil;
@@ -121,6 +119,8 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
     private RecipeDAO recipeDAO;
     @Autowired
     private RecipeOrderDAO recipeOrderDAO;
+    @Autowired
+    private StateManager stateManager;
 
     /**
      * 根据取药方式过滤药企
@@ -878,6 +878,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         //将处方写入HIS
         offlineRecipeBusinessService.pushRecipe(recipe.getRecipeId(), CommonConstant.RECIPE_PUSH_TYPE, CommonConstant.RECIPE_PATIENT_TYPE, null, null, null);
         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType(), RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType(), "处方写入HIS成功");
+        stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.NONE, RecipeStateEnum.NONE);
         try {
             //设置处方的失效时间
             RecipeService.handleRecipeInvalidTime(recipe.getClinicOrgan(), recipe.getRecipeId(), recipe.getSignDate());
