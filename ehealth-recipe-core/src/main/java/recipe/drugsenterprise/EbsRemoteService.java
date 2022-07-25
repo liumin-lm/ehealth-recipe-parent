@@ -39,10 +39,7 @@ import recipe.service.RecipeOrderService;
 import recipe.util.DateConversion;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -196,45 +193,48 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
             ebsBean.setDetails(details);
             ebsBeans.add(ebsBean);
         });
-        Recipe recipe = recipeList.get(0);
-        String recipeXml = recipeToXml(ebsBeans);
-        //以下开始推送处方信息
-        String addSingleMethod = "addSingle";
-        LOGGER.info("pushRecipeInfoForSy request:{}.", recipeXml);
 
-        Map<String, String> param=new HashMap<String, String>();
-        param.put("url", enterprise.getBusinessUrl());
-        EsbWebService xkyyHelper = new EsbWebService();
-        xkyyHelper.initConfig(param);
-        try{
-            String webServiceResult = xkyyHelper.HXCFZT(recipeXml, addSingleMethod);
-            LOGGER.info("pushRecipeInfoForSy recipeId:{},webServiceResult:{},", recipe.getRecipeId(), webServiceResult);
-            Map maps = (Map)JSON.parse(webServiceResult);
-            if (maps == null) {
-                getDrugEnterpriseResult(result, "推送失败");
-                setOrderPushFlag(flag, recipe, "");
-            } else {
-                Boolean success = (Boolean) maps.get("success");
-                String code = (String) maps.get("code");
-                String msg = (String) maps.get("msg");
-                if (success && "0".equals(code)) {
-                    if (flag == 1) {
-                        //表示推送成功
-                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), enterprise.getName() + msg);
-                        setOrderPushFlag(flag, recipe, "0");
-                    } else {
-                        //表示推送失败
-                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), enterprise.getName() + "处方退款推送成功");
-                    }
+        for (int i = 0; i < ebsBeans.size(); i++) {
+            Recipe recipe = recipeList.get(i);
+            String recipeXml = recipeToXml(ebsBeans.get(i));
+            //以下开始推送处方信息
+            String addSingleMethod = "addSingle";
+            LOGGER.info("pushRecipeInfoForSy request:{}", recipeXml);
+
+            Map<String, String> param=new HashMap<String, String>();
+            param.put("url", enterprise.getBusinessUrl());
+            EsbWebService xkyyHelper = new EsbWebService();
+            xkyyHelper.initConfig(param);
+            try{
+                String webServiceResult = xkyyHelper.HXCFZT(recipeXml, addSingleMethod);
+                LOGGER.info("pushRecipeInfoForSy recipeId:{},webServiceResult:{},", recipe.getRecipeId(), webServiceResult);
+                Map maps = (Map)JSON.parse(webServiceResult);
+                if (maps == null) {
+                    getDrugEnterpriseResult(result, "推送失败");
+                    setOrderPushFlag(flag, recipe, "");
                 } else {
-                    RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), enterprise.getName() +  msg);
-                    setOrderPushFlag(flag, recipe, code);
+                    Boolean success = (Boolean) maps.get("success");
+                    String code = (String) maps.get("code");
+                    String msg = (String) maps.get("msg");
+                    if (success && "0".equals(code)) {
+                        if (flag == 1) {
+                            //表示推送成功
+                            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), enterprise.getName() + msg);
+                            setOrderPushFlag(flag, recipe, "0");
+                        } else {
+                            //表示推送失败
+                            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), enterprise.getName() + "处方退款推送成功");
+                        }
+                    } else {
+                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), enterprise.getName() +  msg);
+                        setOrderPushFlag(flag, recipe, code);
+                    }
                 }
+            }catch (Exception ex){
+                LOGGER.error("pushRecipeInfoForSy error recipeId:{}, {}", recipe.getRecipeId(), ex.getMessage(), ex);
+                getDrugEnterpriseResult(result, enterprise.getName() + "推送失败");
+                setOrderPushFlag(flag, recipe, "");
             }
-        }catch (Exception ex){
-            LOGGER.error("pushRecipeInfoForSy error recipeId:{}, {}", recipe.getRecipeId(), ex.getMessage(), ex);
-            getDrugEnterpriseResult(result, enterprise.getName() + "推送失败");
-            setOrderPushFlag(flag, recipe, "");
         }
     }
 
@@ -257,49 +257,45 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
         }
     }
 
-    private String recipeToXml(List<EbsBean> ebsBeans) {
-        LOGGER.info("recipeToXml ebsBeans:{}", JSONUtils.toString(ebsBeans));
+    private String recipeToXml(EbsBean ebsBean) {
+        LOGGER.info("recipeToXml ebsBean:{}", JSONUtils.toString(ebsBean));
         StringBuilder result = new StringBuilder("<root><body><params>");
-        ebsBeans.forEach(ebsBean -> {
-            result.append("<param>");
-            result.append("<prescripNo>").append(ebsBean.getPrescripNo()).append("</prescripNo>");
-            result.append("<prescribeDate>").append(ebsBean.getPrescribeDate()).append("</prescribeDate>");
-            result.append("<hospitalCode>").append(ebsBean.getHospitalCode()).append("</hospitalCode>");
-            result.append("<hospitalName>").append(ebsBean.getHospitalName()).append("</hospitalName>");
-            result.append("<department>").append(ebsBean.getDepartment()).append("</department>");
-            result.append("<doctorName>").append(ebsBean.getDoctorName()).append("</doctorName>");
-            result.append("<name>").append(ebsBean.getName()).append("</name>");
-            result.append("<sex>").append(ebsBean.getSex()).append("</sex>");
-            result.append("<age>").append(ebsBean.getAge()).append("</age>");
-            result.append("<mobile>").append(ebsBean.getMobile()).append("</mobile>");
-            result.append("<idCard>").append(ebsBean.getIdCard()).append("</idCard>");
-            result.append("<socialSecurityCard>").append(ebsBean.getSocialSecurityCard()).append("</socialSecurityCard>");
-            result.append("<address>").append(ebsBean.getAddress()).append("</address>");
-            result.append("<feeType>").append(ebsBean.getFeeType()).append("</feeType>");
-            result.append("<totalAmount>").append(ebsBean.getTotalAmount()).append("</totalAmount>");
-            result.append("<diagnoseResult>").append(ebsBean.getDiagnoseResult()).append("</diagnoseResult>");
-            result.append("<receiver>").append(ebsBean.getReceiver()).append("</receiver>");
-            result.append("<receiverMobile>").append(ebsBean.getReceiverMobile()).append("</receiverMobile>");
-            result.append("<provinceName>").append(ebsBean.getProvinceName()).append("</provinceName>");
-            result.append("<cityName>").append(ebsBean.getCityName()).append("</cityName>");
-            result.append("<districtName>").append(ebsBean.getDistrictName()).append("</districtName>");
-            if (StringUtils.isNotEmpty(ebsBean.getShippingAddress())) {
-                String address = ebsBean.getShippingAddress().replace("\n", "");
-                result.append("<shippingAddress>").append(address).append("</shippingAddress>");
-            }
-            result.append("<remark>").append(ebsBean.getRemark()).append("</remark>");
-            for (EbsDetail ebsDetail : ebsBean.getDetails()) {
-                result.append("<medName>").append(ebsDetail.getMedName()).append("</medName>");
-                result.append("<medCode>").append(ebsDetail.getMedCode()).append("</medCode>");
-                result.append("<spec>").append(ebsDetail.getSpec()).append("</spec>");
-                result.append("<drugForm>").append(ebsDetail.getDrugForm()).append("</drugForm>");
-                result.append("<directions>").append(ebsDetail.getDirections()).append("</directions>");
-                result.append("<amount>").append(ebsDetail.getAmount()).append("</amount>");
-                result.append("<unitName>").append(ebsDetail.getUnitName()).append("</unitName>");
-                result.append("<unitPrice>").append(ebsDetail.getUnitPrice()).append("</unitPrice>");
-            }
-            result.append("</param>");
-        });
+        result.append("<prescripNo>").append(ebsBean.getPrescripNo()).append("</prescripNo>");
+        result.append("<prescribeDate>").append(ebsBean.getPrescribeDate()).append("</prescribeDate>");
+        result.append("<hospitalCode>").append(ebsBean.getHospitalCode()).append("</hospitalCode>");
+        result.append("<hospitalName>").append(ebsBean.getHospitalName()).append("</hospitalName>");
+        result.append("<department>").append(ebsBean.getDepartment()).append("</department>");
+        result.append("<doctorName>").append(ebsBean.getDoctorName()).append("</doctorName>");
+        result.append("<name>").append(ebsBean.getName()).append("</name>");
+        result.append("<sex>").append(ebsBean.getSex()).append("</sex>");
+        result.append("<age>").append(ebsBean.getAge()).append("</age>");
+        result.append("<mobile>").append(ebsBean.getMobile()).append("</mobile>");
+        result.append("<idCard>").append(ebsBean.getIdCard()).append("</idCard>");
+        result.append("<socialSecurityCard>").append(ebsBean.getSocialSecurityCard()).append("</socialSecurityCard>");
+        result.append("<address>").append(ebsBean.getAddress()).append("</address>");
+        result.append("<feeType>").append(ebsBean.getFeeType()).append("</feeType>");
+        result.append("<totalAmount>").append(ebsBean.getTotalAmount()).append("</totalAmount>");
+        result.append("<diagnoseResult>").append(ebsBean.getDiagnoseResult()).append("</diagnoseResult>");
+        result.append("<receiver>").append(ebsBean.getReceiver()).append("</receiver>");
+        result.append("<receiverMobile>").append(ebsBean.getReceiverMobile()).append("</receiverMobile>");
+        result.append("<provinceName>").append(ebsBean.getProvinceName()).append("</provinceName>");
+        result.append("<cityName>").append(ebsBean.getCityName()).append("</cityName>");
+        result.append("<districtName>").append(ebsBean.getDistrictName()).append("</districtName>");
+        if (StringUtils.isNotEmpty(ebsBean.getShippingAddress())) {
+            String address = ebsBean.getShippingAddress().replace("\n", "");
+            result.append("<shippingAddress>").append(address).append("</shippingAddress>");
+        }
+        result.append("<remark>").append(ebsBean.getRemark()).append("</remark>");
+        for (EbsDetail ebsDetail : ebsBean.getDetails()) {
+            result.append("<medName>").append(ebsDetail.getMedName()).append("</medName>");
+            result.append("<medCode>").append(ebsDetail.getMedCode()).append("</medCode>");
+            result.append("<spec>").append(ebsDetail.getSpec()).append("</spec>");
+            result.append("<drugForm>").append(ebsDetail.getDrugForm()).append("</drugForm>");
+            result.append("<directions>").append(ebsDetail.getDirections()).append("</directions>");
+            result.append("<amount>").append(ebsDetail.getAmount()).append("</amount>");
+            result.append("<unitName>").append(ebsDetail.getUnitName()).append("</unitName>");
+            result.append("<unitPrice>").append(ebsDetail.getUnitPrice()).append("</unitPrice>");
+        }
         result.append("</params></body></root>");
         return result.toString();
     }
@@ -316,7 +312,6 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
         recipeDetails.forEach(recipeDetail -> {
             DrugInfoDTO drugInfoDTO = new DrugInfoDTO();
             BeanUtils.copyProperties(recipeDetail, drugInfoDTO);
-            drugInfoDTO.setUseTotalDose(recipeDetail.getUseTotalDose());
             String result = getDrugInventory(recipeDetail.getDrugId(), drugsEnterprise, recipe.getClinicOrgan());
             drugInfoDTO.setStock("有库存".equals(result));
             drugInfoDTO.setStockAmountChin(result);
