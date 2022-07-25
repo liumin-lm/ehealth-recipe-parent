@@ -325,13 +325,19 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                     if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
                         RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
                         recipeOrder.setStatus(RecipeOrderStatusEnum.ORDER_STATUS_DONE.getType());
+                        recipeOrder.setProcessState(OrderStateEnum.PROCESS_STATE_DISPENSING.getType());
+                        recipeOrder.setSubState(OrderStateEnum.SUB_DONE_SEND.getType());
                         recipeOrderDAO.update(recipeOrder);
                     }
                     //配送完成
                     RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.PATIENT_REACHPAY_FINISH);
+                    recipe.setProcessState(RecipeStateEnum.PROCESS_STATE_DONE.getType());
+                    recipe.setSubState(RecipeStateEnum.SUB_DONE_SEND.getType());
                 } else if (new Integer(GiveModeEnum.GIVE_MODE_PHARMACY_DRUG.getType()).equals(recipe.getGiveMode())) {
                     //发送取药完成消息
                     RecipeMsgService.batchSendMsg(recipe.getRecipeId(), RecipeStatusConstant.RECIPE_TAKE_MEDICINE_FINISH);
+                    recipe.setProcessState(RecipeStateEnum.PROCESS_STATE_DONE.getType());
+                    recipe.setSubState(RecipeStateEnum.SUB_DONE_SELF_TAKE.getType());
                 }
             }
             recipe.setStatus(recipeStatusReqTO.getStatus());
