@@ -13,10 +13,7 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Service;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
-import recipe.enumerate.status.OrderStateEnum;
-import recipe.enumerate.status.RecipeOrderStatusEnum;
-import recipe.enumerate.status.RecipeStateEnum;
-import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.status.*;
 import recipe.manager.StateManager;
 
 import java.util.Date;
@@ -58,7 +55,11 @@ public class RecipeOrderStatusProxy implements ApplicationContextAware {
         orderStatus.setTargetRecipeStatus(recipe.getStatus());
         if (RecipeStatusEnum.RECIPE_STATUS_FINISH.getType().equals(recipe.getStatus())) {
             recipe.setProcessState(RecipeStateEnum.PROCESS_STATE_DONE.getType());
-            recipe.setSubState(RecipeStateEnum.SUB_DONE_SELF_TAKE.getType());
+            if (GiveModeEnum.GIVE_MODE_HOME_DELIVERY.getType().equals(recipe.getGiveMode())) {
+                recipe.setSubState(RecipeStateEnum.SUB_DONE_SEND.getType());
+            } else {
+                recipe.setSubState(RecipeStateEnum.SUB_DONE_SELF_TAKE.getType());
+            }
         }
         //更新处方状态
         recipeDAO.updateNonNullFieldByPrimaryKey(recipe);
@@ -68,7 +69,11 @@ public class RecipeOrderStatusProxy implements ApplicationContextAware {
         recipeOrder.setDispensingStatusAlterTime(new Date());
         if (RecipeOrderStatusEnum.ORDER_STATUS_DONE.getType().equals(orderStatus.getTargetRecipeOrderStatus())) {
             recipeOrder.setProcessState(OrderStateEnum.PROCESS_STATE_DISPENSING.getType());
-            recipeOrder.setSubState(OrderStateEnum.SUB_DONE_SELF_TAKE.getType());
+            if (GiveModeEnum.GIVE_MODE_HOME_DELIVERY.getType().equals(recipe.getGiveMode())) {
+                recipeOrder.setSubState(OrderStateEnum.SUB_DONE_SEND.getType());
+            } else {
+                recipeOrder.setSubState(OrderStateEnum.SUB_DONE_SELF_TAKE.getType());
+            }
         }
         recipeOrderDAO.updateNonNullFieldByPrimaryKey(recipeOrder);
         //更新同组处方状态
