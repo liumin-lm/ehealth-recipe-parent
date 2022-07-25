@@ -31,6 +31,7 @@ import eh.recipeaudit.api.IAuditMedicinesService;
 import eh.recipeaudit.api.IRecipeAuditService;
 import eh.recipeaudit.api.IRecipeCheckService;
 import eh.recipeaudit.model.AuditMedicineIssueBean;
+import eh.recipeaudit.model.AuditMedicinesBean;
 import eh.recipeaudit.model.Intelligent.PAWebRecipeDangerBean;
 import eh.recipeaudit.model.RecipeCheckBean;
 import eh.recipeaudit.util.RecipeAuditAPI;
@@ -92,6 +93,8 @@ public class OperationPlatformRecipeService {
     private OrderManager orderManager;
     @Autowired
     private EnterpriseManager enterpriseManager;
+    @Autowired
+    private IAuditMedicinesService iAuditMedicinesService;
 
     /**
      * 审核平台 获取处方单详情
@@ -414,9 +417,14 @@ public class OperationPlatformRecipeService {
                     resultMedicineIssues.forEach(item -> {
                         PAWebRecipeDangerBean recipeDanger = new PAWebRecipeDangerBean();
                         recipeDanger.setDangerDesc(item.getDetail());
-                        recipeDanger.setDangerDrug(item.getTitle());
+                        AuditMedicinesBean auditMedicinesBean = iAuditMedicinesService.getMedicineByMedicineId(item.getMedicineId());
+                        if (Objects.nonNull(auditMedicinesBean)) {
+                            recipeDanger.setDangerDrug(auditMedicinesBean.getName());
+                        } else {
+                            recipeDanger.setDangerDrug(item.getTitle());
+                        }
                         recipeDanger.setDangerLevel(item.getLvlCode());
-                        recipeDanger.setDangerType(item.getLvl());
+                        recipeDanger.setDangerType(item.getTitle());
                         recipeDanger.setDetailUrl(item.getDetailUrl());
                         recipeDangers.add(recipeDanger);
                     });
