@@ -574,13 +574,15 @@ public class PurchaseService {
                             recipedetail.setSaleDrugCode(saleDrugList.getOrganDrugCode());
                         }
                     }
+                    LOG.info("PayModeOnline.recipedetail recipeId:{},recipedetail:{}.", recipeId, JSONUtils.toString(recipedetail));
+
                     recipeDetailDAO.update(recipedetail);
                 }
             } else {
                 recipeDetails.forEach(recipeDetail -> {
                     try {
                         recipeDetail.setActualSalePrice(setRecipeDetailActualSalePrice(recipeDetail, recipeDetail.getSalePrice()));
-
+                        LOG.info("PayModeOnline.recipeDetail recipeId:{},recipeDetail:{}.", recipeId, JSONUtils.toString(recipeDetail));
                         recipeDetailDAO.updateNonNullFieldByPrimaryKey(recipeDetail);
                     } catch (Exception e) {
                         LOG.error("PayModeOnline updateRecipeDetail error", e);
