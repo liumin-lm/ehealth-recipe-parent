@@ -30,6 +30,8 @@ public class RecipeAndRecipeDetailsBean implements Serializable{
 
     private Integer status;
 
+    private Integer organId;
+
     private String statusText;
 
     private Integer statusCode;

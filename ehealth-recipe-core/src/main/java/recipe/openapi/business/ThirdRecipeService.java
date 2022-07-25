@@ -96,6 +96,7 @@ public class ThirdRecipeService {
                     recipeAndRecipeDetailsBean.setPatientSex(patientTabStatusRecipeDTO.getPatientSex());
                     recipeAndRecipeDetailsBean.setOrganDiseaseName(patientTabStatusRecipeDTO.getOrganDiseaseName());
                     recipeAndRecipeDetailsBean.setSignDate(patientTabStatusRecipeDTO.getSignDate());
+                    recipeAndRecipeDetailsBean.setOrganId(patientTabStatusRecipeDTO.getOrganId());
                     recipeAndRecipeDetailsBean.setStatus(patientTabStatusRecipeDTO.getStatus());
                     recipeAndRecipeDetailsBean.setStatusText(patientTabStatusRecipeDTO.getStatusText());
                     recipeAndRecipeDetailsBean.setStatusCode(patientTabStatusRecipeDTO.getStatusCode());
