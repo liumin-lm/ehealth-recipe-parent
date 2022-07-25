@@ -109,8 +109,6 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
 
     private GroupRecipeManager groupRecipeManager = AppContextHolder.getBean("groupRecipeManager", GroupRecipeManager.class);
     @Autowired
-    private RecipeOrderDAO recipeOrderDAO;
-    @Autowired
     private OrderManager orderManager;
     @Autowired
     private InvoiceRecordService invoiceRecordService;
@@ -463,6 +461,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
     public ThirdResultBean finishRecipe(Map<String, Object> paramMap) {
         LOGGER.info("finishRecipe param : " + JSONUtils.toString(paramMap));
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         ThirdResultBean backMsg = ThirdResultBean.getFail();
         int code = validateRecipe(paramMap, backMsg, OrderStatusConstant.SENDING, OrderStatusConstant.FINISH, CHECK_ORDER);
         StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
@@ -553,6 +552,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
     public ThirdResultBean RecipeFall(Map<String, Object> paramMap) {
         LOGGER.info("RecipeFall param : " + JSONUtils.toString(paramMap));
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         ThirdResultBean backMsg = ThirdResultBean.getFail();
         int code = validateRecipe(paramMap, backMsg, null, OrderStatusConstant.FAIL, CHECK_ORDER);
 
@@ -789,6 +789,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
     public ThirdResultBean recordDrugStoreResult(Map<String, Object> paramMap) {
         LOGGER.info("recordDrugStoreResult param : " + JSONUtils.toString(paramMap));
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         ThirdResultBean backMsg = ThirdResultBean.getFail();
         int code = validateRecipe(paramMap, backMsg, null, null, CHECK_RECIPE);
 
@@ -884,6 +885,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
     public ThirdResultBean userConfirm(Map<String, Object> paramMap) {
         LOGGER.info("userConfirm param : " + JSONUtils.toString(paramMap));
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         ThirdResultBean backMsg = ThirdResultBean.getFail();
         int code = validateRecipe(paramMap, backMsg, null, null, CHECK_RECIPE);
 
