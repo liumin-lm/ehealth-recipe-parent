@@ -4502,7 +4502,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 }
                 //3是全部---0409小版本要包含待审核或者审核后已撤销的处方
                 else if (flag == all) {
-                    hql.append("select r.* from cdr_recipe r where r.clinicOrgan in (:organ) and r.checkMode<2   and (r.audit_state in (1,2,3,4,5,6,7) || (r.audit_state=0 && r.support_mode=1)) and r.status != 0 and  (r.recipeType in(:recipeTypes) or r.grabOrderStatus=1) and r.reviewType != 0 ");
+                    hql.append("select r.* from cdr_recipe r where r.clinicOrgan in (:organ) and r.checkMode<2   and (r.audit_state in (1,2,3,4,5,6,7) || (r.audit_state=0 && r.support_mode=1)) and r.status not in (0,16,11,26,30) and  (r.recipeType in(:recipeTypes) or r.grabOrderStatus=1) and r.reviewType != 0 ");
                     if (startTime != null && endTime != null) {
                         hql.append(" and r.CreateDate >= :startTime and r.CreateDate <= :endTime");
                     }
@@ -4565,7 +4565,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
 
                 //3是全部---0409小版本要包含待审核或者审核后已撤销的处方
                 else if (flag == all) {
-                    hql.append("select count(*) from cdr_recipe r where r.clinicOrgan in (:organ) and r.checkMode<2   and (r.audit_state in (1,2,3,4,5,6,7) || (r.audit_state=0 && r.support_mode=1)) and r.status != 0  and  (r.recipeType in(:recipeTypes) or r.grabOrderStatus=1) and r.reviewType != 0 ");
+                    hql.append("select count(*) from cdr_recipe r where r.clinicOrgan in (:organ) and r.checkMode<2   and (r.audit_state in (1,2,3,4,5,6,7) || (r.audit_state=0 && r.support_mode=1)) and r.status not in (0,16,11,26,30)  and  (r.recipeType in(:recipeTypes) or r.grabOrderStatus=1) and r.reviewType != 0 ");
                 } else {
                     throw new DAOException(ErrorCode.SERVICE_ERROR, "flag is invalid");
                 }
