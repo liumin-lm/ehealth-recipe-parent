@@ -228,19 +228,8 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     @DAOMethod(sql = "from Recipe where recipeCode in (:recipeCodeList) and clinicOrgan=:clinicOrgan")
     public abstract List<Recipe> findByRecipeCodeAndClinicOrgan(@DAOParam("recipeCodeList") List<String> recipeCodeList, @DAOParam("clinicOrgan") Integer clinicOrgan);
 
-    @DAOMethod(sql = "from Recipe where recipeCode in (:recipeCodeList) and clinicOrgan=:clinicOrgan and payFlag=1")
-    public abstract List<Recipe> findAlreadyPayRecipeByRecipeCodesAndClinicOrgan(@DAOParam("recipeCodeList") List<String> recipeCodeList, @DAOParam("clinicOrgan") Integer clinicOrgan);
-
     @DAOMethod(sql = "select COUNT(*) from Recipe where  clinicOrgan=:organId and  PayFlag =:payFlag and status in (2,8)")
     public abstract Long getUnfinishedRecipe(@DAOParam("organId") Integer organId, @DAOParam("payFlag") Integer payFlag);
-
-    @DAOMethod(sql = "from Recipe where doctorId =:doctorId order by recipeId desc")
-    @Deprecated
-    public abstract List<Recipe> findRecipeByDoctorId(@DAOParam("doctorId") Integer doctorId);
-
-    @DAOMethod(sql = "from Recipe where recipeId >:recipeId order by recipeId")
-    @Deprecated
-    public abstract List<Recipe> findRecipeByRecipeIdList(@DAOParam("recipeId") Integer recipeId);
 
     /**
      * 根据医生id处方id获取处方集合

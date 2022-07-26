@@ -56,17 +56,6 @@ public class TextGmAtop {
     }
 
     /**
-     * todo 老数据同步接口 只使用一次
-     *
-     * @param recipeId
-     * @param doctorId
-     */
-    @RpcService
-    public void saveCommonDrug(Integer recipeId, Integer doctorId) {
-        drugBusinessService.saveCommonDrug(recipeId, doctorId);
-    }
-
-    /**
      * 生产pdf文件
      *
      * @param recipeId

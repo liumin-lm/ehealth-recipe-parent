@@ -160,14 +160,6 @@ public interface IDrugBusinessService {
     List<SearchDrugDetailDTO> commonDrugList(CommonDrugListDTO commonDrug);
 
     /**
-     * todo 老数据同步接口 只使用一次
-     *
-     * @param recipeId
-     * @param doctorId
-     */
-    void saveCommonDrug(Integer recipeId, Integer doctorId);
-
-    /**
      * 查找药品规则
      * @param drugId
      * @param ruleId

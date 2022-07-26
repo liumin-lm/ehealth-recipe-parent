@@ -15,7 +15,6 @@ import com.ngari.recipe.vo.DrugSaleStrategyVO;
 import com.ngari.recipe.vo.HospitalDrugListReqVO;
 import com.ngari.recipe.vo.HospitalDrugListVO;
 import com.ngari.recipe.vo.SearchDrugReqVO;
-import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
@@ -35,7 +34,6 @@ import recipe.manager.DrugManager;
 import recipe.manager.HisRecipeManager;
 import recipe.manager.OrganDrugListManager;
 import recipe.util.MapValueUtil;
-import recipe.util.ValidateUtil;
 import recipe.vo.patient.PatientContinueRecipeCheckDrugReq;
 import recipe.vo.patient.PatientContinueRecipeCheckDrugRes;
 import recipe.vo.patient.PatientOptionalDrugVo;
@@ -276,25 +274,6 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
             drugList.add(searchDrug);
         });
         return drugList;
-    }
-
-    @Override
-    public void saveCommonDrug(Integer recipeId, Integer doctorId) {
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        if (!ValidateUtil.integerIsEmpty(doctorId)) {
-            List<Recipe> recipes = recipeDAO.findRecipeByDoctorId(doctorId);
-            recipes.forEach(a -> drugManager.saveCommonDrug(a));
-            return;
-        }
-        while (true) {
-            List<Recipe> recipeList = recipeDAO.findRecipeByRecipeIdList(recipeId);
-            if (CollectionUtils.isEmpty(recipeList)) {
-                return;
-            }
-            recipeList.forEach(a -> drugManager.saveCommonDrug(a));
-            recipeId = recipeList.get(recipeList.size() - 1).getRecipeId();
-            logger.info("DrugBusinessService saveCommonDrug recipeId={}", recipeId);
-        }
     }
 
     @Override
