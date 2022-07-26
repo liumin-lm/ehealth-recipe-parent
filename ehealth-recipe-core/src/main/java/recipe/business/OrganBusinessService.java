@@ -1,6 +1,7 @@
 package recipe.business;
 
 import com.alibaba.fastjson.JSON;
+import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.base.scratchable.model.ScratchableBean;
 import com.ngari.recipe.dto.GiveModeButtonDTO;
 import com.ngari.recipe.dto.OrganDTO;
@@ -13,8 +14,10 @@ import org.springframework.stereotype.Service;
 import recipe.client.IConfigurationClient;
 import recipe.client.OperationClient;
 import recipe.client.OrganClient;
+import recipe.client.PatientClient;
 import recipe.core.api.IOrganBusinessService;
 import recipe.dao.RecipeParameterDao;
+import recipe.hisservice.HisRequestInit;
 import recipe.manager.OrderManager;
 import recipe.util.ObjectCopyUtils;
 import recipe.vo.second.OrganVO;
@@ -34,6 +37,10 @@ public class OrganBusinessService extends BaseService implements IOrganBusinessS
     private RecipeParameterDao recipeParameterDao;
     @Autowired
     private OperationClient operationClient;
+    @Autowired
+    private HisRequestInit hisRequestInit;
+    @Autowired
+    private PatientClient patientClient;
 
 
     @Override
@@ -106,6 +113,9 @@ public class OrganBusinessService extends BaseService implements IOrganBusinessS
         if (null == recipeOrder) {
             throw new DAOException("订单不存在");
         }
+        //查询his是否结算成功
+        HealthCardBean cardBean =  patientClient.getCardBean(recipeOrder.getMpiId(), recipeOrder.getOrganId());
+
         return recipeOrder.getPayFlag();
     }
 
