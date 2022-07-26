@@ -2,6 +2,7 @@ package recipe.client;
 
 import com.alibaba.fastjson.JSON;
 import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
+import com.ngari.base.patient.service.IPatientService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.patient.service.IPatientHisService;
 import com.ngari.his.recipe.mode.DrugInfoTO;
@@ -19,6 +20,7 @@ import recipe.constant.ErrorCode;
 import recipe.constant.HisErrorCodeEnum;
 import recipe.util.DictionaryUtil;
 
+import javax.annotation.Resource;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -41,6 +43,8 @@ public class BaseClient {
     protected IRecipeToTestService recipeToTestService;
     @Autowired
     protected DoctorService doctorService;
+    @Resource
+    protected IPatientService iPatientService;
 
     /**
      * 解析前置机 出参

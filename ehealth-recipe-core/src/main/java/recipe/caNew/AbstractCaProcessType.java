@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.audit.auditmode.AuditModeContext;
+import recipe.client.DocIndexClient;
 import recipe.client.IConfigurationClient;
 import recipe.constant.RecipeBussConstant;
 import recipe.enumerate.status.RecipeStatusEnum;
@@ -42,6 +43,7 @@ public abstract class AbstractCaProcessType {
     protected static IConfigurationClient configurationClient = AppContextHolder.getBean("IConfigurationClient", IConfigurationClient.class);
     protected static CaManager caManager = AppContextHolder.getBean("caManager", CaManager.class);
     protected static StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
+    protected static DocIndexClient docIndexClient = AppContextHolder.getBean("docIndexClient", DocIndexClient.class);
 
     private static final Integer CA_BEFORE = new Integer(0);
 
@@ -134,5 +136,7 @@ public abstract class AbstractCaProcessType {
         }
         //推送处方到监管平台
         RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(Collections.singletonList(recipe.getRecipeId()), 1));
+        //保存电子病历
+        docIndexClient.saveRecipeDocIndex(recipe);
     }
 }

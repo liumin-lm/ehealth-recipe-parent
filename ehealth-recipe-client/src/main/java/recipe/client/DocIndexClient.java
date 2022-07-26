@@ -51,6 +51,7 @@ public class DocIndexClient extends BaseClient {
     @Resource
     private DepartmentService departmentService;
 
+
     /**
      * 根据病历id 获取 电子病例明细对象
      *
@@ -286,6 +287,32 @@ public class DocIndexClient extends BaseClient {
     @LogRecord
     public void updateStatusByBussIdBussType(Integer bussId, Integer docStatus) {
         docIndexService.updateStatusByBussIdBussType(bussId, BUSS_TYPE_RECIPE, docStatus);
+    }
+
+    /**
+     * 保存处方电子病历
+     *
+     * @param recipe 处方对象
+     */
+    @LogRecord
+    public void saveRecipeDocIndex(Recipe recipe) {
+        com.ngari.base.patient.model.DocIndexBean docIndex = new com.ngari.base.patient.model.DocIndexBean();
+        String docTypeText = DictionaryUtil.getDictionary("eh.cdr.dictionary.DocType", "3");
+        docIndex.setDocSummary(docTypeText);
+        docIndex.setDoctypeName(docTypeText);
+        String recipeTypeText = DictionaryUtil.getDictionary("eh.cdr.dictionary.RecipeType", recipe.getRecipeType());
+        docIndex.setDocTitle(recipeTypeText);
+        docIndex.setDocId(recipe.getRecipeId());
+        docIndex.setMpiid(recipe.getMpiid());
+        // docStatus   0  正常（显示） 1  删除状态（不显示）
+        docIndex.setDocStatus(DocIndexShowEnum.NO_AUDIT.getCode().equals(recipe.getReviewType()) ? DocIndexShowEnum.SHOW.getCode() : DocIndexShowEnum.HIDE.getCode());
+        docIndex.setCreateOrgan(recipe.getClinicOrgan());
+        docIndex.setCreateDepart(recipe.getDepart());
+        docIndex.setCreateDoctor(recipe.getDoctor());
+        docIndex.setDoctorName(doctorService.getNameById(recipe.getDoctor()));
+        docIndex.setDepartName(departmentService.getNameById(recipe.getDepart()));
+        logger.info("saveRecipeDocIndex RecipeType docIndex={}", JSON.toJSONString(docIndex));
+        iPatientService.saveRecipeDocIndex(docIndex, "3", 3);
     }
 
 
