@@ -5,7 +5,7 @@ import ctd.util.annotation.RpcService;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.aop.LogRecord;
 import recipe.atop.BaseAtop;
-import recipe.core.api.ICaBusinessService;
+import recipe.core.api.doctor.ICaBusinessService;
 
 /**
  * CA相关服务

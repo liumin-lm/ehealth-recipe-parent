@@ -14,7 +14,7 @@ import recipe.api.open.ITherapyItemOpenAtopService;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
 import recipe.constant.PageInfoConstant;
-import recipe.core.api.doctor.ITherapyItemBusinessService;
+import recipe.core.api.doctor.ITherapyRecipeBusinessService;
 import recipe.util.ObjectCopyUtils;
 import recipe.util.ValidateUtil;
 import recipe.vo.doctor.ItemListBean;
@@ -30,9 +30,8 @@ import java.util.List;
  */
 @RpcBean("therapyItemOpenAtop")
 public class TherapyItemOpenAtop extends BaseAtop implements ITherapyItemOpenAtopService {
-
     @Autowired
-    private ITherapyItemBusinessService therapyItemBusinessService;
+    private ITherapyRecipeBusinessService iTherapyRecipeBusinessService;
 
     /**
      * 运营平台搜索诊疗项目（查询诊疗项目列表）
@@ -50,7 +49,7 @@ public class TherapyItemOpenAtop extends BaseAtop implements ITherapyItemOpenAto
             if (ValidateUtil.integerIsEmpty(itemListVO.getLimit())) {
                 itemListVO.setLimit(PageInfoConstant.PAGE_SIZE);
             }
-            QueryResult<ItemList> result = therapyItemBusinessService.pageItemList(itemListVO);
+            QueryResult<ItemList> result = iTherapyRecipeBusinessService.pageItemList(itemListVO);
             logger.info("TherapyItemOpenAtop listItemList result:{}.", JSON.toJSONString(result));
             return result;
         } catch (DAOException e1) {
@@ -72,7 +71,7 @@ public class TherapyItemOpenAtop extends BaseAtop implements ITherapyItemOpenAto
     public ItemList getItemListById(ItemList itemList) {
         validateAtop(itemList, itemList.getId());
         try {
-            itemList = therapyItemBusinessService.getItemListById(itemList);
+            itemList = iTherapyRecipeBusinessService.getItemListById(itemList);
         } catch (Exception e1) {
             logger.error("TherapyItemOpenAtop getItemListById  error", e1);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
@@ -91,7 +90,7 @@ public class TherapyItemOpenAtop extends BaseAtop implements ITherapyItemOpenAto
         validateAtop(itemList, itemList.getOrganID());
         boolean result = false;
         try {
-            result = therapyItemBusinessService.saveItemList(itemList);
+            result = iTherapyRecipeBusinessService.saveItemList(itemList);
         } catch (DAOException e1) {
             logger.error("TherapyItemOpenAtop saveItemList  error", e1);
         }
@@ -109,7 +108,7 @@ public class TherapyItemOpenAtop extends BaseAtop implements ITherapyItemOpenAto
         validateAtop(itemList, itemList.getId());
         boolean result = false;
         try {
-            result = therapyItemBusinessService.updateItemList(itemList);
+            result = iTherapyRecipeBusinessService.updateItemList(itemList);
         } catch (DAOException e1) {
             logger.error("TherapyItemOpenAtop updateItemList  error", e1);
         }
@@ -127,7 +126,7 @@ public class TherapyItemOpenAtop extends BaseAtop implements ITherapyItemOpenAto
         validateAtop(itemLists);
         boolean result = false;
         try {
-            therapyItemBusinessService.batchUpdateItemList(itemLists);
+            iTherapyRecipeBusinessService.batchUpdateItemList(itemLists);
             result = true;
         } catch (DAOException e1) {
             logger.error("TherapyItemOpenAtop updateItemList  error", e1);
@@ -146,7 +145,7 @@ public class TherapyItemOpenAtop extends BaseAtop implements ITherapyItemOpenAto
         CheckItemListVo checkItemListVo = new CheckItemListVo();
         validateAtop(itemList);
         try {
-            checkItemListVo = therapyItemBusinessService.checkItemList(itemList);
+            checkItemListVo = iTherapyRecipeBusinessService.checkItemList(itemList);
         } catch (DAOException e1) {
             logger.error("TherapyItemOpenAtop updateItemList  error", e1);
         }
@@ -155,20 +154,20 @@ public class TherapyItemOpenAtop extends BaseAtop implements ITherapyItemOpenAto
 
     @Override
     public Boolean checkExistByOrganIdAndItemNameOrCode(Integer organId, String itemName, String itemCode) {
-        List<ItemList> list = therapyItemBusinessService.findItemListByOrganIdAndItemNameOrCode(organId, itemName, itemCode);
+        List<ItemList> list = iTherapyRecipeBusinessService.findItemListByOrganIdAndItemNameOrCode(organId, itemName, itemCode);
         return CollectionUtils.isNotEmpty(list);
     }
 
     @Override
     public Boolean checkExistByOrganIdAndItemNameOrCode2(Integer organId, String itemName, String itemCode) {
-        List<ItemList> list = therapyItemBusinessService.findItemListByOrganIdAndItemNameOrCode2(organId, itemName, itemCode);
+        List<ItemList> list = iTherapyRecipeBusinessService.findItemListByOrganIdAndItemNameOrCode2(organId, itemName, itemCode);
         return CollectionUtils.isNotEmpty(list);
     }
 
     @Override
     public void saveOrUpdateBean(ItemListBean itemListBean) {
         ItemList itemListInfo = ObjectCopyUtils.convert(itemListBean, ItemList.class);
-        List<ItemList> existList = therapyItemBusinessService.findItemListByOrganIdAndItemNameOrCode2(itemListInfo.getOrganID(), itemListInfo.getItemName(), itemListInfo.getItemCode());
+        List<ItemList> existList = iTherapyRecipeBusinessService.findItemListByOrganIdAndItemNameOrCode2(itemListInfo.getOrganID(), itemListInfo.getItemName(), itemListInfo.getItemCode());
         //更新
         if (CollectionUtils.isNotEmpty(existList)) {
             for (ItemList item : existList) {

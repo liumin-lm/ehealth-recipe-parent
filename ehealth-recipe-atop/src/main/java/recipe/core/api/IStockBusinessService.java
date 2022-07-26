@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 药企处理实现类
+ * 库存处理实现类
  *
  * @author fuzi
  */

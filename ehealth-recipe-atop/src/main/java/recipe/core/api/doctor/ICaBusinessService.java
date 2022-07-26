@@ -1,4 +1,4 @@
-package recipe.core.api;
+package recipe.core.api.doctor;
 
 /**
  * @author yinsheng

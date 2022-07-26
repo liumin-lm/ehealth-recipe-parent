@@ -8,7 +8,6 @@ import com.ngari.base.organ.model.OrganBean;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.his.recipe.mode.DrugTakeChangeReqTO;
 import com.ngari.his.recipe.mode.FTYSendTimeReqDTO;
-import com.ngari.patient.service.OrganService;
 import com.ngari.platform.recipe.mode.DrugsEnterpriseBean;
 import com.ngari.platform.recipe.mode.MedicineStationDTO;
 import com.ngari.recipe.drugsenterprise.model.EnterpriseAddressAndPrice;
@@ -42,8 +41,6 @@ import recipe.bean.DrugEnterpriseResult;
 import recipe.client.EnterpriseClient;
 import recipe.client.OrganClient;
 import recipe.client.PatientClient;
-import recipe.common.CommonConstant;
-import recipe.common.response.CommonResponse;
 import recipe.constant.ErrorCode;
 import recipe.constant.RecipeMsgEnum;
 import recipe.constant.RecipeStatusConstant;
@@ -106,8 +103,6 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
     @Autowired
     private EnterpriseAddressDAO enterpriseAddressDAO;
     @Autowired
-    private OrganService organService;
-    @Autowired
     private RecipeOrderDAO recipeOrderDAO;
     @Autowired
     private RemoteDrugEnterpriseService remoteDrugEnterpriseService;
@@ -121,8 +116,6 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
     private PatientClient patientClient;
     @Autowired
     private RecipeManager recipeManager;
-    @Autowired
-    private DrugDistributionPriceDAO drugDistributionPriceDAO;
     @Autowired
     private SaleDrugListDAO saleDrugListDAO;
     @Autowired
@@ -262,7 +255,7 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
         String manageUnit = ur.getManageUnit();
         // 机构管理员获取机构信息
         if (!"eh".equals(manageUnit)) {
-            List<Integer> organIds = organService.findOrganIdsByManageUnit(manageUnit + "%");
+            List<Integer> organIds = organClient.findOrganIdsByManageUnit(manageUnit);
             logger.info("findOrganAndDrugsepRelationBean manageUnit={},organIds={}", JSONArray.toJSONString(organIds), JSONArray.toJSONString(manageUnit));
             if (CollectionUtils.isNotEmpty(organIds)) {
                 return organAndDrugsepRelationDAO.findByEntIdAndOrganIds(enterpriseId, organIds);

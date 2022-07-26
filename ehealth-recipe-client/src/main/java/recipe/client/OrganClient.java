@@ -56,7 +56,16 @@ public class OrganClient extends BaseClient {
         }
         logger.info("OrganClient getOrganForWeb findOrgans organIds:{}", JSONUtils.toString(organIds));
         return organIds;
+    }
 
+    /**
+     * 机构账号可以配置其它机构
+     *
+     * @param manageUnit
+     * @return
+     */
+    public List<Integer> findOrganIdsByManageUnit(String manageUnit) {
+        return organService.findOrganIdsByManageUnit(manageUnit + "%");
     }
 
     /**

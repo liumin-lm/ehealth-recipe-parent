@@ -399,6 +399,28 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
         saleDrugListDAO.updateNonNullFieldByPrimaryKey(saleDrugList);
     }
 
+    @Override
+    public SaleDrugList findSaleDrugListByDrugIdAndOrganId(SaleDrugList saleDrugList) {
+        SaleDrugList saleDrugListDb = saleDrugListDAO.getByDrugIdAndOrganId(saleDrugList.getDrugId(), saleDrugList.getOrganId());
+        if (null == saleDrugListDb) {
+            saleDrugListDb = recipe.util.ObjectCopyUtils.convert(saleDrugList, SaleDrugList.class);
+        }
+        return saleDrugListDb;
+    }
+
+    @Override
+    public void saveSaleDrugSalesStrategy(SaleDrugList saleDrugList) {
+        logger.info("saveSaleDrugSalesStrategy saleDrugList={}", JSONUtils.toString(saleDrugList));
+        //获取之前的药企药品目录
+        SaleDrugList saleDrugList1 = saleDrugListDAO.getByDrugIdAndOrganId(saleDrugList.getDrugId(), saleDrugList.getOrganId());
+        if (saleDrugList1 == null) {
+            return;
+        }
+        logger.info("saveSaleDrugSalesStrategy saleDrugList1={}", JSONUtils.toString(saleDrugList1));
+        //最后进行更新
+        saleDrugListDAO.updateNonNullFieldByPrimaryKey(saleDrugList1);
+    }
+
 
     private void getCheckText(PatientContinueRecipeCheckDrugRes patientContinueRecipeCheckDrugRes, List<String> drugName) {
         patientContinueRecipeCheckDrugRes.setCheckFlag(YesOrNoEnum.YES.getType());

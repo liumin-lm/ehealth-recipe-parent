@@ -39,7 +39,7 @@ import java.util.concurrent.FutureTask;
 import java.util.stream.Collectors;
 
 /**
- * 药企处理实现类
+ * 库存处理实现类
  *
  * @author fuzi
  */
