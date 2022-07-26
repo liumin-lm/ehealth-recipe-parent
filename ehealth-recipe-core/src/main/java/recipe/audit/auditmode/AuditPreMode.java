@@ -86,11 +86,7 @@ public class AuditPreMode extends AbstractAuditMode {
         // 设置新的审方状态
         currentRecipe.setStatus(status);
         currentRecipe.setCheckFlag(0);
-        if (SupportModeTypeEnum.SUPPORT_MODE_ACCEPT.getType().equals(recipe.getSupportMode())) {
-            currentRecipe.setAuditState(RecipeAuditStateEnum.DEFAULT.getType());
-        } else {
-            currentRecipe.setAuditState(RecipeAuditStateEnum.PENDING_REVIEW.getType());
-        }
+        currentRecipe.setAuditState(RecipeAuditStateEnum.PENDING_REVIEW.getType());
         recipeDAO.updateNonNullFieldByPrimaryKey(currentRecipe);
         StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
         stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_AUDIT, RecipeStateEnum.SUB_AUDIT_READY_SUPPORT);
