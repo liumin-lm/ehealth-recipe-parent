@@ -2,21 +2,26 @@ package recipe.business;
 
 import com.alibaba.fastjson.JSON;
 import com.ngari.base.patient.model.HealthCardBean;
+import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.scratchable.model.ScratchableBean;
+import com.ngari.common.mode.HisResponseTO;
+import com.ngari.his.recipe.mode.PayNotifyReqTO;
+import com.ngari.patient.dto.PatientDTO;
 import com.ngari.recipe.dto.GiveModeButtonDTO;
 import com.ngari.recipe.dto.OrganDTO;
+import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.recipe.model.GiveModeButtonBean;
 import ctd.persistence.exception.DAOException;
+import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import recipe.client.IConfigurationClient;
-import recipe.client.OperationClient;
-import recipe.client.OrganClient;
-import recipe.client.PatientClient;
+import recipe.client.*;
 import recipe.core.api.IOrganBusinessService;
+import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeParameterDao;
+import recipe.enumerate.type.PayFlagEnum;
 import recipe.hisservice.HisRequestInit;
 import recipe.manager.OrderManager;
 import recipe.util.ObjectCopyUtils;
@@ -41,6 +46,10 @@ public class OrganBusinessService extends BaseService implements IOrganBusinessS
     private HisRequestInit hisRequestInit;
     @Autowired
     private PatientClient patientClient;
+    @Autowired
+    private RecipeDAO recipeDAO;
+    @Autowired
+    private RecipeSettleClient recipeSettleClient;
 
 
     @Override
@@ -113,9 +122,26 @@ public class OrganBusinessService extends BaseService implements IOrganBusinessS
         if (null == recipeOrder) {
             throw new DAOException("订单不存在");
         }
-        //查询his是否结算成功
-        HealthCardBean cardBean =  patientClient.getCardBean(recipeOrder.getMpiId(), recipeOrder.getOrganId());
-
+        try {
+            List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
+            List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIdList);
+            //查询his是否结算成功
+            HealthCardBean cardBean =  patientClient.getCardBean(recipeOrder.getMpiId(), recipeOrder.getOrganId());
+            PatientDTO patientDTO = patientClient.getPatientBeanByMpiId(recipeOrder.getMpiId());
+            PatientBean patientBean = ObjectCopyUtils.convert(patientDTO, PatientBean.class);
+            List<String> recipeIds = (List<String>) JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
+            PayNotifyReqTO payNotifyReq = hisRequestInit.initPayNotifyReqTO(recipeIds, recipes.get(0), patientBean, cardBean);
+            HisResponseTO hisResponseTO = recipeSettleClient.cashSettleResult(payNotifyReq);
+            if ("200".equals(hisResponseTO.getMsgCode())) {
+                return recipeOrder.getPayFlag();
+            } else if ("-1".equals(hisResponseTO.getMsgCode())) {
+                return PayFlagEnum.REFUND_SUCCESS.getType();
+            } else if ("99".equals(hisResponseTO.getMsgCode())) {
+                return PayFlagEnum.NOPAY.getType();
+            }
+        } catch (Exception e) {
+            logger.error("getOrderPayFlag error ", e);
+        }
         return recipeOrder.getPayFlag();
     }
 
