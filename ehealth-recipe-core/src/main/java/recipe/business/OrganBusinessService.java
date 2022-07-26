@@ -114,8 +114,10 @@ public class OrganBusinessService extends BaseService implements IOrganBusinessS
         if (null == recipeOrder) {
             throw new DAOException("订单不存在");
         }
-
-        return recipeOrder.getPayFlag();
+        if (null == recipeOrder.getSettleAmountState()) {
+            return 0;
+        }
+        return recipeOrder.getSettleAmountState();
     }
 
 }
