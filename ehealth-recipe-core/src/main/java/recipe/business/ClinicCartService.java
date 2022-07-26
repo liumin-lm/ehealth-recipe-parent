@@ -25,6 +25,13 @@ public class ClinicCartService implements IClinicCartBusinessService {
     @Autowired
     ClinicCartDAO clinicCartDAO;
 
+    /**
+     * 方便门诊购物车列表查询
+     *
+     * @param organId
+     * @param userId
+     * @return
+     */
     @Override
     public List<ClinicCartVO> findClinicCartsByOrganIdAndUserId(Integer organId, String userId) {
         List<ClinicCart> clinicCartList = clinicCartDAO.findClinicCartsByOrganIdAndUserId(organId, userId);
@@ -35,6 +42,12 @@ public class ClinicCartService implements IClinicCartBusinessService {
         }
     }
 
+    /**
+     * 方便门诊购物车列表新增
+     *
+     * @param clinicCartVO
+     * @return
+     */
     @Override
     public Integer addClinicCart(ClinicCartVO clinicCartVO) {
         ClinicCart clinicCart = BeanUtils.map(clinicCartVO, ClinicCart.class);
@@ -43,12 +56,24 @@ public class ClinicCartService implements IClinicCartBusinessService {
         return result.getId();
     }
 
+    /**
+     * 方便门诊购物车列表删除
+     *
+     * @param ids
+     * @return
+     */
     @Override
     public Boolean deleteClinicCartByIds(List<Integer> ids) {
         clinicCartDAO.deleteClinicCartByIds(ids, 1);
         return true;
     }
 
+    /**
+     * 方便门诊购物车列表更新
+     *
+     * @param clinicCartVO
+     * @return
+     */
     @Override
     public Boolean updateClinicCartById(ClinicCartVO clinicCartVO) {
         ClinicCart clinicCart = clinicCartDAO.get(clinicCartVO.getId());
