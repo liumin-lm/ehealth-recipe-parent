@@ -296,6 +296,10 @@ public class HisCallBackService {
             if (RecipeBussConstant.GIVEMODE_TO_HOS.equals(recipe.getGiveMode())) {
                 RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.PATIENT_REACHHOS_PAYONLINE);
             }
+            RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+            RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+            recipeOrder.setSettleAmountState(1);
+            recipeOrderDAO.updateNonNullFieldByPrimaryKey(recipeOrder);
         }
     }
 
@@ -327,6 +331,8 @@ public class HisCallBackService {
         if (Objects.nonNull(order)) {
             stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION, OrderStateEnum.SUB_CANCELLATION_USER);
         }
+        order.setSettleAmountState(2);
+        orderDAO.updateNonNullFieldByPrimaryKey(order);
         //微信退款
         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
         recipeService.wxPayRefundForRecipe(1, recipeId, null);
