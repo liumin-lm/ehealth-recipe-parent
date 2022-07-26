@@ -1831,6 +1831,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
 
 
         }
+        logger.info("RecipeOrderDAO getRefundStringBuilder hql:{}", hql);
         return hql;
     }
 
