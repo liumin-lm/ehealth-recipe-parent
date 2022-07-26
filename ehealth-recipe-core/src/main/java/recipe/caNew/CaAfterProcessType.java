@@ -53,8 +53,7 @@ public class CaAfterProcessType extends AbstractCaProcessType {
             if (null == caType) {
                 return;
             }
-            String memo = "HIS审核返回：写入his成功，审核通过---" + caType;
-            super.caComplete(recipe, memo);
+            super.caComplete(recipe, "HIS审核返回：写入his成功，审核通过---" + caType);
         } catch (Exception e) {
             LOGGER.error("CaAfterProcessType signCAAfterRecipeCallBackFunction recipeBean= {}", JSON.toJSONString(recipeBean), e);
         }
