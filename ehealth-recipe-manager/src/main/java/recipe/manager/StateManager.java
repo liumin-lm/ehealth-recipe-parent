@@ -70,6 +70,7 @@ public class StateManager extends BaseManager {
             case PROCESS_STATE_AUDIT:
                 result = this.audit(recipe, processState, subState);
                 break;
+            case NONE:
             case PROCESS_STATE_DONE:
                 result = this.defaultRecipe(recipe, processState, subState);
                 break;
