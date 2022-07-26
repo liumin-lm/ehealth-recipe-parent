@@ -1951,7 +1951,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         hql.append("c.refundNodeStatus as refundNodeStatus,");
         hql.append("a.giveModeText,a.DrugStoreName,a.CreateTime as orderTime,a.PayTime,a.TotalFee,a.RecipeFee,a.ExpressFee,a.DecoctionFee,a.TCMFee,a.RegisterFee,a.AuditFee,a.TradeNo,a.RecMobile as mobile,");
         hql.append("c.decoctionText,d.DrugName,d.OrganDrugCode,d.salePrice,d.useTotalDose,d.drugUnit,");
-        hql.append("cd.Name,bs.OrganDrugCode as saleDrugCode,case when dd.generationis_of_decoction = 0 then '否' when dd.generationis_of_decoction = 1 then '是' end as generationisOfDecoction ");
+        hql.append("cd.Name,bs.OrganDrugCode as saleDrugCode,case when a.patient_is_decoction = 0 then '否' when a.patient_is_decoction = 1 then '是' end as generationisOfDecoction ");
         return generateRecipeOrderDetailHQLStatistics(recipeOrderRefundReqDTO,hql);
     }
 
@@ -1959,7 +1959,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         hql.append("from cdr_recipe b LEFT JOIN cdr_recipeorder a on b.orderCode=a.orderCode ");
         hql.append("LEFT JOIN cdr_recipedetail d ON b.RecipeID = d.RecipeID LEFT JOIN cdr_recipe_ext c on c.recipeId = b.recipeId ");
         hql.append("LEFT JOIN cdr_drugsenterprise cd ON cd.id = a.EnterpriseId ");
-        hql.append("LEFT JOIN base_saledruglist bs ON bs.OrganID = a.EnterpriseId and bs.DrugId = d.DrugID LEFT JOIN base_drug_decoctionway dd on dd.decoctionId = c.decoctionId ");
+        hql.append("LEFT JOIN base_saledruglist bs ON bs.OrganID = a.EnterpriseId and bs.DrugId = d.DrugID ");
         hql.append(" where d.status= 1 and b.orderCode in (:orderCodeList) ");
         getRefundStringBuilder(recipeOrderRefundReqDTO, hql);
         hql.append(" order by a.CreateTime DESC");
