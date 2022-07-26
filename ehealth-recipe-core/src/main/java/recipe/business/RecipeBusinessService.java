@@ -40,7 +40,6 @@ import recipe.core.api.IRecipeBusinessService;
 import recipe.dao.*;
 import recipe.enumerate.status.*;
 import recipe.enumerate.type.BussSourceTypeEnum;
-import recipe.enumerate.type.DrugBelongTypeEnum;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.manager.*;
 import recipe.service.*;
@@ -137,15 +136,6 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         logger.info("OutPatientRecipeService queryOutPatientRecipe outPatientRecipeReq:{}.", JSON.toJSONString(outPatientRecipeReqVO));
         OutPatientRecipeReq outPatientRecipeReq = ObjectCopyUtil.convert(outPatientRecipeReqVO, OutPatientRecipeReq.class);
         return offlineRecipeClient.queryOutPatientRecipe(outPatientRecipeReq);
-    }
-
-    public static void main(String[] args) {
-        List<OutPatientRecipeDetailDTO> outPatientRecipeDetails = new ArrayList<>();
-        OutPatientRecipeDetailDTO outPatientRecipeDetailDTO = new OutPatientRecipeDetailDTO();
-        outPatientRecipeDetailDTO.setType(3);
-        outPatientRecipeDetails.add(outPatientRecipeDetailDTO);
-        Boolean haveSecrecyDrugFlag = outPatientRecipeDetails.stream().anyMatch(outPatientRecipeDetail -> DrugBelongTypeEnum.SECRECY_DRUG.getType().equals(outPatientRecipeDetail.getType()));
-        System.out.println(haveSecrecyDrugFlag);
     }
 
     /**

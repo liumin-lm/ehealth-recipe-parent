@@ -5,7 +5,7 @@ import com.ngari.recipe.entity.Recipe;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.aop.LogRecord;
-import recipe.core.api.ICaBusinessService;
+import recipe.core.api.doctor.ICaBusinessService;
 import recipe.dao.RecipeDAO;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;

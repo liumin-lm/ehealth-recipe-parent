@@ -187,9 +187,22 @@ public interface IDrugBusinessService {
 
     /**
      * 保存药品销售策略
+     *
      * @param depId
      * @param drugId
      * @param strategyId
      */
     void saveDrugSaleStrategy(Integer depId, Integer drugId, Integer strategyId);
+
+
+    /**
+     * findSaleDrugListByByDrugIdAndOrganId
+     *
+     * @param saleDrugList
+     * @return
+     */
+    SaleDrugList findSaleDrugListByDrugIdAndOrganId(SaleDrugList saleDrugList);
+
+    void saveSaleDrugSalesStrategy(SaleDrugList saleDrugList);
+
 }

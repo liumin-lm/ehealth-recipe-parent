@@ -1,32 +1,11 @@
 package recipe.atop.greenroom;
 
-import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
-import com.ngari.recipe.drugsenterprise.model.EnterpriseDecoctionAddressDTO;
-import com.ngari.recipe.drugsenterprise.model.EnterpriseDecoctionAddressReq;
-import com.ngari.recipe.drugsenterprise.model.EnterpriseDecoctionList;
-import com.ngari.recipe.entity.*;
-import com.ngari.recipe.organdrugsep.model.OrganAndDrugsepRelationBean;
-import ctd.persistence.bean.QueryResult;
+import com.ngari.recipe.entity.SaleDrugList;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
-import eh.utils.BeanCopyUtils;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
-import recipe.core.api.IDrugsEnterpriseBusinessService;
-import recipe.core.api.ISaleDrugBusinessService;
-import recipe.enumerate.type.RecipeSupportGiveModeEnum;
-import recipe.util.ObjectCopyUtils;
-import recipe.util.ValidateUtil;
-import recipe.vo.greenroom.DrugsEnterpriseVO;
-import recipe.vo.greenroom.OrganDrugsSaleConfigVo;
-import recipe.vo.greenroom.OrganEnterpriseRelationVo;
-import recipe.vo.greenroom.PharmacyVO;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
+import recipe.core.api.IDrugBusinessService;
 
 /**
  * @description： 运营平台药企药品
@@ -37,8 +16,7 @@ import java.util.stream.Collectors;
 public class SaleDrugGmAtop extends BaseAtop {
 
     @Autowired
-    private ISaleDrugBusinessService enterpriseBusinessService;
-
+    private IDrugBusinessService iDrugBusinessService;
 
     /**
      * 根据OrganId、DrugId获取药企药品
@@ -48,7 +26,7 @@ public class SaleDrugGmAtop extends BaseAtop {
     @RpcService
     public SaleDrugList getSaleDrugListByDrugIdAndOrganId(SaleDrugList saleDrugList) {
         validateAtop(saleDrugList.getOrganId(),saleDrugList.getDrugId());
-        SaleDrugList res = enterpriseBusinessService.findSaleDrugListByDrugIdAndOrganId(saleDrugList);
+        SaleDrugList res = iDrugBusinessService.findSaleDrugListByDrugIdAndOrganId(saleDrugList);
         return res;
     }
     /**
@@ -58,8 +36,8 @@ public class SaleDrugGmAtop extends BaseAtop {
      */
     @RpcService
     public void saveSaleDrugSalesStrategy(SaleDrugList saleDrugList){
-        validateAtop(saleDrugList.getOrganId(),saleDrugList.getDrugId());
-        enterpriseBusinessService.saveSaleDrugSalesStrategy(saleDrugList);
+        validateAtop(saleDrugList.getOrganId(), saleDrugList.getDrugId());
+        iDrugBusinessService.saveSaleDrugSalesStrategy(saleDrugList);
     }
 
 
