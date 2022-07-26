@@ -223,6 +223,7 @@ public abstract class AbstractAuditMode implements IAuditMode {
         if (status == RecipeStatusEnum.RECIPE_STATUS_READY_CHECK_YS.getType()) {
             StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
             stateManager.updateAuditState(recipe.getRecipeId(), RecipeAuditStateEnum.PENDING_REVIEW);
+            stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_AUDIT, RecipeStateEnum.SUB_AUDIT_READY_SUPPORT);
         }
     }
 }
