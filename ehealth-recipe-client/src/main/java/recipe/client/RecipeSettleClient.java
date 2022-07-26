@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.aop.LogRecord;
 import recipe.util.JsonUtil;
 
 import javax.annotation.Resource;
@@ -67,5 +68,28 @@ public class RecipeSettleClient extends BaseClient {
         }
 
         return hisResponse;
+    }
+
+    /**
+     * 查询his是否结算成功
+     * @param req
+     * @return
+     */
+    @LogRecord
+    public HisResponseTO cashSettleResult(PayNotifyReqTO req){
+        HisResponseTO response = new HisResponseTO();
+        Boolean isRetrySettle = configurationClient.getValueBooleanCatch(Integer.valueOf(req.getOrganID()), "isRetrySettle", false);
+        if (!isRetrySettle) {
+            response.setMsgCode("200");
+            return response;
+        }
+        CashSettleResultReqTo cashSettleResultReqTo = CashSettleResultReqTo.builder().orderCode(req.getOrderCode()).organId(Integer.valueOf(req.getOrganID())).recipeCode(req.getRecipeNoS()).build();
+        try {
+            HisResponseTO hisResponseTO = hisService.cashSettleResult(cashSettleResultReqTo);
+            return hisResponseTO;
+        } catch (Exception e) {
+            response.setMsgCode("200");
+            return response;
+        }
     }
 }
