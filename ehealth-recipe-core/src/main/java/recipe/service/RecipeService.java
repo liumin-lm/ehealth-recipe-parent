@@ -103,6 +103,8 @@ import recipe.drugsenterprise.YtRemoteService;
 import recipe.drugsenterprise.bean.YdUrlPatient;
 import recipe.enumerate.status.*;
 import recipe.enumerate.type.*;
+import recipe.hisservice.HisMqRequestInit;
+import recipe.hisservice.RecipeToHisMqService;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.hisservice.syncdata.SyncExecutorService;
 import recipe.manager.*;
@@ -5369,10 +5371,18 @@ public class RecipeService extends RecipeBaseService {
             recipeCouponService.unuseCouponByRecipeId(recipe.getRecipeId());
             //TODO 根据审方模式改变
             auditModeContext.getAuditModes(recipe.getReviewType()).afterCheckNotPassYs(recipe);
-            //HIS消息发送
             //审核不通过 往his更新状态（已取消）
-            RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
-            hisService.recipeStatusUpdate(recipe.getRecipeId());
+            if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())) {
+                //互联网模式
+                RecipeToHisMqService hisMqService = ApplicationUtils.getRecipeService(RecipeToHisMqService.class);
+                hisMqService.recipeStatusToHis(HisMqRequestInit.initRecipeStatusToHisReq(recipe,
+                        HisBussConstant.TOHIS_RECIPE_STATUS_REVOKE));
+            } else {
+                //平台模式
+                RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
+                hisService.recipeStatusUpdate(recipe.getRecipeId());
+            }
+
             //记录日志
             RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "审核不通过处理完成");
         } else {
