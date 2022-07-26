@@ -164,6 +164,7 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
         RecipeOrder recipeOrder = orderManager.getByOutTradeNo(payResult.getOutTradeNo());
         if (null != recipeOrder && StringUtils.isNotEmpty(payResult.getFailMessage())) {
             recipeOrder.setCancelReason(payResult.getFailMessage());
+            recipeOrder.setSettleAmountState(2);
             return orderManager.updateNonNullFieldByPrimaryKey(recipeOrder);
         }
         return false;

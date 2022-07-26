@@ -75,6 +75,7 @@ import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.status.WriteHisEnum;
+import recipe.enumerate.type.PayFlagEnum;
 import recipe.hisservice.HisRequestInit;
 import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.hisservice.RecipeToHisService;
@@ -565,6 +566,13 @@ public class RecipeHisService extends RecipeBaseService {
                 response.setMsg(e.getMessage());
             }
             settleService.doRecipeSettleResponse(response, recipe, result);
+        } else {
+            RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+            RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+            if (null != recipeOrder && PayFlagEnum.PAYED.getType().equals(recipeOrder.getPayFlag())) {
+                recipeOrder.setSettleAmountState(1);
+                recipeOrderDAO.updateNonNullFieldByPrimaryKey(recipeOrder);
+            }
         }
         return true;
     }
