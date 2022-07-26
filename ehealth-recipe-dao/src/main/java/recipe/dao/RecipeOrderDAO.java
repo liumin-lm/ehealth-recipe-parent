@@ -1761,7 +1761,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         //默认查询所有
         if (CollectionUtils.isNotEmpty(recipeOrderRefundReqDTO.getOrganIds())) {
             // 添加申请机构条件
-            hql.append(" a.organId in (:organIds) ");
+            hql.append(" AND a.organId in (:organIds) ");
         }
         if (StringUtils.isNotEmpty(recipeOrderRefundReqDTO.getOrderCode())) {
             hql.append(" AND a.orderCode =:orderCode ");
