@@ -22,7 +22,7 @@ public abstract class ClinicCartDAO extends HibernateSupportDelegateDAO<ClinicCa
         this.setKeyField("id");
     }
 
-    @DAOMethod(sql = "FROM ClinicCart WHERE organId = :organId AND userId = :userId AND deleteFlag = 0")
+    @DAOMethod(sql = "FROM ClinicCart WHERE organId = :organId AND userId = :userId AND deleteFlag = 0", limit = 0)
     public abstract List<ClinicCart> findClinicCartsByOrganIdAndUserId(@DAOParam("organId") Integer organId,
                                                                        @DAOParam("userId") String userId);
 
