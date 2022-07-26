@@ -310,7 +310,7 @@ public class DocIndexClient extends BaseClient {
         docIndex.setDocTitle(recipeTypeText);
         docIndex.setDoctorName(doctorService.getNameById(recipe.getDoctor()));
         docIndex.setDepartName(departmentService.getNameById(recipe.getDepart()));
-        logger.info("saveRecipeDocIndex RecipeType docIndex={}", JSON.toJSONString(docIndex));
+        logger.info("DocIndexClient saveRecipeDocIndex docIndex={}", JSON.toJSONString(docIndex));
         iPatientService.saveRecipeDocIndex(docIndex, "3", 3);
     }
 
