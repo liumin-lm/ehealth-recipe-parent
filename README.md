@@ -29,7 +29,7 @@ submitRecipeHis 患者创建订单 根据配送方式上传处方给his  配置�
 cancelOrder 订单取消
 updateRecipeOrderStatus 运营平台订单编辑接口
 updateRecipeTrannckingInfo 基础服务更新处方物流状态
-updateRecipeStatus 浙江省互联网定时将确认中处方修改为审核中或者待处理 
+updateRecipeStatus 浙江省互联网定时将确认中处方修改为审核中或者待处理(根据机构配置项noNeedNoticeOrganFlag过滤) 
 getOrderDetail 订单页获取订单详情
 eh.recipeService  findPatientRecipesByIdsAndDepId 确认订单获取处方详情
 互联网处方新增接口流程：

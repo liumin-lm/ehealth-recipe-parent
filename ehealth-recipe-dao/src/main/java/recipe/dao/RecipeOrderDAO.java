@@ -1693,9 +1693,9 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         String orderCode = recipeOrderRefundReqDTO.getOrderCode();
         String patientName = recipeOrderRefundReqDTO.getPatientName();
         Integer organId = recipeOrderRefundReqDTO.getOrganId();
-        Integer orderStatus = recipeOrderRefundReqDTO.getOrderStatus();
         Integer payFlag = recipeOrderRefundReqDTO.getPayFlag();
         Integer depId = recipeOrderRefundReqDTO.getDepId();
+        List<Integer> organIds = recipeOrderRefundReqDTO.getOrganIds();
 
         if (StringUtils.isNotEmpty(orderCode)) {
             query.setParameter("orderCode", orderCode);
@@ -1703,7 +1703,10 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         if (StringUtils.isNotEmpty(patientName)) {
             query.setParameter("patientName", "%" + patientName + "%");
         }
-        if (null != organId) {
+        if (CollectionUtils.isNotEmpty(organIds)) {
+            query.setParameterList("organIds", organIds);
+        }
+        if (CollectionUtils.isEmpty(organIds) && null != organId) {
             query.setParameter("organId", organId);
         }
         if (null != payFlag) {
@@ -1758,19 +1761,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         //默认查询所有
         if (CollectionUtils.isNotEmpty(recipeOrderRefundReqDTO.getOrganIds())) {
             // 添加申请机构条件
-            boolean flag = true;
-            for (Integer i : recipeOrderRefundReqDTO.getOrganIds()) {
-                if (i != null) {
-                    if (flag) {
-                        hql.append(" AND b.clinicOrgan in(");
-                        flag = false;
-                    }
-                    hql.append(i + ",");
-                }
-            }
-            if (!flag) {
-                hql = new StringBuilder(hql.substring(0, hql.length() - 1) + ") ");
-            }
+            hql.append(" AND a.organId in (:organIds) ");
         }
         if (StringUtils.isNotEmpty(recipeOrderRefundReqDTO.getOrderCode())) {
             hql.append(" AND a.orderCode =:orderCode ");
@@ -1778,9 +1769,12 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         if (StringUtils.isNotEmpty(recipeOrderRefundReqDTO.getPatientName())) {
             hql.append(" AND b.patientName like :patientName ");
         }
-        if (null != recipeOrderRefundReqDTO.getOrganId()) {
-            hql.append(" AND a.organId =:organId");
+        if (CollectionUtils.isEmpty(recipeOrderRefundReqDTO.getOrganIds())) {
+            if (null != recipeOrderRefundReqDTO.getOrganId()) {
+                hql.append(" AND a.organId =:organId ");
+            }
         }
+
         if (null != recipeOrderRefundReqDTO.getOrderStatus()) {
             if (RecipeOrderStatusEnum.ORDER_STATUS_READY_PAY.getType().equals(recipeOrderRefundReqDTO.getOrderStatus())) {
                 hql.append(" AND a.status =1 ");
@@ -1828,9 +1822,8 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
             }else{
                 hql.append(" AND (b.fast_recipe_flag = 0 or b.fast_recipe_flag is null) ");
             }
-
-
         }
+        logger.info("RecipeOrderDAO getRefundStringBuilder hql:{}", hql);
         return hql;
     }
 
@@ -1951,7 +1944,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         hql.append("c.refundNodeStatus as refundNodeStatus,");
         hql.append("a.giveModeText,a.DrugStoreName,a.CreateTime as orderTime,a.PayTime,a.TotalFee,a.RecipeFee,a.ExpressFee,a.DecoctionFee,a.TCMFee,a.RegisterFee,a.AuditFee,a.TradeNo,a.RecMobile as mobile,");
         hql.append("c.decoctionText,d.DrugName,d.OrganDrugCode,d.salePrice,d.useTotalDose,d.drugUnit,");
-        hql.append("cd.Name,bs.OrganDrugCode as saleDrugCode,case when dd.generationis_of_decoction = 0 then '否' when dd.generationis_of_decoction = 1 then '是' end as generationisOfDecoction ");
+        hql.append("cd.Name,bs.OrganDrugCode as saleDrugCode,if (b.recipeType = 3,case when a.patient_is_decoction = 0 then '否' when a.patient_is_decoction = 1 then '是' end,null) as generationisOfDecoction ");
         return generateRecipeOrderDetailHQLStatistics(recipeOrderRefundReqDTO,hql);
     }
 
@@ -1959,7 +1952,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         hql.append("from cdr_recipe b LEFT JOIN cdr_recipeorder a on b.orderCode=a.orderCode ");
         hql.append("LEFT JOIN cdr_recipedetail d ON b.RecipeID = d.RecipeID LEFT JOIN cdr_recipe_ext c on c.recipeId = b.recipeId ");
         hql.append("LEFT JOIN cdr_drugsenterprise cd ON cd.id = a.EnterpriseId ");
-        hql.append("LEFT JOIN base_saledruglist bs ON bs.OrganID = a.EnterpriseId and bs.DrugId = d.DrugID LEFT JOIN base_drug_decoctionway dd on dd.decoctionId = c.decoctionId ");
+        hql.append("LEFT JOIN base_saledruglist bs ON bs.OrganID = a.EnterpriseId and bs.DrugId = d.DrugID ");
         hql.append(" where d.status= 1 and b.orderCode in (:orderCodeList) ");
         getRefundStringBuilder(recipeOrderRefundReqDTO, hql);
         hql.append(" order by a.CreateTime DESC");
