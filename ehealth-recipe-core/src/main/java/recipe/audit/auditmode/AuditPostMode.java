@@ -117,13 +117,12 @@ public class AuditPostMode extends AbstractAuditMode {
             }
         }
         super.updateRecipeInfoByRecipeId(dbRecipe.getRecipeId(), status, attrMap, result);
-        Recipe recipe = recipeDAO.getByRecipeId(dbRecipe.getRecipeId());
-        LOGGER.info("afterPayChange recipe:{}", JSON.toJSONString(recipe));
         if (saveFlag && RecipeResultBean.SUCCESS.equals(result.getCode())) {
             //更新处方为待审核
             if (RecipeStatusEnum.RECIPE_STATUS_READY_CHECK_YS.getType().equals(status)) {
-                dbRecipe.setCheckFlag(0);
-                recipeDAO.updateNonNullFieldByPrimaryKey(dbRecipe);
+                Recipe recipe = recipeDAO.getByRecipeId(dbRecipe.getRecipeId());
+                recipe.setCheckFlag(0);
+                recipeDAO.updateNonNullFieldByPrimaryKey(recipe);
                 RecipeMsgService.batchSendMsg(dbRecipe.getRecipeId(), status);
                 super.startRecipeAuditProcess(dbRecipe.getRecipeId());
             }
