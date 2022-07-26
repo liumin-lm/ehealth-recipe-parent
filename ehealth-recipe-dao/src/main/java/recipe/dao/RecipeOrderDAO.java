@@ -1762,7 +1762,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
             for (Integer i : recipeOrderRefundReqDTO.getOrganIds()) {
                 if (i != null) {
                     if (flag) {
-                        hql.append(" AND b.clinicOrgan in(");
+                        hql.append(" AND b.clinicOrgan in (");
                         flag = false;
                     }
                     hql.append(i + ",");
