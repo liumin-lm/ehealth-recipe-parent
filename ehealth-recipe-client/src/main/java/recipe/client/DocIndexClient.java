@@ -1,8 +1,10 @@
 package recipe.client;
 
 import com.alibaba.fastjson.JSON;
+import com.ngari.base.patient.service.IPatientService;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.service.DepartmentService;
+import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.dto.EmrDetailDTO;
 import com.ngari.recipe.dto.EmrDetailValueDTO;
@@ -50,6 +52,10 @@ public class DocIndexClient extends BaseClient {
     private IDocIndexService docIndexService;
     @Resource
     private DepartmentService departmentService;
+    @Resource
+    private IPatientService iPatientService;
+    @Resource
+    private DoctorService doctorService;
 
     /**
      * 根据病历id 获取 电子病例明细对象
@@ -276,6 +282,34 @@ public class DocIndexClient extends BaseClient {
         recipeExt.setDocIndexId(docId);
         logger.info("DocIndexClient addMedicalInfo end docId={}", docId);
     }
+
+
+    /**
+     * 保存处方电子病历
+     *
+     * @param recipe 处方对象
+     */
+    @LogRecord
+    public void saveRecipeDocIndex(Recipe recipe) {
+        com.ngari.base.patient.model.DocIndexBean docIndex = new com.ngari.base.patient.model.DocIndexBean();
+        String docTypeText = DictionaryUtil.getDictionary("eh.cdr.dictionary.DocType", "3");
+        docIndex.setDocSummary(docTypeText);
+        docIndex.setDoctypeName(docTypeText);
+        String recipeTypeText = DictionaryUtil.getDictionary("eh.cdr.dictionary.RecipeType", recipe.getRecipeType());
+        docIndex.setDocTitle(recipeTypeText);
+        docIndex.setDocId(recipe.getRecipeId());
+        docIndex.setMpiid(recipe.getMpiid());
+        // docStatus   0  正常（显示） 1  删除状态（不显示）
+        docIndex.setDocStatus(DocIndexShowEnum.NO_AUDIT.getCode().equals(recipe.getReviewType()) ? DocIndexShowEnum.SHOW.getCode() : DocIndexShowEnum.HIDE.getCode());
+        docIndex.setCreateOrgan(recipe.getClinicOrgan());
+        docIndex.setCreateDepart(recipe.getDepart());
+        docIndex.setCreateDoctor(recipe.getDoctor());
+        docIndex.setDoctorName(doctorService.getNameById(recipe.getDoctor()));
+        docIndex.setDepartName(departmentService.getNameById(recipe.getDepart()));
+        logger.info("saveRecipeDocIndex RecipeType docIndex={}", JSON.toJSONString(docIndex));
+        iPatientService.saveRecipeDocIndex(docIndex, "3", 3);
+    }
+
 
     /**
      * 显示

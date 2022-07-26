@@ -12,7 +12,7 @@ import recipe.vo.greenroom.*;
 /**
  * 处方退费运营平台操作查询接口
  */
-@RpcBean(value = "recipeOrderRefundGmAtop", mvc_authentication = false)
+@RpcBean(value = "recipeOrderRefundGmAtop")
 public class RecipeOrderRefundGmAtop extends BaseAtop {
 
     @Autowired

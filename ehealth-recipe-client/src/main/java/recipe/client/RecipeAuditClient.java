@@ -138,10 +138,15 @@ public class RecipeAuditClient extends BaseClient {
         }
         resultMedicineIssues.forEach(item -> {
             PAWebRecipeDangerBean recipeDanger = new PAWebRecipeDangerBean();
+            AuditMedicinesBean auditMedicinesBean = iAuditMedicinesService.getMedicineByMedicineId(item.getMedicineId());
+            if (Objects.nonNull(auditMedicinesBean)) {
+                recipeDanger.setDangerDrug(auditMedicinesBean.getName());
+            } else {
+                recipeDanger.setDangerDrug(item.getTitle());
+            }
             recipeDanger.setDangerDesc(item.getDetail());
-            recipeDanger.setDangerDrug(item.getTitle());
             recipeDanger.setDangerLevel(item.getLvlCode());
-            recipeDanger.setDangerType(item.getLvl());
+            recipeDanger.setDangerType(item.getTitle());
             recipeDanger.setDetailUrl(item.getDetailUrl());
             recipeDangers.add(recipeDanger);
         });
