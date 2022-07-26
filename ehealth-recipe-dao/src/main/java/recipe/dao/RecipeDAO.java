@@ -1975,6 +1975,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 hql.append(" and (r.fast_recipe_flag = 0 or r.fast_recipe_flag is null)");
             }
         }
+        LOGGER.info("generateRecipeOderWhereHQLforStatistics hql:{}", hql);
         return hql;
     }
 
