@@ -290,25 +290,24 @@ public class DocIndexClient extends BaseClient {
     }
 
     /**
-     * 保存处方电子病历
+     * 保存处方电子病历-电子病历端显示处方列表
      *
      * @param recipe 处方对象
      */
     @LogRecord
     public void saveRecipeDocIndex(Recipe recipe) {
         com.ngari.base.patient.model.DocIndexBean docIndex = new com.ngari.base.patient.model.DocIndexBean();
-        String docTypeText = DictionaryUtil.getDictionary("eh.cdr.dictionary.DocType", "3");
-        docIndex.setDocSummary(docTypeText);
-        docIndex.setDoctypeName(docTypeText);
-        String recipeTypeText = DictionaryUtil.getDictionary("eh.cdr.dictionary.RecipeType", recipe.getRecipeType());
-        docIndex.setDocTitle(recipeTypeText);
+        docIndex.setDocSummary("处方");
+        docIndex.setDoctypeName("处方");
         docIndex.setDocId(recipe.getRecipeId());
         docIndex.setMpiid(recipe.getMpiid());
-        // docStatus   0  正常（显示） 1  删除状态（不显示）
-        docIndex.setDocStatus(DocIndexShowEnum.NO_AUDIT.getCode().equals(recipe.getReviewType()) ? DocIndexShowEnum.SHOW.getCode() : DocIndexShowEnum.HIDE.getCode());
         docIndex.setCreateOrgan(recipe.getClinicOrgan());
         docIndex.setCreateDepart(recipe.getDepart());
         docIndex.setCreateDoctor(recipe.getDoctor());
+        // docStatus   0  正常（显示） 1  删除状态（不显示）
+        docIndex.setDocStatus(DocIndexShowEnum.NO_AUDIT.getCode().equals(recipe.getReviewType()) ? DocIndexShowEnum.SHOW.getCode() : DocIndexShowEnum.HIDE.getCode());
+        String recipeTypeText = DictionaryUtil.getDictionary("eh.cdr.dictionary.RecipeType", recipe.getRecipeType());
+        docIndex.setDocTitle(recipeTypeText);
         docIndex.setDoctorName(doctorService.getNameById(recipe.getDoctor()));
         docIndex.setDepartName(departmentService.getNameById(recipe.getDepart()));
         logger.info("saveRecipeDocIndex RecipeType docIndex={}", JSON.toJSONString(docIndex));
