@@ -74,6 +74,7 @@ import recipe.drugsenterprise.CommonRemoteService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.status.SettleAmountStateEnum;
 import recipe.enumerate.status.WriteHisEnum;
 import recipe.enumerate.type.PayFlagEnum;
 import recipe.hisservice.HisRequestInit;
@@ -570,7 +571,7 @@ public class RecipeHisService extends RecipeBaseService {
             RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
             RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
             if (null != recipeOrder && PayFlagEnum.PAYED.getType().equals(recipeOrder.getPayFlag())) {
-                recipeOrder.setSettleAmountState(1);
+                recipeOrder.setSettleAmountState(SettleAmountStateEnum.SETTLE_SUCCESS.getType());
                 recipeOrderDAO.updateNonNullFieldByPrimaryKey(recipeOrder);
             }
         }
