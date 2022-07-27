@@ -355,6 +355,7 @@ public class BaseOfflineToOnlineService {
             mergeRecipeVO.setGroupField(grpupFiled);
             mergeRecipeVO.setMergeRecipeFlag(mergeRecipeFlag);
             mergeRecipeVO.setMergeRecipeWay(mergeRecipeWay);
+            //这个字段前端应该用不上RegisteredId
             if(CollectionUtils.isNotEmpty(recipes)){
                 recipes.forEach(recipe->{
                     if(StringUtils.isNotEmpty(recipe.getRegisteredId())&&recipe.getRegisteredId().contains("noMerge")){
@@ -370,6 +371,7 @@ public class BaseOfflineToOnlineService {
             for (HisRecipeVO hisRecipeVO : recipes) {
                 MergeRecipeVO mergeRecipeVO = new MergeRecipeVO();
                 mergeRecipeVO.setMergeRecipeFlag(mergeRecipeFlag);
+                //这个字段前端应该用不上RegisteredId
                 if(StringUtils.isNotEmpty(hisRecipeVO.getRegisteredId())&&hisRecipeVO.getRegisteredId().contains("noMerge")){
                     hisRecipeVO.setRegisteredId(hisRecipeVO.getRegisteredId().replace("noMerge",""));
                 }
