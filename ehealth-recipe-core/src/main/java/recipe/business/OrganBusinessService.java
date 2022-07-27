@@ -118,6 +118,9 @@ public class OrganBusinessService extends BaseService implements IOrganBusinessS
         if (null == recipeOrder.getSettleAmountState()) {
             return SettleAmountStateEnum.NONE_SETTLE.getType();
         }
+        if (SettleAmountStateEnum.NO_NEED.getType().equals(recipeOrder.getSettleAmountState())) {
+            return SettleAmountStateEnum.SETTLE_SUCCESS.getType();
+        }
         return recipeOrder.getSettleAmountState();
     }
 

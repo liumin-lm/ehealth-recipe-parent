@@ -536,6 +536,8 @@ public class RecipeHisService extends RecipeBaseService {
             // 到院取药只有线上支付才走
             if(RecipeBussConstant.GIVEMODE_TO_HOS.equals(recipe.getGiveMode()) && RecipeBussConstant.PAYMODE_OFFLINE.equals(recipeOrder.getPayMode())){
                 LOGGER.info("doRecipeSettle 到院取药线下支付不走平台结算;recipeId={}", recipe.getRecipeId());
+                recipeOrder.setSettleAmountState(SettleAmountStateEnum.NO_NEED.getType());
+                recipeOrderDAO.updateNonNullFieldByPrimaryKey(recipeOrder);
                 return true;
             }
             //PayNotifyResTO response = service.payNotify(payNotifyReq);
