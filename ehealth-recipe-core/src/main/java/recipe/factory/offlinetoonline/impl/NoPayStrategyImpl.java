@@ -256,7 +256,7 @@ class NoPayStrategyImpl extends BaseOfflineToOnlineService implements IOfflineTo
                 Map<String, List<HisRecipeVO>> registerIdRelation = request.stream().collect(Collectors.groupingBy(HisRecipeVO::getRegisteredId));
                 for (Map.Entry<String, List<HisRecipeVO>> entry : registerIdRelation.entrySet()) {
                     List<HisRecipeVO> recipes = entry.getValue();
-                    if (StringUtils.isEmpty(entry.getKey())||entry.getKey().contains("noMerge")) {
+                    if (StringUtils.isEmpty(entry.getKey())) {
                         //表示挂号序号为空,不能进行处方合并
                         covertMergeRecipeVO(null, mergeRecipeFlag, mergeRecipeWayAfter, null, giveModeButtonBean.getButtonSkipType(), recipes, result);
                     } else {
