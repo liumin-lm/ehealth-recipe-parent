@@ -100,10 +100,10 @@ public class ThirdRecipeService {
                     recipeAndRecipeDetailsBean.setStatus(patientTabStatusRecipeDTO.getStatus());
                     recipeAndRecipeDetailsBean.setStatusText(patientTabStatusRecipeDTO.getStatusText());
                     recipeAndRecipeDetailsBean.setStatusCode(patientTabStatusRecipeDTO.getStatusCode());
-                    if (patientTabStatusRecipeDTO.getStatusCode() == 2) {
+                    if (patientTabStatusRecipeDTO.getStatusCode() == 2 && StringUtils.isNotEmpty(patientTabStatusRecipeDTO.getOrderCode())) {
                         recipeAndRecipeDetailsBean.setStatus(3);
                     }
-                    if (patientTabStatusRecipeDTO.getStatusCode() == 3) {
+                    if (patientTabStatusRecipeDTO.getStatusCode() == 3 && StringUtils.isNotEmpty(patientTabStatusRecipeDTO.getOrderCode())) {
                         recipeAndRecipeDetailsBean.setStatus(5);
                     }
                     recipeAndRecipeDetailsBean.setRecipeSurplusHours(patientTabStatusRecipeDTO.getRecipeSurplusHours());
