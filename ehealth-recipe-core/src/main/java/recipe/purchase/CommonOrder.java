@@ -36,6 +36,7 @@ import recipe.bussutil.CreateRecipePdfUtil;
 import recipe.constant.UpdateSendMsgStatusEnum;
 import recipe.dao.*;
 import recipe.drugsenterprise.CommonRemoteService;
+import recipe.enumerate.status.SettleAmountStateEnum;
 import recipe.hisservice.RecipeToHisService;
 import recipe.manager.ButtonManager;
 import recipe.service.RecipeOrderService;
@@ -62,6 +63,7 @@ public class CommonOrder {
         //设置确认订单页购药方式的key
         String giveModeKey = MapValueUtil.getString(extInfo, "giveModeKey");
         order.setGiveModeKey(giveModeKey);
+        order.setSettleAmountState(SettleAmountStateEnum.NONE_SETTLE.getType());
         order.setGiveModeText(getGiveModeText(recipeList.get(0).getClinicOrgan(), giveModeKey));
         if (null == calculateFee || Integer.valueOf(1).equals(calculateFee)) {
             orderService.setOrderFee(result, order, recipeIds, recipeList, payModeSupport, extInfo, 1);

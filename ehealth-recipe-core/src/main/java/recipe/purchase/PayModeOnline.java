@@ -45,6 +45,7 @@ import recipe.drugsenterprise.CommonRemoteService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.drugsenterprise.paymodeonlineshowdep.PayModeOnlineShowDepServiceProducer;
 import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.status.SettleAmountStateEnum;
 import recipe.hisservice.RecipeToHisService;
 import recipe.manager.EnterpriseManager;
 import recipe.manager.OrderManager;
@@ -221,6 +222,7 @@ public class PayModeOnline implements IPurchaseService {
         //设置确认订单页购药方式的key
         String giveModeKey = MapValueUtil.getString(extInfo, "giveModeKey");
         order.setGiveModeKey(giveModeKey);
+        order.setSettleAmountState(SettleAmountStateEnum.NONE_SETTLE.getType());
         order.setGiveModeText(CommonOrder.getGiveModeText(recipeList.get(0).getClinicOrgan(), giveModeKey));
         DrugsEnterprise dep = drugsEnterpriseDAO.get(depId);
         //处理详情
