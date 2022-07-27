@@ -539,7 +539,6 @@ public class RecipeHisService extends RecipeBaseService {
                 LOGGER.info("doRecipeSettle 到院取药线下支付不走平台结算;recipeId={}", recipe.getRecipeId());
                 recipeOrder.setSettleAmountState(SettleAmountStateEnum.NO_NEED.getType());
                 recipeOrderDAO.updateNonNullFieldByPrimaryKey(recipeOrder);
-                LOGGER.info("doRecipeSettle recipeOrder:{}", JSON.toJSONString(recipeOrder));
                 return true;
             }
             //PayNotifyResTO response = service.payNotify(payNotifyReq);
@@ -569,6 +568,10 @@ public class RecipeHisService extends RecipeBaseService {
                 response = new PayNotifyResTO();
                 response.setMsgCode(1);
                 response.setMsg(e.getMessage());
+            }
+            if (null == response) {
+                recipeOrder.setSettleAmountState(SettleAmountStateEnum.SETTLE_SUCCESS.getType());
+                recipeOrderDAO.updateNonNullFieldByPrimaryKey(recipeOrder);
             }
             settleService.doRecipeSettleResponse(response, recipe, result);
         } else {
