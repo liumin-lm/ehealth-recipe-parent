@@ -2297,7 +2297,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 updateHisRecieStatus(recipes);
                 purchaseService.setRecipePayWay(order);
                 if ("111".equals(order.getWxPayWay())) {
-                    attrMap.put("settleAmountState", 1);
+                    attrMap.put("settleAmountState", SettleAmountStateEnum.SETTLE_SUCCESS.getType());
                 }
             } else if (PayConstant.PAY_FLAG_NOT_PAY == payFlag && null != order) {
                 attrMap.put("status", getPayStatus(reviewType, giveMode, nowRecipe));
