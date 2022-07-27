@@ -700,7 +700,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
      * @return
      */
     @Override
-    public Boolean validateCabinetRecipeStatus(CabinetVO cabinetVO) {
+    public CabinetVO validateCabinetRecipeStatus(CabinetVO cabinetVO) {
         Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(cabinetVO.getRecipeCode(),cabinetVO.getOrganId());
         if (null == recipe || StringUtils.isEmpty(recipe.getOrderCode())) {
             throw new DAOException(609,"当前处方单未找到");
@@ -717,6 +717,14 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
         }
 
         //到院取药+待取药+未申请退费
-        return  recipe.getGiveMode()==2 && recipeOrder.getStatus()==2 && recipeExtend.getRefundNodeStatus()==null;
+        Boolean effectiveFlag=recipe.getGiveMode()==2 && recipeOrder.getStatus()==2 && recipeExtend.getRefundNodeStatus()==null;
+        cabinetVO.setEffectiveFlag(effectiveFlag);
+
+        //患者手机号
+        if(effectiveFlag && !StringUtils.isEmpty(recipe.getMpiid())){
+            com.ngari.patient.dto.PatientDTO patientDTO=patientClient.getPatientDTOByMpiId(recipe.getMpiid());
+            cabinetVO.setMobile(patientDTO==null?"":patientDTO.getMobile());
+        }
+        return  cabinetVO;
     }
 }

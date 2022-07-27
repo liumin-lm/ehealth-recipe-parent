@@ -156,5 +156,5 @@ public interface IRecipeOrderBusinessService {
      * @return
      */
     @RpcService
-    Boolean validateCabinetRecipeStatus(CabinetVO cabinetVO);
+    CabinetVO validateCabinetRecipeStatus(CabinetVO cabinetVO);
 }
