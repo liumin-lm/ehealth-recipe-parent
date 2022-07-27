@@ -1,5 +1,6 @@
 package recipe.atop.doctor;
 
+import com.ngari.patient.dto.HealthCardDTO;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.recipe.model.AdvanceWarningReqVO;
 import com.ngari.recipe.recipe.model.AdvanceWarningResVO;
@@ -147,6 +148,16 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
     public AdvanceWarningResVO getAdvanceWarning(AdvanceWarningReqVO advanceWarningReqDTO){
         validateAtop(advanceWarningReqDTO.getRecipeId());
         return recipeBusinessService.getAdvanceWarning(advanceWarningReqDTO);
+    }
+
+    /**
+     * 医生端开方获取患者卡信息
+     * @param mpiId
+     * @return
+     */
+    @RpcService
+    public List<HealthCardDTO> findByCardOrganAndMpiId(String mpiId){
+        return recipeBusinessService.findByCardOrganAndMpiId(mpiId);
     }
 
 }
