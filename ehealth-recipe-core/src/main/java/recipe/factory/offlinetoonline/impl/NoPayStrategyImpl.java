@@ -261,7 +261,11 @@ class NoPayStrategyImpl extends BaseOfflineToOnlineService implements IOfflineTo
                         covertMergeRecipeVO(null, mergeRecipeFlag, mergeRecipeWayAfter, null, giveModeButtonBean.getButtonSkipType(), recipes, result);
                     } else {
                         //可以进行合并支付
-                        covertMergeRecipeVO(recipes.get(0).getRegisteredId(), mergeRecipeFlag, mergeRecipeWayAfter, recipes.get(0).getHisRecipeID(), giveModeButtonBean.getButtonSkipType(), recipes, result);
+                        String registeredId=recipes.get(0).getRegisteredId();
+                        if(StringUtils.isNotEmpty(registeredId)&&registeredId.contains("noMerge")){
+                            registeredId=registeredId.replace("noMerge","");
+                        }
+                        covertMergeRecipeVO(registeredId, mergeRecipeFlag, mergeRecipeWayAfter, recipes.get(0).getHisRecipeID(), giveModeButtonBean.getButtonSkipType(), recipes, result);
                     }
                 }
             } else {
