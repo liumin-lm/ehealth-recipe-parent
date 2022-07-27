@@ -1,5 +1,6 @@
 package recipe.core.api;
 
+import com.ngari.patient.dto.HealthCardDTO;
 import com.ngari.recipe.recipe.model.AdvanceWarningReqVO;
 import com.ngari.recipe.recipe.model.AdvanceWarningResVO;
 import com.ngari.recipe.dto.DiseaseInfoDTO;
@@ -254,6 +255,8 @@ public interface IRecipeBusinessService {
     List<DrugUsageLabelResp> queryRecipeDrugUsageLabelByOrder(Integer orderId);
 
     AdvanceWarningResVO getAdvanceWarning(AdvanceWarningReqVO advanceWarningReqDTO);
+
+    List<HealthCardDTO> findByCardOrganAndMpiId(String mpiId);
 
     /**
      * 药师签名 只是获取药师手签更新PDF
