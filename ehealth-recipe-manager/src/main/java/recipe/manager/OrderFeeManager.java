@@ -660,7 +660,7 @@ public class OrderFeeManager extends BaseManager {
         int length = addrArea.length();
         do {
              enterpriseAddress = enterpriseAddressDAO.getByEnterpriseIdAndAddress(enterpriseId, addrArea.substring(0, length));
-            if (null != enterpriseAddress) {
+            if (Objects.nonNull(enterpriseAddress) && Objects.nonNull( enterpriseAddress.getDistributionPrice())) {
                 break;
             }
         } while ((length = length - 2) > 0);
