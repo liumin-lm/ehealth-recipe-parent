@@ -42,10 +42,7 @@ import recipe.client.DoctorClient;
 import recipe.client.OrganClient;
 import recipe.client.PatientClient;
 import recipe.core.api.patient.IRecipeOrderBusinessService;
-import recipe.dao.ConfigStatusCheckDAO;
-import recipe.dao.DrugsEnterpriseDAO;
-import recipe.dao.RecipeDAO;
-import recipe.dao.RecipeOrderDAO;
+import recipe.dao.*;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.type.GiveModeTextEnum;
 import recipe.enumerate.type.NeedSendTypeEnum;
@@ -60,6 +57,7 @@ import recipe.util.*;
 import recipe.vo.ResultBean;
 import recipe.vo.base.BaseRecipeDetailVO;
 import recipe.vo.greenroom.InvoiceRecordVO;
+import recipe.vo.second.CabinetVO;
 import recipe.vo.second.enterpriseOrder.*;
 
 import java.math.BigDecimal;
@@ -79,6 +77,8 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
     private final static long VALID_TIME_SECOND = 3600 * 24 * 30;
     @Autowired
     private RecipeDAO recipeDAO;
+    @Autowired
+    private RecipeExtendDAO recipeExtendDAO;
     @Autowired
     private RecipeOrderDAO recipeOrderDAO;
     @Autowired
@@ -697,4 +697,30 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
     }
 
 
+    /**
+     * 判断处方是否有效(到院取药-存储药柜)
+     *
+     * @param cabinetVO
+     * @return
+     */
+    @Override
+    public Boolean validateCabinetRecipeStatus(CabinetVO cabinetVO) {
+        Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(cabinetVO.getRecipeCode(),cabinetVO.getOrganId());
+        if (null == recipe || StringUtils.isEmpty(recipe.getOrderCode())) {
+            throw new DAOException(609,"当前处方单未找到");
+        }
+
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+        if (null == recipeExtend ) {
+            throw new DAOException(609,"当前处方单未找到");
+        }
+
+        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+        if (null == recipeOrder ) {
+            throw new DAOException(609,"当前处方单未支付");
+        }
+
+        //到院取药+待取药+未申请退费
+        return  recipe.getGiveMode()==2 && recipeOrder.getStatus()==2 && recipeExtend.getRefundNodeStatus()==null;
+    }
 }
