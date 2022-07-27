@@ -14,6 +14,7 @@ import recipe.client.*;
 import recipe.core.api.IOrganBusinessService;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeParameterDao;
+import recipe.enumerate.status.SettleAmountStateEnum;
 import recipe.hisservice.HisRequestInit;
 import recipe.manager.OrderManager;
 import recipe.util.ObjectCopyUtils;
@@ -115,7 +116,7 @@ public class OrganBusinessService extends BaseService implements IOrganBusinessS
             throw new DAOException("订单不存在");
         }
         if (null == recipeOrder.getSettleAmountState()) {
-            return 0;
+            return SettleAmountStateEnum.NONE_SETTLE.getType();
         }
         return recipeOrder.getSettleAmountState();
     }
