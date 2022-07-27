@@ -12,6 +12,7 @@ import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.aop.LogRecord;
 import recipe.util.ObjectCopyUtils;
 
 import java.util.ArrayList;
@@ -99,10 +100,12 @@ public class OrganClient extends BaseClient {
      * @param manageUnit
      * @return
      */
+    @LogRecord
     public OrganDTO getByManageUnit(String manageUnit){
         return organService.getByManageUnit(manageUnit);
     }
 
+    @LogRecord
     public List<HealthCardDTO> findByCardOrganAndMpiId(String mpiId, Integer organId){
         return healthCardService.findByCardOrganAndMpiId(organId,mpiId);
     }
