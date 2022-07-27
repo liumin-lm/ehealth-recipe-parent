@@ -165,7 +165,7 @@ public class RecipeOrderOpenAtop extends BaseAtop implements IRecipeOrderAtopSer
         return recipeOrderService.thirdCreateOrder(thirdCreateOrderReqDTO);
     }
     @Override
-    public Boolean validateCabinetRecipeStatus(CabinetVO cabinetVO) {
+    public CabinetVO validateCabinetRecipeStatus(CabinetVO cabinetVO) {
         validateAtop(cabinetVO.getOrganId(),cabinetVO.getRecipeCode());
 
         return recipeOrderService.validateCabinetRecipeStatus(cabinetVO);

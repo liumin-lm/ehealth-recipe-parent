@@ -102,5 +102,5 @@ public interface IRecipeOrderAtopService {
      * @return
      */
     @RpcService(mvcDisabled = true)
-    Boolean validateCabinetRecipeStatus(CabinetVO cabinetVO);
+    CabinetVO validateCabinetRecipeStatus(CabinetVO cabinetVO);
 }

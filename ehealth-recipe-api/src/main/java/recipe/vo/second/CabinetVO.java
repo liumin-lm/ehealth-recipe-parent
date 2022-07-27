@@ -20,6 +20,9 @@ public class CabinetVO implements Serializable {
     @ItemProperty(alias = "到院取药-是否有效：true有效，false无效")
     private Boolean effectiveFlag;
 
+    @ItemProperty(alias = "患者联系方式")
+    private String mobile;
+
     @ItemProperty(alias = "取药地址")
     private String medicineAddress;
 
