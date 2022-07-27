@@ -7,6 +7,7 @@ import com.ngari.platform.recipe.mode.RecipeOrderBean;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.recipe.model.*;
 import ctd.util.annotation.RpcService;
+import recipe.vo.second.CabinetVO;
 import recipe.vo.second.RecipeOrderVO;
 import recipe.vo.second.enterpriseOrder.DownOrderRequestVO;
 import recipe.vo.second.enterpriseOrder.EnterpriseDownDataVO;
@@ -95,4 +96,11 @@ public interface IRecipeOrderAtopService {
      */
     @RpcService
     Integer thirdCreateOrder(ThirdCreateOrderReqDTO thirdCreateOrderReqDTO);
+ /**
+     * 判断处方是否有效(到院取药-存储药柜)
+     * @param cabinetVO
+     * @return
+     */
+    @RpcService(mvcDisabled = true)
+    Boolean validateCabinetRecipeStatus(CabinetVO cabinetVO);
 }
