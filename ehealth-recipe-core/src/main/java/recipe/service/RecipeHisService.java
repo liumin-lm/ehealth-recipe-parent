@@ -1,5 +1,6 @@
 package recipe.service;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
@@ -538,6 +539,7 @@ public class RecipeHisService extends RecipeBaseService {
                 LOGGER.info("doRecipeSettle 到院取药线下支付不走平台结算;recipeId={}", recipe.getRecipeId());
                 recipeOrder.setSettleAmountState(SettleAmountStateEnum.NO_NEED.getType());
                 recipeOrderDAO.updateNonNullFieldByPrimaryKey(recipeOrder);
+                LOGGER.info("doRecipeSettle recipeOrder:{}", JSON.toJSONString(recipeOrder));
                 return true;
             }
             //PayNotifyResTO response = service.payNotify(payNotifyReq);
