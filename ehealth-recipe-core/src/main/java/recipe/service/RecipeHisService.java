@@ -1,5 +1,6 @@
 package recipe.service;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
@@ -74,7 +75,9 @@ import recipe.drugsenterprise.CommonRemoteService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.status.SettleAmountStateEnum;
 import recipe.enumerate.status.WriteHisEnum;
+import recipe.enumerate.type.PayFlagEnum;
 import recipe.hisservice.HisRequestInit;
 import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.hisservice.RecipeToHisService;
@@ -534,6 +537,8 @@ public class RecipeHisService extends RecipeBaseService {
             // 到院取药只有线上支付才走
             if(RecipeBussConstant.GIVEMODE_TO_HOS.equals(recipe.getGiveMode()) && RecipeBussConstant.PAYMODE_OFFLINE.equals(recipeOrder.getPayMode())){
                 LOGGER.info("doRecipeSettle 到院取药线下支付不走平台结算;recipeId={}", recipe.getRecipeId());
+                recipeOrder.setSettleAmountState(SettleAmountStateEnum.NO_NEED.getType());
+                recipeOrderDAO.updateNonNullFieldByPrimaryKey(recipeOrder);
                 return true;
             }
             //PayNotifyResTO response = service.payNotify(payNotifyReq);
@@ -564,7 +569,18 @@ public class RecipeHisService extends RecipeBaseService {
                 response.setMsgCode(1);
                 response.setMsg(e.getMessage());
             }
+            if (null == response) {
+                recipeOrder.setSettleAmountState(SettleAmountStateEnum.SETTLE_SUCCESS.getType());
+                recipeOrderDAO.updateNonNullFieldByPrimaryKey(recipeOrder);
+            }
             settleService.doRecipeSettleResponse(response, recipe, result);
+        } else {
+            RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+            RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+            if (null != recipeOrder && PayFlagEnum.PAYED.getType().equals(recipeOrder.getPayFlag())) {
+                recipeOrder.setSettleAmountState(SettleAmountStateEnum.SETTLE_SUCCESS.getType());
+                recipeOrderDAO.updateNonNullFieldByPrimaryKey(recipeOrder);
+            }
         }
         return true;
     }

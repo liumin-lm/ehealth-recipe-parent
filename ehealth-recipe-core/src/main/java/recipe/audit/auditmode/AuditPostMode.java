@@ -1,5 +1,6 @@
 package recipe.audit.auditmode;
 
+import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
@@ -119,15 +120,14 @@ public class AuditPostMode extends AbstractAuditMode {
         if (saveFlag && RecipeResultBean.SUCCESS.equals(result.getCode())) {
             //更新处方为待审核
             if (RecipeStatusEnum.RECIPE_STATUS_READY_CHECK_YS.getType().equals(status)) {
-                dbRecipe.setCheckFlag(0);
-                recipeDAO.updateNonNullFieldByPrimaryKey(dbRecipe);
+                Recipe recipe = recipeDAO.getByRecipeId(dbRecipe.getRecipeId());
+                recipe.setCheckFlag(0);
+                recipeDAO.updateNonNullFieldByPrimaryKey(recipe);
                 RecipeMsgService.batchSendMsg(dbRecipe.getRecipeId(), status);
                 super.startRecipeAuditProcess(dbRecipe.getRecipeId());
             }
             //设置新的审方状态
             super.setAuditStateToPendingReview(dbRecipe,status);
-            StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
-            stateManager.audit(dbRecipe, RecipeStateEnum.PROCESS_STATE_AUDIT, RecipeStateEnum.SUB_AUDIT_READY_DONE);
             if (RecipeStatusConstant.CHECK_PASS_YS == status) {
                 //说明是可进行医保支付的单子或者是中药或膏方处方
                 RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);

@@ -13,6 +13,7 @@ import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
 import ctd.util.annotation.RpcService;
 import recipe.vo.ResultBean;
+import recipe.vo.second.CabinetVO;
 import recipe.vo.second.enterpriseOrder.DownOrderRequestVO;
 import recipe.vo.second.enterpriseOrder.EnterpriseDownDataVO;
 
@@ -149,4 +150,11 @@ public interface IRecipeOrderBusinessService {
      * @return
      */
     ResultBean updateOrderGiveUser(Integer orderId, Integer giveUser);
+    /**
+     * 判断处方是否有效(到院取药-存储药柜)
+     * @param cabinetVO
+     * @return
+     */
+    @RpcService
+    CabinetVO validateCabinetRecipeStatus(CabinetVO cabinetVO);
 }

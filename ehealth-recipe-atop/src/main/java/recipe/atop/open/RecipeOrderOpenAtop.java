@@ -21,6 +21,7 @@ import recipe.api.open.IRecipeOrderAtopService;
 import recipe.atop.BaseAtop;
 import recipe.core.api.patient.IRecipeOrderBusinessService;
 import recipe.util.ObjectCopyUtils;
+import recipe.vo.second.CabinetVO;
 import recipe.vo.second.RecipeOrderVO;
 import recipe.vo.second.RecipeVo;
 import recipe.vo.second.enterpriseOrder.DownOrderRequestVO;
@@ -162,5 +163,11 @@ public class RecipeOrderOpenAtop extends BaseAtop implements IRecipeOrderAtopSer
     public Integer thirdCreateOrder(ThirdCreateOrderReqDTO thirdCreateOrderReqDTO) {
         logger.info("RecipeOrderOpenAtop thirdCreateOrder thirdCreateOrderReqDTO:{}.", JSONUtils.toString(thirdCreateOrderReqDTO));
         return recipeOrderService.thirdCreateOrder(thirdCreateOrderReqDTO);
+    }
+    @Override
+    public CabinetVO validateCabinetRecipeStatus(CabinetVO cabinetVO) {
+        validateAtop(cabinetVO.getOrganId(),cabinetVO.getRecipeCode());
+
+        return recipeOrderService.validateCabinetRecipeStatus(cabinetVO);
     }
 }

@@ -6,6 +6,8 @@ import com.ngari.follow.utils.ObjectCopyUtil;
 import com.ngari.his.recipe.mode.OutPatientRecipeReq;
 import com.ngari.his.recipe.mode.OutRecipeDetailReq;
 import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
+import com.ngari.patient.dto.HealthCardDTO;
+import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
@@ -33,6 +35,7 @@ import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.IConfigurationClient;
 import recipe.client.OfflineRecipeClient;
+import recipe.client.OrganClient;
 import recipe.client.PatientClient;
 import recipe.constant.ErrorCode;
 import recipe.constant.RecipeStatusConstant;
@@ -112,6 +115,8 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     private EnterpriseManager enterpriseManager;
     @Autowired
     private CreatePdfFactory createPdfFactory;
+    @Autowired
+    private OrganClient organClient;
 
 
     /**
@@ -735,6 +740,17 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     public AdvanceWarningResVO getAdvanceWarning(AdvanceWarningReqVO advanceWarningReqVO) {
         AdvanceWarningResDTO advanceWarningResDTO = recipeManager.getAdvanceWarning(ObjectCopyUtils.convert(advanceWarningReqVO, AdvanceWarningReqDTO.class));
         return ObjectCopyUtils.convert(advanceWarningResDTO, AdvanceWarningResVO.class);
+    }
+
+    @Override
+    public List<HealthCardDTO> findByCardOrganAndMpiId(String mpiId) {
+        try {
+            OrganDTO organDTO = organClient.getByManageUnit("eh3301");
+            return organClient.findByCardOrganAndMpiId(mpiId, organDTO.getOrganId());
+        } catch (Exception e) {
+            logger.error("findByCardOrganAndMpiId error", e);
+        }
+        return new ArrayList<>();
     }
 
     @Override

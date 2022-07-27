@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.client.IConfigurationClient;
 import recipe.constant.CacheConstant;
+import recipe.enumerate.status.SettleAmountStateEnum;
 import recipe.enumerate.type.ExpressFeePayWayEnum;
 import recipe.enumerate.type.PayBusTypeEnum;
 import recipe.enumerate.type.PayFlagEnum;
@@ -164,6 +165,7 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
         RecipeOrder recipeOrder = orderManager.getByOutTradeNo(payResult.getOutTradeNo());
         if (null != recipeOrder && StringUtils.isNotEmpty(payResult.getFailMessage())) {
             recipeOrder.setCancelReason(payResult.getFailMessage());
+            recipeOrder.setSettleAmountState(SettleAmountStateEnum.SETTLE_FAIL.getType());
             return orderManager.updateNonNullFieldByPrimaryKey(recipeOrder);
         }
         return false;

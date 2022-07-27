@@ -30,10 +30,7 @@ import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
-import recipe.enumerate.status.OrderStateEnum;
-import recipe.enumerate.status.RecipeStateEnum;
-import recipe.enumerate.status.RecipeStatusEnum;
-import recipe.enumerate.status.WriteHisEnum;
+import recipe.enumerate.status.*;
 import recipe.hisservice.syncdata.SyncExecutorService;
 import recipe.manager.StateManager;
 import recipe.purchase.CommonOrder;
@@ -296,6 +293,10 @@ public class HisCallBackService {
             if (RecipeBussConstant.GIVEMODE_TO_HOS.equals(recipe.getGiveMode())) {
                 RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.PATIENT_REACHHOS_PAYONLINE);
             }
+            RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+            RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+            recipeOrder.setSettleAmountState(SettleAmountStateEnum.SETTLE_SUCCESS.getType());
+            recipeOrderDAO.updateNonNullFieldByPrimaryKey(recipeOrder);
         }
     }
 
@@ -327,6 +328,8 @@ public class HisCallBackService {
         if (Objects.nonNull(order)) {
             stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION, OrderStateEnum.SUB_CANCELLATION_USER);
         }
+        order.setSettleAmountState(SettleAmountStateEnum.SETTLE_FAIL.getType());
+        orderDAO.updateNonNullFieldByPrimaryKey(order);
         //微信退款
         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
         recipeService.wxPayRefundForRecipe(1, recipeId, null);

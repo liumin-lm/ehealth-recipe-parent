@@ -338,6 +338,10 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                     RecipeMsgService.batchSendMsg(recipe.getRecipeId(), RecipeStatusConstant.RECIPE_TAKE_MEDICINE_FINISH);
                     recipe.setProcessState(RecipeStateEnum.PROCESS_STATE_DONE.getType());
                     recipe.setSubState(RecipeStateEnum.SUB_DONE_SELF_TAKE.getType());
+                } else {
+                    // 无购药方式一律当上传第三方处理
+                    recipe.setProcessState(RecipeStateEnum.PROCESS_STATE_DONE.getType());
+                    recipe.setSubState(RecipeStateEnum.SUB_DONE_UPLOAD_THIRD.getType());
                 }
             }
             recipe.setStatus(recipeStatusReqTO.getStatus());

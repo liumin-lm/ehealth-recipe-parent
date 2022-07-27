@@ -360,6 +360,17 @@ public class RecipeManager extends BaseManager {
                     PatientDTO patientDTO = patientClient.getPatientDTO(recipe.getMpiid());
                     qrName = patientDTO.getIdcard();
                     break;
+                case SERIALNUMBER_TAKE_DRUG_CODE:
+                    //优先取药柜发药流水号，药柜流水号没有，取his医院流水号
+                    try{
+                        qrName = offlineRecipeClient.queryMedicineCode(recipe.getClinicOrgan(), recipe.getRecipeId(), recipe.getRecipeCode());
+                    }catch (Exception e){
+                        logger.info("getToHosProof recipe:{} order:{},qrName error={}", JSONArray.toJSONString(recipe), JSONArray.toJSONString(order),e);
+                    }
+                    if(StringUtils.isEmpty(qrName)){
+                        qrName = offlineRecipeClient.queryRecipeSerialNumber(recipe.getClinicOrgan(), recipe.getPatientName(), recipe.getPatientID(), recipeExtend.getRegisterID());
+                    }
+                    break;
                 default:
                     break;
             }
