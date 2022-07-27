@@ -393,7 +393,7 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "发票记录ID")
     private Integer invoiceRecordId;
 
-    @ItemProperty(alias = "结算状态")
+    @ItemProperty(alias = "结算状态 0 未结算 1结算成功 2结算失败 3无需结算")
     private Integer settleAmountState;
 
     @Column(name = "patient_is_decoction")
