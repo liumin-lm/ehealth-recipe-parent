@@ -35,7 +35,7 @@ public abstract class EnterpriseAddressDAO extends HibernateSupportDelegateDAO<E
      * @param addrs
      * @return
      */
-    @DAOMethod(sql = " from EnterpriseAddress where enterpriseId =:enterpriseId and address in (:addrs) and status = 1", limit=0)
+    @DAOMethod(sql = " from EnterpriseAddress where enterpriseId =:enterpriseId and address in (:addrs)", limit=0)
     public abstract List<EnterpriseAddress> findByEnterpriseIdAddrs(@DAOParam("enterpriseId") Integer enterpriseId, @DAOParam("addrs") List<String> addrs);
 
 
