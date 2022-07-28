@@ -153,20 +153,4 @@ public class RecipeDetailDTO implements Serializable {
      * 返回his药品状态 原因
      */
     private String validateHisStatusText;
-
-    public String getUsePathWays() {
-        return usePathWays;
-    }
-
-    public void setUsePathWays(String usePathWays) {
-        this.usePathWays = usePathWays;
-    }
-
-    public String getUsePathways() {
-        return usePathways;
-    }
-
-    public void setUsePathways(String usePathways) {
-        this.usePathways = usePathways;
-    }
 }
