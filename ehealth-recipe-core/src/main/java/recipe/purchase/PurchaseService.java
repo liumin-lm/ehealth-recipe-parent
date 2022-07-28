@@ -1,5 +1,6 @@
 package recipe.purchase;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.google.common.collect.Lists;
 import com.ngari.base.BaseAPI;
@@ -48,6 +49,7 @@ import recipe.constant.*;
 import recipe.dao.*;
 import recipe.enumerate.status.OfflineToOnlineEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.status.SettleAmountStateEnum;
 import recipe.enumerate.type.GiveModeTextEnum;
 import recipe.enumerate.type.RecipeDistributionFlagEnum;
 import recipe.enumerate.type.RecipeTypeEnum;
@@ -57,7 +59,6 @@ import recipe.util.MapValueUtil;
 import recipe.util.RedisClient;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -998,8 +999,6 @@ public class PurchaseService {
             reqTO.setClinicId(Optional.ofNullable(dbRecipe.getClinicId().toString()).orElse(""));
             reqTO.setRegisterId(null == hosrelationBean ? "" : hosrelationBean.getRegisterId());
             MedicInsurSettleApplyResTO medicInsurSettleApplyResTO = hisService.recipeMedicInsurPreSettle(reqTO);
-//            MedicInsurSettleApplyResTO medicInsurSettleApplyResTO = new MedicInsurSettleApplyResTO();
-//            medicInsurSettleApplyResTO.setVisitNo("72787424.34115312");
             redisClient.set(redisKey, medicInsurSettleApplyResTO);
             redisClient.setex(redisKey, 7 * 24 * 60 * 60); //设置超时时间7天
             return medicInsurSettleApplyResTO;
@@ -1016,17 +1015,13 @@ public class PurchaseService {
 
     public void setRecipePayWay(RecipeOrder recipeOrder) {
         try {
-//            RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-//            Recipe recipe = recipeDAO.findRecipeListByOrderCode(recipeOrder.getOrderCode()).get(0);
             RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-//            IPurchaseService purchaseService = getService(recipe.getPayMode());
             if ("111".equals(recipeOrder.getWxPayWay())) {
                 recipeOrder.setPayMode(1);
+                recipeOrder.setSettleAmountState(SettleAmountStateEnum.SETTLE_SUCCESS.getType());
+                LOG.info("PurchaseService setRecipePayWay recipeOrder:{}", JSON.toJSONString(recipeOrder));
                 recipeOrderDAO.update(recipeOrder);
             }
-//            else {
-//                purchaseService.setRecipePayWay(recipeOrder);
-//            }
         } catch (Exception e) {
             LOG.info("setRecipePayWay error msg:{}.", e.getMessage());
         }
