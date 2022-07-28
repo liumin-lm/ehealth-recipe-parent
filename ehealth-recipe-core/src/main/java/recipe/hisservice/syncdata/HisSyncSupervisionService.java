@@ -325,10 +325,14 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
             req = new RegulationRecipeIndicatorsReq();
             // 电子病历PDF id
-            Map<String, Object> docIndex = emrPdfService.generateEmrPdf(recipeExtend.getDocIndexId());
-            LOGGER.info("电子病历 PDF 返回信息 recipe:{}, recipeExtend: {} ,docIndex:{}", recipe.getRecipeId(), JSON.toJSONString(recipeExtend), JSONUtils.toString(docIndex));
-            if (MapUtils.isNotEmpty(docIndex) && Objects.nonNull(docIndex.get("fileId"))) {
-                req.setMedicalFileId(docIndex.get("fileId").toString());
+            try {
+                Map<String, Object> docIndex = emrPdfService.generateEmrPdf(recipeExtend.getDocIndexId());
+                LOGGER.info("电子病历 PDF 返回信息 recipe:{}, recipeExtend: {} ,docIndex:{}", recipe.getRecipeId(), JSON.toJSONString(recipeExtend), JSONUtils.toString(docIndex));
+                if (MapUtils.isNotEmpty(docIndex) && Objects.nonNull(docIndex.get("fileId"))) {
+                    req.setMedicalFileId(docIndex.get("fileId").toString());
+                }
+            } catch (Exception e) {
+                LOGGER.error("splicingBackRecipeData recipeId:{}, error:{} ", recipe.getRecipeId(), e);
             }
 
             //机构处理
