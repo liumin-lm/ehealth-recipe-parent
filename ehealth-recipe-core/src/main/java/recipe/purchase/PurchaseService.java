@@ -1014,8 +1014,10 @@ public class PurchaseService {
     }
 
     public void setRecipePayWay(RecipeOrder recipeOrder) {
+        LOG.info("PurchaseService setRecipePayWay recipeOrder input:{}", JSON.toJSONString(recipeOrder));
         try {
             RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+            LOG.info("PurchaseService setRecipePayWay WxPayWay:{}", recipeOrder.getWxPayWay());
             if ("111".equals(recipeOrder.getWxPayWay())) {
                 recipeOrder.setPayMode(1);
                 recipeOrder.setSettleAmountState(SettleAmountStateEnum.SETTLE_SUCCESS.getType());
