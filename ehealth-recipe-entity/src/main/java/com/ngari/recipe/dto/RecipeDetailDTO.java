@@ -49,6 +49,7 @@ public class RecipeDetailDTO implements Serializable {
     private String usingRate;
 
     @ItemProperty(alias = "用法名称")
+    @Deprecated
     private String usePathWays;
 
     @ItemProperty(alias = "用法名称")
