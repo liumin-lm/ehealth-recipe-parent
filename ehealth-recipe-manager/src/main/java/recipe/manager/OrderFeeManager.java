@@ -470,33 +470,19 @@ public class OrderFeeManager extends BaseManager {
     public void setExpressFee(RecipeOrder order) {
         //快递费线上支付的需要计算是否满足包邮
         if (null != order.getExpressFee() && null != order.getEnterpriseId()) {
-            List<String> addrs = Lists.newArrayList(order.getAddress1(), order.getAddress2(), order.getAddress3());
-            List<EnterpriseAddress> idAddrs = enterpriseAddressDAO.findByEnterpriseIdAddrs(order.getEnterpriseId(), addrs);
-
-            if(CollectionUtils.isEmpty(idAddrs)){
-                return ;
-            }
-            idAddrs.forEach(enterpriseAddress -> {
-                if (order.getAddress3().equals(enterpriseAddress.getAddress())) {
-                    if (Objects.nonNull(enterpriseAddress.getBuyFreeShipping()) && order.getRecipeFee().compareTo(enterpriseAddress.getBuyFreeShipping()) > -1) {
+            String addrArea = order.getAddress3();
+            EnterpriseAddress enterpriseAddress;
+            int length = addrArea.length();
+            do {
+                enterpriseAddress = enterpriseAddressDAO.getByEnterpriseIdAndAddress(order.getEnterpriseId(), addrArea.substring(0, length));
+                if (Objects.nonNull(enterpriseAddress) && Objects.nonNull(enterpriseAddress.getBuyFreeShipping())) {
+                    if (order.getRecipeFee().compareTo(enterpriseAddress.getBuyFreeShipping()) > -1) {
                         order.setExpressFee(BigDecimal.ZERO);
                     }
-                    return;
+                    break;
                 }
-                if (order.getAddress2().equals(enterpriseAddress.getAddress())) {
-                    if (Objects.nonNull(enterpriseAddress.getBuyFreeShipping()) && order.getRecipeFee().compareTo(enterpriseAddress.getBuyFreeShipping()) > -1) {
-                        order.setExpressFee(BigDecimal.ZERO);
-                    }
-                    return;
-                }
-                if (order.getAddress1().equals(enterpriseAddress.getAddress())) {
-                    if (Objects.nonNull(enterpriseAddress.getBuyFreeShipping()) && order.getRecipeFee().compareTo(enterpriseAddress.getBuyFreeShipping()) > -1) {
-                        order.setExpressFee(BigDecimal.ZERO);
-                    }
-                    return;
-                }
-            });
-
+            } while ((length = length - 2) > 0);
+            logger.info("OrderFeeManager setExpressFee enterpriseAddress:{}.", JSONUtils.toString(enterpriseAddress));
         }
     }
 
