@@ -103,24 +103,6 @@ public class RecipeOrderDetailExportBean implements Serializable {
     @ItemProperty(alias = "开方时间")
     private Date createDate;
 
-    @ItemProperty(alias = "药品名称")
-    private String drugName;
-
-    @ItemProperty(alias = "机构药品ID")
-    private String organDrugCode;
-
-    @ItemProperty(alias = "药企药品ID")
-    private String saleDrugCode;
-
-    @ItemProperty(alias = "药品单价")
-    private BigDecimal salePrice;
-
-    @ItemProperty(alias = "出售数量")
-    private Double useTotalDose;
-
-    @ItemProperty(alias = "出售单位")
-    private String drugUnit;
-
     @ItemProperty(alias = "煎法")
     private String decoctionText;
 

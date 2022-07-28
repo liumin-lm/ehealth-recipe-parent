@@ -110,24 +110,6 @@ public class RecipeOrderDetailExportDTO implements Serializable {
     @ItemProperty(alias = "开方时间")
     private Date createDate;
 
-    @ItemProperty(alias = "药品名称")
-    private String drugName;
-
-    @ItemProperty(alias = "机构药品ID")
-    private String organDrugCode;
-
-    @ItemProperty(alias = "药企药品ID")
-    private String saleDrugCode;
-
-    @ItemProperty(alias = "药品单价")
-    private BigDecimal salePrice;
-
-    @ItemProperty(alias = "出售数量")
-    private Double useTotalDose;
-
-    @ItemProperty(alias = "出售单位")
-    private String drugUnit;
-
     @ItemProperty(alias = "煎法")
     private String decoctionText;
 
@@ -320,45 +302,6 @@ public class RecipeOrderDetailExportDTO implements Serializable {
         this.createDate = createDate;
     }
 
-    public String getDrugName() {
-        return drugName;
-    }
-
-    public void setDrugName(String drugName) {
-        this.drugName = drugName;
-    }
-
-    public String getOrganDrugCode() {
-        return organDrugCode;
-    }
-
-    public void setOrganDrugCode(String organDrugCode) {
-        this.organDrugCode = organDrugCode;
-    }
-
-    public BigDecimal getSalePrice() {
-        return salePrice;
-    }
-
-    public void setSalePrice(BigDecimal salePrice) {
-        this.salePrice = salePrice;
-    }
-
-    public Double getUseTotalDose() {
-        return useTotalDose;
-    }
-
-    public void setUseTotalDose(Double useTotalDose) {
-        this.useTotalDose = useTotalDose;
-    }
-
-    public String getDrugUnit() {
-        return drugUnit;
-    }
-
-    public void setDrugUnit(String drugUnit) {
-        this.drugUnit = drugUnit;
-    }
 
     public String getName() {
         return name;
@@ -382,14 +325,6 @@ public class RecipeOrderDetailExportDTO implements Serializable {
 
     public void setMobile(String mobile) {
         this.mobile = mobile;
-    }
-
-    public String getSaleDrugCode() {
-        return saleDrugCode;
-    }
-
-    public void setSaleDrugCode(String saleDrugCode) {
-        this.saleDrugCode = saleDrugCode;
     }
 
     public String getGenerationisOfDecoction() {
