@@ -165,7 +165,11 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             return commonResponse;
         }
         List<RegulationRecipeIndicatorsReq> request = new ArrayList<>(recipeList.size());
-        splicingBackRecipeData(recipeList, request);
+        try {
+            splicingBackRecipeData(recipeList, request);
+        } catch (Exception e) {
+            LOGGER.error("saveBussMsgList 组装参数失败. recipe:{}", recipeList.get(0).getRecipeId(), e);
+        }
 
 
         try {
@@ -270,6 +274,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
      * @param recipeList
      * @param request
      */
+    @LogRecord
     public void splicingBackRecipeData(List<Recipe> recipeList, List<RegulationRecipeIndicatorsReq> request) {
 
         DepartmentService departmentService = BasicAPI.getService(DepartmentService.class);
