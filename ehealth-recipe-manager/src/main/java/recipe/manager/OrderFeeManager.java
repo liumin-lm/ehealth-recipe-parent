@@ -469,7 +469,7 @@ public class OrderFeeManager extends BaseManager {
     @LogRecord
     public void setExpressFee(RecipeOrder order) {
         //快递费线上支付的需要计算是否满足包邮
-        if (null != order.getExpressFee() && null != order.getEnterpriseId()) {
+        if (null != order.getExpressFee() && null != order.getEnterpriseId() && StringUtils.isNotEmpty(order.getAddress3())) {
             String addrArea = order.getAddress3();
             EnterpriseAddress enterpriseAddress;
             int length = addrArea.length();
