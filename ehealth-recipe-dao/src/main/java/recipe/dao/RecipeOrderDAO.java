@@ -1922,8 +1922,8 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         StringBuilder hql = new StringBuilder("select ");
         hql.append("DISTINCT(b.orderCode) ");
         hql.append("from cdr_recipe b LEFT JOIN cdr_recipeorder a on b.orderCode=a.orderCode ");
-        hql.append("LEFT JOIN cdr_recipedetail d ON b.RecipeID = d.RecipeID LEFT JOIN cdr_recipe_ext c on c.recipeId = b.recipeId ");
-        hql.append(" where d.status= 1 ");
+        hql.append("LEFT JOIN cdr_recipe_ext c on c.recipeId = b.recipeId ");
+        hql.append(" where 1=1 ");
         getRefundStringBuilder(recipeOrderRefundReqDTO, hql);
         hql.append(" order by a.CreateTime DESC");
         if(null != recipeOrderRefundReqDTO.getStart()){
