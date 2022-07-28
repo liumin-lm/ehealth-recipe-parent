@@ -12,6 +12,7 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
+import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.PatientTabStatusMergeRecipeDTO;
 import com.ngari.recipe.recipe.model.PatientTabStatusRecipeDTO;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
@@ -30,6 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 import recipe.ApplicationUtils;
 import recipe.dao.RecipeDAO;
+import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.openapi.business.bean.RecipeAndRecipeDetailsBean;
 import recipe.openapi.business.bean.ThirdRecipeDetailBean;
@@ -61,6 +63,8 @@ public class ThirdRecipeService {
 
     @Autowired
     private RecipeService recipeService;
+    @Autowired
+    private RecipeDetailDAO recipeDetailDAO;
 
     /**
      * 根据处方状态查询处方信息
@@ -110,6 +114,9 @@ public class ThirdRecipeService {
                     recipeAndRecipeDetailsBean.setRecipeType(patientTabStatusRecipeDTO.getRecipeType());
                     recipeAndRecipeDetailsBean.setLogisticsCompany(patientTabStatusRecipeDTO.getLogisticsCompany());
                     recipeAndRecipeDetailsBean.setTrackingNumber(patientTabStatusRecipeDTO.getTrackingNumber());
+                    List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(patientTabStatusRecipeDTO.getRecipeId());
+                    List<ThirdRecipeDetailBean> recipeDetailBeans = ObjectCopyUtils.convert(recipeDetailList, ThirdRecipeDetailBean.class);
+                    recipeAndRecipeDetailsBean.setRecipeDetailBeans(recipeDetailBeans);
                     recipeAndRecipeDetailsBeans.add(recipeAndRecipeDetailsBean);
                 }
             }
