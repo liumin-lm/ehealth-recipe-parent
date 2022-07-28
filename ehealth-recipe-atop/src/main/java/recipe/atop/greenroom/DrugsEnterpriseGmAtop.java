@@ -110,7 +110,7 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
     @RpcService
     public List<EnterpriseDecoctionList> findEnterpriseDecoctionList(Integer enterpriseId,Integer organId) {
         validateAtop(enterpriseId);
-        if (Objects.nonNull(organId)) {
+        if (Objects.isNull(organId)) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "入参错误");
         }
         List<EnterpriseDecoctionList> list = enterpriseBusinessService.findEnterpriseDecoctionList(enterpriseId,organId);
