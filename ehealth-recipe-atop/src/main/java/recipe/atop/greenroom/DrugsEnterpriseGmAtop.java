@@ -10,12 +10,14 @@ import com.ngari.recipe.entity.OrganAndDrugsepRelation;
 import com.ngari.recipe.entity.OrganDrugsSaleConfig;
 import com.ngari.recipe.organdrugsep.model.OrganAndDrugsepRelationBean;
 import ctd.persistence.bean.QueryResult;
+import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import eh.utils.BeanCopyUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
+import recipe.constant.ErrorCode;
 import recipe.core.api.IDrugsEnterpriseBusinessService;
 import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.util.ObjectCopyUtils;
@@ -107,7 +109,10 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
      */
     @RpcService
     public List<EnterpriseDecoctionList> findEnterpriseDecoctionList(Integer enterpriseId,Integer organId) {
-        validateAtop(enterpriseId,organId);
+        validateAtop(enterpriseId);
+        if (Objects.nonNull(organId)) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "入参错误");
+        }
         List<EnterpriseDecoctionList> list = enterpriseBusinessService.findEnterpriseDecoctionList(enterpriseId,organId);
         return list;
     }
