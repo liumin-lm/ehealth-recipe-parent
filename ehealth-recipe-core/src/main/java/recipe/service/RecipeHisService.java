@@ -1,5 +1,6 @@
 package recipe.service;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
@@ -536,6 +537,8 @@ public class RecipeHisService extends RecipeBaseService {
             // 到院取药只有线上支付才走
             if(RecipeBussConstant.GIVEMODE_TO_HOS.equals(recipe.getGiveMode()) && RecipeBussConstant.PAYMODE_OFFLINE.equals(recipeOrder.getPayMode())){
                 LOGGER.info("doRecipeSettle 到院取药线下支付不走平台结算;recipeId={}", recipe.getRecipeId());
+                recipeOrder.setSettleAmountState(SettleAmountStateEnum.NO_NEED.getType());
+                recipeOrderDAO.updateNonNullFieldByPrimaryKey(recipeOrder);
                 return true;
             }
             //PayNotifyResTO response = service.payNotify(payNotifyReq);
@@ -565,6 +568,10 @@ public class RecipeHisService extends RecipeBaseService {
                 response = new PayNotifyResTO();
                 response.setMsgCode(1);
                 response.setMsg(e.getMessage());
+            }
+            if (null == response) {
+                recipeOrder.setSettleAmountState(SettleAmountStateEnum.SETTLE_SUCCESS.getType());
+                recipeOrderDAO.updateNonNullFieldByPrimaryKey(recipeOrder);
             }
             settleService.doRecipeSettleResponse(response, recipe, result);
         } else {

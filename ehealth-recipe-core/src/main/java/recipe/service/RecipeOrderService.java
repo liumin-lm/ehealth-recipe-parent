@@ -2296,9 +2296,6 @@ public class RecipeOrderService extends RecipeBaseService {
                 //支付成功后，对来源于HIS的处方单状态更新为已处理
                 updateHisRecieStatus(recipes);
                 purchaseService.setRecipePayWay(order);
-                if ("111".equals(order.getWxPayWay())) {
-                    attrMap.put("settleAmountState", 1);
-                }
             } else if (PayConstant.PAY_FLAG_NOT_PAY == payFlag && null != order) {
                 attrMap.put("status", getPayStatus(reviewType, giveMode, nowRecipe));
                 //支付前调用

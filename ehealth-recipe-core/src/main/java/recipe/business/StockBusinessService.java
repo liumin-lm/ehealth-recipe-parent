@@ -537,13 +537,8 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
      * @return
      */
     private DoSignRecipeDTO enterpriseStock(RecipeDTO recipeDTO) {
-        List<EnterpriseStock> enterpriseStockList = this.drugRecipeStockV1(recipeDTO);
-        boolean stock = enterpriseStockList.stream().anyMatch(EnterpriseStock::getStock);
         DoSignRecipeDTO doSignRecipe = new DoSignRecipeDTO(true, false, null, "", recipeDTO.getRecipe().getRecipeId(), null, null);
-        if (!stock) {
-            enterpriseManager.doSignRecipe(doSignRecipe, "根据药品库存判断，未找到可供药的药房或药企");
-            return doSignRecipe;
-        }
+        List<EnterpriseStock> enterpriseStockList = this.drugRecipeStockV1(recipeDTO);
         Recipe recipe = recipeDTO.getRecipe();
         //保存药品购药方式
         List<GiveModeButtonDTO> supportGiveModeList = this.saveGiveMode(recipe, enterpriseStockList, recipeDTO.getRecipeDetails());
