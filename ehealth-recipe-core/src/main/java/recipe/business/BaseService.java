@@ -28,9 +28,9 @@ public class BaseService {
         List<T> futureTaskCallbackBeanList = new LinkedList<>();
         int timeOut = 10000;
         for (int i = 0; i < futureTasks.size(); i++) {
-            if (i > 0) {
-                timeOut = 100;
-            }
+//            if (i > 0) {
+//                timeOut = 100;
+//            }
             try {
                 T futureTaskCallbackBean = futureTasks.get(i).get(timeOut, TimeUnit.MILLISECONDS);
                 futureTaskCallbackBeanList.add(futureTaskCallbackBean);
