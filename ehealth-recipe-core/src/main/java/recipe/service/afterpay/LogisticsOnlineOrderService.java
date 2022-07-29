@@ -118,7 +118,7 @@ public class LogisticsOnlineOrderService implements IAfterPayBussService{
             } catch (Exception e) {
                 //记录日志
                 RecipeLogService.saveRecipeLog(trackRecipe.getRecipeId(), trackRecipe.getStatus(), trackRecipe.getStatus(), "物流下单失败,原因：" + e.getMessage());
-                LOGGER.error("基础服务物流下单异常，发起退款流程 recipeId：{}, orderId：{}，异常：", trackRecipe.getRecipeId(), order.getOrderId(), e);
+                LOGGER.error("基础服务物流下单异常 recipeId：{}, orderId：{}，异常：", trackRecipe.getRecipeId(), order.getOrderId(), e);
                 return;
             }
             LOGGER.info("基础服务物流下单结果 recipeId：{}, 物流单号：{}", trackRecipe.getRecipeId(), trackingNumber);
@@ -146,7 +146,7 @@ public class LogisticsOnlineOrderService implements IAfterPayBussService{
                 LOGGER.info("基础服务物流下单成功，更新物流单号={},物流公司={},orderId={}", trackingNumber, order.getLogisticsCompany(), order.getOrderId());
             } else {
                 // 下单失败发起退款，退款原因=物流下单失败
-                LOGGER.info("基础服务物流下单失败，发起退款流程 orderId={}", order.getOrderId());
+                LOGGER.info("基础服务物流下单失败 orderId={}", order.getOrderId());
             }
         } else if (null != enterprise && enterprise.getLogisticsType() != null && enterprise.getLogisticsType().equals(DrugEnterpriseConstant.LOGISTICS_ENT_HIS)) {
             //药企对接-无回写接口:将处方信息传给基础服务线
@@ -272,10 +272,11 @@ public class LogisticsOnlineOrderService implements IAfterPayBussService{
         // 寄件人详细地址
         logisticsOrder.setConsignorAddress(organLogisticsManageDto.getConsignorAddress());
         logisticsOrder.setAmount(order.getRecipeFee());
-        if (null != addressDTO) {
+        if (null != addressDTO && null !=addressDTO.getLatitude() && null !=addressDTO.getLongitude()) {
             logisticsOrder.setLatitude(addressDTO.getLatitude());
             logisticsOrder.setLongitude(addressDTO.getLongitude());
         }
+
         // 收件人名称
         logisticsOrder.setAddresseeName(order.getReceiver());
         // 收件人手机号

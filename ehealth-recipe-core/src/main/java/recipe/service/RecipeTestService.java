@@ -327,6 +327,24 @@ public class RecipeTestService {
     }
 
     /**
+     * 查询sql
+     select * from cdr_recipeorder o,cdr_drugsenterprise e
+     where o.enterpriseId=e.id
+     and o.payTime>='2022/07/28 18:17:57'
+     and o.trackingNumber is null
+     and e.logisticsType=1
+     and o.PayFlag=1
+     and o.AddressID>0
+     * @param orderCodeList
+     */
+    @RpcService
+    public void onlineOrderList(List<String> orderCodeList) {
+        for (String orderCode:orderCodeList ) {
+            onlineOrder(orderCode);
+        }
+    }
+
+    /**
      * 迁移ext数据
      */
     @RpcService
