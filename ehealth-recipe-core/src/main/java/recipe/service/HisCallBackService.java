@@ -276,7 +276,7 @@ public class HisCallBackService {
                 Map<String, Object> extendMap = new HashedMap();
                 // 将取药窗口更新到ext表
                 extendMap.put("pharmNo", detail.getPharmNo());
-                recipeExtendDAO.updateRecipeExInfoByRecipeId(Integer.valueOf(detail.getRecipeId()), extendMap);
+                recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeId, extendMap);
             }
 
             RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
