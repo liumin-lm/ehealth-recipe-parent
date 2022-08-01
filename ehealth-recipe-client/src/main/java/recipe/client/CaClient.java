@@ -11,9 +11,11 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.upload.service.IFileUploadService;
+import ctd.persistence.exception.DAOException;
 import eh.utils.params.ParamUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.constant.ErrorCode;
 import recipe.util.ByteUtils;
 import sun.misc.BASE64Decoder;
 
@@ -76,10 +78,15 @@ public class CaClient extends BaseClient {
      * @param caPassword
      */
     public void oldCommonCASign(CaSealRequestTO requestSeal, Recipe recipe, String idNumber, String caPassword) {
-        //签名时的密码从redis中获取
-        ca.vo.model.RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, ca.vo.model.RecipeBean.class);
-        iCaRemoteService.commonCASignAndSealForRecipe(requestSeal, recipeBean, recipe.getClinicOrgan(), idNumber, caPassword);
-        logger.info("CaClient oldCommonCASign requestSeal=[{}]，recipeid={}", JSON.toJSONString(requestSeal), recipeBean.getRecipeId());
+        try {
+            //签名时的密码从redis中获取
+            ca.vo.model.RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, ca.vo.model.RecipeBean.class);
+            iCaRemoteService.commonCASignAndSealForRecipe(requestSeal, recipeBean, recipe.getClinicOrgan(), idNumber, caPassword);
+            logger.info("CaClient oldCommonCASign requestSeal=[{}]，recipeid={}", JSON.toJSONString(requestSeal), recipeBean.getRecipeId());
+        } catch (Exception e) {
+            logger.error("CaClient oldCommonCASign  error recipeid ={}", recipe.getRecipeId(), e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
     }
 
 
