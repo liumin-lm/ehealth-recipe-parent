@@ -1,5 +1,6 @@
 package recipe.client;
 
+import com.alibaba.fastjson.JSON;
 import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.base.push.service.ISmsPushService;
 import com.ngari.patient.dto.DoctorDTO;
@@ -25,5 +26,6 @@ public class SmsClient extends BaseClient {
         smsInfo.setSmsType("DocSignNotify");
         smsInfo.setExtendValue(doctorDTO.getUrt() + "|" + recipeId + "|" + doctorDTO.getLoginId());
         smsPushService.pushMsgData2OnsExtendValue(smsInfo);
+        logger.info("SmsClient pushMsgData2OnsExtendValue smsInfo = {}", JSON.toJSONString(smsInfo));
     }
 }

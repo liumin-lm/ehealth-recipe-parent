@@ -168,11 +168,12 @@ public class CaManager extends BaseManager {
                 recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
                 resultVo.setFileId(fileId);
             } catch (Exception e) {
-                logger.info("CaManager oldCaCallBack recipeId={}", recipe.getRecipeId(), e);
+                logger.error("CaManager oldCaCallBack error recipeId={}", recipe.getRecipeId(), e);
             }
         }
         caClient.signRecipeInfoSave(recipe.getRecipeId(), isDoctor, resultVo, recipe.getClinicOrgan());
         caClient.signUpdate(recipe, details);
+        logger.info("CaManager oldCaCallBack recipeId={}", recipe.getRecipeId());
     }
 
     /**

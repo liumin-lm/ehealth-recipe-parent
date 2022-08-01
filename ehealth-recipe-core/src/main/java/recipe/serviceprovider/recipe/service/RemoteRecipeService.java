@@ -2173,7 +2173,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         }
 
         // 上海胸科 调用到这里 首先判断当前ca是否是有结束结果的
-        if (-1 == resultVo.getResultCode()) {
+        if (Integer.valueOf(-1).equals(resultVo.getResultCode())) {
             LOGGER.info("当期处方{}医生ca签名异步调用接口返回：未触发处方业务结果", recipeId);
             return;
         }
