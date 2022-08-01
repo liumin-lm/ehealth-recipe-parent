@@ -33,6 +33,7 @@ import recipe.service.RecipeLogService;
 import recipe.service.RecipeServiceEsignExt;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.ByteUtils;
+import recipe.util.JsonUtil;
 import recipe.util.ValidateUtil;
 
 import javax.annotation.Resource;
@@ -145,6 +146,8 @@ public class CreatePdfFactory {
             byte[] data = createPdfService.queryPdfByte(recipe);
             CaSealRequestTO caSealRequest = createPdfService.queryPdfBase64(data, recipe.getRecipeId());
             if (null == caSealRequest) {
+                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "获取pdf_byte格式生成null");
+            }else{
                 caSealRequest.setSealBase64Str("");
                 if (isDoctor) {
                     doctor=recipe.getDoctor();
@@ -156,7 +159,7 @@ public class CreatePdfFactory {
                 if (null != doctorExtendDTO && null != doctorExtendDTO.getSealData()) {
                     caSealRequest.setSealBase64Str(doctorExtendDTO.getSealData());
                 }
-                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "获取pdf_byte格式生成null");
+                logger.info("caSealRequest:{}", JsonUtil.toString(caSealRequest));
             }
             return caSealRequest;
         } catch (Exception e) {
