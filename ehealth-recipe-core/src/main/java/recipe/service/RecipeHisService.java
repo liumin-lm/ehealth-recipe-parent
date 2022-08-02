@@ -532,7 +532,9 @@ public class RecipeHisService extends RecipeBaseService {
             if ("111".equals(recipeOrder.getWxPayWay())) {
                 LOGGER.info("doRecipeSettle 卫宁付不走平台结算;recipeId={}", recipe.getRecipeId());
                 //汉中市中心医院对接了卫宁付但是需要用到后面的更新配送信息接口将物流单号传给前置机
-                return true;
+                if (!new Integer(1004219).equals(recipe.getClinicOrgan())) {
+                    return true;
+                }
             }
             // 到院取药只有线上支付才走
             if(RecipeBussConstant.GIVEMODE_TO_HOS.equals(recipe.getGiveMode()) && RecipeBussConstant.PAYMODE_OFFLINE.equals(recipeOrder.getPayMode())){
