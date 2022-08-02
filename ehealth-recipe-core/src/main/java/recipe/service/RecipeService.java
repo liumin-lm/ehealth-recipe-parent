@@ -702,12 +702,16 @@ public class RecipeService extends RecipeBaseService {
     }
 
     /**
-     * 生成pdf并签名
+     * 写入his成功后，生成pdf并签名
      *
-     * @param recipeId
+     * @param oldRecipe
      */
     @LogRecord
-    private RecipeResultBean generateRecipePdfAndSign(Integer recipeId) {
+    private RecipeResultBean generateRecipePdfAndSign(Recipe oldRecipe) {
+        if (SignEnum.SIGN_STATE_ORDER.getType().equals(oldRecipe.getDoctorSignState())) {
+            return RecipeResultBean.getSuccess();
+        }
+        Integer recipeId = oldRecipe.getRecipeId();
         stateManager.updateStatus(recipeId, RecipeStatusEnum.RECIPE_STATUS_SIGN_ING_CODE_DOC, SignEnum.SIGN_STATE_SUBMIT);
         stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_SUBMIT, RecipeStateEnum.NONE);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
@@ -864,12 +868,10 @@ public class RecipeService extends RecipeBaseService {
         if (null == caType) {
             return;
         }
-        //写入his成功后，生成pdf并签名
         RecipeResultBean recipeSignResult;
         if (CA_OLD_TYPE.equals(caType)) {
-            recipeSignResult = this.generateRecipePdfAndSign(recipe.getRecipeId());
+            recipeSignResult = this.generateRecipePdfAndSign(recipe);
         } else {
-            //触发CA前置操作
             recipeSignResult = AbstractCaProcessType.getCaProcessFactory(recipe.getClinicOrgan()).hisCallBackCARecipeFunction(recipe.getRecipeId());
         }
         LOGGER.info("retryDoctorSignCheck recipeSignResult ！{}", JSON.toJSONString(recipeSignResult));
