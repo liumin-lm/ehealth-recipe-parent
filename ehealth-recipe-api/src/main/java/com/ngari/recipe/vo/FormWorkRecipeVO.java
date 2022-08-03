@@ -2,6 +2,7 @@ package com.ngari.recipe.vo;
 
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import ctd.schema.annotation.ItemProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,18 +24,28 @@ import java.util.List;
 public class FormWorkRecipeVO implements Serializable {
     private static final long serialVersionUID = 2835067047332365247L;
 
-    //模板ID
+    @ItemProperty(alias = "模板ID")
     private Integer mouldId;
-    //模板标题
+
+    @ItemProperty(alias = "模板标题")
     private String title;
-    //处方介绍
+
+    @ItemProperty(alias = "处方介绍")
     private String introduce;
-    //背景图片
+
+    @ItemProperty(alias = "背景图片")
     private String backgroundImg;
-    //处方详情
+
+    @ItemProperty(alias = "处方详情")
     private RecipeBean recipeBean;
-    //电子病例文本
+
+    @ItemProperty(alias = "电子病例文本")
     private String docText;
-    //处方明细详情
+
+    @ItemProperty(alias = "处方明细详情")
     private List<RecipeDetailBean> detailBeanList;
+
+    @ItemProperty(alias = "药方数量上限")
+    private Integer maxNum;
+
 }
