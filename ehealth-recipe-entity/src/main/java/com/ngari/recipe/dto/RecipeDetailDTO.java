@@ -154,6 +154,11 @@ public class RecipeDetailDTO implements Serializable {
      * 返回his药品状态 原因
      */
     private String validateHisStatusText;
+    /**
+     * 剩余天数
+     */
+    private Integer residueDay;
+
 
     public String getUsePathways() {
         return usePathways;
