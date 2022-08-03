@@ -94,6 +94,10 @@ public class ThirdRecipeService {
                 List<PatientTabStatusRecipeDTO> patientTabStatusRecipeDTOS = patientTabStatusMergeRecipeDTO.getRecipe();
                 for (PatientTabStatusRecipeDTO patientTabStatusRecipeDTO : patientTabStatusRecipeDTOS) {
                     RecipeAndRecipeDetailsBean recipeAndRecipeDetailsBean = new RecipeAndRecipeDetailsBean();
+                    if (StringUtils.isNotEmpty(patientTabStatusRecipeDTO.getOrderCode())) {
+                        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(patientTabStatusRecipeDTO.getOrderCode());
+                        recipeAndRecipeDetailsBean.setOrderId(recipeOrder.getOrderId());
+                    }
                     recipeAndRecipeDetailsBean.setRecipeId(patientTabStatusRecipeDTO.getRecipeId());
                     recipeAndRecipeDetailsBean.setPatientName(patientTabStatusRecipeDTO.getPatientName());
                     recipeAndRecipeDetailsBean.setPhoto(patientTabStatusRecipeDTO.getPhoto());
