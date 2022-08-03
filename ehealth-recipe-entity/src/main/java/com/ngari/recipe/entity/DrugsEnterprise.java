@@ -35,6 +35,7 @@ public class DrugsEnterprise implements java.io.Serializable {
     @ItemProperty(alias = "平台自定义药企编码")
     private String enterpriseCode;
 
+    //作废
     @ItemProperty(alias = "药企关键机构")
     @Dictionary(id = "eh.base.dictionary.Organ")
     private Integer organId;
