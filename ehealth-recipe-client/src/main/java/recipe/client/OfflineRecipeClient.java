@@ -494,6 +494,7 @@ public class OfflineRecipeClient extends BaseClient {
             if (null == drugInfo) {
                 return;
             }
+            a.setResidueDay(drugInfo.getResidueDay());
             if (ValidateUtil.integerIsEmpty(drugInfo.getValidateHisStatus())) {
                 return;
             }

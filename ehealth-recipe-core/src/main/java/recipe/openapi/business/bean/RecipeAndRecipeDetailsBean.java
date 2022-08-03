@@ -44,5 +44,7 @@ public class RecipeAndRecipeDetailsBean implements Serializable{
 
     private String trackingNumber;
 
+    private Integer orderId;
+
     private List<ThirdRecipeDetailBean> recipeDetailBeans;
 }

@@ -321,9 +321,6 @@ public class RecipeTestService {
         List<Integer> recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
         List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIdList);
         logisticsOnlineOrderService.onlineOrder(order, recipes);
-        RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
-        RecipeResultBean result = RecipeResultBean.getSuccess();
-        hisService.recipeDrugTake(recipes.get(0).getRecipeId(), order.getPayFlag(), result);
     }
 
     /**
@@ -342,6 +339,17 @@ public class RecipeTestService {
         for (String orderCode:orderCodeList ) {
             onlineOrder(orderCode);
         }
+    }
+
+    /**
+     * 通知his结算
+     * @param recipeId
+     */
+    @RpcService
+    public void recipeDrugTake(Integer recipeId){
+        RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
+        RecipeResultBean result = RecipeResultBean.getSuccess();
+        hisService.recipeDrugTake(recipeId, 1, result);
     }
 
     /**
