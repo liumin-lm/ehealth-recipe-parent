@@ -66,6 +66,9 @@ public class OrganDrugsSaleConfig implements Serializable {
     @ItemProperty(alias = "是否打开发票申请：0不打开，1打开")
     private Integer invoiceRequestFlag;
 
+    @ItemProperty(alias = "是否支持打印发票：0不支持，1支持")
+    private Integer invoiceSupportFlag;
+
     @ItemProperty(alias = "创建时间")
     private Date createTime;
 
@@ -240,5 +243,14 @@ public class OrganDrugsSaleConfig implements Serializable {
 
     public void setRefundNotifyPhone(String refundNotifyPhone) {
         this.refundNotifyPhone = refundNotifyPhone;
+    }
+
+    @Column(name = "invoice_support_flag")
+    public Integer getInvoiceSupportFlag() {
+        return invoiceSupportFlag;
+    }
+
+    public void setInvoiceSupportFlag(Integer invoiceSupportFlag) {
+        this.invoiceSupportFlag = invoiceSupportFlag;
     }
 }
