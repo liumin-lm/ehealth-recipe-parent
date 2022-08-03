@@ -43,11 +43,23 @@ public class SaleDrugListSyncField implements java.io.Serializable {
     @ItemProperty(alias = "是否同步 同步勾选 0否 1是")
     private String isSync;
 
+    @ItemProperty(alias = "是否允许编辑 0不允许 1允许")
+    private String isAllowEdit;
+
     @ItemProperty(alias = "创建时间")
     private Date createTime;
 
     @ItemProperty(alias = "更新时间")
     private Date updateTime;
+
+    @Column(name = "is_allow_edit")
+    public String getIsAllowEdit() {
+        return isAllowEdit;
+    }
+
+    public void setIsAllowEdit(String isAllowEdit) {
+        this.isAllowEdit = isAllowEdit;
+    }
 
     @Column(name = "create_time", length = 19)
     public Date getCreateTime() {

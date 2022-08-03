@@ -58,6 +58,12 @@ public class DrugsEnterpriseConfigService {
         }
     }
 
+    /**
+     * 保存或更新DrugsEnterpriseConfig
+     * 作废 新方法addOrUpdateDrugsEnterpriseConfig2
+     * @param drugsEnterpriseConfig
+     * @return
+     */
     @RpcService
     public DrugsEnterpriseConfig addOrUpdateDrugsEnterpriseConfig(DrugsEnterpriseConfig drugsEnterpriseConfig){
         if (ObjectUtils.isEmpty(drugsEnterpriseConfig.getDrugsenterpriseId())){
@@ -88,6 +94,28 @@ public class DrugsEnterpriseConfigService {
             }
             return update;
         }
+    }
+
+    /**
+     * 保存或更新DrugsEnterpriseConfig
+     * @param drugsEnterpriseConfig
+     * @return
+     */
+    @RpcService
+    public DrugsEnterpriseConfig addOrUpdateDrugsEnterpriseConfig2(DrugsEnterpriseConfig drugsEnterpriseConfig){
+        DrugsEnterpriseConfig drugsEnterpriseConfig1=addOrUpdateDrugsEnterpriseConfig(drugsEnterpriseConfig);
+        List<SaleDrugListSyncField> saleDrugListSyncFieldList=drugsEnterpriseConfig.getSaleDrugListSyncFieldList();
+        if(!CollectionUtils.isEmpty(saleDrugListSyncFieldList)){
+            saleDrugListSyncFieldList.forEach(saleDrugListSyncField -> {
+                saleDrugListSyncFieldDAO.update(saleDrugListSyncField);
+            });
+            drugsEnterpriseConfig1.setSaleDrugListSyncFieldList(saleDrugListSyncFieldList);
+        }else{
+            drugsEnterpriseConfig1.setSaleDrugListSyncFieldList(addSaleDrugListSyncFieldForEnterprise(drugsEnterpriseConfig.getDrugsenterpriseId()));
+
+        }
+        return drugsEnterpriseConfig1;
+
     }
 
     /**
@@ -143,6 +171,8 @@ public class DrugsEnterpriseConfigService {
     private List<SaleDrugListSyncField> addSaleDrugListSyncFieldForEnterprise(Integer drugsenterpriseId) {
         List<SaleDrugListSyncField> saleDrugListSyncFieldList=new ArrayList<>();
         Map<String,String> fieldMap=initFieldMap();
+        Map<String,String> addIsAllowEditFieldMap =initAddIsAllowEditFieldMap();
+        Map<String,String> updateIsAllowEditFieldMap =initUpdateIsAllowEditFieldMap();
         Set set = fieldMap.keySet();
         List<String> typeList=initTypeList();
         for (Object key : set) {
@@ -152,6 +182,12 @@ public class DrugsEnterpriseConfigService {
                 saleDrugListSyncField.setFieldCode(key+"");
                 saleDrugListSyncField.setFieldName(fieldMap.get(key));
                 saleDrugListSyncField.setType(type);
+                if("1".equals(type)){
+                    //新增
+                    saleDrugListSyncField.setIsAllowEdit(addIsAllowEditFieldMap.get(key));
+                }else{
+                    saleDrugListSyncField.setIsAllowEdit(updateIsAllowEditFieldMap.get(key));
+                }
                 checkSaleDrugListSyncField(saleDrugListSyncField);
                 SaleDrugListSyncField saleDrugListSyncField1 = addOrUpdateSaleDrugListSyncField(saleDrugListSyncField);
                 saleDrugListSyncFieldList.add(saleDrugListSyncField1);
@@ -168,6 +204,28 @@ public class DrugsEnterpriseConfigService {
         fieldMap.put("drugSpec","机构药品规格");
         fieldMap.put("price","无税单价");
         fieldMap.put("status","使用状态");
+        return fieldMap;
+    }
+
+    private Map<String,String> initAddIsAllowEditFieldMap(){
+        Map<String,String> fieldMap=new HashMap<>();
+        fieldMap.put("saleDrugCode","0");
+        fieldMap.put("drugName","0");
+        fieldMap.put("saleName","0");
+        fieldMap.put("drugSpec","0");
+        fieldMap.put("price","0");
+        fieldMap.put("status","0");
+        return fieldMap;
+    }
+
+    private Map<String,String> initUpdateIsAllowEditFieldMap(){
+        Map<String,String> fieldMap=new HashMap<>();
+        fieldMap.put("saleDrugCode","0");
+        fieldMap.put("drugName","1");
+        fieldMap.put("saleName","1");
+        fieldMap.put("drugSpec","1");
+        fieldMap.put("price","1");
+        fieldMap.put("status","1");
         return fieldMap;
     }
 
