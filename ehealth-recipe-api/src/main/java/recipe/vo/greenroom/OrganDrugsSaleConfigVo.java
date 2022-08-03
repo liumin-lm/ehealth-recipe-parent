@@ -90,4 +90,9 @@ public class OrganDrugsSaleConfigVo implements Serializable {
     @ItemProperty(alias = "退费审核通知电话")
     private String refundNotifyPhone;
 
+    /**
+     * 是否支持打印发票：0不支持，1支持
+     */
+    private Integer invoiceSupportFlag;
+
 }

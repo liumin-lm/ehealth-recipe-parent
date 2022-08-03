@@ -146,9 +146,9 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
         relation.setEnterpriseRecipeTypes(recipeTypes);
         String decoctionIds = StringUtils.join(organEnterpriseRelationVo.getDecoctionIds(), ByteUtils.COMMA);
         relation.setEnterpriseDecoctionIds(decoctionIds);
-        if(CollectionUtils.isNotEmpty(organEnterpriseRelationVo.getDrugsEnterpriseList())) {
-            relation.setEnterpriseDrugForm(JSONArray.toJSONString(organEnterpriseRelationVo.getDrugsEnterpriseList()));
-        }
+
+        relation.setEnterpriseDrugForm(JSONArray.toJSONString(organEnterpriseRelationVo.getEnterpriseDrugForm()));
+
         organAndDrugsepRelationDAO.updateNonNullFieldByPrimaryKey(relation);
     }
 
