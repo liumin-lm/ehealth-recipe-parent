@@ -516,7 +516,7 @@ public class RecipeServiceSub {
                 }
             }
             //是否为老的药品兼容方式，老的药品传入方式没有organDrugCode
-            boolean oldFlag = organDrugCodes.isEmpty() ? true : false;
+            boolean oldFlag = organDrugCodes.isEmpty();
             Map<String, OrganDrugList> organDrugListMap = Maps.newHashMap();
             Map<Integer, OrganDrugList> organDrugListIdMap = Maps.newHashMap();
             List<OrganDrugList> organDrugList = Lists.newArrayList();
@@ -1637,7 +1637,7 @@ public class RecipeServiceSub {
         map.put("recipedetails", RecipeValidateUtil.covertDrugUnitdoseAndUnit(RecipeValidateUtil.validateDrugsImplForDetail(recipe, recipeDetailSalePrice,depId), isDoctor, recipe.getClinicOrgan()));
         //隐方
         boolean isHiddenRecipeDetail = false;
-        if (isDoctor == false) {
+        if (!isDoctor) {
             boolean isReturnRecipeDetail = recipeListService.isReturnRecipeDetail(recipe.getRecipeId());
             if (!isReturnRecipeDetail) {
                 List<RecipeDetailBean> recipeDetailVOs = (List<RecipeDetailBean>) map.get("recipedetails");
@@ -1680,7 +1680,7 @@ public class RecipeServiceSub {
             boolean medicalFlag = false;
             ConsultSetDTO set = consultSetService.getBeanByDoctorId(recipe.getDoctor());
             if (null != set && null != set.getMedicarePrescription()) {
-                medicalFlag = (true == set.getMedicarePrescription()) ? true : false;
+                medicalFlag = set.getMedicarePrescription();
             }
             map.put("medicalFlag", medicalFlag);
             if (null != recipe.getChecker()) {
@@ -2135,7 +2135,7 @@ public class RecipeServiceSub {
         //判断当前处方对应的机构支持的配送药企包含的配送类型
 
         //首先判断按钮中配送药品购药方式是否展示，不展示购药方式按钮就不展示药企配送和医院配送
-        boolean showSend = (null == map.get("supportOnline") ? false : 1 == Integer.parseInt(map.get("supportOnline").toString()));
+        boolean showSend = (null != map.get("supportOnline") && 1 == Integer.parseInt(map.get("supportOnline").toString()));
         map.put("showSendToEnterprises", 0);
         map.put("showSendToHos", 0);
         //显示配送才判断具体显示哪个配送按钮
@@ -2985,9 +2985,7 @@ public class RecipeServiceSub {
         if (organDTO != null) {
             //医保卡id ----
             String medicareCardId = healthCardService.getMedicareCardId(mpiid, organDTO.getOrganId());
-            if (StringUtils.isNotEmpty(medicareCardId)) {
-                return true;
-            }
+            return StringUtils.isNotEmpty(medicareCardId);
         }
 
         return false;
@@ -3003,9 +3001,7 @@ public class RecipeServiceSub {
         OrganAndDrugsepRelationDAO dao = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
         List<DrugsEnterprise> enterprises = dao.findDrugsEnterpriseByOrganIdAndStatus(clinicOrgan, 1);
         if (CollectionUtils.isNotEmpty(enterprises)) {
-            if ("hzInternet".equals(enterprises.get(0).getCallSys())) {
-                return false;
-            }
+            return !"hzInternet".equals(enterprises.get(0).getCallSys());
         }
         return true;
     }
@@ -3020,9 +3016,7 @@ public class RecipeServiceSub {
         if (depId != null) {
             DrugsEnterpriseDAO dao = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
             DrugsEnterprise drugsEnterprise = dao.getById(depId);
-            if (drugsEnterprise != null && "bqEnterprise".equals(drugsEnterprise.getAccount())) {
-                return true;
-            }
+            return drugsEnterprise != null && "bqEnterprise".equals(drugsEnterprise.getAccount());
         }
         return false;
     }

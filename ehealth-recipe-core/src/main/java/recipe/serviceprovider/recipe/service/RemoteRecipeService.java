@@ -62,6 +62,7 @@ import com.ngari.recipe.recipereportform.model.*;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.RevisitBean;
 import com.ngari.revisit.common.model.RevisitExDTO;
+import com.ngari.revisit.common.service.IRevisitExService;
 import com.ngari.revisit.process.service.IRecipeOnLineRevisitService;
 import ctd.account.Client;
 import ctd.account.UserRoleToken;
@@ -2823,6 +2824,17 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
     @Override
     public void sendRecipeTagToPatientWithOfflineRecipe(String mpiId, Integer organId, String recipeCode, String cardId, Integer consultId, Integer doctorId) {
+        if (null == doctorId) {
+            IRevisitExService revisitExService = RevisitAPI.getService(IRevisitExService.class);
+            RevisitExDTO consultExDTO = revisitExService.getByConsultId(consultId);
+            LOGGER.info("RemoteRecipeService sendRecipeTagToPatientWithOfflineRecipe consultExDTO={}", JSON.toJSONString(consultExDTO));
+            if (StringUtils.isNotEmpty(consultExDTO.getRegisterNo())) {
+                List<Recipe> recipeList = recipeDAO.findByRecipeCodeAndRegisterIdAndOrganId(consultExDTO.getRegisterNo(), organId);
+                if (CollectionUtils.isNotEmpty(recipeList)) {
+                    doctorId = recipeList.get(0).getDoctor();
+                }
+            }
+        }
         RecipeServiceSub.sendRecipeTagToPatientWithOfflineRecipe(mpiId, organId, recipeCode, cardId, consultId, doctorId);
     }
 

@@ -83,7 +83,7 @@ public abstract class DrugDecoctionWayDao extends HibernateSupportDelegateDAO<De
                     countQuery.setParameter("decoctionText", "%" + decoctionText + "%");
                 }
                 Long total = (Long) countQuery.uniqueResult();
-                setResult(new QueryResult<DecoctionWayBean>(total, query.getFirstResult(), query.getMaxResults(), lists));
+                setResult(new QueryResult<>(total, query.getFirstResult(), query.getMaxResults(), lists));
             }
         };
         HibernateSessionTemplate.instance().execute(action);

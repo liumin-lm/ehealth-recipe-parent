@@ -27,15 +27,20 @@ public class BaseService {
     protected <T> List<T> futureTaskCallbackBeanList(List<FutureTask<T>> futureTasks) {
         List<T> futureTaskCallbackBeanList = new LinkedList<>();
         int timeOut = 10000;
-        for (int i = 0; i < futureTasks.size(); i++) {
-//            if (i > 0) {
-//                timeOut = 100;
-//            }
+        for (FutureTask<T> futureTask : futureTasks) {
+            long start = System.currentTimeMillis();
             try {
-                T futureTaskCallbackBean = futureTasks.get(i).get(timeOut, TimeUnit.MILLISECONDS);
+                T futureTaskCallbackBean = futureTask.get(timeOut, TimeUnit.MILLISECONDS);
                 futureTaskCallbackBeanList.add(futureTaskCallbackBean);
             } catch (Exception e) {
                 logger.error("BaseService futureTaskCallbackBeanList futureTaskEnterpriseStockList error", e);
+            } finally {
+                Long end = System.currentTimeMillis() - start;
+                timeOut = timeOut - end.intValue();
+                if (timeOut <= 0) {
+                    timeOut = 100;
+                }
+                logger.info("BaseService futureTaskCallbackBeanList timeOut：{},end:{}", timeOut, end);
             }
         }
         logger.info("BaseService futureTaskCallbackBeanList futureTaskCallbackBeanList= {}", JSON.toJSONString(futureTaskCallbackBeanList));

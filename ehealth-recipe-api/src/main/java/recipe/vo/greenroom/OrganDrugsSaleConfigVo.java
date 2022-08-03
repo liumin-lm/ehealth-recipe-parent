@@ -1,5 +1,6 @@
 package recipe.vo.greenroom;
 
+import ctd.schema.annotation.ItemProperty;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -82,6 +83,12 @@ public class OrganDrugsSaleConfigVo implements Serializable {
      * 是否打开发票申请：0不打开，1打开
      */
     private Integer invoiceRequestFlag;
+
+    @ItemProperty(alias = "发药通知电话")
+    private String sendDrugNotifyPhone;
+
+    @ItemProperty(alias = "退费审核通知电话")
+    private String refundNotifyPhone;
 
     /**
      * 是否支持打印发票：0不支持，1支持

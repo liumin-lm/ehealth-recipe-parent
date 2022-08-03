@@ -167,7 +167,6 @@ public class DrugExtService implements IDrugExtService {
     @Override
     public QueryResult<DecoctionWayBean> findDecoctionWayByOrganIdAndName(Integer organId, String decoctionText, Integer start, Integer limit) {
         QueryResult<DecoctionWayBean> decoctionWayBean = drugDecoctionWayDao.findDecoctionWayByOrganIdAndName(organId, decoctionText, start, limit);
-
         return decoctionWayBean;
     }
 

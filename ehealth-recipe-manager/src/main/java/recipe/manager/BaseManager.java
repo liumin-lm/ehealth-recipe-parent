@@ -63,6 +63,8 @@ public class BaseManager {
     protected OfflineRecipeClient offlineRecipeClient;
     @Autowired
     DrugDecoctionWayDao drugDecoctionWayDao;
+    @Autowired
+    protected DrugListDAO drugListDAO;
 
     /**
      * 获取处方相关信息

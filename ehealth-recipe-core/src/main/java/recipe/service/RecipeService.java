@@ -4301,7 +4301,7 @@ public class RecipeService extends RecipeBaseService {
     /**
      * 当前新增药品数据到中间表
      *
-     * TODO药品转换 1 手工同步新增时用
+     * TODO药品转换 1 手工同步新增时用 2推送时新增用
      * @param drug
      * @param organId
      */
@@ -4325,9 +4325,15 @@ public class RecipeService extends RecipeBaseService {
         } else {
             drugListMatch.setSaleName(drug.getSaleName());
         }
-        if (!ObjectUtils.isEmpty(drug.getUseDose())) {
+        if (ObjectUtils.isEmpty(drug.getUseDose())) {
+            //中药不需要设置
+            if (!(new Integer(3).equals(drug.getDrugType()))) {
+                throw new DAOException(DAOException.VALUE_NEEDED, "useDose 机构 单次剂量(规格单位)必填!");
+            }
+        }else{
             drugListMatch.setUseDose(drug.getUseDose());
         }
+
 
         if (StringUtils.isEmpty(drug.getDrugSpec())) {
             throw new DAOException(DAOException.VALUE_NEEDED, "drugSpec 机构 药品规格必填!");
@@ -4346,17 +4352,28 @@ public class RecipeService extends RecipeBaseService {
             drugListMatch.setChemicalName(drug.getChemicalName());
         }
         if (ObjectUtils.isEmpty(drug.getPack())) {
-            throw new DAOException(DAOException.VALUE_NEEDED, "pack 机构 药品包装数量必填!");
+            //中药不需要设置
+            if (!(new Integer(3).equals(drug.getDrugType()))) {
+                throw new DAOException(DAOException.VALUE_NEEDED, "pack 机构 药品包装数量必填!");
+            } else {
+                drug.setPack(1);
+            }
         } else {
             drugListMatch.setPack(drug.getPack().intValue());
         }
+
         if (ObjectUtils.isEmpty(drug.getUnit())) {
-            throw new DAOException(DAOException.VALUE_NEEDED, "unit 机构 药品单位必填!");
+            //中药不需要设置
+            if (!(new Integer(3).equals(drug.getDrugType()))) {
+                throw new DAOException(DAOException.VALUE_NEEDED, "unit 机构 药品单位必填!");
+            }
         } else {
             drugListMatch.setUnit(drug.getUnit());
         }
         if (ObjectUtils.isEmpty(drug.getProducer())) {
-            throw new DAOException(DAOException.VALUE_NEEDED, "producer 机构 药品生产厂家必填!");
+            if (!(new Integer(3).equals(drug.getDrugType()))) {
+                throw new DAOException(DAOException.VALUE_NEEDED, "producer 机构 药品生产厂家必填!");
+            }
         } else {
             drugListMatch.setProducer(drug.getProducer());
         }
@@ -4558,7 +4575,7 @@ public class RecipeService extends RecipeBaseService {
 
     /**
      * 手动同步药品数据
-     * TODO药品转换 2 手工同步修改时用
+     * TODO药品转换 2 手工同步修改时用 2推送更新用
      * @param drug
      * @param organDrug
      */
@@ -4600,7 +4617,7 @@ public class RecipeService extends RecipeBaseService {
             organDrug.setUseDose(drug.getUseDose());
         }
         //生产厂家
-        if (StringUtils.isNotEmpty(drug.getProducer())) {
+        if(!StringUtils.isEmpty(drug.getProducer())){
             organDrug.setProducer(drug.getProducer());
         }
        /* //生产厂家编码
@@ -4831,6 +4848,7 @@ public class RecipeService extends RecipeBaseService {
 
     /**
      * 当前同步药品数据
+     * TODO 凌晨一点
      *
      * @param drug
      * @param organDrug

@@ -142,10 +142,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
             newBean.setList(Lists.newArrayList(Collections2.filter(depListBean.getList(), new Predicate<DepDetailBean>() {
                 @Override
                 public boolean apply(@Nullable DepDetailBean input) {
-                    if (payModes.contains(input.getPayMode())) {
-                        return true;
-                    }
-                    return false;
+                    return payModes.contains(input.getPayMode());
                 }
             })));
         }
@@ -823,7 +820,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
     @Override
     public List<FormWorkRecipeVO> findFormWorkRecipe(FormWorkRecipeReqVO formWorkRecipeReqVO) {
         try {
-            String formWorkRecipe = recipeParameterDao.getByName(formWorkRecipeReqVO.getOrganId()+"_formWorkRecipe");
+            String formWorkRecipe = recipeParameterDao.getByName(formWorkRecipeReqVO.getOrganId() + "_formWorkRecipe");
             if (StringUtils.isEmpty(formWorkRecipe)) {
                 throw new DAOException(ErrorCode.SERVICE_ERROR, "没有维护模板处方");
             }
@@ -837,6 +834,12 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         }
     }
 
+    /**
+     * 便捷购药开处方
+     *
+     * @param recipeInfoVO 处方信息
+     * @return
+     */
     @Override
     public Integer saveRecipe(RecipeInfoVO recipeInfoVO) {
         //数据校验

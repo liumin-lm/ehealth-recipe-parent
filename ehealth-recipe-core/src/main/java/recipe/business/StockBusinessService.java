@@ -70,7 +70,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         //机构库存
         EnterpriseStock organStock = organDrugListManager.organStock(organId, recipeDetails);
         //药企库存
-        List<EnterpriseStock> enterpriseList = buttonManager.enterpriseStockCheck(organId, recipeType, decoctionId);
+        List<EnterpriseStock> enterpriseList = buttonManager.enterpriseStockCheck(organId, recipeType, decoctionId,recipeDetails);
         List<EnterpriseStock> enterpriseStock = this.enterpriseStockCheck(organId, enterpriseList, recipeDetails);
         //处理库存数据结构 逆转为 药品-药企
         List<EnterpriseStockVO> enterpriseStockList = this.getEnterpriseStockVO(organStock, enterpriseStock);
@@ -159,7 +159,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         //机构库存
         EnterpriseStock organStock = organDrugListManager.organStock(drugQueryVO.getOrganId(), recipeDetails);
         //药企库存
-        List<EnterpriseStock> enterpriseList = buttonManager.enterpriseStockCheck(drugQueryVO.getOrganId(), drugQueryVO.getRecipeType(), drugQueryVO.getDecoctionId());
+        List<EnterpriseStock> enterpriseList = buttonManager.enterpriseStockCheck(drugQueryVO.getOrganId(), drugQueryVO.getRecipeType(), drugQueryVO.getDecoctionId(),recipeDetails);
         List<EnterpriseStock> enterpriseStock = this.enterpriseStockCheck(drugQueryVO.getOrganId(), enterpriseList, recipeDetails);
         enterpriseStock.add(organStock);
         logger.info("drugForGiveMode enterpriseStock={}", JSONArray.toJSONString(enterpriseStock));
@@ -199,7 +199,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         List<Recipedetail> recipeDetails = recipeDTO.getRecipeDetails();
         RecipeExtend recipeExtend = recipeDTO.getRecipeExtend();
         //药企库存
-        List<EnterpriseStock> enterpriseList = buttonManager.enterpriseStockCheck(recipe.getClinicOrgan(), recipe.getRecipeType(), recipeExtend.getDecoctionId());
+        List<EnterpriseStock> enterpriseList = buttonManager.enterpriseStockCheck(recipe.getClinicOrgan(), recipe.getRecipeType(), recipeExtend.getDecoctionId(),recipeDetails);
         List<EnterpriseStock> enterpriseStock = this.enterpriseStockCheck(recipe.getClinicOrgan(), enterpriseList, recipeDetails);
         Map<Integer, EnterpriseStock> enterpriseStockMap = enterpriseStock.stream().collect(Collectors.toMap(EnterpriseStock::getDrugsEnterpriseId, a -> a, (k1, k2) -> k1));
         //机构库存
@@ -346,7 +346,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
      */
     private List<EnterpriseStock> enterpriseStockCheckAll(Recipe recipe, String decoctionId, List<Recipedetail> recipeDetails, Integer enterpriseId) {
         //获取需要查询库存的药企对象
-        List<EnterpriseStock> enterpriseStockList = buttonManager.enterpriseStockCheck(recipe.getClinicOrgan(), recipe.getRecipeType(), decoctionId);
+        List<EnterpriseStock> enterpriseStockList = buttonManager.enterpriseStockCheck(recipe.getClinicOrgan(), recipe.getRecipeType(), decoctionId,recipeDetails);
         if (CollectionUtils.isEmpty(enterpriseStockList)) {
             return enterpriseStockList;
         }
