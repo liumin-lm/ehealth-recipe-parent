@@ -83,4 +83,9 @@ public class OrganDrugsSaleConfigVo implements Serializable {
      */
     private Integer invoiceRequestFlag;
 
+    /**
+     * 是否支持打印发票：0不支持，1支持
+     */
+    private Integer invoiceSupportFlag;
+
 }
