@@ -6,6 +6,8 @@ import recipe.vo.greenroom.RecipeOrderRefundDetailVO;
 import recipe.vo.greenroom.RecipeOrderRefundPageVO;
 import recipe.vo.greenroom.RecipeOrderRefundReqVO;
 
+import java.util.List;
+
 /**
  * 退费查询接口调用
  *
@@ -20,4 +22,6 @@ public interface IRecipeOrderRefundService {
     void forceRefund(AuditRefundVO auditRefundVO);
 
     RecipeRefund findApplyRefund(Integer recipeId);
+
+    void updateRecipePushFlag(List<Integer> recipeIds);
 }
