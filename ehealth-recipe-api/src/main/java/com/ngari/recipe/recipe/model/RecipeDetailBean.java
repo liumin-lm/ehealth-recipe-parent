@@ -278,6 +278,17 @@ public class RecipeDetailBean implements java.io.Serializable {
     @ItemProperty(alias = "腹透液  空0否  1是  ")
     private Integer peritonealDialysisFluidType;
 
+    @ItemProperty(alias = "剩余天数")
+    private Integer residueDay;
+
+    public Integer getResidueDay() {
+        return residueDay;
+    }
+
+    public void setResidueDay(Integer residueDay) {
+        this.residueDay = residueDay;
+    }
+
     public Integer getPeritonealDialysisFluidType() {
         return peritonealDialysisFluidType;
     }
