@@ -282,6 +282,15 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
         return null;
     }
 
+    /**
+     * 重置处方药企推送状态
+     * @param recipeIds
+     * */
+    @Override
+    public void updateRecipePushFlag(List<Integer> recipeIds) {
+        recipeDAO.updateRecipePushFlag(recipeIds);
+    }
+
     private String setRefundNodeStatus(Integer status) {
         if (null == status || status == 3 || status == 2) {
             return "未退款";
