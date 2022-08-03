@@ -28,4 +28,8 @@ public class SmsClient extends BaseClient {
         smsPushService.pushMsgData2OnsExtendValue(smsInfo);
         logger.info("SmsClient pushMsgData2OnsExtendValue smsInfo = {}", JSON.toJSONString(smsInfo));
     }
+
+    public void pushMsgData2OnsExtendValue(SmsInfoBean smsInfoBean) {
+        smsPushService.pushMsgData2OnsExtendValue(smsInfoBean);
+    }
 }

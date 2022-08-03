@@ -103,4 +103,20 @@ public interface IRecipeOrderAtopService {
      */
     @RpcService(mvcDisabled = true)
     CabinetVO validateCabinetRecipeStatus(CabinetVO cabinetVO);
+
+    /**
+     * 存储药柜放入通知
+     * @param cabinetVO
+     * @return
+     */
+    @RpcService(mvcDisabled = true)
+    void putInCabinetNotice(CabinetVO cabinetVO);
+
+    /**
+     * 存储药柜拿出通知
+     * @param cabinetVO
+     * @return
+     */
+    @RpcService(mvcDisabled = true)
+    void takeOutCabinetNotice(CabinetVO cabinetVO);
 }

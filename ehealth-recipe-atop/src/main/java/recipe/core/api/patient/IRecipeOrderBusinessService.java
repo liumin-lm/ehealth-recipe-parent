@@ -157,4 +157,12 @@ public interface IRecipeOrderBusinessService {
      */
     @RpcService
     CabinetVO validateCabinetRecipeStatus(CabinetVO cabinetVO);
+
+    /**
+     * 存储药柜放入通知
+     * @param cabinetVO
+     * @return
+     */
+    @RpcService
+    void putInCabinetNotice(CabinetVO cabinetVO);
 }

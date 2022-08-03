@@ -23,7 +23,7 @@ public class CabinetVO implements Serializable {
     @ItemProperty(alias = "患者联系方式")
     private String mobile;
 
-    @ItemProperty(alias = "取药地址")
+    @ItemProperty(alias = "取药地址(完整地址)")
     private String medicineAddress;
 
     @ItemProperty(alias = "药柜号")

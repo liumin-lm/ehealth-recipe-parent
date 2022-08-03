@@ -149,6 +149,12 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "取药窗口")
     private String pharmNo;
 
+    @ItemProperty(alias = "药柜取药地址")
+    private String medicineAddress;
+
+    @ItemProperty(alias = "药柜取件码")
+    private String medicineCode;
+
     @ItemProperty(alias = "是否是加急审核处方 0否 1是")
     private Integer canUrgentAuditRecipe;
 
@@ -957,5 +963,23 @@ public class RecipeExtend implements Serializable {
 
     public void setSideCourtYardType(String sideCourtYardType) {
         this.sideCourtYardType = sideCourtYardType;
+    }
+
+    @Column(name = "medicine_address")
+    public String getMedicineAddress() {
+        return medicineAddress;
+    }
+
+    public void setMedicineAddress(String medicineAddress) {
+        this.medicineAddress = medicineAddress;
+    }
+
+    @Column(name = "medicine_code")
+    public String getMedicineCode() {
+        return medicineCode;
+    }
+
+    public void setMedicineCode(String medicineCode) {
+        this.medicineCode = medicineCode;
     }
 }
