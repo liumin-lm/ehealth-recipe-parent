@@ -188,32 +188,8 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
             //2021/11 新需求,非自建药企也要发送短信
             LOGGER.info("pushMessageToEnterprise 当前处方[{}]需要推送订单消息给药企", recipeId);
             //设置药企的电话号码
-            String mobile = "";
-            if (EnterpriseCreateTypeEnum.MY_SELF.getType().equals(enterprise.getCreateType())) {
-                PharmacyDAO pharmacyDAO = DAOFactory.getDAO(PharmacyDAO.class);
-                List<Pharmacy> list = pharmacyDAO.findByDepId(enterprise.getId());
-                if (CollectionUtils.isNotEmpty(list)) {
-                    mobile = list.get(0).getPharmacyPhone();
-                }
-            } else {
-                mobile = enterprise.getEnterprisePhone();
-            }
-            if(StringUtils.isNotEmpty(mobile)) {
-                SmsInfoBean smsInfo = new SmsInfoBean();
-                smsInfo.setBusType("RecipeOrderCreate");
-                smsInfo.setSmsType("RecipeOrderCreate");
-                smsInfo.setBusId(recipeId);
-                smsInfo.setOrganId(recipe.getClinicOrgan());
-
-                Map<String, Object> smsMap = Maps.newHashMap();
-
-                smsMap.put("mobile", mobile);
-
-                smsInfo.setExtendValue(JSONUtils.toString(smsMap));
-                ISmsPushService smsPushService = ApplicationUtils.getBaseService(ISmsPushService.class);
-                smsPushService.pushMsgData2OnsExtendValue(smsInfo);
-                LOGGER.info("pushMessageToEnterprise 当前处方[{}]已推送药企[{}],订单消息", recipeId, recipe.getEnterpriseId());
-            }
+            EnterpriseManager enterpriseManager = AppContextHolder.getBean("enterpriseManager", EnterpriseManager.class);
+            enterpriseManager.pushEnterpriseSendDrugPhone(recipe, enterprise);
         }
         LOGGER.info("pushSingleRecipeInfo recipeId:{}, result:{}", recipeId, JSONObject.toJSONString(result));
         return result;

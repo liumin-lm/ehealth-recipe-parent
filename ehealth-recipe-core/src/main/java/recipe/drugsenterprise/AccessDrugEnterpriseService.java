@@ -30,6 +30,7 @@ import recipe.constant.DrugEnterpriseConstant;
 import recipe.dao.*;
 import recipe.enumerate.type.EnterpriseCreateTypeEnum;
 import recipe.manager.EmrRecipeManager;
+import recipe.manager.EnterpriseManager;
 import recipe.service.RecipeOrderService;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.thread.UpdateDrugsEpCallable;
@@ -310,31 +311,9 @@ public abstract class AccessDrugEnterpriseService {
             DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(nowRecipe.getEnterpriseId());
             if (drugsEnterprise != null && nowRecipe.getPayFlag() == 1) {
                 LOGGER.info("pushMessageToEnterprise 当前处方[{}]需要推送订单消息给药企", recipeId);
-                //设置药企的电话号码
-                String mobile = null;
-                if (EnterpriseCreateTypeEnum.MY_SELF.getType().equals(drugsEnterprise.getCreateType())) {
-                    PharmacyDAO pharmacyDAO = DAOFactory.getDAO(PharmacyDAO.class);
-                    List<Pharmacy> list = pharmacyDAO.findByDepId(nowRecipe.getEnterpriseId());
-                    mobile = list.get(0).getPharmacyPhone();
-                } else {
-                    mobile = drugsEnterprise.getEnterprisePhone();
-                }
-                if (StringUtils.isNotEmpty(mobile)) {
-                    SmsInfoBean smsInfo = new SmsInfoBean();
-                    smsInfo.setBusType("RecipeOrderCreate");
-                    smsInfo.setSmsType("RecipeOrderCreate");
-                    smsInfo.setBusId(recipeId);
-                    smsInfo.setOrganId(nowRecipe.getClinicOrgan());
-
-                    Map<String, Object> smsMap = Maps.newHashMap();
-
-                    smsMap.put("mobile", mobile);
-
-                    smsInfo.setExtendValue(JSONUtils.toString(smsMap));
-                    ISmsPushService smsPushService = ApplicationUtils.getBaseService(ISmsPushService.class);
-                    smsPushService.pushMsgData2OnsExtendValue(smsInfo);
-                    LOGGER.info("pushMessageToEnterprise 当前处方[{}]已推送药企[{}],订单消息", recipeId, nowRecipe.getEnterpriseId());
-                }
+                //给药企的电话号码推送短信
+                EnterpriseManager enterpriseManager = AppContextHolder.getBean("enterpriseManager", EnterpriseManager.class);
+                enterpriseManager.pushEnterpriseSendDrugPhone(nowRecipe, drugsEnterprise);
             }
         }
     }
