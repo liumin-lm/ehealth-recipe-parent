@@ -41,19 +41,22 @@ public interface ICommonRecipeBusinessService {
 
     /**
      * 查询线下常用方
+     * 产品规划功能废弃
      *
      * @param organId  机构id
      * @param doctorId 医生id
      * @return 线下常用方数据集合
      */
+    @Deprecated
     List<CommonDTO> offlineCommon(Integer organId, Integer doctorId);
 
     /**
      * 添加线下常用方到线上
-     *
+     *产品规划功能废弃
      * @param commonList 线下常用方数据集合
      * @return boolean
      */
+    @Deprecated
     List<String> addOfflineCommon(Integer organId, List<CommonDTO> commonList);
 
     /**
