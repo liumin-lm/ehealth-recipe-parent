@@ -146,6 +146,9 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
         relation.setEnterpriseRecipeTypes(recipeTypes);
         String decoctionIds = StringUtils.join(organEnterpriseRelationVo.getDecoctionIds(), ByteUtils.COMMA);
         relation.setEnterpriseDecoctionIds(decoctionIds);
+
+        relation.setEnterpriseDrugForm(JSONArray.toJSONString(organEnterpriseRelationVo.getEnterpriseDrugForm()));
+
         organAndDrugsepRelationDAO.updateNonNullFieldByPrimaryKey(relation);
     }
 
@@ -175,6 +178,10 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
         if (StringUtils.isNotEmpty(relation.getEnterpriseRecipeTypes())) {
             List<Integer> enterpriseRecipeTypes = Arrays.stream(relation.getEnterpriseRecipeTypes().split(ByteUtils.COMMA)).map(Integer::parseInt).collect(Collectors.toList());
             organEnterpriseRelationVo.setRecipeTypes(enterpriseRecipeTypes);
+        }
+        if (StringUtils.isNotEmpty(relation.getEnterpriseDrugForm())) {
+            List<String> drugFrom = JSONUtils.parse((relation.getEnterpriseDrugForm()), List.class);
+            organEnterpriseRelationVo.setEnterpriseDrugForm(drugFrom);
         }
         logger.info("DrugsEnterpriseBusinessService getOrganEnterpriseRelation res organEnterpriseRelationVo={}", JSONArray.toJSONString(organEnterpriseRelationVo));
         return organEnterpriseRelationVo;

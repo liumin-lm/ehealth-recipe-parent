@@ -1,28 +1,18 @@
 package recipe.drugTool.service;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.ngari.his.recipe.mode.OrganDrugInfoRequestTO;
-import com.ngari.his.recipe.mode.OrganDrugInfoResponseTO;
 import com.ngari.his.recipe.mode.OrganDrugInfoTO;
-import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.opbase.base.service.IBusActionLogService;
 import com.ngari.opbase.log.mode.DataSyncDTO;
 import com.ngari.opbase.log.service.IDataSyncLogService;
 import com.ngari.opbase.xls.mode.ImportExcelInfoDTO;
 import com.ngari.opbase.xls.service.IImportExcelInfoService;
-import com.ngari.patient.dto.OrganConfigDTO;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.drugTool.service.ISaleDrugToolService;
 import com.ngari.recipe.entity.*;
 import ctd.account.UserRoleToken;
-import ctd.controller.exception.ControllerException;
-import ctd.dictionary.DictionaryController;
-import ctd.dictionary.DictionaryItem;
 import ctd.persistence.exception.DAOException;
 import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
@@ -30,10 +20,7 @@ import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
-import ctd.util.exp.standard.IN;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.map.HashedMap;
-import org.apache.commons.io.output.StringBuilderWriter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.*;
@@ -45,7 +32,6 @@ import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.dao.*;
 import recipe.service.DrugsEnterpriseConfigService;
-import recipe.service.OrganDrugListService;
 import recipe.service.RecipeHisService;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.RedisClient;
@@ -57,8 +43,6 @@ import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static ctd.persistence.DAOFactory.getDAO;
@@ -443,6 +427,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                         //deleteNum++;
                     }
                 }
+                //TODO liumin
                 if (syncTypeList.indexOf("2")!=-1){
                     if (detail.getStatus().equals(1)){
                         SaleDrugList saleDrugList1 = byOrganIdAndDrugCode.get(0);

@@ -860,11 +860,6 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
     public DrugEnterpriseResult findSupportDep(List<Integer> recipeIds, Map ext, DrugsEnterprise drugsEnterprise) {
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
         if (drugsEnterprise != null && new Integer(1).equals(drugsEnterprise.getOperationType())) {
-            if(Objects.isNull(ext.get("longitude")) || Objects.isNull(ext.get("latitude"))){
-                // 没有经纬度返回空list
-                result.setObject(new ArrayList<>());
-                return result;
-            }
             //通过前置机调用
             IRecipeEnterpriseService recipeEnterpriseService = AppContextHolder.getBean("his.iRecipeEnterpriseService", IRecipeEnterpriseService.class);
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
@@ -876,18 +871,24 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
             if (recipeExtend != null && StringUtils.isNotEmpty(recipeExtend.getRxid())) {
                 scanRequestBean.setRxid(recipeExtend.getRxid());
             }
-            LOGGER.info("findSupportDep 发给前置机入参:{}.", JSONUtils.toString(scanRequestBean));
-            List<DepDetailBean> depDetailBeans = recipeEnterpriseService.findSupportDep(scanRequestBean);
-            LOGGER.info("findSupportDep 前置机出参:{}.", JSONUtils.toString(depDetailBeans));
-            List<com.ngari.recipe.drugsenterprise.model.DepDetailBean> collect = depDetailBeans.stream().map(depDetailBean -> {
-                com.ngari.recipe.drugsenterprise.model.DepDetailBean depDetailBean1 = BeanCopyUtils.copyProperties(depDetailBean, com.ngari.recipe.drugsenterprise.model.DepDetailBean::new);
-                if(Objects.nonNull(depDetailBean.getPosition())) {
-                    depDetailBean1.setPosition(BeanCopyUtils.copyProperties(depDetailBean.getPosition(), com.ngari.recipe.drugsenterprise.model.Position::new));
-                }
-                return depDetailBean1;
-            }).collect(Collectors.toList());
-            result.setObject(collect);
-            return result;
+            try {
+                LOGGER.info("findSupportDep 发给前置机入参:{}.", JSONUtils.toString(scanRequestBean));
+                List<DepDetailBean> depDetailBeans = recipeEnterpriseService.findSupportDep(scanRequestBean);
+                LOGGER.info("findSupportDep 前置机出参:{}.", JSONUtils.toString(depDetailBeans));
+                List<com.ngari.recipe.drugsenterprise.model.DepDetailBean> collect = depDetailBeans.stream().map(depDetailBean -> {
+                    com.ngari.recipe.drugsenterprise.model.DepDetailBean depDetailBean1 = BeanCopyUtils.copyProperties(depDetailBean, com.ngari.recipe.drugsenterprise.model.DepDetailBean::new);
+                    if(Objects.nonNull(depDetailBean.getPosition())) {
+                        depDetailBean1.setPosition(BeanCopyUtils.copyProperties(depDetailBean.getPosition(), Position::new));
+                    }
+                    return depDetailBean1;
+                }).collect(Collectors.toList());
+                result.setObject(collect);
+                return result;
+            } catch (Exception e) {
+                LOGGER.error("findSupportDep recipeIds:{}", JSON.toJSONString(recipeIds), e);
+                result.setObject(new ArrayList<>());
+                return result;
+            }
         }
         if (CollectionUtils.isNotEmpty(recipeIds) && null != drugsEnterprise) {
             AccessDrugEnterpriseService drugEnterpriseService = getServiceByDep(drugsEnterprise);

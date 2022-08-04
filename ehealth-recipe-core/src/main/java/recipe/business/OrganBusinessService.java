@@ -35,15 +35,6 @@ public class OrganBusinessService extends BaseService implements IOrganBusinessS
     private RecipeParameterDao recipeParameterDao;
     @Autowired
     private OperationClient operationClient;
-    @Autowired
-    private HisRequestInit hisRequestInit;
-    @Autowired
-    private PatientClient patientClient;
-    @Autowired
-    private RecipeDAO recipeDAO;
-    @Autowired
-    private RecipeSettleClient recipeSettleClient;
-
 
     @Override
     public List<Integer> getOrganForWeb() {

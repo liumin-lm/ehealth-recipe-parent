@@ -42,6 +42,7 @@ import recipe.client.IConfigurationClient;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.enumerate.status.OrderStateEnum;
+import recipe.manager.EnterpriseManager;
 import recipe.manager.OrderManager;
 import recipe.manager.RecipeManager;
 import recipe.manager.StateManager;
@@ -73,8 +74,6 @@ public class RecipeRefundService extends RecipeBaseService {
     @Autowired
     private RecipeOrderDAO recipeOrderDAO;
     @Autowired
-    private RecipeExtendDAO recipeExtendDAO;
-    @Autowired
     private DrugsEnterpriseDAO enterpriseDAO;
     @Autowired
     private OrderManager orderManager;
@@ -86,6 +85,8 @@ public class RecipeRefundService extends RecipeBaseService {
     private RecipeManager recipeManager;
     @Autowired
     private DrugsEnterpriseDAO drugsEnterpriseDAO;
+    @Autowired
+    private EnterpriseManager enterpriseManager;
 
     /*
      * @description 向his申请处方退费接口
@@ -115,8 +116,9 @@ public class RecipeRefundService extends RecipeBaseService {
         request.setPatientId(recipe.getPatientID());
         request.setPatientName(recipe.getPatientName());
         request.setApplyReason(applyReason);
+        DrugsEnterprise drugsEnterprise = null;
         if (null != recipeOrder.getEnterpriseId()) {
-            DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipeOrder.getEnterpriseId());
+            drugsEnterprise = drugsEnterpriseDAO.getById(recipeOrder.getEnterpriseId());
             request.setDrugsEnterpriseBean(ObjectCopyUtils.convert(drugsEnterprise, DrugsEnterpriseBean.class));
         }
         IVisitService service = AppContextHolder.getBean("his.visitService", IVisitService.class);
@@ -175,8 +177,7 @@ public class RecipeRefundService extends RecipeBaseService {
             visitRequest.setHospitalCode(organDTO.getOrganizeCode());
             visitRequest.setRecipeCode(recipe.getRecipeCode());
             visitRequest.setRefundType(getRefundType(recipeOrder));
-            if (null != recipeOrder.getEnterpriseId()) {
-                DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipeOrder.getEnterpriseId());
+            if (null != recipeOrder.getEnterpriseId() && null != drugsEnterprise) {
                 visitRequest.setDrugsEnterpriseBean(ObjectCopyUtils.convert(drugsEnterprise, DrugsEnterpriseBean.class));
                 visitRequest.setEnterpriseCode(drugsEnterprise.getEnterpriseCode());
             }
@@ -194,6 +195,9 @@ public class RecipeRefundService extends RecipeBaseService {
                 recipeRefund.setReason(applyReason);
                 recipeReFundSave(recipe, recipeRefund);
                 RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.RECIPE_REFUND_APPLY);
+                if (null != drugsEnterprise) {
+                    enterpriseManager.pushEnterpriseRefundPhone(recipe, drugsEnterprise);
+                }
             } else {
                 LOGGER.error("applyForRecipeRefund-checkForRefundVisit-处方退费申请失败-his. param={},result={}", JSONUtils.toString(request), JSONUtils.toString(result));
                 String msg = "";
@@ -402,8 +406,9 @@ public class RecipeRefundService extends RecipeBaseService {
         request.setCheckTime(formatter.format(new Date()));
         request.setRefundType(getRefundType(recipeOrder));
         request.setRecipeCode(recipe.getRecipeCode());
+        DrugsEnterprise drugsEnterprise = null;
         if (null != recipeOrder.getEnterpriseId()) {
-            DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipeOrder.getEnterpriseId());
+            drugsEnterprise = drugsEnterpriseDAO.getById(recipeOrder.getEnterpriseId());
             request.setDrugsEnterpriseBean(ObjectCopyUtils.convert(drugsEnterprise, DrugsEnterpriseBean.class));
             request.setEnterpriseCode(drugsEnterprise.getEnterpriseCode());
         }
@@ -425,6 +430,9 @@ public class RecipeRefundService extends RecipeBaseService {
             recipeRefund.setPrice(list.get(0).getPrice());
             recipeRefund.setApplyNo(hisResult.getData());
             recipeReFundSave(recipe, recipeRefund);
+            if (null != drugsEnterprise) {
+                enterpriseManager.pushEnterpriseRefundPhone(recipe, drugsEnterprise);
+            }
             //记录操作日志
             IBusActionLogService busActionLogService = AppDomainContext.getBean("opbase.busActionLogService", IBusActionLogService.class);
             if (2 == Integer.valueOf(checkStatus)) {
