@@ -79,12 +79,10 @@ public class RecipeDetailBean implements java.io.Serializable {
     )
     private String organUsePathways;
 
-    //用药频率说明（来源his）
     @ItemProperty(alias="用药频率说明")
     private String usingRateTextFromHis;
 
-    //用药方式说明（来源his）
-    @ItemProperty(alias="用药方式说明")
+    @ItemProperty(alias="用药方式说明（来源his）")
     private String usePathwaysTextFromHis;
 
     @ItemProperty(alias="药物使用总数量")

@@ -10,6 +10,8 @@ import ctd.persistence.exception.DAOException;
 import ctd.util.BeanUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import eh.utils.ValidateUtil;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +27,7 @@ import recipe.enumerate.type.DrugBelongTypeEnum;
 import recipe.enumerate.type.OutRecipeGiveModeEnum;
 import recipe.enumerate.type.OutRecipeRecipeTypeEnum;
 import recipe.util.ObjectCopyUtils;
-import recipe.util.ValidateUtil;
+
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.patient.ReadyRecipeVO;
 
@@ -33,6 +35,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -184,7 +187,7 @@ public class RecipePatientAtop extends BaseAtop {
     public PatientMedicalTypeVO queryPatientMedicalType(PatientInfoVO patientInfoVO) {
         logger.info("OutPatientRecipeAtop queryPatientMedicalType patientInfoVO:{}.", JSON.toJSONString(patientInfoVO));
         validateAtop(patientInfoVO, patientInfoVO.getOrganId(), patientInfoVO.getMpiId());
-        if (ValidateUtil.integerIsEmpty(patientInfoVO.getClinicId())) {
+        if (ValidateUtil.nullOrZeroInteger(patientInfoVO.getClinicId())) {
             return new PatientMedicalTypeVO("1", "自费");
         }
         try {
@@ -219,9 +222,11 @@ public class RecipePatientAtop extends BaseAtop {
     @RpcService
     public Integer saveRecipe(RecipeInfoVO recipeInfoVO) {
         validateAtop(recipeInfoVO, recipeInfoVO.getRecipeBean());
-        validateAtop("请添加项目信息", recipeInfoVO.getRecipeDetails());
+        validateAtop("请添加项目信息！", recipeInfoVO.getRecipeDetails());
+        validateAtop("请完善药方购买数量！", recipeInfoVO.getBuyNum());
         RecipeBean recipeBean = recipeInfoVO.getRecipeBean();
         validateAtop(recipeBean.getDoctor(), recipeBean.getMpiid(), recipeBean.getClinicOrgan(), recipeBean.getClinicId(), recipeBean.getDepart());
+        int buyNum = ValidateUtil.nullOrZeroInteger(recipeInfoVO.getBuyNum()) ? 1 : recipeInfoVO.getBuyNum();
         recipeBean.setStatus(RecipeStatusEnum.RECIPE_STATUS_UNSIGNED.getType());
         recipeBean.setRecipeSourceType(0);
         recipeBean.setSignDate(DateTime.now().toDate());
@@ -263,10 +268,63 @@ public class RecipePatientAtop extends BaseAtop {
         List<RecipeDetailBean> recipeDetailBeanList = formWorkRecipeVO.getDetailBeanList();
         recipeInfoVO.setRecipeDetails(recipeDetailBeanList);
         recipeInfoVO.setRecipeExtendBean(recipeExtendBean);
+        packageTotalParamByBuyNum(recipeInfoVO, buyNum);
         Integer recipeId = recipePatientService.saveRecipe(recipeInfoVO);
         recipePatientService.esignRecipeCa(recipeId);
         recipePatientService.updateRecipeIdByConsultId(recipeId, recipeInfoVO.getRecipeBean().getClinicId());
         return recipeId;
+    }
+
+    /**
+     * 根据购买数量处理总价，剂量等数据
+     *
+     * @param recipeInfoVO
+     * @param buyNum
+     */
+    private void packageTotalParamByBuyNum(RecipeInfoVO recipeInfoVO, int buyNum) {
+        logger.info("packageTotalParamByBuyNum buyNum = [{}], recipeInfoVO = {}", buyNum, JSON.toJSONString(recipeInfoVO));
+        if (buyNum == 1) {
+            return;
+        }
+        //1. 处理recipe表相关字段
+        RecipeBean recipeBean = recipeInfoVO.getRecipeBean();
+
+        if (ValidateUtil.notNullAndZeroInteger(recipeBean.getCopyNum())) {
+            recipeBean.setCopyNum(recipeBean.getCopyNum() * buyNum);
+        }
+
+        if (Objects.nonNull(recipeBean.getTotalMoney())) {
+            recipeBean.setTotalMoney(recipeBean.getTotalMoney().multiply(BigDecimal.valueOf(buyNum)));
+        }
+
+        if (Objects.nonNull(recipeBean.getActualPrice())) {
+            recipeBean.setActualPrice(recipeBean.getActualPrice().multiply(BigDecimal.valueOf(buyNum)));
+        }
+
+        //2. 处理recipeDetail表相关字段
+        List<RecipeDetailBean> recipeDetailBeanList = recipeInfoVO.getRecipeDetails();
+        if (CollectionUtils.isNotEmpty(recipeDetailBeanList)) {
+            for (RecipeDetailBean recipeDetailBean : recipeDetailBeanList) {
+                //药物使用总数量
+                if(Objects.nonNull(recipeDetailBean.getUseTotalDose())) {
+                    recipeDetailBean.setUseTotalDose(recipeDetailBean.getUseTotalDose() * buyNum);
+                }
+                //药物发放数量
+                if(Objects.nonNull(recipeDetailBean.getSendNumber())) {
+                    recipeDetailBean.setSendNumber(recipeDetailBean.getSendNumber() * buyNum);
+                }
+                //药物使用天数
+                if(Objects.nonNull(recipeDetailBean.getUseDays())) {
+                    recipeDetailBean.setUseDays(recipeDetailBean.getUseDays() * buyNum);
+                }
+                //药物金额
+                if(Objects.nonNull(recipeDetailBean.getDrugCost())) {
+                    recipeDetailBean.setDrugCost(recipeDetailBean.getDrugCost().multiply(BigDecimal.valueOf(buyNum)));
+                }
+
+
+            }
+        }
 
     }
 
