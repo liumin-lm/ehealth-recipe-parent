@@ -477,6 +477,7 @@ public class HisCallBackService {
                 attrMap.put("payDate", DateTime.now().toDate());
             }
             attrMap.put("giveMode", RecipeBussConstant.GIVEMODE_TO_HOS);
+            //todo 这个字段是否不更新
             attrMap.put("enterpriseId", null);
 
             Boolean rs = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.FINISH, attrMap);

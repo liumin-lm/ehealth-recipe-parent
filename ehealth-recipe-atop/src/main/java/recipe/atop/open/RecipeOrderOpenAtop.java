@@ -180,10 +180,4 @@ public class RecipeOrderOpenAtop extends BaseAtop implements IRecipeOrderAtopSer
 
 
 
-    @Override
-    public void takeOutCabinetNotice(CabinetVO cabinetVO) {
-        validateAtop(cabinetVO);
-    }
-
-
 }
