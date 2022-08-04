@@ -792,8 +792,8 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
 
     @Override
     public RateAndPathwaysVO queryRateAndPathwaysByDecoctionId(Integer organId, Integer decoctionId) {
+        RateAndPathwaysVO rateAndPathwaysVO = new RateAndPathwaysVO();
         if (Integer.valueOf("1").equals(organId)) {
-            RateAndPathwaysVO rateAndPathwaysVO = new RateAndPathwaysVO();
             List<UsingRateDTO> usingRates = usingRateService.findAllusingRateByOrganId(organId);
             if (usingRates.size() > 5) {
                 usingRates = usingRates.subList(0, 5);
@@ -807,7 +807,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             rateAndPathwaysVO.setUsingRate(usingRates);
             return rateAndPathwaysVO;
         } else {
-            return null;
+            return rateAndPathwaysVO;
         }
 
     }
