@@ -60,6 +60,7 @@ import recipe.manager.EnterpriseManager;
 import recipe.manager.OrderManager;
 import recipe.manager.RecipeManager;
 import recipe.openapi.business.request.ThirdSaveOrderRequest;
+import recipe.service.RecipeLogService;
 import recipe.service.RecipeOrderService;
 import recipe.third.IFileDownloadService;
 import recipe.util.*;
@@ -620,6 +621,94 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
     }
 
     /**
+     * 判断处方是否有效(到院取药-存储药柜)
+     *
+     * @param cabinetVO
+     * @return
+     */
+    @Override
+    public CabinetVO validateCabinetRecipeStatus(CabinetVO cabinetVO) {
+        logger.info("validateCabinetRecipeStatus req:{}.",JSONUtils.toString(cabinetVO));
+        Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(cabinetVO.getRecipeCode(),cabinetVO.getOrganId());
+        if (null == recipe || StringUtils.isEmpty(recipe.getOrderCode())) {
+            throw new DAOException(609,"当前处方单未找到");
+        }
+
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+        if (null == recipeExtend ) {
+            throw new DAOException(609,"当前处方单未找到");
+        }
+
+        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+        if (null == recipeOrder ) {
+            throw new DAOException(609,"当前处方单未支付");
+        }
+
+        //到院取药+待取药+未申请退费
+        Boolean effectiveFlag=recipe.getGiveMode()==2 && recipeOrder.getStatus()==2 && recipeExtend.getRefundNodeStatus()==null;
+        cabinetVO.setEffectiveFlag(effectiveFlag);
+
+        //患者手机号
+        if(effectiveFlag && !StringUtils.isEmpty(recipe.getMpiid())){
+            com.ngari.patient.dto.PatientDTO patientDTO=patientClient.getPatientDTOByMpiId(recipe.getMpiid());
+            cabinetVO.setMobile(patientDTO==null?"":patientDTO.getMobile());
+        }
+        return  cabinetVO;
+    }
+
+    /**
+     * 存储药柜放入通知
+     *
+     * @param cabinetVO
+     * @return
+     */
+    @Override
+    public void putInCabinetNotice(CabinetVO cabinetVO) {
+        logger.info("putInCabinetNotice req:{}.",JSONUtils.toString(cabinetVO));
+
+        Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(cabinetVO.getRecipeCode(),cabinetVO.getOrganId());
+        if (null == recipe || StringUtils.isEmpty(recipe.getOrderCode())) {
+            throw new DAOException(609,"当前处方单未找到");
+        }
+
+        Map<String, String> changeAttr= Maps.newHashMap();
+        changeAttr.put("medicineCode",cabinetVO.getMedicineCode());
+
+        //拼地址
+        RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
+        String medicineAddressTpl=recipeParameterDao.getByName("medicine_address_tpl_"+recipe.getClinicOrgan());
+        if(StringUtils.isEmpty(medicineAddressTpl)){
+            medicineAddressTpl=recipeParameterDao.getByName("medicine_address_tpl_0");
+        }
+
+        Map<String,Object> props = MapValueUtil.beanToMap(cabinetVO);
+        String medicineAddress=LocalStringUtil.processTemplate(medicineAddressTpl,props);
+
+        changeAttr.put("medicineAddress",medicineAddress);
+        recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(),changeAttr);
+
+
+
+        //药品放入存储药柜通知
+        SmsInfoBean smsInfoBean=new SmsInfoBean();
+        smsInfoBean.setBusType("recipePutInCabinetNotice");
+        smsInfoBean.setSmsType("recipePutInCabinetNotice");
+        smsInfoBean.setBusId(recipe.getRecipeId());
+        smsInfoBean.setOrganId(recipe.getClinicOrgan());
+        smsInfoBean.setExtendValue(JSONUtils.toString(cabinetVO));
+        smsClient.pushMsgData2OnsExtendValue(smsInfoBean);
+
+        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "药品存入药柜，取药码："+cabinetVO.getMedicineCode()+"，取药地址："+medicineAddress);
+
+    }
+
+    @Override
+    public Boolean makeUpInvoice(String orderCode) {
+        InvoiceInfoResTO invoiceInfoResTO = orderManager.makeUpInvoice(orderCode);
+        return invoiceInfoResTO.getSuccess();
+    }
+
+    /**
      * 第三方设置订单费用
      *
      * @param order
@@ -711,90 +800,5 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
     }
 
 
-    /**
-     * 判断处方是否有效(到院取药-存储药柜)
-     *
-     * @param cabinetVO
-     * @return
-     */
-    @Override
-    public CabinetVO validateCabinetRecipeStatus(CabinetVO cabinetVO) {
-        logger.info("validateCabinetRecipeStatus req:{}.",JSONUtils.toString(cabinetVO));
-        Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(cabinetVO.getRecipeCode(),cabinetVO.getOrganId());
-        if (null == recipe || StringUtils.isEmpty(recipe.getOrderCode())) {
-            throw new DAOException(609,"当前处方单未找到");
-        }
 
-        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-        if (null == recipeExtend ) {
-            throw new DAOException(609,"当前处方单未找到");
-        }
-
-        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
-        if (null == recipeOrder ) {
-            throw new DAOException(609,"当前处方单未支付");
-        }
-
-        //到院取药+待取药+未申请退费
-        Boolean effectiveFlag=recipe.getGiveMode()==2 && recipeOrder.getStatus()==2 && recipeExtend.getRefundNodeStatus()==null;
-        cabinetVO.setEffectiveFlag(effectiveFlag);
-
-        //患者手机号
-        if(effectiveFlag && !StringUtils.isEmpty(recipe.getMpiid())){
-            com.ngari.patient.dto.PatientDTO patientDTO=patientClient.getPatientDTOByMpiId(recipe.getMpiid());
-            cabinetVO.setMobile(patientDTO==null?"":patientDTO.getMobile());
-        }
-        return  cabinetVO;
-    }
-
-    /**
-     * 存储药柜放入通知
-     *
-     * @param cabinetVO
-     * @return
-     */
-    @Override
-    public void putInCabinetNotice(CabinetVO cabinetVO) {
-        logger.info("putInCabinetNotice req:{}.",JSONUtils.toString(cabinetVO));
-
-        Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(cabinetVO.getRecipeCode(),cabinetVO.getOrganId());
-        if (null == recipe || StringUtils.isEmpty(recipe.getOrderCode())) {
-            throw new DAOException(609,"当前处方单未找到");
-        }
-
-        Map<String, String> changeAttr= Maps.newHashMap();
-        changeAttr.put("medicineCode",cabinetVO.getMedicineCode());
-
-        //拼地址
-        RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
-        String medicineAddressTpl=recipeParameterDao.getByName("medicine_address_tpl_"+recipe.getClinicOrgan());
-        if(StringUtils.isEmpty(medicineAddressTpl)){
-            medicineAddressTpl=recipeParameterDao.getByName("medicine_address_tpl_0");
-        }
-
-        Map<String,Object> props = MapValueUtil.beanToMap(cabinetVO);
-        String medicineAddress=LocalStringUtil.processTemplate(medicineAddressTpl,props);
-
-        changeAttr.put("medicineAddress",medicineAddress);
-        recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(),changeAttr);
-
-
-
-        //药品放入存储药柜通知
-        SmsInfoBean smsInfoBean=new SmsInfoBean();
-        smsInfoBean.setBusType("recipePutInCabinetNotice");
-        smsInfoBean.setSmsType("recipePutInCabinetNotice");
-        smsInfoBean.setBusId(recipe.getRecipeId());
-        smsInfoBean.setOrganId(recipe.getClinicOrgan());
-        smsInfoBean.setExtendValue(JSONUtils.toString(cabinetVO));
-        smsClient.pushMsgData2OnsExtendValue(smsInfoBean);
-
-
-    }
-
-    @Override
-    public Boolean makeUpInvoice(String orderCode) {
-        InvoiceInfoResTO invoiceInfoResTO = orderManager.makeUpInvoice(orderCode);
-        return invoiceInfoResTO.getSuccess();
-    }
 }
