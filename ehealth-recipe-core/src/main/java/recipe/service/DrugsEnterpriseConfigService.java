@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
+import recipe.aop.LogRecord;
 import recipe.dao.DrugsEnterpriseConfigDAO;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.SaleDrugListSyncFieldDAO;
@@ -140,6 +141,7 @@ public class DrugsEnterpriseConfigService {
      * @return
      */
     @RpcService
+    @LogRecord
     public DrugsEnterpriseConfig getConfigByDrugsenterpriseId(Integer drugsenterpriseId){
         List<SaleDrugListSyncField> saleDrugListSyncFieldList=new ArrayList<>();
         if (ObjectUtils.isEmpty(drugsenterpriseId)){
@@ -183,6 +185,7 @@ public class DrugsEnterpriseConfigService {
      * @param drugsenterpriseId
      * @return
      */
+    @LogRecord
     private List<SaleDrugListSyncField> addSaleDrugListSyncFieldForEnterprise(Integer drugsenterpriseId) {
         List<SaleDrugListSyncField> saleDrugListSyncFieldList=new ArrayList<>();
         Map<String,String> fieldMap=initFieldMap();
@@ -211,6 +214,7 @@ public class DrugsEnterpriseConfigService {
         return saleDrugListSyncFieldList;
     }
 
+    @LogRecord
     private Map<String,String> initFieldMap(){
         Map<String,String> fieldMap=new HashMap<>();
         fieldMap.put("saleDrugCode","药企药品编码");
@@ -222,6 +226,7 @@ public class DrugsEnterpriseConfigService {
         return fieldMap;
     }
 
+    @LogRecord
     private Map<String,String> initAddIsAllowEditFieldMap(){
         Map<String,String> fieldMap=new HashMap<>();
         fieldMap.put("saleDrugCode","0");
@@ -233,6 +238,7 @@ public class DrugsEnterpriseConfigService {
         return fieldMap;
     }
 
+    @LogRecord
     private Map<String,String> initUpdateIsAllowEditFieldMap(){
         Map<String,String> fieldMap=new HashMap<>();
         fieldMap.put("saleDrugCode","0");
@@ -251,6 +257,7 @@ public class DrugsEnterpriseConfigService {
         return typeList;
     }
 
+    @LogRecord
     private SaleDrugListSyncField addOrUpdateSaleDrugListSyncField(SaleDrugListSyncField saleDrugListSyncField) {
         if (ObjectUtils.isEmpty(saleDrugListSyncField.getDrugsenterpriseId())){
             throw new DAOException(DAOException.VALUE_NEEDED, "药企ID is required");
@@ -270,6 +277,7 @@ public class DrugsEnterpriseConfigService {
         }else {
             checkSaleDrugListSyncField(saleDrugListSyncField2);
             saleDrugListSyncField.setId(saleDrugListSyncField2.getId());
+            saleDrugListSyncField.setUpdateTime(new Date());
             SaleDrugListSyncField update = saleDrugListSyncFieldDAO.update(saleDrugListSyncField);
             if (!ObjectUtils.isEmpty(urt)){
                 busActionLogService.recordBusinessLogRpcNew("药企配置管理", "", "SaleDrugListSyncField", "【" + urt.getUserName() + "】更新药企药品同步字段配置【"+JSONUtils.toString(saleDrugListSyncField)+"】-》【" + JSONUtils.toString(update)
