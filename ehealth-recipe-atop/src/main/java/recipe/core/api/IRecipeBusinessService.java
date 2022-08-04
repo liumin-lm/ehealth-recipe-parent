@@ -1,16 +1,13 @@
 package recipe.core.api;
 
 import com.ngari.patient.dto.HealthCardDTO;
-import com.ngari.recipe.recipe.model.AdvanceWarningReqVO;
-import com.ngari.recipe.recipe.model.AdvanceWarningResVO;
+import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.OutPatientRecipeDTO;
 import com.ngari.recipe.dto.OutPatientRecordResDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Symptom;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
-import com.ngari.recipe.recipe.model.RecipeBean;
-import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.vo.*;
 import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.enumerate.status.RecipeStateEnum;
@@ -274,4 +271,13 @@ public interface IRecipeBusinessService {
     List<Map<String, Object>> findRecipeDetailsByOrderCode(String orderCode);
 
     List<Recipe> findRecipeByMpiidAndrecipeStatus(String mpiid, List<Integer> recipeStatus, Integer terminalType,Integer organId);
+
+    /**
+     * 获取煎法关联用药途径和用药频次
+     *
+     * @param organId
+     * @param decoctionId
+     * @return
+     */
+    RateAndPathwaysVO queryRateAndPathwaysByDecoctionId(Integer organId, Integer decoctionId);
 }
