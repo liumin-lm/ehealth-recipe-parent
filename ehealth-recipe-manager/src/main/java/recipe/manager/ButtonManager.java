@@ -124,11 +124,17 @@ public class ButtonManager extends BaseManager {
             enterpriseStock.setDeliveryName(drugsEnterprise.getName());
             enterpriseStock.setDeliveryCode(drugsEnterprise.getId().toString());
             enterpriseStock.setAppointEnterpriseType(AppointEnterpriseTypeEnum.ENTERPRISE_APPOINT.getType());
-            if (!checkSendGiveMode(organId, drugsEnterprise.getId(), drugLists)) {
-                configGiveModeMap.remove(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getText());
-                configGiveModeMap.remove(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getText());
-            }
             List<GiveModeButtonDTO> giveModeButton = RecipeSupportGiveModeEnum.giveModeButtonList(drugsEnterprise, configGiveMode, configGiveModeMap, drugToHosByEnterprise, relationMap);
+            if (!checkSendGiveMode(organId, drugsEnterprise.getId(), drugLists)) {
+                Iterator<GiveModeButtonDTO> it = giveModeButton.iterator();
+                while (it.hasNext()) {
+                    GiveModeButtonDTO next = it.next();
+                    if (RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getText().equals(next.getShowButtonKey())
+                            || RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getText().equals(next.getShowButtonKey())) {
+                        it.remove();
+                    }
+                }
+            }
             enterpriseStock.setGiveModeButton(giveModeButton);
             list.add(enterpriseStock);
         }
