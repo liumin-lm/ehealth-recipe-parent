@@ -199,10 +199,10 @@ public class DrugsEnterpriseConfigService {
     private Map<String,String> initFieldMap(){
         Map<String,String> fieldMap=new HashMap<>();
         fieldMap.put("saleDrugCode","药企药品编码");
-        fieldMap.put("drugName","机构药品名称");
-        fieldMap.put("saleName","商品名称");
+        fieldMap.put("drugName","药品名");//机构药品名称
+        fieldMap.put("saleName","商品名");
+        fieldMap.put("price","价格（每售价，不含税）");//无税单价
         fieldMap.put("drugSpec","机构药品规格");
-        fieldMap.put("price","无税单价");
         fieldMap.put("status","使用状态");
         return fieldMap;
     }
