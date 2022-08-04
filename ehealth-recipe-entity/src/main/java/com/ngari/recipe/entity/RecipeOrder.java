@@ -396,6 +396,9 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "结算状态 0 未结算 1结算成功 2结算失败 3无需结算")
     private Integer settleAmountState;
 
+    @ItemProperty(alias = "结算模式 1 收银台模式")
+    private Integer settleMode;
+
     @Column(name = "patient_is_decoction")
     public String getPatientIsDecoction() {
         return patientIsDecoction;
@@ -1417,5 +1420,14 @@ public class RecipeOrder implements Serializable {
 
     public void setSettleAmountState(Integer settleAmountState) {
         this.settleAmountState = settleAmountState;
+    }
+
+    @Column(name = "settle_mode")
+    public Integer getSettleMode() {
+        return settleMode;
+    }
+
+    public void setSettleMode(Integer settleMode) {
+        this.settleMode = settleMode;
     }
 }
