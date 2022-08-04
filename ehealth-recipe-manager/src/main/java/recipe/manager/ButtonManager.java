@@ -134,6 +134,7 @@ public class ButtonManager extends BaseManager {
                         it.remove();
                     }
                 }
+                enterpriseStock.setSendFlag(false);
             }
             enterpriseStock.setGiveModeButton(giveModeButton);
             list.add(enterpriseStock);
