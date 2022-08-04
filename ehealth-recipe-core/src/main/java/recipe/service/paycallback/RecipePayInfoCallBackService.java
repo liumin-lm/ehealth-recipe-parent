@@ -212,7 +212,12 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
             String wnPayWay = StringUtils.defaultString(notifyMap.get("zffs"), "");
             //支付业务信息
             String bodyString = StringUtils.defaultString(notifyMap.get("body"), "");
+            //1 收银台模式  不需要业务走结算
+            String settleMode = StringUtils.defaultString(notifyMap.get("settle_mode"), "");
 
+            if(StringUtils.isNotEmpty(settleMode)){
+                attr.put("settleMode", Integer.valueOf(settleMode));
+            }
             // 医保结算内容
             String ybbody = StringUtils.defaultString(notifyMap.get("ybbody"), "");
             if(StringUtils.isNotEmpty(ybbody)){

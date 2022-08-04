@@ -50,4 +50,9 @@ public class EnterpriseStock {
      */
     private List<DrugInfoDTO> drugInfoList;
 
+    /**
+     * 药企是否支持配送标识
+     */
+    private Boolean sendFlag = true;
+
 }

@@ -8,6 +8,7 @@ import com.ngari.recipe.dto.OutPatientRecordResDTO;
 import com.ngari.recipe.dto.WriteDrugRecipeDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.recipe.model.RecipeBean;
+import com.ngari.recipe.recipe.model.RateAndPathwaysVO;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.lang3.StringUtils;
@@ -33,6 +34,7 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
 
     @Autowired
     private IRevisitBusinessService iRevisitBusinessService;
+
     @Autowired
     private IRecipeBusinessService recipeBusinessService;
 
@@ -158,6 +160,18 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
     @RpcService
     public List<HealthCardDTO> findByCardOrganAndMpiId(String mpiId){
         return recipeBusinessService.findByCardOrganAndMpiId(mpiId);
+    }
+
+    /**
+     * 医生端开处方：获取煎法关联用药途径和用药频次
+     *
+     * @param decoctionId
+     * @return
+     */
+    @RpcService
+    public RateAndPathwaysVO queryRateAndPathwaysByDecoctionId(Integer organId, Integer decoctionId, Integer doctorId) {
+        validateAtop(organId, decoctionId, doctorId);
+        return recipeBusinessService.queryRateAndPathwaysByDecoctionId(organId, decoctionId);
     }
 
 }

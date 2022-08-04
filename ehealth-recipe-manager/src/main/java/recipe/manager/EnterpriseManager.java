@@ -6,7 +6,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.organ.model.OrganBean;
-import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.base.push.service.ISmsPushService;
 import com.ngari.his.recipe.mode.TakeMedicineByToHos;
 import com.ngari.infra.logistics.mode.WriteBackLogisticsOrderDto;
@@ -98,7 +97,7 @@ public class EnterpriseManager extends BaseManager {
     @Autowired
     private PatientClient patientClient;
     @Autowired
-    private ISmsPushService smsPushService;
+    private SmsClient smsClient;
 
     /**
      * 获取是否医院结算的药企
@@ -666,6 +665,9 @@ public class EnterpriseManager extends BaseManager {
      */
     @LogRecord
     public void pushEnterpriseSendDrugPhone(Recipe recipe, DrugsEnterprise drugsEnterprise){
+        if (null == drugsEnterprise) {
+            return;
+        }
         OrganDrugsSaleConfig organDrugsSaleConfig = organDrugsSaleConfigDAO.getOrganDrugsSaleConfig(drugsEnterprise.getId());
         List<String> mobilePhoneList = new ArrayList<>(5);
         if (null != organDrugsSaleConfig && StringUtils.isNotEmpty(organDrugsSaleConfig.getSendDrugNotifyPhone())) {
@@ -682,19 +684,38 @@ public class EnterpriseManager extends BaseManager {
         if (CollectionUtils.isNotEmpty(mobilePhoneList)) {
             mobilePhoneList.forEach(mobile ->{
                 if (StringUtils.isNotEmpty(mobile)) {
-                    SmsInfoBean smsInfo = new SmsInfoBean();
-                    smsInfo.setBusType("RecipeOrderCreate");
-                    smsInfo.setSmsType("RecipeOrderCreate");
-                    smsInfo.setBusId(recipe.getRecipeId());
-                    smsInfo.setOrganId(recipe.getClinicOrgan());
                     Map<String, Object> smsMap = Maps.newHashMap();
                     smsMap.put("mobile", mobile);
-                    smsInfo.setExtendValue(JSONUtils.toString(smsMap));
-                    smsPushService.pushMsgData2OnsExtendValue(smsInfo);
-                    logger.info("pushEnterpriseSendDrugPhone smsInfo:{}", JSON.toJSONString(smsInfo));
+                    smsClient.pushSmsInfo(recipe, "RecipeOrderCreate", smsMap);
                 }
             });
         }
+    }
+
+    /**
+     * 退费推送管理员手机号
+     * @param recipe
+     * @param drugsEnterprise
+     */
+    public void pushEnterpriseRefundPhone(Recipe recipe, DrugsEnterprise drugsEnterprise){
+        if (null == drugsEnterprise) {
+            return;
+        }
+        OrganDrugsSaleConfig organDrugsSaleConfig = organDrugsSaleConfigDAO.getOrganDrugsSaleConfig(drugsEnterprise.getId());
+        if (null == organDrugsSaleConfig) {
+            return;
+        }
+        if (StringUtils.isEmpty(organDrugsSaleConfig.getRefundNotifyPhone())) {
+            return;
+        }
+        List<String> mobilePhoneList = Arrays.asList(organDrugsSaleConfig.getSendDrugNotifyPhone().split(","));
+        mobilePhoneList.forEach(mobile ->{
+            if (StringUtils.isNotEmpty(mobile)) {
+                Map<String, Object> smsMap = Maps.newHashMap();
+                smsMap.put("mobile", mobile);
+                smsClient.pushSmsInfo(recipe, "RecipeRefundCheckNotify", smsMap);
+            }
+        });
     }
 
     /**

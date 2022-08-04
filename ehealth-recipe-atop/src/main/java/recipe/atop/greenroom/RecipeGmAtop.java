@@ -103,4 +103,9 @@ public class RecipeGmAtop extends BaseAtop {
         return recipeBusinessService.findRecipeDetailsByOrderCode(orderCode);
     }
 
+    @RpcService
+    public Boolean makeUpInvoice(String orderCode) {
+        validateAtop(orderCode);
+        return recipeOrderService.makeUpInvoice(orderCode);
+    }
 }

@@ -15,6 +15,7 @@ import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
 import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.base.patient.service.IHealthCardService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
+import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.bus.hosrelation.model.HosrelationBean;
 import com.ngari.bus.hosrelation.service.IHosrelationService;
 import com.ngari.common.dto.DepartChargeReportResult;
@@ -122,6 +123,7 @@ import recipe.thread.RecipeSendFailRunnable;
 import recipe.thread.RecipeSendSuccessRunnable;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
+import recipe.vo.second.CabinetVO;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -3084,5 +3086,70 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         return recipeCount;
     }
 
+    /**
+     * 存储药柜拿出通知
+     *
+     * @param cabinetVO
+     * @return
+     */
+    @Override
+    public void takeOutCabinetNotice(CabinetVO cabinetVO) {
+        LOGGER.info("takeOutCabinetNotice req:{}.",JSONUtils.toString(cabinetVO));
+        Integer organId = cabinetVO.getOrganId();
+        String recipeCode = cabinetVO.getRecipeCode();
+        String role = cabinetVO.getRecipeCode();
 
+        if(organId==null || StringUtils.isEmpty(recipeCode) || StringUtils.isEmpty(role)){
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "入参错误");
+        }
+
+        Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(cabinetVO.getRecipeCode(),cabinetVO.getOrganId());
+        if (null == recipe || StringUtils.isEmpty(recipe.getOrderCode())) {
+            throw new DAOException(609,"当前处方单未找到");
+        }
+
+        //存储药柜取药码+取药地址重置成空
+        Map<String, String> changeAttr= Maps.newHashMap();
+        changeAttr.put("medicineCode","");
+        changeAttr.put("medicineAddress","");
+        recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(),changeAttr);
+
+        //管理员拿出
+        if("admin".equals(role)){
+            takeOutCabinetNoticeByAdmin(recipe,cabinetVO);
+        }else {
+            //患者拿出
+            takeOutCabinetNoticeByPatient(recipe);
+        }
+
+
+    }
+
+    /**
+     * 到院取药-管理员取出药品通知
+     * @param recipe
+     */
+    public void takeOutCabinetNoticeByAdmin(Recipe recipe,CabinetVO cabinetVO) {
+
+        SmsInfoBean smsInfoBean=new SmsInfoBean();
+        smsInfoBean.setBusType("recipeTakeOutByAdmin");
+        smsInfoBean.setSmsType("recipeTakeOutByAdmin");
+        smsInfoBean.setBusId(recipe.getRecipeId());
+        smsInfoBean.setOrganId(recipe.getClinicOrgan());
+        smsInfoBean.setExtendValue(JSONUtils.toString(cabinetVO));
+        smsClient.pushMsgData2OnsExtendValue(smsInfoBean);
+
+    }
+
+    /**
+     * 患者取出，推送消息
+     * @param recipe
+     */
+    public void takeOutCabinetNoticeByPatient(Recipe recipe) {
+
+        //判断处方状态
+
+        //完成处方
+        HisCallBackService.finishRecipesFromHis(Arrays.asList(recipe.getRecipeCode()), recipe.getClinicOrgan());
+    }
 }

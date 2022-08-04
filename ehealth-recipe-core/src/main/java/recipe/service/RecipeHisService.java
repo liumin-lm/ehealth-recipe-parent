@@ -529,8 +529,9 @@ public class RecipeHisService extends RecipeBaseService {
                 return false;
             }
             // 111 为卫宁支付---卫宁付不走前置机的his结算
-            if ("111".equals(recipeOrder.getWxPayWay())) {
-                LOGGER.info("doRecipeSettle 卫宁付不走平台结算;recipeId={}", recipe.getRecipeId());
+            // 111 判断不准确,改为收银台支付回调返回的 settleMode 判断
+            if (new Integer(1).equals(recipeOrder.getSettleMode())) {
+                LOGGER.info("doRecipeSettle 收银台模式不走平台结算;recipeId={}", recipe.getRecipeId());
                 //汉中市中心医院对接了卫宁付但是需要用到后面的更新配送信息接口将物流单号传给前置机
                 return true;
             }
