@@ -499,7 +499,7 @@ public class HisCallBackService {
                 syncExecutorService.uploadRecipeVerificationIndicators(recipe.getRecipeId());
 
                 // 更新处方新状态
-                stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_DONE, RecipeStateEnum.SUB_DONE_DOWNLOAD);
+                stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_DONE, RecipeStateEnum.SUB_DONE_SELF_TAKE);
                 if(Objects.nonNull(order)) {
                     stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_DISPENSING, OrderStateEnum.SUB_DONE_DOWNLOAD);
                 }

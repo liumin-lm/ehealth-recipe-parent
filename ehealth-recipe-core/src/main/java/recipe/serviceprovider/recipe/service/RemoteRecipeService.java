@@ -111,6 +111,8 @@ import recipe.enumerate.status.*;
 import recipe.enumerate.type.BussSourceTypeEnum;
 import recipe.enumerate.type.PayFlagEnum;
 import recipe.enumerate.type.RecipeRefundConfigEnum;
+import recipe.hisservice.HisMqRequestInit;
+import recipe.hisservice.RecipeToHisMqService;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.manager.*;
 import recipe.medicationguide.service.WinningMedicationGuideService;
@@ -3097,7 +3099,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         LOGGER.info("takeOutCabinetNotice req:{}.",JSONUtils.toString(cabinetVO));
         Integer organId = cabinetVO.getOrganId();
         String recipeCode = cabinetVO.getRecipeCode();
-        String role = cabinetVO.getRecipeCode();
+        String role = cabinetVO.getRole();
 
         if(organId==null || StringUtils.isEmpty(recipeCode) || StringUtils.isEmpty(role)){
             throw new DAOException(ErrorCode.SERVICE_ERROR, "入参错误");
@@ -3114,12 +3116,30 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         changeAttr.put("medicineAddress","");
         recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(),changeAttr);
 
+        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "药品从药柜取出，取药角色："+role);
+
         //管理员拿出
         if("admin".equals(role)){
             takeOutCabinetNoticeByAdmin(recipe,cabinetVO);
         }else {
-            //患者拿出
-            takeOutCabinetNoticeByPatient(recipe);
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+            if (null == recipeExtend ) {
+                throw new DAOException(609,"当前处方单未找到");
+            }
+
+            RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+            if (null == recipeOrder ) {
+                throw new DAOException(609,"当前处方单未支付");
+            }
+
+            //处方状态：到院取药+待取药+未申请退费
+            Boolean effectiveFlag=recipe.getGiveMode()==2 && recipeOrder.getStatus()==2 && recipeExtend.getRefundNodeStatus()==null;
+
+            //患者拿出,处方有效的情况下，更新状态
+            if(effectiveFlag){
+                takeOutCabinetNoticeByPatient(recipe);
+            }
+
         }
 
 
@@ -3147,9 +3167,18 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
      */
     public void takeOutCabinetNoticeByPatient(Recipe recipe) {
 
-        //判断处方状态
-
         //完成处方
         HisCallBackService.finishRecipesFromHis(Arrays.asList(recipe.getRecipeCode()), recipe.getClinicOrgan());
+
+        //通知his状态更新
+        if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
+            //平台模式
+            RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
+            hisService.recipeStatusUpdateWithOrganId(recipe.getRecipeId(), null, null);
+        }else {
+            //互联网模式
+            RecipeToHisMqService hisMqService = ApplicationUtils.getRecipeService(RecipeToHisMqService.class);
+            hisMqService.recipeStatusToHis(HisMqRequestInit.initRecipeStatusToHisReq(recipe, HisBussConstant.TOHIS_RECIPE_STATUS_FINISH));
+        }
     }
 }
