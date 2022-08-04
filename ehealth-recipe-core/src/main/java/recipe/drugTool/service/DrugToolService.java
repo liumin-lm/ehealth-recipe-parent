@@ -30,6 +30,7 @@ import com.ngari.recipe.drug.service.ISaleDrugListService;
 import com.ngari.recipe.drugTool.service.IDrugToolService;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.UpdateMatchStatusFormBean;
+import com.ngari.recipe.recipe.model.RateAndPathwaysVO;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.dictionary.DictionaryItem;
@@ -653,7 +654,7 @@ public class DrugToolService implements IDrugToolService {
                         if ((new Integer(3).equals(drug.getDrugType()))) {
                             DrugEntrust byOrganIdAndDrugEntrustName = drugEntrustDAO.getByOrganIdAndDrugEntrustName(organId, getStrFromCell(row.getCell(27)));
                             if (byOrganIdAndDrugEntrustName != null) {
-                                drug.setDrugEntrust(byOrganIdAndDrugEntrustName.getDrugEntrustName().toString());
+                                drug.setDrugEntrust(byOrganIdAndDrugEntrustName.getDrugEntrustName());
                             } else {
                                 errMsg.append("中药药品字典未找到该嘱托").append(";");
                             }
@@ -2000,10 +2001,7 @@ public class DrugToolService implements IDrugToolService {
         String addrArea = checkOrganAddrArea(organId);
         Long provinceDrugNum = provinceDrugListDAO.getCountByProvinceIdAndStatus(addrArea, 1);
         //更新药品状态成匹配中
-        if (0L < provinceDrugNum) {
-            return true;
-        }
-        return false;
+        return 0L < provinceDrugNum;
     }
 
     /**
@@ -2658,10 +2656,7 @@ public class DrugToolService implements IDrugToolService {
      */
     @RpcService
     public Boolean judgeShowProvinceCode(Integer organId) {
-        if (checkOrganRegulation(organId) && isHaveReulationId(organId)) {
-            return true;
-        }
-        return false;
+        return checkOrganRegulation(organId) && isHaveReulationId(organId);
     }
 
     /**
@@ -2685,17 +2680,17 @@ public class DrugToolService implements IDrugToolService {
      */
     @RpcService
     @LogRecord
-    public Map<String, Object> findDrugUsageCountForDoctor(Integer organId, Integer doctorId) {
+    public RateAndPathwaysVO findDrugUsageCountForDoctor(Integer organId, Integer doctorId) {
         if (null == organId || null == doctorId) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "机构id医生id不能为空");
         }
-        Map<String, Object> result = Maps.newHashMap();
+        RateAndPathwaysVO result = new RateAndPathwaysVO();
         com.ngari.patient.service.IUsingRateService usingRateService = AppDomainContext.getBean("basic.usingRateService", IUsingRateService.class);
         com.ngari.patient.service.IUsePathwaysService usePathwaysService = AppDomainContext.getBean("basic.usePathwaysService", IUsePathwaysService.class);
         List<UsingRateDTO> usingRates = usingRateService.findAllusingRateByOrganId(organId);
         List<UsePathwaysDTO> usePathways = usePathwaysService.findAllUsePathwaysByOrganId(organId);
-        result.put("usingRate", usingRates);
-        result.put("usePathway", usePathways);
+        result.setUsingRate(usingRates);
+        result.setUsePathway(usePathways);
 
         // 处理医生使用次数排序逻辑
         handleRateAndPathwayUsage(organId, doctorId, result, usingRates, usePathways);
@@ -2713,11 +2708,11 @@ public class DrugToolService implements IDrugToolService {
      */
     @RpcService
     @LogRecord
-    public Map<String, Object> findDrugUsageCountForDoctorNew(Integer organId, Integer doctorId, Integer recipeType) {
+    public RateAndPathwaysVO findDrugUsageCountForDoctorNew(Integer organId, Integer doctorId, Integer recipeType) {
         if (null == organId || null == doctorId) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "机构id医生id不能为空");
         }
-        Map<String, Object> result = Maps.newHashMap();
+        RateAndPathwaysVO result = new RateAndPathwaysVO();
         com.ngari.patient.service.IUsingRateService usingRateService = AppDomainContext.getBean("basic.usingRateService", IUsingRateService.class);
         com.ngari.patient.service.IUsePathwaysService usePathwaysService = AppDomainContext.getBean("basic.usePathwaysService", IUsePathwaysService.class);
         List<UsingRateDTO> usingRates = usingRateService.findAllusingRateByOrganId(organId);
@@ -2728,8 +2723,8 @@ public class DrugToolService implements IDrugToolService {
             usingRates = usingRates.stream().filter(u -> u.getCategory() != null && u.getCategory().contains(recipeType.toString())).collect(Collectors.toList());
             usePathways = usePathways.stream().filter(u -> u.getCategory() != null && u.getCategory().contains(recipeType.toString())).collect(Collectors.toList());
         }
-        result.put("usingRate", usingRates);
-        result.put("usePathway", usePathways);
+        result.setUsingRate(usingRates);
+        result.setUsePathway(usePathways);
         // 处理医生使用次数排序逻辑
         handleRateAndPathwayUsage(organId, doctorId, result, usingRates, usePathways);
         LOGGER.info("findDrugUsageCountForDoctor res:{}", JSONUtils.toString(result));
@@ -2863,7 +2858,8 @@ public class DrugToolService implements IDrugToolService {
      * @param usingRates
      * @param usePathways
      */
-    private void handleRateAndPathwayUsage(Integer organId, Integer doctorId, Map<String, Object> result, List<UsingRateDTO> usingRates, List<UsePathwaysDTO> usePathways) {
+    private void handleRateAndPathwayUsage(Integer organId, Integer doctorId, RateAndPathwaysVO result,
+                                           List<UsingRateDTO> usingRates, List<UsePathwaysDTO> usePathways) {
         DoctorDrugUsageCountDAO usageCountDAO = DAOFactory.getDAO(DoctorDrugUsageCountDAO.class);
         // 用药频次使用记录
         List<DoctorDrugUsageCount> rateCounts = usageCountDAO.findByUsageTypeForDoctor(organId, doctorId, RecipeSystemConstant.USAGE_TYPE_RATE);
@@ -2880,7 +2876,7 @@ public class DrugToolService implements IDrugToolService {
 
             usingRates.removeAll(rateUseCount);
             rateUseCount.addAll(usingRates);
-            result.put("usingRate", rateUseCount);
+            result.setUsingRate(rateUseCount);
         }
         // 用药途径使用记录
         List<DoctorDrugUsageCount> pathwayCounts = usageCountDAO.findByUsageTypeForDoctor(organId, doctorId, RecipeSystemConstant.USAGE_TYPE_PATHWAY);
@@ -2896,19 +2892,15 @@ public class DrugToolService implements IDrugToolService {
             }
             usePathways.removeAll(pathwayUseCount);
             pathwayUseCount.addAll(usePathways);
-            result.put("usePathway", pathwayUseCount);
+            result.setUsePathway(pathwayUseCount);
         }
     }
 
-    @RpcService
+    @Override
     public Boolean judgePlatformDrugDelete(int drugId) {
         Long organNum = RecipeAPI.getService(IOrganDrugListService.class).getCountByDrugId(drugId);
         Long saleNum = RecipeAPI.getService(ISaleDrugListService.class).getCountByDrugId(drugId);
-        if (organNum > 0 || saleNum > 0) {
-            return true;
-        } else {
-            return false;
-        }
+        return organNum > 0 || saleNum > 0;
     }
 
     /**

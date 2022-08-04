@@ -24,6 +24,7 @@ import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import com.ngari.recipe.recipereportform.model.*;
 import ctd.persistence.bean.QueryResult;
 import ctd.util.annotation.RpcService;
+import recipe.vo.second.CabinetVO;
 
 import java.math.BigDecimal;
 import java.sql.Time;
@@ -989,5 +990,13 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     @RpcService
     Long findRecipeAuditCountByFlag(List<Integer> organ, List<Integer> recipeTypes,Integer checker , int flag, String startTime, String endTime);
 
+
+    /**
+     * 存储药柜拿出通知
+     * @param cabinetVO
+     * @return
+     */
+    @RpcService(mvcDisabled = true)
+    void takeOutCabinetNotice(CabinetVO cabinetVO);
 }
 
