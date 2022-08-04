@@ -107,7 +107,7 @@ public class BaseManager {
     /**
      * 保存处方操作记录
      */
-    protected void saveRecipeLog(Integer recipeId, RecipeStatusEnum beforeStatus, RecipeStatusEnum afterStatus, String memo) {
+    public void saveRecipeLog(Integer recipeId, RecipeStatusEnum beforeStatus, RecipeStatusEnum afterStatus, String memo) {
         if (ValidateUtil.integerIsEmpty(recipeId)) {
             return;
         }
