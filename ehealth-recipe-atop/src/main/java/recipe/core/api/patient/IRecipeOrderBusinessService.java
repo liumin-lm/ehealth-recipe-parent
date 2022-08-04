@@ -165,4 +165,10 @@ public interface IRecipeOrderBusinessService {
      */
     @RpcService
     void putInCabinetNotice(CabinetVO cabinetVO);
+
+    /**
+     * 补打发票-运营平台药品订单
+     */
+    @RpcService
+    Boolean makeUpInvoice(String orderCode);
 }
