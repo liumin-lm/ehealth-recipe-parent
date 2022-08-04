@@ -82,6 +82,9 @@ public class OrderFeeService implements IRecipeOrderRefundService {
     private InvoiceRecordService invoiceRecordService;
     @Autowired
     private EnterpriseManager enterpriseManager;
+    @Autowired
+    private RecipeOrderBillDAO recipeOrderBillDAO;
+
 
     @Override
     public RecipeOrderRefundPageVO findRefundRecipeOrder(RecipeOrderRefundReqVO recipeOrderRefundReqVO) {
@@ -247,6 +250,11 @@ public class OrderFeeService implements IRecipeOrderRefundService {
         }
         recipeOrderRefundDetailVO.setOrderRefundInfoVO(orderRefundInfoVO);
         recipeOrderRefundDetailVO.setRecipeBeanList(recipeBeanList);
+        //返回发票号
+        RecipeOrderBill recipeOrderBill = recipeOrderBillDAO.getRecipeOrderBillByOrderCode(orderCode);
+        if(recipeOrderBill != null){
+            recipeOrderRefundDetailVO.setBillNumber(recipeOrderBill.getBillNumber());
+        }
         return recipeOrderRefundDetailVO;
     }
 

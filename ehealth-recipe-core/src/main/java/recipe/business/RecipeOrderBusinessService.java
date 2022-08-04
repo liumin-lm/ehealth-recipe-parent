@@ -13,6 +13,7 @@ import com.ngari.patient.service.AddressService;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.*;
+import com.ngari.platform.recipe.mode.InvoiceInfoResTO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
@@ -789,5 +790,11 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
         smsClient.pushMsgData2OnsExtendValue(smsInfoBean);
 
 
+    }
+
+    @Override
+    public Boolean makeUpInvoice(String orderCode) {
+        InvoiceInfoResTO invoiceInfoResTO = orderManager.makeUpInvoice(orderCode);
+        return invoiceInfoResTO.getSuccess();
     }
 }
