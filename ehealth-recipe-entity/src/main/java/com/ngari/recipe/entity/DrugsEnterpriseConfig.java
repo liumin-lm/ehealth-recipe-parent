@@ -38,12 +38,12 @@ public class DrugsEnterpriseConfig implements Serializable {
     private Integer syncSaleDrugCodeType;
 
     //作废
-    @ItemProperty(alias = "同步数据范围  1配送药企  2 药品类型")
-    private Integer syncDataRange;
-
-    //作废
-    @ItemProperty(alias = "同步药品类型  字典key用 ，隔开  eh.base.dictionary.DrugType")
-    private String syncDrugType;
+//    @ItemProperty(alias = "同步数据范围  1配送药企  2 药品类型")
+//    private Integer syncDataRange;
+//
+//    //作废
+//    @ItemProperty(alias = "同步药品类型  字典key用 ，隔开  eh.base.dictionary.DrugType")
+//    private String syncDrugType;
 
     @ItemProperty(alias = "药企药品同步关联机构")
     private String organId;
@@ -197,21 +197,21 @@ public class DrugsEnterpriseConfig implements Serializable {
         this.syncSaleDrugCodeType = syncSaleDrugCodeType;
     }
 
-    @Column(name = "syncDataRange")
-    public Integer getSyncDataRange() {
-        return syncDataRange;
-    }
-
-    public void setSyncDataRange(Integer syncDataRange) {
-        this.syncDataRange = syncDataRange;
-    }
-
-    @Column(name = "syncDrugType")
-    public String getSyncDrugType() {
-        return syncDrugType;
-    }
-
-    public void setSyncDrugType(String syncDrugType) {
-        this.syncDrugType = syncDrugType;
-    }
+//    @Column(name = "syncDataRange")
+//    public Integer getSyncDataRange() {
+//        return syncDataRange;
+//    }
+//
+//    public void setSyncDataRange(Integer syncDataRange) {
+//        this.syncDataRange = syncDataRange;
+//    }
+//
+//    @Column(name = "syncDrugType")
+//    public String getSyncDrugType() {
+//        return syncDrugType;
+//    }
+//
+//    public void setSyncDrugType(String syncDrugType) {
+//        this.syncDrugType = syncDrugType;
+//    }
 }

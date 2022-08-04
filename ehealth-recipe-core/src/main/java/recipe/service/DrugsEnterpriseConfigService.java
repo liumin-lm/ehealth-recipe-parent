@@ -50,11 +50,26 @@ public class DrugsEnterpriseConfigService {
         if (ObjectUtils.isEmpty(drugsEnterpriseConfig.getSyncSaleDrugCodeType())){
             drugsEnterpriseConfig.setSyncSaleDrugCodeType(1);
         }
-        if (ObjectUtils.isEmpty(drugsEnterpriseConfig.getSyncDataRange())){
-            drugsEnterpriseConfig.setSyncDataRange(2);
+        if (ObjectUtils.isEmpty(drugsEnterpriseConfig.getAddSyncDataRange())){
+            drugsEnterpriseConfig.setAddSyncDataRange(2);
         }
-        if (ObjectUtils.isEmpty(drugsEnterpriseConfig.getSyncDrugType())){
-            drugsEnterpriseConfig.setSyncDrugType("1,2,3");
+        if (ObjectUtils.isEmpty(drugsEnterpriseConfig.getUpdateSyncDataRange())){
+            drugsEnterpriseConfig.setUpdateSyncDataRange(2);
+        }
+        if (ObjectUtils.isEmpty(drugsEnterpriseConfig.getDelSyncDataRange())){
+            drugsEnterpriseConfig.setDelSyncDataRange(2);
+        }
+
+        if (ObjectUtils.isEmpty(drugsEnterpriseConfig.getAddSyncDrugType())){
+            drugsEnterpriseConfig.setAddSyncDrugType("1,2,3");
+        }
+
+        if (ObjectUtils.isEmpty(drugsEnterpriseConfig.getUpdateSyncDrugType())){
+            drugsEnterpriseConfig.setUpdateSyncDrugType("1,2,3");
+        }
+
+        if (ObjectUtils.isEmpty(drugsEnterpriseConfig.getDelSyncDrugType())){
+            drugsEnterpriseConfig.setDelSyncDrugType("1,2,3");
         }
     }
 
