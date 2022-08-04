@@ -279,20 +279,10 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
         validateAtop(organDrugsSaleConfigVo.getDrugsEnterpriseId());
         if (StringUtils.isNotEmpty(organDrugsSaleConfigVo.getSendDrugNotifyPhone())) {
             //说明发药电话不为空,需要校验手机号是否合规
-            List<String> mobilePhoneList = Arrays.asList(organDrugsSaleConfigVo.getSendDrugNotifyPhone().split(","));
-            mobilePhoneList.forEach(mobile->{
-                if (!ValidateUtil.isPhoneLegal(mobile)){
-                    throw new DAOException("手机号格式错误");
-                }
-            });
+            validatePhoneInfo(organDrugsSaleConfigVo.getSendDrugNotifyPhone());
         }
         if (StringUtils.isNotEmpty(organDrugsSaleConfigVo.getRefundNotifyPhone())) {
-            List<String> mobilePhoneList = Arrays.asList(organDrugsSaleConfigVo.getRefundNotifyPhone().split(","));
-            mobilePhoneList.forEach(mobile->{
-                if (!ValidateUtil.isPhoneLegal(mobile)){
-                    throw new DAOException("手机号格式错误");
-                }
-            });
+            validatePhoneInfo(organDrugsSaleConfigVo.getRefundNotifyPhone());
         }
         enterpriseBusinessService.saveOrganDrugsSaleConfig(organDrugsSaleConfigVo);
         return organDrugsSaleConfigVo;
@@ -351,5 +341,20 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
     @RpcService
     public Boolean updateEnterprisePriorityLevel(Integer organId, Integer depId, Integer level){
         return enterpriseBusinessService.updateEnterprisePriorityLevel(organId, depId, level);
+    }
+
+    private void validatePhoneInfo(String mobilePhones) {
+        mobilePhones = mobilePhones.replace(" ","");
+        List<String> mobilePhoneList = Arrays.asList(mobilePhones.split(","));
+        mobilePhoneList.forEach(mobile -> {
+            if (!ValidateUtil.isPhoneLegal(mobile)) {
+                throw new DAOException("手机号格式错误");
+            }
+        });
+        Set<String> mobilePhoneSet = new HashSet<>();
+        mobilePhoneSet.addAll(mobilePhoneList);
+        if (mobilePhoneList.size() != mobilePhoneSet.size()) {
+            throw new DAOException("存在重复手机号");
+        }
     }
 }

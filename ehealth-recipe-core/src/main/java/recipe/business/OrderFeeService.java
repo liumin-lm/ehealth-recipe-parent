@@ -43,7 +43,10 @@ import recipe.util.DateConversion;
 import recipe.util.ObjectCopyUtils;
 import recipe.vo.greenroom.*;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -52,7 +55,7 @@ import java.util.stream.Collectors;
  * @author ys
  */
 @Service
-public class RecipeOrderRefundService implements IRecipeOrderRefundService {
+public class OrderFeeService implements IRecipeOrderRefundService {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
@@ -79,6 +82,9 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
     private InvoiceRecordService invoiceRecordService;
     @Autowired
     private EnterpriseManager enterpriseManager;
+    @Autowired
+    private RecipeOrderBillDAO recipeOrderBillDAO;
+
 
     @Override
     public RecipeOrderRefundPageVO findRefundRecipeOrder(RecipeOrderRefundReqVO recipeOrderRefundReqVO) {
@@ -244,6 +250,11 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
         }
         recipeOrderRefundDetailVO.setOrderRefundInfoVO(orderRefundInfoVO);
         recipeOrderRefundDetailVO.setRecipeBeanList(recipeBeanList);
+        //返回发票号
+        RecipeOrderBill recipeOrderBill = recipeOrderBillDAO.getRecipeOrderBillByOrderCode(orderCode);
+        if(recipeOrderBill != null){
+            recipeOrderRefundDetailVO.setBillNumber(recipeOrderBill.getBillNumber());
+        }
         return recipeOrderRefundDetailVO;
     }
 

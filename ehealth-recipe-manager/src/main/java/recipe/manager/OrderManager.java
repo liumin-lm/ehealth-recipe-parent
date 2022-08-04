@@ -15,6 +15,11 @@ import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.AddressService;
 import com.ngari.patient.service.DoctorService;
+import com.ngari.patient.service.PatientService;
+import com.ngari.platform.recipe.mode.InvoiceInfoReqTO;
+import com.ngari.platform.recipe.mode.InvoiceInfoResTO;
+import com.ngari.platform.recipe.mode.RecipeBean;
+import com.ngari.platform.recipe.mode.RecipeDetailBean;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import com.ngari.revisit.common.model.RevisitExDTO;
@@ -75,6 +80,12 @@ public class OrderManager extends BaseManager {
     private InfraClient infraClient;
     @Autowired
     private IOrganLogisticsManageService organLogisticsManageService;
+    @Autowired
+    private PatientService patientService;
+    @Autowired
+    private OrderClient orderClient;
+    @Autowired
+    private RecipeOrderBillDAO recipeOrderBillDAO;
 
     /**
      * 订单能否配送 物流管控
@@ -769,5 +780,45 @@ public class OrderManager extends BaseManager {
         }
 
         return null;
+    }
+
+    public InvoiceInfoResTO makeUpInvoice(String orderCode) {
+        logger.info("EleInvoiceService.makeUpInvoice orderCode={}",orderCode);
+        InvoiceInfoReqTO invoiceInfoReqTO = new InvoiceInfoReqTO();
+        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(orderCode);
+        List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
+        List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIdList);
+        PatientDTO patientDTO = new PatientDTO();
+        if(recipeList.size()>0){
+            patientDTO = patientService.get(recipeList.get(0).getMpiid());
+            invoiceInfoReqTO.setRecipeBean(ObjectCopyUtils.convert(recipeList, RecipeBean.class));
+            invoiceInfoReqTO.setOrganId(recipeList.get(0).getClinicOrgan());
+            invoiceInfoReqTO.setPatientId(recipeList.get(0).getPatientID());
+        }
+        invoiceInfoReqTO.setHisSettlementNo(recipeOrder.getHisSettlementNo());
+        invoiceInfoReqTO.setCashAmount(String.valueOf(recipeOrder.getCashAmount()));
+        invoiceInfoReqTO.setTotalFee(String.valueOf(recipeOrder.getTotalFee()));
+        invoiceInfoReqTO.setChargingStandard(String.valueOf(recipeOrder.getTotalFee()));
+        invoiceInfoReqTO.setPayTime(String.valueOf(recipeOrder.getPayTime()));
+        if(Objects.nonNull(patientDTO)){
+            invoiceInfoReqTO.setPatientName(patientDTO.getPatientName());
+            invoiceInfoReqTO.setSex(patientDTO.getPatientSex());
+            invoiceInfoReqTO.setAge(String.valueOf(patientDTO.getAge()));
+            invoiceInfoReqTO.setPhone(patientDTO.getMobile());
+        }
+        List<Recipedetail> recipedetailList = recipeDetailDAO.findByRecipeIds(recipeIdList);
+        invoiceInfoReqTO.setRecipeDetailList(ObjectCopyUtils.convert(recipedetailList, RecipeDetailBean.class));
+        logger.info("EleInvoiceService.makeUpInvoice invoiceInfoReqTO={}",JSONUtils.toString(invoiceInfoReqTO));
+        InvoiceInfoResTO invoiceInfoResTO = orderClient.makeUpInvoice(invoiceInfoReqTO);
+        logger.info("EleInvoiceService.makeUpInvoice invoiceInfoResTO={}",JSONUtils.toString(invoiceInfoResTO));
+        RecipeOrderBill recipeOrderBill = new RecipeOrderBill();
+        recipeOrderBill.setRecipeOrderCode(orderCode);
+        recipeOrderBill.setBillNumber(invoiceInfoResTO.getInvoiceNo());
+        recipeOrderBill.setBillBathCode(invoiceInfoResTO.getElectronicReceiptNo());
+        recipeOrderBill.setBillQrCode(invoiceInfoResTO.getQrCodeData());
+        recipeOrderBill.setBillPictureUrl(invoiceInfoResTO.getElectronicReceiptUrl());
+        recipeOrderBill.setCreateTime(new Date());
+        recipeOrderBillDAO.save(recipeOrderBill);
+        return invoiceInfoResTO;
     }
 }
