@@ -23,6 +23,7 @@ import com.ngari.patient.dto.UsingRateDTO;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.RecipeAPI;
+import com.ngari.recipe.drug.model.DecoctionWayBean;
 import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.drug.model.ProvinceDrugListBean;
 import com.ngari.recipe.drug.service.IOrganDrugListService;
@@ -57,6 +58,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import org.apache.http.util.TextUtils;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -74,6 +76,7 @@ import recipe.constant.DrugMatchConstant;
 import recipe.constant.ErrorCode;
 import recipe.constant.RecipeSystemConstant;
 import recipe.dao.*;
+import recipe.service.DrugExtService;
 import recipe.service.DrugsEnterpriseConfigService;
 import recipe.service.OrganDrugListService;
 import recipe.thread.RecipeBusiThreadPool;
@@ -156,6 +159,9 @@ public class DrugToolService implements IDrugToolService {
 
     @Autowired
     private DrugsEnterpriseDAO drugsEnterpriseDAO;
+
+    @Autowired
+    private DrugExtService drugExtService;
 
 
     private LoadingCache<String, List<DrugList>> drugListCache = CacheBuilder.newBuilder().expireAfterWrite(10, TimeUnit.MINUTES).build(new CacheLoader<String, List<DrugList>>() {
@@ -2727,6 +2733,52 @@ public class DrugToolService implements IDrugToolService {
         result.setUsePathway(usePathways);
         // 处理医生使用次数排序逻辑
         handleRateAndPathwayUsage(organId, doctorId, result, usingRates, usePathways);
+        LOGGER.info("findDrugUsageCountForDoctor res:{}", JSONUtils.toString(result));
+        return result;
+    }
+
+    @RpcService
+    @LogRecord
+    public RateAndPathwaysVO findDrugUsageCountForApp(Integer organId, Integer doctorId, Integer recipeType,Integer decoctId) {
+        if (null == organId || null == doctorId) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "机构id医生id不能为空");
+        }
+        RateAndPathwaysVO result = new RateAndPathwaysVO();
+        DecoctionWayBean decoctionWayBean = drugExtService.findUsingRateByOrganIdAndDecoctId(organId,decoctId);
+        //用药频率
+        String usingRateStr=decoctionWayBean.getDrugUseRate();
+        List<UsingRateDTO> usingRateDTOList=new ArrayList<>();
+        if(!TextUtils.isEmpty(usingRateStr)){
+            String[] usingRateArray=usingRateStr.split(",");
+            for(int i=0;i<usingRateArray.length;i++){
+                String singleUsingRateId=usingRateArray[i];
+                IUsingRateService usingRateService=AppContextHolder.getBean("basic.usingRateService",IUsingRateService.class);
+                UsingRateDTO usingRateDTO=usingRateService.getById(Integer.parseInt(singleUsingRateId));
+                usingRateDTOList.add(usingRateDTO);
+            }
+        }
+        //用药途径
+        String usePathwayStr=decoctionWayBean.getDrugUsePathway();
+        List<UsePathwaysDTO> usePathwayDTOList=new ArrayList<>();
+        if(!TextUtils.isEmpty(usePathwayStr)){
+            String[] usePathwayArray=usePathwayStr.split(",");
+            for(int i=0;i<usePathwayArray.length;i++){
+                String singleUsePathwayId=usePathwayArray[i];
+                IUsePathwaysService usePathwaysService=AppContextHolder.getBean("basic.usePathwaysService",IUsePathwaysService.class);
+                UsePathwaysDTO usePathwaysDTO=usePathwaysService.getById(Integer.parseInt(singleUsePathwayId));
+                usePathwayDTOList.add(usePathwaysDTO);
+            }
+        }
+        LOGGER.info("findDrugUsageCountForDoctor all usingRates:{}", JSONUtils.toString(usingRateDTOList));
+        LOGGER.info("findDrugUsageCountForDoctor all usePathways:{}", JSONUtils.toString(usePathwayDTOList));
+        if (recipeType != null) {
+            usingRateDTOList = usingRateDTOList.stream().filter(u -> u.getCategory() != null && u.getCategory().contains(recipeType.toString())).collect(Collectors.toList());
+            usePathwayDTOList = usePathwayDTOList.stream().filter(u -> u.getCategory() != null && u.getCategory().contains(recipeType.toString())).collect(Collectors.toList());
+        }
+        result.setUsingRate(usingRateDTOList);
+        result.setUsePathway(usePathwayDTOList);
+        // 处理医生使用次数排序逻辑
+        handleRateAndPathwayUsage(organId, doctorId, result, usingRateDTOList, usePathwayDTOList);
         LOGGER.info("findDrugUsageCountForDoctor res:{}", JSONUtils.toString(result));
         return result;
     }

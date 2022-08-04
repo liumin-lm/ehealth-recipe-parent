@@ -254,4 +254,8 @@ public class DrugExtService implements IDrugExtService {
             total = drugEntrustDAO.getCountOfOrgan(organId).intValue();
         return total;
     }
+
+    public DecoctionWayBean findUsingRateByOrganIdAndDecoctId(Integer organId,Integer decoctId){
+        return drugDecoctionWayDao.findUsingRateByOrganIdAndDecoctId(organId,decoctId);
+    }
 }
