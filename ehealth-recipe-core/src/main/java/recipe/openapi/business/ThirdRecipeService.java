@@ -1,5 +1,6 @@
 package recipe.openapi.business;
 
+import com.alibaba.fastjson.JSON;
 import com.ngari.infra.logistics.mode.LogisticsOrderDetailsDto;
 import com.ngari.infra.logistics.service.ILogisticsOrderService;
 import com.ngari.patient.ds.PatientDS;
@@ -100,7 +101,8 @@ public class ThirdRecipeService {
                         recipeAndRecipeDetailsBean.setOrderId(recipeOrder.getOrderId());
                     }
                     Recipe recipe = recipeDAO.getByRecipeId(patientTabStatusRecipeDTO.getRecipeId());
-                    if (Objects.nonNull(recipe.getInvalidTime())) {
+                    LOGGER.info("findRecipesForPatientAndTabStatus recipe:{}", JSON.toJSONString(recipe));
+                    if (null != recipe.getInvalidTime()) {
                         recipeAndRecipeDetailsBean.setRecipeSurplusHours(DateConversion.getDateFormatter(recipe.getInvalidTime(), DateConversion.DEFAULT_DATE_TIME));
                     }
                     recipeAndRecipeDetailsBean.setRecipeId(patientTabStatusRecipeDTO.getRecipeId());

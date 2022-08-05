@@ -672,13 +672,14 @@ public class EnterpriseManager extends BaseManager {
         List<String> mobilePhoneList = new ArrayList<>(5);
         if (null != organDrugsSaleConfig && StringUtils.isNotEmpty(organDrugsSaleConfig.getSendDrugNotifyPhone())) {
             mobilePhoneList = Arrays.asList(organDrugsSaleConfig.getSendDrugNotifyPhone().split(","));
-        }
-        if (EnterpriseCreateTypeEnum.MY_SELF.getType().equals(drugsEnterprise.getCreateType())) {
-            List<Pharmacy> list = pharmacyDAO.findByDepId(drugsEnterprise.getId());
-            String mobile = list.get(0).getPharmacyPhone();
-            mobilePhoneList.add(mobile);
         } else {
-            mobilePhoneList.add(drugsEnterprise.getEnterprisePhone());
+            if (EnterpriseCreateTypeEnum.MY_SELF.getType().equals(drugsEnterprise.getCreateType())) {
+                List<Pharmacy> list = pharmacyDAO.findByDepId(drugsEnterprise.getId());
+                String mobile = list.get(0).getPharmacyPhone();
+                mobilePhoneList.add(mobile);
+            } else {
+                mobilePhoneList.add(drugsEnterprise.getEnterprisePhone());
+            }
         }
         logger.info("pushEnterpriseSendDrugPhone mobilePhoneList:{}", JSON.toJSONString(mobilePhoneList));
         if (CollectionUtils.isNotEmpty(mobilePhoneList)) {
