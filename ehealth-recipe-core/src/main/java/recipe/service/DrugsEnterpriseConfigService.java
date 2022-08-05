@@ -189,9 +189,9 @@ public class DrugsEnterpriseConfigService {
     @LogRecord
     List<SaleDrugListSyncField> addSaleDrugListSyncFieldForEnterprise(Integer drugsenterpriseId) {
         List<SaleDrugListSyncField> saleDrugListSyncFieldList=new ArrayList<>();
-        Map<String,String> fieldMap=initFieldMap();
-        Map<String,String> addIsAllowEditFieldMap =initAddIsAllowEditFieldMap();
-        Map<String,String> updateIsAllowEditFieldMap =initUpdateIsAllowEditFieldMap();
+        LinkedHashMap<String,String> fieldMap=initFieldMap();
+        LinkedHashMap<String,String> addIsAllowEditFieldMap =initAddIsAllowEditFieldMap();
+        LinkedHashMap<String,String> updateIsAllowEditFieldMap =initUpdateIsAllowEditFieldMap();
         Set set = fieldMap.keySet();
         List<String> typeList=initTypeList();
         for (Object key : set) {
@@ -216,8 +216,8 @@ public class DrugsEnterpriseConfigService {
     }
 
     @LogRecord
-    private Map<String,String> initFieldMap(){
-        Map<String,String> fieldMap=new HashMap<>();
+    private LinkedHashMap<String,String> initFieldMap(){
+        LinkedHashMap<String,String> fieldMap=new LinkedHashMap<>();
         fieldMap.put("saleDrugCode","药企药品编码");
         fieldMap.put("drugName","药品名");//机构药品名称
         fieldMap.put("saleName","商品名");
@@ -228,8 +228,8 @@ public class DrugsEnterpriseConfigService {
     }
 
     @LogRecord
-    private Map<String,String> initAddIsAllowEditFieldMap(){
-        Map<String,String> fieldMap=new HashMap<>();
+    private LinkedHashMap<String,String> initAddIsAllowEditFieldMap(){
+        LinkedHashMap<String,String> fieldMap=new LinkedHashMap<>();
         fieldMap.put("saleDrugCode","0");
         fieldMap.put("drugName","0");
         fieldMap.put("saleName","0");
@@ -240,8 +240,8 @@ public class DrugsEnterpriseConfigService {
     }
 
     @LogRecord
-    private Map<String,String> initUpdateIsAllowEditFieldMap(){
-        Map<String,String> fieldMap=new HashMap<>();
+    private LinkedHashMap<String,String> initUpdateIsAllowEditFieldMap(){
+        LinkedHashMap<String,String> fieldMap=new LinkedHashMap<>();
         fieldMap.put("saleDrugCode","0");
         fieldMap.put("drugName","1");
         fieldMap.put("saleName","1");
