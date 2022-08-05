@@ -702,25 +702,30 @@ public class EnterpriseManager extends BaseManager {
      * @param recipe
      * @param drugsEnterprise
      */
+    @LogRecord
     public void pushEnterpriseRefundPhone(Recipe recipe, DrugsEnterprise drugsEnterprise){
         if (null == drugsEnterprise) {
             return;
         }
-        OrganDrugsSaleConfig organDrugsSaleConfig = organDrugsSaleConfigDAO.getOrganDrugsSaleConfig(drugsEnterprise.getId());
-        if (null == organDrugsSaleConfig) {
-            return;
-        }
-        if (StringUtils.isEmpty(organDrugsSaleConfig.getRefundNotifyPhone())) {
-            return;
-        }
-        List<String> mobilePhoneList = Arrays.asList(organDrugsSaleConfig.getSendDrugNotifyPhone().split(","));
-        mobilePhoneList.forEach(mobile ->{
-            if (StringUtils.isNotEmpty(mobile)) {
-                Map<String, Object> smsMap = Maps.newHashMap();
-                smsMap.put("mobile", mobile);
-                smsClient.pushSmsInfo(recipe, "RecipeRefundCheckNotify", smsMap);
+        try {
+            OrganDrugsSaleConfig organDrugsSaleConfig = organDrugsSaleConfigDAO.getOrganDrugsSaleConfig(drugsEnterprise.getId());
+            if (null == organDrugsSaleConfig) {
+                return;
             }
-        });
+            if (StringUtils.isEmpty(organDrugsSaleConfig.getRefundNotifyPhone())) {
+                return;
+            }
+            List<String> mobilePhoneList = Arrays.asList(organDrugsSaleConfig.getSendDrugNotifyPhone().split(","));
+            mobilePhoneList.forEach(mobile ->{
+                if (StringUtils.isNotEmpty(mobile)) {
+                    Map<String, Object> smsMap = Maps.newHashMap();
+                    smsMap.put("mobile", mobile);
+                    smsClient.pushSmsInfo(recipe, "RecipeRefundCheckNotify", smsMap);
+                }
+            });
+        } catch (Exception e) {
+            logger.error("pushEnterpriseRefundPhone recipeId:{}, error", recipe.getRecipeId(), e);
+        }
     }
 
     /**
