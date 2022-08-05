@@ -40,6 +40,7 @@ import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import eh.utils.ValidateUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -64,7 +65,6 @@ import recipe.hisservice.RecipeToHisService;
 import recipe.manager.*;
 import recipe.service.common.RecipeCacheService;
 import recipe.util.RedisClient;
-import recipe.util.ValidateUtil;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.patient.ReadyRecipeVO;
 
@@ -142,10 +142,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
             newBean.setList(Lists.newArrayList(Collections2.filter(depListBean.getList(), new Predicate<DepDetailBean>() {
                 @Override
                 public boolean apply(@Nullable DepDetailBean input) {
-                    if (payModes.contains(input.getPayMode())) {
-                        return true;
-                    }
-                    return false;
+                    return payModes.contains(input.getPayMode());
                 }
             })));
         }
@@ -806,7 +803,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
     public PatientMedicalTypeVO queryPatientMedicalType(PatientInfoVO patientInfoVO) {
         LOGGER.info("OutPatientRecipeService queryPatientMedicalType patientInfoVO:{}.", JSON.toJSONString(patientInfoVO));
         PatientMedicalTypeVO patientMedicalTypeVO = new PatientMedicalTypeVO("1", "自费");
-        if (ValidateUtil.integerIsEmpty(patientInfoVO.getClinicId())){
+        if (ValidateUtil.nullOrZeroInteger(patientInfoVO.getClinicId())){
             return patientMedicalTypeVO;
         }
         RevisitExDTO revisitExDTO = revisitClient.getByClinicId(patientInfoVO.getClinicId());
@@ -823,7 +820,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
     @Override
     public List<FormWorkRecipeVO> findFormWorkRecipe(FormWorkRecipeReqVO formWorkRecipeReqVO) {
         try {
-            String formWorkRecipe = recipeParameterDao.getByName(formWorkRecipeReqVO.getOrganId()+"_formWorkRecipe");
+            String formWorkRecipe = recipeParameterDao.getByName(formWorkRecipeReqVO.getOrganId() + "_formWorkRecipe");
             if (StringUtils.isEmpty(formWorkRecipe)) {
                 throw new DAOException(ErrorCode.SERVICE_ERROR, "没有维护模板处方");
             }
@@ -837,6 +834,12 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         }
     }
 
+    /**
+     * 便捷购药开处方
+     *
+     * @param recipeInfoVO 处方信息
+     * @return
+     */
     @Override
     public Integer saveRecipe(RecipeInfoVO recipeInfoVO) {
         //数据校验
@@ -1007,7 +1010,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
             OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(organId, organDrugCode, drugId);
             if (null == organDrugList) {
                 LOGGER.error("validateData organDrugName:{},organDrugCode:{}", recipeDetailBean.getDrugName(), recipeDetailBean.getOrganDrugCode());
-                throw new DAOException(ErrorCode.SERVICE_ERROR, "药品"+ recipeDetailBean.getDrugName() +"目录缺失无法开具");
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "药品" + recipeDetailBean.getDrugName() + "目录缺失无法开具");
             }
         });
         String fastRecipeChecker = configurationClient.getValueCatch(recipeInfoVO.getRecipeBean().getClinicOrgan(), "fastRecipeChecker", "");

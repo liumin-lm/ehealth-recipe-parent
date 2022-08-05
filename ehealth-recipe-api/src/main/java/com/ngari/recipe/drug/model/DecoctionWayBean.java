@@ -54,8 +54,18 @@ public class DecoctionWayBean implements Serializable {
     @ItemProperty(
             alias = "是否代煎"
     )
-
     private Boolean generationisOfDecoction;
+
+    @ItemProperty(
+            alias = "用药途径"
+    )
+    private String drugUsePathway;
+
+    @ItemProperty(
+            alias = "用药频次"
+    )
+    private String drugUseRate;
+
     public Integer getDecoctionId() {
         return decoctionId;
     }
@@ -118,5 +128,21 @@ public class DecoctionWayBean implements Serializable {
 
     public void setGenerationisOfDecoction(Boolean generationisOfDecoction) {
         this.generationisOfDecoction = generationisOfDecoction;
+    }
+
+    public String getDrugUsePathway() {
+        return drugUsePathway;
+    }
+
+    public void setDrugUsePathway(String drugUsePathway) {
+        this.drugUsePathway = drugUsePathway;
+    }
+
+    public String getDrugUseRate() {
+        return drugUseRate;
+    }
+
+    public void setDrugUseRate(String drugUseRate) {
+        this.drugUseRate = drugUseRate;
     }
 }

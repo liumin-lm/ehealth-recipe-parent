@@ -9,6 +9,8 @@ import recipe.atop.BaseAtop;
 import recipe.core.api.greenroom.IRecipeOrderRefundService;
 import recipe.vo.greenroom.*;
 
+import java.util.List;
+
 /**
  * 处方退费运营平台操作查询接口
  */
@@ -41,6 +43,12 @@ public class RecipeOrderRefundGmAtop extends BaseAtop {
     public void forceRefund(AuditRefundVO auditRefundVO) {
         validateAtop(auditRefundVO, auditRefundVO.getOrderCode(), auditRefundVO.getResult());
         recipeOrderRefundService.forceRefund(auditRefundVO);
+    }
+
+    @RpcService
+    public void updateRecipePushFlag(List<Integer> recipeIds){
+        validateAtop(recipeIds);
+        recipeOrderRefundService.updateRecipePushFlag(recipeIds);
     }
 
 }

@@ -477,7 +477,8 @@ public class HisCallBackService {
                 attrMap.put("payDate", DateTime.now().toDate());
             }
             attrMap.put("giveMode", RecipeBussConstant.GIVEMODE_TO_HOS);
-            attrMap.put("enterpriseId", null);
+            //医院取药-药企模式下，应该是有药企id的，不能更新成null
+//            attrMap.put("enterpriseId", null);
 
             Boolean rs = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.FINISH, attrMap);
             if (rs) {
@@ -498,7 +499,7 @@ public class HisCallBackService {
                 syncExecutorService.uploadRecipeVerificationIndicators(recipe.getRecipeId());
 
                 // 更新处方新状态
-                stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_DONE, RecipeStateEnum.SUB_DONE_DOWNLOAD);
+                stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_DONE, RecipeStateEnum.SUB_DONE_SELF_TAKE);
                 if(Objects.nonNull(order)) {
                     stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_DISPENSING, OrderStateEnum.SUB_DONE_DOWNLOAD);
                 }

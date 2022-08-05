@@ -14,6 +14,7 @@ import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import eh.utils.BeanCopyUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
@@ -276,6 +277,13 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
     @RpcService
     public OrganDrugsSaleConfigVo saveOrganDrugsSaleConfig(OrganDrugsSaleConfigVo organDrugsSaleConfigVo) {
         validateAtop(organDrugsSaleConfigVo.getDrugsEnterpriseId());
+        if (StringUtils.isNotEmpty(organDrugsSaleConfigVo.getSendDrugNotifyPhone())) {
+            //说明发药电话不为空,需要校验手机号是否合规
+            validatePhoneInfo(organDrugsSaleConfigVo.getSendDrugNotifyPhone());
+        }
+        if (StringUtils.isNotEmpty(organDrugsSaleConfigVo.getRefundNotifyPhone())) {
+            validatePhoneInfo(organDrugsSaleConfigVo.getRefundNotifyPhone());
+        }
         enterpriseBusinessService.saveOrganDrugsSaleConfig(organDrugsSaleConfigVo);
         return organDrugsSaleConfigVo;
     }
@@ -333,5 +341,20 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
     @RpcService
     public Boolean updateEnterprisePriorityLevel(Integer organId, Integer depId, Integer level){
         return enterpriseBusinessService.updateEnterprisePriorityLevel(organId, depId, level);
+    }
+
+    private void validatePhoneInfo(String mobilePhones) {
+        mobilePhones = mobilePhones.replace(" ","");
+        List<String> mobilePhoneList = Arrays.asList(mobilePhones.split(","));
+        mobilePhoneList.forEach(mobile -> {
+            if (!ValidateUtil.isPhoneLegal(mobile)) {
+                throw new DAOException("手机号格式错误");
+            }
+        });
+        Set<String> mobilePhoneSet = new HashSet<>();
+        mobilePhoneSet.addAll(mobilePhoneList);
+        if (mobilePhoneList.size() != mobilePhoneSet.size()) {
+            throw new DAOException("存在重复手机号");
+        }
     }
 }

@@ -6,6 +6,8 @@ import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.vo.*;
 import ctd.persistence.exception.DAOException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.caNew.pdf.CreatePdfFactory;
@@ -30,6 +32,7 @@ import java.util.List;
  */
 @Service
 public class TextService implements ITextService {
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
     @Autowired
     private CreatePdfFactory createPdfFactory;
     @Autowired
@@ -92,6 +95,7 @@ public class TextService implements ITextService {
         try {
             createPdfFactory.generateRecipePdf(recipe);
         } catch (Exception e) {
+            logger.info("TextService generateRecipePdf ", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
     }

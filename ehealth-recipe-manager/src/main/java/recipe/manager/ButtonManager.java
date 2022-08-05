@@ -6,6 +6,7 @@ import com.ngari.recipe.dto.GiveModeButtonDTO;
 import com.ngari.recipe.dto.GiveModeShowButtonDTO;
 import com.ngari.recipe.dto.OrganDTO;
 import com.ngari.recipe.entity.*;
+import ctd.util.JSONUtils;
 import eh.base.constant.CardTypeEnum;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -92,12 +93,15 @@ public class ButtonManager extends BaseManager {
      * @param organId 机构id
      * @return 药企信息
      */
-    public List<EnterpriseStock> enterpriseStockCheck(Integer organId, Integer recipeType, String decoctionId) {
+    public List<EnterpriseStock> enterpriseStockCheck(Integer organId, Integer recipeType, String decoctionId,List<Recipedetail> recipeDetails) {
         /**获取需要查询库存的药企对象 ，通过药企流转关系筛选*/
         List<DrugsEnterprise> enterprises = this.organAndEnterprise(organId, recipeType, decoctionId);
         if (CollectionUtils.isEmpty(enterprises)) {
             return new LinkedList<>();
         }
+        // 获取药品的剂型
+        List<Integer> drugIds = recipeDetails.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
+        List<DrugList> drugLists = drugListDAO.findByDrugIds(drugIds);
         //获取机构配置按钮
         List<GiveModeButtonDTO> giveModeButtonBeans = operationClient.getOrganGiveModeMap(organId);
         Map<String, String> configGiveModeMap = new HashMap<>();
@@ -121,6 +125,17 @@ public class ButtonManager extends BaseManager {
             enterpriseStock.setDeliveryCode(drugsEnterprise.getId().toString());
             enterpriseStock.setAppointEnterpriseType(AppointEnterpriseTypeEnum.ENTERPRISE_APPOINT.getType());
             List<GiveModeButtonDTO> giveModeButton = RecipeSupportGiveModeEnum.giveModeButtonList(drugsEnterprise, configGiveMode, configGiveModeMap, drugToHosByEnterprise, relationMap);
+            if (!checkSendGiveMode(organId, drugsEnterprise.getId(), drugLists)) {
+                Iterator<GiveModeButtonDTO> it = giveModeButton.iterator();
+                while (it.hasNext()) {
+                    GiveModeButtonDTO next = it.next();
+                    if (RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getText().equals(next.getShowButtonKey())
+                            || RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getText().equals(next.getShowButtonKey())) {
+                        it.remove();
+                    }
+                }
+                enterpriseStock.setSendFlag(false);
+            }
             enterpriseStock.setGiveModeButton(giveModeButton);
             list.add(enterpriseStock);
         }
@@ -267,6 +282,28 @@ public class ButtonManager extends BaseManager {
             }
         }
         return commonGiveModeService;
+    }
+
+
+    /**
+     * 药品剂型是否可以配送
+     * @param organId
+     * @param enterpriseId
+     * @param drugLists
+     * @return
+     */
+    private Boolean checkSendGiveMode(Integer organId, Integer enterpriseId, List<DrugList> drugLists) {
+        OrganAndDrugsepRelation relation = organAndDrugsepRelationDAO.getOrganAndDrugsepByOrganIdAndEntId(organId, enterpriseId);
+        if (StringUtils.isEmpty(relation.getEnterpriseDrugForm())) {
+            return true;
+        }
+        List<String> drugFrom = JSONUtils.parse((relation.getEnterpriseDrugForm()), List.class);
+        for (DrugList drugList : drugLists) {
+            if (drugFrom.contains(drugList.getDrugForm())) {
+                return false;
+            }
+        }
+        return true;
     }
 
 }

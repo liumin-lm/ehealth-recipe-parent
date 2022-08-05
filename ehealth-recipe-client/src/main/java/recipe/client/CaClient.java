@@ -2,6 +2,7 @@ package recipe.client;
 
 import ca.service.ICaRemoteService;
 import ca.service.ISignRecipeInfoService;
+import ca.vo.CaSignResultBean;
 import ca.vo.CaSignResultVo;
 import ca.vo.model.SignDoctorRecipeInfoDTO;
 import com.alibaba.fastjson.JSON;
@@ -11,9 +12,11 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.upload.service.IFileUploadService;
+import ctd.persistence.exception.DAOException;
 import eh.utils.params.ParamUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.constant.ErrorCode;
 import recipe.util.ByteUtils;
 import sun.misc.BASE64Decoder;
 
@@ -38,17 +41,21 @@ public class CaClient extends BaseClient {
     private IFileUploadService iFileUploadService;
 
     public void signRecipeInfoSave(Integer recipeId, boolean isDoctor, CaSignResultVo signResultVo, Integer organId) {
-        String thirdCASign = iConfigurationClient.getValueCatch(organId, "thirdCASign", "");
         try {
-            //上海儿童特殊处理
-            String value = ParamUtils.getParam("SH_CA_ORGANID_WHITE_LIST");
-            List<String> caList = Arrays.asList(value.split(ByteUtils.COMMA));
-            if (caList.contains(organId + "")) {
-                thirdCASign = "shanghaiCA";
-            }
+            String thirdCASign = getThirdCASign(organId);
             signRecipeInfoService.saveSignInfo(recipeId, isDoctor, ObjectCopyUtils.convert(signResultVo, ca.vo.CaSignResultVo.class), thirdCASign);
         } catch (Exception e) {
             logger.info("signRecipeInfoService error recipeId[{}] errorMsg[{}]", recipeId, e.getMessage(), e);
+        }
+    }
+
+    public void saveCaSignResult(CaSignResultBean caSignResult){
+        try {
+            String thirdCASign = getThirdCASign(caSignResult.getOrganId());
+            caSignResult.setCaType(thirdCASign);
+            signRecipeInfoService.saveCaSignResult(caSignResult);
+        } catch (Exception e) {
+            logger.info("saveCaSignResult error recipeId[{}] errorMsg[{}]", caSignResult.getBussId(), e.getMessage(), e);
         }
     }
 
@@ -76,10 +83,15 @@ public class CaClient extends BaseClient {
      * @param caPassword
      */
     public void oldCommonCASign(CaSealRequestTO requestSeal, Recipe recipe, String idNumber, String caPassword) {
-        //签名时的密码从redis中获取
-        ca.vo.model.RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, ca.vo.model.RecipeBean.class);
-        iCaRemoteService.commonCASignAndSealForRecipe(requestSeal, recipeBean, recipe.getClinicOrgan(), idNumber, caPassword);
-        logger.info("CaClient oldCommonCASign requestSeal=[{}]，recipeid={}", JSON.toJSONString(requestSeal), recipeBean.getRecipeId());
+        try {
+            //签名时的密码从redis中获取
+            ca.vo.model.RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, ca.vo.model.RecipeBean.class);
+            iCaRemoteService.commonCASignAndSealForRecipe(requestSeal, recipeBean, recipe.getClinicOrgan(), idNumber, caPassword);
+            logger.info("CaClient oldCommonCASign requestSeal=[{}]，recipeid={}", JSON.toJSONString(requestSeal), recipeBean.getRecipeId());
+        } catch (Exception e) {
+            logger.error("CaClient oldCommonCASign  error recipeid ={}", recipe.getRecipeId(), e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
     }
 
 
@@ -119,4 +131,14 @@ public class CaClient extends BaseClient {
         return fileId;
     }
 
+    public String getThirdCASign(Integer organId){
+        String thirdCASign = iConfigurationClient.getValueCatch(organId, "thirdCASign", "");
+        //上海儿童特殊处理
+        String value = ParamUtils.getParam("SH_CA_ORGANID_WHITE_LIST");
+        List<String> caList = Arrays.asList(value.split(ByteUtils.COMMA));
+        if (caList.contains(organId + "")) {
+            thirdCASign = "shanghaiCA";
+        }
+        return thirdCASign;
+    }
 }

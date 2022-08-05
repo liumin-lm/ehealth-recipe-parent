@@ -237,6 +237,9 @@ public class RecipeExtendBean implements Serializable {
     @ItemProperty(alias = "是否是自助机")
     private Boolean selfServiceMachineFlag;
 
+    @ItemProperty(alias = "电子票号")
+    private String einvoiceNumber;
+
     public String getTerminalId() {
         return terminalId;
     }
@@ -855,5 +858,13 @@ public class RecipeExtendBean implements Serializable {
 
     public void setRefundNodeStatus(Integer refundNodeStatus) {
         this.refundNodeStatus = refundNodeStatus;
+    }
+
+    public String getEinvoiceNumber() {
+        return einvoiceNumber;
+    }
+
+    public void setEinvoiceNumber(String einvoiceNumber) {
+        this.einvoiceNumber = einvoiceNumber;
     }
 }

@@ -1,5 +1,6 @@
 package recipe.manager;
 
+import ca.vo.CaSignResultBean;
 import ca.vo.CaSignResultVo;
 import com.alibaba.fastjson.JSON;
 import com.ngari.base.BaseAPI;
@@ -168,11 +169,30 @@ public class CaManager extends BaseManager {
                 recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
                 resultVo.setFileId(fileId);
             } catch (Exception e) {
-                logger.info("CaManager oldCaCallBack recipeId={}", recipe.getRecipeId(), e);
+                logger.error("CaManager oldCaCallBack error recipeId={}", recipe.getRecipeId(), e);
             }
         }
         caClient.signRecipeInfoSave(recipe.getRecipeId(), isDoctor, resultVo, recipe.getClinicOrgan());
         caClient.signUpdate(recipe, details);
+        logger.info("CaManager oldCaCallBack recipeId={}", recipe.getRecipeId());
+    }
+
+    /**
+     * 保存E签宝调用记录
+     * @param recipe 处方信息
+     * @param isDoctor true:医生 false药师
+     */
+    public void saveESignResult(Recipe recipe, boolean isDoctor){
+        try {
+            CaSignResultBean caSignResult=new CaSignResultBean();
+            caSignResult.setBussId(recipe.getRecipeId());
+            caSignResult.setBusstype(isDoctor ? 1:3); //1 处方 3药师
+            caSignResult.setDoctorId(isDoctor?recipe.getDoctor():recipe.getChecker());
+            caSignResult.setOrganId(recipe.getClinicOrgan());
+            caClient.saveCaSignResult(caSignResult);
+        } catch (Exception e) {
+            logger.info("saveESignResult error recipeId[{}] errorMsg[{}]", recipe.getRecipeId(), e.getMessage(), e);
+        }
     }
 
     /**

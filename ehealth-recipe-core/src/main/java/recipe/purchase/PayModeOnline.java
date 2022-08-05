@@ -118,7 +118,7 @@ public class PayModeOnline implements IPurchaseService {
         List<DrugsEnterprise> subDepList = new ArrayList<>(drugsEnterpriseList.size());
         for (DrugsEnterprise dep : drugsEnterpriseList) {
             EnterpriseStock enterpriseStock = stockBusinessService.enterpriseStockCheck(dbRecipe, detailList, dep.getId());
-            if (null != enterpriseStock && enterpriseStock.getStock()) {
+            if (null != enterpriseStock && enterpriseStock.getStock() && enterpriseStock.getSendFlag()) {
                 subDepList.add(dep);
             }
         }

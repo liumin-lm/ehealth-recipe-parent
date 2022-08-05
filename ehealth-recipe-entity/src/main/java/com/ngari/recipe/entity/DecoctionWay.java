@@ -58,6 +58,16 @@ public class DecoctionWay implements Serializable {
     )
     private Boolean generationisOfDecoction;
 
+    @ItemProperty(
+            alias = "用药途径"
+    )
+    private String drugUsePathway;
+
+    @ItemProperty(
+            alias = "用药频次"
+    )
+    private String drugUseRate;
+
     @Id
     @GeneratedValue(strategy = IDENTITY)
     public Integer getDecoctionId() {
@@ -123,5 +133,23 @@ public class DecoctionWay implements Serializable {
 
     public void setGenerationisOfDecoction(Boolean generationisOfDecoction) {
         this.generationisOfDecoction = generationisOfDecoction;
+    }
+
+    @Column(name = "drug_use_pathway")
+    public String getDrugUsePathway() {
+        return drugUsePathway;
+    }
+
+    public void setDrugUsePathway(String drugUsePathway) {
+        this.drugUsePathway = drugUsePathway;
+    }
+
+    @Column(name = "drug_use_rate")
+    public String getDrugUseRate() {
+        return drugUseRate;
+    }
+
+    public void setDrugUseRate(String drugUseRate) {
+        this.drugUseRate = drugUseRate;
     }
 }

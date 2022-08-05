@@ -46,6 +46,9 @@ public class OrganAndDrugsepRelation implements java.io.Serializable {
     @ItemProperty(alias = "优先级")
     private Integer priorityLevel;
 
+    @ItemProperty(alias = "药品剂型 药企配置后，对应处方单及药品属性，将不支持配送")
+    private String enterpriseDrugForm;
+
     @Id
     @GeneratedValue(strategy = IDENTITY)
     @Column(name = "id", unique = true, nullable = false)
@@ -109,5 +112,14 @@ public class OrganAndDrugsepRelation implements java.io.Serializable {
 
     public void setPriorityLevel(Integer priorityLevel) {
         this.priorityLevel = priorityLevel;
+    }
+
+    @Column(name = "enterprise_drug_form")
+    public String getEnterpriseDrugForm() {
+        return enterpriseDrugForm;
+    }
+
+    public void setEnterpriseDrugForm(String enterpriseDrugForm) {
+        this.enterpriseDrugForm = enterpriseDrugForm;
     }
 }

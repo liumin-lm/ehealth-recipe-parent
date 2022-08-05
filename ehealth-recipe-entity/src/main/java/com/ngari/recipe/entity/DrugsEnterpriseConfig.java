@@ -6,6 +6,7 @@ import ctd.schema.annotation.Schema;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.List;
 
 import static javax.persistence.GenerationType.IDENTITY;
 
@@ -36,11 +37,109 @@ public class DrugsEnterpriseConfig implements Serializable {
     @Dictionary(id = "eh.base.dictionary.SyncSaleDrugCodeType")
     private Integer syncSaleDrugCodeType;
 
-    @ItemProperty(alias = "同步数据范围  1配送药企  2 药品类型")
-    private Integer syncDataRange;
+    //作废
+//    @ItemProperty(alias = "同步数据范围  1配送药企  2 药品类型")
+//    private Integer syncDataRange;
+//
+//    //作废
+//    @ItemProperty(alias = "同步药品类型  字典key用 ，隔开  eh.base.dictionary.DrugType")
+//    private String syncDrugType;
 
-    @ItemProperty(alias = "同步药品类型  字典key用 ，隔开  eh.base.dictionary.DrugType")
-    private String syncDrugType;
+    @ItemProperty(alias = "药企药品同步关联机构")
+    private String organId;
+
+    @ItemProperty(alias = "新增 同步数据范围  1配送药企  2 药品类型")
+    private Integer addSyncDataRange;
+
+    @ItemProperty(alias = "修改 同步数据范围  1配送药企  2 药品类型")
+    private Integer updateSyncDataRange;
+
+    @ItemProperty(alias = "删除 同步数据范围  1配送药企  2 药品类型")
+    private Integer delSyncDataRange;
+
+    @ItemProperty(alias = "新增 同步药品类型  字典key用 ，隔开  eh.base.dictionary.DrugType")
+    private String addSyncDrugType;
+
+    @ItemProperty(alias = "修改 同步药品类型  字典key用 ，隔开  eh.base.dictionary.DrugType")
+    private String updateSyncDrugType;
+
+    @ItemProperty(alias = "删除 同步药品类型  字典key用 ，隔开  eh.base.dictionary.DrugType")
+    private String delSyncDrugType;
+
+    @ItemProperty(alias = "药企药品目录同步字段")
+    private List<SaleDrugListSyncField> saleDrugListSyncFieldList;
+
+    @Transient
+    public List<SaleDrugListSyncField> getSaleDrugListSyncFieldList() {
+        return saleDrugListSyncFieldList;
+    }
+
+    public void setSaleDrugListSyncFieldList(List<SaleDrugListSyncField> saleDrugListSyncFieldList) {
+        this.saleDrugListSyncFieldList = saleDrugListSyncFieldList;
+    }
+
+    @Column(name = "add_sync_drug_type")
+    public String getAddSyncDrugType() {
+        return addSyncDrugType;
+    }
+
+    public void setAddSyncDrugType(String addSyncDrugType) {
+        this.addSyncDrugType = addSyncDrugType;
+    }
+
+    @Column(name = "update_sync_drug_type")
+    public String getUpdateSyncDrugType() {
+        return updateSyncDrugType;
+    }
+
+    public void setUpdateSyncDrugType(String updateSyncDrugType) {
+        this.updateSyncDrugType = updateSyncDrugType;
+    }
+
+    @Column(name = "del_sync_drug_type")
+    public String getDelSyncDrugType() {
+        return delSyncDrugType;
+    }
+
+    public void setDelSyncDrugType(String delSyncDrugType) {
+        this.delSyncDrugType = delSyncDrugType;
+    }
+
+    @Column(name = "add_sync_data_range")
+    public Integer getAddSyncDataRange() {
+        return addSyncDataRange;
+    }
+
+    public void setAddSyncDataRange(Integer addSyncDataRange) {
+        this.addSyncDataRange = addSyncDataRange;
+    }
+
+    @Column(name = "update_sync_data_range")
+    public Integer getUpdateSyncDataRange() {
+        return updateSyncDataRange;
+    }
+
+    public void setUpdateSyncDataRange(Integer updateSyncDataRange) {
+        this.updateSyncDataRange = updateSyncDataRange;
+    }
+
+    @Column(name = "del_sync_data_range")
+    public Integer getDelSyncDataRange() {
+        return delSyncDataRange;
+    }
+
+    public void setDelSyncDataRange(Integer delSyncDataRange) {
+        this.delSyncDataRange = delSyncDataRange;
+    }
+
+    public void setOrganId(String organId) {
+        this.organId = organId;
+    }
+
+    @Column(name = "organ_id")
+    public String getOrganId() {
+        return organId;
+    }
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
@@ -98,21 +197,21 @@ public class DrugsEnterpriseConfig implements Serializable {
         this.syncSaleDrugCodeType = syncSaleDrugCodeType;
     }
 
-    @Column(name = "syncDataRange")
-    public Integer getSyncDataRange() {
-        return syncDataRange;
-    }
-
-    public void setSyncDataRange(Integer syncDataRange) {
-        this.syncDataRange = syncDataRange;
-    }
-
-    @Column(name = "syncDrugType")
-    public String getSyncDrugType() {
-        return syncDrugType;
-    }
-
-    public void setSyncDrugType(String syncDrugType) {
-        this.syncDrugType = syncDrugType;
-    }
+//    @Column(name = "syncDataRange")
+//    public Integer getSyncDataRange() {
+//        return syncDataRange;
+//    }
+//
+//    public void setSyncDataRange(Integer syncDataRange) {
+//        this.syncDataRange = syncDataRange;
+//    }
+//
+//    @Column(name = "syncDrugType")
+//    public String getSyncDrugType() {
+//        return syncDrugType;
+//    }
+//
+//    public void setSyncDrugType(String syncDrugType) {
+//        this.syncDrugType = syncDrugType;
+//    }
 }

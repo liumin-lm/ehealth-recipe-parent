@@ -6,9 +6,11 @@ import com.ngari.follow.utils.ObjectCopyUtil;
 import com.ngari.his.recipe.mode.OutPatientRecipeReq;
 import com.ngari.his.recipe.mode.OutRecipeDetailReq;
 import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
-import com.ngari.patient.dto.HealthCardDTO;
+import com.ngari.patient.dto.*;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.service.IUsePathwaysService;
+import com.ngari.patient.service.IUsingRateService;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
@@ -117,6 +119,10 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     private CreatePdfFactory createPdfFactory;
     @Autowired
     private OrganClient organClient;
+    @Autowired
+    private IUsingRateService usingRateService;
+    @Autowired
+    private IUsePathwaysService usePathwaysService;
 
 
     /**
@@ -782,6 +788,28 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     @Override
     public List<Recipe> findRecipeByMpiidAndrecipeStatus(String mpiid, List<Integer> recipeStatus, Integer terminalType, Integer organId) {
         return recipeDAO.findRecipeByMpiidAndrecipeStatus(mpiid,recipeStatus,terminalType,organId);
+    }
+
+    @Override
+    public RateAndPathwaysVO queryRateAndPathwaysByDecoctionId(Integer organId, Integer decoctionId) {
+        RateAndPathwaysVO rateAndPathwaysVO = new RateAndPathwaysVO();
+        if (Integer.valueOf("1").equals(organId)) {
+            List<UsingRateDTO> usingRates = usingRateService.findAllusingRateByOrganId(organId);
+            if (usingRates.size() > 5) {
+                usingRates = usingRates.subList(0, 5);
+            }
+
+            List<UsePathwaysDTO> usePathways = usePathwaysService.findAllUsePathwaysByOrganId(organId);
+            if (usePathways.size() > 5) {
+                usePathways = usePathways.subList(0, 5);
+            }
+            rateAndPathwaysVO.setUsePathway(usePathways);
+            rateAndPathwaysVO.setUsingRate(usingRates);
+            return rateAndPathwaysVO;
+        } else {
+            return rateAndPathwaysVO;
+        }
+
     }
 }
 

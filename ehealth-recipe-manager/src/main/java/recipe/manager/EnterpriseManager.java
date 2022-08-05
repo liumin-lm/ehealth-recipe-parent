@@ -4,7 +4,9 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.ngari.base.organ.model.OrganBean;
+import com.ngari.base.push.service.ISmsPushService;
 import com.ngari.his.recipe.mode.TakeMedicineByToHos;
 import com.ngari.infra.logistics.mode.WriteBackLogisticsOrderDto;
 import com.ngari.infra.logistics.service.ILogisticsOrderService;
@@ -25,6 +27,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.aop.LogRecord;
 import recipe.client.*;
 import recipe.constant.DrugEnterpriseConstant;
 import recipe.dao.*;
@@ -93,6 +96,8 @@ public class EnterpriseManager extends BaseManager {
     private RecipeDAO recipeDAO;
     @Autowired
     private PatientClient patientClient;
+    @Autowired
+    private SmsClient smsClient;
 
     /**
      * 获取是否医院结算的药企
@@ -651,6 +656,66 @@ public class EnterpriseManager extends BaseManager {
         } catch (Exception e) {
             logger.error("sendLogisticsInfoToBase error ", e);
         }
+    }
+
+    /**
+     * 推送发药通知短信
+     * @param drugsEnterprise
+     * @return
+     */
+    @LogRecord
+    public void pushEnterpriseSendDrugPhone(Recipe recipe, DrugsEnterprise drugsEnterprise){
+        if (null == drugsEnterprise) {
+            return;
+        }
+        OrganDrugsSaleConfig organDrugsSaleConfig = organDrugsSaleConfigDAO.getOrganDrugsSaleConfig(drugsEnterprise.getId());
+        List<String> mobilePhoneList = new ArrayList<>(5);
+        if (null != organDrugsSaleConfig && StringUtils.isNotEmpty(organDrugsSaleConfig.getSendDrugNotifyPhone())) {
+            mobilePhoneList = Arrays.asList(organDrugsSaleConfig.getSendDrugNotifyPhone().split(","));
+        }
+        if (EnterpriseCreateTypeEnum.MY_SELF.getType().equals(drugsEnterprise.getCreateType())) {
+            List<Pharmacy> list = pharmacyDAO.findByDepId(drugsEnterprise.getId());
+            String mobile = list.get(0).getPharmacyPhone();
+            mobilePhoneList.add(mobile);
+        } else {
+            mobilePhoneList.add(drugsEnterprise.getEnterprisePhone());
+        }
+        logger.info("pushEnterpriseSendDrugPhone mobilePhoneList:{}", JSON.toJSONString(mobilePhoneList));
+        if (CollectionUtils.isNotEmpty(mobilePhoneList)) {
+            mobilePhoneList.forEach(mobile ->{
+                if (StringUtils.isNotEmpty(mobile)) {
+                    Map<String, Object> smsMap = Maps.newHashMap();
+                    smsMap.put("mobile", mobile);
+                    smsClient.pushSmsInfo(recipe, "RecipeOrderCreate", smsMap);
+                }
+            });
+        }
+    }
+
+    /**
+     * 退费推送管理员手机号
+     * @param recipe
+     * @param drugsEnterprise
+     */
+    public void pushEnterpriseRefundPhone(Recipe recipe, DrugsEnterprise drugsEnterprise){
+        if (null == drugsEnterprise) {
+            return;
+        }
+        OrganDrugsSaleConfig organDrugsSaleConfig = organDrugsSaleConfigDAO.getOrganDrugsSaleConfig(drugsEnterprise.getId());
+        if (null == organDrugsSaleConfig) {
+            return;
+        }
+        if (StringUtils.isEmpty(organDrugsSaleConfig.getRefundNotifyPhone())) {
+            return;
+        }
+        List<String> mobilePhoneList = Arrays.asList(organDrugsSaleConfig.getSendDrugNotifyPhone().split(","));
+        mobilePhoneList.forEach(mobile ->{
+            if (StringUtils.isNotEmpty(mobile)) {
+                Map<String, Object> smsMap = Maps.newHashMap();
+                smsMap.put("mobile", mobile);
+                smsClient.pushSmsInfo(recipe, "RecipeRefundCheckNotify", smsMap);
+            }
+        });
     }
 
     /**

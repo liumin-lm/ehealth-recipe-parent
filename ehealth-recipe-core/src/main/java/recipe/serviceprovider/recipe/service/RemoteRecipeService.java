@@ -15,6 +15,7 @@ import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
 import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.base.patient.service.IHealthCardService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
+import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.bus.hosrelation.model.HosrelationBean;
 import com.ngari.bus.hosrelation.service.IHosrelationService;
 import com.ngari.common.dto.DepartChargeReportResult;
@@ -62,6 +63,7 @@ import com.ngari.recipe.recipereportform.model.*;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.RevisitBean;
 import com.ngari.revisit.common.model.RevisitExDTO;
+import com.ngari.revisit.common.service.IRevisitExService;
 import com.ngari.revisit.process.service.IRecipeOnLineRevisitService;
 import ctd.account.Client;
 import ctd.account.UserRoleToken;
@@ -109,6 +111,8 @@ import recipe.enumerate.status.*;
 import recipe.enumerate.type.BussSourceTypeEnum;
 import recipe.enumerate.type.PayFlagEnum;
 import recipe.enumerate.type.RecipeRefundConfigEnum;
+import recipe.hisservice.HisMqRequestInit;
+import recipe.hisservice.RecipeToHisMqService;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.manager.*;
 import recipe.medicationguide.service.WinningMedicationGuideService;
@@ -121,6 +125,7 @@ import recipe.thread.RecipeSendFailRunnable;
 import recipe.thread.RecipeSendSuccessRunnable;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
+import recipe.vo.second.CabinetVO;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -2173,7 +2178,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         }
 
         // 上海胸科 调用到这里 首先判断当前ca是否是有结束结果的
-        if (-1 == resultVo.getResultCode()) {
+        if (Integer.valueOf(-1).equals(resultVo.getResultCode())) {
             LOGGER.info("当期处方{}医生ca签名异步调用接口返回：未触发处方业务结果", recipeId);
             return;
         }
@@ -2823,6 +2828,17 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
     @Override
     public void sendRecipeTagToPatientWithOfflineRecipe(String mpiId, Integer organId, String recipeCode, String cardId, Integer consultId, Integer doctorId) {
+        if (null == doctorId) {
+            IRevisitExService revisitExService = RevisitAPI.getService(IRevisitExService.class);
+            RevisitExDTO consultExDTO = revisitExService.getByConsultId(consultId);
+            LOGGER.info("RemoteRecipeService sendRecipeTagToPatientWithOfflineRecipe consultExDTO={}", JSON.toJSONString(consultExDTO));
+            if (StringUtils.isNotEmpty(consultExDTO.getRegisterNo())) {
+                List<Recipe> recipeList = recipeDAO.findByRecipeCodeAndRegisterIdAndOrganId(consultExDTO.getRegisterNo(), organId);
+                if (CollectionUtils.isNotEmpty(recipeList)) {
+                    doctorId = recipeList.get(0).getDoctor();
+                }
+            }
+        }
         RecipeServiceSub.sendRecipeTagToPatientWithOfflineRecipe(mpiId, organId, recipeCode, cardId, consultId, doctorId);
     }
 
@@ -3072,5 +3088,97 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         return recipeCount;
     }
 
+    /**
+     * 存储药柜拿出通知
+     *
+     * @param cabinetVO
+     * @return
+     */
+    @Override
+    public void takeOutCabinetNotice(CabinetVO cabinetVO) {
+        LOGGER.info("takeOutCabinetNotice req:{}.",JSONUtils.toString(cabinetVO));
+        Integer organId = cabinetVO.getOrganId();
+        String recipeCode = cabinetVO.getRecipeCode();
+        String role = cabinetVO.getRole();
 
+        if(organId==null || StringUtils.isEmpty(recipeCode) || StringUtils.isEmpty(role)){
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "入参错误");
+        }
+
+        Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(cabinetVO.getRecipeCode(),cabinetVO.getOrganId());
+        if (null == recipe || StringUtils.isEmpty(recipe.getOrderCode())) {
+            throw new DAOException(609,"当前处方单未找到");
+        }
+
+        //存储药柜取药码+取药地址重置成空
+        Map<String, String> changeAttr= Maps.newHashMap();
+        changeAttr.put("medicineCode","");
+        changeAttr.put("medicineAddress","");
+        recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(),changeAttr);
+
+        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "药品从药柜取出，取药角色："+role);
+
+        //管理员拿出
+        if("admin".equals(role)){
+            takeOutCabinetNoticeByAdmin(recipe,cabinetVO);
+        }else {
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+            if (null == recipeExtend ) {
+                throw new DAOException(609,"当前处方单未找到");
+            }
+
+            RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+            if (null == recipeOrder ) {
+                throw new DAOException(609,"当前处方单未支付");
+            }
+
+            //处方状态：到院取药+待取药+未申请退费
+            Boolean effectiveFlag=recipe.getGiveMode()==2 && recipeOrder.getStatus()==2 && recipeExtend.getRefundNodeStatus()==null;
+
+            //患者拿出,处方有效的情况下，更新状态
+            if(effectiveFlag){
+                takeOutCabinetNoticeByPatient(recipe);
+            }
+
+        }
+
+
+    }
+
+    /**
+     * 到院取药-管理员取出药品通知
+     * @param recipe
+     */
+    public void takeOutCabinetNoticeByAdmin(Recipe recipe,CabinetVO cabinetVO) {
+
+        SmsInfoBean smsInfoBean=new SmsInfoBean();
+        smsInfoBean.setBusType("recipeTakeOutByAdmin");
+        smsInfoBean.setSmsType("recipeTakeOutByAdmin");
+        smsInfoBean.setBusId(recipe.getRecipeId());
+        smsInfoBean.setOrganId(recipe.getClinicOrgan());
+        smsInfoBean.setExtendValue(JSONUtils.toString(cabinetVO));
+        smsClient.pushMsgData2OnsExtendValue(smsInfoBean);
+
+    }
+
+    /**
+     * 患者取出，推送消息
+     * @param recipe
+     */
+    public void takeOutCabinetNoticeByPatient(Recipe recipe) {
+
+        //完成处方
+        HisCallBackService.finishRecipesFromHis(Arrays.asList(recipe.getRecipeCode()), recipe.getClinicOrgan());
+
+        //通知his状态更新
+        if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
+            //平台模式
+            RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
+            hisService.recipeStatusUpdateWithOrganId(recipe.getRecipeId(), null, null);
+        }else {
+            //互联网模式
+            RecipeToHisMqService hisMqService = ApplicationUtils.getRecipeService(RecipeToHisMqService.class);
+            hisMqService.recipeStatusToHis(HisMqRequestInit.initRecipeStatusToHisReq(recipe, HisBussConstant.TOHIS_RECIPE_STATUS_FINISH));
+        }
+    }
 }

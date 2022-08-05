@@ -139,7 +139,7 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
     /**
      * 获取指定的药品数据
      *
-     * @param organId
+     * @param organId 注意这里是药企ID
      * @param drugIds
      * @return
      */

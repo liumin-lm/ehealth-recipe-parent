@@ -170,4 +170,14 @@ public class RecipeOrderOpenAtop extends BaseAtop implements IRecipeOrderAtopSer
 
         return recipeOrderService.validateCabinetRecipeStatus(cabinetVO);
     }
+
+    @Override
+    public void putInCabinetNotice(CabinetVO cabinetVO) {
+        validateAtop(cabinetVO);
+
+        recipeOrderService.putInCabinetNotice(cabinetVO);
+    }
+
+
+
 }

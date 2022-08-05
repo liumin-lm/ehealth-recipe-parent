@@ -63,6 +63,8 @@ public class BaseManager {
     protected OfflineRecipeClient offlineRecipeClient;
     @Autowired
     DrugDecoctionWayDao drugDecoctionWayDao;
+    @Autowired
+    protected DrugListDAO drugListDAO;
 
     /**
      * 获取处方相关信息
@@ -105,7 +107,7 @@ public class BaseManager {
     /**
      * 保存处方操作记录
      */
-    protected void saveRecipeLog(Integer recipeId, RecipeStatusEnum beforeStatus, RecipeStatusEnum afterStatus, String memo) {
+    public void saveRecipeLog(Integer recipeId, RecipeStatusEnum beforeStatus, RecipeStatusEnum afterStatus, String memo) {
         if (ValidateUtil.integerIsEmpty(recipeId)) {
             return;
         }

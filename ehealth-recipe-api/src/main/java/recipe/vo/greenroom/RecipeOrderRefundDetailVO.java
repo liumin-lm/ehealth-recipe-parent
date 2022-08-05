@@ -27,4 +27,7 @@ public class RecipeOrderRefundDetailVO implements Serializable {
 
     private InvoiceRecordVO invoiceRecordVO;
 
+    //发票号
+    private String billNumber;
+
 }

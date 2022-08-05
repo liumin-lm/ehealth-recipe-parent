@@ -1739,10 +1739,16 @@ public class RecipeOrderService extends RecipeBaseService {
                     OrganService organService = BasicAPI.getService(OrganService.class);
                     OrganDTO organDTO = organService.getByOrganId(recipe.getClinicOrgan());
                     //取处方详情中的药品的取药窗口信息
-                    // 更改为从处方扩展表中获取取药窗口信息
-                    if (!Objects.isNull(recipeExtend) && StringUtils.isNotEmpty(recipeExtend.getPharmNo())) {
-                        prb.setGetDrugWindow(organDTO.getName() + recipeExtend.getPharmNo() + "取药窗口");
+                    //优先取药柜地址
+                    if(StringUtils.isNotEmpty(recipeExtend.getMedicineAddress())){
+                        prb.setGetDrugWindow(organDTO.getName()+recipeExtend.getMedicineAddress());
+                    }else{
+                        // 更改为从处方扩展表中获取取药窗口信息
+                        if (!Objects.isNull(recipeExtend) && StringUtils.isNotEmpty(recipeExtend.getPharmNo())) {
+                            prb.setGetDrugWindow(organDTO.getName() + recipeExtend.getPharmNo() + "取药窗口");
+                        }
                     }
+
                     //获取煎法
                     if (new Integer(3).equals(recipe.getRecipeType()) && decoctionFlag) {
                         decoctionId = recipeExtend.getDecoctionId();

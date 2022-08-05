@@ -83,7 +83,7 @@ public abstract class DrugDecoctionWayDao extends HibernateSupportDelegateDAO<De
                     countQuery.setParameter("decoctionText", "%" + decoctionText + "%");
                 }
                 Long total = (Long) countQuery.uniqueResult();
-                setResult(new QueryResult<DecoctionWayBean>(total, query.getFirstResult(), query.getMaxResults(), lists));
+                setResult(new QueryResult<>(total, query.getFirstResult(), query.getMaxResults(), lists));
             }
         };
         HibernateSessionTemplate.instance().execute(action);
@@ -94,4 +94,6 @@ public abstract class DrugDecoctionWayDao extends HibernateSupportDelegateDAO<De
     @DAOMethod(sql = "select count(*) from DecoctionWay where organId=:organId")
     public abstract Long getCountOfOrgan(@DAOParam("organId") Integer organId);
 
+    @DAOMethod(sql = "from DecoctionWay where organId =:organId and decoctionId =:decoctId")
+    public abstract DecoctionWayBean findUsingRateByOrganIdAndDecoctId(Integer organId, Integer decoctId);
 }

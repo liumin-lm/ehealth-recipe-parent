@@ -167,7 +167,6 @@ public class DrugExtService implements IDrugExtService {
     @Override
     public QueryResult<DecoctionWayBean> findDecoctionWayByOrganIdAndName(Integer organId, String decoctionText, Integer start, Integer limit) {
         QueryResult<DecoctionWayBean> decoctionWayBean = drugDecoctionWayDao.findDecoctionWayByOrganIdAndName(organId, decoctionText, start, limit);
-
         return decoctionWayBean;
     }
 
@@ -254,5 +253,9 @@ public class DrugExtService implements IDrugExtService {
         if (type == 7)
             total = drugEntrustDAO.getCountOfOrgan(organId).intValue();
         return total;
+    }
+
+    public DecoctionWayBean findUsingRateByOrganIdAndDecoctId(Integer organId,Integer decoctId){
+        return drugDecoctionWayDao.findUsingRateByOrganIdAndDecoctId(organId,decoctId);
     }
 }

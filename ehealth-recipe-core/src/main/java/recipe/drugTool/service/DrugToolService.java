@@ -23,6 +23,7 @@ import com.ngari.patient.dto.UsingRateDTO;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.RecipeAPI;
+import com.ngari.recipe.drug.model.DecoctionWayBean;
 import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.drug.model.ProvinceDrugListBean;
 import com.ngari.recipe.drug.service.IOrganDrugListService;
@@ -30,6 +31,7 @@ import com.ngari.recipe.drug.service.ISaleDrugListService;
 import com.ngari.recipe.drugTool.service.IDrugToolService;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.UpdateMatchStatusFormBean;
+import com.ngari.recipe.recipe.model.RateAndPathwaysVO;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.dictionary.DictionaryItem;
@@ -56,6 +58,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import org.apache.http.util.TextUtils;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -73,6 +76,7 @@ import recipe.constant.DrugMatchConstant;
 import recipe.constant.ErrorCode;
 import recipe.constant.RecipeSystemConstant;
 import recipe.dao.*;
+import recipe.service.DrugExtService;
 import recipe.service.DrugsEnterpriseConfigService;
 import recipe.service.OrganDrugListService;
 import recipe.thread.RecipeBusiThreadPool;
@@ -155,6 +159,9 @@ public class DrugToolService implements IDrugToolService {
 
     @Autowired
     private DrugsEnterpriseDAO drugsEnterpriseDAO;
+
+    @Autowired
+    private DrugExtService drugExtService;
 
 
     private LoadingCache<String, List<DrugList>> drugListCache = CacheBuilder.newBuilder().expireAfterWrite(10, TimeUnit.MINUTES).build(new CacheLoader<String, List<DrugList>>() {
@@ -653,7 +660,7 @@ public class DrugToolService implements IDrugToolService {
                         if ((new Integer(3).equals(drug.getDrugType()))) {
                             DrugEntrust byOrganIdAndDrugEntrustName = drugEntrustDAO.getByOrganIdAndDrugEntrustName(organId, getStrFromCell(row.getCell(27)));
                             if (byOrganIdAndDrugEntrustName != null) {
-                                drug.setDrugEntrust(byOrganIdAndDrugEntrustName.getDrugEntrustName().toString());
+                                drug.setDrugEntrust(byOrganIdAndDrugEntrustName.getDrugEntrustName());
                             } else {
                                 errMsg.append("中药药品字典未找到该嘱托").append(";");
                             }
@@ -2000,10 +2007,7 @@ public class DrugToolService implements IDrugToolService {
         String addrArea = checkOrganAddrArea(organId);
         Long provinceDrugNum = provinceDrugListDAO.getCountByProvinceIdAndStatus(addrArea, 1);
         //更新药品状态成匹配中
-        if (0L < provinceDrugNum) {
-            return true;
-        }
-        return false;
+        return 0L < provinceDrugNum;
     }
 
     /**
@@ -2658,10 +2662,7 @@ public class DrugToolService implements IDrugToolService {
      */
     @RpcService
     public Boolean judgeShowProvinceCode(Integer organId) {
-        if (checkOrganRegulation(organId) && isHaveReulationId(organId)) {
-            return true;
-        }
-        return false;
+        return checkOrganRegulation(organId) && isHaveReulationId(organId);
     }
 
     /**
@@ -2685,17 +2686,17 @@ public class DrugToolService implements IDrugToolService {
      */
     @RpcService
     @LogRecord
-    public Map<String, Object> findDrugUsageCountForDoctor(Integer organId, Integer doctorId) {
+    public RateAndPathwaysVO findDrugUsageCountForDoctor(Integer organId, Integer doctorId) {
         if (null == organId || null == doctorId) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "机构id医生id不能为空");
         }
-        Map<String, Object> result = Maps.newHashMap();
+        RateAndPathwaysVO result = new RateAndPathwaysVO();
         com.ngari.patient.service.IUsingRateService usingRateService = AppDomainContext.getBean("basic.usingRateService", IUsingRateService.class);
         com.ngari.patient.service.IUsePathwaysService usePathwaysService = AppDomainContext.getBean("basic.usePathwaysService", IUsePathwaysService.class);
         List<UsingRateDTO> usingRates = usingRateService.findAllusingRateByOrganId(organId);
         List<UsePathwaysDTO> usePathways = usePathwaysService.findAllUsePathwaysByOrganId(organId);
-        result.put("usingRate", usingRates);
-        result.put("usePathway", usePathways);
+        result.setUsingRate(usingRates);
+        result.setUsePathway(usePathways);
 
         // 处理医生使用次数排序逻辑
         handleRateAndPathwayUsage(organId, doctorId, result, usingRates, usePathways);
@@ -2713,11 +2714,11 @@ public class DrugToolService implements IDrugToolService {
      */
     @RpcService
     @LogRecord
-    public Map<String, Object> findDrugUsageCountForDoctorNew(Integer organId, Integer doctorId, Integer recipeType) {
+    public RateAndPathwaysVO findDrugUsageCountForDoctorNew(Integer organId, Integer doctorId, Integer recipeType) {
         if (null == organId || null == doctorId) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "机构id医生id不能为空");
         }
-        Map<String, Object> result = Maps.newHashMap();
+        RateAndPathwaysVO result = new RateAndPathwaysVO();
         com.ngari.patient.service.IUsingRateService usingRateService = AppDomainContext.getBean("basic.usingRateService", IUsingRateService.class);
         com.ngari.patient.service.IUsePathwaysService usePathwaysService = AppDomainContext.getBean("basic.usePathwaysService", IUsePathwaysService.class);
         List<UsingRateDTO> usingRates = usingRateService.findAllusingRateByOrganId(organId);
@@ -2728,10 +2729,56 @@ public class DrugToolService implements IDrugToolService {
             usingRates = usingRates.stream().filter(u -> u.getCategory() != null && u.getCategory().contains(recipeType.toString())).collect(Collectors.toList());
             usePathways = usePathways.stream().filter(u -> u.getCategory() != null && u.getCategory().contains(recipeType.toString())).collect(Collectors.toList());
         }
-        result.put("usingRate", usingRates);
-        result.put("usePathway", usePathways);
+        result.setUsingRate(usingRates);
+        result.setUsePathway(usePathways);
         // 处理医生使用次数排序逻辑
         handleRateAndPathwayUsage(organId, doctorId, result, usingRates, usePathways);
+        LOGGER.info("findDrugUsageCountForDoctor res:{}", JSONUtils.toString(result));
+        return result;
+    }
+
+    @RpcService
+    @LogRecord
+    public RateAndPathwaysVO findDrugUsageCountForApp(Integer organId, Integer doctorId, Integer recipeType,Integer decoctId) {
+        if (null == organId || null == doctorId) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "机构id医生id不能为空");
+        }
+        RateAndPathwaysVO result = new RateAndPathwaysVO();
+        DecoctionWayBean decoctionWayBean = drugExtService.findUsingRateByOrganIdAndDecoctId(organId,decoctId);
+        //用药频率
+        String usingRateStr=decoctionWayBean.getDrugUseRate();
+        List<UsingRateDTO> usingRateDTOList=new ArrayList<>();
+        if(!TextUtils.isEmpty(usingRateStr)){
+            String[] usingRateArray=usingRateStr.split(",");
+            for(int i=0;i<usingRateArray.length;i++){
+                String singleUsingRateId=usingRateArray[i];
+                IUsingRateService usingRateService=AppContextHolder.getBean("basic.usingRateService",IUsingRateService.class);
+                UsingRateDTO usingRateDTO=usingRateService.getById(Integer.parseInt(singleUsingRateId));
+                usingRateDTOList.add(usingRateDTO);
+            }
+        }
+        //用药途径
+        String usePathwayStr=decoctionWayBean.getDrugUsePathway();
+        List<UsePathwaysDTO> usePathwayDTOList=new ArrayList<>();
+        if(!TextUtils.isEmpty(usePathwayStr)){
+            String[] usePathwayArray=usePathwayStr.split(",");
+            for(int i=0;i<usePathwayArray.length;i++){
+                String singleUsePathwayId=usePathwayArray[i];
+                IUsePathwaysService usePathwaysService=AppContextHolder.getBean("basic.usePathwaysService",IUsePathwaysService.class);
+                UsePathwaysDTO usePathwaysDTO=usePathwaysService.getById(Integer.parseInt(singleUsePathwayId));
+                usePathwayDTOList.add(usePathwaysDTO);
+            }
+        }
+        LOGGER.info("findDrugUsageCountForDoctor all usingRates:{}", JSONUtils.toString(usingRateDTOList));
+        LOGGER.info("findDrugUsageCountForDoctor all usePathways:{}", JSONUtils.toString(usePathwayDTOList));
+        if (recipeType != null) {
+            usingRateDTOList = usingRateDTOList.stream().filter(u -> u.getCategory() != null && u.getCategory().contains(recipeType.toString())).collect(Collectors.toList());
+            usePathwayDTOList = usePathwayDTOList.stream().filter(u -> u.getCategory() != null && u.getCategory().contains(recipeType.toString())).collect(Collectors.toList());
+        }
+        result.setUsingRate(usingRateDTOList);
+        result.setUsePathway(usePathwayDTOList);
+        // 处理医生使用次数排序逻辑
+        handleRateAndPathwayUsage(organId, doctorId, result, usingRateDTOList, usePathwayDTOList);
         LOGGER.info("findDrugUsageCountForDoctor res:{}", JSONUtils.toString(result));
         return result;
     }
@@ -2863,7 +2910,8 @@ public class DrugToolService implements IDrugToolService {
      * @param usingRates
      * @param usePathways
      */
-    private void handleRateAndPathwayUsage(Integer organId, Integer doctorId, Map<String, Object> result, List<UsingRateDTO> usingRates, List<UsePathwaysDTO> usePathways) {
+    private void handleRateAndPathwayUsage(Integer organId, Integer doctorId, RateAndPathwaysVO result,
+                                           List<UsingRateDTO> usingRates, List<UsePathwaysDTO> usePathways) {
         DoctorDrugUsageCountDAO usageCountDAO = DAOFactory.getDAO(DoctorDrugUsageCountDAO.class);
         // 用药频次使用记录
         List<DoctorDrugUsageCount> rateCounts = usageCountDAO.findByUsageTypeForDoctor(organId, doctorId, RecipeSystemConstant.USAGE_TYPE_RATE);
@@ -2880,7 +2928,7 @@ public class DrugToolService implements IDrugToolService {
 
             usingRates.removeAll(rateUseCount);
             rateUseCount.addAll(usingRates);
-            result.put("usingRate", rateUseCount);
+            result.setUsingRate(rateUseCount);
         }
         // 用药途径使用记录
         List<DoctorDrugUsageCount> pathwayCounts = usageCountDAO.findByUsageTypeForDoctor(organId, doctorId, RecipeSystemConstant.USAGE_TYPE_PATHWAY);
@@ -2896,19 +2944,15 @@ public class DrugToolService implements IDrugToolService {
             }
             usePathways.removeAll(pathwayUseCount);
             pathwayUseCount.addAll(usePathways);
-            result.put("usePathway", pathwayUseCount);
+            result.setUsePathway(pathwayUseCount);
         }
     }
 
-    @RpcService
+    @Override
     public Boolean judgePlatformDrugDelete(int drugId) {
         Long organNum = RecipeAPI.getService(IOrganDrugListService.class).getCountByDrugId(drugId);
         Long saleNum = RecipeAPI.getService(ISaleDrugListService.class).getCountByDrugId(drugId);
-        if (organNum > 0 || saleNum > 0) {
-            return true;
-        } else {
-            return false;
-        }
+        return organNum > 0 || saleNum > 0;
     }
 
     /**
@@ -2974,6 +3018,7 @@ public class DrugToolService implements IDrugToolService {
     /**
      * 同步自健药企药品
      *
+     * 机构自动同步到药企
      * @param detail
      */
     public void organDrugSync(OrganDrugList detail) {
@@ -2984,46 +3029,48 @@ public class DrugToolService implements IDrugToolService {
             for (DrugsEnterprise drugsEnterpris : drugsEnterprises) {
                 DrugsEnterpriseConfig config = bean.getConfigByDrugsenterpriseId(drugsEnterpris.getId());
                 try {
-                    if (config.getEnable_drug_sync() == 1) {
-                        if (config.getSyncDataRange() == 1) {
-                            //同步数据范围 配送药企
-                            if (!ObjectUtils.isEmpty(detail.getDrugsEnterpriseIds())) {
-                                String[] split = detail.getDrugsEnterpriseIds().split(",");
-                                List<String> userIdList = new ArrayList<String>(Arrays.asList(split));
-                                if (userIdList.indexOf(drugsEnterpris.getId().toString()) != -1) {
-                                    Map<String, Integer> stringIntegerMap = saleDrugToolService.syncOrganDrugDataToSaleDrugList(detail, config, drugsEnterpris.getId());
-                                }
-                            }
-                        } else if (config.getSyncDataRange() == 2) {
-                            //同步数据范围 药品类型
-                            if (ObjectUtils.isEmpty(config.getSyncDrugType())) {
-                                throw new DAOException(DAOException.VALUE_NEEDED, "未找到该药企[同步药品类型]配置数据!");
-                            }
-                            if (ObjectUtils.isEmpty(config.getSyncDrugType())) {
-                                throw new DAOException(DAOException.VALUE_NEEDED, "未找到该药企[数据同步类型]配置数据!");
-                            }
-                            String[] strings1 = config.getSyncDrugType().split(",");
-                            List<String> syncDrugTypeList = new ArrayList<String>(Arrays.asList(strings1));
-                            //西药
-                            if (syncDrugTypeList.indexOf("1") != -1) {
-                                if (drugListDAO.get(detail.getDrugId()).getDrugType() == 1) {
-                                    Map<String, Integer> stringIntegerMap = saleDrugToolService.syncOrganDrugDataToSaleDrugList(detail, config, drugsEnterpris.getId());
-                                }
-                            }
-                            //中成药
-                            if (syncDrugTypeList.indexOf("2") != -1) {
-                                if (drugListDAO.get(detail.getDrugId()).getDrugType() == 2) {
-                                    Map<String, Integer> stringIntegerMap = saleDrugToolService.syncOrganDrugDataToSaleDrugList(detail, config, drugsEnterpris.getId());
-                                }
-                            }
-                            //中药
-                            if (syncDrugTypeList.indexOf("3") != -1) {
-                                if (drugListDAO.get(detail.getDrugId()).getDrugType() == 3) {
-                                    Map<String, Integer> stringIntegerMap = saleDrugToolService.syncOrganDrugDataToSaleDrugList(detail, config, drugsEnterpris.getId());
-                                }
-                            }
-                        }
-                    }
+                    Map<String, Integer> stringIntegerMap = saleDrugToolService.syncOrganDrugDataToSaleDrugList(detail, config, config.getDrugsenterpriseId());
+
+//                    if (config.getEnable_drug_sync() == 1) {
+//                        if (config.getSyncDataRange() == 1) {
+//                            //同步数据范围 配送药企
+//                            if (!ObjectUtils.isEmpty(detail.getDrugsEnterpriseIds())) {
+//                                String[] split = detail.getDrugsEnterpriseIds().split(",");
+//                                List<String> userIdList = new ArrayList<String>(Arrays.asList(split));
+//                                if (userIdList.indexOf(drugsEnterpris.getId().toString()) != -1) {
+//                                    Map<String, Integer> stringIntegerMap = saleDrugToolService.syncOrganDrugDataToSaleDrugList(detail, config, drugsEnterpris.getId());
+//                                }
+//                            }
+//                        } else if (config.getSyncDataRange() == 2) {
+//                            //同步数据范围 药品类型
+//                            if (ObjectUtils.isEmpty(config.getSyncDrugType())) {
+//                                throw new DAOException(DAOException.VALUE_NEEDED, "未找到该药企[同步药品类型]配置数据!");
+//                            }
+//                            if (ObjectUtils.isEmpty(config.getSyncDrugType())) {
+//                                throw new DAOException(DAOException.VALUE_NEEDED, "未找到该药企[数据同步类型]配置数据!");
+//                            }
+//                            String[] strings1 = config.getSyncDrugType().split(",");
+//                            List<String> syncDrugTypeList = new ArrayList<String>(Arrays.asList(strings1));
+//                            //西药
+//                            if (syncDrugTypeList.indexOf("1") != -1) {
+//                                if (drugListDAO.get(detail.getDrugId()).getDrugType() == 1) {
+//                                    Map<String, Integer> stringIntegerMap = saleDrugToolService.syncOrganDrugDataToSaleDrugList(detail, config, drugsEnterpris.getId());
+//                                }
+//                            }
+//                            //中成药
+//                            if (syncDrugTypeList.indexOf("2") != -1) {
+//                                if (drugListDAO.get(detail.getDrugId()).getDrugType() == 2) {
+//                                    Map<String, Integer> stringIntegerMap = saleDrugToolService.syncOrganDrugDataToSaleDrugList(detail, config, drugsEnterpris.getId());
+//                                }
+//                            }
+//                            //中药
+//                            if (syncDrugTypeList.indexOf("3") != -1) {
+//                                if (drugListDAO.get(detail.getDrugId()).getDrugType() == 3) {
+//                                    Map<String, Integer> stringIntegerMap = saleDrugToolService.syncOrganDrugDataToSaleDrugList(detail, config, drugsEnterpris.getId());
+//                                }
+//                            }
+//                        }
+//                    }
                 } catch (Exception e) {
                     LOGGER.info("批量新增机构药品新增修改同步对应药企" + e);
 

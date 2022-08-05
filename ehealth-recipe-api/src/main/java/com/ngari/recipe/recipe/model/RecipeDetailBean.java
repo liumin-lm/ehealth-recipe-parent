@@ -79,12 +79,10 @@ public class RecipeDetailBean implements java.io.Serializable {
     )
     private String organUsePathways;
 
-    //用药频率说明（来源his）
     @ItemProperty(alias="用药频率说明")
     private String usingRateTextFromHis;
 
-    //用药方式说明（来源his）
-    @ItemProperty(alias="用药方式说明")
+    @ItemProperty(alias="用药方式说明（来源his）")
     private String usePathwaysTextFromHis;
 
     @ItemProperty(alias="药物使用总数量")
@@ -277,6 +275,17 @@ public class RecipeDetailBean implements java.io.Serializable {
 
     @ItemProperty(alias = "腹透液  空0否  1是  ")
     private Integer peritonealDialysisFluidType;
+
+    @ItemProperty(alias = "剩余天数")
+    private Integer residueDay;
+
+    public Integer getResidueDay() {
+        return residueDay;
+    }
+
+    public void setResidueDay(Integer residueDay) {
+        this.residueDay = residueDay;
+    }
 
     public Integer getPeritonealDialysisFluidType() {
         return peritonealDialysisFluidType;

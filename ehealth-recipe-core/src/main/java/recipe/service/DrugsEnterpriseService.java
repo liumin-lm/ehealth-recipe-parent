@@ -37,12 +37,12 @@ import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.manager.ButtonManager;
 import recipe.manager.EnterpriseManager;
-//import recipe.service.drugs.IDrugEnterpriseLogisticsService;
 import recipe.serviceprovider.BaseService;
 
 import javax.annotation.Resource;
 import java.util.*;
-import java.util.stream.Collectors;
+
+//import recipe.service.drugs.IDrugEnterpriseLogisticsService;
 
 /**
  * 药企相关接口
@@ -173,7 +173,7 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
         config.setDrugsenterpriseId(newDrugsEnterprise.getId());
         if (newDrugsEnterprise.getCreateType() == 0) {
             config.setEnable_drug_sync(1);
-            drugsEnterpriseConfigService.addOrUpdateDrugsEnterpriseConfig(config);
+            drugsEnterpriseConfigService.addOrUpdateDrugsEnterpriseConfig2(config);
         } else {
             DrugsEnterpriseConfigDAO dao = DAOFactory.getDAO(DrugsEnterpriseConfigDAO.class);
             config.setEnable_drug_sync(0);

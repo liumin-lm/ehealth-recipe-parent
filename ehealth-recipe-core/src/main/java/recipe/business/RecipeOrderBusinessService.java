@@ -1,6 +1,7 @@
 package recipe.business;
 
 import com.alibaba.fastjson.JSON;
+import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.common.dto.CheckRequestCommonOrderItemDTO;
 import com.ngari.common.dto.CheckRequestCommonOrderPageDTO;
 import com.ngari.common.dto.SyncOrderVO;
@@ -11,6 +12,8 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.AddressService;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.PatientService;
+import com.ngari.patient.utils.*;
+import com.ngari.platform.recipe.mode.InvoiceInfoResTO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
@@ -23,14 +26,19 @@ import ctd.account.UserRoleToken;
 import ctd.account.thirdparty.ThirdPartyMappingController;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
+import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
+import ctd.util.annotation.RpcService;
 import eh.entity.bus.pay.BusTypeEnum;
 import eh.utils.BeanCopyUtils;
+import org.apache.commons.beanutils.BeanMap;
+import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
+import org.apache.curator.shaded.com.google.common.collect.Maps;
 import org.mvel2.util.Make;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +49,7 @@ import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.DoctorClient;
 import recipe.client.OrganClient;
 import recipe.client.PatientClient;
+import recipe.client.SmsClient;
 import recipe.core.api.patient.IRecipeOrderBusinessService;
 import recipe.dao.*;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
@@ -51,9 +60,12 @@ import recipe.manager.EnterpriseManager;
 import recipe.manager.OrderManager;
 import recipe.manager.RecipeManager;
 import recipe.openapi.business.request.ThirdSaveOrderRequest;
+import recipe.service.RecipeLogService;
 import recipe.service.RecipeOrderService;
 import recipe.third.IFileDownloadService;
 import recipe.util.*;
+import recipe.util.LocalStringUtil;
+import recipe.util.ObjectCopyUtils;
 import recipe.vo.ResultBean;
 import recipe.vo.base.BaseRecipeDetailVO;
 import recipe.vo.greenroom.InvoiceRecordVO;
@@ -105,6 +117,9 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
     private InvoiceRecordService invoiceRecordService;
     @Autowired
     private RecipeOrderService orderService;
+    @Autowired
+    private SmsClient smsClient;
+
 
     @Override
     public ResultBean updateRecipeGiveUser(Integer recipeId, Integer giveUser) {
@@ -606,6 +621,94 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
     }
 
     /**
+     * 判断处方是否有效(到院取药-存储药柜)
+     *
+     * @param cabinetVO
+     * @return
+     */
+    @Override
+    public CabinetVO validateCabinetRecipeStatus(CabinetVO cabinetVO) {
+        logger.info("validateCabinetRecipeStatus req:{}.",JSONUtils.toString(cabinetVO));
+        Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(cabinetVO.getRecipeCode(),cabinetVO.getOrganId());
+        if (null == recipe || StringUtils.isEmpty(recipe.getOrderCode())) {
+            throw new DAOException(609,"当前处方单未找到");
+        }
+
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+        if (null == recipeExtend ) {
+            throw new DAOException(609,"当前处方单未找到");
+        }
+
+        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+        if (null == recipeOrder ) {
+            throw new DAOException(609,"当前处方单未支付");
+        }
+
+        //到院取药+待取药+未申请退费
+        Boolean effectiveFlag=recipe.getGiveMode()==2 && recipeOrder.getStatus()==2 && recipeExtend.getRefundNodeStatus()==null;
+        cabinetVO.setEffectiveFlag(effectiveFlag);
+
+        //患者手机号
+        if(effectiveFlag && !StringUtils.isEmpty(recipe.getMpiid())){
+            com.ngari.patient.dto.PatientDTO patientDTO=patientClient.getPatientDTOByMpiId(recipe.getMpiid());
+            cabinetVO.setMobile(patientDTO==null?"":patientDTO.getMobile());
+        }
+        return  cabinetVO;
+    }
+
+    /**
+     * 存储药柜放入通知
+     *
+     * @param cabinetVO
+     * @return
+     */
+    @Override
+    public void putInCabinetNotice(CabinetVO cabinetVO) {
+        logger.info("putInCabinetNotice req:{}.",JSONUtils.toString(cabinetVO));
+
+        Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(cabinetVO.getRecipeCode(),cabinetVO.getOrganId());
+        if (null == recipe || StringUtils.isEmpty(recipe.getOrderCode())) {
+            throw new DAOException(609,"当前处方单未找到");
+        }
+
+        Map<String, String> changeAttr= Maps.newHashMap();
+        changeAttr.put("medicineCode",cabinetVO.getMedicineCode());
+
+        //拼地址
+        RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
+        String medicineAddressTpl=recipeParameterDao.getByName("medicine_address_tpl_"+recipe.getClinicOrgan());
+        if(StringUtils.isEmpty(medicineAddressTpl)){
+            medicineAddressTpl=recipeParameterDao.getByName("medicine_address_tpl_0");
+        }
+
+        Map<String,Object> props = MapValueUtil.beanToMap(cabinetVO);
+        String medicineAddress=LocalStringUtil.processTemplate(medicineAddressTpl,props);
+
+        changeAttr.put("medicineAddress",medicineAddress);
+        recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(),changeAttr);
+
+
+
+        //药品放入存储药柜通知
+        SmsInfoBean smsInfoBean=new SmsInfoBean();
+        smsInfoBean.setBusType("recipePutInCabinetNotice");
+        smsInfoBean.setSmsType("recipePutInCabinetNotice");
+        smsInfoBean.setBusId(recipe.getRecipeId());
+        smsInfoBean.setOrganId(recipe.getClinicOrgan());
+        smsInfoBean.setExtendValue(JSONUtils.toString(cabinetVO));
+        smsClient.pushMsgData2OnsExtendValue(smsInfoBean);
+
+        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "药品存入药柜，取药码："+cabinetVO.getMedicineCode()+"，取药地址："+medicineAddress);
+
+    }
+
+    @Override
+    public Boolean makeUpInvoice(String orderCode) {
+        InvoiceInfoResTO invoiceInfoResTO = orderManager.makeUpInvoice(orderCode);
+        return invoiceInfoResTO.getSuccess();
+    }
+
+    /**
      * 第三方设置订单费用
      *
      * @param order
@@ -697,38 +800,5 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
     }
 
 
-    /**
-     * 判断处方是否有效(到院取药-存储药柜)
-     *
-     * @param cabinetVO
-     * @return
-     */
-    @Override
-    public CabinetVO validateCabinetRecipeStatus(CabinetVO cabinetVO) {
-        Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(cabinetVO.getRecipeCode(),cabinetVO.getOrganId());
-        if (null == recipe || StringUtils.isEmpty(recipe.getOrderCode())) {
-            throw new DAOException(609,"当前处方单未找到");
-        }
 
-        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-        if (null == recipeExtend ) {
-            throw new DAOException(609,"当前处方单未找到");
-        }
-
-        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
-        if (null == recipeOrder ) {
-            throw new DAOException(609,"当前处方单未支付");
-        }
-
-        //到院取药+待取药+未申请退费
-        Boolean effectiveFlag=recipe.getGiveMode()==2 && recipeOrder.getStatus()==2 && recipeExtend.getRefundNodeStatus()==null;
-        cabinetVO.setEffectiveFlag(effectiveFlag);
-
-        //患者手机号
-        if(effectiveFlag && !StringUtils.isEmpty(recipe.getMpiid())){
-            com.ngari.patient.dto.PatientDTO patientDTO=patientClient.getPatientDTOByMpiId(recipe.getMpiid());
-            cabinetVO.setMobile(patientDTO==null?"":patientDTO.getMobile());
-        }
-        return  cabinetVO;
-    }
 }

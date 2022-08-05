@@ -188,32 +188,8 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
             //2021/11 新需求,非自建药企也要发送短信
             LOGGER.info("pushMessageToEnterprise 当前处方[{}]需要推送订单消息给药企", recipeId);
             //设置药企的电话号码
-            String mobile = "";
-            if (EnterpriseCreateTypeEnum.MY_SELF.getType().equals(enterprise.getCreateType())) {
-                PharmacyDAO pharmacyDAO = DAOFactory.getDAO(PharmacyDAO.class);
-                List<Pharmacy> list = pharmacyDAO.findByDepId(enterprise.getId());
-                if (CollectionUtils.isNotEmpty(list)) {
-                    mobile = list.get(0).getPharmacyPhone();
-                }
-            } else {
-                mobile = enterprise.getEnterprisePhone();
-            }
-            if(StringUtils.isNotEmpty(mobile)) {
-                SmsInfoBean smsInfo = new SmsInfoBean();
-                smsInfo.setBusType("RecipeOrderCreate");
-                smsInfo.setSmsType("RecipeOrderCreate");
-                smsInfo.setBusId(recipeId);
-                smsInfo.setOrganId(recipe.getClinicOrgan());
-
-                Map<String, Object> smsMap = Maps.newHashMap();
-
-                smsMap.put("mobile", mobile);
-
-                smsInfo.setExtendValue(JSONUtils.toString(smsMap));
-                ISmsPushService smsPushService = ApplicationUtils.getBaseService(ISmsPushService.class);
-                smsPushService.pushMsgData2OnsExtendValue(smsInfo);
-                LOGGER.info("pushMessageToEnterprise 当前处方[{}]已推送药企[{}],订单消息", recipeId, recipe.getEnterpriseId());
-            }
+            EnterpriseManager enterpriseManager = AppContextHolder.getBean("enterpriseManager", EnterpriseManager.class);
+            enterpriseManager.pushEnterpriseSendDrugPhone(recipe, enterprise);
         }
         LOGGER.info("pushSingleRecipeInfo recipeId:{}, result:{}", recipeId, JSONObject.toJSONString(result));
         return result;
@@ -884,11 +860,6 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
     public DrugEnterpriseResult findSupportDep(List<Integer> recipeIds, Map ext, DrugsEnterprise drugsEnterprise) {
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
         if (drugsEnterprise != null && new Integer(1).equals(drugsEnterprise.getOperationType())) {
-            if(Objects.isNull(ext.get("longitude")) || Objects.isNull(ext.get("latitude"))){
-                // 没有经纬度返回空list
-                result.setObject(new ArrayList<>());
-                return result;
-            }
             //通过前置机调用
             IRecipeEnterpriseService recipeEnterpriseService = AppContextHolder.getBean("his.iRecipeEnterpriseService", IRecipeEnterpriseService.class);
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
@@ -900,18 +871,24 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
             if (recipeExtend != null && StringUtils.isNotEmpty(recipeExtend.getRxid())) {
                 scanRequestBean.setRxid(recipeExtend.getRxid());
             }
-            LOGGER.info("findSupportDep 发给前置机入参:{}.", JSONUtils.toString(scanRequestBean));
-            List<DepDetailBean> depDetailBeans = recipeEnterpriseService.findSupportDep(scanRequestBean);
-            LOGGER.info("findSupportDep 前置机出参:{}.", JSONUtils.toString(depDetailBeans));
-            List<com.ngari.recipe.drugsenterprise.model.DepDetailBean> collect = depDetailBeans.stream().map(depDetailBean -> {
-                com.ngari.recipe.drugsenterprise.model.DepDetailBean depDetailBean1 = BeanCopyUtils.copyProperties(depDetailBean, com.ngari.recipe.drugsenterprise.model.DepDetailBean::new);
-                if(Objects.nonNull(depDetailBean.getPosition())) {
-                    depDetailBean1.setPosition(BeanCopyUtils.copyProperties(depDetailBean.getPosition(), com.ngari.recipe.drugsenterprise.model.Position::new));
-                }
-                return depDetailBean1;
-            }).collect(Collectors.toList());
-            result.setObject(collect);
-            return result;
+            try {
+                LOGGER.info("findSupportDep 发给前置机入参:{}.", JSONUtils.toString(scanRequestBean));
+                List<DepDetailBean> depDetailBeans = recipeEnterpriseService.findSupportDep(scanRequestBean);
+                LOGGER.info("findSupportDep 前置机出参:{}.", JSONUtils.toString(depDetailBeans));
+                List<com.ngari.recipe.drugsenterprise.model.DepDetailBean> collect = depDetailBeans.stream().map(depDetailBean -> {
+                    com.ngari.recipe.drugsenterprise.model.DepDetailBean depDetailBean1 = BeanCopyUtils.copyProperties(depDetailBean, com.ngari.recipe.drugsenterprise.model.DepDetailBean::new);
+                    if(Objects.nonNull(depDetailBean.getPosition())) {
+                        depDetailBean1.setPosition(BeanCopyUtils.copyProperties(depDetailBean.getPosition(), Position::new));
+                    }
+                    return depDetailBean1;
+                }).collect(Collectors.toList());
+                result.setObject(collect);
+                return result;
+            } catch (Exception e) {
+                LOGGER.error("findSupportDep recipeIds:{}", JSON.toJSONString(recipeIds), e);
+                result.setObject(new ArrayList<>());
+                return result;
+            }
         }
         if (CollectionUtils.isNotEmpty(recipeIds) && null != drugsEnterprise) {
             AccessDrugEnterpriseService drugEnterpriseService = getServiceByDep(drugsEnterprise);

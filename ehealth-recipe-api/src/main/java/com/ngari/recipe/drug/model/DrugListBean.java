@@ -181,6 +181,7 @@ public class DrugListBean implements IDrugInventory, Serializable {
 
     @ItemProperty(alias = "前端展示的药品名拼接名")
     private String drugDisplaySplicedName;
+
     @ItemProperty(alias = "前端展示的药品商品名拼接名")
     private String drugDisplaySplicedSaleName;
 

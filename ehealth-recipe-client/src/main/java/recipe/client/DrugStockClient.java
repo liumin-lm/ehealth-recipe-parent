@@ -161,6 +161,7 @@ public class DrugStockClient extends BaseClient {
             return drugStockAmountDTO;
         }
         try {
+            logger.info("DrugStockClient scanEnterpriseDrugStock scanRequestBean:{}", JSON.toJSONString(scanRequestBean));
             HisResponseTO response = recipeEnterpriseService.scanStock(scanRequestBean);
             logger.info("DrugStockClient scanEnterpriseDrugStock recipeId={},response={}", JSON.toJSONString(recipe), JSON.toJSONString(response));
             if (null != response && response.isSuccess()) {
@@ -197,6 +198,7 @@ public class DrugStockClient extends BaseClient {
         ScanRequestBean scanRequestBean = getScanRequestBean(recipe, saleDrugListMap, drugsEnterprise, recipeDetails, organDrugMap, pharmacyTcms);
         DrugStockAmountDTO drugStockAmountDTO = new DrugStockAmountDTO();
         try {
+            logger.info("DrugStockClient scanEnterpriseDrugStockV1 scanRequestBean:{}", JSON.toJSONString(scanRequestBean));
             HisResponseTO<List<ScanDrugListBean>> response = recipeEnterpriseService.scanStockV1(scanRequestBean);
             logger.info("DrugStockClient scanEnterpriseDrugStockV1 response ={} ", JSON.toJSONString(response));
             List<ScanDrugListBean> list = getResponseCatch(response);

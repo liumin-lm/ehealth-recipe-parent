@@ -146,6 +146,9 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
         relation.setEnterpriseRecipeTypes(recipeTypes);
         String decoctionIds = StringUtils.join(organEnterpriseRelationVo.getDecoctionIds(), ByteUtils.COMMA);
         relation.setEnterpriseDecoctionIds(decoctionIds);
+
+        relation.setEnterpriseDrugForm(JSONArray.toJSONString(organEnterpriseRelationVo.getEnterpriseDrugForm()));
+
         organAndDrugsepRelationDAO.updateNonNullFieldByPrimaryKey(relation);
     }
 
@@ -175,6 +178,10 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
         if (StringUtils.isNotEmpty(relation.getEnterpriseRecipeTypes())) {
             List<Integer> enterpriseRecipeTypes = Arrays.stream(relation.getEnterpriseRecipeTypes().split(ByteUtils.COMMA)).map(Integer::parseInt).collect(Collectors.toList());
             organEnterpriseRelationVo.setRecipeTypes(enterpriseRecipeTypes);
+        }
+        if (StringUtils.isNotEmpty(relation.getEnterpriseDrugForm())) {
+            List<String> drugFrom = JSONUtils.parse((relation.getEnterpriseDrugForm()), List.class);
+            organEnterpriseRelationVo.setEnterpriseDrugForm(drugFrom);
         }
         logger.info("DrugsEnterpriseBusinessService getOrganEnterpriseRelation res organEnterpriseRelationVo={}", JSONArray.toJSONString(organEnterpriseRelationVo));
         return organEnterpriseRelationVo;
@@ -813,10 +820,11 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
                     //监管平台上传配送信息(派药)
                     HisSyncSupervisionService hisSyncService = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
                     hisSyncService.uploadSendMedicine(recipe.getRecipeId());
-
                 });
             }
         });
+        String memo = "配送中，配送人：" + enterpriseSendOrderVO.getSender() +"，快递公司：" + logisticsCompanyCode + "，快递单号：" + enterpriseSendOrderVO.getTrackingNumber();
+        enterpriseManager.saveRecipeLog(recipeIdList.get(0), RecipeStatusEnum.RECIPE_STATUS_WAIT_SEND, RecipeStatusEnum.RECIPE_STATUS_IN_SEND, memo);
     }
 
     private boolean addressCan(List<EnterpriseAddress> list, String address) {
