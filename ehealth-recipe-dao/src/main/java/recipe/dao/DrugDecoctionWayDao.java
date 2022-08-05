@@ -16,7 +16,9 @@ import org.hibernate.Query;
 import org.hibernate.StatelessSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import recipe.util.ObjectCopyUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -50,12 +52,13 @@ public abstract class DrugDecoctionWayDao extends HibernateSupportDelegateDAO<De
             , @DAOParam("decoctionText") String decoctionText);
 
     @DAOMethod(sql = "delete from DecoctionWay where decoctionId =:decoctionId ")
-    public abstract void deleteDecoctionWayByDecoctionId(@DAOParam("decoctionId")Integer decoctionId);
+    public abstract void deleteDecoctionWayByDecoctionId(@DAOParam("decoctionId") Integer decoctionId);
 
     public QueryResult<DecoctionWayBean> findDecoctionWayByOrganIdAndName(Integer organId, String decoctionText, Integer start, Integer limit) {
-        HibernateStatelessResultAction<QueryResult<DecoctionWayBean>> action = new AbstractHibernateStatelessResultAction<QueryResult<DecoctionWayBean>>() {
+        HibernateStatelessResultAction<QueryResult<DecoctionWay>> action = new AbstractHibernateStatelessResultAction<QueryResult<DecoctionWay>>() {
 
-            @Override public void execute(StatelessSession ss) throws DAOException {
+            @Override
+            public void execute(StatelessSession ss) throws DAOException {
                 StringBuilder hql = new StringBuilder("from DecoctionWay where 1=1");
                 if (organId != null) {
                     hql.append(" and organId =:organId");
@@ -73,7 +76,7 @@ public abstract class DrugDecoctionWayDao extends HibernateSupportDelegateDAO<De
                 }
                 query.setFirstResult(start);
                 query.setMaxResults(limit);
-                List<DecoctionWayBean> lists = query.list();
+                List<DecoctionWay> lists = query.list();
 
                 Query countQuery = ss.createQuery("select count(*) " + hql.toString());
                 if (organId != null) {
@@ -87,13 +90,16 @@ public abstract class DrugDecoctionWayDao extends HibernateSupportDelegateDAO<De
             }
         };
         HibernateSessionTemplate.instance().execute(action);
-        return action.getResult();
-    }
+        QueryResult<DecoctionWay> result = action.getResult();
+        List<DecoctionWayBean> decoctionWayBeansList=new ArrayList<>();
+        if(result.getTotal()>0){
+            decoctionWayBeansList=ObjectCopyUtils.convert(result.getItems(),DecoctionWayBean.class);
+        }
 
+        return new QueryResult<DecoctionWayBean>(result.getTotal(),start,limit,decoctionWayBeansList);
+    }
 
     @DAOMethod(sql = "select count(*) from DecoctionWay where organId=:organId")
     public abstract Long getCountOfOrgan(@DAOParam("organId") Integer organId);
 
-    @DAOMethod(sql = "from DecoctionWay where organId =:organId and decoctionId =:decoctId")
-    public abstract DecoctionWayBean findUsingRateByOrganIdAndDecoctId(Integer organId, Integer decoctId);
 }

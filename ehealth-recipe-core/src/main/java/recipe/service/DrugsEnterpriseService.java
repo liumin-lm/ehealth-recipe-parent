@@ -179,6 +179,7 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
             config.setEnable_drug_sync(0);
             config.setSyncDataSource(1);
             dao.save(config);
+            drugsEnterpriseConfigService.addSaleDrugListSyncFieldForEnterprise(config.getDrugsenterpriseId());
         }
         // 写入药企关联物流公司信息
 //        drugEnterpriseLogisticsService.saveDrugEnterpriseLogistics(drugsEnterpriseBean.getDrugEnterpriseLogisticsBeans(), newDrugsEnterprise.getId());

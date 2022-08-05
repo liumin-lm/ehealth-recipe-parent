@@ -138,9 +138,6 @@ public class DrugExtService implements IDrugExtService {
         drugMakingMethodDao.deleteDrugMakingMethodByMethodId(methodId);
     }
 
-
-
-
     /**
      * 获取机构下所有药品煎法
      *
@@ -164,10 +161,9 @@ public class DrugExtService implements IDrugExtService {
      * @return List<DecoctionWayBean> 药品信息
      */
     @RpcService
-    @Override
     public QueryResult<DecoctionWayBean> findDecoctionWayByOrganIdAndName(Integer organId, String decoctionText, Integer start, Integer limit) {
-        QueryResult<DecoctionWayBean> decoctionWayBean = drugDecoctionWayDao.findDecoctionWayByOrganIdAndName(organId, decoctionText, start, limit);
-        return decoctionWayBean;
+        QueryResult<DecoctionWayBean> decoctionWayQueryResult = drugDecoctionWayDao.findDecoctionWayByOrganIdAndName(organId, decoctionText, start, limit);
+        return decoctionWayQueryResult;
     }
 
     /**
@@ -255,7 +251,4 @@ public class DrugExtService implements IDrugExtService {
         return total;
     }
 
-    public DecoctionWayBean findUsingRateByOrganIdAndDecoctId(Integer organId,Integer decoctId){
-        return drugDecoctionWayDao.findUsingRateByOrganIdAndDecoctId(organId,decoctId);
-    }
 }
