@@ -121,7 +121,6 @@ public class ThirdRecipeService {
                     if (patientTabStatusRecipeDTO.getStatusCode() == 3 && StringUtils.isNotEmpty(patientTabStatusRecipeDTO.getOrderCode())) {
                         recipeAndRecipeDetailsBean.setStatus(5);
                     }
-                    recipeAndRecipeDetailsBean.setRecipeSurplusHours(patientTabStatusRecipeDTO.getRecipeSurplusHours());
                     recipeAndRecipeDetailsBean.setRecipeType(patientTabStatusRecipeDTO.getRecipeType());
                     recipeAndRecipeDetailsBean.setLogisticsCompany(patientTabStatusRecipeDTO.getLogisticsCompany());
                     recipeAndRecipeDetailsBean.setTrackingNumber(patientTabStatusRecipeDTO.getTrackingNumber());
