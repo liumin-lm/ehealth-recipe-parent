@@ -41,6 +41,7 @@ import recipe.service.RecipeListService;
 import recipe.service.RecipeOrderService;
 import recipe.service.RecipeService;
 import recipe.service.RecipeServiceSub;
+import recipe.util.DateConversion;
 import recipe.vo.patient.RecipeGiveModeButtonRes;
 
 import java.math.BigDecimal;
@@ -97,6 +98,10 @@ public class ThirdRecipeService {
                     if (StringUtils.isNotEmpty(patientTabStatusRecipeDTO.getOrderCode())) {
                         RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(patientTabStatusRecipeDTO.getOrderCode());
                         recipeAndRecipeDetailsBean.setOrderId(recipeOrder.getOrderId());
+                    }
+                    Recipe recipe = recipeDAO.getByRecipeId(patientTabStatusRecipeDTO.getRecipeId());
+                    if (Objects.nonNull(recipe.getInvalidTime())) {
+                        recipeAndRecipeDetailsBean.setRecipeSurplusHours(DateConversion.getDateFormatter(recipe.getInvalidTime(), DateConversion.DEFAULT_DATE_TIME));
                     }
                     recipeAndRecipeDetailsBean.setRecipeId(patientTabStatusRecipeDTO.getRecipeId());
                     recipeAndRecipeDetailsBean.setPatientName(patientTabStatusRecipeDTO.getPatientName());
