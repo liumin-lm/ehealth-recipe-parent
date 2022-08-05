@@ -123,6 +123,7 @@ public class CreatePdfFactory {
             recipeUpdate.setRecipeId(recipe.getRecipeId());
             recipeUpdate.setSignFile(fileId);
             recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
+            caManager.saveESignResult(recipe,true);
             logger.info("CreatePdfFactory queryPdfOssId recipeUpdate ={}", JSON.toJSONString(recipeUpdate));
         } catch (Exception e) {
             logger.error("CreatePdfFactory queryPdfOssId 使用平台医生部分pdf的,生成失败 recipe:{}", recipe.getRecipeId(), e);
@@ -313,6 +314,7 @@ public class CreatePdfFactory {
             // todo 处方签名图片
             recipeUpdate.setChemistSignFile(fileId);
             recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
+            caManager.saveESignResult(recipe,false);
             logger.info("CreatePdfFactory updateCheckNamePdfEsign  recipeUpdate ={}", JSON.toJSONString(recipeUpdate));
         } catch (Exception e) {
             logger.error("CreatePdfFactory updateCheckNamePdfEsign  recipe: {}", recipe.getRecipeId(), e);

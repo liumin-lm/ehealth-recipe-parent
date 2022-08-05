@@ -23,6 +23,7 @@ import com.ngari.patient.dto.UsingRateDTO;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.RecipeAPI;
+import com.ngari.recipe.drug.model.DecoctionWayBean;
 import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.drug.model.ProvinceDrugListBean;
 import com.ngari.recipe.drug.service.IOrganDrugListService;
@@ -57,6 +58,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import org.apache.http.util.TextUtils;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -2730,7 +2732,6 @@ public class DrugToolService implements IDrugToolService {
         LOGGER.info("findDrugUsageCountForDoctor res:{}", JSONUtils.toString(result));
         return result;
     }
-
 
     @RpcService
     public DrugEnterpriseResult testAldyDrug() {
