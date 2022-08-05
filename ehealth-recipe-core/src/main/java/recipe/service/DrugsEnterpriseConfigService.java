@@ -76,7 +76,7 @@ public class DrugsEnterpriseConfigService {
 
     /**
      * 保存或更新DrugsEnterpriseConfig
-     * 作废 新方法addOrUpdateDrugsEnterpriseConfig2
+     * 新方法addOrUpdateDrugsEnterpriseConfig2
      * @param drugsEnterpriseConfig
      * @return
      */
@@ -119,6 +119,7 @@ public class DrugsEnterpriseConfigService {
      */
     @RpcService
     public DrugsEnterpriseConfig addOrUpdateDrugsEnterpriseConfig2(DrugsEnterpriseConfig drugsEnterpriseConfig){
+        logger.info("addOrUpdateDrugsEnterpriseConfig2 param:{}",JSONUtils.toString(drugsEnterpriseConfig));
         DrugsEnterpriseConfig drugsEnterpriseConfig1=addOrUpdateDrugsEnterpriseConfig(drugsEnterpriseConfig);
         List<SaleDrugListSyncField> saleDrugListSyncFieldList=drugsEnterpriseConfig.getSaleDrugListSyncFieldList();
         if(!CollectionUtils.isEmpty(saleDrugListSyncFieldList)){
@@ -186,7 +187,7 @@ public class DrugsEnterpriseConfigService {
      * @return
      */
     @LogRecord
-    private List<SaleDrugListSyncField> addSaleDrugListSyncFieldForEnterprise(Integer drugsenterpriseId) {
+    List<SaleDrugListSyncField> addSaleDrugListSyncFieldForEnterprise(Integer drugsenterpriseId) {
         List<SaleDrugListSyncField> saleDrugListSyncFieldList=new ArrayList<>();
         Map<String,String> fieldMap=initFieldMap();
         Map<String,String> addIsAllowEditFieldMap =initAddIsAllowEditFieldMap();
@@ -250,6 +251,7 @@ public class DrugsEnterpriseConfigService {
         return fieldMap;
     }
 
+    @LogRecord
     private List<String> initTypeList(){
         List<String> typeList=new ArrayList<>();
         typeList.add("1");
@@ -292,11 +294,6 @@ public class DrugsEnterpriseConfigService {
      * @param saleDrugListSyncField
      */
     private void checkSaleDrugListSyncField(SaleDrugListSyncField saleDrugListSyncField) {
-//        saleDrugListSyncField.setFieldCode("saleDrugCode");
-//        saleDrugListSyncField.setFieldName("药企药品编码");
-//        saleDrugListSyncField.setType("1");
-
-
         if (ObjectUtils.isEmpty(saleDrugListSyncField.getCreateTime())){
             saleDrugListSyncField.setCreateTime(new Date());
         }
