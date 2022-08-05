@@ -50,12 +50,13 @@ public abstract class DrugDecoctionWayDao extends HibernateSupportDelegateDAO<De
             , @DAOParam("decoctionText") String decoctionText);
 
     @DAOMethod(sql = "delete from DecoctionWay where decoctionId =:decoctionId ")
-    public abstract void deleteDecoctionWayByDecoctionId(@DAOParam("decoctionId")Integer decoctionId);
+    public abstract void deleteDecoctionWayByDecoctionId(@DAOParam("decoctionId") Integer decoctionId);
 
     public QueryResult<DecoctionWay> findDecoctionWayByOrganIdAndName(Integer organId, String decoctionText, Integer start, Integer limit) {
         HibernateStatelessResultAction<QueryResult<DecoctionWay>> action = new AbstractHibernateStatelessResultAction<QueryResult<DecoctionWay>>() {
 
-            @Override public void execute(StatelessSession ss) throws DAOException {
+            @Override
+            public void execute(StatelessSession ss) throws DAOException {
                 StringBuilder hql = new StringBuilder("from DecoctionWay where 1=1");
                 if (organId != null) {
                     hql.append(" and organId =:organId");
@@ -90,10 +91,7 @@ public abstract class DrugDecoctionWayDao extends HibernateSupportDelegateDAO<De
         return action.getResult();
     }
 
-
     @DAOMethod(sql = "select count(*) from DecoctionWay where organId=:organId")
     public abstract Long getCountOfOrgan(@DAOParam("organId") Integer organId);
 
-    @DAOMethod(sql = "from DecoctionWay where organId =:organId and decoctionId =:decoctId")
-    public abstract DecoctionWayBean findUsingRateByOrganIdAndDecoctId(Integer organId, Integer decoctId);
 }

@@ -123,6 +123,8 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     private IUsingRateService usingRateService;
     @Autowired
     private IUsePathwaysService usePathwaysService;
+    @Autowired
+    private DrugDecoctionWayDao drugDecoctionWayDAO;
 
 
     /**
@@ -793,23 +795,36 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     @Override
     public RateAndPathwaysVO queryRateAndPathwaysByDecoctionId(Integer organId, Integer decoctionId) {
         RateAndPathwaysVO rateAndPathwaysVO = new RateAndPathwaysVO();
-        if (Integer.valueOf("1").equals(organId)) {
-            List<UsingRateDTO> usingRates = usingRateService.findAllusingRateByOrganId(organId);
-            if (usingRates.size() > 5) {
-                usingRates = usingRates.subList(0, 5);
-            }
+        DecoctionWay decoctionWay = drugDecoctionWayDAO.get(decoctionId);
 
-            List<UsePathwaysDTO> usePathways = usePathwaysService.findAllUsePathwaysByOrganId(organId);
-            if (usePathways.size() > 5) {
-                usePathways = usePathways.subList(0, 5);
+        //用药频率
+        String usingRateStr = decoctionWay.getDrugUseRate();
+        List<UsingRateDTO> usingRateDTOList = new ArrayList<>();
+        if (StringUtils.isNotBlank(usingRateStr)) {
+            String[] usingRateArray = usingRateStr.split(",");
+            for (String singleUsingRateId : usingRateArray) {
+                UsingRateDTO usingRateDTO = usingRateService.getById(Integer.parseInt(singleUsingRateId));
+                if (Objects.nonNull(usingRateDTO)) {
+                    usingRateDTOList.add(usingRateDTO);
+                }
             }
-            rateAndPathwaysVO.setUsePathway(usePathways);
-            rateAndPathwaysVO.setUsingRate(usingRates);
-            return rateAndPathwaysVO;
-        } else {
-            return rateAndPathwaysVO;
         }
 
+        //用药途径
+        String usePathwayStr = decoctionWay.getDrugUsePathway();
+        List<UsePathwaysDTO> usePathwayDTOList = new ArrayList<>();
+        if (StringUtils.isNotBlank(usePathwayStr)) {
+            String[] usePathwayArray = usePathwayStr.split(",");
+            for (String singleUsePathwayId : usePathwayArray) {
+                UsePathwaysDTO usePathwaysDTO = usePathwaysService.getById(Integer.parseInt(singleUsePathwayId));
+                if (Objects.nonNull(usePathwaysDTO)) {
+                    usePathwayDTOList.add(usePathwaysDTO);
+                }
+            }
+        }
+        rateAndPathwaysVO.setUsePathway(usePathwayDTOList);
+        rateAndPathwaysVO.setUsingRate(usingRateDTOList);
+        return rateAndPathwaysVO;
     }
 }
 

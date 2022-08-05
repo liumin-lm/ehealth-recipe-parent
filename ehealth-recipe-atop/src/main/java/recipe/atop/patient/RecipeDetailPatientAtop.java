@@ -1,5 +1,6 @@
 package recipe.atop.patient;
 
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.vo.RecipeSkipVO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
@@ -7,8 +8,10 @@ import ctd.util.annotation.RpcService;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
+import recipe.core.api.IRecipeBusinessService;
 import recipe.core.api.IRecipeDetailBusinessService;
 
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -21,6 +24,9 @@ public class RecipeDetailPatientAtop extends BaseAtop {
 
     @Autowired
     private IRecipeDetailBusinessService recipeDetailService;
+
+    @Autowired
+    private IRecipeBusinessService recipeBusinessService;
 
     /**
      * 患者端处方进行中列表查询药品信息
@@ -70,5 +76,11 @@ public class RecipeDetailPatientAtop extends BaseAtop {
     @RpcService
     public RecipeSkipVO getRecipeSkipUrl(Integer organId, String recipeCode) {
         return recipeDetailService.getRecipeSkipUrl(organId, recipeCode);
+    }
+
+    @RpcService
+    public List<RecipeDetailBean> findRecipeDetailByRecipeId(Integer recipeId) {
+        validateAtop(recipeId);
+        return recipeBusinessService.findRecipeDetailByRecipeId(recipeId);
     }
 }
