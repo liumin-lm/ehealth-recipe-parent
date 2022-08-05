@@ -80,7 +80,7 @@ public interface IDrugExtService extends IBaseService {
      * @return List<DecoctionWayBean> 药品信息
      */
     @RpcService
-    List<DecoctionWayBean> findDecoctionWayByOrganIdAndName(Integer organId, String decoctionText, Integer start, Integer limit);
+    QueryResult<DecoctionWayBean> findDecoctionWayByOrganIdAndName(Integer organId, String decoctionText, Integer start, Integer limit);
 
     /**
      * 药品制法存储

@@ -161,9 +161,9 @@ public class DrugExtService implements IDrugExtService {
      * @return List<DecoctionWayBean> 药品信息
      */
     @RpcService
-    public List<DecoctionWayBean> findDecoctionWayByOrganIdAndName(Integer organId, String decoctionText, Integer start, Integer limit) {
-        QueryResult<DecoctionWay> decoctionWayQueryResult = drugDecoctionWayDao.findDecoctionWayByOrganIdAndName(organId, decoctionText, start, limit);
-        return ObjectCopyUtils.convert(decoctionWayQueryResult.getItems(),DecoctionWayBean.class);
+    public QueryResult<DecoctionWayBean> findDecoctionWayByOrganIdAndName(Integer organId, String decoctionText, Integer start, Integer limit) {
+        QueryResult<DecoctionWayBean> decoctionWayQueryResult = drugDecoctionWayDao.findDecoctionWayByOrganIdAndName(organId, decoctionText, start, limit);
+        return decoctionWayQueryResult;
     }
 
     /**

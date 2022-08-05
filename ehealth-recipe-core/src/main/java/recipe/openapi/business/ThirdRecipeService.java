@@ -1,5 +1,6 @@
 package recipe.openapi.business;
 
+import com.alibaba.fastjson.JSON;
 import com.ngari.infra.logistics.mode.LogisticsOrderDetailsDto;
 import com.ngari.infra.logistics.service.ILogisticsOrderService;
 import com.ngari.patient.ds.PatientDS;
@@ -41,6 +42,7 @@ import recipe.service.RecipeListService;
 import recipe.service.RecipeOrderService;
 import recipe.service.RecipeService;
 import recipe.service.RecipeServiceSub;
+import recipe.util.DateConversion;
 import recipe.vo.patient.RecipeGiveModeButtonRes;
 
 import java.math.BigDecimal;
@@ -98,6 +100,11 @@ public class ThirdRecipeService {
                         RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(patientTabStatusRecipeDTO.getOrderCode());
                         recipeAndRecipeDetailsBean.setOrderId(recipeOrder.getOrderId());
                     }
+                    Recipe recipe = recipeDAO.getByRecipeId(patientTabStatusRecipeDTO.getRecipeId());
+                    LOGGER.info("findRecipesForPatientAndTabStatus recipe:{}", JSON.toJSONString(recipe));
+                    if (null != recipe.getInvalidTime()) {
+                        recipeAndRecipeDetailsBean.setRecipeSurplusHours(DateConversion.getDateFormatter(recipe.getInvalidTime(), DateConversion.DEFAULT_DATE_TIME));
+                    }
                     recipeAndRecipeDetailsBean.setRecipeId(patientTabStatusRecipeDTO.getRecipeId());
                     recipeAndRecipeDetailsBean.setPatientName(patientTabStatusRecipeDTO.getPatientName());
                     recipeAndRecipeDetailsBean.setPhoto(patientTabStatusRecipeDTO.getPhoto());
@@ -114,7 +121,6 @@ public class ThirdRecipeService {
                     if (patientTabStatusRecipeDTO.getStatusCode() == 3 && StringUtils.isNotEmpty(patientTabStatusRecipeDTO.getOrderCode())) {
                         recipeAndRecipeDetailsBean.setStatus(5);
                     }
-                    recipeAndRecipeDetailsBean.setRecipeSurplusHours(patientTabStatusRecipeDTO.getRecipeSurplusHours());
                     recipeAndRecipeDetailsBean.setRecipeType(patientTabStatusRecipeDTO.getRecipeType());
                     recipeAndRecipeDetailsBean.setLogisticsCompany(patientTabStatusRecipeDTO.getLogisticsCompany());
                     recipeAndRecipeDetailsBean.setTrackingNumber(patientTabStatusRecipeDTO.getTrackingNumber());

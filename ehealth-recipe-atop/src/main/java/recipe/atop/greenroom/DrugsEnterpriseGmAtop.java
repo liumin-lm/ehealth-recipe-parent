@@ -346,6 +346,9 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
     private void validatePhoneInfo(String mobilePhones) {
         mobilePhones = mobilePhones.replace(" ","");
         List<String> mobilePhoneList = Arrays.asList(mobilePhones.split(","));
+        if (mobilePhoneList.size() > 5) {
+            throw new DAOException("联系电话最多支持5个");
+        }
         mobilePhoneList.forEach(mobile -> {
             if (!ValidateUtil.isPhoneLegal(mobile)) {
                 throw new DAOException("手机号格式错误");
