@@ -465,8 +465,8 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                                             || saleDrugListSyncFieldMap.get("saleName") == null) {
                                         saleDrugList1.setSaleName(detail.getSaleName());
                                     }
-                                    if ("saleName".equals(saleDrugListSyncField.getFieldCode()) && "1".equals(saleDrugListSyncField.getIsSync())
-                                            || saleDrugListSyncFieldMap.get("saleName") == null) {
+                                    if ("status".equals(saleDrugListSyncField.getFieldCode()) && "1".equals(saleDrugListSyncField.getIsSync())
+                                            || saleDrugListSyncFieldMap.get("status") == null) {
                                         saleDrugList1.setStatus(detail.getStatus());
                                     }
                                 };
