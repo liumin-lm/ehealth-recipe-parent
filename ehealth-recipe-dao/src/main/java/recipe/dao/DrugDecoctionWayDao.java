@@ -16,7 +16,9 @@ import org.hibernate.Query;
 import org.hibernate.StatelessSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import recipe.util.ObjectCopyUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -52,7 +54,7 @@ public abstract class DrugDecoctionWayDao extends HibernateSupportDelegateDAO<De
     @DAOMethod(sql = "delete from DecoctionWay where decoctionId =:decoctionId ")
     public abstract void deleteDecoctionWayByDecoctionId(@DAOParam("decoctionId") Integer decoctionId);
 
-    public QueryResult<DecoctionWay> findDecoctionWayByOrganIdAndName(Integer organId, String decoctionText, Integer start, Integer limit) {
+    public QueryResult<DecoctionWayBean> findDecoctionWayByOrganIdAndName(Integer organId, String decoctionText, Integer start, Integer limit) {
         HibernateStatelessResultAction<QueryResult<DecoctionWay>> action = new AbstractHibernateStatelessResultAction<QueryResult<DecoctionWay>>() {
 
             @Override
@@ -88,7 +90,13 @@ public abstract class DrugDecoctionWayDao extends HibernateSupportDelegateDAO<De
             }
         };
         HibernateSessionTemplate.instance().execute(action);
-        return action.getResult();
+        QueryResult<DecoctionWay> result = action.getResult();
+        List<DecoctionWayBean> decoctionWayBeansList=new ArrayList<>();
+        if(result.getTotal()>0){
+            decoctionWayBeansList=ObjectCopyUtils.convert(result.getItems(),DecoctionWayBean.class);
+        }
+
+        return new QueryResult<DecoctionWayBean>(result.getTotal(),start,limit,decoctionWayBeansList);
     }
 
     @DAOMethod(sql = "select count(*) from DecoctionWay where organId=:organId")
