@@ -40,6 +40,7 @@ import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import easypay.entity.vo.param.bus.MedicalPreSettleQueryReq;
+import easypay.entity.vo.param.bus.SelfPreSettleQueryReq;
 import eh.base.constant.ErrorCode;
 import eh.cdr.constant.OrderStatusConstant;
 import eh.entity.bus.Order;
@@ -1006,5 +1007,11 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService,IBusPayServ
             log.error("RecipeBusPayInfoService medicalPreSettleQueryInfo error", e);
         }
         return medicalPreSettleQueryReq;
+    }
+
+    @Override
+    @LogRecord
+    public SelfPreSettleQueryReq selfPreSettleQueryInfo(Integer busId) {
+        return null;
     }
 }
