@@ -288,15 +288,15 @@ public class RecipePatientAtop extends BaseAtop {
         }
         //1. 处理recipe表相关字段
         RecipeBean recipeBean = recipeInfoVO.getRecipeBean();
-
+        //中药剂数
         if (ValidateUtil.notNullAndZeroInteger(recipeBean.getCopyNum())) {
             recipeBean.setCopyNum(recipeBean.getCopyNum() * buyNum);
         }
-
+        //处方金额
         if (Objects.nonNull(recipeBean.getTotalMoney())) {
             recipeBean.setTotalMoney(recipeBean.getTotalMoney().multiply(BigDecimal.valueOf(buyNum)));
         }
-
+        //最后需支付费用
         if (Objects.nonNull(recipeBean.getActualPrice())) {
             recipeBean.setActualPrice(recipeBean.getActualPrice().multiply(BigDecimal.valueOf(buyNum)));
         }
@@ -306,23 +306,21 @@ public class RecipePatientAtop extends BaseAtop {
         if (CollectionUtils.isNotEmpty(recipeDetailBeanList)) {
             for (RecipeDetailBean recipeDetailBean : recipeDetailBeanList) {
                 //药物使用总数量
-                if(Objects.nonNull(recipeDetailBean.getUseTotalDose())) {
+                if (Objects.nonNull(recipeDetailBean.getUseTotalDose())) {
                     recipeDetailBean.setUseTotalDose(recipeDetailBean.getUseTotalDose() * buyNum);
                 }
                 //药物发放数量
-                if(Objects.nonNull(recipeDetailBean.getSendNumber())) {
+                if (Objects.nonNull(recipeDetailBean.getSendNumber())) {
                     recipeDetailBean.setSendNumber(recipeDetailBean.getSendNumber() * buyNum);
                 }
                 //药物使用天数
-                if(Objects.nonNull(recipeDetailBean.getUseDays())) {
+                if (Objects.nonNull(recipeDetailBean.getUseDays())) {
                     recipeDetailBean.setUseDays(recipeDetailBean.getUseDays() * buyNum);
                 }
                 //药物金额
-                if(Objects.nonNull(recipeDetailBean.getDrugCost())) {
+                if (Objects.nonNull(recipeDetailBean.getDrugCost())) {
                     recipeDetailBean.setDrugCost(recipeDetailBean.getDrugCost().multiply(BigDecimal.valueOf(buyNum)));
                 }
-
-
             }
         }
 

@@ -76,7 +76,7 @@ public class DrugsEnterpriseConfigService {
 
     /**
      * 保存或更新DrugsEnterpriseConfig
-     * 作废 新方法addOrUpdateDrugsEnterpriseConfig2
+     * 新方法addOrUpdateDrugsEnterpriseConfig2
      * @param drugsEnterpriseConfig
      * @return
      */
@@ -119,6 +119,7 @@ public class DrugsEnterpriseConfigService {
      */
     @RpcService
     public DrugsEnterpriseConfig addOrUpdateDrugsEnterpriseConfig2(DrugsEnterpriseConfig drugsEnterpriseConfig){
+        logger.info("addOrUpdateDrugsEnterpriseConfig2 param:{}",JSONUtils.toString(drugsEnterpriseConfig));
         DrugsEnterpriseConfig drugsEnterpriseConfig1=addOrUpdateDrugsEnterpriseConfig(drugsEnterpriseConfig);
         List<SaleDrugListSyncField> saleDrugListSyncFieldList=drugsEnterpriseConfig.getSaleDrugListSyncFieldList();
         if(!CollectionUtils.isEmpty(saleDrugListSyncFieldList)){
@@ -186,11 +187,11 @@ public class DrugsEnterpriseConfigService {
      * @return
      */
     @LogRecord
-    private List<SaleDrugListSyncField> addSaleDrugListSyncFieldForEnterprise(Integer drugsenterpriseId) {
+    List<SaleDrugListSyncField> addSaleDrugListSyncFieldForEnterprise(Integer drugsenterpriseId) {
         List<SaleDrugListSyncField> saleDrugListSyncFieldList=new ArrayList<>();
-        Map<String,String> fieldMap=initFieldMap();
-        Map<String,String> addIsAllowEditFieldMap =initAddIsAllowEditFieldMap();
-        Map<String,String> updateIsAllowEditFieldMap =initUpdateIsAllowEditFieldMap();
+        LinkedHashMap<String,String> fieldMap=initFieldMap();
+        LinkedHashMap<String,String> addIsAllowEditFieldMap =initAddIsAllowEditFieldMap();
+        LinkedHashMap<String,String> updateIsAllowEditFieldMap =initUpdateIsAllowEditFieldMap();
         Set set = fieldMap.keySet();
         List<String> typeList=initTypeList();
         for (Object key : set) {
@@ -215,8 +216,8 @@ public class DrugsEnterpriseConfigService {
     }
 
     @LogRecord
-    private Map<String,String> initFieldMap(){
-        Map<String,String> fieldMap=new HashMap<>();
+    private LinkedHashMap<String,String> initFieldMap(){
+        LinkedHashMap<String,String> fieldMap=new LinkedHashMap<>();
         fieldMap.put("saleDrugCode","药企药品编码");
         fieldMap.put("drugName","药品名");//机构药品名称
         fieldMap.put("saleName","商品名");
@@ -227,8 +228,8 @@ public class DrugsEnterpriseConfigService {
     }
 
     @LogRecord
-    private Map<String,String> initAddIsAllowEditFieldMap(){
-        Map<String,String> fieldMap=new HashMap<>();
+    private LinkedHashMap<String,String> initAddIsAllowEditFieldMap(){
+        LinkedHashMap<String,String> fieldMap=new LinkedHashMap<>();
         fieldMap.put("saleDrugCode","0");
         fieldMap.put("drugName","0");
         fieldMap.put("saleName","0");
@@ -239,8 +240,8 @@ public class DrugsEnterpriseConfigService {
     }
 
     @LogRecord
-    private Map<String,String> initUpdateIsAllowEditFieldMap(){
-        Map<String,String> fieldMap=new HashMap<>();
+    private LinkedHashMap<String,String> initUpdateIsAllowEditFieldMap(){
+        LinkedHashMap<String,String> fieldMap=new LinkedHashMap<>();
         fieldMap.put("saleDrugCode","0");
         fieldMap.put("drugName","1");
         fieldMap.put("saleName","1");
@@ -250,6 +251,7 @@ public class DrugsEnterpriseConfigService {
         return fieldMap;
     }
 
+    @LogRecord
     private List<String> initTypeList(){
         List<String> typeList=new ArrayList<>();
         typeList.add("1");
@@ -292,11 +294,6 @@ public class DrugsEnterpriseConfigService {
      * @param saleDrugListSyncField
      */
     private void checkSaleDrugListSyncField(SaleDrugListSyncField saleDrugListSyncField) {
-//        saleDrugListSyncField.setFieldCode("saleDrugCode");
-//        saleDrugListSyncField.setFieldName("药企药品编码");
-//        saleDrugListSyncField.setType("1");
-
-
         if (ObjectUtils.isEmpty(saleDrugListSyncField.getCreateTime())){
             saleDrugListSyncField.setCreateTime(new Date());
         }
