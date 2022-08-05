@@ -97,7 +97,11 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
         attr.put("outTradeNo", outTradeNo);
         Map<String, String> notifyMap = payResult.getNotifyMap();
         //组装卫宁付返回参数并更新订单
-        assembleWeiningPayCallBackParamAndUpdate(busId, notifyMap, attr, order);
+        try {
+            assembleWeiningPayCallBackParamAndUpdate(busId, notifyMap, attr, order);
+        }catch (Exception e){
+            logger.error("卫宁付参数解析失败 busId={}", busId);
+        }
 
         String orderCode = order.getOrderCode();
         //保存电子票据
