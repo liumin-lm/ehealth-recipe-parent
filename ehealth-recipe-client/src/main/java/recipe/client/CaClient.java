@@ -2,6 +2,7 @@ package recipe.client;
 
 import ca.service.ICaRemoteService;
 import ca.service.ISignRecipeInfoService;
+import ca.vo.CaSignResultBean;
 import ca.vo.CaSignResultVo;
 import ca.vo.model.SignDoctorRecipeInfoDTO;
 import com.alibaba.fastjson.JSON;
@@ -40,17 +41,21 @@ public class CaClient extends BaseClient {
     private IFileUploadService iFileUploadService;
 
     public void signRecipeInfoSave(Integer recipeId, boolean isDoctor, CaSignResultVo signResultVo, Integer organId) {
-        String thirdCASign = iConfigurationClient.getValueCatch(organId, "thirdCASign", "");
         try {
-            //上海儿童特殊处理
-            String value = ParamUtils.getParam("SH_CA_ORGANID_WHITE_LIST");
-            List<String> caList = Arrays.asList(value.split(ByteUtils.COMMA));
-            if (caList.contains(organId + "")) {
-                thirdCASign = "shanghaiCA";
-            }
+            String thirdCASign = getThirdCASign(organId);
             signRecipeInfoService.saveSignInfo(recipeId, isDoctor, ObjectCopyUtils.convert(signResultVo, ca.vo.CaSignResultVo.class), thirdCASign);
         } catch (Exception e) {
             logger.info("signRecipeInfoService error recipeId[{}] errorMsg[{}]", recipeId, e.getMessage(), e);
+        }
+    }
+
+    public void saveCaSignResult(CaSignResultBean caSignResult){
+        try {
+            String thirdCASign = getThirdCASign(caSignResult.getOrganId());
+            caSignResult.setCaType(thirdCASign);
+            signRecipeInfoService.saveCaSignResult(caSignResult);
+        } catch (Exception e) {
+            logger.info("saveCaSignResult error recipeId[{}] errorMsg[{}]", caSignResult.getBussId(), e.getMessage(), e);
         }
     }
 
@@ -126,4 +131,14 @@ public class CaClient extends BaseClient {
         return fileId;
     }
 
+    public String getThirdCASign(Integer organId){
+        String thirdCASign = iConfigurationClient.getValueCatch(organId, "thirdCASign", "");
+        //上海儿童特殊处理
+        String value = ParamUtils.getParam("SH_CA_ORGANID_WHITE_LIST");
+        List<String> caList = Arrays.asList(value.split(ByteUtils.COMMA));
+        if (caList.contains(organId + "")) {
+            thirdCASign = "shanghaiCA";
+        }
+        return thirdCASign;
+    }
 }

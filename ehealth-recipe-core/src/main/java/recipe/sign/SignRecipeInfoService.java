@@ -186,6 +186,7 @@ public class SignRecipeInfoService implements ISignRecipeInfoService {
 
     @RpcService
     public SignDoctorRecipeInfo setSignRecipeInfoByServerIdAndServerType(Integer serverId, boolean isDoctor, String serCode, Integer serverType) {
+        logger.info("setSignRecipeInfoByServerIdAndServerType start serverId={}= serverType={}=，isDoctor={}，serCode={}", serverId, serverType,isDoctor,serCode);
         SignDoctorRecipeInfo signDoctorRecipeInfo = new SignDoctorRecipeInfo();
         if (isDoctor) {
             signDoctorRecipeInfo.setCaSerCodeDoc(serCode);
