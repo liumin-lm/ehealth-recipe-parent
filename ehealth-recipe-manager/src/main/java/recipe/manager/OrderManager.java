@@ -49,6 +49,7 @@ import recipe.util.*;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -792,10 +793,12 @@ public class OrderManager extends BaseManager {
         List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIdList);
         PatientDTO patientDTO = new PatientDTO();
         Integer organId = recipeList.get(0).getClinicOrgan();
-        if(recipeList.get(0).getClinicId() != null){
+        if(recipeList.get(0).getBussSource().equals(2)){
             RevisitBean revisitBean = revisitClient.getRevisitByClinicId(recipeList.get(0).getClinicId());
-            //就诊时间
-            invoiceInfoReqTO.setVisitTime(revisitBean.getRequestTime());
+            if(Objects.nonNull(revisitBean)){
+                //就诊时间
+                invoiceInfoReqTO.setVisitTime(revisitBean.getRequestTime());
+            }
         }
         if(recipeList.size()>0){
             patientDTO = patientService.get(recipeList.get(0).getMpiid());
@@ -807,7 +810,8 @@ public class OrderManager extends BaseManager {
         invoiceInfoReqTO.setCashAmount(String.valueOf(recipeOrder.getCashAmount()));
         invoiceInfoReqTO.setTotalFee(String.valueOf(recipeOrder.getTotalFee()));
         invoiceInfoReqTO.setChargingStandard(String.valueOf(recipeOrder.getTotalFee()));
-        invoiceInfoReqTO.setPayTime(String.valueOf(recipeOrder.getPayTime()));
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        invoiceInfoReqTO.setPayTime(df.format(recipeOrder.getPayTime()));
         //就诊流水号
         invoiceInfoReqTO.setTradeNo(recipeOrder.getTradeNo());
         if(Objects.nonNull(patientDTO)){

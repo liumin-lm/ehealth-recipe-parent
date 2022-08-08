@@ -206,6 +206,7 @@ public class RecipeServiceSub {
         if (null != recipeExt && null != recipeId) {
             RecipeExtend recipeExtend = ObjectCopyUtils.convert(recipeExt, RecipeExtend.class);
             recipeExtend.setRecipeId(recipeId);
+            recipeExtend.setCancellation("");
             //老的字段兼容处理
             if (StringUtils.isNotEmpty(recipeExtend.getPatientType())) {
                 recipeExtend.setMedicalType(recipeExtend.getPatientType());
