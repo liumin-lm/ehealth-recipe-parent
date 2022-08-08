@@ -49,6 +49,7 @@ import recipe.util.*;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -809,7 +810,8 @@ public class OrderManager extends BaseManager {
         invoiceInfoReqTO.setCashAmount(String.valueOf(recipeOrder.getCashAmount()));
         invoiceInfoReqTO.setTotalFee(String.valueOf(recipeOrder.getTotalFee()));
         invoiceInfoReqTO.setChargingStandard(String.valueOf(recipeOrder.getTotalFee()));
-        invoiceInfoReqTO.setPayTime(String.valueOf(recipeOrder.getPayTime()));
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        invoiceInfoReqTO.setPayTime(df.format(recipeOrder.getPayTime()));
         //就诊流水号
         invoiceInfoReqTO.setTradeNo(recipeOrder.getTradeNo());
         if(Objects.nonNull(patientDTO)){
