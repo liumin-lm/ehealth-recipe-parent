@@ -6123,35 +6123,35 @@ public class RecipeService extends RecipeBaseService {
      * @param drugsEnterpriseId
      * @return
      */
-    @RpcService
-    public QueryResult<OrganDTO> queryOrganWithSortByStartAndLimit2(OrganDTO organ, Date startDate, Date endDate, String createDtSortType, Integer start, Integer limit,Integer drugsEnterpriseId) {
-        OrganService organDAO = AppContextHolder.getBean("basic.organService",OrganService.class);
-        QueryResult<OrganDTO> organDTOQueryResult = organDAO.queryOrganWithSortByStartAndLimit(organ, startDate, endDate, createDtSortType, start, limit);
-        List<OrganDTO> list=Lists.newArrayList();
-        List<OrganDTO> items = organDTOQueryResult.getItems();
-        //过滤机构配置流转药企
-        List<OrganAndDrugsepRelation> organAndDrugsepRelationList=organAndDrugsepRelationDAO.findByEntId(drugsEnterpriseId);
-        Map<Integer, OrganAndDrugsepRelation> organAndDrugsepRelationMap = organAndDrugsepRelationList.stream().collect(Collectors.toMap(x->x.getOrganId(), x -> x,(k1,k2)->k1));
-        if (!ObjectUtils.isEmpty(items)){
-            for (OrganDTO item : items) {
-                OrganService organService = AppContextHolder.getBean("basic.organService",OrganService.class);
-                if (!ObjectUtils.isEmpty(item.getManageUnit())){
-                    Long organNumFromTo = organService.getOrganNumFromTo(item.getManageUnit() + "%", startDate, endDate);
-                    if (!ObjectUtils.isEmpty(organNumFromTo)){
-                        Long number=organNumFromTo-1;
-                        item.setSubOrganNumber(number.toString());
-                    }
-                }
-                //过滤机构配置流转药企
-                if(organAndDrugsepRelationMap.containsKey(item.getOrganId())){
-                    list.add(item);
-                }
-            }
-            organDTOQueryResult.setItems(list);
-        }
-
-        return organDTOQueryResult;
-    }
+//    @RpcService
+//    public QueryResult<OrganDTO> queryOrganWithSortByStartAndLimit2(OrganDTO organ, Date startDate, Date endDate, String createDtSortType, Integer start, Integer limit,Integer drugsEnterpriseId) {
+//        OrganService organDAO = AppContextHolder.getBean("basic.organService",OrganService.class);
+//        QueryResult<OrganDTO> organDTOQueryResult = organDAO.queryOrganWithSortByStartAndLimit(organ, startDate, endDate, createDtSortType, start, limit);
+//        List<OrganDTO> list=Lists.newArrayList();
+//        List<OrganDTO> items = organDTOQueryResult.getItems();
+//        //过滤机构配置流转药企
+//        List<OrganAndDrugsepRelation> organAndDrugsepRelationList=organAndDrugsepRelationDAO.findByEntId(drugsEnterpriseId);
+//        Map<Integer, OrganAndDrugsepRelation> organAndDrugsepRelationMap = organAndDrugsepRelationList.stream().collect(Collectors.toMap(x->x.getOrganId(), x -> x,(k1,k2)->k1));
+//        if (!ObjectUtils.isEmpty(items)){
+//            for (OrganDTO item : items) {
+//                OrganService organService = AppContextHolder.getBean("basic.organService",OrganService.class);
+//                if (!ObjectUtils.isEmpty(item.getManageUnit())){
+//                    Long organNumFromTo = organService.getOrganNumFromTo(item.getManageUnit() + "%", startDate, endDate);
+//                    if (!ObjectUtils.isEmpty(organNumFromTo)){
+//                        Long number=organNumFromTo-1;
+//                        item.setSubOrganNumber(number.toString());
+//                    }
+//                }
+//                //过滤机构配置流转药企
+//                if(organAndDrugsepRelationMap.containsKey(item.getOrganId())){
+//                    list.add(item);
+//                }
+//            }
+//            organDTOQueryResult.setItems(list);
+//        }
+//
+//        return organDTOQueryResult;
+//    }
 
     /**
      * 药企药品同步配置 机构控件
