@@ -6124,7 +6124,7 @@ public class RecipeService extends RecipeBaseService {
      * @return
      */
     @RpcService
-    public QueryResult<OrganDTO> queryOrganWithSortByStartAndLimit(OrganDTO organ, Date startDate, Date endDate, String createDtSortType, Integer start, Integer limit,Integer drugsEnterpriseId) {
+    public QueryResult<OrganDTO> queryOrganWithSortByStartAndLimit2(OrganDTO organ, Date startDate, Date endDate, String createDtSortType, Integer start, Integer limit,Integer drugsEnterpriseId) {
         OrganService organDAO = AppContextHolder.getBean("basic.organService",OrganService.class);
         QueryResult<OrganDTO> organDTOQueryResult = organDAO.queryOrganWithSortByStartAndLimit(organ, startDate, endDate, createDtSortType, start, limit);
         List<OrganDTO> list=Lists.newArrayList();
@@ -6165,7 +6165,7 @@ public class RecipeService extends RecipeBaseService {
      * @return
      */
     @RpcService
-    public QueryResult<OrganDTO> queryOrganWithSortV2(OrganDTO organ, Date startDate, Date endDate, String createDtSortType, Integer start, Integer limit,Integer drugsEnterpriseId) {
+    public QueryResult<OrganDTO> queryOrganWithSortByStartAndLimit(OrganDTO organ, Date startDate, Date endDate, String createDtSortType, Integer start, Integer limit,Integer drugsEnterpriseId) {
         OrganService organDAO = AppContextHolder.getBean("basic.organService", OrganService.class);
         List<OrganAndDrugsepRelation> organAndDrugsepRelationList = organAndDrugsepRelationDAO.findByEntId(drugsEnterpriseId);
         List<Integer> organIds = organAndDrugsepRelationList.stream().map(OrganAndDrugsepRelation::getOrganId).collect(Collectors.toList());
