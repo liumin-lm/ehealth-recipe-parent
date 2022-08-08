@@ -144,35 +144,30 @@ public class DrugsEnterpriseConfigService {
     @RpcService
     @LogRecord
     public DrugsEnterpriseConfig getConfigByDrugsenterpriseId(Integer drugsenterpriseId){
-        List<SaleDrugListSyncField> saleDrugListSyncFieldList=new ArrayList<>();
         if (ObjectUtils.isEmpty(drugsenterpriseId)){
             throw new DAOException(DAOException.VALUE_NEEDED, "drugsenterpriseId is required");
+        }
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.get(drugsenterpriseId);
+        if (ObjectUtils.isEmpty(drugsEnterprise)){
+            throw new DAOException(DAOException.VALUE_NEEDED, "未找到该药企"+drugsenterpriseId);
         }
         DrugsEnterpriseConfig byDrugsenterpriseId = drugsEnterpriseConfigDAO.getByDrugsenterpriseId(drugsenterpriseId);
         List<SaleDrugListSyncField> saleDrugListSyncFieldListDb = saleDrugListSyncFieldDAO.findByDrugsenterpriseId(drugsenterpriseId);
         if (ObjectUtils.isEmpty(byDrugsenterpriseId)){
-            DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.get(drugsenterpriseId);
-            if (ObjectUtils.isEmpty(drugsEnterprise)){
-                throw new DAOException(DAOException.VALUE_NEEDED, "未找到该药企"+drugsenterpriseId);
-            }else {
                 DrugsEnterpriseConfig config=new DrugsEnterpriseConfig();
                 config.setDrugsenterpriseId(drugsenterpriseId);
                 config.setEnable_drug_sync(1);
                 DrugsEnterpriseConfig config1 = addOrUpdateDrugsEnterpriseConfig(config);
                 if (CollectionUtils.isEmpty(saleDrugListSyncFieldListDb)){
                     config1.setSaleDrugListSyncFieldList(addSaleDrugListSyncFieldForEnterprise(drugsenterpriseId));
+                }else{
+                    byDrugsenterpriseId.setSaleDrugListSyncFieldList(saleDrugListSyncFieldListDb);
                 }
                 return config1;
-            }
+
         }else{
             if (CollectionUtils.isEmpty(saleDrugListSyncFieldListDb)){
-                DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.get(drugsenterpriseId);
-                if (ObjectUtils.isEmpty(drugsEnterprise)){
-                    throw new DAOException(DAOException.VALUE_NEEDED, "未找到该药企"+drugsenterpriseId);
-                }else {
-                    saleDrugListSyncFieldList= addSaleDrugListSyncFieldForEnterprise(drugsenterpriseId);
-                    byDrugsenterpriseId.setSaleDrugListSyncFieldList(saleDrugListSyncFieldList);
-                }
+                byDrugsenterpriseId.setSaleDrugListSyncFieldList(addSaleDrugListSyncFieldForEnterprise(drugsenterpriseId));
             }else{
                 byDrugsenterpriseId.setSaleDrugListSyncFieldList(saleDrugListSyncFieldListDb);
             }
@@ -267,8 +262,14 @@ public class DrugsEnterpriseConfigService {
 
         IBusActionLogService busActionLogService = AppDomainContext.getBean("opbase.busActionLogService", IBusActionLogService.class);
         UserRoleToken urt = UserRoleToken.getCurrent();
-        SaleDrugListSyncField saleDrugListSyncField2 = saleDrugListSyncFieldDAO.getByDrugsenterpriseIdAndFieldCodeAndType(saleDrugListSyncField.getDrugsenterpriseId(),saleDrugListSyncField.getFieldCode(),saleDrugListSyncField.getType());
-        if (ObjectUtils.isEmpty(saleDrugListSyncField2)){
+        List<SaleDrugListSyncField> saleDrugListSyncFieldDbs = saleDrugListSyncFieldDAO.findByDrugsenterpriseIdAndFieldCodeAndType(saleDrugListSyncField.getDrugsenterpriseId(),saleDrugListSyncField.getFieldCode(),saleDrugListSyncField.getType());
+        logger.info("addOrUpdateSaleDrugListSyncField saleDrugListSyncFieldDbs:{}",JSONUtils.toString(saleDrugListSyncFieldDbs));
+        SaleDrugListSyncField saleDrugListSyncFieldDb=null;
+        if(!CollectionUtils.isEmpty(saleDrugListSyncFieldDbs)){
+            saleDrugListSyncFieldDb=saleDrugListSyncFieldDbs.get(0);
+            logger.info("addOrUpdateSaleDrugListSyncField saleDrugListSyncFieldDb:{}",JSONUtils.toString(saleDrugListSyncFieldDb));
+        }
+        if (ObjectUtils.isEmpty(saleDrugListSyncFieldDb)){
             checkSaleDrugListSyncField(saleDrugListSyncField);
             SaleDrugListSyncField save = saleDrugListSyncFieldDAO.save(saleDrugListSyncField);
             if (!ObjectUtils.isEmpty(urt)){
@@ -277,8 +278,8 @@ public class DrugsEnterpriseConfigService {
             }
             return save;
         }else {
-            checkSaleDrugListSyncField(saleDrugListSyncField2);
-            saleDrugListSyncField.setId(saleDrugListSyncField2.getId());
+            checkSaleDrugListSyncField(saleDrugListSyncFieldDb);
+            saleDrugListSyncField.setId(saleDrugListSyncFieldDb.getId());
             saleDrugListSyncField.setUpdateTime(new Date());
             SaleDrugListSyncField update = saleDrugListSyncFieldDAO.update(saleDrugListSyncField);
             if (!ObjectUtils.isEmpty(urt)){
