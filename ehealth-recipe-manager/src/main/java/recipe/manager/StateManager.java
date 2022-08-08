@@ -72,6 +72,7 @@ public class StateManager extends BaseManager {
                 break;
             case NONE:
             case PROCESS_STATE_DONE:
+            case PROCESS_STATE_ORDER:
                 result = this.defaultRecipe(recipe, processState, subState);
                 break;
             case PROCESS_STATE_DELETED:
