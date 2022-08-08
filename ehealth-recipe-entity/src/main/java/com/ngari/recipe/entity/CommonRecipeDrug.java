@@ -125,6 +125,18 @@ public class CommonRecipeDrug implements java.io.Serializable{
     @ItemProperty(alias = "药品超量名称")
     private String superScalarName;
 
+    @ItemProperty(alias = "返回药品状态 0:正常，1已失效，2未完善")
+    private Integer validateStatus;
+
+    @Column(name = "validate_status")
+    public Integer getValidateStatus() {
+        return validateStatus;
+    }
+
+    public void setValidateStatus(Integer validateStatus) {
+        this.validateStatus = validateStatus;
+    }
+
     @Column(name = "pack")
     public Integer getPack() {
         return pack;

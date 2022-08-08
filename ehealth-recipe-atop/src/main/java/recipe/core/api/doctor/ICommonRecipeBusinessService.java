@@ -2,6 +2,7 @@ package recipe.core.api.doctor;
 
 import com.ngari.recipe.commonrecipe.model.CommonDTO;
 import com.ngari.recipe.commonrecipe.model.CommonRecipeDTO;
+import com.ngari.recipe.commonrecipe.model.CommonRecipeDrugDTO;
 import com.ngari.recipe.dto.HisRecipeDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 
@@ -31,6 +32,13 @@ public interface ICommonRecipeBusinessService {
      * @param common 常用方集合对象
      */
     void saveCommonRecipe(CommonDTO common);
+
+    /**
+     * 刷新常用方校验状态
+     *
+     * @param drugList 常用方药品
+     */
+    void refreshCommonValidateStatus(List<CommonRecipeDrugDTO> drugList);
 
     /**
      * 删除常用方
@@ -74,4 +82,5 @@ public interface ICommonRecipeBusinessService {
      * @return
      */
     HisRecipeDTO offlineCommonV1(Integer organId, String commonRecipeCode);
+
 }

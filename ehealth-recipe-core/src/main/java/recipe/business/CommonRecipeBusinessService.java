@@ -76,6 +76,12 @@ public class CommonRecipeBusinessService extends BaseService implements ICommonR
         }
     }
 
+    @Override
+    public void refreshCommonValidateStatus(List<CommonRecipeDrugDTO> drugList) {
+        List<CommonRecipeDrug> commonDrugList = ObjectCopyUtils.convert(drugList, CommonRecipeDrug.class);
+        commonRecipeManager.refreshCommonValidateStatus(commonDrugList);
+    }
+
     /**
      * 删除常用方
      *

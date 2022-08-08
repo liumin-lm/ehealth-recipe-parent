@@ -5,6 +5,7 @@ import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;
 import ctd.persistence.support.hibernate.HibernateSupportDelegateDAO;
 import ctd.util.annotation.RpcSupportDAO;
+import recipe.dao.comment.ExtendDao;
 
 import java.util.List;
 
@@ -13,7 +14,12 @@ import java.util.List;
  * date:2017/5/22.
  */
 @RpcSupportDAO
-public abstract class CommonRecipeDAO extends HibernateSupportDelegateDAO<CommonRecipe> {
+public abstract class CommonRecipeDAO extends HibernateSupportDelegateDAO<CommonRecipe> implements ExtendDao<CommonRecipe> {
+
+    @Override
+    public boolean updateNonNullFieldByPrimaryKey(CommonRecipe commonRecipe) {
+        return updateNonNullFieldByPrimaryKey(commonRecipe, "commonRecipeId");
+    }
 
     public CommonRecipeDAO() {
         super();

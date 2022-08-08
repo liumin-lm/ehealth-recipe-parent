@@ -87,6 +87,28 @@ public class CommonRecipeManager extends BaseManager {
     }
 
     /**
+     * 刷新常用方校验状态
+     *
+     * @param commonDrugList 常用方药品
+     */
+    public void refreshCommonValidateStatus(List<CommonRecipeDrug> commonDrugList) {
+        CommonRecipe commonRecipe = new CommonRecipe();
+        Integer validateStatus = 0;
+        for (CommonRecipeDrug a : commonDrugList) {
+            commonRecipe.setCommonRecipeId(a.getCommonRecipeId());
+            if (a.getValidateStatus() > validateStatus) {
+                validateStatus = a.getValidateStatus();
+            }
+            CommonRecipeDrug drug = new CommonRecipeDrug();
+            drug.setId(a.getId());
+            drug.setValidateStatus(a.getValidateStatus());
+            commonRecipeDrugDAO.updateNonNullFieldByPrimaryKey(drug);
+        }
+        commonRecipe.setValidateStatus(validateStatus);
+        commonRecipeDAO.updateNonNullFieldByPrimaryKey(commonRecipe);
+    }
+
+    /**
      * 删除常用方信息
      *
      * @param commonRecipeId 常用方id
@@ -284,4 +306,5 @@ public class CommonRecipeManager extends BaseManager {
     public HisRecipeDTO offlineCommonV1(Integer organId, String commonRecipeCode) {
         return offlineRecipeClient.offlineCommonV1(organId, commonRecipeCode);
     }
+
 }

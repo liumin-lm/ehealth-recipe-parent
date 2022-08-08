@@ -59,10 +59,21 @@ public class CommonRecipe implements Serializable{
     @ItemProperty(alias = "是否是长处方")
     private String isLongRecipe;
 
-
     //开当前处方的配置项信息
     @ItemProperty(alias = "可开长处方按钮状态、长处方开药天数、非长处方开药天数")
     private String recipeJsonConfig;
+
+    @ItemProperty(alias = "返回药品状态 0:正常，1已失效，2未完善")
+    private Integer validateStatus;
+
+    @Column(name = "validate_status")
+    public Integer getValidateStatus() {
+        return validateStatus;
+    }
+
+    public void setValidateStatus(Integer validateStatus) {
+        this.validateStatus = validateStatus;
+    }
 
 
     @Column(name = "pharmacyCode")
