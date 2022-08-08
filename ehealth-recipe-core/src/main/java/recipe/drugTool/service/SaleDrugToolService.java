@@ -871,6 +871,10 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                             total = details.size();
                             for (OrganDrugList detail : details) {
                                 Map<String, Integer> stringIntegerMap = syncOrganDrugDataToSaleDrugList(detail, config, drugsEnterpriseId);
+                                LOGGER.info("syncSaleOrganDrug药企药品数据同步 配送 " + detail.getDrugName() + " 药企Id=[{}] drug=[{}]", drugsEnterpriseId, JSONUtils.toString(detail));
+                                addNum = addNum + stringIntegerMap.get("addNum");
+                                updateNum = updateNum + stringIntegerMap.get("updateNum");
+                                falseNum = falseNum + stringIntegerMap.get("falseNum");
 
                                 //                                if (config.getSyncDataRange() == 1) {
     //                                    //同步数据范围 配送药企
