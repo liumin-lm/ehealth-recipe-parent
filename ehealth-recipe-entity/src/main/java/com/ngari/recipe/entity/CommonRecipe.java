@@ -39,12 +39,6 @@ public class CommonRecipe implements Serializable{
     @ItemProperty(alias = "处方类型")
     @Dictionary(id = "eh.cdr.dictionary.RecipeType")
     private Integer recipeType;
-//
-//    @ItemProperty(alias = "创建时间")
-//    private Date createDt;
-//
-//    @ItemProperty(alias = "最后修改时间")
-//    private Date lastModify;
 
     @ItemProperty(alias = "机构代码")
     private Integer organId;
@@ -140,24 +134,6 @@ public class CommonRecipe implements Serializable{
     public void setCommonRecipeName(String commonRecipeName) {
         this.commonRecipeName = commonRecipeName;
     }
-//
-//    @Column(name = "CreateDt", length = 19)
-//    public Date getCreateDt() {
-//        return createDt;
-//    }
-//
-//    public void setCreateDt(Date createDt) {
-//        this.createDt = createDt;
-//    }
-//
-//    @Column(name = "LastModify", length = 19)
-//    public Date getLastModify() {
-//        return lastModify;
-//    }
-//
-//    public void setLastModify(Date lastModify) {
-//        this.lastModify = lastModify;
-//    }
 
     public String getRecipeJsonConfig() {
         return recipeJsonConfig;

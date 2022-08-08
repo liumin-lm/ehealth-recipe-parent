@@ -93,6 +93,15 @@ public class CommonRecipeBusinessService extends BaseService implements ICommonR
         commonRecipeManager.removeCommonRecipe(commonRecipeId);
     }
 
+    @Override
+    public List<CommonRecipe> commonRecipeListV2(Integer organId, Integer doctorId, List<Integer> recipeType, int start, int limit) {
+        return commonRecipeManager.commonRecipeList(organId, doctorId, recipeType, start, limit);
+    }
+
+    @Override
+    public CommonDTO commonRecipeInfo(Integer commonRecipeId) {
+        return null;
+    }
 
     @Override
     public List<CommonDTO> commonRecipeList(Integer organId, Integer doctorId, List<Integer> recipeType, int start, int limit) {

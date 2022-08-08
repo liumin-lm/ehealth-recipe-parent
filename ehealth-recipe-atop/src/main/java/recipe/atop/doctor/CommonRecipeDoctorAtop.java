@@ -8,12 +8,14 @@ import com.ngari.recipe.commonrecipe.model.CommonRecipeDTO;
 import com.ngari.recipe.commonrecipe.model.CommonRecipeDrugDTO;
 import com.ngari.recipe.dto.HisRecipeDTO;
 import com.ngari.recipe.dto.HisRecipeInfoDTO;
+import com.ngari.recipe.entity.CommonRecipe;
 import com.ngari.recipe.recipe.model.HisRecipeBean;
 import com.ngari.recipe.recipe.model.HisRecipeDetailBean;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
@@ -21,6 +23,7 @@ import recipe.core.api.doctor.ICommonRecipeBusinessService;
 import recipe.util.ValidateUtil;
 
 import java.sql.Timestamp;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -71,10 +74,44 @@ public class CommonRecipeDoctorAtop extends BaseAtop {
      * @return 常用方列表
      */
     @RpcService
+    @Deprecated
     public List<CommonDTO> commonRecipeListV1(Integer organId, Integer doctorId, List<Integer> recipeType, int start, int limit) {
         validateAtop(doctorId, organId);
         return commonRecipeService.commonRecipeList(organId, doctorId, recipeType, start, limit);
     }
+
+    /**
+     * 获取常用方列表
+     *
+     * @param recipeType 处方类型
+     * @param doctorId   医生id
+     * @param organId    机构id
+     * @param start      开始
+     * @param limit      分页条数
+     * @return 常用方列表
+     */
+    @RpcService
+    public List<CommonRecipeDTO> commonRecipeListV2(Integer organId, Integer doctorId, List<Integer> recipeType, int start, int limit) {
+        validateAtop(doctorId, organId);
+        List<CommonRecipe> list = commonRecipeService.commonRecipeListV2(organId, doctorId, recipeType, start, limit);
+        if (CollectionUtils.isEmpty(list)) {
+            return Collections.emptyList();
+        }
+        return ObjectCopyUtils.convert(list, CommonRecipeDTO.class);
+    }
+
+    /**
+     * 获取常用方详情
+     *
+     * @param commonRecipeId 常用方id
+     * @return
+     */
+    @RpcService
+    public CommonDTO commonRecipeInfo(Integer commonRecipeId) {
+        validateAtop(commonRecipeId);
+        return commonRecipeService.commonRecipeInfo(commonRecipeId);
+    }
+
 
     /**
      * 新增或更新常用方  选好药品后将药品加入到常用处方

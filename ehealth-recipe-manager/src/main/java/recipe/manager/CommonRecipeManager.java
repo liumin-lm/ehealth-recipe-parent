@@ -93,17 +93,16 @@ public class CommonRecipeManager extends BaseManager {
      */
     public void refreshCommonValidateStatus(List<CommonRecipeDrug> commonDrugList) {
         CommonRecipe commonRecipe = new CommonRecipe();
-        Integer validateStatus = 0;
         for (CommonRecipeDrug a : commonDrugList) {
             commonRecipe.setCommonRecipeId(a.getCommonRecipeId());
-            if (a.getValidateStatus() > validateStatus) {
-                validateStatus = a.getValidateStatus();
-            }
             CommonRecipeDrug drug = new CommonRecipeDrug();
             drug.setId(a.getId());
             drug.setValidateStatus(a.getValidateStatus());
             commonRecipeDrugDAO.updateNonNullFieldByPrimaryKey(drug);
         }
+        boolean expired = commonDrugList.stream().anyMatch(a -> a.getValidateStatus().equals(1));
+        boolean notPerfect = commonDrugList.stream().anyMatch(a -> a.getValidateStatus().equals(2));
+        Integer validateStatus = expired ? 1 : (notPerfect ? 2 : 0);
         commonRecipe.setValidateStatus(validateStatus);
         commonRecipeDAO.updateNonNullFieldByPrimaryKey(commonRecipe);
     }
