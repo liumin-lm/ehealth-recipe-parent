@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
+import recipe.aop.LogRecord;
 import recipe.dao.*;
 import recipe.service.DrugsEnterpriseConfigService;
 import recipe.thread.RecipeBusiThreadPool;
@@ -661,6 +662,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
      * @param drugsEnterpriseId
      * @return
      */
+    @LogRecord
     private boolean isAllowDealBySyncDataRange(Integer syncDataRange, String syncDrugType, OrganDrugList detail, Integer drugsEnterpriseId) {
         boolean isAllow=false;
         if (syncDataRange == 1) {
