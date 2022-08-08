@@ -75,13 +75,12 @@ public class RecipeDetailBusinessService implements IRecipeDetailBusinessService
         Integer recipeType = validateDetailVO.getRecipeType();
         //处方药物使用天数时间
         String[] recipeDay = configurationClient.recipeDay(organId, recipeType, validateDetailVO.getLongRecipe());
-        //药房信息
-        Map<String, PharmacyTcm> pharmacyCodeMap = pharmacyManager.pharmacyCodeMap(organId);
-        Map<Integer, PharmacyTcm> pharmacyIdMap = pharmacyManager.pharmacyIdMap(organId);
         //查询机构药品
         List<String> organDrugCodeList = validateDetailVO.getRecipeDetails().stream().map(RecipeDetailBean::getOrganDrugCode).distinct().collect(Collectors.toList());
         Map<String, List<OrganDrugList>> organDrugGroup = organDrugListManager.getOrganDrugCode(organId, organDrugCodeList);
-
+        //药房信息
+        Map<Integer, PharmacyTcm> pharmacyIdMap = pharmacyManager.pharmacyIdMap(organId);
+        Integer pharmacyId = pharmacyManager.organDrugPharmacyId(organId, organDrugCodeList);
         //药品名拼接配置
         Map<String, Integer> configDrugNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getDrugNameConfigByDrugType(organId, recipeType));
         //获取嘱托
@@ -101,8 +100,8 @@ public class RecipeDetailBusinessService implements IRecipeDetailBusinessService
                 return;
             }
             //校验药品药房是否变动
-            Integer pharmacyId = PharmacyManager.pharmacyVariation(a.getPharmacyId(), a.getPharmacyCode(), organDrug.getPharmacy(), pharmacyCodeMap);
-            if (null == pharmacyId) {
+            boolean pharmacy = pharmacyManager.pharmacyVariationV1(pharmacyId, organDrug.getPharmacy());
+            if (pharmacy) {
                 a.setValidateStatusText("机构药品药房错误");
                 a.setValidateStatus(RecipeDetailValidateTool.VALIDATE_STATUS_FAILURE);
                 logger.info("RecipeDetailService validateDrug pharmacy OrganDrugCode ：= {}", a.getOrganDrugCode());
@@ -262,8 +261,8 @@ public class RecipeDetailBusinessService implements IRecipeDetailBusinessService
         //续方也会走这里但是 续方要用药品名实时配置
         recipeDetailBean.setDrugDisplaySplicedName(DrugDisplayNameProducer.getDrugName(recipeDetailBean, configDrugNameMap, DrugNameDisplayUtil.getDrugNameConfigKey(recipeType)));
         if (!ValidateUtil.integerIsEmpty(pharmacyId)) {
-            recipeDetailBean.setPharmacyId(pharmacyId);
             PharmacyTcm pharmacyTcm = pharmacyIdMap.get(pharmacyId);
+            recipeDetailBean.setPharmacyId(pharmacyId);
             recipeDetailBean.setPharmacyName(pharmacyTcm.getPharmacyName());
             recipeDetailBean.setPharmacyCode(pharmacyTcm.getPharmacyCode());
         }
