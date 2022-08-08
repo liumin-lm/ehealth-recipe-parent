@@ -792,10 +792,12 @@ public class OrderManager extends BaseManager {
         List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIdList);
         PatientDTO patientDTO = new PatientDTO();
         Integer organId = recipeList.get(0).getClinicOrgan();
-        if(recipeList.get(0).getClinicId() != null){
+        if(recipeList.get(0).getBussSource().equals(2)){
             RevisitBean revisitBean = revisitClient.getRevisitByClinicId(recipeList.get(0).getClinicId());
-            //就诊时间
-            invoiceInfoReqTO.setVisitTime(revisitBean.getRequestTime());
+            if(Objects.nonNull(revisitBean)){
+                //就诊时间
+                invoiceInfoReqTO.setVisitTime(revisitBean.getRequestTime());
+            }
         }
         if(recipeList.size()>0){
             patientDTO = patientService.get(recipeList.get(0).getMpiid());
