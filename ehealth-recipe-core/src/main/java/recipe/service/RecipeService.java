@@ -30,6 +30,7 @@ import com.ngari.home.asyn.service.IAsynDoBussService;
 import com.ngari.opbase.log.mode.DataSyncDTO;
 import com.ngari.opbase.log.service.IDataSyncLogService;
 import com.ngari.patient.ds.PatientDS;
+import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
@@ -50,6 +51,7 @@ import com.ngari.revisit.process.service.IRecipeOnLineRevisitService;
 import ctd.account.UserRoleToken;
 import ctd.net.broadcast.MQHelper;
 import ctd.persistence.DAOFactory;
+import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
 import ctd.spring.AppDomainContext;
@@ -248,7 +250,8 @@ public class RecipeService extends RecipeBaseService {
     private CaManager caManager;
     @Autowired
     private OrganManager organManager;
-
+    @Autowired
+    private OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO;
 
     /**
      * 药师审核不通过
@@ -6107,5 +6110,46 @@ public class RecipeService extends RecipeBaseService {
             LOGGER.error("assembleMultipleSymptom error", e);
         }
         return disease;
+    }
+
+    /**
+     * 药企药品同步配置 机构控件
+     * @param organ
+     * @param startDate
+     * @param endDate
+     * @param createDtSortType
+     * @param start
+     * @param limit
+     * @param drugsEnterpriseId
+     * @return
+     */
+    @RpcService
+    public QueryResult<OrganDTO> queryOrganWithSortByStartAndLimit(OrganDTO organ, Date startDate, Date endDate, String createDtSortType, Integer start, Integer limit,Integer drugsEnterpriseId) {
+        OrganService organDAO = AppContextHolder.getBean("basic.organService",OrganService.class);
+        QueryResult<OrganDTO> organDTOQueryResult = organDAO.queryOrganWithSortByStartAndLimit(organ, startDate, endDate, createDtSortType, start, limit);
+        List<OrganDTO> list=Lists.newArrayList();
+        List<OrganDTO> items = organDTOQueryResult.getItems();
+        //过滤机构配置流转药企
+        List<OrganAndDrugsepRelation> organAndDrugsepRelationList=organAndDrugsepRelationDAO.findByEntId(drugsEnterpriseId);
+        Map<Integer, OrganAndDrugsepRelation> organAndDrugsepRelationMap = organAndDrugsepRelationList.stream().collect(Collectors.toMap(x->x.getOrganId(), x -> x,(k1,k2)->k1));
+        if (!ObjectUtils.isEmpty(items)){
+            for (OrganDTO item : items) {
+                OrganService organService = AppContextHolder.getBean("basic.organService",OrganService.class);
+                if (!ObjectUtils.isEmpty(item.getManageUnit())){
+                    Long organNumFromTo = organService.getOrganNumFromTo(item.getManageUnit() + "%", startDate, endDate);
+                    if (!ObjectUtils.isEmpty(organNumFromTo)){
+                        Long number=organNumFromTo-1;
+                        item.setSubOrganNumber(number.toString());
+                    }
+                }
+                //过滤机构配置流转药企
+                if(organAndDrugsepRelationMap.containsKey(item.getOrganId())){
+                    list.add(item);
+                }
+            }
+            organDTOQueryResult.setItems(list);
+        }
+
+        return organDTOQueryResult;
     }
 }

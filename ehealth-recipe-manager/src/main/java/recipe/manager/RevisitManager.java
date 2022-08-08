@@ -244,7 +244,7 @@ public class RevisitManager extends BaseManager {
      * @param recipe
      * @param remindDates
      */
-    public void remindDrugForRevisit(Recipe recipe, List<LocalDateTime> remindDates){
+    public void remindDrugForRevisit(Recipe recipe, List<LocalDateTime> remindDates, int pushMode){
         if (null == recipe || CollectionUtils.isEmpty(remindDates)) {
             return;
         }
@@ -263,6 +263,5 @@ public class RevisitManager extends BaseManager {
             revisitClient.remindDrugRevisit(revisitBussNoticeDTO);
         });
     }
-
 
 }
