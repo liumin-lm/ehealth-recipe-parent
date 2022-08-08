@@ -6152,4 +6152,47 @@ public class RecipeService extends RecipeBaseService {
 
         return organDTOQueryResult;
     }
+
+    /**
+     * 药企药品同步配置 机构控件
+     * @param organ
+     * @param startDate
+     * @param endDate
+     * @param createDtSortType
+     * @param start
+     * @param limit
+     * @param drugsEnterpriseId
+     * @return
+     */
+    @RpcService
+    public QueryResult<OrganDTO> queryOrganWithSortV2(OrganDTO organ, Date startDate, Date endDate, String createDtSortType, Integer start, Integer limit,Integer drugsEnterpriseId) {
+        OrganService organDAO = AppContextHolder.getBean("basic.organService", OrganService.class);
+        List<OrganAndDrugsepRelation> organAndDrugsepRelationList = organAndDrugsepRelationDAO.findByEntId(drugsEnterpriseId);
+        List<Integer> organIds = organAndDrugsepRelationList.stream().map(OrganAndDrugsepRelation::getOrganId).collect(Collectors.toList());
+        List<OrganDTO> organDTOList = organDAO.findOrgansByOrganIds(organIds);
+        List<OrganDTO> items;
+        if (createDtSortType.equals("desc")) {
+            items = organDTOList.stream().sorted(Comparator.comparing(OrganDTO::getCreateDt).reversed()).collect(Collectors.toList());
+        } else {
+            items = organDTOList.stream().sorted(Comparator.comparing(OrganDTO::getCreateDt)).collect(Collectors.toList());
+        }
+        List<OrganDTO> list = Lists.newArrayList();
+
+        QueryResult<OrganDTO> organDTOQueryResult = new QueryResult<>();
+        if (!ObjectUtils.isEmpty(items)) {
+            for (OrganDTO item : items) {
+                OrganService organService = AppContextHolder.getBean("basic.organService", OrganService.class);
+                if (!ObjectUtils.isEmpty(item.getManageUnit())) {
+                    Long organNumFromTo = organService.getOrganNumFromTo(item.getManageUnit() + "%", startDate, endDate);
+                    if (!ObjectUtils.isEmpty(organNumFromTo)) {
+                        Long number = organNumFromTo - 1;
+                        item.setSubOrganNumber(number.toString());
+                    }
+                }
+                list.add(item);
+            }
+            organDTOQueryResult.setItems(list);
+        }
+        return organDTOQueryResult;
+    }
 }
