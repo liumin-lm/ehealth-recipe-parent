@@ -185,6 +185,7 @@ public class DrugsEnterpriseConfigService {
      */
     @LogRecord
     List<SaleDrugListSyncField> addSaleDrugListSyncFieldForEnterprise(Integer drugsenterpriseId) {
+        logger.info("addSaleDrugListSyncFieldForEnterprise drugsenterpriseId:{}",drugsenterpriseId);
         List<SaleDrugListSyncField> saleDrugListSyncFieldList=new ArrayList<>();
         LinkedHashMap<String,String> fieldMap=initFieldMap();
         LinkedHashMap<String,String> addIsAllowEditFieldMap =initAddIsAllowEditFieldMap();
@@ -209,6 +210,7 @@ public class DrugsEnterpriseConfigService {
                 saleDrugListSyncFieldList.add(saleDrugListSyncField1);
             });
         }
+        logger.info("addSaleDrugListSyncFieldForEnterprise saleDrugListSyncFieldList:{}",JSONUtils.toString(saleDrugListSyncFieldList));
         return saleDrugListSyncFieldList;
     }
 
@@ -221,6 +223,7 @@ public class DrugsEnterpriseConfigService {
         fieldMap.put("price","价格（每售价，不含税）");//无税单价
         fieldMap.put("drugSpec","机构药品规格");
         fieldMap.put("status","使用状态");
+        logger.info("initFieldMap:{}",JSONUtils.toString(fieldMap));
         return fieldMap;
     }
 
@@ -233,6 +236,7 @@ public class DrugsEnterpriseConfigService {
         fieldMap.put("drugSpec","0");
         fieldMap.put("price","0");
         fieldMap.put("status","0");
+        logger.info("initAddIsAllowEditFieldMap:{}",JSONUtils.toString(fieldMap));
         return fieldMap;
     }
 
@@ -245,6 +249,7 @@ public class DrugsEnterpriseConfigService {
         fieldMap.put("drugSpec","1");
         fieldMap.put("price","1");
         fieldMap.put("status","1");
+        logger.info("initUpdateIsAllowEditFieldMap:{}",JSONUtils.toString(fieldMap));
         return fieldMap;
     }
 
@@ -253,11 +258,13 @@ public class DrugsEnterpriseConfigService {
         List<String> typeList=new ArrayList<>();
         typeList.add("1");
         typeList.add("2");
+        logger.info("initTypeList:{}",JSONUtils.toString(typeList));
         return typeList;
     }
 
     @LogRecord
     private synchronized SaleDrugListSyncField addOrUpdateSaleDrugListSyncField(SaleDrugListSyncField saleDrugListSyncField) {
+        logger.info("addOrUpdateSaleDrugListSyncField:{}",JSONUtils.toString(saleDrugListSyncField));
         if (ObjectUtils.isEmpty(saleDrugListSyncField.getDrugsenterpriseId())){
             throw new DAOException(DAOException.VALUE_NEEDED, "药企ID is required");
         }
@@ -278,6 +285,7 @@ public class DrugsEnterpriseConfigService {
                 busActionLogService.recordBusinessLogRpcNew("药企配置管理", "", "SaleDrugListSyncField", "【" + urt.getUserName() + "】新增药企药品同步字段配置【" + JSONUtils.toString(save)
                         +"】", drugsEnterpriseDAO.getById(saleDrugListSyncField.getDrugsenterpriseId()).getName());
             }
+            logger.info("addOrUpdateSaleDrugListSyncField save:{}",JSONUtils.toString(save));
             return save;
         }else {
             checkSaleDrugListSyncField(saleDrugListSyncFieldDb);
@@ -288,6 +296,7 @@ public class DrugsEnterpriseConfigService {
                 busActionLogService.recordBusinessLogRpcNew("药企配置管理", "", "SaleDrugListSyncField", "【" + urt.getUserName() + "】更新药企药品同步字段配置【"+JSONUtils.toString(saleDrugListSyncField)+"】-》【" + JSONUtils.toString(update)
                         +"】", drugsEnterpriseDAO.getById(saleDrugListSyncField.getDrugsenterpriseId()).getName());
             }
+            logger.info("addOrUpdateSaleDrugListSyncField update:{}",JSONUtils.toString(update));
             return update;
         }
     }
