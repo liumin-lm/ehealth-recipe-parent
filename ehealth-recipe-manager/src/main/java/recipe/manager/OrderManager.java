@@ -12,6 +12,7 @@ import com.ngari.infra.logistics.mode.OrganLogisticsManageDto;
 import com.ngari.infra.logistics.service.IOrganLogisticsManageService;
 import com.ngari.patient.dto.AddressDTO;
 import com.ngari.patient.dto.DoctorDTO;
+import com.ngari.patient.dto.HealthCardDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.AddressService;
 import com.ngari.patient.service.DoctorService;
@@ -22,6 +23,7 @@ import com.ngari.platform.recipe.mode.RecipeBean;
 import com.ngari.platform.recipe.mode.RecipeDetailBean;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
+import com.ngari.revisit.RevisitBean;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
@@ -47,6 +49,7 @@ import recipe.util.*;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -789,22 +792,45 @@ public class OrderManager extends BaseManager {
         List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
         List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIdList);
         PatientDTO patientDTO = new PatientDTO();
+        Integer organId = recipeList.get(0).getClinicOrgan();
+        if(recipeList.get(0).getBussSource().equals(2)){
+            RevisitBean revisitBean = revisitClient.getRevisitByClinicId(recipeList.get(0).getClinicId());
+            if(Objects.nonNull(revisitBean)){
+                //就诊时间
+                invoiceInfoReqTO.setVisitTime(revisitBean.getRequestTime());
+            }
+        }
         if(recipeList.size()>0){
             patientDTO = patientService.get(recipeList.get(0).getMpiid());
             invoiceInfoReqTO.setRecipeBean(ObjectCopyUtils.convert(recipeList, RecipeBean.class));
-            invoiceInfoReqTO.setOrganId(recipeList.get(0).getClinicOrgan());
+            invoiceInfoReqTO.setOrganId(organId);
             invoiceInfoReqTO.setPatientId(recipeList.get(0).getPatientID());
         }
         invoiceInfoReqTO.setHisSettlementNo(recipeOrder.getHisSettlementNo());
         invoiceInfoReqTO.setCashAmount(String.valueOf(recipeOrder.getCashAmount()));
         invoiceInfoReqTO.setTotalFee(String.valueOf(recipeOrder.getTotalFee()));
         invoiceInfoReqTO.setChargingStandard(String.valueOf(recipeOrder.getTotalFee()));
-        invoiceInfoReqTO.setPayTime(String.valueOf(recipeOrder.getPayTime()));
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        invoiceInfoReqTO.setPayTime(df.format(recipeOrder.getPayTime()));
+        //就诊流水号
+        invoiceInfoReqTO.setTradeNo(recipeOrder.getTradeNo());
         if(Objects.nonNull(patientDTO)){
+            try {
+                List<HealthCardDTO> healthCardDTOS = patientClient.queryCardsByParam(organId, patientDTO.getMpiId(), new ArrayList<>(Collections.singletonList("2")));
+                logger.info("makeUpInvoice.queryCardsByParam res:{}", JSONUtils.toString(healthCardDTOS));
+                if(CollectionUtils.isNotEmpty(healthCardDTOS)){
+                    //医保卡
+                    invoiceInfoReqTO.setCardId(healthCardDTOS.get(0).getCardId());
+                }
+            } catch (Exception e) {
+                logger.error("queryCardsByParam 获取卡号错误", e);
+            }
             invoiceInfoReqTO.setPatientName(patientDTO.getPatientName());
             invoiceInfoReqTO.setSex(patientDTO.getPatientSex());
             invoiceInfoReqTO.setAge(String.valueOf(patientDTO.getAge()));
             invoiceInfoReqTO.setPhone(patientDTO.getMobile());
+            //身份证号
+            invoiceInfoReqTO.setIdcard(patientDTO.getIdcard());
         }
         List<Recipedetail> recipedetailList = recipeDetailDAO.findByRecipeIds(recipeIdList);
         invoiceInfoReqTO.setRecipeDetailList(ObjectCopyUtils.convert(recipedetailList, RecipeDetailBean.class));
