@@ -137,6 +137,9 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
     public void saveOrganEnterpriseRelation(OrganEnterpriseRelationVo organEnterpriseRelationVo) {
         logger.info("DrugsEnterpriseBusinessService saveOrganEnterpriseRelation organEnterpriseRelationVo={}", JSONArray.toJSONString(organEnterpriseRelationVo));
         OrganAndDrugsepRelation relation = organAndDrugsepRelationDAO.getOrganAndDrugsepByOrganIdAndEntId(organEnterpriseRelationVo.getOrganId(), organEnterpriseRelationVo.getDrugsEnterpriseId());
+        if(organEnterpriseRelationVo.getEnterpriseDrugForm().size() > 20){
+            throw new DAOException("最多支持20种剂型配置");
+        }
         if (Objects.isNull(relation)) {
             throw new DAOException("机构药企关联关系不存在");
         }

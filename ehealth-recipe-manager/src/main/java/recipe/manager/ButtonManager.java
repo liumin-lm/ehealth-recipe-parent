@@ -294,7 +294,7 @@ public class ButtonManager extends BaseManager {
      */
     private Boolean checkSendGiveMode(Integer organId, Integer enterpriseId, List<DrugList> drugLists) {
         OrganAndDrugsepRelation relation = organAndDrugsepRelationDAO.getOrganAndDrugsepByOrganIdAndEntId(organId, enterpriseId);
-        if (StringUtils.isEmpty(relation.getEnterpriseDrugForm())) {
+        if (StringUtils.isEmpty(relation.getEnterpriseDrugForm()) || "null".equals(relation.getEnterpriseDrugForm())) {
             return true;
         }
         List<String> drugFrom = JSONUtils.parse((relation.getEnterpriseDrugForm()), List.class);
