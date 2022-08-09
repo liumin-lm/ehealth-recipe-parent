@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
+import recipe.aop.LogRecord;
 import recipe.dao.*;
 import recipe.service.DrugsEnterpriseConfigService;
 import recipe.thread.RecipeBusiThreadPool;
@@ -447,25 +448,26 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                                 Map<String, SaleDrugListSyncField> saleDrugListSyncFieldMap =saleDrugListSyncFieldList.stream().collect(Collectors.toMap(SaleDrugListSyncField::getFieldCode, Function.identity()));
                                 for(int i=0;i<saleDrugListSyncFieldList.size();i++) {
                                     SaleDrugListSyncField saleDrugListSyncField = saleDrugListSyncFieldList.get(i);
-                                    if ("price".equals(saleDrugListSyncField.getFieldCode()) && "1".equals(saleDrugListSyncField.getIsSync())
+                                    //默认为同步（字段没勾选是否配置或者配置了同步或者表里不存在此跳配置）
+                                    if (("price".equals(saleDrugListSyncField.getFieldCode()) && !"0".equals(saleDrugListSyncField.getIsSync()))
                                             || saleDrugListSyncFieldMap.get("price") == null) {
                                         saleDrugList1.setPrice(detail.getSalePrice());
                                     }
-                                    if ("drugSpec".equals(saleDrugListSyncField.getFieldCode()) && "1".equals(saleDrugListSyncField.getIsSync())
+                                    if (("drugSpec".equals(saleDrugListSyncField.getFieldCode()) && !"0".equals(saleDrugListSyncField.getIsSync()))
                                             || saleDrugListSyncFieldMap.get("drugSpec") == null) {
                                         saleDrugList1.setDrugSpec(detail.getDrugSpec());
                                     }
 
-                                    if ("drugName".equals(saleDrugListSyncField.getFieldCode()) && "1".equals(saleDrugListSyncField.getIsSync())
+                                    if (("drugName".equals(saleDrugListSyncField.getFieldCode()) && !"0".equals(saleDrugListSyncField.getIsSync()))
                                             || saleDrugListSyncFieldMap.get("drugName") == null) {
                                         saleDrugList1.setDrugName(detail.getDrugName());
                                     }
 
-                                    if ("saleName".equals(saleDrugListSyncField.getFieldCode()) && "1".equals(saleDrugListSyncField.getIsSync())
-                                            || saleDrugListSyncFieldMap.get("saleName") == null) {
+                                    if (("saleName".equals(saleDrugListSyncField.getFieldCode()) && (!"0".equals(saleDrugListSyncField.getIsSync())))
+                                            || saleDrugListSyncFieldMap.get("saleName") == null ) {
                                         saleDrugList1.setSaleName(detail.getSaleName());
                                     }
-                                    if ("status".equals(saleDrugListSyncField.getFieldCode()) && "1".equals(saleDrugListSyncField.getIsSync())
+                                    if (("status".equals(saleDrugListSyncField.getFieldCode()) && !"0".equals(saleDrugListSyncField.getIsSync()))
                                             || saleDrugListSyncFieldMap.get("status") == null) {
                                         saleDrugList1.setStatus(detail.getStatus());
                                     }
@@ -661,6 +663,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
      * @param drugsEnterpriseId
      * @return
      */
+    @LogRecord
     private boolean isAllowDealBySyncDataRange(Integer syncDataRange, String syncDrugType, OrganDrugList detail, Integer drugsEnterpriseId) {
         boolean isAllow=false;
         if (syncDataRange == 1) {
@@ -871,6 +874,10 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                             total = details.size();
                             for (OrganDrugList detail : details) {
                                 Map<String, Integer> stringIntegerMap = syncOrganDrugDataToSaleDrugList(detail, config, drugsEnterpriseId);
+                                LOGGER.info("syncSaleOrganDrug药企药品数据同步 配送 " + detail.getDrugName() + " 药企Id=[{}] drug=[{}]", drugsEnterpriseId, JSONUtils.toString(detail));
+                                addNum = addNum + stringIntegerMap.get("addNum");
+                                updateNum = updateNum + stringIntegerMap.get("updateNum");
+                                falseNum = falseNum + stringIntegerMap.get("falseNum");
 
                                 //                                if (config.getSyncDataRange() == 1) {
     //                                    //同步数据范围 配送药企

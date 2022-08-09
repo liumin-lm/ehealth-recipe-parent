@@ -26,7 +26,6 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "订单ID")
     private Integer orderId;
 
-
     @ItemProperty(alias = "订单编号")
     private String orderCode;
 
@@ -273,14 +272,10 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "处方预结算返回HIS收据号")
     private String hisSettlementNo;
 
-    //date 20200311
-    //存储his预校验的用户选中的药企code
-    @ItemProperty(alias = "his推送药企code")
+    @ItemProperty(alias = "his推送药企code(存储his预校验的用户选中的药企code)")
     private String hisEnterpriseCode;
 
-    //date 20200311
-    //存储his预校验的用户选中的药企名
-    @ItemProperty(alias = "his推送药企名")
+    @ItemProperty(alias = "his推送药企名(存储his预校验的用户选中的药企名)")
     private String hisEnterpriseName;
 
     @ItemProperty(alias = "订单所属配送方式")
@@ -288,24 +283,6 @@ public class RecipeOrder implements Serializable {
 
     @ItemProperty(alias = "订单所属配送方式的文案")
     private String giveModeText;
-
-    @Column(name = "HisEnterpriseCode")
-    public String getHisEnterpriseCode() {
-        return hisEnterpriseCode;
-    }
-
-    public void setHisEnterpriseCode(String hisEnterpriseCode) {
-        this.hisEnterpriseCode = hisEnterpriseCode;
-    }
-
-    @Column(name = "HisEnterpriseName")
-    public String getHisEnterpriseName() {
-        return hisEnterpriseName;
-    }
-
-    public void setHisEnterpriseName(String hisEnterpriseName) {
-        this.hisEnterpriseName = hisEnterpriseName;
-    }
 
     @ItemProperty(alias = "订单退款标识 0未退费 1已退费")
     private Integer refundFlag;
@@ -343,7 +320,7 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "支付用户类型:0平台，1机构，2药企")
 
     private Integer payeeCode;
-    @ItemProperty(alias = "是否显示期望配送时间,,默认否 0:否,1:是")
+    @ItemProperty(alias = "是否显示期望配送时间,默认否 0:否,1:是")
     private Integer isShowExpectSendDate;
 
     @ItemProperty(alias = "期望配送时间是否含周末,默认否 0:否,1:是")
@@ -367,16 +344,15 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "医保支付内容")
     private String healthInsurancePayContent;
 
-    //预约取药开始时间
     @ItemProperty(alias = "预约取药开始时间")
     private String expectStartTakeTime;
-    //预约取药结束时间
+
     @ItemProperty(alias = "预约取药结束时间")
     private String expectEndTakeTime;
 
-
     @ItemProperty(alias = "订单父状态：0：默认 ，1：预下单，2：待支付，3：处理中，4：已完成，9：已作废")
     private Integer processState;
+
     @ItemProperty(alias = "订单子状态")
     private Integer subState;
 
@@ -386,8 +362,7 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "中医辨证论治费单号编号")
     private String tcmFeeNo;
 
-    //用户页面选择
-    @ItemProperty(alias = "患者选择是否代煎（ 0:否 1：是）")
+    @ItemProperty(alias = "患者选择是否代煎, 0:否 1：是（用户页面选择）")
     private String patientIsDecoction;
 
     @ItemProperty(alias = "发票记录ID")
@@ -398,6 +373,64 @@ public class RecipeOrder implements Serializable {
 
     @ItemProperty(alias = "结算模式 1 收银台模式")
     private Integer settleMode;
+
+    //todo 默认构造器不要给init默认值啊 此方法慎用
+    @Deprecated
+    public RecipeOrder() {
+        initData();
+    }
+
+    public RecipeOrder(String orderCode) {
+
+    }
+
+    public RecipeOrder(Integer orderId, Integer processState, Integer subState) {
+
+    }
+
+    public void initData() {
+        this.setEffective(1);
+        this.setDivisionFlag(0);
+        //未支付
+        this.setPayFlag(0);
+        BigDecimal zero = BigDecimal.ZERO;
+        this.setCouponFee(zero);
+        this.setExpressFee(zero);
+        this.setDecoctionFee(zero);
+        this.setTcmFee(zero);
+        this.setTotalFee(zero);
+        this.setActualPrice(0d);
+        this.setPushFlag(0);
+        Date now = Calendar.getInstance().getTime();
+        this.setCreateTime(now);
+        this.setLastModifyTime(now);
+        this.setAuditFee(zero);
+        this.setOtherFee(zero);
+        this.setRegisterFee(zero);
+        this.setThirdPayType(0);
+        this.setThirdPayFee(0.00);
+    }
+
+
+    @Id
+    @GeneratedValue(strategy = IDENTITY)
+    @Column(name = "OrderId", unique = true, nullable = false)
+    public Integer getOrderId() {
+        return orderId;
+    }
+
+    public void setOrderId(Integer orderId) {
+        this.orderId = orderId;
+    }
+
+    @Column(name = "OrderCode")
+    public String getOrderCode() {
+        return orderCode;
+    }
+
+    public void setOrderCode(String orderCode) {
+        this.orderCode = orderCode;
+    }
 
     @Column(name = "patient_is_decoction")
     public String getPatientIsDecoction() {
@@ -444,6 +477,24 @@ public class RecipeOrder implements Serializable {
         this.subState = subState;
     }
 
+    @Column(name = "HisEnterpriseCode")
+    public String getHisEnterpriseCode() {
+        return hisEnterpriseCode;
+    }
+
+    public void setHisEnterpriseCode(String hisEnterpriseCode) {
+        this.hisEnterpriseCode = hisEnterpriseCode;
+    }
+
+    @Column(name = "HisEnterpriseName")
+    public String getHisEnterpriseName() {
+        return hisEnterpriseName;
+    }
+
+    public void setHisEnterpriseName(String hisEnterpriseName) {
+        this.hisEnterpriseName = hisEnterpriseName;
+    }
+
     @Column(name = "healthInsurancePayContent")
     public String getHealthInsurancePayContent() {
         return healthInsurancePayContent;
@@ -482,80 +533,6 @@ public class RecipeOrder implements Serializable {
 
     public RecipeOrder(Integer orderId) {
         this.orderId = orderId;
-    }
-
-    //todo 默认构造器不要给init默认值啊 此方法慎用
-    @Deprecated
-    public RecipeOrder() {
-        initData();
-    }
-
-    public RecipeOrder(String orderCode) {
-
-    }
-
-    public RecipeOrder(Integer orderId, Integer processState, Integer subState) {
-
-    }
-
-    public void initData() {
-        this.setEffective(1);
-        this.setDivisionFlag(0);
-        //未支付
-        this.setPayFlag(0);
-        BigDecimal zero = BigDecimal.ZERO;
-        this.setCouponFee(zero);
-        this.setExpressFee(zero);
-        this.setDecoctionFee(zero);
-        this.setTcmFee(zero);
-        this.setTotalFee(zero);
-        this.setActualPrice(0d);
-        this.setPushFlag(0);
-        Date now = Calendar.getInstance().getTime();
-        this.setCreateTime(now);
-        this.setLastModifyTime(now);
-        this.setAuditFee(zero);
-        this.setOtherFee(zero);
-        this.setRegisterFee(zero);
-        this.setThirdPayType(0);
-        this.setThirdPayFee(0.00);
-    }
-
-    @Column(name = "payeeCode")
-    public Integer getPayeeCode() {
-        return payeeCode;
-    }
-
-    public void setPayeeCode(Integer payeeCode) {
-        this.payeeCode = payeeCode;
-    }
-
-    public String getCouponDesc() {
-        return couponDesc;
-    }
-
-    public void setCouponDesc(String couponDesc) {
-        this.couponDesc = couponDesc;
-    }
-
-    @Id
-    @GeneratedValue(strategy = IDENTITY)
-    @Column(name = "OrderId", unique = true, nullable = false)
-    public Integer getOrderId() {
-        return orderId;
-    }
-
-    public void setOrderId(Integer orderId) {
-        this.orderId = orderId;
-    }
-
-    @Column(name = "OrderCode")
-    public String getOrderCode() {
-        return orderCode;
-    }
-
-    public void setOrderCode(String orderCode) {
-        this.orderCode = orderCode;
     }
 
     @Column(name = "MpiId")
@@ -1211,7 +1188,6 @@ public class RecipeOrder implements Serializable {
         return wnPayWay;
     }
 
-
     public void setWnPayWay(String wnPayWay) {
         this.wnPayWay = wnPayWay;
     }
@@ -1272,12 +1248,31 @@ public class RecipeOrder implements Serializable {
         this.sendType = sendType;
     }
 
+    @Column
     public Integer getIsShowExpectSendDate() {
         return isShowExpectSendDate;
     }
 
     public void setIsShowExpectSendDate(Integer isShowExpectSendDate) {
         this.isShowExpectSendDate = isShowExpectSendDate;
+    }
+
+    @Column(name = "payeeCode")
+    public Integer getPayeeCode() {
+        return payeeCode;
+    }
+
+    public void setPayeeCode(Integer payeeCode) {
+        this.payeeCode = payeeCode;
+    }
+
+    @Column
+    public String getCouponDesc() {
+        return couponDesc;
+    }
+
+    public void setCouponDesc(String couponDesc) {
+        this.couponDesc = couponDesc;
     }
 
     @Transient

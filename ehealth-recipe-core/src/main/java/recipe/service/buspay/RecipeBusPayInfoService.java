@@ -1,6 +1,7 @@
 package recipe.service.buspay;
 
 import com.alibaba.fastjson.JSONObject;
+import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Maps;
 import com.ngari.auth.api.service.IAuthExtraService;
@@ -10,9 +11,12 @@ import com.ngari.base.BaseAPI;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
+import com.ngari.common.mode.HisResponseTO;
 import com.ngari.consult.ConsultAPI;
 import com.ngari.consult.common.model.ConsultExDTO;
 import com.ngari.consult.common.service.IConsultExService;
+import com.ngari.his.recipe.mode.RecipeCashPreSettleInfo;
+import com.ngari.his.recipe.mode.RecipeCashPreSettleReqTO;
 import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
 import com.ngari.recipe.RecipeAPI;
@@ -48,6 +52,7 @@ import eh.entity.bus.pay.BusTypeEnum;
 import eh.entity.bus.pay.ConfirmOrder;
 import eh.entity.bus.pay.SimpleBusObject;
 import eh.entity.mpi.Patient;
+import eh.utils.BeanCopyUtils;
 import eh.utils.MapValueUtil;
 import eh.wxpay.constant.PayConstant;
 import org.apache.commons.collections.CollectionUtils;
@@ -62,6 +67,7 @@ import recipe.aop.LogRecord;
 import recipe.client.DepartClient;
 import recipe.client.IConfigurationClient;
 import recipe.client.RevisitClient;
+import recipe.constant.RecipeBussConstant;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeExtendDAO;
@@ -69,14 +75,18 @@ import recipe.dao.RecipeOrderDAO;
 import recipe.enumerate.status.GiveModeEnum;
 import recipe.enumerate.type.ForceCashTypeEnum;
 import recipe.enumerate.type.MedicalTypeEnum;
+import recipe.hisservice.RecipeToHisService;
 import recipe.manager.ButtonManager;
 import recipe.manager.DepartManager;
 import recipe.manager.EnterpriseManager;
 import recipe.manager.RecipeOrderPayFlowManager;
 import recipe.service.PayModeGiveModeUtil;
+import recipe.service.RecipeLogService;
+import recipe.service.RecipeOrderService;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.serviceprovider.recipeorder.service.RemoteRecipeOrderService;
 import recipe.third.HztServiceInterface;
+import recipe.util.JsonUtil;
 import recipe.util.ObjectCopyUtils;
 import com.ngari.pay.api.service.bus.IBusPayService;
 
@@ -90,7 +100,7 @@ import java.util.stream.Collectors;
  * base里的处方业务支付信息放到recipe里处理
  */
 @RpcBean
-public class RecipeBusPayInfoService implements IRecipeBusPayService,IBusPayService {
+public class RecipeBusPayInfoService implements IRecipeBusPayService, IBusPayService {
 
     private static final Logger log = LoggerFactory.getLogger(RecipeBusPayInfoService.class);
 
@@ -431,8 +441,8 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService,IBusPayServ
                 simpleBusObject.setDepartName(StringUtils.isNotEmpty(departName) ? departName : "");
             }
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(busId);
-            if(Objects.nonNull(recipeExtend)){
-                if(StringUtils.isNotEmpty(recipeExtend.getTerminalId())){
+            if (Objects.nonNull(recipeExtend)) {
+                if (StringUtils.isNotEmpty(recipeExtend.getTerminalId())) {
                     simpleBusObject.setTerminalId(recipeExtend.getTerminalId());
                 }
             }
@@ -461,7 +471,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService,IBusPayServ
             if (recipeExtend != null) {
                 simpleBusObject.setCardId(recipeExtend.getCardNo());
                 simpleBusObject.setCardType(recipeExtend.getCardType());
-                if(StringUtils.isNotEmpty(recipeExtend.getTerminalId())){
+                if (StringUtils.isNotEmpty(recipeExtend.getTerminalId())) {
                     simpleBusObject.setTerminalId(recipeExtend.getTerminalId());
                 }
             }
@@ -972,6 +982,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService,IBusPayServ
 
     /**
      * 医保预结算/结算所需业务入参查询（基础服务调用）
+     *
      * @param recipeId
      * @return
      */
@@ -981,20 +992,20 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService,IBusPayServ
         log.info("RecipeBusPayInfoService medicalPreSettleQueryInfo recipeId={}", recipeId);
         MedicalPreSettleQueryReq medicalPreSettleQueryReq = new MedicalPreSettleQueryReq();
         Recipe recipe = recipeDAO.get(recipeId);
-        if(Objects.isNull(recipe)){
+        if (Objects.isNull(recipe)) {
             throw new DAOException("未获取到处方信息！");
         }
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
-        if(Objects.isNull(recipeExtend)){
+        if (Objects.isNull(recipeExtend)) {
             throw new DAOException("未获取到处方扩展信息！");
         }
         try {
             medicalPreSettleQueryReq.setOrganId(recipe.getClinicOrgan());
             medicalPreSettleQueryReq.setMrn(recipeExtend.getMedicalRecordNumber());
             medicalPreSettleQueryReq.setClinicNo(recipeExtend.getRegisterID());
-            if(StringUtils.isNotEmpty(recipe.getOrderCode())){
+            if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
                 RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
-                if(Objects.isNull(recipeOrder)){
+                if (Objects.isNull(recipeOrder)) {
                     throw new DAOException("未获取到处方订单信息！");
                 }
                 medicalPreSettleQueryReq.setHisSettlementNo(recipeOrder.getHisSettlementNo());
@@ -1003,7 +1014,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService,IBusPayServ
                 String recipeNos = recipeIdList.replace(",", "|");
                 medicalPreSettleQueryReq.setRecipeNos(recipeNos);
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             log.error("RecipeBusPayInfoService medicalPreSettleQueryInfo error", e);
         }
         return medicalPreSettleQueryReq;
@@ -1012,6 +1023,107 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService,IBusPayServ
     @Override
     @LogRecord
     public SelfPreSettleQueryReq selfPreSettleQueryInfo(Integer busId) {
-        return null;
+        SelfPreSettleQueryReq selfPreSettleQueryReq = new SelfPreSettleQueryReq();
+        RecipeOrder recipeOrder = recipeOrderDAO.get(busId);
+        List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
+
+        if (recipeOrder == null) {
+            throw new DAOException("订单信息不存在");
+        }
+        List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIdList);
+        if (CollectionUtils.isEmpty(recipeIdList)) {
+            throw new DAOException("处方信息不存在");
+        }
+        Recipe recipe = recipeList.get(0);
+        try {
+            RecipeCashPreSettleReqTO request = new RecipeCashPreSettleReqTO();
+            //购药方式
+            if (GiveModeEnum.GIVE_MODE_HOME_DELIVERY.getType().equals(recipe.getGiveMode())) {
+                //配送到家
+                request.setDeliveryType("1");
+            } else if (GiveModeEnum.GIVE_MODE_HOSPITAL_DRUG.getType().equals(recipe.getGiveMode())) {
+                //到院取药
+                request.setDeliveryType("0");
+            }
+            RecipeExtend ext = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+            if (ext != null && StringUtils.isNotEmpty(ext.getIllnessType())) {
+                // 大病标识
+                request.setIllnessType(ext.getIllnessType());
+
+            }
+
+            List<String> recipeCodeS = recipeList.stream().map(Recipe::getRecipeCode).collect(Collectors.toList());
+            String join = Joiner.on(",").join(recipeCodeS);
+            List<String> list = Arrays.asList(join.split(","));
+            request.setHisRecipeNoS(list);
+            request.setClinicOrgan(recipe.getClinicOrgan());
+            request.setRecipeId(String.valueOf(recipe.getRecipeId()));
+            request.setHisRecipeNo(recipe.getRecipeCode());
+            //患者信息
+            PatientService patientService = BasicAPI.getService(PatientService.class);
+            PatientDTO patientBean = patientService.get(recipe.getMpiid());
+            request.setPatientName(patientBean.getPatientName());
+            request.setIdcard(patientBean.getIdcard());
+            request.setCertificate(patientBean.getCertificate());
+            request.setCertificateType(patientBean.getCertificateType());
+            request.setMobile(patientBean.getMobile());
+            request.setPatientId(recipe.getPatientID());
+            request.setDepartId(null != recipe.getDepart() ? recipe.getDepart().toString() : "");
+            RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
+
+
+            try {
+                if (Objects.nonNull(recipeOrder)) {
+                    request.setRegisterFee(recipeOrder.getRegisterFee());
+                    request.setRegisterFeeNo(recipeOrder.getRegisterFeeNo());
+                    request.setTcmFee(recipeOrder.getTcmFee());
+                    request.setTcmFeeNo(recipeOrder.getTcmFeeNo());
+                    request.setOrderCode(recipeOrder.getOrderCode());
+                }
+            } catch (Exception e) {
+                log.error("MedicalPreSettleService 代缴费用有误");
+            }
+
+            RecipeExtend ext2 = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+            if (ext2 != null) {
+                if (StringUtils.isNotEmpty(ext2.getRegisterID())) {
+                    request.setRegisterID(ext2.getRegisterID());
+                }
+            }
+
+            log.info("selfPreSettleQueryInfo busId={} req={}", busId, JSONUtils.toString(request));
+            HisResponseTO<RecipeCashPreSettleInfo> hisResult = service.recipeCashPreSettleHis(request);
+            log.info("selfPreSettleQueryInfo busId={} res={}", busId, JSONUtils.toString(hisResult));
+            if (hisResult != null && "200".equals(hisResult.getMsgCode())) {
+                if (hisResult.getData() != null) {
+                    //总金额
+                    String totalAmount = hisResult.getData().getZje();
+                    String accountBalance = hisResult.getData().getZhye();
+                    String rechargeAmount = hisResult.getData().getZhzf();
+                    //his收据号
+                    String hisSettlementNo = hisResult.getData().getSjh();
+                    selfPreSettleQueryReq.setOrganId(recipe.getClinicOrgan());
+                    selfPreSettleQueryReq.setOutTradeNo(recipeOrder.getOutTradeNo());
+                     //获取就诊卡号--一般来说处方里已经保存了复诊里的就诊卡号了取不到再从复诊里取
+                    RecipeBean recipeBean = BeanCopyUtils.copyProperties(recipe, RecipeBean::new);
+                    selfPreSettleQueryReq.setMrn(getMrnForRecipe(recipeBean));
+
+                    selfPreSettleQueryReq.setHisSettlementNo(hisSettlementNo);
+                    selfPreSettleQueryReq.setTotalAmount(new BigDecimal(totalAmount));
+                    selfPreSettleQueryReq.setAccountBalance(new BigDecimal(accountBalance));
+                    selfPreSettleQueryReq.setRechargeAmount(new BigDecimal(rechargeAmount));
+                    selfPreSettleQueryReq.setRecipeNos(join);
+                    List<String> supportRecharge = configurationClient.getValueListCatch(recipe.getClinicOrgan(), "supportRecharge", null);
+                    Boolean supportRecipeRecharge = supportRecharge.contains("recipe");
+                    //是否支持就诊卡充值支付
+                    Integer supportRecipeRechargeFlag = supportRecipeRecharge ? 1 : 0;
+                    selfPreSettleQueryReq.setIsInHosPay(supportRecipeRechargeFlag);
+                }
+
+            }
+        } catch (Exception e) {
+            log.error("selfPreSettleQueryInfo busId={} error", busId, e);
+        }
+        return selfPreSettleQueryReq;
     }
 }

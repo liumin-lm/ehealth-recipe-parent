@@ -1,62 +1,12 @@
+include: 
+  - project: basic/ngari-ci-template
+    ref: master
+    file: '.ngari-ci-script-template.yml'
 variables:
+  Type: "api,jar"
+  BuildApiOnly: "False"
+  BuildApi: "True"
+  BuildImage: "True"
   AppName: "ehealth-recipe"
-
-stages:
-  - build
-  - deploy
-
-
-build-api:
-  stage: build
-  only:
-    - /^feature[\d]{8}$/
-    - /^featurefix[\d]{8}$/
-    - /^hotfix[\d]{8}$/
-    - /^health[\d]{8}$/
-    - /^healthfix[\d]{8}$/
-    - /^basic[\d]{8}$/
-    - /^basicfix[\d]{8}$/
-    - master
-  except:
-    - latest-release-m
-    - /^feature[\d]{8}_.*$/
-    - /^featurefix[\d]{8}_.*$/
-    - /^hotfix[\d]{8}_.*$/
-    - /^health[\d]{8}_.*$/
-    - /^healthfix[\d]{8}_.*$/
-    - /^basic[\d]{8}_.*$/
-    - /^basicfix[\d]{8}_.*$/
-  script:
-    - 'mvn clean deploy -pl ehealth-recipe-api -am -Dmaven.test.skip=true -U -e'
-
-  tags:
-    - build-jar
-  allow_failure: false
-
-package:
-  stage: build
-  only:
-    - /^feature[\d]{8}$/
-    - /^featurefix[\d]{8}$/
-    - /^hotfix[\d]{8}$/
-    - /^health[\d]{8}$/
-    - /^healthfix[\d]{8}$/
-    - /^basic[\d]{8}$/
-    - /^basicfix[\d]{8}$/
-    - master
-  except:
-    - latest-release-m
-    - /^feature[\d]{8}_.*$/
-    - /^featurefix[\d]{8}_.*$/
-    - /^hotfix[\d]{8}_.*$/
-    - /^health[\d]{8}_.*$/
-    - /^healthfix[\d]{8}_.*$/
-    - /^basic[\d]{8}_.*$/
-    - /^basicfix[\d]{8}_.*$/
-  script:
-    - 'mvn clean package -Dpackaging=jar -e -U -Dmaven.test.skip=true -Ppro'
-    - '/bin/bash /usr/bin/build_image.sh ${AppName} ${CI_COMMIT_SHORT_SHA}'
-    - 'python /usr/bin/push_to_xops.py ${AppName} ${CI_COMMIT_REF_NAME} ${CI_COMMIT_SHORT_SHA} ${CI_PIPELINE_ID}'
-  tags:
-    - image-build
-  allow_failure: false
+  ApiName: "ehealth-recipe-api"
+  PackageName: ""

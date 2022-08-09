@@ -47,5 +47,8 @@ public abstract class SaleDrugListSyncFieldDAO extends HibernateSupportDelegateD
     @DAOMethod(sql = "from SaleDrugListSyncField where drugsenterpriseId=:drugsenterpriseId and fieldCode=:fieldCode and type=:type")
     public abstract SaleDrugListSyncField getByDrugsenterpriseIdAndFieldCodeAndType(@DAOParam("drugsenterpriseId") int drugsenterpriseId,@DAOParam("fieldCode") String fieldCode,@DAOParam("type") String type);
 
+    @DAOMethod(sql = "from SaleDrugListSyncField where drugsenterpriseId=:drugsenterpriseId and fieldCode=:fieldCode and type=:type order by updateTime desc")
+    public abstract List<SaleDrugListSyncField>  findByDrugsenterpriseIdAndFieldCodeAndType(@DAOParam("drugsenterpriseId") int drugsenterpriseId,@DAOParam("fieldCode") String fieldCode,@DAOParam("type") String type);
+
 
 }
