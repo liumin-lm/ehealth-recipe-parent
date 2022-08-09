@@ -1,6 +1,8 @@
 package recipe.audit.service;
 
 import com.google.common.collect.Maps;
+import com.ngari.base.dto.UsePathwaysDTO;
+import com.ngari.base.dto.UsingRateDTO;
 import com.ngari.base.organ.model.OrganBean;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.patient.dto.AppointDepartDTO;
@@ -44,6 +46,7 @@ import recipe.ApplicationUtils;
 import recipe.aop.LogRecord;
 import recipe.bussutil.AESUtils;
 import recipe.client.DoctorClient;
+import recipe.client.DrugClient;
 import recipe.client.RecipeAuditClient;
 import recipe.constant.*;
 import recipe.dao.*;
@@ -95,6 +98,9 @@ public class OperationPlatformRecipeService {
     private EnterpriseManager enterpriseManager;
     @Autowired
     private IAuditMedicinesService iAuditMedicinesService;
+    @Autowired
+    private DrugClient drugClient;
+
 
     /**
      * 审核平台 获取处方单详情
@@ -322,6 +328,14 @@ public class OperationPlatformRecipeService {
         try {
             Integer organId = recipe.getClinicOrgan();
             for (Recipedetail recipedetail : details) {
+                UsingRateDTO usingRateDTO = drugClient.usingRate(organId, recipedetail.getOrganUsingRate());
+                if (null != usingRateDTO) {
+                    recipedetail.setUsingRateId(String.valueOf(usingRateDTO.getId()));
+                }
+                UsePathwaysDTO usePathwaysDTO = drugClient.usePathways(recipe.getClinicOrgan(), recipedetail.getOrganUsePathways(), recipedetail.getDrugType());
+                if (null != usePathwaysDTO) {
+                    recipedetail.setUsePathwaysId(String.valueOf(usePathwaysDTO.getId()));
+                }
                 Integer drugId = recipedetail.getDrugId();
                 List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(drugId, organId);
                 if (CollectionUtils.isNotEmpty(organDrugLists)) {
