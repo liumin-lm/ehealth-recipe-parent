@@ -51,6 +51,7 @@ public class DrugRemindRevisitService {
         recipes.forEach(recipe -> {
             List<Recipedetail> recipeDetails = recipeDetailMap.get(recipe.getRecipeId());
             //筛选出用药天数最小的日期
+            recipeDetails = recipeDetails.stream().filter(x -> x.getUseDays() > 4).collect(Collectors.toList());
             Recipedetail minRecipeDetail = recipeDetails.stream().min(Comparator.comparing(Recipedetail::getUseDays)).orElse(null);
             if (null == minRecipeDetail) {
                 return;

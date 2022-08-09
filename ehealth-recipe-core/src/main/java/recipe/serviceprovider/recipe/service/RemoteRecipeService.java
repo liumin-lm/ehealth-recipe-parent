@@ -3152,8 +3152,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     public void takeOutCabinetNoticeByAdmin(Recipe recipe,CabinetVO cabinetVO) {
 
         SmsInfoBean smsInfoBean=new SmsInfoBean();
-        smsInfoBean.setBusType("recipeTakeOutByAdmin");
-        smsInfoBean.setSmsType("recipeTakeOutByAdmin");
+        smsInfoBean.setBusType("RecipeTakeOutByAdmin");
+        smsInfoBean.setSmsType("RecipeTakeOutByAdmin");
         smsInfoBean.setBusId(recipe.getRecipeId());
         smsInfoBean.setOrganId(recipe.getClinicOrgan());
         smsInfoBean.setExtendValue(JSONUtils.toString(cabinetVO));
