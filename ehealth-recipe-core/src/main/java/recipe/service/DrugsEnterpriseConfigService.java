@@ -301,10 +301,7 @@ public class DrugsEnterpriseConfigService {
         if (ObjectUtils.isEmpty(saleDrugListSyncField.getIsSync())){
             saleDrugListSyncField.setIsSync("1");
         }
-        if (ObjectUtils.isEmpty(saleDrugListSyncField.getUpdateTime())){
-            saleDrugListSyncField.setUpdateTime(new Date());
-        }
-
+        saleDrugListSyncField.setUpdateTime(new Date());
     }
 
 
