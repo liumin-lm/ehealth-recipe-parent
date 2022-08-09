@@ -263,7 +263,7 @@ public class DrugsEnterpriseConfigService {
     }
 
     @LogRecord
-    private synchronized SaleDrugListSyncField addOrUpdateSaleDrugListSyncField(SaleDrugListSyncField saleDrugListSyncField) {
+    private  SaleDrugListSyncField addOrUpdateSaleDrugListSyncField(SaleDrugListSyncField saleDrugListSyncField) {
         logger.info("addOrUpdateSaleDrugListSyncField:{}",JSONUtils.toString(saleDrugListSyncField));
         if (ObjectUtils.isEmpty(saleDrugListSyncField.getDrugsenterpriseId())){
             throw new DAOException(DAOException.VALUE_NEEDED, "药企ID is required");
