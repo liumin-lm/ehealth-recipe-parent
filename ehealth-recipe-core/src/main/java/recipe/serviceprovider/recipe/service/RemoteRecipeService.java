@@ -3110,16 +3110,17 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             throw new DAOException(609,"当前处方单未找到");
         }
 
-        //存储药柜取药码+取药地址重置成空
-        Map<String, String> changeAttr= Maps.newHashMap();
-        changeAttr.put("medicineCode","");
-        changeAttr.put("medicineAddress","");
-        recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(),changeAttr);
-
         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "药品从药柜取出，取药角色："+role);
 
         //管理员拿出
         if("admin".equals(role)){
+            //存储药柜取药码+取药地址重置成空
+            Map<String, String> changeAttr= Maps.newHashMap();
+            changeAttr.put("medicineCode","");
+            changeAttr.put("medicineAddress","");
+
+            recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(),changeAttr);
+
             takeOutCabinetNoticeByAdmin(recipe,cabinetVO);
         }else {
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
