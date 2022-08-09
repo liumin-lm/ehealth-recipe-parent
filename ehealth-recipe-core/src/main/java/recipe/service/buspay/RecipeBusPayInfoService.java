@@ -1107,7 +1107,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService, IBusPaySer
                      //获取就诊卡号--一般来说处方里已经保存了复诊里的就诊卡号了取不到再从复诊里取
                     RecipeBean recipeBean = BeanCopyUtils.copyProperties(recipe, RecipeBean::new);
                     selfPreSettleQueryReq.setMrn(getMrnForRecipe(recipeBean));
-                    selfPreSettleQueryReq.setClinicNo(String.valueOf(recipe.getClinicId()));
+
                     selfPreSettleQueryReq.setHisSettlementNo(hisSettlementNo);
                     selfPreSettleQueryReq.setTotalAmount(new BigDecimal(totalAmount));
                     selfPreSettleQueryReq.setAccountBalance(new BigDecimal(accountBalance));
