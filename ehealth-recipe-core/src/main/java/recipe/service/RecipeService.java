@@ -1701,7 +1701,7 @@ public class RecipeService extends RecipeBaseService {
             orderService.updateOrderInfo(recipe.getOrderCode(), ImmutableMap.of("status", status), resultBean);
         }
         StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
-        stateManager.audit(recipe, RecipeStateEnum.PROCESS_STATE_AUDIT, RecipeStateEnum.SUB_AUDIT_READY_DONE);
+        stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_AUDIT, RecipeStateEnum.SUB_AUDIT_READY_DONE);
         // 病历处方-状态修改成显示
         try {
             DocIndexClient docIndexClient = AppContextHolder.getBean("docIndexClient", DocIndexClient.class);

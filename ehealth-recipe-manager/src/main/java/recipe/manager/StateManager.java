@@ -72,12 +72,14 @@ public class StateManager extends BaseManager {
                 break;
             case NONE:
             case PROCESS_STATE_DONE:
-            case PROCESS_STATE_ORDER:
                 result = this.defaultRecipe(recipe, processState, subState);
                 break;
             case PROCESS_STATE_DELETED:
             case PROCESS_STATE_CANCELLATION:
                 result = this.cancellation(recipe, processState, subState);
+                break;
+            case PROCESS_STATE_ORDER:
+                result = this.readySubmitOrder(recipe, processState, subState);
                 break;
             default:
                 result = false;
@@ -88,6 +90,17 @@ public class StateManager extends BaseManager {
     }
 
     /**
+     * 待购药
+     * @param recipe
+     * @param processState
+     * @param subState
+     * @return
+     */
+    private Boolean readySubmitOrder(Recipe recipe, RecipeStateEnum processState, RecipeStateEnum subState){
+        return true;
+    }
+
+    /**
      * 待审核处方
      *
      * @param recipe
@@ -95,7 +108,7 @@ public class StateManager extends BaseManager {
      * @param subState
      * @return
      */
-    public Boolean audit(Recipe recipe, RecipeStateEnum processState, RecipeStateEnum subState) {
+    private Boolean audit(Recipe recipe, RecipeStateEnum processState, RecipeStateEnum subState) {
         Recipe updateRecipe = new Recipe();
         updateRecipe.setRecipeId(recipe.getRecipeId());
         updateRecipe.setProcessState(processState.getType());

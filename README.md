@@ -43,5 +43,6 @@ getPatientRecipeById 患者端处方详情
 门诊处方用药指导：recipe.outRecipePatientAtop getMedicationGuide
 审核不通过，二次审核等操作：doAfterCheckNotPassYs
 扁鹊回传处方状态接口：recipeStatusNotice
+医生二次签名/审核强制通过 doSecondSignRecipe
 ```
 ### End
