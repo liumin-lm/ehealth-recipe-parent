@@ -113,4 +113,6 @@ public abstract class CommonRecipeDAO extends HibernateSupportDelegateDAO<Common
     public abstract List<CommonRecipe> findByName(@DAOParam("doctorId") Integer doctorId, @DAOParam("commonRecipeName") String commonRecipeName);
 
 
+    @DAOMethod(sql = "from CommonRecipe where commonRecipeId=:commonRecipeId")
+    public abstract CommonRecipe getByCommonRecipeId(@DAOParam("commonRecipeId") Integer commonRecipeId);
 }

@@ -62,6 +62,16 @@ public class CommonRecipeManager extends BaseManager {
     private OfflineRecipeClient offlineRecipeClient;
 
     /**
+     * 查询常用方头部数据
+     *
+     * @param commonRecipeId
+     * @return
+     */
+    public CommonRecipe getByCommonRecipeId(Integer commonRecipeId) {
+        return commonRecipeDAO.getByCommonRecipeId(commonRecipeId);
+    }
+
+    /**
      * 新增常用方信息
      *
      * @param commonRecipe    常用方
@@ -135,6 +145,16 @@ public class CommonRecipeManager extends BaseManager {
             return new HashMap<>();
         }
         return list.stream().collect(Collectors.toMap(CommonRecipeExt::getCommonRecipeId, a -> a, (k1, k2) -> k1));
+    }
+
+    /**
+     * 获取扩展表数据
+     *
+     * @param commonRecipeId
+     * @return
+     */
+    public CommonRecipeExt commonRecipeExt(Integer commonRecipeId) {
+        return commonRecipeExtDAO.getByCommonRecipeId(commonRecipeId);
     }
 
     /**
