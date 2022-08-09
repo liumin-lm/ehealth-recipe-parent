@@ -48,6 +48,7 @@ import recipe.client.IConfigurationClient;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.enumerate.status.OfflineToOnlineEnum;
+import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.status.SettleAmountStateEnum;
 import recipe.enumerate.type.GiveModeTextEnum;
@@ -522,7 +523,9 @@ public class PurchaseService {
                 recipeManager.updateRecipeDetailSalePrice(recipeList, Integer.valueOf(depId));
             }
             //处理处方父子状态
-
+            recipeIds.forEach(recipeId->{
+                stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_ORDER, RecipeStateEnum.SUB_ORDER_HAD_SUBMIT_ORDER);
+            });
             // 根据paymode 换算givemode
             Integer giveMode = PayModeGiveModeUtil.getGiveMode(payMode);
             IPurchaseService purchaseService = getService(giveMode);
