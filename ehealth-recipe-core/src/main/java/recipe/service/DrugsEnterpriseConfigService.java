@@ -159,6 +159,7 @@ public class DrugsEnterpriseConfigService {
                 config.setEnable_drug_sync(1);
                 DrugsEnterpriseConfig config1 = addOrUpdateDrugsEnterpriseConfig(config);
                 if (CollectionUtils.isEmpty(saleDrugListSyncFieldListDb)){
+                    logger.info("getConfigByDrugsenterpriseId 新增配置1");
                     config1.setSaleDrugListSyncFieldList(addSaleDrugListSyncFieldForEnterprise(drugsenterpriseId));
                 }else{
                     byDrugsenterpriseId.setSaleDrugListSyncFieldList(saleDrugListSyncFieldListDb);
@@ -167,6 +168,7 @@ public class DrugsEnterpriseConfigService {
 
         }else{
             if (CollectionUtils.isEmpty(saleDrugListSyncFieldListDb)){
+                logger.info("getConfigByDrugsenterpriseId 新增配置2 ");
                 byDrugsenterpriseId.setSaleDrugListSyncFieldList(addSaleDrugListSyncFieldForEnterprise(drugsenterpriseId));
             }else{
                 byDrugsenterpriseId.setSaleDrugListSyncFieldList(saleDrugListSyncFieldListDb);
@@ -255,7 +257,7 @@ public class DrugsEnterpriseConfigService {
     }
 
     @LogRecord
-    private SaleDrugListSyncField addOrUpdateSaleDrugListSyncField(SaleDrugListSyncField saleDrugListSyncField) {
+    private synchronized SaleDrugListSyncField addOrUpdateSaleDrugListSyncField(SaleDrugListSyncField saleDrugListSyncField) {
         if (ObjectUtils.isEmpty(saleDrugListSyncField.getDrugsenterpriseId())){
             throw new DAOException(DAOException.VALUE_NEEDED, "药企ID is required");
         }
