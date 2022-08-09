@@ -38,23 +38,23 @@ import ctd.util.annotation.RpcService;
 import ctd.util.event.GlobalEventExecFactory;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.checkerframework.checker.units.qual.A;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
+import recipe.aop.LogRecord;
 import recipe.constant.ErrorCode;
 import recipe.dao.*;
 import recipe.dao.bean.DrugListAndOrganDrugList;
 import recipe.drugTool.service.DrugToolService;
 import recipe.drugsenterprise.ByRemoteService;
-//import recipe.manager.SaleDrugListManager;
-import recipe.thread.RecipeBusiThreadPool;
 
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.util.*;
+
+//import recipe.manager.SaleDrugListManager;
 
 /**
  * @author zhongzx
@@ -140,6 +140,7 @@ public class OrganDrugListService implements IOrganDrugListService {
      *
      * @param organDrugList
      */
+    @LogRecord
     public void organDrugSyncDelete(OrganDrugList organDrugList, Integer status) {
         DrugToolService bean = AppDomainContext.getBean("eh.drugToolService", DrugToolService.class);
         List<OrganDrugList> lists = Lists.newArrayList();
@@ -226,6 +227,7 @@ public class OrganDrugListService implements IOrganDrugListService {
      * @param organDrugListId 入参药品参数
      */
     @RpcService
+    @LogRecord
     public void deleteOrganDrugListById(Integer organDrugListId) {
         if (organDrugListId == null) {
             throw new DAOException(DAOException.VALUE_NEEDED, "organDrugId is required");
