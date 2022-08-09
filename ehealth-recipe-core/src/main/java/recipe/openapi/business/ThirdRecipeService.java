@@ -47,6 +47,7 @@ import recipe.vo.patient.RecipeGiveModeButtonRes;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author yinsheng
@@ -126,6 +127,11 @@ public class ThirdRecipeService {
                     recipeAndRecipeDetailsBean.setTrackingNumber(patientTabStatusRecipeDTO.getTrackingNumber());
                     List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(patientTabStatusRecipeDTO.getRecipeId());
                     List<ThirdRecipeDetailBean> recipeDetailBeans = ObjectCopyUtils.convert(recipeDetailList, ThirdRecipeDetailBean.class);
+                    //TODO 由于drugCost已经定义为double，现在不改字段类型了，先进行转换
+                    Map<Integer, Recipedetail> recipeDetailMap = recipeDetailList.stream().collect(Collectors.toMap(Recipedetail::getRecipeDetailId,a->a,(k1,k2)->k1));
+                    recipeDetailBeans.forEach(recipeDetail->{
+                        recipeDetail.setDrugCost(recipeDetailMap.get(recipeDetail.getRecipeDetailId()).getDrugCost().doubleValue());
+                    });
                     recipeAndRecipeDetailsBean.setRecipeDetailBeans(recipeDetailBeans);
                     recipeAndRecipeDetailsBeans.add(recipeAndRecipeDetailsBean);
                 }
