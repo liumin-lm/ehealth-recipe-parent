@@ -620,12 +620,18 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         logger.info("StockBusinessService drugsEnterprisePriority recipe:{},enterpriseStock:{}", recipe.getRecipeId(), JSON.toJSONString(enterpriseStock));
         //对药企优先级进行处理
         try {
-            List<DrugsEnterprise> subDepList = enterpriseStock.stream().filter(EnterpriseStock::getStock).map(EnterpriseStock::getDrugsEnterprise).collect(Collectors.toList());
+            List<DrugsEnterprise> subDepList = enterpriseStock.stream().filter(EnterpriseStock::getStock).map(EnterpriseStock::getDrugsEnterprise).filter(drugsEnterprise -> Objects.nonNull(drugsEnterprise)).collect(Collectors.toList());
             logger.info("StockBusinessService drugsEnterprisePriority drugsEnterpriseList:{}", JSON.toJSONString(subDepList));
             if (CollectionUtils.isNotEmpty(subDepList)) {
                 List<DrugsEnterprise> drugsEnterpriseList = enterpriseManager.enterprisePriorityLevel(recipe.getClinicOrgan(), subDepList);
                 List<Integer> drugsEnterpriseIds = drugsEnterpriseList.stream().map(DrugsEnterprise::getId).collect(Collectors.toList());
-                enterpriseStock = enterpriseStock.stream().filter(a -> drugsEnterpriseIds.contains(a.getDrugsEnterpriseId())).collect(Collectors.toList());
+                Iterator<EnterpriseStock> iterator = enterpriseStock.iterator();
+                while (iterator.hasNext()) {
+                    EnterpriseStock enterpriseStock1 = iterator.next();
+                    if (null != enterpriseStock1.getDrugsEnterpriseId() && !drugsEnterpriseIds.contains(enterpriseStock1.getDrugsEnterpriseId())) {
+                        iterator.remove();
+                    }
+                }
             }
         } catch (Exception e) {
             logger.error("StockBusinessService drugsEnterprisePriority error", e);
