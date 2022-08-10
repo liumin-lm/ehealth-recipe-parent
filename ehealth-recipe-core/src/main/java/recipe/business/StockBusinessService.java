@@ -633,13 +633,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
                     logger.info("StockBusinessService drugsEnterprisePriority drugsEnterpriseList PriorityLevel:{}", JSON.toJSONString(drugsEnterpriseList));
                     List<Integer> drugsEnterpriseIds = drugsEnterpriseList.stream().map(DrugsEnterprise::getId).collect(Collectors.toList());
                     logger.info("StockBusinessService drugsEnterprisePriority drugsEnterpriseIds:{}", JSON.toJSONString(drugsEnterpriseIds));
-                    Iterator<EnterpriseStock> iterator = enterpriseStock.iterator();
-                    while (iterator.hasNext()) {
-                        EnterpriseStock enterpriseStock1 = iterator.next();
-                        if (null != enterpriseStock1.getDrugsEnterpriseId() && !drugsEnterpriseIds.contains(enterpriseStock1.getDrugsEnterpriseId())) {
-                            iterator.remove();
-                        }
-                    }
+                    enterpriseStock = enterpriseStock.stream().filter(drugsEnterpriseStock->null != drugsEnterpriseStock.getDrugsEnterpriseId() && !drugsEnterpriseIds.contains(drugsEnterpriseStock.getDrugsEnterpriseId())).collect(Collectors.toList());
                 }
             } catch (Exception e) {
                 logger.error("StockBusinessService drugsEnterprisePriority error", e);
