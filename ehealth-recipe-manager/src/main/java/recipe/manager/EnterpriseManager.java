@@ -570,7 +570,7 @@ public class EnterpriseManager extends BaseManager {
             return subDepList;
         }
         List<OrganAndDrugsepRelation> organAndDrugsDepRelationList = organAndDrugsepRelationDAO.findByOrganId(organId);
-        if (CollectionUtils.isNotEmpty(organAndDrugsDepRelationList)) {
+        if (CollectionUtils.isNotEmpty(subDepList) && CollectionUtils.isNotEmpty(organAndDrugsDepRelationList)) {
             OrganAndDrugsepRelation organAndDrugsepRelation = organAndDrugsDepRelationList.stream().max(Comparator.comparing(enterprise->Optional.ofNullable(enterprise.getPriorityLevel()).orElse(new Integer(0)))).orElseGet(null);
             if (Objects.nonNull(organAndDrugsepRelation)) {
                 List<Integer> ids = organAndDrugsDepRelationList.stream().filter(a -> a.getPriorityLevel().equals(organAndDrugsepRelation.getPriorityLevel())).map(OrganAndDrugsepRelation::getDrugsEnterpriseId).collect(Collectors.toList());
