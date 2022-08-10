@@ -26,6 +26,11 @@
             <artifactId>ehealth-recipe-common</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
+        <dependency>
+            <groupId>ngari</groupId>
+            <artifactId>ehealth-pay-api</artifactId>
+            <version>${ngari.pay.version}</version>
+        </dependency>
     </dependencies>
 
 </project>
