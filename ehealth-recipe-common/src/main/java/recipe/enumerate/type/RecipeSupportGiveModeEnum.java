@@ -173,6 +173,7 @@ public enum RecipeSupportGiveModeEnum {
     }
 
     public static List<String> enterpriseList = Arrays.asList(SHOW_SEND_TO_HOS.text, SHOW_SEND_TO_ENTERPRISES.text, SUPPORT_TFDS.text,SUPPORT_MEDICAL_PAYMENT.text,SUPPORT_TO_HOS.text);
+    public static List<String> enterpriseSendList = Arrays.asList(SHOW_SEND_TO_HOS.text, SHOW_SEND_TO_ENTERPRISES.text);
 
 
     /**
