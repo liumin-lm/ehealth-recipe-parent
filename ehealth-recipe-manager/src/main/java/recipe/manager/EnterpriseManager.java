@@ -560,7 +560,7 @@ public class EnterpriseManager extends BaseManager {
     }
 
     /**
-     * 处理药企优先级
+     * 获取优先级最高的药企列表
      * @param subDepList
      */
     @LogRecord
@@ -570,10 +570,12 @@ public class EnterpriseManager extends BaseManager {
             return subDepList;
         }
         List<OrganAndDrugsepRelation> organAndDrugsDepRelationList = organAndDrugsepRelationDAO.findByOrganId(organId);
-        OrganAndDrugsepRelation organAndDrugsepRelation = organAndDrugsDepRelationList.stream().max(Comparator.comparing(enterprise->Optional.ofNullable(enterprise.getPriorityLevel()).orElse(0))).orElseGet(null);
-        if (Objects.nonNull(organAndDrugsepRelation)) {
-            List<Integer> ids = organAndDrugsDepRelationList.stream().filter(a -> a.getPriorityLevel().equals(organAndDrugsepRelation.getPriorityLevel())).map(OrganAndDrugsepRelation::getDrugsEnterpriseId).collect(Collectors.toList());
-            return subDepList.stream().filter(a -> ids.contains(a.getId())).collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(organAndDrugsDepRelationList)) {
+            OrganAndDrugsepRelation organAndDrugsepRelation = organAndDrugsDepRelationList.stream().max(Comparator.comparing(enterprise->Optional.ofNullable(enterprise.getPriorityLevel()).orElse(new Integer(0)))).orElseGet(null);
+            if (Objects.nonNull(organAndDrugsepRelation)) {
+                List<Integer> ids = organAndDrugsDepRelationList.stream().filter(a -> a.getPriorityLevel().equals(organAndDrugsepRelation.getPriorityLevel())).map(OrganAndDrugsepRelation::getDrugsEnterpriseId).collect(Collectors.toList());
+                return subDepList.stream().filter(a -> ids.contains(a.getId())).collect(Collectors.toList());
+            }
         }
         return subDepList;
     }
