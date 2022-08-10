@@ -816,16 +816,6 @@ public class OrderManager extends BaseManager {
         //就诊流水号
         invoiceInfoReqTO.setTradeNo(recipeOrder.getTradeNo());
         if(Objects.nonNull(patientDTO)){
-            try {
-                List<HealthCardDTO> healthCardDTOS = patientClient.queryCardsByParam(organId, patientDTO.getMpiId(), new ArrayList<>(Collections.singletonList("2")));
-                logger.info("makeUpInvoice.queryCardsByParam res:{}", JSONUtils.toString(healthCardDTOS));
-                if(CollectionUtils.isNotEmpty(healthCardDTOS)){
-                    //医保卡
-                    invoiceInfoReqTO.setCardId(healthCardDTOS.get(0).getCardId());
-                }
-            } catch (Exception e) {
-                logger.error("queryCardsByParam 获取卡号错误", e);
-            }
             invoiceInfoReqTO.setPatientName(patientDTO.getPatientName());
             invoiceInfoReqTO.setSex(patientDTO.getPatientSex());
             invoiceInfoReqTO.setAge(String.valueOf(patientDTO.getAge()));
