@@ -323,7 +323,7 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
             attr.put("PayBackPrice", payBackPrice);
             try {
                 medicalSettleInfo = new String(Base64.decode(medicalSettleInfo, 1));
-                if (StringUtils.isNotEmpty(medicalSettleInfo) && medicalSettleInfo.length() < 1500) {
+                if (StringUtils.isNotEmpty(medicalSettleInfo)) {
                     attr.put("medicalSettleInfo", medicalSettleInfo);
                 }
             } catch (Exception e) {

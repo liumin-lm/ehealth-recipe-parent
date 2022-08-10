@@ -715,7 +715,7 @@ public class EnterpriseManager extends BaseManager {
             if (StringUtils.isEmpty(organDrugsSaleConfig.getRefundNotifyPhone())) {
                 return;
             }
-            List<String> mobilePhoneList = Arrays.asList(organDrugsSaleConfig.getSendDrugNotifyPhone().split(","));
+            List<String> mobilePhoneList = Arrays.asList(organDrugsSaleConfig.getRefundNotifyPhone().split(","));
             mobilePhoneList.forEach(mobile ->{
                 if (StringUtils.isNotEmpty(mobile)) {
                     Map<String, Object> smsMap = Maps.newHashMap();

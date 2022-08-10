@@ -280,10 +280,6 @@ public enum RecipeSupportGiveModeEnum {
             return null;
         }
         List<GiveModeButtonDTO> giveModeKey = enterpriseGiveMode.stream().filter(a -> configGiveMode.contains(a.getShowButtonKey())).collect(toList());
-        if (CollectionUtils.isEmpty(giveModeKey)) {
-            return null;
-        }
-        giveModeKey.forEach(a -> a.setShowButtonName(configGiveModeMap.get(a.getShowButtonKey())));
         // 采用新模式且机构支持到院取药 且机构药企支持到院取药
         if (drugToHosByEnterprise && !StringUtils.isEmpty(configGiveModeMap.get(RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.text))
                 && Objects.nonNull(relationMap) && Objects.nonNull(relationMap.get(drugsEnterprise.getId()))) {
@@ -293,6 +289,10 @@ public enum RecipeSupportGiveModeEnum {
             giveModeButtonDTO.setType(RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getType());
             giveModeKey.add(giveModeButtonDTO);
         }
+        if (CollectionUtils.isEmpty(giveModeKey)) {
+            return null;
+        }
+        giveModeKey.forEach(a -> a.setShowButtonName(configGiveModeMap.get(a.getShowButtonKey())));
         return giveModeKey;
     }
 
