@@ -806,6 +806,7 @@ public class OrderManager extends BaseManager {
             invoiceInfoReqTO.setOrganId(organId);
             invoiceInfoReqTO.setPatientId(recipeList.get(0).getPatientID());
         }
+        invoiceInfoReqTO.setMedicalSettleInfo(recipeOrder.getMedicalSettleInfo());
         invoiceInfoReqTO.setHisSettlementNo(recipeOrder.getHisSettlementNo());
         invoiceInfoReqTO.setCashAmount(String.valueOf(recipeOrder.getCashAmount()));
         invoiceInfoReqTO.setTotalFee(String.valueOf(recipeOrder.getTotalFee()));
