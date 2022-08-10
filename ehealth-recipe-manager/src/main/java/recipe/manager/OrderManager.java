@@ -89,6 +89,8 @@ public class OrderManager extends BaseManager {
     private OrderClient orderClient;
     @Autowired
     private RecipeOrderBillDAO recipeOrderBillDAO;
+    @Autowired
+    private OrganDrugListDAO organDrugListDAO;
 
     /**
      * 订单能否配送 物流管控
@@ -793,11 +795,12 @@ public class OrderManager extends BaseManager {
         List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIdList);
         PatientDTO patientDTO = new PatientDTO();
         Integer organId = recipeList.get(0).getClinicOrgan();
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         if(recipeList.get(0).getBussSource().equals(2)){
             RevisitBean revisitBean = revisitClient.getRevisitByClinicId(recipeList.get(0).getClinicId());
             if(Objects.nonNull(revisitBean)){
                 //就诊时间
-                invoiceInfoReqTO.setVisitTime(revisitBean.getRequestTime());
+                invoiceInfoReqTO.setVisitTime(df.format(revisitBean.getRequestTime()));
             }
         }
         if(recipeList.size()>0){
@@ -811,7 +814,6 @@ public class OrderManager extends BaseManager {
         invoiceInfoReqTO.setCashAmount(String.valueOf(recipeOrder.getCashAmount()));
         invoiceInfoReqTO.setTotalFee(String.valueOf(recipeOrder.getTotalFee()));
         invoiceInfoReqTO.setChargingStandard(String.valueOf(recipeOrder.getTotalFee()));
-        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         invoiceInfoReqTO.setPayTime(df.format(recipeOrder.getPayTime()));
         //就诊流水号
         invoiceInfoReqTO.setTradeNo(recipeOrder.getTradeNo());
@@ -823,8 +825,12 @@ public class OrderManager extends BaseManager {
             //身份证号
             invoiceInfoReqTO.setIdcard(patientDTO.getIdcard());
         }
-        List<Recipedetail> recipedetailList = recipeDetailDAO.findByRecipeIds(recipeIdList);
-        invoiceInfoReqTO.setRecipeDetailList(ObjectCopyUtils.convert(recipedetailList, RecipeDetailBean.class));
+        List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeIds(recipeIdList);
+        recipeDetailList.forEach(recipeDetail -> {
+            OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(organId, recipeDetail.getOrganDrugCode(), recipeDetail.getDrugId());
+            recipeDetail.setDrugForm(organDrugList.getDrugForm());
+        });
+        invoiceInfoReqTO.setRecipeDetailList(ObjectCopyUtils.convert(recipeDetailList, RecipeDetailBean.class));
         logger.info("EleInvoiceService.makeUpInvoice invoiceInfoReqTO={}",JSONUtils.toString(invoiceInfoReqTO));
         InvoiceInfoResTO invoiceInfoResTO = orderClient.makeUpInvoice(invoiceInfoReqTO);
         logger.info("EleInvoiceService.makeUpInvoice invoiceInfoResTO={}",JSONUtils.toString(invoiceInfoResTO));
