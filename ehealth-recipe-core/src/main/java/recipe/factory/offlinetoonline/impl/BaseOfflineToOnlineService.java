@@ -889,6 +889,24 @@ public class BaseOfflineToOnlineService {
             return;
         }
         RecipeExtend recipeExtend = new RecipeExtend();
+        //处方业务类型
+        try {
+            switch (recipe.getBussSource()) {
+                case 1:
+                case 5:
+                    recipeExtend.setRecipeBusinessType(1);//门诊处方
+                    break;
+                case 2:
+                    recipeExtend.setRecipeBusinessType(2);//复诊处方
+                    break;
+                default:
+                    recipeExtend.setRecipeBusinessType(3);//其他处方
+                    break;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            LOGGER.info("recipeExtend.setRecipeBusinessType error", e);
+        }
         recipeExtend.setRecipeId(recipeId);
         recipeExtend.setFromFlag(0);
         recipeExtend.setRegisterID(hisRecipe.getRegisteredId());
