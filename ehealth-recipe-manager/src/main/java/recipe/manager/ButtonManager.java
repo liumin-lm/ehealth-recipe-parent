@@ -100,8 +100,8 @@ public class ButtonManager extends BaseManager {
             return new LinkedList<>();
         }
         // 获取药品的剂型
-        List<Integer> drugIds = recipeDetails.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
-        List<DrugList> drugLists = drugListDAO.findByDrugIds(drugIds);
+        List<String> drugIds = recipeDetails.stream().map(Recipedetail::getOrganDrugCode).collect(Collectors.toList());
+        List<OrganDrugList> drugLists = organDrugListDAO.findByOrganIdAndDrugCodes(organId, drugIds);
         //获取机构配置按钮
         List<GiveModeButtonDTO> giveModeButtonBeans = operationClient.getOrganGiveModeMap(organId);
         Map<String, String> configGiveModeMap = new HashMap<>();
@@ -286,13 +286,13 @@ public class ButtonManager extends BaseManager {
      * @param drugLists
      * @return
      */
-    private Boolean checkSendGiveMode(Integer organId, Integer enterpriseId, List<DrugList> drugLists) {
+    private Boolean checkSendGiveMode(Integer organId, Integer enterpriseId, List<OrganDrugList> drugLists) {
         OrganAndDrugsepRelation relation = organAndDrugsepRelationDAO.getOrganAndDrugsepByOrganIdAndEntId(organId, enterpriseId);
         if (StringUtils.isEmpty(relation.getEnterpriseDrugForm()) || "null".equals(relation.getEnterpriseDrugForm())) {
             return true;
         }
         List<String> drugFrom = JSONUtils.parse((relation.getEnterpriseDrugForm()), List.class);
-        for (DrugList drugList : drugLists) {
+        for (OrganDrugList drugList : drugLists) {
             if (drugFrom.contains(drugList.getDrugForm())) {
                 return false;
             }
