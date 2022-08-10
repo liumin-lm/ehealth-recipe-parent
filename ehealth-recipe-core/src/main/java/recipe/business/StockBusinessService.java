@@ -627,7 +627,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
                 if (CollectionUtils.isNotEmpty(subDepList)) {
                     List<DrugsEnterprise> drugsEnterpriseList = enterpriseManager.enterprisePriorityLevel(recipe.getClinicOrgan(), subDepList);
                     List<Integer> drugsEnterpriseIds = drugsEnterpriseList.stream().map(DrugsEnterprise::getId).collect(Collectors.toList());
-                    enterpriseStock = enterpriseStock.stream().filter(drugsEnterpriseStock->null != drugsEnterpriseStock.getDrugsEnterpriseId() && !drugsEnterpriseIds.contains(drugsEnterpriseStock.getDrugsEnterpriseId())).collect(Collectors.toList());
+                    enterpriseStock = enterpriseStock.stream().filter(a -> drugsEnterpriseIds.contains(a.getDrugsEnterpriseId())).collect(Collectors.toList());
                 }
             } catch (Exception e) {
                 logger.error("StockBusinessService drugsEnterprisePriority error", e);
