@@ -622,17 +622,11 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         Boolean openEnterprisePriorityFlag = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "openEnterprisePriorityFlag", false);
         if (openEnterprisePriorityFlag) {
             try {
-                enterpriseStock = enterpriseStock.stream().filter(EnterpriseStock::getStock).collect(Collectors.toList());
-                logger.info("StockBusinessService drugsEnterprisePriority enterpriseStock:{}", JSON.toJSONString(enterpriseStock));
-                if (CollectionUtils.isNotEmpty(enterpriseStock)) {
-                    List<Integer> drugsEnterpriseIdList = enterpriseStock.stream().map(EnterpriseStock::getDrugsEnterpriseId).collect(Collectors.toList());
-                    logger.info("StockBusinessService drugsEnterprisePriority drugsEnterpriseIdList:{}", JSON.toJSONString(drugsEnterpriseIdList));
-                    List<DrugsEnterprise> drugsEnterpriseList = drugsEnterpriseDAO.findByIds(drugsEnterpriseIdList);
-                    logger.info("StockBusinessService drugsEnterprisePriority drugsEnterpriseList:{}", JSON.toJSONString(drugsEnterpriseList));
-                    drugsEnterpriseList = enterpriseManager.enterprisePriorityLevel(recipe.getClinicOrgan(), drugsEnterpriseList);
-                    logger.info("StockBusinessService drugsEnterprisePriority drugsEnterpriseList PriorityLevel:{}", JSON.toJSONString(drugsEnterpriseList));
+                List<DrugsEnterprise> subDepList = enterpriseStock.stream().filter(EnterpriseStock::getStock).map(EnterpriseStock::getDrugsEnterprise).collect(Collectors.toList());
+                logger.info("StockBusinessService drugsEnterprisePriority drugsEnterpriseList:{}", JSON.toJSONString(subDepList));
+                if (CollectionUtils.isNotEmpty(subDepList)) {
+                    List<DrugsEnterprise> drugsEnterpriseList = enterpriseManager.enterprisePriorityLevel(recipe.getClinicOrgan(), subDepList);
                     List<Integer> drugsEnterpriseIds = drugsEnterpriseList.stream().map(DrugsEnterprise::getId).collect(Collectors.toList());
-                    logger.info("StockBusinessService drugsEnterprisePriority drugsEnterpriseIds:{}", JSON.toJSONString(drugsEnterpriseIds));
                     enterpriseStock = enterpriseStock.stream().filter(drugsEnterpriseStock->null != drugsEnterpriseStock.getDrugsEnterpriseId() && !drugsEnterpriseIds.contains(drugsEnterpriseStock.getDrugsEnterpriseId())).collect(Collectors.toList());
                 }
             } catch (Exception e) {

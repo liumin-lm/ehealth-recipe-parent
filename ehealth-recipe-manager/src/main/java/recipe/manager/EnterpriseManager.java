@@ -563,6 +563,7 @@ public class EnterpriseManager extends BaseManager {
      * 处理药企优先级
      * @param subDepList
      */
+    @LogRecord
     public List<DrugsEnterprise> enterprisePriorityLevel(Integer organId, List<DrugsEnterprise> subDepList){
         Boolean openEnterprisePriorityFlag = configurationClient.getValueBooleanCatch(organId, "openEnterprisePriorityFlag", false);
         if (!openEnterprisePriorityFlag) {
