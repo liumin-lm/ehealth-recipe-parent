@@ -12,6 +12,7 @@ import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
 import ctd.util.annotation.RpcService;
+import easypay.entity.vo.param.bus.SelfPreSettleQueryReq;
 import recipe.vo.ResultBean;
 import recipe.vo.second.CabinetVO;
 import recipe.vo.second.enterpriseOrder.DownOrderRequestVO;
@@ -171,4 +172,11 @@ public interface IRecipeOrderBusinessService {
      */
     @RpcService
     Boolean makeUpInvoice(String orderCode);
+
+    /**
+     * 提供给支付调用自费预结算接口
+     * @param busId
+     * @return
+     */
+    SelfPreSettleQueryReq selfPreSettleQueryInfo(Integer busId);
 }
