@@ -172,27 +172,8 @@ public enum RecipeSupportGiveModeEnum {
         return giveModeTypeList;
     }
 
-    public static List<String> enterpriseList = Arrays.asList(SHOW_SEND_TO_HOS.text, SHOW_SEND_TO_ENTERPRISES.text, SUPPORT_TFDS.text,SUPPORT_MEDICAL_PAYMENT.text);
+    public static List<String> enterpriseList = Arrays.asList(SHOW_SEND_TO_HOS.text, SHOW_SEND_TO_ENTERPRISES.text, SUPPORT_TFDS.text,SUPPORT_MEDICAL_PAYMENT.text,SUPPORT_TO_HOS.text);
 
-    /**
-     * 校验何种类型库存
-     *
-     * @param configurations 按钮
-     * @return
-     */
-    public static Integer checkFlag(List<String> configurations) {
-        int hospital = DrugStockCheckEnum.NO_CHECK_STOCK.getType();
-        int enterprise = DrugStockCheckEnum.NO_CHECK_STOCK.getType();
-        for (String a : configurations) {
-            if (SUPPORT_TO_HOS.getText().equals(a)) {
-                hospital = DrugStockCheckEnum.HOS_CHECK_STOCK.getType();
-            }
-            if (enterpriseList.contains(a)) {
-                enterprise = DrugStockCheckEnum.ENT_CHECK_STOCK.getType();
-            }
-        }
-        return hospital + enterprise;
-    }
 
     /**
      * 判断是否校验药企库存
