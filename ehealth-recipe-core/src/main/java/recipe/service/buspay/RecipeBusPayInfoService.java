@@ -1090,7 +1090,11 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService, IBusPaySer
                     request.setRegisterID(ext2.getRegisterID());
                 }
             }
-
+            List<String> supportRecharge = configurationClient.getValueListCatch(recipe.getClinicOrgan(), "supportRecharge", null);
+            Boolean supportRecipeRecharge = supportRecharge.contains("recipe");
+            //是否支持就诊卡充值支付
+            Integer supportRecipeRechargeFlag = supportRecipeRecharge ? 1 : 0;
+            request.setSupportRecipeRechargeFlag(supportRecipeRechargeFlag);
             log.info("selfPreSettleQueryInfo busId={} req={}", busId, JSONUtils.toString(request));
             HisResponseTO<RecipeCashPreSettleInfo> hisResult = service.recipeCashPreSettleHis(request);
             log.info("selfPreSettleQueryInfo busId={} res={}", busId, JSONUtils.toString(hisResult));
@@ -1113,10 +1117,6 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService, IBusPaySer
                     selfPreSettleQueryReq.setAccountBalance(new BigDecimal(accountBalance));
                     selfPreSettleQueryReq.setRechargeAmount(new BigDecimal(rechargeAmount));
                     selfPreSettleQueryReq.setRecipeNos(join);
-                    List<String> supportRecharge = configurationClient.getValueListCatch(recipe.getClinicOrgan(), "supportRecharge", null);
-                    Boolean supportRecipeRecharge = supportRecharge.contains("recipe");
-                    //是否支持就诊卡充值支付
-                    Integer supportRecipeRechargeFlag = supportRecipeRecharge ? 1 : 0;
                     selfPreSettleQueryReq.setIsInHosPay(supportRecipeRechargeFlag);
                 }
 

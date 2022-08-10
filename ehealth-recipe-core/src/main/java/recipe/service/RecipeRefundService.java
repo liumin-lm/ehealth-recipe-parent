@@ -430,7 +430,7 @@ public class RecipeRefundService extends RecipeBaseService {
             recipeRefund.setPrice(list.get(0).getPrice());
             recipeRefund.setApplyNo(hisResult.getData());
             recipeReFundSave(recipe, recipeRefund);
-            if (null != drugsEnterprise) {
+            if (new Integer(1).equals(checkStatus) && null != drugsEnterprise) {
                 enterpriseManager.pushEnterpriseRefundPhone(recipe, drugsEnterprise);
             }
             //记录操作日志

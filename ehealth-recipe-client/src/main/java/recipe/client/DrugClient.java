@@ -5,8 +5,8 @@ import com.alibaba.fastjson.JSONArray;
 import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.dto.UsingRateDTO;
 import com.ngari.bus.op.service.IUsePathwaysService;
-import com.ngari.bus.op.service.IUsingRateService;
 import com.ngari.common.mode.HisResponseTO;
+import com.ngari.patient.service.IUsingRateService;
 import com.ngari.platform.recipe.mode.HospitalDrugListDTO;
 import com.ngari.platform.recipe.mode.HospitalDrugListReqDTO;
 import com.ngari.recipe.dto.DrugInfoDTO;
@@ -115,11 +115,12 @@ public class DrugClient extends BaseClient {
             return null;
         }
         try {
-            UsingRateDTO usingRateDTO = usingRateService.findUsingRateDTOByOrganAndKey(organId, organUsingRate);
+            com.ngari.patient.dto.UsingRateDTO usingRateDTO = usingRateService.newFindUsingRateDTOByOrganAndKey(organId, organUsingRate);
             if (null == usingRateDTO) {
                 return null;
             }
-            return usingRateDTO;
+
+            return ObjectCopyUtils.convert(usingRateDTO, UsingRateDTO.class);
         } catch (Exception e) {
             logger.warn("DrugClient usingRate usingRateDTO error", e);
             return null;
@@ -143,9 +144,9 @@ public class DrugClient extends BaseClient {
             com.ngari.patient.service.IUsePathwaysService usePathwaysService = AppDomainContext.getBean("basic.usePathwaysService", com.ngari.patient.service.IUsePathwaysService.class);
             com.ngari.patient.dto.UsePathwaysDTO usePathwaysDTO;
             if (ValidateUtil.integerIsEmpty(drugType)) {
-                usePathwaysDTO = usePathwaysService.findUsePathwaysByOrganAndKey(organId, organUsePathways);
+                usePathwaysDTO = usePathwaysService.newFindUsePathwaysByOrganAndKey(organId, organUsePathways);
             } else {
-                usePathwaysDTO = usePathwaysService.getUsePathwaysByOrganAndKeyAndCategory(organId, organUsePathways, drugType.toString());
+                usePathwaysDTO = usePathwaysService.newGetUsePathwaysByOrganAndKeyAndCategory(organId, organUsePathways, drugType.toString());
             }
             if (null == usePathwaysDTO) {
                 return null;
@@ -167,7 +168,8 @@ public class DrugClient extends BaseClient {
         if (null == organId) {
             return new HashMap<>(1);
         }
-        List<UsingRate> usingRates = usingRateService.findAllusingRateByOrganId(organId);
+        List<com.ngari.patient.dto.UsingRateDTO> UsingRateDTO = usingRateService.findAllusingRateByOrganId(organId);
+        List<UsingRate> usingRates = ObjectCopyUtils.convert(UsingRateDTO, UsingRate.class);
         logger.info("DrugClient usingRateMap organId = {} usingRates:{}", organId, JSON.toJSONString(usingRates));
         return Optional.ofNullable(usingRates).orElseGet(Collections::emptyList)
                 .stream().collect(Collectors.toMap(UsingRate::getId, a -> a, (k1, k2) -> k1));
@@ -184,7 +186,8 @@ public class DrugClient extends BaseClient {
         if (null == organId) {
             return new HashMap<>();
         }
-        List<UsingRate> usingRates = usingRateService.findAllusingRateByOrganId(organId);
+        List<com.ngari.patient.dto.UsingRateDTO> UsingRateDTO = usingRateService.findAllusingRateByOrganId(organId);
+        List<UsingRate> usingRates = ObjectCopyUtils.convert(UsingRateDTO, UsingRate.class);
         logger.info("DrugClient usingRateMapCode organId = {} usingRates:{}", organId, JSON.toJSONString(usingRates));
         return Optional.ofNullable(usingRates).orElseGet(Collections::emptyList)
                 .stream().collect(Collectors.toMap(UsingRate::getUsingRateKey, a -> a, (k1, k2) -> k1));

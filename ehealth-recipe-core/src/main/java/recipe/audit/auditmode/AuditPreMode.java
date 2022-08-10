@@ -65,7 +65,7 @@ public class AuditPreMode extends AbstractAuditMode {
             }
         }
         StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
-        stateManager.audit(recipe, RecipeStateEnum.PROCESS_STATE_AUDIT, RecipeStateEnum.SUB_AUDIT_READY_DONE);
+        stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_AUDIT, RecipeStateEnum.SUB_AUDIT_READY_DONE);
         // 病历处方-状态修改成显示
         DocIndexClient docIndexClient = AppContextHolder.getBean("docIndexClient", DocIndexClient.class);
         docIndexClient.updateStatusByBussIdBussType(recipe.getRecipeId(), DocIndexShowEnum.SHOW.getCode());
