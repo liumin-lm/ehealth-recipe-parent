@@ -619,31 +619,16 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
     private List<EnterpriseStock> drugsEnterprisePriority(Recipe recipe, List<EnterpriseStock> enterpriseStock) {
         logger.info("StockBusinessService drugsEnterprisePriority recipe:{},enterpriseStock:{}", recipe.getRecipeId(), JSON.toJSONString(enterpriseStock));
         //对药企优先级进行处理
-        Boolean openEnterprisePriorityFlag = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "openEnterprisePriorityFlag", false);
-        if (openEnterprisePriorityFlag) {
-            try {
-                enterpriseStock = enterpriseStock.stream().filter(EnterpriseStock::getStock).collect(Collectors.toList());
-                logger.info("StockBusinessService drugsEnterprisePriority enterpriseStock:{}", JSON.toJSONString(enterpriseStock));
-                if (CollectionUtils.isNotEmpty(enterpriseStock)) {
-                    List<Integer> drugsEnterpriseIdList = enterpriseStock.stream().map(EnterpriseStock::getDrugsEnterpriseId).collect(Collectors.toList());
-                    logger.info("StockBusinessService drugsEnterprisePriority drugsEnterpriseIdList:{}", JSON.toJSONString(drugsEnterpriseIdList));
-                    List<DrugsEnterprise> drugsEnterpriseList = drugsEnterpriseDAO.findByIds(drugsEnterpriseIdList);
-                    logger.info("StockBusinessService drugsEnterprisePriority drugsEnterpriseList:{}", JSON.toJSONString(drugsEnterpriseList));
-                    drugsEnterpriseList = enterpriseManager.enterprisePriorityLevel(recipe.getClinicOrgan(), drugsEnterpriseList);
-                    logger.info("StockBusinessService drugsEnterprisePriority drugsEnterpriseList PriorityLevel:{}", JSON.toJSONString(drugsEnterpriseList));
-                    List<Integer> drugsEnterpriseIds = drugsEnterpriseList.stream().map(DrugsEnterprise::getId).collect(Collectors.toList());
-                    logger.info("StockBusinessService drugsEnterprisePriority drugsEnterpriseIds:{}", JSON.toJSONString(drugsEnterpriseIds));
-                    Iterator<EnterpriseStock> iterator = enterpriseStock.iterator();
-                    while (iterator.hasNext()) {
-                        EnterpriseStock enterpriseStock1 = iterator.next();
-                        if (null != enterpriseStock1.getDrugsEnterpriseId() && !drugsEnterpriseIds.contains(enterpriseStock1.getDrugsEnterpriseId())) {
-                            iterator.remove();
-                        }
-                    }
-                }
-            } catch (Exception e) {
-                logger.error("StockBusinessService drugsEnterprisePriority error", e);
+        try {
+            List<DrugsEnterprise> subDepList = enterpriseStock.stream().filter(EnterpriseStock::getStock).map(EnterpriseStock::getDrugsEnterprise).collect(Collectors.toList());
+            logger.info("StockBusinessService drugsEnterprisePriority drugsEnterpriseList:{}", JSON.toJSONString(subDepList));
+            if (CollectionUtils.isNotEmpty(subDepList)) {
+                List<DrugsEnterprise> drugsEnterpriseList = enterpriseManager.enterprisePriorityLevel(recipe.getClinicOrgan(), subDepList);
+                List<Integer> drugsEnterpriseIds = drugsEnterpriseList.stream().map(DrugsEnterprise::getId).collect(Collectors.toList());
+                enterpriseStock = enterpriseStock.stream().filter(a -> drugsEnterpriseIds.contains(a.getDrugsEnterpriseId())).collect(Collectors.toList());
             }
+        } catch (Exception e) {
+            logger.error("StockBusinessService drugsEnterprisePriority error", e);
         }
         logger.info("StockBusinessService drugsEnterprisePriority recipe:{},result enterpriseStock:{}", recipe.getRecipeId(), JSON.toJSONString(enterpriseStock));
         return enterpriseStock;

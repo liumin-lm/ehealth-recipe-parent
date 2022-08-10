@@ -560,27 +560,24 @@ public class EnterpriseManager extends BaseManager {
     }
 
     /**
-     * 处理药企优先级
+     * 获取优先级最高的药企列表
      * @param subDepList
      */
+    @LogRecord
     public List<DrugsEnterprise> enterprisePriorityLevel(Integer organId, List<DrugsEnterprise> subDepList){
         Boolean openEnterprisePriorityFlag = configurationClient.getValueBooleanCatch(organId, "openEnterprisePriorityFlag", false);
         if (!openEnterprisePriorityFlag) {
             return subDepList;
         }
         List<OrganAndDrugsepRelation> organAndDrugsDepRelationList = organAndDrugsepRelationDAO.findByOrganId(organId);
-        Map<Integer, OrganAndDrugsepRelation> organAndDrugsDepRelationMap = organAndDrugsDepRelationList.stream().collect(Collectors.toMap(OrganAndDrugsepRelation::getDrugsEnterpriseId,a->a,(k1,k2)->k1));
-        subDepList.stream().forEach(drugsEnterprise -> drugsEnterprise.setPriorityLevel(organAndDrugsDepRelationMap.get(drugsEnterprise.getId()).getPriorityLevel()));
-        //对药企等级进行处理
-        Map<Integer, List<DrugsEnterprise>> drugsEnterpriseListMap = subDepList.stream().collect(Collectors.groupingBy(drugsEnterprise -> Optional.ofNullable(drugsEnterprise.getPriorityLevel()).orElse(0)));
-        logger.info("enterprisePriorityLevel drugsEnterpriseListMap:{}", JSON.toJSONString(drugsEnterpriseListMap));
-        //获取最大等级
-        DrugsEnterprise drugsEnterprise = subDepList.stream().max(Comparator.comparing(enterprise->Optional.ofNullable(enterprise.getPriorityLevel()).orElse(0))).orElseGet(null);
-        logger.info("enterprisePriorityLevel drugsEnterprise:{}", JSON.toJSONString(drugsEnterprise));
-        if (null == drugsEnterprise) {
-            return subDepList;
+        if (CollectionUtils.isNotEmpty(subDepList) && CollectionUtils.isNotEmpty(organAndDrugsDepRelationList)) {
+            OrganAndDrugsepRelation organAndDrugsepRelation = organAndDrugsDepRelationList.stream().max(Comparator.comparing(enterprise->Optional.ofNullable(enterprise.getPriorityLevel()).orElse(new Integer(0)))).orElseGet(null);
+            if (Objects.nonNull(organAndDrugsepRelation)) {
+                List<Integer> ids = organAndDrugsDepRelationList.stream().filter(a -> a.getPriorityLevel().equals(organAndDrugsepRelation.getPriorityLevel())).map(OrganAndDrugsepRelation::getDrugsEnterpriseId).collect(Collectors.toList());
+                return subDepList.stream().filter(a -> ids.contains(a.getId())).collect(Collectors.toList());
+            }
         }
-        return drugsEnterpriseListMap.get(drugsEnterprise.getPriorityLevel());
+        return subDepList;
     }
 
     /**
