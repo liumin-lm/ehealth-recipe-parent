@@ -617,7 +617,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
      * @return
      */
     private List<EnterpriseStock> drugsEnterprisePriority(Recipe recipe, List<EnterpriseStock> enterpriseStock) {
-        logger.info("StockBusinessService drugsEnterprisePriority recipe:{},enterpriseStock", recipe.getRecipeId(), JSON.toJSONString(enterpriseStock));
+        logger.info("StockBusinessService drugsEnterprisePriority recipe:{},enterpriseStock:{}", recipe.getRecipeId(), JSON.toJSONString(enterpriseStock));
         //对药企优先级进行处理
         Boolean openEnterprisePriorityFlag = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "openEnterprisePriorityFlag", false);
         if (openEnterprisePriorityFlag) {
@@ -645,7 +645,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
                 logger.error("StockBusinessService drugsEnterprisePriority error", e);
             }
         }
-        logger.info("StockBusinessService drugsEnterprisePriority recipe:{},result enterpriseStock", recipe.getRecipeId(), JSON.toJSONString(enterpriseStock));
+        logger.info("StockBusinessService drugsEnterprisePriority recipe:{},result enterpriseStock:{}", recipe.getRecipeId(), JSON.toJSONString(enterpriseStock));
         return enterpriseStock;
     }
 
