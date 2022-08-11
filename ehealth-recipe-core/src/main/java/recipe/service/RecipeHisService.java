@@ -217,8 +217,6 @@ public class RecipeHisService extends RecipeBaseService {
             }
         }
         request.setOrganID(sendOrganId.toString());
-        request.setIsFree(YesOrNoEnum.NO.getType());
-        request.setIsOnlinePay(YesOrNoEnum.YES.getType());
         service.recipeSend(request);
     }
 
