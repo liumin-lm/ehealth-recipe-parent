@@ -857,7 +857,12 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             logger.info("RecipePayHISCallback recipe isnull, recipeCode[{}]", recipePayHISCallbackReq.getRecipeCode());
             return;
         }
+
         RecipeOrder order = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+        if (!"200".equals(recipePayHISCallbackReq.getMsgCode())) {
+            String memo = "订单: 收到his支付失败消息 recipePayHISCallbackReq:" + JSONUtils.toString(recipePayHISCallbackReq);
+            updateRecipePayLog(order, memo);
+        }
 
 
         if (null == order) {
