@@ -144,6 +144,8 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService, IBusPaySer
     private RecipeDAO recipeDAO;
     @Autowired
     private RecipeExtendDAO recipeExtendDAO;
+    @Autowired
+    private PatientService patientService;
 
     private IConfigurationCenterUtilsService utils = BaseAPI.getService(IConfigurationCenterUtilsService.class);
 
@@ -406,6 +408,8 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService, IBusPaySer
                 map.put("isSupportSendToStation", NO_SUPPORT_SEND_TO_STATION);
             }
         }
+        PatientDTO patient = patientService.getPatientByMpiId(order.getMpiId());
+        map.put("syfCardId", patient.getIdcard());
         log.info("setConfirmOrderExtInfo map:{}.", JSONUtils.toString(map));
         return map;
     }
