@@ -21,6 +21,7 @@ import com.ngari.recipe.recipe.model.HisRecipeVO;
 import com.ngari.recipe.recipe.model.MergeRecipeVO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.revisit.RevisitAPI;
+import com.ngari.revisit.RevisitBean;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.service.IRevisitExService;
 import ctd.account.UserRoleToken;
@@ -709,7 +710,15 @@ public class BaseOfflineToOnlineService {
         recipe.setFromflag(1);
         recipe.setRecipeSourceType(2);
         recipe.setRecipePayType(hisRecipe.getRecipePayType());
-        recipe.setRequestMpiId(userRoleToken.getOwnMpiId());
+
+        if(userRoleToken!=null){
+            recipe.setRequestMpiId(userRoleToken.getOwnMpiId());
+        }else{
+            RevisitBean revisitBean = revisitClient.getRevisitByClinicId(recipe.getClinicId());
+            if (null != revisitBean) {
+                recipe.setRequestMpiId(revisitBean.getRequestMpi());
+            }
+        }
         recipe.setRecipeSource(hisRecipe.getRecipeSource());
         recipe.setGiveMode(hisRecipe.getGiveMode());
         recipe.setLastModify(new Date());
