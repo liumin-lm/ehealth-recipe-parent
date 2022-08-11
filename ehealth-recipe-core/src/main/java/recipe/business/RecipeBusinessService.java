@@ -874,7 +874,6 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             logger.info("RecipePayHISCallback effective is 0, recipeCode[{}]", recipePayHISCallbackReq.getRecipeCode());
             return;
         }
-        HashMap<String, Object> attr = new HashMap<>();
 
         // 保存结算返回信息
         saveOrderByPayCallBack(order, recipePayHISCallbackReq);
@@ -883,7 +882,6 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
 
         //业务支付回调
         if (StringUtils.isNotEmpty(orderCode)) {
-
             Integer payMode = PayModeGiveModeUtil.getPayMode(order.getPayMode(), recipe.getGiveMode());
             recipeOrderService.finishOrderPay(order.getOrderCode(), PayConstant.PAY_FLAG_PAY_SUCCESS, payMode);
         } else {
