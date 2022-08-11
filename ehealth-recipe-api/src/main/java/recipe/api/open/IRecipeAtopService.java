@@ -10,6 +10,7 @@ import com.ngari.recipe.vo.FormWorkRecipeVO;
 import ctd.util.annotation.RpcService;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.patient.PatientOptionalDrugVo;
+import recipe.vo.second.RecipePayHISCallbackReq;
 import recipe.vo.second.RevisitRecipeTraceVo;
 
 import java.util.Date;
@@ -234,5 +235,13 @@ public interface IRecipeAtopService {
      */
     @RpcService
     List<RecipeBean> findRecipeByMpiidAndrecipeStatus(String mpiid, List<Integer> recipeStatus,Integer terminalType,Integer organId);
+
+    /**
+     * his支付回调
+     * @param recipePayHISCallbackReq
+     * @return
+     */
+    @RpcService
+    HisResponseTO recipePayHISCallback(RecipePayHISCallbackReq recipePayHISCallbackReq);
 
 }

@@ -17,6 +17,7 @@ import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.greenroom.DrugUsageLabelResp;
 import recipe.vo.patient.PatientOptionalDrugVo;
 import recipe.vo.second.MedicalDetailVO;
+import recipe.vo.second.RecipePayHISCallbackReq;
 
 import java.util.Date;
 import java.util.List;
@@ -280,4 +281,10 @@ public interface IRecipeBusinessService {
      * @return
      */
     RateAndPathwaysVO queryRateAndPathwaysByDecoctionId(Integer organId, Integer decoctionId);
+
+    /**
+     * his支付回调
+     * @param recipePayHISCallbackReq
+     */
+    void recipePayHISCallback(RecipePayHISCallbackReq recipePayHISCallbackReq);
 }
