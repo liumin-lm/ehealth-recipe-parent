@@ -384,7 +384,7 @@ public class RecipeOrderService extends RecipeBaseService {
             Integer decoctionId = MapValueUtil.getInteger(extInfo, "decoctionId");
             if (Objects.isNull(decoctionId)) {
                 RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeIds.get(0));
-                if (null != recipeExtend && Objects.nonNull(recipeExtend.getDecoctionId())) {
+                if (null != recipeExtend && StringUtils.isNotEmpty(recipeExtend.getDecoctionId())) {
                     decoctionId = Integer.valueOf(recipeExtend.getDecoctionId());
                 }
 
