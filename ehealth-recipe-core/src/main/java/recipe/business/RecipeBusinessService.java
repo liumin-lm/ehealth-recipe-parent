@@ -11,6 +11,7 @@ import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.IUsePathwaysService;
 import com.ngari.patient.service.IUsingRateService;
+import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
@@ -18,12 +19,19 @@ import com.ngari.recipe.recipe.ChineseMedicineMsgVO;
 import com.ngari.recipe.recipe.constant.RecipeTypeEnum;
 import com.ngari.recipe.recipe.constant.RecipecCheckStatusConstant;
 import com.ngari.recipe.recipe.model.*;
+import com.ngari.recipe.recipe.service.IRecipeService;
+import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import com.ngari.recipe.vo.*;
+import coupon.api.service.ICouponBaseService;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
+import ctd.util.AppContextHolder;
 import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
+import ctd.util.converter.ConversionUtils;
 import eh.cdr.api.vo.MedicalDetailBean;
+import eh.cdr.constant.RecipeConstant;
+import eh.wxpay.constant.PayConstant;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -45,10 +53,14 @@ import recipe.core.api.IRecipeBusinessService;
 import recipe.dao.*;
 import recipe.enumerate.status.*;
 import recipe.enumerate.type.BussSourceTypeEnum;
+import recipe.enumerate.type.PayFlagEnum;
+import recipe.enumerate.type.PayFlowTypeEnum;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.manager.*;
 import recipe.service.*;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
+import recipe.serviceprovider.recipelog.service.RemoteRecipeLogService;
+import recipe.serviceprovider.recipeorder.service.RemoteRecipeOrderService;
 import recipe.util.*;
 import recipe.vo.doctor.PatientOptionalDrugVO;
 import recipe.vo.doctor.PharmacyTcmVO;
@@ -57,6 +69,7 @@ import recipe.vo.greenroom.DrugUsageLabelResp;
 import recipe.vo.patient.PatientOptionalDrugVo;
 import recipe.vo.second.EmrConfigVO;
 import recipe.vo.second.MedicalDetailVO;
+import recipe.vo.second.RecipePayHISCallbackReq;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -125,6 +138,14 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     private IUsePathwaysService usePathwaysService;
     @Autowired
     private DrugDecoctionWayDao drugDecoctionWayDAO;
+    @Autowired
+    private OrderManager orderManager;
+    @Autowired
+    private RemoteRecipeLogService recipeLogService;
+    @Autowired
+    private RemoteRecipeOrderService recipeOrderService;
+    @Autowired
+    private RecipeOrderPayFlowManager recipeOrderPayFlowManager;
 
 
     /**
@@ -825,6 +846,137 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         rateAndPathwaysVO.setUsePathway(usePathwayDTOList);
         rateAndPathwaysVO.setUsingRate(usingRateDTOList);
         return rateAndPathwaysVO;
+    }
+
+    @Override
+    public void recipePayHISCallback(RecipePayHISCallbackReq recipePayHISCallbackReq) {
+        logger.info("RecipePayHISCallback recipePayHISCallbackReq[{}]", JSONUtils.toString(recipePayHISCallbackReq));
+
+        Recipe recipe = recipeDAO.getByRecipeCode(recipePayHISCallbackReq.getRecipeCode());
+        if (Objects.isNull(recipe) || StringUtils.isEmpty(recipe.getOrderCode())) {
+            logger.info("RecipePayHISCallback recipe isnull, recipeCode[{}]", recipePayHISCallbackReq.getRecipeCode());
+            return;
+        }
+        RecipeOrder order = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+
+
+        if (null == order) {
+            logger.info("RecipePayHISCallback busObject not exists, recipeCode[{}]", recipePayHISCallbackReq.getRecipeCode());
+            return;
+        }
+        //已处理-幂等判断
+        if (order.getPayFlag() != null && order.getPayFlag() == 1) {
+            logger.info("RecipePayHISCallback payflag has been set true, recipeCode[{}]", recipePayHISCallbackReq.getRecipeCode());
+            return;
+        }
+        //已取消不做更新
+        if (order.getStatus() == 8 || order.getStatus() == 7) {
+            logger.info("RecipePayHISCallback effective is 0, recipeCode[{}]", recipePayHISCallbackReq.getRecipeCode());
+            return;
+        }
+        HashMap<String, Object> attr = new HashMap<>();
+
+        // 保存结算返回信息
+        saveOrderByPayCallBack(order, recipePayHISCallbackReq);
+
+        String orderCode = order.getOrderCode();
+
+        //业务支付回调
+        if (StringUtils.isNotEmpty(orderCode)) {
+
+            Integer payMode = PayModeGiveModeUtil.getPayMode(order.getPayMode(), recipe.getGiveMode());
+            recipeOrderService.finishOrderPay(order.getOrderCode(), PayConstant.PAY_FLAG_PAY_SUCCESS, payMode);
+        } else {
+            recipeOrderService.finishOrderPay(order.getOrderCode(), PayConstant.PAY_FLAG_PAY_SUCCESS, RecipeConstant.PAYMODE_ONLINE);
+        }
+
+        //更新处方支付日志
+        String memo = "订单: 收到his支付消息 his发票号:" + recipePayHISCallbackReq.getHisSettlementNo() + ",his处方单号：" + recipePayHISCallbackReq.getRecipeCode();
+        updateRecipePayLog(order, memo);
+        //存在优惠券的处理
+        if (eh.utils.ValidateUtil.notNullAndZeroInteger(order.getCouponId()) && order.getCouponId() != -1) {
+            ICouponBaseService couponService = AppContextHolder.getBean("voucher.couponBaseService", ICouponBaseService.class);
+            couponService.useCouponById(order.getCouponId());
+        }
+        //为邵逸夫添加药品费用的支付流水
+        Boolean syfPayMode = configurationClient.getValueBooleanCatch(order.getOrganId(), "syfPayMode", false);
+        if (syfPayMode) {
+            try {
+                RecipeOrderPayFlow recipeOrderPayFlow = recipeOrderPayFlowManager.getByOrderIdAndType(order.getOrderId(), PayFlowTypeEnum.RECIPE_FLOW.getType());
+                logger.info("recipeOrderPayFlow :{}.", JSONUtils.toString(recipeOrderPayFlow));
+                if (null == recipeOrderPayFlow) {
+                    recipeOrderPayFlow = new RecipeOrderPayFlow();
+                    recipeOrderPayFlow.setOrderId(order.getOrderId());
+                    if (recipePayHISCallbackReq.getPreSettleTotalAmount() != null) {
+                        recipeOrderPayFlow.setTotalFee(recipePayHISCallbackReq.getPreSettleTotalAmount().doubleValue());
+                    }
+                    recipeOrderPayFlow.setPayFlowType(PayFlowTypeEnum.RECIPE_FLOW.getType());
+                    recipeOrderPayFlow.setPayFlag(PayFlagEnum.PAYED.getType());
+                    recipeOrderPayFlow.setOutTradeNo(recipePayHISCallbackReq.getOutTradeNo());
+                    recipeOrderPayFlow.setTradeNo(recipePayHISCallbackReq.getTradeNo());
+                    recipeOrderPayFlow.setWnPayWay("");
+                    recipeOrderPayFlowManager.save(recipeOrderPayFlow);
+                } else {
+                    recipeOrderPayFlow.setPayFlag(PayFlagEnum.PAYED.getType());
+                    recipeOrderPayFlow.setOutTradeNo(recipePayHISCallbackReq.getOutTradeNo());
+                    recipeOrderPayFlow.setTradeNo(recipePayHISCallbackReq.getTradeNo());
+                    if (recipePayHISCallbackReq.getPreSettleTotalAmount() != null) {
+                        recipeOrderPayFlow.setTotalFee(recipePayHISCallbackReq.getPreSettleTotalAmount().doubleValue());
+                    }
+                    recipeOrderPayFlowManager.updateNonNullFieldByPrimaryKey(recipeOrderPayFlow);
+                }
+            } catch (Exception e) {
+                logger.error("邵逸夫支付流水 保存失败 :", e);
+            }
+        }
+        return;
+    }
+
+    /**
+     * 保存订单his支付回调信息
+     * @param order
+     * @param recipePayHISCallbackReq
+     */
+    private void saveOrderByPayCallBack(RecipeOrder order, RecipePayHISCallbackReq recipePayHISCallbackReq) {
+        if(Objects.nonNull(recipePayHISCallbackReq.getSettleMode())){
+            order.setSettleMode(recipePayHISCallbackReq.getSettleMode());
+        }
+        if(Objects.nonNull(recipePayHISCallbackReq.getPreSettleTotalAmount())){
+            order.setPreSettletotalAmount(recipePayHISCallbackReq.getPreSettleTotalAmount().doubleValue());
+        }
+        if(Objects.nonNull(recipePayHISCallbackReq.getCashAmount())){
+            order.setCashAmount(recipePayHISCallbackReq.getCashAmount().doubleValue());
+        }
+        if(Objects.nonNull(recipePayHISCallbackReq.getFundAmount())){
+            order.setFundAmount(recipePayHISCallbackReq.getFundAmount().doubleValue());
+        }
+        if(StringUtils.isNotEmpty(recipePayHISCallbackReq.getHisSettlementNo())){
+            order.setHisSettlementNo(recipePayHISCallbackReq.getHisSettlementNo());
+        }
+        if(StringUtils.isNotEmpty(recipePayHISCallbackReq.getOutTradeNo())){
+            order.setOutTradeNo(recipePayHISCallbackReq.getOutTradeNo());
+        }
+        if(StringUtils.isNotEmpty(recipePayHISCallbackReq.getTradeNo())){
+            order.setTradeNo(recipePayHISCallbackReq.getTradeNo());
+        }
+        recipeOrderDAO.update(order);
+    }
+
+    /**
+     * 更新处方支付日志
+     *
+     * @param order
+     */
+    private void updateRecipePayLog(RecipeOrder order, String memo) {
+        List<Integer> recipeIdList = null;
+        if (StringUtils.isNotEmpty(order.getRecipeIdList())) {
+            recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
+        }
+        if (CollectionUtils.isNotEmpty(recipeIdList)) {
+            for (int i = 0; i < recipeIdList.size(); i++) {
+                recipeLogService.saveRecipeLog(recipeIdList.get(i), eh.cdr.constant.RecipeStatusConstant.UNKNOW, eh.cdr.constant.RecipeStatusConstant.UNKNOW, memo);
+            }
+        }
     }
 }
 

@@ -30,6 +30,7 @@ import recipe.enumerate.status.SignEnum;
 import recipe.util.ObjectCopyUtils;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.patient.PatientOptionalDrugVo;
+import recipe.vo.second.RecipePayHISCallbackReq;
 import recipe.vo.second.RevisitRecipeTraceVo;
 
 import javax.annotation.Resource;
@@ -278,6 +279,13 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
     @LogRecord
     public List<RecipeBean> findRecipeByMpiidAndrecipeStatus(String mpiid, List<Integer> recipeStatus,Integer terminalType,Integer organId) {
         return com.ngari.patient.utils.ObjectCopyUtils.convert(recipeBusinessService.findRecipeByMpiidAndrecipeStatus(mpiid,recipeStatus,terminalType,organId), RecipeBean.class);
+    }
+
+    @Override
+    public HisResponseTO recipePayHISCallback(RecipePayHISCallbackReq recipePayHISCallbackReq) {
+        recipeBusinessService.recipePayHISCallback(recipePayHISCallbackReq);
+        HisResponseTO hisResponseTO = new HisResponseTO();
+        return hisResponseTO;
     }
 
 }
