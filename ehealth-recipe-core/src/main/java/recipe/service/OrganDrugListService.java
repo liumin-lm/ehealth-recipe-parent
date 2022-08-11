@@ -142,12 +142,14 @@ public class OrganDrugListService implements IOrganDrugListService {
      */
     @LogRecord
     public void organDrugSyncDelete(OrganDrugList organDrugList, Integer status) {
+        logger.info("organDrugList:{},status:{}",JSONUtils.toString(organDrugList),status);
         DrugToolService bean = AppDomainContext.getBean("eh.drugToolService", DrugToolService.class);
         List<OrganDrugList> lists = Lists.newArrayList();
         lists.add(organDrugList);
         DrugsEnterpriseDAO dao = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         DrugsEnterpriseConfigService configService = AppContextHolder.getBean("eh.drugsEnterpriseConfigService", DrugsEnterpriseConfigService.class);
         List<DrugsEnterprise> drugsEnterprises = dao.findByOrganId(organDrugList.getOrganId());
+        logger.info("organDrugSyncDelete drugsEnterprises:{}",JSONUtils.toString(drugsEnterprises));
         if (drugsEnterprises != null && drugsEnterprises.size() > 0) {
             for (DrugsEnterprise drugsEnterpris : drugsEnterprises) {
                 DrugsEnterpriseConfig config = configService.getConfigByDrugsenterpriseId(drugsEnterpris.getId());
