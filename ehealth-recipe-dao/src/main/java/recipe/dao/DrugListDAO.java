@@ -537,6 +537,9 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
     @DAOMethod(sql = " select d from DrugList d,SaleDrugList s where d.drugId=s.drugId and s.status=1 and s.organId=:organId ", limit = 9999)
     public abstract List<DrugList> findDrugsByDepId(@DAOParam("organId") Integer organId);
 
+    @DAOMethod(sql = " select d from DrugList d,SaleDrugList s where d.drugId=s.drugId and s.organId=:organId order by status desc ", limit = 9999)
+    public abstract List<DrugList> findByEnterpriseId(@DAOParam("organId") Integer organId);
+
     public DrugList findByDrugIdAndOrganId(final int drugId) {
 
         HibernateStatelessResultAction<DrugList> action = new AbstractHibernateStatelessResultAction<DrugList>() {
