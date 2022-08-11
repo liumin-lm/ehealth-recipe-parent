@@ -73,10 +73,7 @@ import recipe.dao.bean.DrugInfoHisBean;
 import recipe.drugsenterprise.AccessDrugEnterpriseService;
 import recipe.drugsenterprise.CommonRemoteService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
-import recipe.enumerate.status.RecipeStateEnum;
-import recipe.enumerate.status.RecipeStatusEnum;
-import recipe.enumerate.status.SettleAmountStateEnum;
-import recipe.enumerate.status.WriteHisEnum;
+import recipe.enumerate.status.*;
 import recipe.enumerate.type.PayFlagEnum;
 import recipe.hisservice.HisRequestInit;
 import recipe.hisservice.RecipeToHisCallbackService;
@@ -220,6 +217,8 @@ public class RecipeHisService extends RecipeBaseService {
             }
         }
         request.setOrganID(sendOrganId.toString());
+        request.setIsFree(YesOrNoEnum.NO.getType());
+        request.setIsOnlinePay(YesOrNoEnum.YES.getType());
         service.recipeSend(request);
     }
 
