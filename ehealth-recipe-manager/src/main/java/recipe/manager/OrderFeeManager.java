@@ -210,7 +210,7 @@ public class OrderFeeManager extends BaseManager {
      */
     private BigDecimal getRecipeDecoctionFee(RecipeExtend extend, Recipe recipe) {
         Integer decoctionId = null;
-        if (null != extend && Objects.nonNull(extend.getDecoctionId())) {
+        if (null != extend && StringUtils.isNotEmpty(extend.getDecoctionId())) {
             decoctionId = Integer.valueOf(extend.getDecoctionId());
         }
         logger.info("decoctionId:{}", decoctionId);
