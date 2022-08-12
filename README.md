@@ -45,4 +45,27 @@ getPatientRecipeById 患者端处方详情
 扁鹊回传处方状态接口：recipeStatusNotice
 医生二次签名/审核强制通过 doSecondSignRecipe
 ```
+```
+关于机构药品目录同步流程及接口描述：
+一、配置项
+机构药品目录-同步设置
+涉及配置：接口对接模式  自主查询  主动推送
+新增数据审核模式：系统审核  人工审核
+二、配置项对应的表及字段
+basic库base_organconfig
+配置项同步数据类型中，新增数据->enable_drug_add 删除数据->enable_drug_delete
+三、对应接口
+自主查询：
+X-Service-Id: eh.recipeService 
+X-Service-Method: drugInfoSynMovementDTask 
+主动推送：
+X-Service-Id: eh.recipeService 
+X-Service-Method: syncOrganDrug 
+四、流程
+新增数据审核模式为系统审核时，接口对接模式为自主查询，平台根据配置的定时时间从his主动查询线下药品信息，
+获取到药品信息后，首先根据机构药品编码和机构药品目录比对，如果不存在，则新增到临时表和平台药品目录并标明药品来源，
+并获取到平台药品id，以便直接新增到机构药品目录，在新增的过程中，会对线下药品进行校验，以下字段：
+organDrugCode药品编码、drugName药品名称、useDose单次剂量(规格单位)[注中药可不填]、drugSpec药品规格、
+drugType药品类型、pack药品包装数量、unit药品单位、producer药品生产厂家、usePathways用药途径（需要能对照上）、usingRate用药频次
+```
 ### End
