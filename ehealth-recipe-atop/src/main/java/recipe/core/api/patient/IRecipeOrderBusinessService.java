@@ -179,4 +179,11 @@ public interface IRecipeOrderBusinessService {
      * @return
      */
     SelfPreSettleQueryReq selfPreSettleQueryInfo(Integer busId);
+
+    /**
+     * 第三方获取订单预算信息
+     * @param thirdOrderPreSettleReq
+     * @return
+     */
+    ThirdOrderPreSettleRes ThirdOrderPreSettle(ThirdOrderPreSettleReq thirdOrderPreSettleReq);
 }

@@ -56,6 +56,7 @@ import org.springframework.stereotype.Service;
 import recipe.ApplicationUtils;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.*;
+import recipe.constant.RecipeBussConstant;
 import recipe.core.api.patient.IRecipeOrderBusinessService;
 import recipe.dao.*;
 import recipe.enumerate.status.GiveModeEnum;
@@ -68,6 +69,8 @@ import recipe.manager.EnterpriseManager;
 import recipe.manager.OrderManager;
 import recipe.manager.RecipeManager;
 import recipe.openapi.business.request.ThirdSaveOrderRequest;
+import recipe.presettle.IRecipePreSettleService;
+import recipe.presettle.factory.PreSettleFactory;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeOrderService;
 import recipe.third.IFileDownloadService;
@@ -823,6 +826,53 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
         return selfPreSettleQueryReq;
     }
 
+    @Override
+    public ThirdOrderPreSettleRes ThirdOrderPreSettle(ThirdOrderPreSettleReq thirdOrderPreSettleReq) {
+        ThirdOrderPreSettleRes thirdOrderPreSettleRes = new ThirdOrderPreSettleRes();
+        checkParams(thirdOrderPreSettleReq);
+        setUrtToContext(thirdOrderPreSettleReq.getAppkey(), thirdOrderPreSettleReq.getTid());
+        String mpiId = getOwnMpiId();
+        List<Recipe> recipes = recipeDAO.findByRecipeIds(thirdOrderPreSettleReq.getRecipeIds());
+        if(CollectionUtils.isEmpty(recipes)){
+            logger.info("ThirdOrderPreSettle recipes is null");
+            throw new DAOException(609,"处方不存在");
+        }
+        List<String> recipeNoS = recipes.stream().map(Recipe::getRecipeCode).collect(Collectors.toList());
+        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipes.get(0).getOrderCode());
+        logger.info("unifyRecipePreSettle recipeOrder:{}", JSON.toJSONString(recipeOrder));
+        if (recipeOrder == null) {
+            logger.info("ThirdOrderPreSettle order is null");
+            throw new DAOException(609,"订单不存在");
+        }
+        RecipeExtend extend = recipeExtendDAO.getByRecipeId(recipes.get(0).getRecipeId());
+        if (extend == null) {
+            logger.info("ThirdOrderPreSettle extend is null");
+            throw new DAOException(609,"补充信息不存在");
+        }
+        if (!RecipeBussConstant.PAYMODE_ONLINE.equals(recipeOrder.getPayMode())) {
+            logger.info("ThirdOrderPreSettle no support. recipeId={}", JSONUtils.toString(recipes.get(0).getRecipeId()));
+            throw new DAOException(609,"不是线上支付订单");
+        }
+        Integer depId = recipeOrder.getEnterpriseId();
+        Integer orderType = recipeOrder.getOrderType() == null ? 0 : recipeOrder.getOrderType();
+        String insuredArea = extend.getInsuredArea();
+        Map<String, Object> param = com.google.common.collect.Maps.newHashMap();
+        param.put("depId", depId);
+        param.put("insuredArea", insuredArea);
+        param.put("recipeNoS", JSONUtils.toString(recipeNoS));
+        param.put("payMode", recipeOrder.getPayMode());
+        param.put("recipeIds", recipes.get(0).getRecipeId());
+        //获取对应预结算服务
+        IRecipePreSettleService preSettleService = PreSettleFactory.getPreSettleService(recipes.get(0).getClinicOrgan(),orderType);
+        if (preSettleService != null){
+            Map<String, Object> map = preSettleService.recipePreSettle(recipes.get(0).getRecipeId(), param);
+            thirdOrderPreSettleRes.setPreSettleTotalAmount(map.get("preSettleTotalAmount").toString());
+            thirdOrderPreSettleRes.setCashAmount(map.get("cashAmount").toString());
+            thirdOrderPreSettleRes.setFundAmount(map.get("hisSettlementNo").toString());
+        }
+        return thirdOrderPreSettleRes;
+    }
+
     /**
      * 第三方设置订单费用
      *
@@ -912,6 +962,20 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
         if (StringUtils.isEmpty(request.getPayway())) {
             throw new DAOException(609, "支付类型为空");
         }
+    }
+
+    /**
+     * 参数校验
+     * @param request
+     */
+    private void checkParams(ThirdOrderPreSettleReq request){
+        if (StringUtils.isEmpty(request.getTid())) {
+            throw new DAOException(609, "用户为空");
+        }
+        if (Objects.isNull(request.getRecipeIds())) {
+            throw new DAOException(609, "处方单ID为空");
+        }
+
     }
 
     /**

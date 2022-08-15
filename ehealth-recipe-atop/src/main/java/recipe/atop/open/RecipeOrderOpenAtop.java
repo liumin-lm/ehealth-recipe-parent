@@ -164,6 +164,12 @@ public class RecipeOrderOpenAtop extends BaseAtop implements IRecipeOrderAtopSer
         logger.info("RecipeOrderOpenAtop thirdCreateOrder thirdCreateOrderReqDTO:{}.", JSONUtils.toString(thirdCreateOrderReqDTO));
         return recipeOrderService.thirdCreateOrder(thirdCreateOrderReqDTO);
     }
+
+    @Override
+    public ThirdOrderPreSettleRes ThirdOrderPreSettle(ThirdOrderPreSettleReq thirdOrderPreSettleReq) {
+        return recipeOrderService.ThirdOrderPreSettle(thirdOrderPreSettleReq);
+    }
+
     @Override
     public CabinetVO validateCabinetRecipeStatus(CabinetVO cabinetVO) {
         validateAtop(cabinetVO.getOrganId(),cabinetVO.getRecipeCode());
