@@ -103,7 +103,7 @@ public interface IRecipeOrderAtopService {
      * @return
      */
     @RpcService
-    ThirdOrderPreSettleRes ThirdOrderPreSettle(ThirdOrderPreSettleReq thirdOrderPreSettleReq);
+    ThirdOrderPreSettleRes thirdOrderPreSettle(ThirdOrderPreSettleReq thirdOrderPreSettleReq);
  /**
      * 判断处方是否有效(到院取药-存储药柜)
      * @param cabinetVO

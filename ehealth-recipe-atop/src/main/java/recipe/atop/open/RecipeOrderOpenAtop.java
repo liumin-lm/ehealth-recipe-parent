@@ -166,8 +166,8 @@ public class RecipeOrderOpenAtop extends BaseAtop implements IRecipeOrderAtopSer
     }
 
     @Override
-    public ThirdOrderPreSettleRes ThirdOrderPreSettle(ThirdOrderPreSettleReq thirdOrderPreSettleReq) {
-        return recipeOrderService.ThirdOrderPreSettle(thirdOrderPreSettleReq);
+    public ThirdOrderPreSettleRes thirdOrderPreSettle(ThirdOrderPreSettleReq thirdOrderPreSettleReq) {
+        return recipeOrderService.thirdOrderPreSettle(thirdOrderPreSettleReq);
     }
 
     @Override

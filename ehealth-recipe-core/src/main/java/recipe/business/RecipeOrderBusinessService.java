@@ -827,7 +827,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
     }
 
     @Override
-    public ThirdOrderPreSettleRes ThirdOrderPreSettle(ThirdOrderPreSettleReq thirdOrderPreSettleReq) {
+    public ThirdOrderPreSettleRes thirdOrderPreSettle(ThirdOrderPreSettleReq thirdOrderPreSettleReq) {
         ThirdOrderPreSettleRes thirdOrderPreSettleRes = new ThirdOrderPreSettleRes();
         checkParams(thirdOrderPreSettleReq);
         setUrtToContext(thirdOrderPreSettleReq.getAppkey(), thirdOrderPreSettleReq.getTid());
