@@ -140,11 +140,11 @@ public class PharmacyManager extends BaseManager {
      * @return
      */
     public Integer organDrugPharmacyId(Integer organId, List<String> organDrugCodeList) {
-        Integer pharmacyId = 0;
         Map<Integer, PharmacyTcm> pharmacyIdMap = this.pharmacyIdMap(organId);
         if (null == pharmacyIdMap) {
             return null;
         }
+        int pharmacyId = 0;
         List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugCodes(organId, organDrugCodeList);
         List<String> pharmacyList = organDrugList.stream().map(OrganDrugList::getPharmacy).filter(StringUtils::isNotEmpty).collect(Collectors.toList());
         if (CollectionUtils.isEmpty(pharmacyList)) {

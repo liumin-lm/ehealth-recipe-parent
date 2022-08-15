@@ -101,7 +101,7 @@ public class RecipeDetailBusinessService implements IRecipeDetailBusinessService
             }
             //校验药品药房是否变动
             boolean pharmacy = pharmacyManager.pharmacyVariationV1(pharmacyId, organDrug.getPharmacy());
-            if (pharmacy) {
+            if (null != pharmacyIdMap && pharmacy) {
                 a.setValidateStatusText("机构药品药房错误");
                 a.setValidateStatus(RecipeDetailValidateTool.VALIDATE_STATUS_FAILURE);
                 logger.info("RecipeDetailService validateDrug pharmacy OrganDrugCode ：= {}", a.getOrganDrugCode());
