@@ -227,6 +227,12 @@ public class RecipeAuditClient extends BaseClient {
         return recipeCheckService.getGrabOrderStatusAndLimitTime(map);
     }
 
+    /**
+     * 开始处方审核流程
+     * @param recipe
+     * @param recipeExtend
+     * @param recipeDetailList
+     */
     @LogRecord
     public void startRecipeAuditProcess(Recipe recipe, RecipeExtend recipeExtend, List<Recipedetail> recipeDetailList) {
         RecipeAuditReqDTO recipeAuditReqDTO = new RecipeAuditReqDTO();

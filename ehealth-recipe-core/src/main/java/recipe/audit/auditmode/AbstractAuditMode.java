@@ -73,12 +73,12 @@ public abstract class AbstractAuditMode implements IAuditMode {
             LOGGER.info("saveStatusAndSendMsg 处方单已经撤销,recipeId:{}", recipe.getRecipeId());
             return;
         }
-        Integer status = RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType();
-        recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), status, null);
+        StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
+        stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_ORDER, RecipeStateEnum.SUB_ORDER_READY_SUBMIT_ORDER);
         //日志记录
-        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), status, memo);
+        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getRecipeId(), memo);
         //发送消息--待审核或者待处理消息
-        RecipeMsgService.batchSendMsg(recipe.getRecipeId(), status);
+        RecipeMsgService.batchSendMsg(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_ORDER.getType());
         //处方审核
         startRecipeAuditProcess(recipe.getRecipeId());
     }
@@ -184,39 +184,6 @@ public abstract class AbstractAuditMode implements IAuditMode {
         List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
         RecipeAuditClient recipeAuditClient = AppContextHolder.getBean("recipeAuditClient", RecipeAuditClient.class);
         recipeAuditClient.startRecipeAuditProcess(recipe, recipeExtend, recipeDetailList);
-    }
-
-    /**
-     * 线下审方
-     *
-     * @param recipe
-     */
-    protected void recipeAudit(Recipe recipe) {
-        LOGGER.info("AbstractAuditMode recipeAudit recipe={}",JSON.toJSONString(recipe));
-        try {
-            Integer recipeId = recipe.getRecipeId();
-            //处方信息 AND 病历信息重新拉去
-            RecipeManager recipeManager = AppContextHolder.getBean("recipeManager", RecipeManager.class);
-            Recipe recipeManagBean = recipeManager.getRecipeById(recipeId);
-            RecipeDTO recipeDTO = ObjectCopyUtils.convert(recipeManagBean, RecipeDTO.class);
-            //查詢处方扩展 获取对应的挂号序号
-            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
-            recipeDTO.setRegisterId(recipeExtend.getRegisterID());
-            //处方信息详情
-            RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
-            List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipeId);
-            List<RecipeDetailDTO> recipeDetailBeans = ObjectCopyUtils.convert(recipeDetails, RecipeDetailDTO.class);
-            IRecipeAuditService recipeAuditService = RecipeAuditAPI.getService(IRecipeAuditService.class, "recipeAuditServiceImpl");
-            LOGGER.info("AbstractAuditMode recipeAudit recipeDTO={} recipeDetailBeans={}",JSON.toJSONString(recipeDTO),JSON.toJSONString(recipeDetailBeans));
-            if (recipeDTO.getCheckMode().equals(3)) {
-                recipeAuditService.winningRecipeAudit(recipeDTO, recipeDetailBeans);
-            } else {
-                recipeAuditService.offlineRecipeAudit(recipeDTO, recipeDetailBeans);
-            }
-        } catch (Exception e) {
-            LOGGER.error("recipeAudit.error", e);
-        }
     }
 
     protected void setAuditStateToPendingReview(Recipe recipe,Integer status) {

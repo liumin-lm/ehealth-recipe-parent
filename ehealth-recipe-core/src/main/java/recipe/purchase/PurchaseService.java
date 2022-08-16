@@ -48,6 +48,7 @@ import recipe.client.IConfigurationClient;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.enumerate.status.OfflineToOnlineEnum;
+import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.status.SettleAmountStateEnum;
 import recipe.enumerate.type.GiveModeTextEnum;
@@ -113,9 +114,6 @@ public class PurchaseService {
     private OrganDrugsSaleConfigDAO organDrugsSaleConfigDAO;
 
     @Autowired
-    private OrganDrugListDAO organDrugListDAO;
-
-    @Autowired
     private SaleDrugListDAO saleDrugListDAO;
 
     @Autowired
@@ -126,6 +124,9 @@ public class PurchaseService {
 
     @Autowired
     private DrugsEnterpriseDAO drugsEnterpriseDAO;
+
+    @Autowired
+    private StateManager stateManager;
 
     /**
      * 获取可用购药方式------------已废弃---已改造成从处方单详情里获取
@@ -521,6 +522,10 @@ public class PurchaseService {
             if (StringUtils.isNotEmpty(depId)) {
                 recipeManager.updateRecipeDetailSalePrice(recipeList, Integer.valueOf(depId));
             }
+            //处理处方父子状态
+            recipeIds.forEach(recipeId->{
+                stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_ORDER, RecipeStateEnum.SUB_ORDER_HAD_SUBMIT_ORDER);
+            });
             // 根据paymode 换算givemode
             Integer giveMode = PayModeGiveModeUtil.getGiveMode(payMode);
             IPurchaseService purchaseService = getService(giveMode);
