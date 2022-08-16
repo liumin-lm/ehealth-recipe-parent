@@ -270,7 +270,7 @@ public class RecipeUtil {
         if (null == recipe.getRecipeMode()) {
             recipe.setRecipeMode(RecipeBussConstant.RECIPEMODE_NGARIHEALTH);
         }
-
+        IConfigurationClient configurationClient = AppContextHolder.getBean("IConfigurationClient", IConfigurationClient.class);
         //互联网模式默认为审方前置
         if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())) {
             recipe.setReviewType(ReviewTypeConstant.Preposition_Check);
@@ -278,25 +278,11 @@ public class RecipeUtil {
             //设置运营平台设置的审方模式
             //互联网设置了默认值，平台没有设置默认值从运营平台取
             if (recipe.getReviewType() == null) {
-                try {
-                    IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-                    Integer reviewType = (Integer) configurationService.getConfiguration(recipe.getClinicOrgan(), "reviewType");
-                    LOGGER.info("运营平台获取审方方式配置 reviewType[{}]", reviewType);
-                    if (reviewType == null) {
-                        //默认审方后置
-                        recipe.setReviewType(ReviewTypeConstant.Postposition_Check);
-                    } else {
-                        recipe.setReviewType(reviewType);
-                    }
-                } catch (Exception e) {
-                    LOGGER.error("获取运营平台审方方式配置异常", e);
-                    //默认审方后置
-                    recipe.setReviewType(ReviewTypeConstant.Postposition_Check);
-                }
+                Integer reviewType = configurationClient.getValueCatchReturnInteger(recipe.getClinicOrgan(), "reviewType", ReviewTypeConstant.Postposition_Check);
+                LOGGER.info("运营平台获取审方方式配置 organId:{}, reviewType[{}]", recipe.getClinicOrgan(), reviewType);
+                recipe.setReviewType(reviewType);
             }
         }
-
-        IConfigurationClient configurationClient = AppContextHolder.getBean("IConfigurationClient", IConfigurationClient.class);
         //设置运营平台设置的审方途径
         if (recipe.getCheckMode() == null) {
             Integer checkMode = configurationClient.getValueCatchReturnInteger(recipe.getClinicOrgan(), "isOpenHisCheckRecipeFlag", 1);
