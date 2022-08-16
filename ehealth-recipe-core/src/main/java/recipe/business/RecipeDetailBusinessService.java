@@ -104,7 +104,6 @@ public class RecipeDetailBusinessService implements IRecipeDetailBusinessService
             if (null != pharmacyIdMap && pharmacy) {
                 a.setValidateStatusText("机构药品药房错误");
                 a.setValidateStatus(RecipeDetailValidateTool.VALIDATE_STATUS_FAILURE);
-                logger.info("RecipeDetailService validateDrug pharmacy OrganDrugCode ：= {}", a.getOrganDrugCode());
                 return;
             }
             //校验数据是否完善
