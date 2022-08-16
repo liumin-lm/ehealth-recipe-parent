@@ -49,6 +49,9 @@ public class OrganAndDrugsepRelation implements java.io.Serializable {
     @ItemProperty(alias = "药品剂型 药企配置后，对应处方单及药品属性，将不支持配送")
     private String enterpriseDrugForm;
 
+    @ItemProperty(alias = "支持煎法的类型  药企配置后，将不支持配送 0 非代煎 1 代煎 ")
+    private Integer supportDecoctionType;
+
     @Id
     @GeneratedValue(strategy = IDENTITY)
     @Column(name = "id", unique = true, nullable = false)
@@ -121,5 +124,13 @@ public class OrganAndDrugsepRelation implements java.io.Serializable {
 
     public void setEnterpriseDrugForm(String enterpriseDrugForm) {
         this.enterpriseDrugForm = enterpriseDrugForm;
+    }
+
+    public Integer getSupportDecoctionType() {
+        return supportDecoctionType;
+    }
+
+    public void setSupportDecoctionType(Integer supportDecoctionType) {
+        this.supportDecoctionType = supportDecoctionType;
     }
 }

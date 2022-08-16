@@ -1487,6 +1487,7 @@ public class RecipeOrderService extends RecipeBaseService {
                                     recipeExtendDAO.saveOrUpdateRecipeExtend(recipeExtend);
                                 }
                             }
+                            stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_ORDER, RecipeStateEnum.SUB_ORDER_CANCEL_ORDER);
                         }
                         try {
                             //对于来源于HIS的处方单更新hisRecipe的状态

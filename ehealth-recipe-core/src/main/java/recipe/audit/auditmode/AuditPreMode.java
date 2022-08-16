@@ -58,14 +58,14 @@ public class AuditPreMode extends AbstractAuditMode {
             if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipeMode)) {
                 RecipeServiceSub.sendRecipeTagToPatient(recipe, detailDAO.findByRecipeId(recipeId), null, true);
                 //向患者推送处方消息
-                RecipeMsgService.batchSendMsg(recipe, RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType());
+                RecipeMsgService.batchSendMsg(recipe, RecipeStateEnum.PROCESS_STATE_ORDER.getType());
             } else {
                 //平台前置发送审核通过消息 /向患者推送处方消息 处方通知您有一张处方单需要处理，请及时查看。
                 RecipeMsgService.batchSendMsg(recipe, RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS_YS.getType());
             }
         }
         StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
-        stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_AUDIT, RecipeStateEnum.SUB_AUDIT_READY_DONE);
+        stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_ORDER, RecipeStateEnum.SUB_ORDER_READY_SUBMIT_ORDER);
         // 病历处方-状态修改成显示
         DocIndexClient docIndexClient = AppContextHolder.getBean("docIndexClient", DocIndexClient.class);
         docIndexClient.updateStatusByBussIdBussType(recipe.getRecipeId(), DocIndexShowEnum.SHOW.getCode());

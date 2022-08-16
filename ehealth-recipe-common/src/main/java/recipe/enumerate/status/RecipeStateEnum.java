@@ -15,7 +15,7 @@ public enum RecipeStateEnum {
     NONE(0, "", ""),
     PROCESS_STATE_SUBMIT(1, "待提交", ""),
     PROCESS_STATE_AUDIT(2, "待审核", ""),
-    PROCESS_STATE_ORDER(3, "待下单", ""),
+    PROCESS_STATE_ORDER(3, "待购药", ""),
     PROCESS_STATE_DISPENSING(4, "待发药", ""),
     PROCESS_STATE_DISTRIBUTION(5, "配送中", ""),
     PROCESS_STATE_MEDICINE(6, "待取药", ""),
@@ -37,6 +37,13 @@ public enum RecipeStateEnum {
     SUB_AUDIT_READY_SUPPORT(21, "等待药师审核", ""),
     SUB_AUDIT_READY_DONE(22, "药师审核完成", ""),
     SUB_AUDIT_DOCTOR_READY(23, "药师审核未通过，医生确认中", ""),
+
+    /**
+     * 处方子状态:待购药
+     */
+    SUB_ORDER_READY_SUBMIT_ORDER(31, "等待下单支付", ""),
+    SUB_ORDER_HAD_SUBMIT_ORDER(32, "已提交订单", ""),
+    SUB_ORDER_CANCEL_ORDER(33, "取消订单", ""),
 
     /**
      * 处方子状态:已完成
