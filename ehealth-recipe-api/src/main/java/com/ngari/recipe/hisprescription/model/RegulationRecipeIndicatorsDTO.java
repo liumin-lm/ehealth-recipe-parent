@@ -1033,4 +1033,20 @@ public class RegulationRecipeIndicatorsDTO implements Serializable {
     public void setRecipeChHerbalIndicatorsReq(RecipeChHerbalIndicatorsReq recipeChHerbalIndicatorsReq) {
         this.recipeChHerbalIndicatorsReq = recipeChHerbalIndicatorsReq;
     }
+
+    public String getDoctorSignFile() {
+        return doctorSignFile;
+    }
+
+    public void setDoctorSignFile(String doctorSignFile) {
+        this.doctorSignFile = doctorSignFile;
+    }
+
+    public String getChemistSignFile() {
+        return chemistSignFile;
+    }
+
+    public void setChemistSignFile(String chemistSignFile) {
+        this.chemistSignFile = chemistSignFile;
+    }
 }
