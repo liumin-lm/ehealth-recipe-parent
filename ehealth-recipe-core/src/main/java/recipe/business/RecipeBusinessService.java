@@ -6,12 +6,11 @@ import com.ngari.follow.utils.ObjectCopyUtil;
 import com.ngari.his.recipe.mode.OutPatientRecipeReq;
 import com.ngari.his.recipe.mode.OutRecipeDetailReq;
 import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
-import com.ngari.patient.dto.*;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.dto.*;
 import com.ngari.patient.service.IUsePathwaysService;
 import com.ngari.patient.service.IUsingRateService;
-import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
@@ -19,8 +18,6 @@ import com.ngari.recipe.recipe.ChineseMedicineMsgVO;
 import com.ngari.recipe.recipe.constant.RecipeTypeEnum;
 import com.ngari.recipe.recipe.constant.RecipecCheckStatusConstant;
 import com.ngari.recipe.recipe.model.*;
-import com.ngari.recipe.recipe.service.IRecipeService;
-import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import com.ngari.recipe.vo.*;
 import coupon.api.service.ICouponBaseService;
 import ctd.persistence.exception.DAOException;
@@ -28,7 +25,6 @@ import ctd.schema.exception.ValidateException;
 import ctd.util.AppContextHolder;
 import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
-import ctd.util.converter.ConversionUtils;
 import eh.cdr.api.vo.MedicalDetailBean;
 import eh.cdr.constant.RecipeConstant;
 import eh.wxpay.constant.PayConstant;
@@ -107,6 +103,8 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     @Autowired
     private PharmacyTcmDAO pharmacyTcmDAO;
     @Autowired
+    private DoctorCommonPharmacyDAO doctorCommonPharmacyDao;
+    @Autowired
     private PatientOptionalDrugDAO patientOptionalDrugDAO;
     @Autowired
     private DrugListDAO drugListDAO;
@@ -146,6 +144,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     private RemoteRecipeOrderService recipeOrderService;
     @Autowired
     private RecipeOrderPayFlowManager recipeOrderPayFlowManager;
+
 
 
     /**
@@ -933,6 +932,25 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             }
         }
         return;
+    }
+
+    @Override
+    public DoctorCommonPharmacy findDoctorCommonPharmacyByOrganIdAndDoctorId(Integer organId, Integer doctorId) {
+        List<DoctorCommonPharmacy> doctorCommonPharmacies = doctorCommonPharmacyDao.findByOrganIdAndDoctorId(organId,doctorId);
+        return CollectionUtils.isEmpty(doctorCommonPharmacies)?null:doctorCommonPharmacies.get(0);
+    }
+
+    @Override
+    public void saveDoctorCommonPharmacy(DoctorCommonPharmacy doctorCommonPharmacy) {
+        List<DoctorCommonPharmacy> doctorCommonPharmacies=doctorCommonPharmacyDao.findByOrganIdAndDoctorId(doctorCommonPharmacy.getOrganId(),doctorCommonPharmacy.getDoctorId());
+        if(CollectionUtils.isEmpty(doctorCommonPharmacies)){
+            doctorCommonPharmacy.setCreateTime(new Date());
+            doctorCommonPharmacyDao.save(doctorCommonPharmacy);
+        }else{
+            DoctorCommonPharmacy doctorCommonPharmacyDb=doctorCommonPharmacies.get(0);
+            doctorCommonPharmacy.setId(doctorCommonPharmacyDb.getId());
+            doctorCommonPharmacyDao.updateNonNullFieldByPrimaryKey(doctorCommonPharmacy);
+        }
     }
 
     /**
