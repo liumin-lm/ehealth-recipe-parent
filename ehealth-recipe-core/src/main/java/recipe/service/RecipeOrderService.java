@@ -2318,6 +2318,7 @@ public class RecipeOrderService extends RecipeBaseService {
                     attrMap.put("status", OrderStatusConstant.READY_PAY);
                 }
                 attrMap.put("effective", 1);
+                purchaseService.setRecipeOrderInfo(nowRecipe, order, payFlag);
             }
         }
         LOGGER.info("finishOrderPayImpl orderCode:{},attrMap:{},result:{}.", orderCode, JSONUtils.toString(attrMap), JSONUtils.toString(result));
