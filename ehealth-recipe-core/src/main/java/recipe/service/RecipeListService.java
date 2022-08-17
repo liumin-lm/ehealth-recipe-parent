@@ -1364,7 +1364,7 @@ public class RecipeListService extends RecipeBaseService {
                 PatientTabStatusMergeRecipeDTO patientTabStatusMergeRecipeDTO = new PatientTabStatusMergeRecipeDTO();
                 // 获取合并处方的关键字
                 patientTabStatusMergeRecipeDTO.setFirstRecipeId(recipeListBean.getRecipeId());
-                patientTabStatusMergeRecipeDTO.setMergeRecipeFlag(mergeRecipeFlag);
+                patientTabStatusMergeRecipeDTO.setMergeRecipeFlag(false);
                 patientTabStatusMergeRecipeDTO.setMergeRecipeWay(mergeRecipeWayAfter);
                 if ("e.registerId".equals(mergeRecipeWayAfter)) {
                     // 挂号序号
