@@ -44,11 +44,13 @@ import recipe.drugsenterprise.AccessDrugEnterpriseService;
 import recipe.drugsenterprise.CommonRemoteService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.drugsenterprise.paymodeonlineshowdep.PayModeOnlineShowDepServiceProducer;
+import recipe.enumerate.status.OrderStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.status.SettleAmountStateEnum;
 import recipe.hisservice.RecipeToHisService;
 import recipe.manager.EnterpriseManager;
 import recipe.manager.OrderManager;
+import recipe.manager.StateManager;
 import recipe.presettle.factory.OrderTypeFactory;
 import recipe.presettle.model.OrderTypeCreateConditionRequest;
 import recipe.service.RecipeOrderService;
@@ -82,6 +84,8 @@ public class PayModeOnline implements IPurchaseService {
     private EnterpriseManager enterpriseManager;
     @Autowired
     private PatientClient patientClient;
+    @Autowired
+    private StateManager stateManager;
 
     @Override
     public RecipeResultBean findSupportDepList(Recipe dbRecipe, Map<String, String> extInfo) {
@@ -247,7 +251,6 @@ public class PayModeOnline implements IPurchaseService {
             }
         }
 
-
         if (dep != null) {
             //设置配送费支付方式
             order.setExpressFeePayWay(dep.getExpressFeePayWay());
@@ -261,18 +264,14 @@ public class PayModeOnline implements IPurchaseService {
         if (decoctionId != null) {
             DrugDecoctionWayDao drugDecoctionWayDao = getDAO(DrugDecoctionWayDao.class);
             DecoctionWay decoctionWay = drugDecoctionWayDao.get(decoctionId);
-//            for (Recipe dbRecipe : recipeList) {
-                if (decoctionWay != null) {
-                    if (decoctionWay.getDecoctionPrice() != null) {
-                        order.setDecoctionUnitPrice(BigDecimal.valueOf(decoctionWay.getDecoctionPrice()));
-                    }
-//                    recipeExtendDAO.updateRecipeExInfoByRecipeId(dbRecipe.getRecipeId(), ImmutableMap.of("decoctionId", decoctionId + "", "decoctionText", decoctionWay.getDecoctionText()));
-
-                } else {
-                    LOG.error("未获取到对应的代煎费,decoctionId={}", decoctionId);
+            if (decoctionWay != null) {
+                if (decoctionWay.getDecoctionPrice() != null) {
+                    order.setDecoctionUnitPrice(BigDecimal.valueOf(decoctionWay.getDecoctionPrice()));
                 }
+            } else {
+                LOG.error("未获取到对应的代煎费,decoctionId={}", decoctionId);
             }
-//        }
+        }
         //线下处方和线上PatientIsDecoction处理成一样
         //在患者没有选择的情况下：前端会根据医生是否选择字段传入patientIsDecoction  对于线下处方而言，线下转线上的时候医生是否选择已经赋值
         //在患者选择的情况下：前端会根据患者自己选择传入patientIsDecoction
