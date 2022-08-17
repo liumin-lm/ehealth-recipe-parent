@@ -1292,7 +1292,9 @@ public class RecipeListService extends RecipeBaseService {
         if (CollectionUtils.isEmpty(recipeListByMPIId)) {
             return result;
         }
-        if (mergeRecipeFlag) {
+        // 获取是否跨业务合并支付标识
+        Boolean isCrossBusinessConsolidatedPayment = configurationClient.getValueBooleanCatch(recipeListByMPIId.get(0).getClinicOrgan(), "isCrossBusinessConsolidatedPayment", false);
+        if (mergeRecipeFlag && !isCrossBusinessConsolidatedPayment) {
             //返回合并处方
             // 合并订单的条件
             Map<String, List<RecipeListBean>> recipeListMap = new HashMap<>();
@@ -1300,9 +1302,12 @@ public class RecipeListService extends RecipeBaseService {
             if ("e.registerId".equals(mergeRecipeWayAfter)) {
                 // 挂号序号
                 recipeListMap = recipeListByMPIId.stream().collect(Collectors.groupingBy(RecipeListBean::getRegisterID));
+            } else if("organId".equals(mergeRecipeWayAfter)){
+                // 支持同一个机构下同一个就诊人合并支付
+                recipeListMap = recipeListByMPIId.stream().collect(Collectors.groupingBy(k -> k.getClinicOrgan() + k.getPatientName()));
             } else {
                 // 慢病名称
-                recipeListMap = recipeListByMPIId.stream().collect(Collectors.groupingBy(RecipeListBean::getChronicDiseaseName));
+                recipeListMap = recipeListByMPIId.stream().collect(Collectors.groupingBy(k-> k.getRegisterID() + k.getChronicDiseaseName()));
             }
             Map<String, List<RecipeListBean>> finalRecipeListMap = recipeListMap;
             recipeListByMPIId.forEach(recipeListBean -> {
@@ -1313,12 +1318,19 @@ public class RecipeListService extends RecipeBaseService {
                     patientTabStatusMergeRecipeDTO.setMergeRecipeFlag(mergeRecipeFlag);
                     patientTabStatusMergeRecipeDTO.setMergeRecipeWay(mergeRecipeWayAfter);
                     String key = "";
+                    String searchKey = "";
                     if ("e.registerId".equals(mergeRecipeWayAfter)) {
                         // 挂号序号
                         key = recipeListBean.getRegisterID();
+                        searchKey = recipeListBean.getRegisterID();
+                    }else if("organId".equals(mergeRecipeWayAfter)){
+                        // 支持同一个机构下同一个就诊人合并支付
+                        key = recipeListBean.getOrganName();
+                        searchKey = recipeListBean.getClinicOrgan() + recipeListBean.getPatientName();
                     } else {
                         // 慢病名称
                         key = recipeListBean.getChronicDiseaseName();
+                        searchKey = recipeListBean.getRegisterID() + recipeListBean.getChronicDiseaseName();
                     }
                     patientTabStatusMergeRecipeDTO.setGroupField(key);
                     List<PatientTabStatusRecipeDTO> recipe = Lists.newArrayList();
@@ -1332,7 +1344,7 @@ public class RecipeListService extends RecipeBaseService {
                         PatientTabStatusRecipeDTO patientTabStatusRecipeDTO = PatientTabStatusRecipeConvert(recipeListBean);
                         recipe.add(patientTabStatusRecipeDTO);
                     } else {
-                        List<RecipeListBean> recipeListBeans = finalRecipeListMap.get(key);
+                        List<RecipeListBean> recipeListBeans = finalRecipeListMap.get(searchKey);
                         recipeListBeans.forEach(recipeListBean1 -> {
                             Boolean togetherPayFlag1 = getTogetherPayFlag(recipeListBean1);
                             if (!togetherPayFlag1) {
@@ -1352,7 +1364,7 @@ public class RecipeListService extends RecipeBaseService {
                 PatientTabStatusMergeRecipeDTO patientTabStatusMergeRecipeDTO = new PatientTabStatusMergeRecipeDTO();
                 // 获取合并处方的关键字
                 patientTabStatusMergeRecipeDTO.setFirstRecipeId(recipeListBean.getRecipeId());
-                patientTabStatusMergeRecipeDTO.setMergeRecipeFlag(mergeRecipeFlag);
+                patientTabStatusMergeRecipeDTO.setMergeRecipeFlag(false);
                 patientTabStatusMergeRecipeDTO.setMergeRecipeWay(mergeRecipeWayAfter);
                 if ("e.registerId".equals(mergeRecipeWayAfter)) {
                     // 挂号序号

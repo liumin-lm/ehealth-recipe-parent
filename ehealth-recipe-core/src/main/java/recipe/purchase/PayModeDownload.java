@@ -115,11 +115,9 @@ public class PayModeDownload implements IPurchaseService {
         if (0d >= order.getActualPrice()) {
             //如果不需要支付则不走支付,直接掉支付后的逻辑
             orderService.finishOrderPay(order.getOrderCode(), 1, MapValueUtil.getInteger(extInfo, "payMode"));
-
         } else {
             // 邵逸夫模式下 不需要审方物流费需要生成一条流水记录
             orderManager.saveFlowByOrder(order);
-
             //需要支付则走支付前的逻辑
             orderService.finishOrderPayWithoutPay(order.getOrderCode(), payMode);
         }

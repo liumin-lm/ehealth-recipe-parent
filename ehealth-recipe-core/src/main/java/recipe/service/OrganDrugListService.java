@@ -449,6 +449,9 @@ public class OrganDrugListService implements IOrganDrugListService {
         } else {
             organDrugList.setSaleName(organDrugList.getSaleName());
         }
+        if (null == organDrugList.getUnavailable()) {
+            organDrugList.setUnavailable(0);
+        }
         Integer organId = organDrugList.getOrganId();
         OrganService organService = BasicAPI.getService(OrganService.class);
         OrganDTO organDTO = organService.getByOrganId(organId);
