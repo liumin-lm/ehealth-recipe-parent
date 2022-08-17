@@ -15,6 +15,7 @@ import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeLogDAO;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 处方状态记录
@@ -76,7 +77,8 @@ public class RecipeLogService {
         }
         RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
         List<RecipeLog> list = recipeLogDAO.findByRecipeId(recipeId);
-        return ObjectCopyUtils.convert(list, RecipeLogBean.class);
+        List<RecipeLog> recipeLogList = list.stream().filter(recipeLog -> StringUtils.isNotEmpty(recipeLog.getMemo())).collect(Collectors.toList());
+        return ObjectCopyUtils.convert(recipeLogList, RecipeLogBean.class);
     }
 
 
