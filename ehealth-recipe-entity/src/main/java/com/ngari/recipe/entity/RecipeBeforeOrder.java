@@ -12,7 +12,7 @@ import static javax.persistence.GenerationType.IDENTITY;
 
 @Entity
 @Schema
-@Table(name = "cdr_before_recipe")
+@Table(name = "cdr_before_order")
 @Access(AccessType.PROPERTY)
 public class RecipeBeforeOrder implements Serializable {
 
