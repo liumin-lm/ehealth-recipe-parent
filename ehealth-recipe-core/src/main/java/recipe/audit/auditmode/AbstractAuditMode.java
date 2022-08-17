@@ -74,11 +74,11 @@ public abstract class AbstractAuditMode implements IAuditMode {
             return;
         }
         currentRecipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType());
-        recipeDAO.updateNonNullFieldByPrimaryKey(recipe);
+        recipeDAO.updateNonNullFieldByPrimaryKey(currentRecipe);
         StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
         stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_ORDER, RecipeStateEnum.SUB_ORDER_READY_SUBMIT_ORDER);
         //日志记录
-        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), memo);
+        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), currentRecipe.getStatus(), memo);
         //发送消息--待审核或者待处理消息
         RecipeMsgService.batchSendMsg(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_ORDER.getType());
         //处方审核
