@@ -1318,15 +1318,19 @@ public class RecipeListService extends RecipeBaseService {
                     patientTabStatusMergeRecipeDTO.setMergeRecipeFlag(mergeRecipeFlag);
                     patientTabStatusMergeRecipeDTO.setMergeRecipeWay(mergeRecipeWayAfter);
                     String key = "";
+                    String searchKey = "";
                     if ("e.registerId".equals(mergeRecipeWayAfter)) {
                         // 挂号序号
                         key = recipeListBean.getRegisterID();
+                        searchKey = recipeListBean.getRegisterID();
                     }else if("organId".equals(mergeRecipeWayAfter)){
                         // 支持同一个机构下同一个就诊人合并支付
                         key = recipeListBean.getOrganName();
+                        searchKey = recipeListBean.getClinicOrgan() + recipeListBean.getPatientName();
                     } else {
                         // 慢病名称
                         key = recipeListBean.getChronicDiseaseName();
+                        searchKey = recipeListBean.getRegisterID() + recipeListBean.getChronicDiseaseName();
                     }
                     patientTabStatusMergeRecipeDTO.setGroupField(key);
                     List<PatientTabStatusRecipeDTO> recipe = Lists.newArrayList();
@@ -1340,7 +1344,7 @@ public class RecipeListService extends RecipeBaseService {
                         PatientTabStatusRecipeDTO patientTabStatusRecipeDTO = PatientTabStatusRecipeConvert(recipeListBean);
                         recipe.add(patientTabStatusRecipeDTO);
                     } else {
-                        List<RecipeListBean> recipeListBeans = finalRecipeListMap.get(key);
+                        List<RecipeListBean> recipeListBeans = finalRecipeListMap.get(searchKey);
                         recipeListBeans.forEach(recipeListBean1 -> {
                             Boolean togetherPayFlag1 = getTogetherPayFlag(recipeListBean1);
                             if (!togetherPayFlag1) {
