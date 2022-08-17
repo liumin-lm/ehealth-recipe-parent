@@ -73,6 +73,8 @@ public abstract class AbstractAuditMode implements IAuditMode {
             LOGGER.info("saveStatusAndSendMsg 处方单已经撤销,recipeId:{}", recipe.getRecipeId());
             return;
         }
+        currentRecipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType());
+        recipeDAO.updateNonNullFieldByPrimaryKey(recipe);
         StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
         stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_ORDER, RecipeStateEnum.SUB_ORDER_READY_SUBMIT_ORDER);
         //日志记录
