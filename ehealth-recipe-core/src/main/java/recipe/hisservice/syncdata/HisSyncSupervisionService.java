@@ -667,6 +667,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 LOGGER.warn("recipeId file is null  recipeId={}", recipe.getRecipeId());
             }
             req.setRecipeSignImgId(recipe.getSignImg());
+            req.setDoctorSignFile(recipe.getSignFile());
+            req.setChemistSignFile(recipe.getChemistSignFile());
 
             //详情处理
             detailList = detailDAO.findByRecipeId(recipe.getRecipeId());

@@ -4,6 +4,7 @@ import com.ngari.platform.recipe.mode.RecipeExtendBean;
 import com.ngari.platform.sync.mode.RecipeChHerbalIndicatorsReq;
 import ctd.schema.annotation.Desensitizations;
 import ctd.schema.annotation.DesensitizationsType;
+import ctd.schema.annotation.ItemProperty;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -85,8 +86,13 @@ public class RegulationRecipeIndicatorsDTO implements Serializable {
     private String rationalFlag;//是否经过合理用药判断标志 1经过0未经过
     private String rationalDrug;//	合理用药审核结果
     private String CAInfo;//	处方CA认证文件信息
+    @ItemProperty(alias = "处方笺文件id(优先返回药师的，药师的没有返回医生签名)")
     private String recipeFileId; // 处方笺文件id
     private String  recipeSignImgId; // 处方图片文件id
+    @ItemProperty(alias = "签名的处方PDF")
+    private String doctorSignFile;
+    @ItemProperty(alias = "药师签名的处方PDF")
+    private String chemistSignFile;
     private String medicalFileId; //患者病历文件id
     private String icdCode;//	诊断ICD码
     private String icdName;//	初步诊断名称
