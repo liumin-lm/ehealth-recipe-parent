@@ -126,6 +126,7 @@ public class OrganAndDrugsepRelation implements java.io.Serializable {
         this.enterpriseDrugForm = enterpriseDrugForm;
     }
 
+    @Column(name = "support_decoction_type")
     public Integer getSupportDecoctionType() {
         return supportDecoctionType;
     }
