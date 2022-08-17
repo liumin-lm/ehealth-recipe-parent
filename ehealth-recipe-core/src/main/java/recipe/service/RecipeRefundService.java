@@ -87,6 +87,8 @@ public class RecipeRefundService extends RecipeBaseService {
     private DrugsEnterpriseDAO drugsEnterpriseDAO;
     @Autowired
     private EnterpriseManager enterpriseManager;
+    @Autowired
+    private RecipeExtendDAO recipeExtendDAO;
 
     /*
      * @description 向his申请处方退费接口
@@ -122,7 +124,10 @@ public class RecipeRefundService extends RecipeBaseService {
             request.setDrugsEnterpriseBean(ObjectCopyUtils.convert(drugsEnterprise, DrugsEnterpriseBean.class));
         }
         IVisitService service = AppContextHolder.getBean("his.visitService", IVisitService.class);
-
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+        if(recipeExtend != null){
+            request.setRxid(recipeExtend.getRxid());
+        }
         IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
         Boolean doctorReviewRefund = (Boolean) configurationService.getConfiguration(recipe.getClinicOrgan(), "doctorReviewRefund");
         if (doctorReviewRefund) {
@@ -184,6 +189,9 @@ public class RecipeRefundService extends RecipeBaseService {
             // 交易流水号
             visitRequest.setTradeNo(recipeOrder.getTradeNo());
             visitRequest.setRecipeId(recipeId);
+            if(recipeExtend != null){
+                visitRequest.setRxid(recipeExtend.getRxid());
+            }
             LOGGER.info("applyForRecipeRefund-checkForRefundVisit req visitRequest={}", JSONUtils.toString(visitRequest));
             HisResponseTO<String> result = service.checkForRefundVisit(visitRequest);
             if (result != null && "200".equals(result.getMsgCode())) {
@@ -416,6 +424,10 @@ public class RecipeRefundService extends RecipeBaseService {
         // 交易流水号
         request.setTradeNo(recipeOrder.getTradeNo());
         request.setRecipeId(recipeId);
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+        if(recipeExtend != null){
+            request.setRxid(recipeExtend.getRxid());
+        }
         LOGGER.info("checkForRecipeRefund-checkForRefundVisit req = {}", JSONUtils.toString(request));
 
         IVisitService service = AppContextHolder.getBean("his.visitService", IVisitService.class);
