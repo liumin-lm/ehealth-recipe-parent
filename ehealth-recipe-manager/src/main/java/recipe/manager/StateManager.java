@@ -38,6 +38,7 @@ public class StateManager extends BaseManager {
             case PROCESS_STATE_CANCELLATION:
             case PROCESS_STATE_DISPENSING:
             case PROCESS_STATE_ORDER_PLACED:
+            case PROCESS_STATE_READY_PAY:
                 result = this.defaultOrder(recipeOrder, processState, subState);
                 break;
             default:
