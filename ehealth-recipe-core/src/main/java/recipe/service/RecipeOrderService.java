@@ -2279,6 +2279,8 @@ public class RecipeOrderService extends RecipeBaseService {
         LOGGER.info("finishOrderPayImpl order:{}.", JSONUtils.toString(order));
         Map<String, Object> attrMap = Maps.newHashMap();
         attrMap.put("payFlag", payFlag);
+        OrderStateEnum processState = OrderStateEnum.NONE;
+        OrderStateEnum subState = OrderStateEnum.NONE;
         //date 20190919
         //根据不同的购药方式设置订单的状态
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
@@ -2302,7 +2304,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 sendTfdsMsg(nowRecipe, payMode, orderCode);
                 //支付成功后，对来源于HIS的处方单状态更新为已处理
                 updateHisRecieStatus(recipes);
-                purchaseService.setRecipePayWay(order);
+                purchaseService.setRecipeOrderInfo(nowRecipe, order, payFlag);
             } else if (PayConstant.PAY_FLAG_NOT_PAY == payFlag && null != order) {
                 attrMap.put("status", getPayStatus(reviewType, giveMode, nowRecipe));
                 //支付前调用
