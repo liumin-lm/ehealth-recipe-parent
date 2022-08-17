@@ -1,6 +1,7 @@
 package recipe.core.api;
 
 import com.ngari.patient.dto.HealthCardDTO;
+import com.ngari.recipe.entity.DoctorCommonPharmacy;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.OutPatientRecipeDTO;
@@ -287,4 +288,8 @@ public interface IRecipeBusinessService {
      * @param recipePayHISCallbackReq
      */
     void recipePayHISCallback(RecipePayHISCallbackReq recipePayHISCallbackReq);
+
+    DoctorCommonPharmacy findDoctorCommonPharmacyByOrganIdAndDoctorId(Integer organId, Integer doctorId);
+
+    void saveDoctorCommonPharmacy(DoctorCommonPharmacy doctorCommonPharmacy);
 }
