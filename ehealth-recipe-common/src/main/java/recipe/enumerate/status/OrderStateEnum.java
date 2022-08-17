@@ -10,11 +10,22 @@ public enum OrderStateEnum {
      * 订单父状态
      */
     NONE(0, "默认", ""),
-    PROCESS_STATE_SUBMIT(1, "预下单", ""),
-    PROCESS_STATE_AUDIT(2, "待支付", ""),
+    PROCESS_STATE_READY_PAY(1, "待支付", ""),
+    PROCESS_STATE_ORDER_PLACED(2, "已下单", ""),
     PROCESS_STATE_ORDER(3, "处理中", ""),
     PROCESS_STATE_DISPENSING(4, "已完成", ""),
     PROCESS_STATE_CANCELLATION(9, "已作废", ""),
+
+    /**
+     * 订单子状态:待支付
+     */
+    SUB_READY_PAY_NONE(11, "请在${invalidTime}内完成支付", ""),
+
+    /**
+     * 订单子状态:已下单
+     */
+    SUB_ORDER_PLACED_AUDIT(21, "您已完成支付，耐心等待处方审核", ""),
+    SUB_ORDER_ORDER_PLACED(22, "已完成下单", ""),
 
     /**
      * 订单子状态:已完成

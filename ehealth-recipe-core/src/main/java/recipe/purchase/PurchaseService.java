@@ -47,10 +47,7 @@ import recipe.bean.PltPurchaseResponse;
 import recipe.client.IConfigurationClient;
 import recipe.constant.*;
 import recipe.dao.*;
-import recipe.enumerate.status.OfflineToOnlineEnum;
-import recipe.enumerate.status.RecipeStateEnum;
-import recipe.enumerate.status.RecipeStatusEnum;
-import recipe.enumerate.status.SettleAmountStateEnum;
+import recipe.enumerate.status.*;
 import recipe.enumerate.type.GiveModeTextEnum;
 import recipe.enumerate.type.RecipeDistributionFlagEnum;
 import recipe.enumerate.type.RecipeTypeEnum;
@@ -522,10 +519,6 @@ public class PurchaseService {
             if (StringUtils.isNotEmpty(depId)) {
                 recipeManager.updateRecipeDetailSalePrice(recipeList, Integer.valueOf(depId));
             }
-            //处理处方父子状态
-            recipeIds.forEach(recipeId->{
-                stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_ORDER, RecipeStateEnum.SUB_ORDER_HAD_SUBMIT_ORDER);
-            });
             // 根据paymode 换算givemode
             Integer giveMode = PayModeGiveModeUtil.getGiveMode(payMode);
             IPurchaseService purchaseService = getService(giveMode);
@@ -1020,20 +1013,26 @@ public class PurchaseService {
         }
     }
 
-    public void setRecipePayWay(RecipeOrder recipeOrder) {
-        LOG.info("PurchaseService setRecipePayWay recipeOrder input:{}", JSON.toJSONString(recipeOrder));
+    public void setRecipeOrderInfo(Recipe recipe, RecipeOrder recipeOrder, int payFlag) {
+        LOG.info("PurchaseService setRecipeOrderInfo recipeOrder:{}", JSON.toJSONString(recipeOrder));
         try {
-            RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-            LOG.info("PurchaseService setRecipePayWay WxPayWay:{}", recipeOrder.getWxPayWay());
-            if ("111".equals(recipeOrder.getWxPayWay())) {
-                recipeOrder.setPayMode(1);
-                recipeOrder.setSettleAmountState(SettleAmountStateEnum.SETTLE_SUCCESS.getType());
-                LOG.info("PurchaseService setRecipePayWay recipeOrder:{}", JSON.toJSONString(recipeOrder));
-                recipeOrderDAO.update(recipeOrder);
+            if (PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag) {
+                if (PayWayEnum.WN_WAP.getCode().equals(recipeOrder.getWxPayWay())) {
+                    recipeOrder.setPayMode(PayModeEnum.OFFLINE_PAY.getType());
+                    recipeOrder.setSettleAmountState(SettleAmountStateEnum.SETTLE_SUCCESS.getType());
+                    recipeOrderDAO.update(recipeOrder);
+                }
+                if (ReviewTypeConstant.Postposition_Check == recipe.getReviewType()) {
+                    stateManager.updateOrderState(recipeOrder.getOrderId(), OrderStateEnum.PROCESS_STATE_ORDER_PLACED, OrderStateEnum.SUB_READY_PAY_NONE);
+                } else {
+                    stateManager.updateOrderState(recipeOrder.getOrderId(), OrderStateEnum.NONE, OrderStateEnum.NONE);
+                    stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_ORDER, RecipeStateEnum.SUB_ORDER_HAD_SUBMIT_ORDER);
+                }
+            } else {
+                stateManager.updateOrderState(recipeOrder.getOrderId(), OrderStateEnum.PROCESS_STATE_READY_PAY, OrderStateEnum.SUB_READY_PAY_NONE);
             }
         } catch (Exception e) {
-            LOG.info("setRecipePayWay error msg:{}.", e.getMessage());
+            LOG.info("PurchaseService setRecipeOrderInfo error:{}.", e.getMessage());
         }
     }
-
 }
