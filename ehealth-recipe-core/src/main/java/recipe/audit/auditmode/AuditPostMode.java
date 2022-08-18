@@ -62,7 +62,7 @@ public class AuditPostMode extends AbstractAuditMode {
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         Integer giveMode = null == MapValueUtil.getInteger(attrMap,"giveMode") ? dbRecipe.getGiveMode() : MapValueUtil.getInteger(attrMap,"giveMode");
         Integer payFlag = MapValueUtil.getInteger(attrMap, "payFlag");
-        // 获取paymode
+        //获取paymode
         RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         RecipeOrder byOrderCode = orderDAO.getByOrderCode(dbRecipe.getOrderCode());
         Integer payMode = byOrderCode.getPayMode();
