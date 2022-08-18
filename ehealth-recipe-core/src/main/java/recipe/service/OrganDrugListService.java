@@ -122,6 +122,9 @@ public class OrganDrugListService implements IOrganDrugListService {
         if (null == organDrugList.getApplyBusiness()) {
             organDrugList.setApplyBusiness("1");
         }
+        if (null == organDrugList.getUnavailable()) {
+            organDrugList.setUnavailable(0);
+        }
         organDrugList.setLastModify(new Date());
     }
 
