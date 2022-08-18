@@ -411,6 +411,10 @@ public class PurchaseService {
         if (!sendFlag) {
             throw new DAOException(609, "由于疫情影响，本地无法进行快递配送，敬请见谅！");
         }
+        boolean canSend = orderManager.controlLogisticsDistance(extInfo);
+        if (!canSend) {
+            throw new DAOException(609, "超出配送范围，无法支持同城快递，请换一个快递公司");
+        }
         return result;
     }
 
