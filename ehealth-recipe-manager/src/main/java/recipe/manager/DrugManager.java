@@ -96,7 +96,6 @@ public class DrugManager extends BaseManager {
         List<DoctorDrugDetailVO> updateList = new ArrayList<>(organDrugLists.size());
         List<Integer> drugIds = organDrugLists.stream().map(OrganDrugList::getDrugId).collect(Collectors.toList());
         if (CollectionUtils.isEmpty(drugList)) {
-            DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
             drugList = drugListDAO.findByDrugIds(drugIds);
         }
         //基础数据为空的话则存在问题
