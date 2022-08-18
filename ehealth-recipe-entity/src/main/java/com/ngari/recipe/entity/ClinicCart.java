@@ -51,6 +51,9 @@ public class ClinicCart implements Serializable {
     @ItemProperty(alias = "删除标识，0：正常，1：删除")
     private Integer deleteFlag;
 
+    @ItemProperty(alias = "业务场景, 方便门诊:1, 便捷购药:2")
+    private Integer workType;
+
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
@@ -142,5 +145,14 @@ public class ClinicCart implements Serializable {
 
     public void setDeleteFlag(Integer deleteFlag) {
         this.deleteFlag = deleteFlag;
+    }
+
+    @Column(name = "work_type")
+    public Integer getWorkType() {
+        return workType;
+    }
+
+    public void setWorkType(Integer workType) {
+        this.workType = workType;
     }
 }

@@ -8,6 +8,7 @@ import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.recipe.mode.RecipeThirdUrlReqTO;
 import com.ngari.infra.logistics.mode.ControlLogisticsOrderDto;
+import com.ngari.infra.logistics.mode.LogisticsDistanceDto;
 import com.ngari.infra.logistics.mode.OrganLogisticsManageDto;
 import com.ngari.infra.logistics.service.IOrganLogisticsManageService;
 import com.ngari.patient.dto.AddressDTO;
@@ -94,6 +95,8 @@ public class OrderManager extends BaseManager {
     @Autowired
     private RecipeBeforeOrderDAO recipeBeforeOrderDAO;
 
+    @Autowired
+    private AddressService addressService;
     /**
      * 订单能否配送 物流管控
      *
@@ -845,6 +848,45 @@ public class OrderManager extends BaseManager {
         recipeOrderBill.setCreateTime(new Date());
         recipeOrderBillDAO.save(recipeOrderBill);
         return invoiceInfoResTO;
+    }
+
+    /**
+     * 若同城速递，用户的收货地址与发件地址，距离超过100KM，则无法下单
+     * @param extInfo
+     * @return true表示可以下单
+     */
+    @LogRecord
+    public boolean controlLogisticsDistance(Map<String, String> extInfo) {
+        Integer logisticsCompany = MapValueUtil.getInteger(extInfo, "logisticsCompany");
+        Integer addressId = MapValueUtil.getInteger(extInfo, "addressId");
+        Integer organId = MapValueUtil.getInteger(extInfo, "organId");
+
+        if(!"301".equals(logisticsCompany)){
+            return true;
+        }
+        if(addressId==null){
+            return false;
+        }
+        AddressDTO addressDTO=addressService.getByAddressId(addressId);
+        logger.info("controlLogisticsDistance addressDTO:{}",JSONUtils.toString(addressDTO));
+        if(addressDTO==null){
+            return false;
+        }
+        LogisticsDistanceDto logisticsDistanceDto=new LogisticsDistanceDto();
+        logisticsDistanceDto.setLatitude(addressDTO.getLatitude());
+        logisticsDistanceDto.setLongitude(addressDTO.getLongitude());
+        logisticsDistanceDto.setLogisticsCode(String.valueOf(logisticsCompany));
+        logisticsDistanceDto.setOrganId(organId);
+        logisticsDistanceDto.setBusinessType(1);
+        Map<String,String> result=infraClient.controlLogisticsDistance(logisticsDistanceDto);
+        if(result!=null){
+            if("1".equals(result.get("code"))){
+                return false;
+            }
+        }else{
+            return false;
+        }
+        return true;
     }
 
     public List<ShoppingCartDetailDTO> getShoppingCartDetail(String mpiId) {

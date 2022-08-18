@@ -803,10 +803,13 @@ public class QueryRecipeService implements IQueryRecipeService {
                     organDrugList.setMedicalInsuranceControl(false);
                     organDrugList.setSupportDownloadPrescriptionPad(true);
                     organDrugList.setApplyBusiness("1");
+                    if (null == organDrugList.getUnavailable()) {
+                        organDrugList.setUnavailable(0);
+                    }
                     LOGGER.info("updateOrSaveOrganDrug 添加机构药品信息{}", JSONUtils.toString(organDrugList));
                     IHisServiceConfigService configService = AppContextHolder.getBean("his.hisServiceConfig", IHisServiceConfigService.class);
                     Boolean regulationFlag = configService.getRegulationFlag();
-                    if (regulationFlag){
+                    if (regulationFlag) {
                         organDrugList.setRegulationDrugCode(organDrugList.getDrugId().toString());
                     }
                     OrganDrugList nowOrganDrugList = organDrugListDAO.save(organDrugList);
@@ -852,14 +855,17 @@ public class QueryRecipeService implements IQueryRecipeService {
                 BeanUtils.copyProperties(organDrugList, organDrugListChange, getNullPropertyNames(organDrugList));
                 organDrugListChange.setStatus(1);
                 organDrugListChange.setLastModify(now);
-                if (ObjectUtils.isEmpty(organDrugListChange.getMedicalInsuranceControl())){
+                if (ObjectUtils.isEmpty(organDrugListChange.getMedicalInsuranceControl())) {
                     organDrugListChange.setMedicalInsuranceControl(false);
                 }
-                if (ObjectUtils.isEmpty(organDrugListChange.getSupportDownloadPrescriptionPad())){
+                if (ObjectUtils.isEmpty(organDrugListChange.getSupportDownloadPrescriptionPad())) {
                     organDrugListChange.setSupportDownloadPrescriptionPad(true);
                 }
-                if (ObjectUtils.isEmpty(organDrugListChange.getApplyBusiness())){
+                if (ObjectUtils.isEmpty(organDrugListChange.getApplyBusiness())) {
                     organDrugListChange.setApplyBusiness("1");
+                }
+                if (null == organDrugListChange.getUnavailable()) {
+                    organDrugListChange.setUnavailable(0);
                 }
                 LOGGER.info("updateOrSaveOrganDrug 更新机构药品信息{}", JSONUtils.toString(organDrugListChange));
                 OrganDrugList nowOrganDrugList = organDrugListDAO.update(organDrugListChange);
