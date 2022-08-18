@@ -19,12 +19,12 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.AddressService;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.PatientService;
-import com.ngari.patient.utils.*;
 import com.ngari.platform.recipe.mode.InvoiceInfoResTO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.*;
+import com.ngari.recipe.vo.ShoppingCartReqVO;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.common.model.RevisitExDTO;
@@ -38,17 +38,13 @@ import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
-import ctd.util.annotation.RpcService;
 import easypay.entity.vo.param.bus.SelfPreSettleQueryReq;
 import eh.entity.bus.pay.BusTypeEnum;
 import eh.utils.BeanCopyUtils;
-import org.apache.commons.beanutils.BeanMap;
-import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.curator.shaded.com.google.common.collect.Maps;
-import org.mvel2.util.Make;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,7 +64,6 @@ import recipe.hisservice.RecipeToHisService;
 import recipe.manager.EnterpriseManager;
 import recipe.manager.OrderManager;
 import recipe.manager.RecipeManager;
-import recipe.openapi.business.request.ThirdSaveOrderRequest;
 import recipe.presettle.IRecipePreSettleService;
 import recipe.presettle.factory.PreSettleFactory;
 import recipe.service.RecipeLogService;
@@ -132,6 +127,8 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
     private SmsClient smsClient;
     @Autowired
     private IConfigurationClient configurationClient;
+    @Autowired
+    private RecipeBeforeOrderDAO recipeBeforeOrderDAO;
 
 
     @Override
@@ -1021,4 +1018,37 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
         return mrn;
     }
 
+    /**
+     * 获取未完善或完善标识
+     * @param organId
+     * @param recipeCode
+     * @return
+     */
+    @Override
+    public Integer getImperfectFlag(Integer organId, String recipeCode) {
+        logger.info("getImperfectFlag organId={},recipeCode={}",organId,recipeCode);
+        RecipeBeforeOrder recipeBeforeOrder = recipeBeforeOrderDAO.getByOrganIdAndRecipeCode(organId, recipeCode);
+        if(recipeBeforeOrder != null){
+            return recipeBeforeOrder.getIsReady();
+        }
+        logger.info("getImperfectFlag recipeBeforeOrder为null");
+        return null;
+    }
+
+    /**
+     * 获取购物车信息
+     * @param mpiId
+     * @return
+     */
+    @Override
+    public List<ShoppingCartDetailDTO> getShoppingCartDetail(String mpiId) {
+        logger.info("getShoppingCartDetail mpiId={}",mpiId);
+        return orderManager.getShoppingCartDetail(mpiId);
+    }
+
+    @Override
+    public void saveRecipeBeforeOrderInfo(ShoppingCartReqVO shoppingCartReqVO) {
+        logger.info("saveRecipeBeforeOrderInfo shoppingCartReqVO={}",JSONUtils.toString(shoppingCartReqVO));
+        orderManager.saveRecipeBeforeOrderInfo(Objects.requireNonNull(ObjectCopyUtils.convert(shoppingCartReqVO, ShoppingCartReqDTO.class)));
+    }
 }

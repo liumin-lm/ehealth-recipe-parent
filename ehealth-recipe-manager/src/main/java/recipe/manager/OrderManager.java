@@ -12,9 +12,9 @@ import com.ngari.infra.logistics.mode.OrganLogisticsManageDto;
 import com.ngari.infra.logistics.service.IOrganLogisticsManageService;
 import com.ngari.patient.dto.AddressDTO;
 import com.ngari.patient.dto.DoctorDTO;
-import com.ngari.patient.dto.HealthCardDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.AddressService;
+import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.platform.recipe.mode.InvoiceInfoReqTO;
@@ -91,6 +91,8 @@ public class OrderManager extends BaseManager {
     private RecipeOrderBillDAO recipeOrderBillDAO;
     @Autowired
     private OrganDrugListDAO organDrugListDAO;
+    @Autowired
+    private RecipeBeforeOrderDAO recipeBeforeOrderDAO;
 
     /**
      * 订单能否配送 物流管控
@@ -843,5 +845,93 @@ public class OrderManager extends BaseManager {
         recipeOrderBill.setCreateTime(new Date());
         recipeOrderBillDAO.save(recipeOrderBill);
         return invoiceInfoResTO;
+    }
+
+    public List<ShoppingCartDetailDTO> getShoppingCartDetail(String mpiId) {
+        List<ShoppingCartDetailDTO> shoppingCartDetailDTOList = new ArrayList<>();
+        List<RecipeBeforeOrder> recipeBeforeOrderList = recipeBeforeOrderDAO.findByMpiId(mpiId);
+        if(recipeBeforeOrderList.size()>0){
+            for(RecipeBeforeOrder recipeBeforeOrder : recipeBeforeOrderList){
+                Recipe recipe = recipeDAO.getByRecipeId(recipeBeforeOrder.getRecipeId());
+                if(recipe != null){
+                    recipeBeforeOrder.setRecipeFee(recipe.getTotalMoney());
+                }
+                ShoppingCartDetailDTO shoppingCartDetailDTO = new ShoppingCartDetailDTO();
+                shoppingCartDetailDTO.setRecipeBeforeOrder(recipeBeforeOrder);
+                if(recipeBeforeOrder.getRecipeId() != null){
+                    List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipeBeforeOrder.getRecipeId());
+                    if(recipeDetailList.size()>0){
+                        shoppingCartDetailDTO.setRecipeDetail(recipeDetailList);
+                    }
+                }
+                shoppingCartDetailDTOList.add(shoppingCartDetailDTO);
+            }
+        }
+        return shoppingCartDetailDTOList;
+    }
+
+    public void saveRecipeBeforeOrderInfo(ShoppingCartReqDTO shoppingCartReqDTO) {
+        RecipeBeforeOrder recipeBeforeOrder = new RecipeBeforeOrder();
+        recipeBeforeOrder.setRecipeId(shoppingCartReqDTO.getRecipeId());
+        Recipe recipe = recipeDAO.getByRecipeId(shoppingCartReqDTO.getRecipeId());
+        if(recipe != null){
+            recipeBeforeOrder.setOrganId(recipe.getClinicOrgan());
+            recipeBeforeOrder.setRecipeCode(recipe.getRecipeCode());
+        }
+        recipeBeforeOrder.setEnterpriseId(shoppingCartReqDTO.getEnterpriseId());
+        recipeBeforeOrder.setGiveMode(shoppingCartReqDTO.getGiveMode());
+        //购药方式为到院取药时预下单信息为完善
+        if(new Integer(2).equals(shoppingCartReqDTO.getGiveMode())){
+            recipeBeforeOrder.setIsReady(1);
+        }
+        //购药方式为到店取药时
+        else if (new Integer(3).equals(shoppingCartReqDTO.getGiveMode())){
+            //有药店信息则为完善否则为不完善
+            if(shoppingCartReqDTO.getDrugStoreName() != null && shoppingCartReqDTO.getDrugStoreCode() != null ){
+                recipeBeforeOrder.setIsReady(1);
+                recipeBeforeOrder.setDrugStoreName(shoppingCartReqDTO.getDrugStoreName());
+                recipeBeforeOrder.setDrugStoreAddr(shoppingCartReqDTO.getDrugStoreAddr());
+                recipeBeforeOrder.setDrugStoreCode(shoppingCartReqDTO.getDrugStoreCode());
+            }
+            else {
+                recipeBeforeOrder.setIsReady(0);
+            }
+        }
+        //配送方式为医院配送或药企配送
+        if(shoppingCartReqDTO.getGiveModeKey().equals("showSendToHos") || shoppingCartReqDTO.getGiveModeKey().equals("showSendToEnterprises")){
+            if(shoppingCartReqDTO.getAddressId() != null){
+                recipeBeforeOrder.setAddressId(shoppingCartReqDTO.getAddressId());
+                AddressService addressService = BasicAPI.getService(AddressService.class);
+                AddressDTO addressDTO = addressService.getByAddressId(shoppingCartReqDTO.getAddressId());
+                if (addressDTO != null) {
+                    recipeBeforeOrder.setIsReady(0);
+                    recipeBeforeOrder.setAddress1(addressDTO.getAddress1());
+                    recipeBeforeOrder.setAddress2(addressDTO.getAddress2());
+                    recipeBeforeOrder.setAddress3(addressDTO.getAddress3());
+                    recipeBeforeOrder.setAddress4(addressDTO.getAddress4());
+                    recipeBeforeOrder.setAddress5(addressDTO.getAddress5());
+                    recipeBeforeOrder.setAddress5Text(addressDTO.getAddress5Text());
+                    recipeBeforeOrder.setReceiver(addressDTO.getReceiver());
+                    recipeBeforeOrder.setRecMobile(addressDTO.getRecMobile());
+                    recipeBeforeOrder.setRecTel(addressDTO.getRecTel());
+                    recipeBeforeOrder.setZipCode(addressDTO.getZipCode());
+                }
+                else {
+                    recipeBeforeOrder.setIsReady(1);
+                }
+            }else {
+                recipeBeforeOrder.setIsReady(1);
+            }
+        }
+        recipeBeforeOrder.setDeleteFlag(0);
+        recipeBeforeOrder.setCreateTime(new Date());
+        recipeBeforeOrder.setUpdateTime(new Date());
+        recipeBeforeOrder.setGiveModeKey(shoppingCartReqDTO.getGiveModeKey());
+        recipeBeforeOrder.setGiveModeText(shoppingCartReqDTO.getGiveModeKey().equals("showSendToHos") ? "医院配送" : "药企配送");
+        recipeBeforeOrder.setPayWay(shoppingCartReqDTO.getPayWay());
+        recipeBeforeOrder.setOperMpiId(shoppingCartReqDTO.getOperMpiId());
+        recipeBeforeOrder.setTakeMedicineWay(shoppingCartReqDTO.getTakeMedicineWay());
+        logger.info("saveRecipeBeforeOrderInfo recipeBeforeOrder={}",JSONUtils.toString(recipeBeforeOrder));
+        recipeBeforeOrderDAO.save(recipeBeforeOrder);
     }
 }
