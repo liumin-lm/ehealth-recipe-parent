@@ -2,7 +2,6 @@ package recipe.service;
 
 import ca.vo.CommonSignRequest;
 import com.google.common.collect.ImmutableMap;
-import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.his.regulation.entity.RegulationRecipeDetailIndicatorsReq;
 import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
@@ -45,25 +44,21 @@ import recipe.bean.cqjgptbussdata.RecipeDocSignatureXML;
 import recipe.business.CaBusinessService;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.XstreamUtil;
-import recipe.caNew.CaAfterProcessType;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.common.UrlConfig;
 import recipe.constant.CARecipeTypeConstant;
 import recipe.constant.RecipeStatusConstant;
-import recipe.core.api.IStockBusinessService;
 import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.status.SignEnum;
-import recipe.manager.CaManager;
 import recipe.manager.EmrRecipeManager;
 import recipe.util.ByteUtils;
 import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
 
-import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
@@ -75,15 +70,7 @@ public class RecipeCAService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipeCAService.class);
 
-    private static final Integer CA_OLD_TYPE = new Integer(0);
-
-    private static final Integer CA_NEW_TYPE = new Integer(1);
-
     private final static long VALID_TIME_SECOND = 3600 * 24 * 30;
-    @Autowired
-    private CaAfterProcessType caAfterProcessType;
-    @Autowired
-    private IConfigurationCenterUtilsService configService;
 
     private DoctorService doctorService = ApplicationUtils.getBasicService(DoctorService.class);
 
@@ -91,23 +78,16 @@ public class RecipeCAService {
 
     @Autowired
     private RecipeExtendDAO recipeExtendDAO;
-
     @Autowired
     private PatientService patientService;
-
     @Autowired
     private RecipeDetailDAO recipeDetailDAO;
-
     @Autowired
     private OrganDrugListDAO organDrugDao;
     @Autowired
     private CreatePdfFactory createPdfFactory;
     @Autowired
     private CaBusinessService caBusinessService;
-    @Resource
-    private IStockBusinessService drugEnterpriseBusinessService;
-    @Autowired
-    private CaManager caManager;
 
     @RpcService
     public CommonSignRequest packageCAFromRecipe(Integer recipeId, Integer doctorId, Boolean isDoctor) {
@@ -660,6 +640,7 @@ public class RecipeCAService {
     }
 
     @RpcService
+    @LogRecord
     public void checkRecipeCAInterrupt(Integer recipeId) {
         //首先判断处方的装填是不是可以设置成需要重新中断的
         //暂时不用加判断筛选是否可以设置【失败】
@@ -678,6 +659,7 @@ public class RecipeCAService {
     }
 
     @RpcService
+    @LogRecord
     //医生签名失败，操作重新签名设置处方状态【医生签名中】
     public void signRecipeCAAgain(Integer recipeId) {
         caBusinessService.signRecipeCAInterrupt(recipeId, RecipeStatusEnum.RECIPE_STATUS_SIGN_ING_CODE_DOC, SignEnum.SIGN_STATE_SUBMIT);
@@ -685,6 +667,7 @@ public class RecipeCAService {
 
 
     @RpcService
+    @LogRecord
     //药师CA操作重新签名设置处方状态
     public void checkRecipeCAAgain(Integer recipeId) {
         //签名失败后，重新进行签名，先将处方重新设置成【药师签名中】
