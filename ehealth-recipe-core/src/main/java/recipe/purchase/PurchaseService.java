@@ -1023,7 +1023,7 @@ public class PurchaseService {
                     recipeOrderDAO.update(recipeOrder);
                 }
                 if (ReviewTypeConstant.Postposition_Check == recipe.getReviewType()) {
-                    stateManager.updateOrderState(recipeOrder.getOrderId(), OrderStateEnum.PROCESS_STATE_ORDER_PLACED, OrderStateEnum.SUB_READY_PAY_NONE);
+                    stateManager.updateOrderState(recipeOrder.getOrderId(), OrderStateEnum.PROCESS_STATE_ORDER_PLACED, OrderStateEnum.SUB_ORDER_PLACED_AUDIT);
                 } else {
                     stateManager.updateOrderState(recipeOrder.getOrderId(), OrderStateEnum.NONE, OrderStateEnum.NONE);
                     stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_ORDER, RecipeStateEnum.SUB_ORDER_HAD_SUBMIT_ORDER);
