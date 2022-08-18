@@ -1,8 +1,7 @@
 package recipe.atop.greenroom;
 
 import com.alibaba.fastjson.JSON;
-import com.ngari.recipe.drugdistributionprice.model.DrugDistributionPriceBean;
-import com.ngari.recipe.drugdistributionprice.service.IDrugDistributionPriceService;
+
 import com.ngari.recipe.drugsenterprise.model.*;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.EnterpriseDecoctionAddress;
@@ -41,9 +40,9 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
 
     @Autowired
     private IDrugsEnterpriseBusinessService enterpriseBusinessService;
-
-    @Autowired
-    private IDrugDistributionPriceService drugDistributionPriceService;
+//
+//    @Autowired
+//    private IDrugDistributionPriceService drugDistributionPriceService;
 
     /**
      * 清除当前煎法下的所有配送信息
@@ -84,24 +83,24 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
      *
      * @param enterpriseId
      */
-    @RpcService
-    public DrugDistributionPriceBean findEnterpriseAddressFeeList(Integer enterpriseId,String addrArea) {
-        validateAtop(enterpriseId);
-        DrugDistributionPriceBean enterpriseIdAndAddrArea = drugDistributionPriceService.getByEnterpriseIdAndAddrArea(enterpriseId, addrArea);
-        return enterpriseIdAndAddrArea;
-    }
+//    @RpcService
+//    public DrugDistributionPriceBean findEnterpriseAddressFeeList(Integer enterpriseId,String addrArea) {
+//        validateAtop(enterpriseId);
+//        DrugDistributionPriceBean enterpriseIdAndAddrArea = drugDistributionPriceService.getByEnterpriseIdAndAddrArea(enterpriseId, addrArea);
+//        return enterpriseIdAndAddrArea;
+//    }
 
     /**
      * 添加药企配送地址快递费
      *
      * @param list
      */
-    @RpcService
-    public List<DrugDistributionPriceBean> addEnterpriseAddressFeeList(List<DrugDistributionPriceBean> list) {
-        validateAtop(list);
-        drugDistributionPriceService.savePriceList(list);
-        return list;
-    }
+//    @RpcService
+//    public List<DrugDistributionPriceBean> addEnterpriseAddressFeeList(List<DrugDistributionPriceBean> list) {
+//        validateAtop(list);
+//        drugDistributionPriceService.savePriceList(list);
+//        return list;
+//    }
 
     /**
      * 根据药企机构查询煎法

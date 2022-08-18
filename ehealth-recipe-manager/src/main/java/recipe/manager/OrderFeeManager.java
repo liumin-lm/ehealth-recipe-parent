@@ -54,8 +54,6 @@ public class OrderFeeManager extends BaseManager {
     @Autowired
     private RecipeRedisClient recipeRedisClient;
     @Autowired
-    private DrugDistributionPriceDAO drugDistributionPriceDAO;
-    @Autowired
     private PayClient payClient;
     @Autowired
     private OfflineRecipeClient offlineRecipeClient;

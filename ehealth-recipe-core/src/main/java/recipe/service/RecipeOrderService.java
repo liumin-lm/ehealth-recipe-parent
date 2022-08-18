@@ -30,7 +30,6 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.common.RecipeBussResTO;
 import com.ngari.recipe.common.RecipeResultBean;
-import com.ngari.recipe.drugdistributionprice.model.DrugDistributionPriceBean;
 import com.ngari.recipe.dto.EnterpriseStock;
 import com.ngari.recipe.dto.SkipThirdDTO;
 import com.ngari.recipe.entity.*;
@@ -2216,20 +2215,20 @@ public class RecipeOrderService extends RecipeBaseService {
      * @param address
      * @return
      */
-    private BigDecimal getExpressFee(Integer enterpriseId, String address) {
-        LOGGER.info("getExpressFee enterpriseId:{}, address:{}.", enterpriseId, address);
-        if (null == enterpriseId || StringUtils.isEmpty(address)) {
-            return null;
-        }
-        DrugDistributionPriceService priceService = ApplicationUtils.getRecipeService(DrugDistributionPriceService.class);
-        DrugDistributionPriceBean expressFee = priceService.getDistributionPriceByEnterpriseIdAndAddrArea(enterpriseId, address);
-        LOGGER.info("getExpressFee expressFee:{}.", expressFee);
-        if (null != expressFee) {
-            return expressFee.getDistributionPrice();
-        }
-
-        return null;
-    }
+//    private BigDecimal getExpressFee(Integer enterpriseId, String address) {
+//        LOGGER.info("getExpressFee enterpriseId:{}, address:{}.", enterpriseId, address);
+//        if (null == enterpriseId || StringUtils.isEmpty(address)) {
+//            return null;
+//        }
+//        DrugDistributionPriceService priceService = ApplicationUtils.getRecipeService(DrugDistributionPriceService.class);
+//        DrugDistributionPriceBean expressFee = priceService.getDistributionPriceByEnterpriseIdAndAddrArea(enterpriseId, address);
+//        LOGGER.info("getExpressFee expressFee:{}.", expressFee);
+//        if (null != expressFee) {
+//            return expressFee.getDistributionPrice();
+//        }
+//
+//        return null;
+//    }
 
     /**
      * 订单支付完成后调用 (包括支付完成和退款都会调用)
