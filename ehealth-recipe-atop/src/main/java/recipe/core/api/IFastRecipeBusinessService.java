@@ -4,6 +4,7 @@ import com.ngari.recipe.dto.FastRecipeReq;
 import com.ngari.recipe.entity.FastRecipe;
 import com.ngari.recipe.entity.FastRecipeDetail;
 import com.ngari.recipe.vo.FastRecipeVO;
+import ctd.util.annotation.RpcService;
 import recipe.vo.doctor.RecipeInfoVO;
 import java.util.List;
 
@@ -42,6 +43,7 @@ public interface IFastRecipeBusinessService {
      * @param id
      * @return
      */
+    @RpcService
     List<FastRecipeDetail> findFastRecipeDetailsByFastRecipeId(Integer id);
 
     /**
