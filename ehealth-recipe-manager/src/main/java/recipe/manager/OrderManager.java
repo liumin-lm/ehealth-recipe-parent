@@ -943,7 +943,6 @@ public class OrderManager extends BaseManager {
         if(shoppingCartReqDTO.getGiveModeKey().equals("showSendToHos") || shoppingCartReqDTO.getGiveModeKey().equals("showSendToEnterprises")){
             if(shoppingCartReqDTO.getAddressId() != null){
                 recipeBeforeOrder.setAddressId(shoppingCartReqDTO.getAddressId());
-                AddressService addressService = BasicAPI.getService(AddressService.class);
                 AddressDTO addressDTO = addressService.getByAddressId(shoppingCartReqDTO.getAddressId());
                 if (addressDTO != null) {
                     recipeBeforeOrder.setIsReady(0);
