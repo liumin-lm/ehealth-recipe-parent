@@ -122,6 +122,9 @@ public class OrganDrugListService implements IOrganDrugListService {
         if (null == organDrugList.getApplyBusiness()) {
             organDrugList.setApplyBusiness("1");
         }
+        if (null == organDrugList.getUnavailable()) {
+            organDrugList.setUnavailable(0);
+        }
         organDrugList.setLastModify(new Date());
     }
 
@@ -400,6 +403,9 @@ public class OrganDrugListService implements IOrganDrugListService {
         OrganDrugList organDrugList = organDrugListDAO.get(organDrugId);
         try {
             organDrugList.setStatus(0);
+            if (null == organDrugList.getUnavailable()) {
+                organDrugList.setUnavailable(0);
+            }
             OrganDrugList update = organDrugListDAO.update(organDrugList);
             logger.info("手动同步药品禁用药品 :" + update.getDrugName() + "organId=[{}] drug=[{}]", organId, JSONUtils.toString(update));
         } catch (Exception e) {

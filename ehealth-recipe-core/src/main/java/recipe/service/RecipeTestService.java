@@ -77,8 +77,8 @@ public class RecipeTestService {
     private EnterpriseManager enterpriseManager;
     @Autowired
     private DrugsEnterpriseDAO drugsEnterpriseDAO;
-    @Autowired
-    private DrugDistributionPriceDAO drugDistributionPriceDAO;
+//    @Autowired
+//    private DrugDistributionPriceDAO drugDistributionPriceDAO;
     @Autowired
     private IDrugBusinessService drugBusinessService;
     @Autowired
@@ -374,21 +374,21 @@ public class RecipeTestService {
         return "当前线程池排队线程数:"+threadPoolExecutor.getQueue().size()+",当前线程池活动线程数:"+threadPoolExecutor.getActiveCount()+",当前线程池完成线程数:"+threadPoolExecutor.getCompletedTaskCount()+",当前线程池总线程数:"+threadPoolExecutor.getTaskCount();
     }
 
-    /**
-     * 更新快递费
-     */
-    @RpcService
-    public void updateLogisticsFee(Integer depId, List<String> addrArea, Double price){
-        addrArea.forEach(addr->{
-            DrugDistributionPrice drugDistributionPrice = drugDistributionPriceDAO.getByEnterpriseIdAndAddrArea(depId, addr);
-            if (null == price) {
-                drugDistributionPrice.setDistributionPrice(null);
-            } else {
-                drugDistributionPrice.setDistributionPrice(new BigDecimal(price));
-            }
-            drugDistributionPriceDAO.update(drugDistributionPrice);
-        });
-    }
+//    /**
+//     * 更新快递费
+//     */
+//    @RpcService
+//    public void updateLogisticsFee(Integer depId, List<String> addrArea, Double price){
+//        addrArea.forEach(addr->{
+//            DrugDistributionPrice drugDistributionPrice = drugDistributionPriceDAO.getByEnterpriseIdAndAddrArea(depId, addr);
+//            if (null == price) {
+//                drugDistributionPrice.setDistributionPrice(null);
+//            } else {
+//                drugDistributionPrice.setDistributionPrice(new BigDecimal(price));
+//            }
+//            drugDistributionPriceDAO.update(drugDistributionPrice);
+//        });
+//    }
 
 
     /**
@@ -400,59 +400,59 @@ public class RecipeTestService {
      * PASS(5, "审核通过"),
      * DOC_FORCED_PASS(6, "医生强制通过"),
      * NO_REVIEW(7, "无需审核"),
-     * @param startTime
+     * @param
      */
     @RpcService
     @LogRecord
-    public Integer updateAuditState(Integer max,Integer min){
-        Integer start = 1,pageSize = 1000,userNum = 0;
+    public Integer updateAuditState(Integer max, Integer min) {
+        int start = 1, pageSize = 1000, userNum = 0;
         IRecipeCheckService iRecipeCheckService = AppContextHolder.getBean("recipeaudit.recipeCheckServiceImpl", IRecipeCheckService.class);
         StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
-        List<RecipeCheckBean> list = new ArrayList<>();
-        do{
-            list = iRecipeCheckService.findRecipeCheck(max,min,start,pageSize);
-            start += pageSize ;
-            if(CollectionUtils.isEmpty(list)){
+        List<RecipeCheckBean> list;
+        do {
+            list = iRecipeCheckService.findRecipeCheck(max, min, start, pageSize);
+            start += pageSize;
+            if (CollectionUtils.isEmpty(list)) {
                 return userNum;
-            }else{
+            } else {
                 userNum += list.size();
             }
-            List<Integer> recipeIds = list.stream().map(item -> item.getRecipeId() ).collect(Collectors.toList());
+            List<Integer> recipeIds = list.stream().map(RecipeCheckBean::getRecipeId).collect(Collectors.toList());
             List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIds);
-            HashMap<Integer,Recipe> recipeMap = (HashMap<Integer, Recipe>) recipes.stream().collect(Collectors.toMap(Recipe::getRecipeId, Recipe -> Recipe));
-            for (RecipeCheckBean item:list){
+            HashMap<Integer, Recipe> recipeMap = (HashMap<Integer, Recipe>) recipes.stream().collect(Collectors.toMap(Recipe::getRecipeId, Recipe -> Recipe));
+            for (RecipeCheckBean item : list) {
                 try {
                     Recipe recipe = recipeMap.get(item.getRecipeId());
-                    if(recipe == null){
+                    if (recipe == null) {
                         break;
                     }
-                    if( item.getChecker() != null ){
-                        // 审核通过
-                        if(item.getCheckStatus() == 0){
+                    if (item.getChecker() != null) {
+                        // 审核未通过
+                        if (item.getCheckStatus() == 0) {
                             stateManager.updateAuditState(item.getRecipeId(), RecipeAuditStateEnum.FAIL);
                         }
-                        // 审核未通过
-                        if(item.getCheckStatus() == 1){
+                        // 审核通过
+                        if (item.getCheckStatus() == 1) {
                             stateManager.updateAuditState(item.getRecipeId(), RecipeAuditStateEnum.PASS);
                         }
                     }
                     // 医生确认中
-                    if(recipe.getCheckStatus() == 1){
+                    if (recipe.getCheckStatus() == 1) {
                         stateManager.updateAuditState(item.getRecipeId(), RecipeAuditStateEnum.FAIL_DOC_CONFIRMING);
                     }
                     // 医生强制通过
-                    if(recipe.getCheckStatus() == 0 && StringUtils.isNoneBlank(recipe.getSupplementaryMemo()) && recipe.getCheckFlag() == 1){
+                    if (recipe.getCheckStatus() == 0 && StringUtils.isNoneBlank(recipe.getSupplementaryMemo()) && recipe.getCheckFlag() == 1) {
                         stateManager.updateAuditState(item.getRecipeId(), RecipeAuditStateEnum.DOC_FORCED_PASS);
                     }
                     // 取消
-                    if(recipe.getStatus() == 9){
+                    if (recipe.getStatus() == 9) {
                         stateManager.updateAuditState(item.getRecipeId(), RecipeAuditStateEnum.NO_REVIEW);
                     }
                 } catch (Exception e) {
-                    LOGGER.info("recipeTestService-updateAuditState recipecheck:{} - recipe:{} Exception:" , JSON.toJSONString(item), JSON.toJSONString(recipeMap.get(item.getRecipeId())), e);
+                    LOGGER.info("recipeTestService-updateAuditState recipecheck:{} - recipe:{} Exception:", JSON.toJSONString(item), JSON.toJSONString(recipeMap.get(item.getRecipeId())), e);
                 }
             }
-        }while(CollectionUtils.isNotEmpty(list));
+        } while (CollectionUtils.isNotEmpty(list));
         return 0;
     }
 

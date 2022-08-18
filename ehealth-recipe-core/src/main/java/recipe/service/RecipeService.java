@@ -1142,9 +1142,7 @@ public class RecipeService extends RecipeBaseService {
                 }
             }
             //第三步校验库存
-            if (!ValidateUtil.integerIsEmpty(recipeBean.getVersion()) && StringUtils.isEmpty(recipeBean.getRecipeSupportGiveMode())) {
-                throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, "无够药方式");
-            } else {
+            if (ValidateUtil.integerIsEmpty(recipeBean.getVersion())) {
                 Integer appointEnterpriseType = recipeBean.getRecipeExtend().getAppointEnterpriseType();
                 if ((continueFlag == 0 || continueFlag == 4) && ValidateUtil.integerIsEmpty(appointEnterpriseType)) {
                     rMap = drugEnterpriseBusinessService.enterpriseStockMap(recipeBean.getRecipeId());
@@ -1152,6 +1150,10 @@ public class RecipeService extends RecipeBaseService {
                     if (!signResult) {
                         return rMap;
                     }
+                }
+            } else {
+                if (StringUtils.isEmpty(recipeBean.getRecipeSupportGiveMode())) {
+                    throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, "无够药方式");
                 }
             }
 

@@ -11,31 +11,21 @@ import ctd.util.BeanUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import eh.utils.ValidateUtil;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
-import recipe.constant.RecipeBussConstant;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.core.api.patient.IPatientBusinessService;
 import recipe.enumerate.status.OutRecipeStatusEnum;
-import recipe.enumerate.status.RecipeStatusEnum;
-import recipe.enumerate.type.BussSourceTypeEnum;
 import recipe.enumerate.type.DrugBelongTypeEnum;
 import recipe.enumerate.type.OutRecipeGiveModeEnum;
 import recipe.enumerate.type.OutRecipeRecipeTypeEnum;
 import recipe.util.ObjectCopyUtils;
-
-import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.patient.ReadyRecipeVO;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -205,6 +195,7 @@ public class RecipePatientAtop extends BaseAtop {
 
     /**
      * 获取中药模板处方
+     *
      * @param formWorkRecipeReqVO
      * @return
      */
@@ -214,120 +205,10 @@ public class RecipePatientAtop extends BaseAtop {
         return recipePatientService.findFormWorkRecipe(formWorkRecipeReqVO);
     }
 
-    /**
-     * 保存处方
-     * @param recipeInfoVO 处方信息
-     * @return
-     */
-    @RpcService
-    public Integer saveRecipe(RecipeInfoVO recipeInfoVO) {
-        validateAtop(recipeInfoVO, recipeInfoVO.getRecipeBean());
-        validateAtop("请添加项目信息！", recipeInfoVO.getRecipeDetails());
-        validateAtop("请完善药方购买数量！", recipeInfoVO.getBuyNum());
-        RecipeBean recipeBean = recipeInfoVO.getRecipeBean();
-        validateAtop(recipeBean.getDoctor(), recipeBean.getMpiid(), recipeBean.getClinicOrgan(), recipeBean.getClinicId(), recipeBean.getDepart());
-        int buyNum = ValidateUtil.nullOrZeroInteger(recipeInfoVO.getBuyNum()) ? 1 : recipeInfoVO.getBuyNum();
-        recipeBean.setStatus(RecipeStatusEnum.RECIPE_STATUS_UNSIGNED.getType());
-        recipeBean.setRecipeSourceType(0);
-        recipeBean.setSignDate(DateTime.now().toDate());
-        recipeBean.setRecipeMode(RecipeBussConstant.RECIPEMODE_NGARIHEALTH);
-        recipeBean.setChooseFlag(0);
-        recipeBean.setGiveFlag(0);
-        recipeBean.setPayFlag(0);
-        recipeBean.setPushFlag(0);
-        recipeBean.setRemindFlag(0);
-        recipeBean.setTakeMedicine(0);
-        recipeBean.setPatientStatus(1);
-        recipeBean.setStatus(2);
-        recipeBean.setFromflag(1);
-        recipeBean.setRecipeSourceType(1);
-        recipeBean.setReviewType(1);
-        recipeBean.setAuditState(5);
-        recipeBean.setProcessState(0);
-        recipeBean.setSubState(0);
-        recipeBean.setSupportMode(0);
-        recipeBean.setGiveMode(2);
-        recipeBean.setFastRecipeFlag(1);
-        recipeBean.setBussSource(BussSourceTypeEnum.BUSSSOURCE_REVISIT.getType());
-        FormWorkRecipeReqVO formWorkRecipeReqVO = new FormWorkRecipeReqVO();
-        formWorkRecipeReqVO.setOrganId(recipeBean.getClinicOrgan());
-        List<FormWorkRecipeVO> formWorkRecipeVOList = recipePatientService.findFormWorkRecipe(formWorkRecipeReqVO);
-        formWorkRecipeVOList = formWorkRecipeVOList.stream().filter(a -> a.getMouldId().equals(recipeInfoVO.getMouldId())).collect(Collectors.toList());
-        FormWorkRecipeVO formWorkRecipeVO = formWorkRecipeVOList.get(0);
-        logger.info("saveRecipe formWorkRecipeVO:{}", JSON.toJSONString(formWorkRecipeVO));
-        RecipeExtendBean recipeExtendBean = formWorkRecipeVO.getRecipeBean().getRecipeExtend();
-        if (null != recipeInfoVO.getRecipeExtendBean() && null != recipeInfoVO.getRecipeExtendBean().getDocIndexId()) {
-            recipeExtendBean.setDocIndexId(recipeInfoVO.getRecipeExtendBean().getDocIndexId());
-        } else {
-            recipeExtendBean = new RecipeExtendBean();
-        }
-        Integer copyNum = formWorkRecipeVO.getRecipeBean().getCopyNum();
-        if (null != copyNum) {
-            recipeInfoVO.getRecipeBean().setCopyNum(copyNum);
-        }
-        List<RecipeDetailBean> recipeDetailBeanList = formWorkRecipeVO.getDetailBeanList();
-        recipeInfoVO.setRecipeDetails(recipeDetailBeanList);
-        recipeInfoVO.setRecipeExtendBean(recipeExtendBean);
-        packageTotalParamByBuyNum(recipeInfoVO, buyNum);
-        Integer recipeId = recipePatientService.saveRecipe(recipeInfoVO);
-        recipePatientService.esignRecipeCa(recipeId);
-        recipePatientService.updateRecipeIdByConsultId(recipeId, recipeInfoVO.getRecipeBean().getClinicId());
-        return recipeId;
-    }
-
-    /**
-     * 根据购买数量处理总价，剂量等数据
-     *
-     * @param recipeInfoVO
-     * @param buyNum
-     */
-    private void packageTotalParamByBuyNum(RecipeInfoVO recipeInfoVO, int buyNum) {
-        logger.info("packageTotalParamByBuyNum buyNum = [{}], recipeInfoVO = {}", buyNum, JSON.toJSONString(recipeInfoVO));
-        if (buyNum == 1) {
-            return;
-        }
-        //1. 处理recipe表相关字段
-        RecipeBean recipeBean = recipeInfoVO.getRecipeBean();
-        //中药剂数
-        if (ValidateUtil.notNullAndZeroInteger(recipeBean.getCopyNum())) {
-            recipeBean.setCopyNum(recipeBean.getCopyNum() * buyNum);
-        }
-        //处方金额
-        if (Objects.nonNull(recipeBean.getTotalMoney())) {
-            recipeBean.setTotalMoney(recipeBean.getTotalMoney().multiply(BigDecimal.valueOf(buyNum)));
-        }
-        //最后需支付费用
-        if (Objects.nonNull(recipeBean.getActualPrice())) {
-            recipeBean.setActualPrice(recipeBean.getActualPrice().multiply(BigDecimal.valueOf(buyNum)));
-        }
-
-        //2. 处理recipeDetail表相关字段
-        List<RecipeDetailBean> recipeDetailBeanList = recipeInfoVO.getRecipeDetails();
-        if (CollectionUtils.isNotEmpty(recipeDetailBeanList)) {
-            for (RecipeDetailBean recipeDetailBean : recipeDetailBeanList) {
-                //药物使用总数量
-                if (Objects.nonNull(recipeDetailBean.getUseTotalDose())) {
-                    recipeDetailBean.setUseTotalDose(recipeDetailBean.getUseTotalDose() * buyNum);
-                }
-                //药物发放数量
-                if (Objects.nonNull(recipeDetailBean.getSendNumber())) {
-                    recipeDetailBean.setSendNumber(recipeDetailBean.getSendNumber() * buyNum);
-                }
-                //药物使用天数
-                if (Objects.nonNull(recipeDetailBean.getUseDays())) {
-                    recipeDetailBean.setUseDays(recipeDetailBean.getUseDays() * buyNum);
-                }
-                //药物金额
-                if (Objects.nonNull(recipeDetailBean.getDrugCost())) {
-                    recipeDetailBean.setDrugCost(recipeDetailBean.getDrugCost().multiply(BigDecimal.valueOf(buyNum)));
-                }
-            }
-        }
-
-    }
 
     /**
      * 是否有待处理处方
+     *
      * @param orderId 订单号
      * @return
      */

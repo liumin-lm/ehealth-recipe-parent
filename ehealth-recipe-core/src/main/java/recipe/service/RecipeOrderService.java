@@ -30,7 +30,6 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.common.RecipeBussResTO;
 import com.ngari.recipe.common.RecipeResultBean;
-import com.ngari.recipe.drugdistributionprice.model.DrugDistributionPriceBean;
 import com.ngari.recipe.dto.EnterpriseStock;
 import com.ngari.recipe.dto.SkipThirdDTO;
 import com.ngari.recipe.entity.*;
@@ -1249,6 +1248,9 @@ public class RecipeOrderService extends RecipeBaseService {
         recipeInfo.put("enterpriseId", order.getEnterpriseId());
         //更新处方信息
         updateRecipeInfo(false, result, recipeIds, recipeInfo, null);
+        if (Objects.nonNull(order.getOrderId())) {
+            stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_READY_PAY, OrderStateEnum.SUB_READY_PAY_NONE);
+        }
         return true;
     }
 
@@ -2216,20 +2218,20 @@ public class RecipeOrderService extends RecipeBaseService {
      * @param address
      * @return
      */
-    private BigDecimal getExpressFee(Integer enterpriseId, String address) {
-        LOGGER.info("getExpressFee enterpriseId:{}, address:{}.", enterpriseId, address);
-        if (null == enterpriseId || StringUtils.isEmpty(address)) {
-            return null;
-        }
-        DrugDistributionPriceService priceService = ApplicationUtils.getRecipeService(DrugDistributionPriceService.class);
-        DrugDistributionPriceBean expressFee = priceService.getDistributionPriceByEnterpriseIdAndAddrArea(enterpriseId, address);
-        LOGGER.info("getExpressFee expressFee:{}.", expressFee);
-        if (null != expressFee) {
-            return expressFee.getDistributionPrice();
-        }
-
-        return null;
-    }
+//    private BigDecimal getExpressFee(Integer enterpriseId, String address) {
+//        LOGGER.info("getExpressFee enterpriseId:{}, address:{}.", enterpriseId, address);
+//        if (null == enterpriseId || StringUtils.isEmpty(address)) {
+//            return null;
+//        }
+//        DrugDistributionPriceService priceService = ApplicationUtils.getRecipeService(DrugDistributionPriceService.class);
+//        DrugDistributionPriceBean expressFee = priceService.getDistributionPriceByEnterpriseIdAndAddrArea(enterpriseId, address);
+//        LOGGER.info("getExpressFee expressFee:{}.", expressFee);
+//        if (null != expressFee) {
+//            return expressFee.getDistributionPrice();
+//        }
+//
+//        return null;
+//    }
 
     /**
      * 订单支付完成后调用 (包括支付完成和退款都会调用)
@@ -2318,7 +2320,6 @@ public class RecipeOrderService extends RecipeBaseService {
                     attrMap.put("status", OrderStatusConstant.READY_PAY);
                 }
                 attrMap.put("effective", 1);
-                purchaseService.setRecipeOrderInfo(nowRecipe, order, payFlag);
             }
         }
         LOGGER.info("finishOrderPayImpl orderCode:{},attrMap:{},result:{}.", orderCode, JSONUtils.toString(attrMap), JSONUtils.toString(result));

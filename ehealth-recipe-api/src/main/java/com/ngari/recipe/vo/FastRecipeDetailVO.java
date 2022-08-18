@@ -13,22 +13,28 @@ import java.util.Date;
 public class FastRecipeDetailVO implements Serializable {
     private static final long serialVersionUID = -1666706830573590374L;
 
+    @ItemProperty(alias = "主键")
+    private Integer id;
+
+    @ItemProperty(alias = "药方Id")
+    private Integer fastRecipeId;
+
     @ItemProperty(alias = "药品商品名")
     private String saleName;
 
-    @ItemProperty(alias="药品序号")
+    @ItemProperty(alias = "药品序号")
     private Integer drugId;
 
-    @ItemProperty(alias="机构唯一索引")
+    @ItemProperty(alias = "机构唯一索引")
     private String organDrugCode;
 
-    @ItemProperty(alias="机构药品编号")
+    @ItemProperty(alias = "机构药品编号")
     private String drugItemCode;
 
-    @ItemProperty(alias="药物名称")
+    @ItemProperty(alias = "药物名称")
     private String drugName;
 
-    @ItemProperty(alias="药物规格")
+    @ItemProperty(alias = "药物规格")
     private String drugSpec;
 
     @ItemProperty(alias = "药品包装数量")
@@ -64,14 +70,14 @@ public class FastRecipeDetailVO implements Serializable {
     @ItemProperty(alias = "用药途径id")
     private String usePathwaysId;
 
-    @ItemProperty(alias = "机构的频次代码")
+    @ItemProperty(alias = "医院频次代码")
     private String organUsingRate;
 
     @ItemProperty(alias = "机构的用法代码")
     private String organUsePathways;
 
-    @ItemProperty(alias = "用药频率说明")
-    private String usingRateTextFromHis; //防止覆盖原有usingRateText
+    @ItemProperty(alias = "用药频率说明, 防止覆盖原有usingRateText")
+    private String usingRateTextFromHis;
 
     @ItemProperty(alias = "用药方式说明")
     private String usePathwaysTextFromHis;
@@ -94,7 +100,7 @@ public class FastRecipeDetailVO implements Serializable {
     @ItemProperty(alias = "药品嘱托编码")
     private String drugEntrustCode;
 
-    @ItemProperty(alias = "药品效期")
+    @ItemProperty(alias = "药品有效期")
     private Date validDate;
 
     @ItemProperty(alias = "销售价格 = organDrug.salePrice")
@@ -147,4 +153,5 @@ public class FastRecipeDetailVO implements Serializable {
 
     @ItemProperty(alias = "类型：1:药品，2:诊疗项目，3....")
     private Integer type;
+
 }

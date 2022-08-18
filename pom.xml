@@ -25,7 +25,7 @@
     </modules>
     <properties>
         <ngari.voucher.version>4.1.1.9.master-SNAPSHOT</ngari.voucher.version>
-        <ngari.es.version>4.7.0.7.master-SNAPSHOT</ngari.es.version>
+        <ngari.es.version>4.8.3.0.master-SNAPSHOT</ngari.es.version>
         <ngari.miscellany.version>4.1.1.9.master-SNAPSHOT</ngari.miscellany.version>
         <ngari.basic.version>4.8.1.1.master-SNAPSHOT</ngari.basic.version>
         <ngari.basicdto.version>4.8.1.1.master-SNAPSHOT</ngari.basicdto.version>
