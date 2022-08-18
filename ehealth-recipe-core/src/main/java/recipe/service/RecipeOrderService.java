@@ -1248,6 +1248,9 @@ public class RecipeOrderService extends RecipeBaseService {
         recipeInfo.put("enterpriseId", order.getEnterpriseId());
         //更新处方信息
         updateRecipeInfo(false, result, recipeIds, recipeInfo, null);
+        if (Objects.nonNull(order.getOrderId())) {
+            stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_READY_PAY, OrderStateEnum.SUB_READY_PAY_NONE);
+        }
         return true;
     }
 
@@ -2317,7 +2320,6 @@ public class RecipeOrderService extends RecipeBaseService {
                     attrMap.put("status", OrderStatusConstant.READY_PAY);
                 }
                 attrMap.put("effective", 1);
-                purchaseService.setRecipeOrderInfo(nowRecipe, order, payFlag);
             }
         }
         LOGGER.info("finishOrderPayImpl orderCode:{},attrMap:{},result:{}.", orderCode, JSONUtils.toString(attrMap), JSONUtils.toString(result));
