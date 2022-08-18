@@ -26,15 +26,15 @@ public class ClinicCartService implements IClinicCartBusinessService {
     ClinicCartDAO clinicCartDAO;
 
     /**
-     * 方便门诊购物车列表查询
+     * 方便门诊、便捷购药 购物车列表查询
      *
      * @param organId
      * @param userId
      * @return
      */
     @Override
-    public List<ClinicCartVO> findClinicCartsByOrganIdAndUserId(Integer organId, String userId) {
-        List<ClinicCart> clinicCartList = clinicCartDAO.findClinicCartsByOrganIdAndUserId(organId, userId);
+    public List<ClinicCartVO> findClinicCartsByOrganIdAndUserId(Integer organId, String userId, Integer workType) {
+        List<ClinicCart> clinicCartList = clinicCartDAO.findClinicCartsByOrganIdAndUserId(organId, userId, workType);
         if (CollectionUtils.isNotEmpty(clinicCartList)) {
             return BeanCopyUtils.copyList(clinicCartList, ClinicCartVO::new);
         } else {
