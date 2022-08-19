@@ -13,5 +13,5 @@ public class ShoppingCartDetailDTO implements Serializable {
 
     private RecipeBeforeOrder recipeBeforeOrder;
 
-    private List<Recipedetail> recipeDetail;
+    private List<List<Recipedetail>> recipeDetail;
 }

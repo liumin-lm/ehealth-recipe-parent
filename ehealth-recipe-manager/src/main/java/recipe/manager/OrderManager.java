@@ -924,30 +924,6 @@ public class OrderManager extends BaseManager {
         return true;
     }
 
-    public List<ShoppingCartDetailDTO> getShoppingCartDetail(String mpiId) {
-        List<ShoppingCartDetailDTO> shoppingCartDetailDTOList = new ArrayList<>();
-        List<RecipeBeforeOrder> recipeBeforeOrderList = recipeBeforeOrderDAO.findByMpiId(mpiId);
-        if(CollectionUtils.isNotEmpty(recipeBeforeOrderList)){
-            for(RecipeBeforeOrder recipeBeforeOrder : recipeBeforeOrderList){
-                Recipe recipe = recipeDAO.getByRecipeId(recipeBeforeOrder.getRecipeId());
-                if(recipe != null){
-                    //处方费用
-                    recipeBeforeOrder.setRecipeFee(recipe.getTotalMoney());
-                }
-                ShoppingCartDetailDTO shoppingCartDetailDTO = new ShoppingCartDetailDTO();
-                shoppingCartDetailDTO.setRecipeBeforeOrder(recipeBeforeOrder);
-                if(recipeBeforeOrder.getRecipeId() != null){
-                    List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipeBeforeOrder.getRecipeId());
-                    if(CollectionUtils.isNotEmpty(recipeDetailList)){
-                        shoppingCartDetailDTO.setRecipeDetail(recipeDetailList);
-                    }
-                }
-                shoppingCartDetailDTOList.add(shoppingCartDetailDTO);
-            }
-        }
-        return shoppingCartDetailDTOList;
-    }
-
     public void saveRecipeBeforeOrderInfo(ShoppingCartReqDTO shoppingCartReqDTO) {
         RecipeBeforeOrder recipeBeforeOrder = new RecipeBeforeOrder();
         recipeBeforeOrder.setRecipeId(shoppingCartReqDTO.getRecipeId());

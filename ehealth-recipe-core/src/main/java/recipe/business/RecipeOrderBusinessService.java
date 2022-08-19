@@ -24,6 +24,7 @@ import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.*;
+import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import com.ngari.recipe.vo.ShoppingCartReqVO;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
 import com.ngari.revisit.RevisitAPI;
@@ -50,6 +51,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.ApplicationUtils;
+import recipe.bean.RecipePayModeSupportBean;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.*;
 import recipe.constant.RecipeBussConstant;
@@ -62,6 +64,7 @@ import recipe.enumerate.type.NeedSendTypeEnum;
 import recipe.factory.status.givemodefactory.GiveModeProxy;
 import recipe.hisservice.RecipeToHisService;
 import recipe.manager.EnterpriseManager;
+import recipe.manager.OrderFeeManager;
 import recipe.manager.OrderManager;
 import recipe.manager.RecipeManager;
 import recipe.presettle.IRecipePreSettleService;
@@ -129,6 +132,10 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
     private IConfigurationClient configurationClient;
     @Autowired
     private RecipeBeforeOrderDAO recipeBeforeOrderDAO;
+    @Autowired
+    private OrderFeeManager orderFeeManager;
+    @Autowired
+    private RecipeDetailDAO recipeDetailDAO;
 
 
     @Override
@@ -1043,7 +1050,79 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
     @Override
     public List<ShoppingCartDetailDTO> getShoppingCartDetail(String mpiId) {
         logger.info("getShoppingCartDetail mpiId={}",mpiId);
-        return orderManager.getShoppingCartDetail(mpiId);
+        List<ShoppingCartDetailDTO> shoppingCartDetailDTOList = new ArrayList<>();
+        List<RecipeBeforeOrder> recipeBeforeOrderList = recipeBeforeOrderDAO.findByMpiId(mpiId);
+        logger.info("getShoppingCartDetail recipeBeforeOrderList={}",JSONUtils.toString(recipeBeforeOrderList));
+        if(CollectionUtils.isNotEmpty(recipeBeforeOrderList)){
+            //需要合并的处方
+            List<List<RecipeBeforeOrder>> mergeBeforeOrder = orderManager.mergeBeforeOrder(recipeBeforeOrderList);
+            logger.info("getShoppingCartDetail mergeBeforeOrder ={}",JSONUtils.toString(mergeBeforeOrder));
+            for(List<RecipeBeforeOrder> recipeBeforeOrders : mergeBeforeOrder){
+                List<List<Recipedetail>> recipeDetail = new ArrayList<>();
+                ShoppingCartDetailDTO shoppingCartDetailDTO = new ShoppingCartDetailDTO();
+                RecipeBeforeOrder beforeOrder = recipeBeforeOrders.get(0);
+                RecipeOrder recipeOrder = new RecipeOrder();
+                BigDecimal expressFee = null;
+                AddressDTO addressDTO = new AddressDTO();
+                addressDTO.setAddress1(beforeOrder.getAddress1());
+                addressDTO.setAddress2(beforeOrder.getAddress2());
+                addressDTO.setAddress3(beforeOrder.getAddress3());
+                addressDTO.setAddress4(beforeOrder.getAddress4());
+                addressDTO.setRecMobile(beforeOrder.getRecMobile());
+                List<Integer> recipeIds = new ArrayList<>();
+                Integer recipeId = beforeOrder.getRecipeId();
+                recipeIds.add(recipeId);
+                recipeOrder.setEnterpriseId(beforeOrder.getEnterpriseId());
+                //运费
+                orderService.setOrderAddress(new OrderCreateResult(200),recipeOrder,recipeIds, new RecipePayModeSupportBean(),null,0,addressDTO);
+                beforeOrder.setExpressFee(recipeOrder.getExpressFee());
+                expressFee = recipeOrder.getExpressFee();
+                BigDecimal recipeFee = BigDecimal.ONE;
+                BigDecimal tcmFee = BigDecimal.ONE;
+                BigDecimal decoctionFee = BigDecimal.ONE;
+                BigDecimal auditFee = BigDecimal.ONE;
+                for(RecipeBeforeOrder recipeBeforeOrder : recipeBeforeOrders){
+                    List<Recipe> recipeList = new ArrayList<>();
+                    Recipe recipe = recipeDAO.getByRecipeId(recipeBeforeOrder.getRecipeId());
+                    if(recipe != null){
+                        //处方费用
+                        if (null != recipe.getTotalMoney()) {
+                            recipeBeforeOrder.setRecipeFee(recipe.getTotalMoney());
+                            recipeFee = recipeFee.add(recipe.getTotalMoney());
+                        }
+                        recipeList.add(recipe);
+                        orderFeeManager.setRecipeChineseMedicineFee(recipeList,recipeOrder,null);
+                        if(recipeOrder.getTcmFee() != null){
+                            //中医辨证论治费
+                            recipeBeforeOrder.setTcmFee(recipeOrder.getTcmFee());
+                            tcmFee = tcmFee.add(recipeOrder.getTcmFee());
+                        }
+                        if(recipeOrder.getDecoctionFee() != null){
+                            //代煎费
+                            recipeBeforeOrder.setDecoctionFee(recipeOrder.getDecoctionFee());
+                            decoctionFee = decoctionFee.add(recipeOrder.getDecoctionFee());
+                        }
+                        orderFeeManager.setAuditFee(recipeOrder,recipeList);
+                        if(recipeOrder.getAuditFee() != null){
+                            //药事服务费
+                            recipeBeforeOrder.setAuditFee(recipeOrder.getAuditFee());
+                            auditFee = auditFee.add(recipeOrder.getAuditFee());
+                        }
+                        recipeBeforeOrder.setExpressFee(expressFee);
+                        recipeBeforeOrderDAO.updateNonNullFieldByPrimaryKey(recipeBeforeOrder);
+                    }
+                    List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipeBeforeOrder.getRecipeId());
+                    recipeDetail.add(recipeDetailList);
+                }
+                //处方费
+                beforeOrder.setRecipeFee(recipeFee);
+                shoppingCartDetailDTO.setRecipeDetail(recipeDetail);
+                shoppingCartDetailDTO.setRecipeBeforeOrder(beforeOrder);
+                shoppingCartDetailDTOList.add(shoppingCartDetailDTO);
+                logger.info("getShoppingCartDetail shoppingCartDetailDTOList={}",JSONUtils.toString(shoppingCartDetailDTOList));
+            }
+        }
+        return shoppingCartDetailDTOList;
     }
 
     @Override

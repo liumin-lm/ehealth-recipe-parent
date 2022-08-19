@@ -867,7 +867,7 @@ public class RecipeOrderService extends RecipeBaseService {
         return recipeOrderDAO.updateByOrdeCode(order.getOrderCode(), orderInfo);
     }
 
-    private void setOrderAddress(OrderCreateResult result, RecipeOrder order, List<Integer> recipeIds, RecipePayModeSupportBean payModeSupport, Map<String, String> extInfo, Integer toDbFlag, AddressDTO address) {
+    public void setOrderAddress(OrderCreateResult result, RecipeOrder order, List<Integer> recipeIds, RecipePayModeSupportBean payModeSupport, Map<String, String> extInfo, Integer toDbFlag, AddressDTO address) {
         Integer takeMedicineWay = MapValueUtil.getInteger(extInfo, "takeMedicineWay");
         if (TakeMedicineWayEnum.TAKE_MEDICINE_STATION.getType().equals(takeMedicineWay)) {
             return;
