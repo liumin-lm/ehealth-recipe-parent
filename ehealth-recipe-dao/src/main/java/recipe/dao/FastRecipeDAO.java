@@ -42,14 +42,19 @@ public abstract class FastRecipeDAO extends HibernateSupportDelegateDAO<FastReci
                     @SuppressWarnings("unchecked")
                     @Override
                     public void execute(StatelessSession ss) throws DAOException {
-                        StringBuilder hql = new StringBuilder("FROM FastRecipe where clinicOrgan =:organId ");
+                        StringBuilder hql = new StringBuilder("FROM FastRecipe where 1=1 ");
+                        if (Objects.nonNull(fastRecipeReq.getOrganId())) {
+                            hql.append("AND clinicOrgan = :organId ");
+                        }
                         if (Objects.nonNull(fastRecipeReq.getFastRecipeId())) {
                             hql.append("AND id = :fastRecipeId ");
                         }
                         hql.append("order by orderNum  ");
-
                         Query query = ss.createQuery(hql.toString());
-                        query.setParameter("organId", fastRecipeReq.getOrganId());
+
+                        if (Objects.nonNull(fastRecipeReq.getOrganId())) {
+                            query.setParameter("organId", fastRecipeReq.getOrganId());
+                        }
                         if (Objects.nonNull(fastRecipeReq.getFastRecipeId())) {
                             query.setParameter("fastRecipeId", fastRecipeReq.getFastRecipeId());
                         }
