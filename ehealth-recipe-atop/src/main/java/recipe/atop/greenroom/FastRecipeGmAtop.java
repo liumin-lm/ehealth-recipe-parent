@@ -15,8 +15,8 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.core.api.IFastRecipeBusinessService;
-import recipe.vo.doctor.RecipeInfoVO;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -35,19 +35,20 @@ public class FastRecipeGmAtop extends BaseAtop {
     /**
      * 快捷购药 开处方
      *
-     * @param recipeInfoVOList
+     * @param fastRecipeVOList
      * @return
      */
     @RpcService
-    public List<Integer> fastRecipeSaveRecipeList(List<RecipeInfoVO> recipeInfoVOList) {
-        for (RecipeInfoVO recipeInfoVO : recipeInfoVOList) {
-            validateAtop(recipeInfoVO, recipeInfoVO.getRecipeBean());
-            validateAtop("请添加项目信息！", recipeInfoVO.getRecipeDetails());
-            validateAtop("请完善药方购买数量！", recipeInfoVO.getBuyNum());
-            RecipeBean recipeBean = recipeInfoVO.getRecipeBean();
-            validateAtop(recipeBean.getDoctor(), recipeBean.getMpiid(), recipeBean.getClinicOrgan(), recipeBean.getClinicId(), recipeBean.getDepart());
-        }
-        return fastRecipeService.fastRecipeSaveRecipe(recipeInfoVOList);
+    public List<Integer> fastRecipeSaveRecipeList(List<FastRecipeVO> fastRecipeVOList) {
+        //for (FastRecipeVO fastRecipeVO : fastRecipeVOList) {
+        //    validateAtop(recipeInfoVO, recipeInfoVO.getRecipeBean());
+        //    validateAtop("请添加项目信息！", recipeInfoVO.getRecipeDetails());
+        //    validateAtop("请完善药方购买数量！", recipeInfoVO.getBuyNum());
+        //    RecipeBean recipeBean = recipeInfoVO.getRecipeBean();
+        //    validateAtop(recipeBean.getDoctor(), recipeBean.getMpiid(), recipeBean.getClinicOrgan(), recipeBean.getClinicId(), recipeBean.getDepart());
+        //}
+        //return fastRecipeService.fastRecipeSaveRecipe(recipeInfoVOList);
+        return new ArrayList<>();
     }
 
     /**

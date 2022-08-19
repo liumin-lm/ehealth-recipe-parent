@@ -2,6 +2,8 @@ package recipe.atop.open;
 
 import com.alibaba.fastjson.JSONArray;
 import com.ngari.common.mode.HisResponseTO;
+import com.ngari.recipe.dto.FastRecipeReq;
+import com.ngari.recipe.entity.FastRecipe;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Symptom;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
@@ -9,17 +11,19 @@ import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.model.SymptomDTO;
-import com.ngari.recipe.vo.FormWorkRecipeReqVO;
-import com.ngari.recipe.vo.FormWorkRecipeVO;
+import com.ngari.recipe.vo.FastRecipeVO;
 import ctd.persistence.exception.DAOException;
+import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.aop.LogRecord;
 import recipe.api.open.IRecipeAtopService;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
 import recipe.core.api.IClinicCartBusinessService;
+import recipe.core.api.IFastRecipeBusinessService;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.core.api.IRevisitBusinessService;
 import recipe.core.api.patient.IOfflineRecipeBusinessService;
@@ -36,7 +40,6 @@ import recipe.vo.second.RevisitRecipeTraceVo;
 import javax.annotation.Resource;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * 处方服务入口类
@@ -61,6 +64,9 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
 
     @Resource
     private IClinicCartBusinessService clinicCartService;
+
+    @Autowired
+    private IFastRecipeBusinessService fastRecipeBusinessService;
 
 
     @Override
@@ -196,12 +202,11 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
     }
 
     @Override
-    public FormWorkRecipeVO getFormWorkRecipeById(Integer mouldId, Integer organId) {
-        FormWorkRecipeReqVO formWorkRecipeReqVO = new FormWorkRecipeReqVO();
-        formWorkRecipeReqVO.setOrganId(organId);
-        List<FormWorkRecipeVO> formWorkRecipeVOList = recipePatientService.findFormWorkRecipe(formWorkRecipeReqVO);
-        formWorkRecipeVOList = formWorkRecipeVOList.stream().filter(a -> a.getMouldId().equals(mouldId)).collect(Collectors.toList());
-        return formWorkRecipeVOList.get(0);
+    public FastRecipeVO getFastRecipeById(Integer id) {
+        FastRecipeReq fastRecipeReq = new FastRecipeReq();
+        fastRecipeReq.setFastRecipeId(id);
+        List<FastRecipe> fastRecipeList = fastRecipeBusinessService.findFastRecipeListByParam(fastRecipeReq);
+        return CollectionUtils.isEmpty(fastRecipeList) ? null : BeanUtils.map(fastRecipeList.get(0), FastRecipeVO.class);
     }
 
     @Override

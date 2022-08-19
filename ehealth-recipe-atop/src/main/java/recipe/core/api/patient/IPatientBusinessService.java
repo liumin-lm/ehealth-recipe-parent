@@ -43,13 +43,6 @@ public interface IPatientBusinessService {
     PatientMedicalTypeVO queryPatientMedicalType(PatientInfoVO patientInfoVO);
 
     /**
-     * 获取中药模板处方
-     * @param formWorkRecipeReqVO
-     * @return
-     */
-    List<FormWorkRecipeVO> findFormWorkRecipe(FormWorkRecipeReqVO formWorkRecipeReqVO);
-
-    /**
      * 保存处方
      *
      * @param recipeInfoVO 处方信息
