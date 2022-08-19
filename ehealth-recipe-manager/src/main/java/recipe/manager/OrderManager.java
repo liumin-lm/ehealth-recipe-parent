@@ -41,6 +41,7 @@ import recipe.client.*;
 import recipe.constant.DrugEnterpriseConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.dao.*;
+import recipe.enumerate.status.GiveModeEnum;
 import recipe.enumerate.status.OrderStateEnum;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
@@ -96,6 +97,41 @@ public class OrderManager extends BaseManager {
 
     @Autowired
     private AddressService addressService;
+
+    /**
+     * 合并预下单信息
+     * @param beforeOrderList
+     * @return
+     */
+    @LogRecord
+    public List<List<RecipeBeforeOrder>> mergeBeforeOrder(List<RecipeBeforeOrder> beforeOrderList) {
+        if (CollectionUtils.isEmpty(beforeOrderList)) {
+            return new ArrayList<>();
+        }
+        // 根据购药方式对所有预下单数据分组
+        Map<Integer, List<RecipeBeforeOrder>> map = beforeOrderList.stream().collect(Collectors.groupingBy(RecipeBeforeOrder::getGiveMode));
+        Set<Integer> keySet = map.keySet();
+        List<List<RecipeBeforeOrder>> list = new ArrayList<>();
+        keySet.forEach(key -> {
+            List<RecipeBeforeOrder> recipeBeforeOrders = map.get(key);
+            recipeBeforeOrders.forEach(recipeBeforeOrder -> {
+                switch (GiveModeEnum.getGiveModeEnum(key)) {
+                    case GIVE_MODE_HOME_DELIVERY:
+                    case GIVE_MODE_PHARMACY_DRUG:
+                        Map<String, List<RecipeBeforeOrder>> collect = recipeBeforeOrders.stream().collect(Collectors.groupingBy(beforeOrder -> beforeOrder.getEnterpriseId() + beforeOrder.getDrugStoreCode()));
+                        collect.forEach((k, value) -> {
+                            list.add(value);
+                        });
+                        break;
+                    case GIVE_MODE_HOSPITAL_DRUG:
+                    default:
+                        list.add(recipeBeforeOrders);
+                        break;
+                }
+            });
+        });
+        return list;
+    }
     /**
      * 订单能否配送 物流管控
      *
