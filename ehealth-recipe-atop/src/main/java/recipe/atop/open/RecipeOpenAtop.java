@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.recipe.dto.FastRecipeReq;
 import com.ngari.recipe.entity.FastRecipe;
+import com.ngari.recipe.entity.FastRecipeDetail;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Symptom;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
@@ -11,11 +12,13 @@ import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.model.SymptomDTO;
+import com.ngari.recipe.vo.FastRecipeDetailVO;
 import com.ngari.recipe.vo.FastRecipeVO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
+import eh.utils.BeanCopyUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.aop.LogRecord;
@@ -27,7 +30,6 @@ import recipe.core.api.IFastRecipeBusinessService;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.core.api.IRevisitBusinessService;
 import recipe.core.api.patient.IOfflineRecipeBusinessService;
-import recipe.core.api.patient.IPatientBusinessService;
 import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.SignEnum;
@@ -204,7 +206,15 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
         FastRecipeReq fastRecipeReq = new FastRecipeReq();
         fastRecipeReq.setFastRecipeId(id);
         List<FastRecipe> fastRecipeList = fastRecipeService.findFastRecipeListByParam(fastRecipeReq);
-        return CollectionUtils.isEmpty(fastRecipeList) ? null : BeanUtils.map(fastRecipeList.get(0), FastRecipeVO.class);
+        if (CollectionUtils.isEmpty(fastRecipeList)) {
+            return null;
+        }
+        FastRecipeVO fastRecipeVO = BeanUtils.map(fastRecipeList.get(0), FastRecipeVO.class);
+        List<FastRecipeDetail> fastRecipeDetailList = fastRecipeService.findFastRecipeDetailsByFastRecipeId(fastRecipeVO.getId());
+        if (CollectionUtils.isNotEmpty(fastRecipeDetailList)) {
+            fastRecipeVO.setFastRecipeDetailList(BeanCopyUtils.copyList(fastRecipeDetailList, FastRecipeDetailVO::new));
+        }
+        return fastRecipeVO;
     }
 
     @Override
