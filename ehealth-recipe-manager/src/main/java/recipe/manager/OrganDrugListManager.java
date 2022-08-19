@@ -244,7 +244,6 @@ public class OrganDrugListManager extends BaseManager {
         }
         if (Integer.valueOf(1).equals(organDrug.getUnavailable())) {
             validateOrganDrugDTO.setValidateStatus(false);
-            return null;
         }
         return organDrug;
     }
