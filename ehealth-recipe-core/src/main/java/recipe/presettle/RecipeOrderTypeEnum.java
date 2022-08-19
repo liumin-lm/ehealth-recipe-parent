@@ -37,9 +37,14 @@ public enum RecipeOrderTypeEnum {
     /**
      * 目前主要是省中会用到-走自费预结算
      */
-    HOSPITAL_SELF(5,"医院自费","cashPreSettleService","cashSettleService");
+    HOSPITAL_SELF(5,"医院自费","cashPreSettleService","cashSettleService"),
 
+    /**
+     * 走门诊缴费付款,预算与结算都在门诊缴费
+     */
+    OUT_PATIENT_PAY(6,"门诊缴费","","")
 
+    ;
     /**订单类型*/
     private Integer type;
     /**订单类型名称*/

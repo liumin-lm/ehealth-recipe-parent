@@ -56,6 +56,7 @@ import recipe.constant.RecipeBussConstant;
 import recipe.core.api.patient.IRecipeOrderBusinessService;
 import recipe.dao.*;
 import recipe.enumerate.status.GiveModeEnum;
+import recipe.enumerate.status.PayModeEnum;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.type.GiveModeTextEnum;
 import recipe.enumerate.type.NeedSendTypeEnum;
@@ -606,6 +607,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
         order.setOrderType(0);
         order.setExpectEndTakeTime("");
         order.setExpectStartTakeTime("");
+        order.setPayMode(PayModeEnum.OFFLINE_PAY.getType());
         RecipeOrder recipeOrder = recipeOrderDAO.save(order);
         logger.info("RecipeOrderBusinessService thirdCreateOrder recipeOrder:{}.", JSONUtils.toString(recipeOrder));
         if (recipeOrder != null) {

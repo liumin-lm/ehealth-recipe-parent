@@ -41,6 +41,11 @@ public class OnsConfig {
      */
     public static String drugListNursingTopic;
 
+    /**
+     * 门诊缴费支付信息回调topic
+     */
+    public static String settleStateSyncRecipeTag;
+
 
     public void setKafkaSwitch(boolean kafkaSwitch) {
         OnsConfig.kafkaSwitch = kafkaSwitch;
@@ -49,6 +54,10 @@ public class OnsConfig {
 
     public void setDrugListNursingTopic(String drugListNursingTopic) {
         OnsConfig.drugListNursingTopic = drugListNursingTopic;
+    }
+
+    public static void setSettleStateSyncRecipeTag(String settleStateSyncRecipeTag) {
+        OnsConfig.settleStateSyncRecipeTag = settleStateSyncRecipeTag;
     }
 
     public void setKafkaServers(String kafkaServers) {
