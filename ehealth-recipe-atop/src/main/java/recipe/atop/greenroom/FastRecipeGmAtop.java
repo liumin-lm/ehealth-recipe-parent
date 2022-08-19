@@ -71,7 +71,7 @@ public class FastRecipeGmAtop extends BaseAtop {
     @RpcService
     public FastRecipeVO getFastRecipeByFastRecipeId(FastRecipeReq fastRecipeReq) {
         List<FastRecipe> fastRecipeList = fastRecipeService.findFastRecipeListByParam(fastRecipeReq);
-        if (Objects.nonNull(fastRecipeList)) {
+        if (CollectionUtils.isNotEmpty(fastRecipeList)) {
             FastRecipeVO fastRecipeVO = BeanUtils.map(fastRecipeList.get(0), FastRecipeVO.class);
             List<FastRecipeDetail> fastRecipeDetailList = fastRecipeService.findFastRecipeDetailsByFastRecipeId(fastRecipeList.get(0).getId());
             fastRecipeVO.setFastRecipeDetailList(BeanCopyUtils.copyList(fastRecipeDetailList, FastRecipeDetailVO::new));
@@ -102,6 +102,7 @@ public class FastRecipeGmAtop extends BaseAtop {
      */
     @RpcService
     public Boolean simpleUpdateFastRecipe(FastRecipeVO fastRecipeVO) {
+        validateAtop(fastRecipeVO, fastRecipeVO.getId());
         return fastRecipeService.simpleUpdateFastRecipe(fastRecipeVO);
     }
 
@@ -113,6 +114,7 @@ public class FastRecipeGmAtop extends BaseAtop {
      */
     @RpcService
     public Boolean fullUpdateFastRecipe(FastRecipeVO fastRecipeVO) {
+        validateAtop(fastRecipeVO, fastRecipeVO.getId());
         return fastRecipeService.fullUpdateFastRecipe(fastRecipeVO);
     }
 

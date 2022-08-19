@@ -290,6 +290,7 @@ public class FastRecipeService implements IFastRecipeBusinessService {
             fastRecipe.setMaxNum(fastRecipeVO.getMaxNum());
             fastRecipe.setMinNum(fastRecipeVO.getMinNum());
             fastRecipe.setStatus(fastRecipeVO.getStatus());
+            fastRecipeDAO.update(fastRecipe);
         }
         return true;
     }
@@ -303,6 +304,7 @@ public class FastRecipeService implements IFastRecipeBusinessService {
         } else {
             fastRecipe.setBackgroundImg(fastRecipeVO.getBackgroundImg());
             fastRecipe.setIntroduce(fastRecipeVO.getIntroduce());
+            fastRecipeDAO.update(fastRecipe);
         }
         //1.更新药方详情（目前只能删除药品，修改药品随后版本做）
         List<FastRecipeDetailVO> fastRecipeDetailVOList = fastRecipeVO.getFastRecipeDetailList();
