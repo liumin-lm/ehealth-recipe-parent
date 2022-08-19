@@ -172,7 +172,7 @@ public class FastRecipeDetail {
         this.id = id;
     }
 
-    @Column
+    @Column(name = "fast_recipe_id")
     public Integer getFastRecipeId() {
         return fastRecipeId;
     }
@@ -181,7 +181,7 @@ public class FastRecipeDetail {
         this.fastRecipeId = fastRecipeId;
     }
 
-    @Column
+    @Column(name = "sale_name")
     public String getSaleName() {
         return saleName;
     }
@@ -190,7 +190,7 @@ public class FastRecipeDetail {
         this.saleName = saleName;
     }
 
-    @Column
+    @Column(name = "drug_id")
     public Integer getDrugId() {
         return drugId;
     }
@@ -199,7 +199,7 @@ public class FastRecipeDetail {
         this.drugId = drugId;
     }
 
-    @Column
+    @Column(name = "organ_drug_code")
     public String getOrganDrugCode() {
         return organDrugCode;
     }
@@ -208,7 +208,7 @@ public class FastRecipeDetail {
         this.organDrugCode = organDrugCode;
     }
 
-    @Column
+    @Column(name = "drug_item_code")
     public String getDrugItemCode() {
         return drugItemCode;
     }
@@ -217,7 +217,7 @@ public class FastRecipeDetail {
         this.drugItemCode = drugItemCode;
     }
 
-    @Column
+    @Column(name = "drug_name")
     public String getDrugName() {
         return drugName;
     }
@@ -226,7 +226,7 @@ public class FastRecipeDetail {
         this.drugName = drugName;
     }
 
-    @Column
+    @Column(name = "drug_spec")
     public String getDrugSpec() {
         return drugSpec;
     }
@@ -244,7 +244,7 @@ public class FastRecipeDetail {
         this.pack = pack;
     }
 
-    @Column
+    @Column(name = "drug_unit")
     public String getDrugUnit() {
         return drugUnit;
     }
@@ -253,7 +253,7 @@ public class FastRecipeDetail {
         this.drugUnit = drugUnit;
     }
 
-    @Column
+    @Column(name = "use_dose")
     public Double getUseDose() {
         return useDose;
     }
@@ -262,7 +262,7 @@ public class FastRecipeDetail {
         this.useDose = useDose;
     }
 
-    @Column
+    @Column(name = "default_use_dose")
     public Double getDefaultUseDose() {
         return defaultUseDose;
     }
@@ -271,7 +271,7 @@ public class FastRecipeDetail {
         this.defaultUseDose = defaultUseDose;
     }
 
-    @Column
+    @Column(name = "use_dose_str")
     public String getUseDoseStr() {
         return useDoseStr;
     }
@@ -280,7 +280,7 @@ public class FastRecipeDetail {
         this.useDoseStr = useDoseStr;
     }
 
-    @Column
+    @Column(name = "use_dose_unit")
     public String getUseDoseUnit() {
         return useDoseUnit;
     }
@@ -289,7 +289,7 @@ public class FastRecipeDetail {
         this.useDoseUnit = useDoseUnit;
     }
 
-    @Column
+    @Column(name = "dosage_unit")
     public String getDosageUnit() {
         return dosageUnit;
     }
@@ -298,7 +298,7 @@ public class FastRecipeDetail {
         this.dosageUnit = dosageUnit;
     }
 
-    @Column
+    @Column(name = "using_rate")
     public String getUsingRate() {
         return usingRate;
     }
@@ -307,7 +307,7 @@ public class FastRecipeDetail {
         this.usingRate = usingRate;
     }
 
-    @Column
+    @Column(name = "use_pathways")
     public String getUsePathways() {
         return usePathways;
     }
@@ -316,7 +316,7 @@ public class FastRecipeDetail {
         this.usePathways = usePathways;
     }
 
-    @Column
+    @Column(name = "using_rate_id")
     public String getUsingRateId() {
         return usingRateId;
     }
@@ -325,7 +325,7 @@ public class FastRecipeDetail {
         this.usingRateId = usingRateId;
     }
 
-    @Column
+    @Column(name = "use_pathways_id")
     public String getUsePathwaysId() {
         return usePathwaysId;
     }
@@ -334,7 +334,7 @@ public class FastRecipeDetail {
         this.usePathwaysId = usePathwaysId;
     }
 
-    @Column
+    @Column(name = "organ_using_rate")
     public String getOrganUsingRate() {
         return organUsingRate;
     }
@@ -343,7 +343,7 @@ public class FastRecipeDetail {
         this.organUsingRate = organUsingRate;
     }
 
-    @Column
+    @Column(name = "organ_use_pathways")
     public String getOrganUsePathways() {
         return organUsePathways;
     }
@@ -352,7 +352,7 @@ public class FastRecipeDetail {
         this.organUsePathways = organUsePathways;
     }
 
-    @Column
+    @Column(name = "using_rate_text_from_his")
     public String getUsingRateTextFromHis() {
         return usingRateTextFromHis;
     }
@@ -361,7 +361,7 @@ public class FastRecipeDetail {
         this.usingRateTextFromHis = usingRateTextFromHis;
     }
 
-    @Column
+    @Column(name = "use_pathways_text_from_his")
     public String getUsePathwaysTextFromHis() {
         return usePathwaysTextFromHis;
     }
@@ -370,7 +370,7 @@ public class FastRecipeDetail {
         this.usePathwaysTextFromHis = usePathwaysTextFromHis;
     }
 
-    @Column
+    @Column(name = "use_total_tose")
     public Double getUseTotalDose() {
         return useTotalDose;
     }
@@ -379,7 +379,7 @@ public class FastRecipeDetail {
         this.useTotalDose = useTotalDose;
     }
 
-    @Column
+    @Column(name = "use_days")
     public Integer getUseDays() {
         return useDays;
     }
@@ -388,7 +388,7 @@ public class FastRecipeDetail {
         this.useDays = useDays;
     }
 
-    @Column
+    @Column(name = "drug_cost")
     public BigDecimal getDrugCost() {
         return drugCost;
     }
@@ -397,7 +397,7 @@ public class FastRecipeDetail {
         this.drugCost = drugCost;
     }
 
-    @Column
+    @Column(name = "entrustment_id")
     public String getEntrustmentId() {
         return entrustmentId;
     }
@@ -415,7 +415,7 @@ public class FastRecipeDetail {
         this.memo = memo;
     }
 
-    @Column
+    @Column(name = "drug_entrust_code")
     public String getDrugEntrustCode() {
         return drugEntrustCode;
     }
@@ -424,7 +424,7 @@ public class FastRecipeDetail {
         this.drugEntrustCode = drugEntrustCode;
     }
 
-    @Column
+    @Column(name = "valid_date")
     public Date getValidDate() {
         return validDate;
     }
@@ -433,7 +433,7 @@ public class FastRecipeDetail {
         this.validDate = validDate;
     }
 
-    @Column
+    @Column(name = "sale_price")
     public BigDecimal getSalePrice() {
         return salePrice;
     }
@@ -442,7 +442,7 @@ public class FastRecipeDetail {
         this.salePrice = salePrice;
     }
 
-    @Column
+    @Column(name = "drug_code")
     public String getDrugCode() {
         return drugCode;
     }
@@ -460,7 +460,7 @@ public class FastRecipeDetail {
         this.status = status;
     }
 
-    @Column
+    @Column(name = "drug_form")
     public String getDrugForm() {
         return drugForm;
     }
@@ -478,7 +478,7 @@ public class FastRecipeDetail {
         this.producer = producer;
     }
 
-    @Column
+    @Column(name = "producer_code")
     public String getProducerCode() {
         return producerCode;
     }
@@ -487,7 +487,7 @@ public class FastRecipeDetail {
         this.producerCode = producerCode;
     }
 
-    @Column
+    @Column(name = "use_days_b")
     public String getUseDaysB() {
         return useDaysB;
     }
@@ -496,7 +496,7 @@ public class FastRecipeDetail {
         this.useDaysB = useDaysB;
     }
 
-    @Column
+    @Column(name = "drug_type")
     public Integer getDrugType() {
         return drugType;
     }
@@ -505,7 +505,7 @@ public class FastRecipeDetail {
         this.drugType = drugType;
     }
 
-    @Column
+    @Column(name = "super_scalar_code")
     public String getSuperScalarCode() {
         return superScalarCode;
     }
@@ -514,7 +514,7 @@ public class FastRecipeDetail {
         this.superScalarCode = superScalarCode;
     }
 
-    @Column
+    @Column(name = "super_scalar_name")
     public String getSuperScalarName() {
         return superScalarName;
     }
@@ -523,7 +523,7 @@ public class FastRecipeDetail {
         this.superScalarName = superScalarName;
     }
 
-    @Column
+    @Column(name = "medical_drug_code")
     public String getMedicalDrugCode() {
         return medicalDrugCode;
     }
@@ -532,7 +532,7 @@ public class FastRecipeDetail {
         this.medicalDrugCode = medicalDrugCode;
     }
 
-    @Column
+    @Column(name = "pharmacy_id")
     public Integer getPharmacyId() {
         return pharmacyId;
     }
@@ -541,7 +541,7 @@ public class FastRecipeDetail {
         this.pharmacyId = pharmacyId;
     }
 
-    @Column
+    @Column(name = "pharmacy_name")
     public String getPharmacyName() {
         return pharmacyName;
     }
@@ -550,7 +550,7 @@ public class FastRecipeDetail {
         this.pharmacyName = pharmacyName;
     }
 
-    @Column
+    @Column(name = "drug_display_spliced_name")
     public String getDrugDisplaySplicedName() {
         return drugDisplaySplicedName;
     }
@@ -559,7 +559,7 @@ public class FastRecipeDetail {
         this.drugDisplaySplicedName = drugDisplaySplicedName;
     }
 
-    @Column
+    @Column(name = "drug_display_spliced_sale_name")
     public String getDrugDisplaySplicedSaleName() {
         return drugDisplaySplicedSaleName;
     }
@@ -568,7 +568,7 @@ public class FastRecipeDetail {
         this.drugDisplaySplicedSaleName = drugDisplaySplicedSaleName;
     }
 
-    @Column
+    @Column(name = "drug_medical_flag")
     public Integer getDrugMedicalFlag() {
         return drugMedicalFlag;
     }
