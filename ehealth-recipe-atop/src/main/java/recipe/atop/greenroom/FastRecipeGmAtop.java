@@ -18,7 +18,6 @@ import recipe.core.api.IFastRecipeBusinessService;
 import recipe.vo.doctor.RecipeInfoVO;
 
 import java.util.List;
-import java.util.Objects;
 
 
 /**
@@ -58,6 +57,7 @@ public class FastRecipeGmAtop extends BaseAtop {
      */
     @RpcService
     public List<FastRecipeVO> findFastRecipeListByOrganId(FastRecipeReq fastRecipeReq) {
+        validateAtop(fastRecipeReq);
         List<FastRecipe> fastRecipeList = fastRecipeService.findFastRecipeListByParam(fastRecipeReq);
         return CollectionUtils.isEmpty(fastRecipeList) ? Lists.newArrayList() : BeanCopyUtils.copyList(fastRecipeList, FastRecipeVO::new);
     }
@@ -70,6 +70,7 @@ public class FastRecipeGmAtop extends BaseAtop {
      */
     @RpcService
     public FastRecipeVO getFastRecipeByFastRecipeId(FastRecipeReq fastRecipeReq) {
+        validateAtop(fastRecipeReq, fastRecipeReq.getFastRecipeId());
         List<FastRecipe> fastRecipeList = fastRecipeService.findFastRecipeListByParam(fastRecipeReq);
         if (CollectionUtils.isNotEmpty(fastRecipeList)) {
             FastRecipeVO fastRecipeVO = BeanUtils.map(fastRecipeList.get(0), FastRecipeVO.class);
@@ -126,8 +127,9 @@ public class FastRecipeGmAtop extends BaseAtop {
      */
     @RpcService
     public List<FastRecipeVO> patientfindFastRecipeListByOrganId(FastRecipeReq fastRecipeReq) {
+        validateAtop(fastRecipeReq, fastRecipeReq.getFastRecipeId());
         List<FastRecipe> fastRecipeList = fastRecipeService.findFastRecipeListByParam(fastRecipeReq);
-        if (Objects.nonNull(fastRecipeList)) {
+        if (CollectionUtils.isNotEmpty(fastRecipeList)) {
             List<FastRecipeVO> fastRecipeVOList = Lists.newArrayList();
             for (FastRecipe fastRecipe : fastRecipeList) {
                 FastRecipeVO fastRecipeVO = BeanUtils.map(fastRecipe, FastRecipeVO.class);

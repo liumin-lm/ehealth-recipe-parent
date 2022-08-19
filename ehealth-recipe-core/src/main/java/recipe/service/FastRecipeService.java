@@ -69,7 +69,6 @@ public class FastRecipeService implements IFastRecipeBusinessService {
 
     @Override
     public List<Integer> fastRecipeSaveRecipe(List<RecipeInfoVO> recipeInfoVOList) {
-
         List<Integer> recipeIds = Lists.newArrayList();
         for (RecipeInfoVO recipeInfoVO : recipeInfoVOList) {
             //1.参数设置默认值
@@ -97,7 +96,7 @@ public class FastRecipeService implements IFastRecipeBusinessService {
             recipeBean.setFastRecipeFlag(1);
             recipeBean.setBussSource(BussSourceTypeEnum.BUSSSOURCE_REVISIT.getType());
 
-            //2.获取药方配置的字段
+            //2.获取药方模板字段
             FastRecipe fastRecipe = fastRecipeDAO.get(recipeInfoVO.getMouldId());
             logger.info("fastRecipeSaveRecipe fastRecipe={}", JSON.toJSONString(fastRecipe));
             List<FastRecipeDetail> fastRecipeDetailList = fastRecipeDetailDAO.findFastRecipeDetailsByFastRecipeId(recipeInfoVO.getMouldId());
@@ -175,7 +174,7 @@ public class FastRecipeService implements IFastRecipeBusinessService {
         fastRecipe.setDecoctionText(recipeExtend.getDecoctionText());
         if (Objects.nonNull(recipeExtend.getDocIndexId())) {
             MedicalDetailBean medicalDetailBean = docIndexClient.getEmrMedicalDetail(recipeExtend.getDocIndexId());
-            if (Objects.nonNull(medicalDetailBean) && Objects.nonNull(medicalDetailBean.getDetailList())) {
+            if (Objects.nonNull(medicalDetailBean) && CollectionUtils.isNotEmpty(medicalDetailBean.getDetailList())) {
                 fastRecipe.setDocText(JSONUtils.toString(medicalDetailBean.getDetailList()));
             }
         }
@@ -197,9 +196,9 @@ public class FastRecipeService implements IFastRecipeBusinessService {
         FastRecipe fastRecipeResult = fastRecipeDAO.save(fastRecipe);
 
         //2.保存药方详情
-        List<Recipedetail> recipedetailList = recipeDetailDAO.findByRecipeId(recipeId);
-        if (CollectionUtils.isNotEmpty(recipedetailList)) {
-            for (Recipedetail recipedetail : recipedetailList) {
+        List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipeId);
+        if (CollectionUtils.isNotEmpty(recipeDetailList)) {
+            for (Recipedetail recipedetail : recipeDetailList) {
                 FastRecipeDetail fastRecipeDetail = BeanUtils.map(recipedetail, FastRecipeDetail.class);
                 fastRecipeDetail.setFastRecipeId(fastRecipeResult.getId());
                 fastRecipeDetailDAO.save(fastRecipeDetail);
