@@ -120,7 +120,7 @@ public class FastRecipe {
         this.id = id;
     }
 
-    @Column
+    @Column(name = "order_num")
     public Integer getOrderNum() {
         return orderNum;
     }
@@ -147,7 +147,7 @@ public class FastRecipe {
         this.title = title;
     }
 
-    @Column
+    @Column(name = "background_img")
     public String getBackgroundImg() {
         return backgroundImg;
     }
@@ -156,7 +156,7 @@ public class FastRecipe {
         this.backgroundImg = backgroundImg;
     }
 
-    @Column
+    @Column(name = "recipe_type")
     public Integer getRecipeType() {
         return recipeType;
     }
@@ -165,7 +165,7 @@ public class FastRecipe {
         this.recipeType = recipeType;
     }
 
-    @Column
+    @Column(name = "max_num")
     public Integer getMaxNum() {
         return maxNum;
     }
@@ -174,7 +174,7 @@ public class FastRecipe {
         this.maxNum = maxNum;
     }
 
-    @Column
+    @Column(name = "min_num")
     public Integer getMinNum() {
         return minNum;
     }
@@ -192,7 +192,7 @@ public class FastRecipe {
         this.status = status;
     }
 
-    @Column
+    @Column(name = "actual_price")
     public BigDecimal getActualPrice() {
         return actualPrice;
     }
@@ -201,7 +201,7 @@ public class FastRecipe {
         this.actualPrice = actualPrice;
     }
 
-    @Column
+    @Column(name = "clinic_organ")
     public Integer getClinicOrgan() {
         return clinicOrgan;
     }
@@ -210,7 +210,7 @@ public class FastRecipe {
         this.clinicOrgan = clinicOrgan;
     }
 
-    @Column
+    @Column(name = "organ_name")
     public String getOrganName() {
         return organName;
     }
@@ -219,7 +219,7 @@ public class FastRecipe {
         this.organName = organName;
     }
 
-    @Column
+    @Column(name = "copy_num")
     public Integer getCopyNum() {
         return copyNum;
     }
@@ -228,7 +228,7 @@ public class FastRecipe {
         this.copyNum = copyNum;
     }
 
-    @Column
+    @Column(name = "total_money")
     public BigDecimal getTotalMoney() {
         return totalMoney;
     }
@@ -237,7 +237,7 @@ public class FastRecipe {
         this.totalMoney = totalMoney;
     }
 
-    @Column
+    @Column(name = "give_mode")
     public Integer getGiveMode() {
         return giveMode;
     }
@@ -246,7 +246,7 @@ public class FastRecipe {
         this.giveMode = giveMode;
     }
 
-    @Column
+    @Column(name = "from_flag")
     public Integer getFromFlag() {
         return fromFlag;
     }
@@ -264,7 +264,7 @@ public class FastRecipe {
         this.memo = memo;
     }
 
-    @Column
+    @Column(name = "make_method_id")
     public String getMakeMethodId() {
         return makeMethodId;
     }
@@ -273,7 +273,7 @@ public class FastRecipe {
         this.makeMethodId = makeMethodId;
     }
 
-    @Column
+    @Column(name = "make_Method_text")
     public String getMakeMethodText() {
         return makeMethodText;
     }
@@ -291,7 +291,7 @@ public class FastRecipe {
         this.juice = juice;
     }
 
-    @Column
+    @Column(name = "juice_unit")
     public String getJuiceUnit() {
         return juiceUnit;
     }
@@ -309,7 +309,7 @@ public class FastRecipe {
         this.minor = minor;
     }
 
-    @Column
+    @Column(name = "minor_unit")
     public String getMinorUnit() {
         return minorUnit;
     }
@@ -318,7 +318,7 @@ public class FastRecipe {
         this.minorUnit = minorUnit;
     }
 
-    @Column
+    @Column(name = "symptom_id")
     public String getSymptomId() {
         return symptomId;
     }
@@ -327,7 +327,7 @@ public class FastRecipe {
         this.symptomId = symptomId;
     }
 
-    @Column
+    @Column(name = "symptom_name")
     public String getSymptomName() {
         return symptomName;
     }
@@ -336,7 +336,7 @@ public class FastRecipe {
         this.symptomName = symptomName;
     }
 
-    @Column
+    @Column(name = "decoction_id")
     public String getDecoctionId() {
         return decoctionId;
     }
@@ -345,7 +345,7 @@ public class FastRecipe {
         this.decoctionId = decoctionId;
     }
 
-    @Column
+    @Column(name = "decoction_text")
     public String getDecoctionText() {
         return decoctionText;
     }
@@ -354,7 +354,7 @@ public class FastRecipe {
         this.decoctionText = decoctionText;
     }
 
-    @Column
+    @Column(name = "decoction_price")
     public Double getDecoctionPrice() {
         return decoctionPrice;
     }
@@ -363,7 +363,7 @@ public class FastRecipe {
         this.decoctionPrice = decoctionPrice;
     }
 
-    @Column
+    @Column(name = "offline_recipe_name")
     public String getOfflineRecipeName() {
         return offlineRecipeName;
     }
@@ -372,7 +372,7 @@ public class FastRecipe {
         this.offlineRecipeName = offlineRecipeName;
     }
 
-    @Column
+    @Column(name = "doc_text")
     public String getDocText() {
         return docText;
     }
