@@ -1,24 +1,35 @@
 package recipe.atop.greenroom;
 
+import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
 import com.ngari.recipe.dto.FastRecipeReq;
 import com.ngari.recipe.entity.FastRecipe;
 import com.ngari.recipe.entity.FastRecipeDetail;
 import com.ngari.recipe.recipe.model.RecipeBean;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import com.ngari.recipe.vo.FastRecipeDetailVO;
 import com.ngari.recipe.vo.FastRecipeVO;
 import ctd.util.BeanUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import eh.utils.BeanCopyUtils;
+import eh.utils.ValidateUtil;
 import org.apache.commons.collections.CollectionUtils;
+import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
+import recipe.constant.RecipeBussConstant;
 import recipe.core.api.IFastRecipeBusinessService;
+import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.type.BussSourceTypeEnum;
+import recipe.vo.doctor.RecipeInfoVO;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 
 /**
@@ -35,20 +46,19 @@ public class FastRecipeGmAtop extends BaseAtop {
     /**
      * 快捷购药 开处方
      *
-     * @param fastRecipeVOList
+     * @param recipeInfoVOList
      * @return
      */
     @RpcService
-    public List<Integer> fastRecipeSaveRecipeList(List<FastRecipeVO> fastRecipeVOList) {
-        //for (FastRecipeVO fastRecipeVO : fastRecipeVOList) {
-        //    validateAtop(recipeInfoVO, recipeInfoVO.getRecipeBean());
-        //    validateAtop("请添加项目信息！", recipeInfoVO.getRecipeDetails());
-        //    validateAtop("请完善药方购买数量！", recipeInfoVO.getBuyNum());
-        //    RecipeBean recipeBean = recipeInfoVO.getRecipeBean();
-        //    validateAtop(recipeBean.getDoctor(), recipeBean.getMpiid(), recipeBean.getClinicOrgan(), recipeBean.getClinicId(), recipeBean.getDepart());
-        //}
-        //return fastRecipeService.fastRecipeSaveRecipe(recipeInfoVOList);
-        return new ArrayList<>();
+    public List<Integer> fastRecipeSaveRecipeList(List<RecipeInfoVO> recipeInfoVOList) {
+        for (RecipeInfoVO fastRecipeVO : recipeInfoVOList) {
+            validateAtop(fastRecipeVO, fastRecipeVO.getRecipeBean());
+            validateAtop("请添加项目信息！", fastRecipeVO.getRecipeDetails());
+            validateAtop("请完善药方购买数量！", fastRecipeVO.getBuyNum());
+            RecipeBean recipeBean = fastRecipeVO.getRecipeBean();
+            validateAtop(recipeBean.getDoctor(), recipeBean.getMpiid(), recipeBean.getClinicOrgan(), recipeBean.getClinicId(), recipeBean.getDepart());
+        }
+        return fastRecipeService.fastRecipeSaveRecipe(recipeInfoVOList);
     }
 
     /**
