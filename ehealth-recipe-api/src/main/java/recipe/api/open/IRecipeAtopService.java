@@ -6,7 +6,7 @@ import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.model.SymptomDTO;
-import com.ngari.recipe.vo.FormWorkRecipeVO;
+import com.ngari.recipe.vo.FastRecipeVO;
 import ctd.util.annotation.RpcService;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.patient.PatientOptionalDrugVo;
@@ -140,16 +140,6 @@ public interface IRecipeAtopService {
     @RpcService(mvcDisabled = true)
     RecipeBean getByRecipeCodeAndRegisterIdAndOrganId(String recipeCode, String registerId, int organId);
 
-
-    /**
-     * 获取模板
-     *
-     * @param mouldId
-     * @return
-     */
-    @RpcService(mvcDisabled = true)
-    FormWorkRecipeVO getFormWorkRecipeById(Integer mouldId, Integer organId);
-
     /**
      * 获取 中医诊断
      *
@@ -244,4 +234,13 @@ public interface IRecipeAtopService {
     @RpcService
     HisResponseTO recipePayHISCallback(RecipePayHISCallbackReq recipePayHISCallbackReq);
 
+
+    /**
+     * 便捷购药获取药方模板
+     *
+     * @param id
+     * @return
+     */
+    @RpcService
+    FastRecipeVO getFastRecipeById(Integer id);
 }

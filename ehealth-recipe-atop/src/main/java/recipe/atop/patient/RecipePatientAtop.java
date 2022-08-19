@@ -194,19 +194,6 @@ public class RecipePatientAtop extends BaseAtop {
     }
 
     /**
-     * 获取中药模板处方
-     *
-     * @param formWorkRecipeReqVO
-     * @return
-     */
-    @RpcService
-    public List<FormWorkRecipeVO> findFormWorkRecipe(FormWorkRecipeReqVO formWorkRecipeReqVO) {
-        validateAtop(formWorkRecipeReqVO, formWorkRecipeReqVO.getOrganId());
-        return recipePatientService.findFormWorkRecipe(formWorkRecipeReqVO);
-    }
-
-
-    /**
      * 是否有待处理处方
      *
      * @param orderId 订单号

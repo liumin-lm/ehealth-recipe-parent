@@ -817,22 +817,6 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         }
     }
 
-    @Override
-    public List<FormWorkRecipeVO> findFormWorkRecipe(FormWorkRecipeReqVO formWorkRecipeReqVO) {
-        try {
-            String formWorkRecipe = recipeParameterDao.getByName(formWorkRecipeReqVO.getOrganId() + "_formWorkRecipe");
-            if (StringUtils.isEmpty(formWorkRecipe)) {
-                throw new DAOException(ErrorCode.SERVICE_ERROR, "没有维护模板处方");
-            }
-            //解析json数据
-            List<FormWorkRecipeVO> workRecipeVOList = JSON.parseArray(formWorkRecipe, FormWorkRecipeVO.class);
-            LOGGER.info("findFormWorkRecipe workRecipeVOList:{}", JSONUtils.toString(workRecipeVOList));
-            return workRecipeVOList;
-        } catch (Exception e) {
-            LOGGER.error("findFormWorkRecipe error", e);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "维护模板处方有问题，请进行检查");
-        }
-    }
 
     /**
      * 便捷购药开处方
