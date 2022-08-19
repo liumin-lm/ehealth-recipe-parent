@@ -241,7 +241,7 @@ public class RecipeOrderPatientAtop extends BaseAtop {
     }
 
     /**
-     * 获取购物车信息
+     * 保存购物车信息
      * @param shoppingCartReqVO
      * @return
      */
@@ -249,4 +249,6 @@ public class RecipeOrderPatientAtop extends BaseAtop {
     public void saveRecipeBeforeOrderInfo(ShoppingCartReqVO shoppingCartReqVO){
         recipeOrderService.saveRecipeBeforeOrderInfo(shoppingCartReqVO);
     }
+
+
 }

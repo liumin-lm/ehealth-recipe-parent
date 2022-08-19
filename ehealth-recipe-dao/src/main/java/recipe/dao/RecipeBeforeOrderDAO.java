@@ -1,8 +1,6 @@
 package recipe.dao;
 
-import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeBeforeOrder;
-import com.ngari.recipe.entity.Recipedetail;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;
 import ctd.persistence.support.hibernate.HibernateSupportDelegateDAO;
@@ -47,7 +45,7 @@ public abstract class RecipeBeforeOrderDAO extends
      * @param mpiId
      * @return
      */
-    @DAOMethod(sql = "from RecipeBeforeOrder where operMpiId=:mpiId ")
+    @DAOMethod(sql = "from RecipeBeforeOrder where operMpiId=:mpiId and deleteFlag = 0")
     public abstract List<RecipeBeforeOrder> findByMpiId(@DAOParam("mpiId") String mpiId);
 
 

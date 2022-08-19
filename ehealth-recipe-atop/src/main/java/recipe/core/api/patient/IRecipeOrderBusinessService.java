@@ -201,6 +201,10 @@ public interface IRecipeOrderBusinessService {
      */
     List<ShoppingCartDetailDTO> getShoppingCartDetail(String mpiId);
 
-
+    /**
+     * 保存购物车信息
+     * @param shoppingCartReqVO
+     * @return
+     */
     void saveRecipeBeforeOrderInfo(ShoppingCartReqVO shoppingCartReqVO);
 }

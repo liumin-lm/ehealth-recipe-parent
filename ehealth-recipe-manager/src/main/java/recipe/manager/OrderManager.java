@@ -891,17 +891,18 @@ public class OrderManager extends BaseManager {
     public List<ShoppingCartDetailDTO> getShoppingCartDetail(String mpiId) {
         List<ShoppingCartDetailDTO> shoppingCartDetailDTOList = new ArrayList<>();
         List<RecipeBeforeOrder> recipeBeforeOrderList = recipeBeforeOrderDAO.findByMpiId(mpiId);
-        if(recipeBeforeOrderList.size()>0){
+        if(CollectionUtils.isNotEmpty(recipeBeforeOrderList)){
             for(RecipeBeforeOrder recipeBeforeOrder : recipeBeforeOrderList){
                 Recipe recipe = recipeDAO.getByRecipeId(recipeBeforeOrder.getRecipeId());
                 if(recipe != null){
+                    //处方费用
                     recipeBeforeOrder.setRecipeFee(recipe.getTotalMoney());
                 }
                 ShoppingCartDetailDTO shoppingCartDetailDTO = new ShoppingCartDetailDTO();
                 shoppingCartDetailDTO.setRecipeBeforeOrder(recipeBeforeOrder);
                 if(recipeBeforeOrder.getRecipeId() != null){
                     List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipeBeforeOrder.getRecipeId());
-                    if(recipeDetailList.size()>0){
+                    if(CollectionUtils.isNotEmpty(recipeDetailList)){
                         shoppingCartDetailDTO.setRecipeDetail(recipeDetailList);
                     }
                 }
