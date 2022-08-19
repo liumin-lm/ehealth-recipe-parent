@@ -201,6 +201,7 @@ public class FastRecipeService implements IFastRecipeBusinessService {
         if (CollectionUtils.isNotEmpty(recipedetailList)) {
             for (Recipedetail recipedetail : recipedetailList) {
                 FastRecipeDetail fastRecipeDetail = BeanUtils.map(recipedetail, FastRecipeDetail.class);
+                fastRecipeDetail.setFastRecipeId(fastRecipeResult.getId());
                 fastRecipeDetailDAO.save(fastRecipeDetail);
             }
         }
