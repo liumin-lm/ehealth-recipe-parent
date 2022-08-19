@@ -34,6 +34,7 @@ import recipe.enumerate.status.SignEnum;
 import recipe.util.ObjectCopyUtils;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.patient.PatientOptionalDrugVo;
+import recipe.vo.second.RecipeOutpatientPaymentReq;
 import recipe.vo.second.RecipePayHISCallbackReq;
 import recipe.vo.second.RevisitRecipeTraceVo;
 
@@ -288,6 +289,12 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
         recipeBusinessService.recipePayHISCallback(recipePayHISCallbackReq);
         HisResponseTO hisResponseTO = new HisResponseTO();
         return hisResponseTO;
+    }
+
+    @Override
+    public void recipeOutpatientPaymentCallback(RecipeOutpatientPaymentReq recipeOutpatientPaymentReq) {
+        validateAtop(recipeOutpatientPaymentReq,recipeOutpatientPaymentReq.getRecipeCodes(),recipeOutpatientPaymentReq.getOrganId());
+        recipeBusinessService.recipeOutpatientPaymentCallback(recipeOutpatientPaymentReq);
     }
 
 }

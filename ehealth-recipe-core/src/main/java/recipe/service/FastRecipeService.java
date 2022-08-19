@@ -69,7 +69,6 @@ public class FastRecipeService implements IFastRecipeBusinessService {
 
     @Override
     public List<Integer> fastRecipeSaveRecipe(List<RecipeInfoVO> recipeInfoVOList) {
-
         List<Integer> recipeIds = Lists.newArrayList();
         for (RecipeInfoVO recipeInfoVO : recipeInfoVOList) {
             //1.参数设置默认值
@@ -97,25 +96,25 @@ public class FastRecipeService implements IFastRecipeBusinessService {
             recipeBean.setFastRecipeFlag(1);
             recipeBean.setBussSource(BussSourceTypeEnum.BUSSSOURCE_REVISIT.getType());
 
-            //2.获取药方配置的字段
-            FastRecipe fastRecipe = fastRecipeDAO.get(recipeInfoVO.getMouldId());
-            logger.info("fastRecipeSaveRecipe fastRecipe={}", JSON.toJSONString(fastRecipe));
-            List<FastRecipeDetail> fastRecipeDetailList = fastRecipeDetailDAO.findFastRecipeDetailsByFastRecipeId(recipeInfoVO.getMouldId());
-            logger.info("fastRecipeSaveRecipe fastRecipeDetailList={}", JSON.toJSONString(fastRecipeDetailList));
+            ////2.获取药方模板字段
+            //FastRecipe fastRecipe = fastRecipeDAO.get(recipeInfoVO.getMouldId());
+            //logger.info("fastRecipeSaveRecipe fastRecipe={}", JSON.toJSONString(fastRecipe));
+            //List<FastRecipeDetail> fastRecipeDetailList = fastRecipeDetailDAO.findFastRecipeDetailsByFastRecipeId(recipeInfoVO.getMouldId());
+            //logger.info("fastRecipeSaveRecipe fastRecipeDetailList={}", JSON.toJSONString(fastRecipeDetailList));
+            //
+            //RecipeExtendBean recipeExtendBean = new RecipeExtendBean();
+            ////ToDo recipeExtendBean赋值
+            //if (Objects.nonNull(recipeInfoVO.getRecipeExtendBean()) && Objects.nonNull(recipeInfoVO.getRecipeExtendBean().getDocIndexId())) {
+            //    recipeExtendBean.setDocIndexId(recipeInfoVO.getRecipeExtendBean().getDocIndexId());
+            //}
 
-            RecipeExtendBean recipeExtendBean = new RecipeExtendBean();
-            //ToDo recipeExtendBean赋值
-            if (Objects.nonNull(recipeInfoVO.getRecipeExtendBean()) && Objects.nonNull(recipeInfoVO.getRecipeExtendBean().getDocIndexId())) {
-                recipeExtendBean.setDocIndexId(recipeInfoVO.getRecipeExtendBean().getDocIndexId());
-            }
-
-            Integer copyNum = fastRecipe.getCopyNum();
-            if (Objects.nonNull(fastRecipe.getCopyNum())) {
-                recipeInfoVO.getRecipeBean().setCopyNum(copyNum);
-            }
-            List<RecipeDetailBean> recipeDetailBeanList = convertToList(fastRecipeDetailList);
-            recipeInfoVO.setRecipeDetails(recipeDetailBeanList);
-            recipeInfoVO.setRecipeExtendBean(recipeExtendBean);
+            //Integer copyNum = fastRecipe.getCopyNum();
+            //if (Objects.nonNull(fastRecipe.getCopyNum())) {
+            //    recipeInfoVO.getRecipeBean().setCopyNum(copyNum);
+            //}
+            //List<RecipeDetailBean> recipeDetailBeanList = convertToList(fastRecipeDetailList);
+            //recipeInfoVO.setRecipeDetails(recipeDetailBeanList);
+            //recipeInfoVO.setRecipeExtendBean(recipeExtendBean);
             int buyNum = ValidateUtil.nullOrZeroInteger(recipeInfoVO.getBuyNum()) ? 1 : recipeInfoVO.getBuyNum();
             packageTotalParamByBuyNum(recipeInfoVO, buyNum);
             Integer recipeId = recipePatientService.saveRecipe(recipeInfoVO);
@@ -175,7 +174,7 @@ public class FastRecipeService implements IFastRecipeBusinessService {
         fastRecipe.setDecoctionText(recipeExtend.getDecoctionText());
         if (Objects.nonNull(recipeExtend.getDocIndexId())) {
             MedicalDetailBean medicalDetailBean = docIndexClient.getEmrMedicalDetail(recipeExtend.getDocIndexId());
-            if (Objects.nonNull(medicalDetailBean) && Objects.nonNull(medicalDetailBean.getDetailList())) {
+            if (Objects.nonNull(medicalDetailBean) && CollectionUtils.isNotEmpty(medicalDetailBean.getDetailList())) {
                 fastRecipe.setDocText(JSONUtils.toString(medicalDetailBean.getDetailList()));
             }
         }
@@ -197,10 +196,11 @@ public class FastRecipeService implements IFastRecipeBusinessService {
         FastRecipe fastRecipeResult = fastRecipeDAO.save(fastRecipe);
 
         //2.保存药方详情
-        List<Recipedetail> recipedetailList = recipeDetailDAO.findByRecipeId(recipeId);
-        if (CollectionUtils.isNotEmpty(recipedetailList)) {
-            for (Recipedetail recipedetail : recipedetailList) {
+        List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipeId);
+        if (CollectionUtils.isNotEmpty(recipeDetailList)) {
+            for (Recipedetail recipedetail : recipeDetailList) {
                 FastRecipeDetail fastRecipeDetail = BeanUtils.map(recipedetail, FastRecipeDetail.class);
+                fastRecipeDetail.setFastRecipeId(fastRecipeResult.getId());
                 fastRecipeDetailDAO.save(fastRecipeDetail);
             }
         }
@@ -289,6 +289,7 @@ public class FastRecipeService implements IFastRecipeBusinessService {
             fastRecipe.setMaxNum(fastRecipeVO.getMaxNum());
             fastRecipe.setMinNum(fastRecipeVO.getMinNum());
             fastRecipe.setStatus(fastRecipeVO.getStatus());
+            fastRecipeDAO.update(fastRecipe);
         }
         return true;
     }
@@ -302,6 +303,7 @@ public class FastRecipeService implements IFastRecipeBusinessService {
         } else {
             fastRecipe.setBackgroundImg(fastRecipeVO.getBackgroundImg());
             fastRecipe.setIntroduce(fastRecipeVO.getIntroduce());
+            fastRecipeDAO.update(fastRecipe);
         }
         //1.更新药方详情（目前只能删除药品，修改药品随后版本做）
         List<FastRecipeDetailVO> fastRecipeDetailVOList = fastRecipeVO.getFastRecipeDetailList();

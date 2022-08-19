@@ -180,7 +180,6 @@ public class RecipeOrderOpenAtop extends BaseAtop implements IRecipeOrderAtopSer
     @Override
     public void putInCabinetNotice(CabinetVO cabinetVO) {
         validateAtop(cabinetVO);
-
         recipeOrderService.putInCabinetNotice(cabinetVO);
     }
 
