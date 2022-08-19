@@ -30,7 +30,7 @@ public abstract class FastRecipeDAO extends HibernateSupportDelegateDAO<FastReci
     public FastRecipeDAO() {
         super();
         this.setEntityName(FastRecipe.class.getName());
-        this.setKeyField("mouldId");
+        this.setKeyField("id");
     }
 
     @DAOMethod(sql = "FROM FastRecipe WHERE clinicOrgan = :organId order by orderNum desc", limit = 0)
