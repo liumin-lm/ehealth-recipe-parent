@@ -127,7 +127,7 @@ public class FastRecipeGmAtop extends BaseAtop {
      */
     @RpcService
     public List<FastRecipeVO> patientfindFastRecipeListByOrganId(FastRecipeReq fastRecipeReq) {
-        validateAtop(fastRecipeReq, fastRecipeReq.getFastRecipeId());
+        validateAtop(fastRecipeReq);
         List<FastRecipe> fastRecipeList = fastRecipeService.findFastRecipeListByParam(fastRecipeReq);
         if (CollectionUtils.isNotEmpty(fastRecipeList)) {
             List<FastRecipeVO> fastRecipeVOList = Lists.newArrayList();
