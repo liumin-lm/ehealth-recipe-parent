@@ -59,14 +59,11 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
     @Autowired
     private IOfflineRecipeBusinessService offlineToOnlineService;
 
-    @Autowired
-    private IPatientBusinessService recipePatientService;
-
     @Resource
     private IClinicCartBusinessService clinicCartService;
 
-    @Autowired
-    private IFastRecipeBusinessService fastRecipeBusinessService;
+    @Resource
+    private IFastRecipeBusinessService fastRecipeService;
 
 
     @Override
@@ -205,7 +202,7 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
     public FastRecipeVO getFastRecipeById(Integer id) {
         FastRecipeReq fastRecipeReq = new FastRecipeReq();
         fastRecipeReq.setFastRecipeId(id);
-        List<FastRecipe> fastRecipeList = fastRecipeBusinessService.findFastRecipeListByParam(fastRecipeReq);
+        List<FastRecipe> fastRecipeList = fastRecipeService.findFastRecipeListByParam(fastRecipeReq);
         return CollectionUtils.isEmpty(fastRecipeList) ? null : BeanUtils.map(fastRecipeList.get(0), FastRecipeVO.class);
     }
 
