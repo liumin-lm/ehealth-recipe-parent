@@ -66,82 +66,47 @@ public class FastRecipeService implements IFastRecipeBusinessService {
     @Autowired
     private DocIndexClient docIndexClient;
 
-
     @Override
     public List<Integer> fastRecipeSaveRecipe(List<RecipeInfoVO> recipeInfoVOList) {
-
         List<Integer> recipeIds = Lists.newArrayList();
         for (RecipeInfoVO recipeInfoVO : recipeInfoVOList) {
-            //1.参数设置默认值
-            RecipeBean recipeBean = recipeInfoVO.getRecipeBean();
-            recipeBean.setStatus(RecipeStatusEnum.RECIPE_STATUS_UNSIGNED.getType());
-            recipeBean.setRecipeSourceType(0);
-            recipeBean.setSignDate(new Date());
-            recipeBean.setRecipeMode(RecipeBussConstant.RECIPEMODE_NGARIHEALTH);
-            recipeBean.setChooseFlag(0);
-            recipeBean.setGiveFlag(0);
-            recipeBean.setPayFlag(0);
-            recipeBean.setPushFlag(0);
-            recipeBean.setRemindFlag(0);
-            recipeBean.setTakeMedicine(0);
-            recipeBean.setPatientStatus(1);
-            recipeBean.setStatus(2);
-            recipeBean.setFromflag(1);
-            recipeBean.setRecipeSourceType(1);
-            recipeBean.setReviewType(1);
-            recipeBean.setAuditState(5);
-            recipeBean.setProcessState(0);
-            recipeBean.setSubState(0);
-            recipeBean.setSupportMode(0);
-            recipeBean.setGiveMode(2);
-            recipeBean.setFastRecipeFlag(1);
-            recipeBean.setBussSource(BussSourceTypeEnum.BUSSSOURCE_REVISIT.getType());
-
-            //2.获取药方配置的字段
-            FastRecipe fastRecipe = fastRecipeDAO.get(recipeInfoVO.getMouldId());
-            logger.info("fastRecipeSaveRecipe fastRecipe={}", JSON.toJSONString(fastRecipe));
-            List<FastRecipeDetail> fastRecipeDetailList = fastRecipeDetailDAO.findFastRecipeDetailsByFastRecipeId(recipeInfoVO.getMouldId());
-            logger.info("fastRecipeSaveRecipe fastRecipeDetailList={}", JSON.toJSONString(fastRecipeDetailList));
-
-            RecipeExtendBean recipeExtendBean = new RecipeExtendBean();
-            //ToDo recipeExtendBean赋值
-            if (Objects.nonNull(recipeInfoVO.getRecipeExtendBean()) && Objects.nonNull(recipeInfoVO.getRecipeExtendBean().getDocIndexId())) {
-                recipeExtendBean.setDocIndexId(recipeInfoVO.getRecipeExtendBean().getDocIndexId());
+            try {
+                //1.参数设置默认值
+                RecipeBean recipeBean = recipeInfoVO.getRecipeBean();
+                recipeBean.setStatus(RecipeStatusEnum.RECIPE_STATUS_UNSIGNED.getType());
+                recipeBean.setRecipeSourceType(0);
+                recipeBean.setSignDate(new Date());
+                recipeBean.setRecipeMode(RecipeBussConstant.RECIPEMODE_NGARIHEALTH);
+                recipeBean.setChooseFlag(0);
+                recipeBean.setGiveFlag(0);
+                recipeBean.setPayFlag(0);
+                recipeBean.setPushFlag(0);
+                recipeBean.setRemindFlag(0);
+                recipeBean.setTakeMedicine(0);
+                recipeBean.setPatientStatus(1);
+                recipeBean.setStatus(2);
+                recipeBean.setFromflag(1);
+                recipeBean.setRecipeSourceType(1);
+                recipeBean.setReviewType(1);
+                recipeBean.setAuditState(5);
+                recipeBean.setProcessState(0);
+                recipeBean.setSubState(0);
+                recipeBean.setSupportMode(0);
+                recipeBean.setGiveMode(2);
+                recipeBean.setFastRecipeFlag(1);
+                recipeBean.setBussSource(BussSourceTypeEnum.BUSSSOURCE_REVISIT.getType());
+                int buyNum = ValidateUtil.nullOrZeroInteger(recipeInfoVO.getBuyNum()) ? 1 : recipeInfoVO.getBuyNum();
+                packageTotalParamByBuyNum(recipeInfoVO, buyNum);
+                Integer recipeId = recipePatientService.saveRecipe(recipeInfoVO);
+                recipePatientService.esignRecipeCa(recipeId);
+                recipePatientService.updateRecipeIdByConsultId(recipeId, recipeInfoVO.getRecipeBean().getClinicId());
+                recipeIds.add(recipeId);
+            } catch (Exception e) {
+                logger.error("fastRecipeSaveRecipe error", e);
             }
-
-            Integer copyNum = fastRecipe.getCopyNum();
-            if (Objects.nonNull(fastRecipe.getCopyNum())) {
-                recipeInfoVO.getRecipeBean().setCopyNum(copyNum);
-            }
-            List<RecipeDetailBean> recipeDetailBeanList = convertToList(fastRecipeDetailList);
-            recipeInfoVO.setRecipeDetails(recipeDetailBeanList);
-            recipeInfoVO.setRecipeExtendBean(recipeExtendBean);
-            int buyNum = ValidateUtil.nullOrZeroInteger(recipeInfoVO.getBuyNum()) ? 1 : recipeInfoVO.getBuyNum();
-            packageTotalParamByBuyNum(recipeInfoVO, buyNum);
-            Integer recipeId = recipePatientService.saveRecipe(recipeInfoVO);
-            recipePatientService.esignRecipeCa(recipeId);
-            recipePatientService.updateRecipeIdByConsultId(recipeId, recipeInfoVO.getRecipeBean().getClinicId());
-            recipeIds.add(recipeId);
         }
         return recipeIds;
     }
-
-    //@Override
-    //public List<FastRecipeVO> findFastRecipeListByOrganId(Integer organId) {
-    //    List<FastRecipe> fastRecipeList = fastRecipeDAO.findFastRecipeListByOrganId(organId);
-    //    if (CollectionUtils.isEmpty(fastRecipeList)) {
-    //        return Lists.newArrayList();
-    //    }
-    //    List<FastRecipeVO> fastRecipeVOList = BeanCopyUtils.copyList(fastRecipeList, FastRecipeVO::new);
-    //    for (FastRecipeVO fastRecipeVO : fastRecipeVOList) {
-    //        List<FastRecipeDetail> fastRecipeDetailList = fastRecipeDetailDAO.findFastRecipeDetailsByFastRecipeId(fastRecipeVO.getId());
-    //        if (CollectionUtils.isNotEmpty(fastRecipeDetailList)) {
-    //            List<FastRecipeDetailVO> fastRecipeDetailVOList = BeanCopyUtils.copyList(fastRecipeDetailList, FastRecipeDetailVO::new);
-    //            fastRecipeVO.setFastRecipeDetailList(fastRecipeDetailVOList);
-    //        }
-    //    }
-    //    return fastRecipeVOList;
-    //}
 
     /**
      * 便捷购药 运营平台添加药方
@@ -175,7 +140,7 @@ public class FastRecipeService implements IFastRecipeBusinessService {
         fastRecipe.setDecoctionText(recipeExtend.getDecoctionText());
         if (Objects.nonNull(recipeExtend.getDocIndexId())) {
             MedicalDetailBean medicalDetailBean = docIndexClient.getEmrMedicalDetail(recipeExtend.getDocIndexId());
-            if (Objects.nonNull(medicalDetailBean) && Objects.nonNull(medicalDetailBean.getDetailList())) {
+            if (Objects.nonNull(medicalDetailBean) && CollectionUtils.isNotEmpty(medicalDetailBean.getDetailList())) {
                 fastRecipe.setDocText(JSONUtils.toString(medicalDetailBean.getDetailList()));
             }
         }
@@ -197,20 +162,17 @@ public class FastRecipeService implements IFastRecipeBusinessService {
         FastRecipe fastRecipeResult = fastRecipeDAO.save(fastRecipe);
 
         //2.保存药方详情
-        List<Recipedetail> recipedetailList = recipeDetailDAO.findByRecipeId(recipeId);
-        if (CollectionUtils.isNotEmpty(recipedetailList)) {
-            for (Recipedetail recipedetail : recipedetailList) {
+        List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipeId);
+        if (CollectionUtils.isNotEmpty(recipeDetailList)) {
+            for (Recipedetail recipedetail : recipeDetailList) {
                 FastRecipeDetail fastRecipeDetail = BeanUtils.map(recipedetail, FastRecipeDetail.class);
+                fastRecipeDetail.setFastRecipeId(fastRecipeResult.getId());
                 fastRecipeDetailDAO.save(fastRecipeDetail);
             }
         }
         return fastRecipeResult.getId();
     }
 
-
-    private List<RecipeDetailBean> convertToList(List<FastRecipeDetail> fastRecipeDetailList) {
-        return null;
-    }
 
     /**
      * 根据购买数量处理总价，剂量等数据
@@ -289,6 +251,7 @@ public class FastRecipeService implements IFastRecipeBusinessService {
             fastRecipe.setMaxNum(fastRecipeVO.getMaxNum());
             fastRecipe.setMinNum(fastRecipeVO.getMinNum());
             fastRecipe.setStatus(fastRecipeVO.getStatus());
+            fastRecipeDAO.update(fastRecipe);
         }
         return true;
     }
@@ -302,6 +265,7 @@ public class FastRecipeService implements IFastRecipeBusinessService {
         } else {
             fastRecipe.setBackgroundImg(fastRecipeVO.getBackgroundImg());
             fastRecipe.setIntroduce(fastRecipeVO.getIntroduce());
+            fastRecipeDAO.update(fastRecipe);
         }
         //1.更新药方详情（目前只能删除药品，修改药品随后版本做）
         List<FastRecipeDetailVO> fastRecipeDetailVOList = fastRecipeVO.getFastRecipeDetailList();

@@ -116,9 +116,9 @@ public class DrugPatientAtop extends BaseAtop {
      * @return
      */
     @RpcService
-    public List<ClinicCartVO> findClinicCartsByOrganIdAndUserId(Integer organId, String userId){
-        validateAtop(organId, userId);
-        return clinicCartService.findClinicCartsByOrganIdAndUserId(organId, userId);
+    public List<ClinicCartVO> findClinicCartsByOrganIdAndUserId(Integer organId, String userId, Integer workType){
+        validateAtop(organId, userId, workType);
+        return clinicCartService.findClinicCartsByOrganIdAndUserId(organId, userId, workType);
     }
 
     /**

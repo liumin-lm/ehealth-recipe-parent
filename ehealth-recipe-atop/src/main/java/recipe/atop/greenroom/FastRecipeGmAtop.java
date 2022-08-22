@@ -11,13 +11,13 @@ import ctd.util.BeanUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import eh.utils.BeanCopyUtils;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.core.api.IFastRecipeBusinessService;
 import recipe.vo.doctor.RecipeInfoVO;
 
 import java.util.List;
-import java.util.Objects;
 
 
 /**
@@ -39,11 +39,11 @@ public class FastRecipeGmAtop extends BaseAtop {
      */
     @RpcService
     public List<Integer> fastRecipeSaveRecipeList(List<RecipeInfoVO> recipeInfoVOList) {
-        for (RecipeInfoVO recipeInfoVO : recipeInfoVOList) {
-            validateAtop(recipeInfoVO, recipeInfoVO.getRecipeBean());
-            validateAtop("请添加项目信息！", recipeInfoVO.getRecipeDetails());
-            validateAtop("请完善药方购买数量！", recipeInfoVO.getBuyNum());
-            RecipeBean recipeBean = recipeInfoVO.getRecipeBean();
+        for (RecipeInfoVO fastRecipeVO : recipeInfoVOList) {
+            validateAtop(fastRecipeVO, fastRecipeVO.getRecipeBean());
+            validateAtop("请添加项目信息！", fastRecipeVO.getRecipeDetails());
+            validateAtop("请完善药方购买数量！", fastRecipeVO.getBuyNum());
+            RecipeBean recipeBean = fastRecipeVO.getRecipeBean();
             validateAtop(recipeBean.getDoctor(), recipeBean.getMpiid(), recipeBean.getClinicOrgan(), recipeBean.getClinicId(), recipeBean.getDepart());
         }
         return fastRecipeService.fastRecipeSaveRecipe(recipeInfoVOList);
@@ -57,19 +57,10 @@ public class FastRecipeGmAtop extends BaseAtop {
      */
     @RpcService
     public List<FastRecipeVO> findFastRecipeListByOrganId(FastRecipeReq fastRecipeReq) {
+        validateAtop(fastRecipeReq);
+        fastRecipeReq.setStatusList(Lists.newArrayList(1, 2));
         List<FastRecipe> fastRecipeList = fastRecipeService.findFastRecipeListByParam(fastRecipeReq);
-        if (Objects.nonNull(fastRecipeList)) {
-            List<FastRecipeVO> fastRecipeVOList = Lists.newArrayList();
-            for (FastRecipe fastRecipe : fastRecipeList) {
-                FastRecipeVO fastRecipeVO = BeanUtils.map(fastRecipe, FastRecipeVO.class);
-                List<FastRecipeDetail> fastRecipeDetailList = fastRecipeService.findFastRecipeDetailsByFastRecipeId(fastRecipeList.get(0).getId());
-                fastRecipeVO.setFastRecipeDetailList(BeanCopyUtils.copyList(fastRecipeDetailList, FastRecipeDetailVO::new));
-                fastRecipeVOList.add(fastRecipeVO);
-            }
-            return fastRecipeVOList;
-        } else {
-            return null;
-        }
+        return CollectionUtils.isEmpty(fastRecipeList) ? Lists.newArrayList() : BeanCopyUtils.copyList(fastRecipeList, FastRecipeVO::new);
     }
 
     /**
@@ -80,8 +71,10 @@ public class FastRecipeGmAtop extends BaseAtop {
      */
     @RpcService
     public FastRecipeVO getFastRecipeByFastRecipeId(FastRecipeReq fastRecipeReq) {
+        validateAtop(fastRecipeReq, fastRecipeReq.getFastRecipeId());
+        fastRecipeReq.setStatusList(Lists.newArrayList(1, 2));
         List<FastRecipe> fastRecipeList = fastRecipeService.findFastRecipeListByParam(fastRecipeReq);
-        if (Objects.nonNull(fastRecipeList)) {
+        if (CollectionUtils.isNotEmpty(fastRecipeList)) {
             FastRecipeVO fastRecipeVO = BeanUtils.map(fastRecipeList.get(0), FastRecipeVO.class);
             List<FastRecipeDetail> fastRecipeDetailList = fastRecipeService.findFastRecipeDetailsByFastRecipeId(fastRecipeList.get(0).getId());
             fastRecipeVO.setFastRecipeDetailList(BeanCopyUtils.copyList(fastRecipeDetailList, FastRecipeDetailVO::new));
@@ -112,6 +105,7 @@ public class FastRecipeGmAtop extends BaseAtop {
      */
     @RpcService
     public Boolean simpleUpdateFastRecipe(FastRecipeVO fastRecipeVO) {
+        validateAtop(fastRecipeVO, fastRecipeVO.getId());
         return fastRecipeService.simpleUpdateFastRecipe(fastRecipeVO);
     }
 
@@ -123,6 +117,32 @@ public class FastRecipeGmAtop extends BaseAtop {
      */
     @RpcService
     public Boolean fullUpdateFastRecipe(FastRecipeVO fastRecipeVO) {
+        validateAtop(fastRecipeVO, fastRecipeVO.getId());
         return fastRecipeService.fullUpdateFastRecipe(fastRecipeVO);
+    }
+
+    /**
+     * 患者端查询药方列表
+     *
+     * @param fastRecipeReq
+     * @return
+     */
+    @RpcService
+    public List<FastRecipeVO> patientfindFastRecipeListByOrganId(FastRecipeReq fastRecipeReq) {
+        validateAtop(fastRecipeReq);
+        fastRecipeReq.setStatusList(Lists.newArrayList(1));
+        List<FastRecipe> fastRecipeList = fastRecipeService.findFastRecipeListByParam(fastRecipeReq);
+        if (CollectionUtils.isNotEmpty(fastRecipeList)) {
+            List<FastRecipeVO> fastRecipeVOList = Lists.newArrayList();
+            for (FastRecipe fastRecipe : fastRecipeList) {
+                FastRecipeVO fastRecipeVO = BeanUtils.map(fastRecipe, FastRecipeVO.class);
+                List<FastRecipeDetail> fastRecipeDetailList = fastRecipeService.findFastRecipeDetailsByFastRecipeId(fastRecipeList.get(0).getId());
+                fastRecipeVO.setFastRecipeDetailList(BeanCopyUtils.copyList(fastRecipeDetailList, FastRecipeDetailVO::new));
+                fastRecipeVOList.add(fastRecipeVO);
+            }
+            return fastRecipeVOList;
+        } else {
+            return null;
+        }
     }
 }

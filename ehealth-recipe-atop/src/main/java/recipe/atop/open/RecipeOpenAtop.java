@@ -2,6 +2,9 @@ package recipe.atop.open;
 
 import com.alibaba.fastjson.JSONArray;
 import com.ngari.common.mode.HisResponseTO;
+import com.ngari.recipe.dto.FastRecipeReq;
+import com.ngari.recipe.entity.FastRecipe;
+import com.ngari.recipe.entity.FastRecipeDetail;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Symptom;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
@@ -9,34 +12,37 @@ import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.model.SymptomDTO;
-import com.ngari.recipe.vo.FormWorkRecipeReqVO;
-import com.ngari.recipe.vo.FormWorkRecipeVO;
+import com.ngari.recipe.vo.FastRecipeDetailVO;
+import com.ngari.recipe.vo.FastRecipeVO;
 import ctd.persistence.exception.DAOException;
+import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
+import eh.utils.BeanCopyUtils;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.aop.LogRecord;
 import recipe.api.open.IRecipeAtopService;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
 import recipe.core.api.IClinicCartBusinessService;
+import recipe.core.api.IFastRecipeBusinessService;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.core.api.IRevisitBusinessService;
 import recipe.core.api.patient.IOfflineRecipeBusinessService;
-import recipe.core.api.patient.IPatientBusinessService;
 import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.SignEnum;
 import recipe.util.ObjectCopyUtils;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.patient.PatientOptionalDrugVo;
+import recipe.vo.second.RecipeOutpatientPaymentReq;
 import recipe.vo.second.RecipePayHISCallbackReq;
 import recipe.vo.second.RevisitRecipeTraceVo;
 
 import javax.annotation.Resource;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * 处方服务入口类
@@ -56,11 +62,11 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
     @Autowired
     private IOfflineRecipeBusinessService offlineToOnlineService;
 
-    @Autowired
-    private IPatientBusinessService recipePatientService;
-
     @Resource
     private IClinicCartBusinessService clinicCartService;
+
+    @Resource
+    private IFastRecipeBusinessService fastRecipeService;
 
 
     @Override
@@ -196,12 +202,19 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
     }
 
     @Override
-    public FormWorkRecipeVO getFormWorkRecipeById(Integer mouldId, Integer organId) {
-        FormWorkRecipeReqVO formWorkRecipeReqVO = new FormWorkRecipeReqVO();
-        formWorkRecipeReqVO.setOrganId(organId);
-        List<FormWorkRecipeVO> formWorkRecipeVOList = recipePatientService.findFormWorkRecipe(formWorkRecipeReqVO);
-        formWorkRecipeVOList = formWorkRecipeVOList.stream().filter(a -> a.getMouldId().equals(mouldId)).collect(Collectors.toList());
-        return formWorkRecipeVOList.get(0);
+    public FastRecipeVO getFastRecipeById(Integer id) {
+        FastRecipeReq fastRecipeReq = new FastRecipeReq();
+        fastRecipeReq.setFastRecipeId(id);
+        List<FastRecipe> fastRecipeList = fastRecipeService.findFastRecipeListByParam(fastRecipeReq);
+        if (CollectionUtils.isEmpty(fastRecipeList)) {
+            return null;
+        }
+        FastRecipeVO fastRecipeVO = BeanUtils.map(fastRecipeList.get(0), FastRecipeVO.class);
+        List<FastRecipeDetail> fastRecipeDetailList = fastRecipeService.findFastRecipeDetailsByFastRecipeId(fastRecipeVO.getId());
+        if (CollectionUtils.isNotEmpty(fastRecipeDetailList)) {
+            fastRecipeVO.setFastRecipeDetailList(BeanCopyUtils.copyList(fastRecipeDetailList, FastRecipeDetailVO::new));
+        }
+        return fastRecipeVO;
     }
 
     @Override
@@ -286,6 +299,12 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
         recipeBusinessService.recipePayHISCallback(recipePayHISCallbackReq);
         HisResponseTO hisResponseTO = new HisResponseTO();
         return hisResponseTO;
+    }
+
+    @Override
+    public void recipeOutpatientPaymentCallback(RecipeOutpatientPaymentReq recipeOutpatientPaymentReq) {
+        validateAtop(recipeOutpatientPaymentReq,recipeOutpatientPaymentReq.getRecipeCodes(),recipeOutpatientPaymentReq.getOrganId());
+        recipeBusinessService.recipeOutpatientPaymentCallback(recipeOutpatientPaymentReq);
     }
 
 }

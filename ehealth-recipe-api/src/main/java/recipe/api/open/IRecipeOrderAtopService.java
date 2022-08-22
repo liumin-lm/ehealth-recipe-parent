@@ -121,4 +121,13 @@ public interface IRecipeOrderAtopService {
     void putInCabinetNotice(CabinetVO cabinetVO);
 
 
+    /**
+     * 获取未完善或完善标识
+     * @param organId
+     * @param recipeCode
+     * @return
+     */
+    @RpcService(mvcDisabled = true)
+    Integer getImperfectFlag(Integer organId,String recipeCode);
+
 }

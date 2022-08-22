@@ -1,9 +1,12 @@
 package recipe.atop.patient;
 
 import com.alibaba.fastjson.JSON;
+import com.ngari.recipe.dto.RecipeDTO;
 import com.ngari.recipe.dto.RecipeFeeDTO;
+import com.ngari.recipe.dto.ShoppingCartDetailDTO;
 import com.ngari.recipe.dto.SkipThirdDTO;
 import com.ngari.recipe.recipe.model.SkipThirdReqVO;
+import com.ngari.recipe.vo.ShoppingCartReqVO;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
@@ -215,4 +218,26 @@ public class RecipeOrderPatientAtop extends BaseAtop {
     public Integer getOrderPayFlag(Integer orderId){
         return iOrganBusinessService.getOrderPayFlag(orderId);
     }
+
+    /**
+     * 获取购物车信息
+     * @param mpiId
+     * @return
+     */
+    @RpcService
+    public List<ShoppingCartDetailDTO> getShoppingCartDetail(String mpiId){
+        return recipeOrderService.getShoppingCartDetail(mpiId);
+    }
+
+    /**
+     * 保存购物车信息
+     * @param shoppingCartReqVO
+     * @return
+     */
+    @RpcService
+    public void saveRecipeBeforeOrderInfo(ShoppingCartReqVO shoppingCartReqVO){
+        recipeOrderService.saveRecipeBeforeOrderInfo(shoppingCartReqVO);
+    }
+
+
 }

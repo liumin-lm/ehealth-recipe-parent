@@ -180,10 +180,12 @@ public class RecipeOrderOpenAtop extends BaseAtop implements IRecipeOrderAtopSer
     @Override
     public void putInCabinetNotice(CabinetVO cabinetVO) {
         validateAtop(cabinetVO);
-
         recipeOrderService.putInCabinetNotice(cabinetVO);
     }
 
-
+    @Override
+    public Integer getImperfectFlag(Integer organId, String recipeCode) {
+        return recipeOrderService.getImperfectFlag(organId,recipeCode);
+    }
 
 }
