@@ -57,7 +57,9 @@ public class FastRecipeGmAtop extends BaseAtop {
      */
     @RpcService
     public List<FastRecipeVO> findFastRecipeListByOrganId(FastRecipeReq fastRecipeReq) {
-        validateAtop(fastRecipeReq);
+        validateAtop(fastRecipeReq, fastRecipeReq.getOrganId());
+        isAuthorisedOrgan(fastRecipeReq.getOrganId());
+        fastRecipeReq.setStatusList(Lists.newArrayList(1, 2));
         List<FastRecipe> fastRecipeList = fastRecipeService.findFastRecipeListByParam(fastRecipeReq);
         return CollectionUtils.isEmpty(fastRecipeList) ? Lists.newArrayList() : BeanCopyUtils.copyList(fastRecipeList, FastRecipeVO::new);
     }
@@ -71,9 +73,11 @@ public class FastRecipeGmAtop extends BaseAtop {
     @RpcService
     public FastRecipeVO getFastRecipeByFastRecipeId(FastRecipeReq fastRecipeReq) {
         validateAtop(fastRecipeReq, fastRecipeReq.getFastRecipeId());
+        fastRecipeReq.setStatusList(Lists.newArrayList(1, 2));
         List<FastRecipe> fastRecipeList = fastRecipeService.findFastRecipeListByParam(fastRecipeReq);
         if (CollectionUtils.isNotEmpty(fastRecipeList)) {
             FastRecipeVO fastRecipeVO = BeanUtils.map(fastRecipeList.get(0), FastRecipeVO.class);
+            isAuthorisedOrgan(fastRecipeVO.getClinicOrgan());
             List<FastRecipeDetail> fastRecipeDetailList = fastRecipeService.findFastRecipeDetailsByFastRecipeId(fastRecipeList.get(0).getId());
             fastRecipeVO.setFastRecipeDetailList(BeanCopyUtils.copyList(fastRecipeDetailList, FastRecipeDetailVO::new));
             return fastRecipeVO;
@@ -128,6 +132,7 @@ public class FastRecipeGmAtop extends BaseAtop {
     @RpcService
     public List<FastRecipeVO> patientfindFastRecipeListByOrganId(FastRecipeReq fastRecipeReq) {
         validateAtop(fastRecipeReq);
+        fastRecipeReq.setStatusList(Lists.newArrayList(1));
         List<FastRecipe> fastRecipeList = fastRecipeService.findFastRecipeListByParam(fastRecipeReq);
         if (CollectionUtils.isNotEmpty(fastRecipeList)) {
             List<FastRecipeVO> fastRecipeVOList = Lists.newArrayList();

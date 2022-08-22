@@ -1,6 +1,5 @@
 package recipe.service;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
@@ -63,7 +62,7 @@ import recipe.bussutil.UsingRateFilter;
 import recipe.client.DocIndexClient;
 import recipe.client.IConfigurationClient;
 import recipe.client.OfflineRecipeClient;
-import recipe.client.RecipeSettleClient;
+import recipe.client.PayClient;
 import recipe.constant.CacheConstant;
 import recipe.constant.ErrorCode;
 import recipe.constant.RecipeBussConstant;
@@ -73,7 +72,10 @@ import recipe.dao.bean.DrugInfoHisBean;
 import recipe.drugsenterprise.AccessDrugEnterpriseService;
 import recipe.drugsenterprise.CommonRemoteService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
-import recipe.enumerate.status.*;
+import recipe.enumerate.status.RecipeStateEnum;
+import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.status.SettleAmountStateEnum;
+import recipe.enumerate.status.WriteHisEnum;
 import recipe.enumerate.type.PayFlagEnum;
 import recipe.hisservice.HisRequestInit;
 import recipe.hisservice.RecipeToHisCallbackService;
@@ -137,7 +139,7 @@ public class RecipeHisService extends RecipeBaseService {
     @Autowired
     private RecipeDAO recipeDAO;
     @Autowired
-    private RecipeSettleClient recipeSettleClient;
+    private PayClient payClient;
     @Autowired
     private StateManager stateManager;
 
@@ -554,7 +556,7 @@ public class RecipeHisService extends RecipeBaseService {
                 LOGGER.info("doRecipeSettle settleService recipeId={}. response={}", recipe.getRecipeId(),JsonUtil.toString(response));
                 // 前置机返回结算异常码 99 启动结算重试
                 if(Objects.nonNull(response) && new Integer(99).equals(response.getMsgCode())) {
-                    HisResponseTO hisResponseTO = recipeSettleClient.retrySettle(payNotifyReq);
+                    HisResponseTO hisResponseTO = payClient.retrySettle(payNotifyReq);
                     // 反查成功或异常都算结算成功
                     if ("99".equals(hisResponseTO.getMsgCode()) || "200".equals(hisResponseTO.getMsgCode())) {
                         response.setMsgCode(0);

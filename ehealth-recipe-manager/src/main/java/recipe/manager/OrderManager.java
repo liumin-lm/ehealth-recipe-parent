@@ -87,14 +87,11 @@ public class OrderManager extends BaseManager {
     @Autowired
     private PatientService patientService;
     @Autowired
-    private OrderClient orderClient;
-    @Autowired
     private RecipeOrderBillDAO recipeOrderBillDAO;
     @Autowired
     private OrganDrugListDAO organDrugListDAO;
     @Autowired
     private RecipeBeforeOrderDAO recipeBeforeOrderDAO;
-
     @Autowired
     private AddressService addressService;
 
@@ -872,7 +869,7 @@ public class OrderManager extends BaseManager {
         });
         invoiceInfoReqTO.setRecipeDetailList(ObjectCopyUtils.convert(recipeDetailList, RecipeDetailBean.class));
         logger.info("EleInvoiceService.makeUpInvoice invoiceInfoReqTO={}",JSONUtils.toString(invoiceInfoReqTO));
-        InvoiceInfoResTO invoiceInfoResTO = orderClient.makeUpInvoice(invoiceInfoReqTO);
+        InvoiceInfoResTO invoiceInfoResTO = payClient.makeUpInvoice(invoiceInfoReqTO);
         logger.info("EleInvoiceService.makeUpInvoice invoiceInfoResTO={}",JSONUtils.toString(invoiceInfoResTO));
         RecipeOrderBill recipeOrderBill = new RecipeOrderBill();
         recipeOrderBill.setRecipeOrderCode(orderCode);

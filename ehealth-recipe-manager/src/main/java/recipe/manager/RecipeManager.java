@@ -83,8 +83,6 @@ public class RecipeManager extends BaseManager {
     private SaleDrugListDAO saleDrugListDAO;
     @Autowired
     private IRecipeCheckService iRecipeCheckService;
-    @Autowired
-    private RecipeClient recipeClient;
 
     /**
      * 保存处方信息
@@ -866,7 +864,7 @@ public class RecipeManager extends BaseManager {
         encounterDTOList.add(encounterDTO);
         patientDTO.setEncounterDtos(encounterDTOList);
         advanceInfoReqTO.setPatientDTO(patientDTO);
-        AdvanceInfoResTO advanceInfo = recipeClient.getAdvanceInfo(advanceInfoReqTO);
+        AdvanceInfoResTO advanceInfo = offlineRecipeClient.getAdvanceInfo(advanceInfoReqTO);
         advanceWarningResDTO.setPopUrl(advanceInfo.getPopUrl());
         logger.info("getAdvanceWarning advanceWarningResDTO={}",JSONUtils.toString(advanceWarningResDTO));
         return advanceWarningResDTO;

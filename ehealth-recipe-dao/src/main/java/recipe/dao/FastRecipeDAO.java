@@ -13,6 +13,7 @@ import ctd.persistence.support.hibernate.template.HibernateSessionTemplate;
 import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction;
 import ctd.util.annotation.RpcSupportDAO;
 import eh.utils.ValidateUtil;
+import org.apache.commons.collections.CollectionUtils;
 import org.hibernate.Query;
 import org.hibernate.StatelessSession;
 
@@ -49,6 +50,9 @@ public abstract class FastRecipeDAO extends HibernateSupportDelegateDAO<FastReci
                         if (Objects.nonNull(fastRecipeReq.getFastRecipeId())) {
                             hql.append("AND id = :fastRecipeId ");
                         }
+                        if (CollectionUtils.isNotEmpty(fastRecipeReq.getStatusList())) {
+                            hql.append("AND status IN (:statusList) ");
+                        }
                         hql.append("order by orderNum  ");
                         Query query = ss.createQuery(hql.toString());
 
@@ -57,6 +61,9 @@ public abstract class FastRecipeDAO extends HibernateSupportDelegateDAO<FastReci
                         }
                         if (Objects.nonNull(fastRecipeReq.getFastRecipeId())) {
                             query.setParameter("fastRecipeId", fastRecipeReq.getFastRecipeId());
+                        }
+                        if (CollectionUtils.isNotEmpty(fastRecipeReq.getStatusList())) {
+                            query.setParameterList("statusList", fastRecipeReq.getStatusList());
                         }
                         if (Objects.nonNull(fastRecipeReq.getStart()) && Objects.nonNull(fastRecipeReq.getLimit())) {
                             query.setFirstResult(fastRecipeReq.getStart());
