@@ -20,7 +20,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.aop.LogRecord;
-import recipe.client.*;
+import recipe.client.ConsultClient;
+import recipe.client.PatientClient;
+import recipe.client.PayClient;
+import recipe.client.RecipeRedisClient;
 import recipe.constant.ParameterConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeRefundRoleConstant;
@@ -50,15 +53,10 @@ import static ctd.persistence.DAOFactory.getDAO;
  */
 @Service
 public class OrderFeeManager extends BaseManager {
-
     @Autowired
     private RecipeRedisClient recipeRedisClient;
     @Autowired
     private PayClient payClient;
-    @Autowired
-    private OfflineRecipeClient offlineRecipeClient;
-    @Autowired
-    private IConfigurationClient configurationClient;
     @Autowired
     private ConsultClient consultClient;
     @Autowired

@@ -16,6 +16,7 @@ import recipe.client.PatientClient;
 
 /**
  * 咨询管理类
+ * todo ：业务非功能类，部分代码解构 应该下移到Client
  *
  * @author zgy
  * @date 2022/3/2 14:57

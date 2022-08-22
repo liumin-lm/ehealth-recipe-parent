@@ -35,6 +35,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.ApplicationUtils;
+import recipe.aop.LogRecord;
 import recipe.audit.auditmode.AuditModeContext;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
@@ -46,6 +47,7 @@ import recipe.client.OrganClient;
 import recipe.client.PatientClient;
 import recipe.constant.ErrorCode;
 import recipe.constant.RecipeStatusConstant;
+import recipe.constant.ReviewTypeConstant;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.dao.*;
 import recipe.enumerate.status.*;
@@ -68,7 +70,7 @@ import recipe.vo.greenroom.DrugUsageLabelResp;
 import recipe.vo.patient.PatientOptionalDrugVo;
 import recipe.vo.second.EmrConfigVO;
 import recipe.vo.second.MedicalDetailVO;
-import recipe.vo.second.RecipeOutpatientPaymentReq;
+import com.ngari.recipe.dto.RecipeOutpatientPaymentDTO;
 import recipe.vo.second.RecipePayHISCallbackReq;
 
 import javax.annotation.Resource;
@@ -962,12 +964,13 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     }
 
     @Override
-    public void recipeOutpatientPaymentCallback(RecipeOutpatientPaymentReq recipeOutpatientPaymentReq) {
-        List<Recipe> recipes = recipeDAO.findByRecipeCodeAndClinicOrgan(recipeOutpatientPaymentReq.getRecipeCodes(), recipeOutpatientPaymentReq.getOrganId());
+    @LogRecord
+    public void recipeOutpatientPaymentCallback(RecipeOutpatientPaymentDTO recipeOutpatientPaymentDTO) {
+        List<Recipe> recipes = recipeDAO.findByRecipeCodeAndClinicOrgan(recipeOutpatientPaymentDTO.getRecipeCodes(), recipeOutpatientPaymentDTO.getOrganId());
         if (CollectionUtils.isEmpty(recipes)) {
-            logger.info("recipeOutpatientPaymentCallback recipe is null, recipeCode[{}]", JSONArray.toJSONString(recipeOutpatientPaymentReq.getRecipeCodes()));
+            logger.info("recipeOutpatientPaymentCallback recipe is null, recipeCode[{}]", JSONArray.toJSONString(recipeOutpatientPaymentDTO.getRecipeCodes()));
         }
-        List<RecipeBeforeOrder> recipeBeforeOrders = recipeBeforeOrderDAO.getByOrganIdAndRecipeCodes(recipeOutpatientPaymentReq.getOrganId(), recipeOutpatientPaymentReq.getRecipeCodes());
+        List<RecipeBeforeOrder> recipeBeforeOrders = recipeBeforeOrderDAO.getByOrganIdAndRecipeCodes(recipeOutpatientPaymentDTO.getOrganId(), recipeOutpatientPaymentDTO.getRecipeCodes());
         List<List<RecipeBeforeOrder>> lists = orderManager.mergeBeforeOrder(recipeBeforeOrders);
         if (CollectionUtils.isEmpty(lists)) {
             return;
@@ -1005,17 +1008,32 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             }
             order.setPayMode(1);
             order.setPayFlag(PayFlagEnum.PAYED.getType());
-            order.setPayTime(recipeOutpatientPaymentReq.getPayTime());
+            order.setPayTime(recipeOutpatientPaymentDTO.getPayTime());
             order.setStatus(RecipeOrderStatusEnum.ORDER_STATUS_READY_GET_DRUG.getType());
             order.setEffective(1);
-            order.setOutTradeNo(recipeOutpatientPaymentReq.getOutTradeNo());
-            order.setTradeNo(recipeOutpatientPaymentReq.getTradeNo());
-            order.setPayOrganId(recipeOutpatientPaymentReq.getPayOrganId());
+            order.setOutTradeNo(recipeOutpatientPaymentDTO.getOutTradeNo());
+            order.setTradeNo(recipeOutpatientPaymentDTO.getTradeNo());
+            order.setPayOrganId(recipeOutpatientPaymentDTO.getPayOrganId());
+            order.setProcessState(OrderStateEnum.PROCESS_STATE_ORDER_PLACED.getType());
+            // 订单新状态
+            Integer auditState = null;
+            if (ReviewTypeConstant.Postposition_Check.equals(recipes.get(0).getReviewType())) {
+                order.setSubState(OrderStateEnum.SUB_ORDER_PLACED_AUDIT.getType());
+                auditState = RecipeAuditStateEnum.PENDING_REVIEW.getType();
+            } else {
+                order.setSubState(OrderStateEnum.SUB_ORDER_ORDER_PLACED.getType());
+            }
             // 保存订单
             recipeOrderDAO.save(order);
             // 保存处方与订单关联关系
+            Integer finalAuditState = auditState;
             recipeIds.forEach(recipeId -> {
                 Recipe r = new Recipe();
+                if (Objects.nonNull(finalAuditState)) {
+                    r.setAuditState(finalAuditState);
+                }
+                r.setProcessState(RecipeStateEnum.PROCESS_STATE_ORDER.getType());
+                r.setSubState(RecipeStateEnum.SUB_ORDER_HAD_SUBMIT_ORDER.getType());
                 r.setRecipeId(recipeId);
                 r.setOrderCode(order.getOrderCode());
                 recipeDAO.updateNonNullFieldByPrimaryKey(r);
@@ -1028,6 +1046,9 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             String memo = "订单: 收到门诊缴费支付消息 ";
             updateRecipePayLog(order, memo);
         });
+        // 删除预下单信息
+        List<Integer> idList = recipeBeforeOrders.stream().map(recipeBeforeOrder -> recipeBeforeOrder.getId()).collect(Collectors.toList());
+        recipeBeforeOrderDAO.updateDeleteFlag(idList);
     }
 
     /**

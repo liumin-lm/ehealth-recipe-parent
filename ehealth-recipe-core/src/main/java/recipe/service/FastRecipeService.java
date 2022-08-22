@@ -13,6 +13,7 @@ import ctd.persistence.exception.DAOException;
 import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
+import eh.cdr.api.vo.MedicalDetailBean;
 import eh.utils.ValidateUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
@@ -142,9 +143,9 @@ public class FastRecipeService implements IFastRecipeBusinessService {
         fastRecipe.setDecoctionPrice(recipeExtend.getDecoctionPrice());
         fastRecipe.setDecoctionText(recipeExtend.getDecoctionText());
         if (Objects.nonNull(recipeExtend.getDocIndexId())) {
-            EmrDetailDTO emrDetailDTO = docIndexClient.getEmrDetails(recipeExtend.getDocIndexId());
-            if (Objects.nonNull(emrDetailDTO)) {
-                fastRecipe.setDocText(JSONUtils.toString(emrDetailDTO));
+            MedicalDetailBean medicalDetailBean = docIndexClient.getEmrMedicalDetail(recipeExtend.getDocIndexId());
+            if (Objects.nonNull(medicalDetailBean) && CollectionUtils.isNotEmpty(medicalDetailBean.getDetailList())) {
+                fastRecipe.setDocText(JSONUtils.toString(medicalDetailBean.getDetailList()));
             }
         }
         fastRecipe.setFromFlag(recipeExtend.getFromFlag());

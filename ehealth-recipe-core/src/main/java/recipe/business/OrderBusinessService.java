@@ -135,7 +135,9 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
     @Autowired
     private RecipeBeforeOrderDAO recipeBeforeOrderDAO;
     @Autowired
-    private AddressService addressService;
+    private OrderFeeManager orderFeeManager;
+    @Autowired
+    private RecipeDetailDAO recipeDetailDAO;
 
 
     @Override

@@ -74,8 +74,6 @@ public class OrderManager extends BaseManager {
     private RevisitClient revisitClient;
     @Resource
     private RecipeOrderPayFlowDao recipeOrderPayFlowDao;
-    @Resource
-    private IConfigurationClient configurationClient;
     @Autowired
     private DoctorService doctorService;
     @Autowired
@@ -88,8 +86,6 @@ public class OrderManager extends BaseManager {
     private PatientService patientService;
     @Autowired
     private RecipeOrderBillDAO recipeOrderBillDAO;
-    @Autowired
-    private OrganDrugListDAO organDrugListDAO;
     @Autowired
     private RecipeBeforeOrderDAO recipeBeforeOrderDAO;
     @Autowired

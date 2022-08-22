@@ -5,7 +5,6 @@ import ctd.util.JSONUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import recipe.client.IConfigurationClient;
 import recipe.constant.CacheConstant;
 import recipe.dao.RecipeParameterDao;
 import recipe.util.RedisClient;
@@ -19,8 +18,6 @@ import java.util.ArrayList;
 public class OrganManager extends BaseManager {
     @Autowired
     private RedisClient redisClient;
-    @Autowired
-    private IConfigurationClient configurationClient;
 
     /**
      * 查询是否关联的监管平台(排除关联空的监管平台，以及上海监管平台)

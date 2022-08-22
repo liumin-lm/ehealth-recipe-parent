@@ -35,6 +35,7 @@ import java.util.*;
 
 /**
  * 复诊处理通用类
+ * todo ：业务非功能类，部分代码解构 应该下移到Client
  *
  * @author fuzi
  */

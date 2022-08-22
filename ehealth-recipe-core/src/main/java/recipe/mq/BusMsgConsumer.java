@@ -84,6 +84,11 @@ public class BusMsgConsumer {
          */
         subscriber.attach(OnsConfig.easyPayTopic, "", new MqEasyPayConsumer());
 
+        /**
+         * 门诊缴费支付回调
+         */
+        subscriber.attach(OnsConfig.settleStateSyncRecipeTag, "", new RecipeOutpatientPaymentConsumer());
+
     }
 
     @RpcService
