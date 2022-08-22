@@ -18,7 +18,7 @@ import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.greenroom.DrugUsageLabelResp;
 import recipe.vo.patient.PatientOptionalDrugVo;
 import recipe.vo.second.MedicalDetailVO;
-import recipe.vo.second.RecipeOutpatientPaymentReq;
+import com.ngari.recipe.dto.RecipeOutpatientPaymentDTO;
 import recipe.vo.second.RecipePayHISCallbackReq;
 
 import java.util.Date;
@@ -296,7 +296,7 @@ public interface IRecipeBusinessService {
 
     /**
      * 门诊缴费支付回调
-     * @param recipeOutpatientPaymentReq
+     * @param recipeOutpatientPaymentDTO
      */
-    void recipeOutpatientPaymentCallback(RecipeOutpatientPaymentReq recipeOutpatientPaymentReq);
+    void recipeOutpatientPaymentCallback(RecipeOutpatientPaymentDTO recipeOutpatientPaymentDTO);
 }

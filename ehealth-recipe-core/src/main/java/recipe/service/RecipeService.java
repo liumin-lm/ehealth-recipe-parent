@@ -3103,6 +3103,7 @@ public class RecipeService extends RecipeBaseService {
                 RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
                 RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
                 HisRecipeDAO hisRecipeDAO = getDAO(HisRecipeDAO.class);
+                RecipeBeforeOrderDAO recipeBeforeOrderDAO = getDAO(RecipeBeforeOrderDAO.class);
                 StringBuilder memo = new StringBuilder();
                 RecipeOrder order;
                 List<Integer> recipeIds = new ArrayList<>();
@@ -3201,6 +3202,8 @@ public class RecipeService extends RecipeBaseService {
                 //修改cdr_his_recipe status为已处理
                 orderService.updateHisRecieStatus(recipeList);
                 RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipeIds, 1));
+                // 删除预下单信息
+                recipeBeforeOrderDAO.updateDeleteFlagByRecipeId(recipeIds);
             }
         } catch (Exception e) {
             LOGGER.error("doRecipeCancelByInvalidTime error", e);
