@@ -375,7 +375,7 @@ public class RecipeOrder implements Serializable {
     private Integer settleMode;
 
     @ItemProperty(alias = "配送费付款方式ExpressFeePayMethodEnum")
-    private String expressFeePayMethod;
+    private Integer expressFeePayMethod;
 
     //todo 默认构造器不要给init默认值啊 此方法慎用
     @Deprecated
@@ -1430,11 +1430,11 @@ public class RecipeOrder implements Serializable {
     }
 
     @Transient
-    public String getExpressFeePayMethod() {
+    public Integer getExpressFeePayMethod() {
         return expressFeePayMethod;
     }
 
-    public void setExpressFeePayMethod(String expressFeePayMethod) {
+    public void setExpressFeePayMethod(Integer expressFeePayMethod) {
         this.expressFeePayMethod = expressFeePayMethod;
     }
 }
