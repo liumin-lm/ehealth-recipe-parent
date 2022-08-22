@@ -25,14 +25,8 @@ public class ShoppingCartReqVO implements Serializable {
     @ItemProperty(alias = "取药药店或站点地址")
     private String drugStoreAddr;
 
-    @ItemProperty(alias = "配送地址id")
-    private Integer addressId;
-
     @ItemProperty(alias = "购药方式")
     private Integer giveMode;
-
-    @ItemProperty(alias = "支付方式")
-    private String payWay;
 
     @ItemProperty(alias = "操作人mpiId")
     private String operMpiId;

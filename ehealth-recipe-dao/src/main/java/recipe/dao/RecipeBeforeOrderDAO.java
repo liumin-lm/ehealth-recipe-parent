@@ -56,4 +56,12 @@ public abstract class RecipeBeforeOrderDAO extends
      */
     @DAOMethod(sql = "from RecipeBeforeOrder where recipeCode in (:recipeCodes) and organId=:organId")
     public abstract List<RecipeBeforeOrder> getByOrganIdAndRecipeCodes(@DAOParam("organId") Integer organId, @DAOParam("recipeCodes") List<String> recipeCodes);
+
+    /**
+     * 根据处方单号查询有效的预下单信息
+     * @param mpiId
+     * @return
+     */
+    @DAOMethod(sql = "from RecipeBeforeOrder where recipeId=:recipeId and deleteFlag = 0")
+    public abstract RecipeBeforeOrder getRecipeBeforeOrderByRecipeId(@DAOParam("recipeId") Integer recipeId);
 }

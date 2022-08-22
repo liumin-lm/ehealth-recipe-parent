@@ -925,6 +925,17 @@ public class OrderManager extends BaseManager {
     }
 
     public void saveRecipeBeforeOrderInfo(ShoppingCartReqDTO shoppingCartReqDTO) {
+        //判断是新增到购物车还是在原有的基础上修改购药方式
+        Integer recipeId = shoppingCartReqDTO.getRecipeId();
+        if(recipeId != null){
+            //查询有效的预下单信息
+            RecipeBeforeOrder recipeBeforeOrder = recipeBeforeOrderDAO.getRecipeBeforeOrderByRecipeId(recipeId);
+            if(Objects.nonNull(recipeBeforeOrder)){
+                //把原有的删除状态置为1，再新增一条数据
+                recipeBeforeOrder.setDeleteFlag(1);
+                recipeBeforeOrderDAO.updateNonNullFieldByPrimaryKey(recipeBeforeOrder);
+            }
+        }
         RecipeBeforeOrder recipeBeforeOrder = new RecipeBeforeOrder();
         recipeBeforeOrder.setRecipeId(shoppingCartReqDTO.getRecipeId());
         Recipe recipe = recipeDAO.getByRecipeId(shoppingCartReqDTO.getRecipeId());
@@ -950,40 +961,28 @@ public class OrderManager extends BaseManager {
             else {
                 recipeBeforeOrder.setIsReady(0);
             }
-        }
         //配送方式为医院配送或药企配送
-        if(shoppingCartReqDTO.getGiveModeKey().equals("showSendToHos") || shoppingCartReqDTO.getGiveModeKey().equals("showSendToEnterprises")){
-            if(shoppingCartReqDTO.getAddressId() != null){
-                recipeBeforeOrder.setAddressId(shoppingCartReqDTO.getAddressId());
-                AddressDTO addressDTO = addressService.getByAddressId(shoppingCartReqDTO.getAddressId());
-                if (addressDTO != null) {
-                    recipeBeforeOrder.setIsReady(0);
-                    recipeBeforeOrder.setAddress1(addressDTO.getAddress1());
-                    recipeBeforeOrder.setAddress2(addressDTO.getAddress2());
-                    recipeBeforeOrder.setAddress3(addressDTO.getAddress3());
-                    recipeBeforeOrder.setAddress4(addressDTO.getAddress4());
-                    recipeBeforeOrder.setAddress5(addressDTO.getAddress5());
-                    recipeBeforeOrder.setAddress5Text(addressDTO.getAddress5Text());
-                    recipeBeforeOrder.setReceiver(addressDTO.getReceiver());
-                    recipeBeforeOrder.setRecMobile(addressDTO.getRecMobile());
-                    recipeBeforeOrder.setRecTel(addressDTO.getRecTel());
-                    recipeBeforeOrder.setZipCode(addressDTO.getZipCode());
-                }
-                else {
-                    recipeBeforeOrder.setIsReady(1);
-                }
-            }else {
-                recipeBeforeOrder.setIsReady(1);
-            }
+        }else if(new Integer(1).equals(shoppingCartReqDTO.getGiveMode())){
+            recipeBeforeOrder.setGiveModeKey(shoppingCartReqDTO.getGiveModeKey());
+            recipeBeforeOrder.setGiveModeText(shoppingCartReqDTO.getGiveModeKey().equals("showSendToHos") ? "医院配送" : "药企配送");
+            recipeBeforeOrder.setIsReady(0);
         }
         recipeBeforeOrder.setDeleteFlag(0);
         recipeBeforeOrder.setCreateTime(new Date());
         recipeBeforeOrder.setUpdateTime(new Date());
-        recipeBeforeOrder.setGiveModeKey(shoppingCartReqDTO.getGiveModeKey());
-        recipeBeforeOrder.setGiveModeText(shoppingCartReqDTO.getGiveModeKey().equals("showSendToHos") ? "医院配送" : "药企配送");
-        recipeBeforeOrder.setPayWay(shoppingCartReqDTO.getPayWay());
+        //recipeBeforeOrder.setPayWay(shoppingCartReqDTO.getPayWay());
         recipeBeforeOrder.setOperMpiId(shoppingCartReqDTO.getOperMpiId());
-        recipeBeforeOrder.setTakeMedicineWay(shoppingCartReqDTO.getTakeMedicineWay());
+        if(shoppingCartReqDTO.getGiveMode() != null){
+            switch (shoppingCartReqDTO.getGiveMode()){
+                case 1:
+                case 2:
+                    recipeBeforeOrder.setTakeMedicineWay(0);
+                    break;
+                case 3:
+                    recipeBeforeOrder.setTakeMedicineWay(1);
+                    break;
+            }
+        }
         logger.info("saveRecipeBeforeOrderInfo recipeBeforeOrder={}",JSONUtils.toString(recipeBeforeOrder));
         recipeBeforeOrderDAO.save(recipeBeforeOrder);
     }

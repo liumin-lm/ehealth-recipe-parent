@@ -230,17 +230,6 @@ public class RecipeOrderPatientAtop extends BaseAtop {
     }
 
     /**
-     * 获取未完善或完善标识
-     * @param organId
-     * @param recipeCode
-     * @return
-     */
-    @RpcService
-    public Integer getImperfectFlag(Integer organId,String recipeCode){
-        return recipeOrderService.getImperfectFlag(organId,recipeCode);
-    }
-
-    /**
      * 保存购物车信息
      * @param shoppingCartReqVO
      * @return
