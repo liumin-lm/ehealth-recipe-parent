@@ -49,8 +49,6 @@ public class DrugManager extends BaseManager {
     @Autowired
     private DrugEntrustDAO drugEntrustDAO;
     @Autowired
-    private DrugListDAO drugListDAO;
-    @Autowired
     private DispensatoryDAO dispensatoryDAO;
     @Autowired
     private RecipeRulesDrugCorrelationDAO recipeRulesDrugCorrelationDAO;

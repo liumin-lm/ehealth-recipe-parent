@@ -23,13 +23,17 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.aop.LogRecord;
-import recipe.client.*;
+import recipe.client.DocIndexClient;
+import recipe.client.PayClient;
 import recipe.common.CommonConstant;
 import recipe.constant.ErrorCode;
 import recipe.constant.HisRecipeConstant;
 import recipe.constant.OrderStatusConstant;
 import recipe.constant.PayConstant;
-import recipe.dao.*;
+import recipe.dao.HisRecipeDataDelDAO;
+import recipe.dao.HisRecipeDetailDAO;
+import recipe.dao.HisRecipeExtDAO;
+import recipe.dao.RecipeParameterDao;
 import recipe.enumerate.status.OfflineToOnlineEnum;
 import recipe.enumerate.status.OrderStateEnum;
 import recipe.enumerate.status.RecipeStateEnum;
@@ -57,36 +61,19 @@ public class HisRecipeManager extends BaseManager {
     @Autowired
     private DocIndexClient docIndexClient;
     @Autowired
-    private PatientClient patientClient;
-    @Autowired
-    private OfflineRecipeClient offlineRecipeClient;
-    @Autowired
-    private HisRecipeDAO hisRecipeDao;
-    @Autowired
     private HisRecipeExtDAO hisRecipeExtDAO;
     @Autowired
     private HisRecipeDetailDAO hisRecipeDetailDAO;
     @Autowired
     private EmrRecipeManager emrRecipeManager;
     @Autowired
-    private RevisitClient revisitClient;
-    @Autowired
     private HisRecipeDataDelDAO hisRecipeDataDelDAO;
-    @Autowired
-    private RecipeDAO recipeDAO;
-    @Autowired
-    private RecipeOrderDAO recipeOrderDAO;
     @Autowired
     private StateManager stateManager;
     @Autowired
     private RecipeParameterDao recipeParameterDao;
     @Autowired
     private PayClient payClient;
-
-    /**
-     * SUCCESS（交易支付成功）
-     */
-    private String PAY_SUCCESS = "SUCCESS";
 
     /**
      * 获取患者信息
@@ -219,7 +206,7 @@ public class HisRecipeManager extends BaseManager {
      * @return
      */
     public HisRecipe getHisRecipeBMpiIdyRecipeCodeAndClinicOrgan(String mpiId, Integer clinicOrgan, String recipeCode) {
-        return hisRecipeDao.getHisRecipeBMpiIdyRecipeCodeAndClinicOrgan(mpiId, clinicOrgan, recipeCode);
+        return hisRecipeDAO.getHisRecipeBMpiIdyRecipeCodeAndClinicOrgan(mpiId, clinicOrgan, recipeCode);
     }
 
 
@@ -243,7 +230,7 @@ public class HisRecipeManager extends BaseManager {
             if (!disease.equals(hisRecipe.getDisease()) || !diseaseName.equals(hisRecipe.getDiseaseName())) {
                 hisRecipe.setDisease(disease);
                 hisRecipe.setDiseaseName(diseaseName);
-                hisRecipeDao.update(hisRecipe);
+                hisRecipeDAO.update(hisRecipe);
 
                 LOGGER.info("updateHisRecipe hisRecipe = {}", JSONUtils.toString(hisRecipe));
                 Recipe recipe = recipeMap.get(a.getRecipeCode());
@@ -292,7 +279,7 @@ public class HisRecipeManager extends BaseManager {
     public void saveHisRecipeDataDel(List<Integer> hisRecipeIds, List<Recipe> recipeList) {
         try {
             HisRecipeDataDel hisRecipeDataDel = new HisRecipeDataDel();
-            List<HisRecipe> hisRecipes = hisRecipeDao.findHisRecipeByhisRecipeIds(hisRecipeIds);
+            List<HisRecipe> hisRecipes = hisRecipeDAO.findHisRecipeByhisRecipeIds(hisRecipeIds);
             List<HisRecipeExt> hisRecipeExts = hisRecipeExtDAO.findHisRecipeByhisRecipeIds(hisRecipeIds);
             List<HisRecipeDetail> hisRecipeDetails = hisRecipeDetailDAO.findNoPayByHisRecipeIds(hisRecipeIds);
             Map<Integer, List<HisRecipeExt>> hisRecipeExtsMap = hisRecipeExts.stream().collect(Collectors.groupingBy(HisRecipeExt::getHisRecipeId));
@@ -393,7 +380,7 @@ public class HisRecipeManager extends BaseManager {
             return;
         }
         List<String> recipeCodeList = new ArrayList<>(deleteSetRecipeCode);
-        List<HisRecipe> hisRecipeList = hisRecipeDao.findHisRecipeByRecipeCodeAndClinicOrgan(clinicOrgan, recipeCodeList);
+        List<HisRecipe> hisRecipeList = hisRecipeDAO.findHisRecipeByRecipeCodeAndClinicOrgan(clinicOrgan, recipeCodeList);
         List<Integer> hisRecipeIds = hisRecipeList.stream().map(HisRecipe::getHisRecipeID).collect(Collectors.toList());
         if (CollectionUtils.isEmpty(hisRecipeIds)) {
             LOGGER.info("deleteSetRecipeCode 查找无处方");
@@ -403,7 +390,7 @@ public class HisRecipeManager extends BaseManager {
         saveHisRecipeDataDel(hisRecipeIds, recipeList);
         hisRecipeExtDAO.deleteByHisRecipeIds(hisRecipeIds);
         hisRecipeDetailDAO.deleteByHisRecipeIds(hisRecipeIds);
-        hisRecipeDao.deleteByHisRecipeIds(hisRecipeIds);
+        hisRecipeDAO.deleteByHisRecipeIds(hisRecipeIds);
         if (CollectionUtils.isEmpty(recipeList)) {
             return;
         }
@@ -446,7 +433,7 @@ public class HisRecipeManager extends BaseManager {
         if (CollectionUtils.isEmpty(hisRecipes)) {
             //点击卡片 历史处方his不会返回 故从表查  同时也兼容已处理状态的处方，前端漏传hisRecipeId的情况
             if (!StringUtils.isEmpty(recipeCode)) {
-                hisRecipe = hisRecipeDao.getHisRecipeByRecipeCodeAndClinicOrgan(organId, recipeCode);
+                hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(organId, recipeCode);
             }
             if (hisRecipe != null) {
                 hisRecipeId = hisRecipe.getHisRecipeID();
@@ -469,7 +456,7 @@ public class HisRecipeManager extends BaseManager {
     public String attachHisRecipeStatus(String mpiId, Integer organCode, String recipeCode) {
         LOGGER.info("HisRecipeManager attachHisRecipeStatus param mpiId:{},organCode:{},recipeCode:{}", mpiId, organCode, recipeCode);
         String status = "";
-        HisRecipe hisRecipe = hisRecipeDao.getHisRecipeBMpiIdyRecipeCodeAndClinicOrgan(mpiId, organCode, recipeCode);
+        HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeBMpiIdyRecipeCodeAndClinicOrgan(mpiId, organCode, recipeCode);
         if (hisRecipe != null) {
             //已处理
             if (OfflineToOnlineEnum.OFFLINE_TO_ONLINE_ALREADY_PAY.getType().equals(hisRecipe.getStatus())) {
@@ -511,10 +498,6 @@ public class HisRecipeManager extends BaseManager {
                 realPayFlag = payClient.orderQuery(recipeOrder);
             }
         }
-//        if (PAY_SUCCESS.equals(realPayFlag)) {
-//            hisRecipeDao.updateHisRecieStatus(clinicOrgan, recipeCode, HisRecipeConstant.HISRECIPESTATUS_ALREADYIDEAL);
-//        }
-
         return realPayFlag;
 
     }
@@ -652,7 +635,7 @@ public class HisRecipeManager extends BaseManager {
      */
     public HisRecipe obatainHisRecipeByOrganIdAndMpiIdAndRecipeCode(Integer organId, String mpiId, String recipeCode) {
         LOGGER.info("HisRecipeManager obatainHisRecipeByOrganIdAndMpiIdAndRecipeCode organId:{},mpiId:{},recipeCode:{}", organId, mpiId, recipeCode);
-        HisRecipe hisRecipe = hisRecipeDao.getHisRecipeBMpiIdyRecipeCodeAndClinicOrgan(mpiId, organId, recipeCode);
+        HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeBMpiIdyRecipeCodeAndClinicOrgan(mpiId, organId, recipeCode);
         LOGGER.info("HisRecipeManager obatainHisRecipeByOrganIdAndMpiIdAndRecipeCode hisRecipe:{}", JSONUtils.toString(hisRecipe));
         return hisRecipe;
     }

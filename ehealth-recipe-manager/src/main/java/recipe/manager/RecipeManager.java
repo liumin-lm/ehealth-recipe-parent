@@ -30,8 +30,6 @@ import recipe.common.CommonConstant;
 import recipe.common.UrlConfig;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
-import recipe.dao.DrugsEnterpriseDAO;
-import recipe.dao.SaleDrugListDAO;
 import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
@@ -41,7 +39,6 @@ import recipe.enumerate.type.RecipeShowQrConfigEnum;
 import recipe.util.DictionaryUtil;
 import recipe.util.ValidateUtil;
 
-import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -60,10 +57,6 @@ public class RecipeManager extends BaseManager {
     private PatientClient patientClient;
     @Autowired
     private DocIndexClient docIndexClient;
-    @Resource
-    private IConfigurationClient configurationClient;
-    @Resource
-    private OfflineRecipeClient offlineRecipeClient;
     @Autowired
     private RevisitClient revisitClient;
     @Autowired
@@ -77,10 +70,6 @@ public class RecipeManager extends BaseManager {
      */
     @Autowired
     private EnterpriseManager enterpriseManager;
-    @Autowired
-    private DrugsEnterpriseDAO drugsEnterpriseDAO;
-    @Autowired
-    private SaleDrugListDAO saleDrugListDAO;
     @Autowired
     private IRecipeCheckService iRecipeCheckService;
 
