@@ -4,8 +4,6 @@ import com.ngari.base.organconfig.model.OrganConfigBean;
 import com.ngari.base.organconfig.service.IOrganConfigService;
 import com.ngari.patient.dto.HealthCardDTO;
 import com.ngari.patient.dto.OrganDTO;
-import com.ngari.patient.service.AppointDepartService;
-import com.ngari.patient.service.DepartmentService;
 import com.ngari.patient.service.HealthCardService;
 import com.ngari.patient.service.OrganService;
 import ctd.util.JSONUtils;
@@ -27,11 +25,7 @@ import java.util.stream.Collectors;
 @Service
 public class OrganClient extends BaseClient {
     @Autowired
-    private AppointDepartService appointDepartService;
-    @Autowired
     private OrganService organService;
-    @Autowired
-    private DepartmentService departmentService;
     @Autowired
     private IOrganConfigService iOrganConfigService;
     @Autowired

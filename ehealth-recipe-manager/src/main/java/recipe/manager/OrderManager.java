@@ -74,8 +74,6 @@ public class OrderManager extends BaseManager {
     private RevisitClient revisitClient;
     @Resource
     private RecipeOrderPayFlowDao recipeOrderPayFlowDao;
-    @Resource
-    private IConfigurationClient configurationClient;
     @Autowired
     private DoctorService doctorService;
     @Autowired
@@ -87,14 +85,9 @@ public class OrderManager extends BaseManager {
     @Autowired
     private PatientService patientService;
     @Autowired
-    private OrderClient orderClient;
-    @Autowired
     private RecipeOrderBillDAO recipeOrderBillDAO;
     @Autowired
-    private OrganDrugListDAO organDrugListDAO;
-    @Autowired
     private RecipeBeforeOrderDAO recipeBeforeOrderDAO;
-
     @Autowired
     private AddressService addressService;
 
@@ -872,7 +865,7 @@ public class OrderManager extends BaseManager {
         });
         invoiceInfoReqTO.setRecipeDetailList(ObjectCopyUtils.convert(recipeDetailList, RecipeDetailBean.class));
         logger.info("EleInvoiceService.makeUpInvoice invoiceInfoReqTO={}",JSONUtils.toString(invoiceInfoReqTO));
-        InvoiceInfoResTO invoiceInfoResTO = orderClient.makeUpInvoice(invoiceInfoReqTO);
+        InvoiceInfoResTO invoiceInfoResTO = payClient.makeUpInvoice(invoiceInfoReqTO);
         logger.info("EleInvoiceService.makeUpInvoice invoiceInfoResTO={}",JSONUtils.toString(invoiceInfoResTO));
         RecipeOrderBill recipeOrderBill = new RecipeOrderBill();
         recipeOrderBill.setRecipeOrderCode(orderCode);
@@ -963,10 +956,10 @@ public class OrderManager extends BaseManager {
             }
         //配送方式为医院配送或药企配送
         }else if(new Integer(1).equals(shoppingCartReqDTO.getGiveMode())){
-            recipeBeforeOrder.setGiveModeKey(shoppingCartReqDTO.getGiveModeKey());
-            recipeBeforeOrder.setGiveModeText(shoppingCartReqDTO.getGiveModeKey().equals("showSendToHos") ? "医院配送" : "药企配送");
             recipeBeforeOrder.setIsReady(0);
         }
+        recipeBeforeOrder.setGiveModeKey(shoppingCartReqDTO.getGiveModeKey());
+        recipeBeforeOrder.setGiveModeText(RecipeSupportGiveModeEnum.getNameByText(shoppingCartReqDTO.getGiveModeKey()));
         recipeBeforeOrder.setDeleteFlag(0);
         recipeBeforeOrder.setCreateTime(new Date());
         recipeBeforeOrder.setUpdateTime(new Date());

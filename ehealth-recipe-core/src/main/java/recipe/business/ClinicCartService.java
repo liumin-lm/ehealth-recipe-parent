@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.Objects;
 
 /**
+ * 购物车核心业务类
+ *
  * @Description
  * @Author yzl
  * @Date 2022-07-14

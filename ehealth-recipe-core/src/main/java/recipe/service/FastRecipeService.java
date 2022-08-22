@@ -13,12 +13,14 @@ import ctd.persistence.exception.DAOException;
 import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
+import eh.cdr.api.vo.MedicalDetailBean;
 import eh.utils.ValidateUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.client.DocIndexClient;
+import recipe.client.OperationClient;
 import recipe.constant.RecipeBussConstant;
 import recipe.core.api.IFastRecipeBusinessService;
 import recipe.core.api.patient.IPatientBusinessService;
@@ -64,6 +66,9 @@ public class FastRecipeService implements IFastRecipeBusinessService {
 
     @Autowired
     private DocIndexClient docIndexClient;
+
+    @Autowired
+    private OperationClient operationClient;
 
     @Override
     public List<Integer> fastRecipeSaveRecipe(List<RecipeInfoVO> recipeInfoVOList) {
@@ -121,7 +126,7 @@ public class FastRecipeService implements IFastRecipeBusinessService {
         if (Objects.isNull(recipe) || Objects.isNull(recipeExtend)) {
             throw new DAOException("未找到对应处方单！");
         }
-
+        operationClient.isAuthorisedOrgan(recipe.getClinicOrgan());
         //1.保存药方
         FastRecipe fastRecipe = new FastRecipe();
         fastRecipe.setIntroduce("");
@@ -138,9 +143,9 @@ public class FastRecipeService implements IFastRecipeBusinessService {
         fastRecipe.setDecoctionPrice(recipeExtend.getDecoctionPrice());
         fastRecipe.setDecoctionText(recipeExtend.getDecoctionText());
         if (Objects.nonNull(recipeExtend.getDocIndexId())) {
-            EmrDetailDTO emrDetailDTO = docIndexClient.getEmrDetails(recipeExtend.getDocIndexId());
-            if (Objects.nonNull(emrDetailDTO)) {
-                fastRecipe.setDocText(JSONUtils.toString(emrDetailDTO));
+            MedicalDetailBean medicalDetailBean = docIndexClient.getEmrMedicalDetail(recipeExtend.getDocIndexId());
+            if (Objects.nonNull(medicalDetailBean) && CollectionUtils.isNotEmpty(medicalDetailBean.getDetailList())) {
+                fastRecipe.setDocText(JSONUtils.toString(medicalDetailBean.getDetailList()));
             }
         }
         fastRecipe.setFromFlag(recipeExtend.getFromFlag());
@@ -246,6 +251,9 @@ public class FastRecipeService implements IFastRecipeBusinessService {
         if (Objects.isNull(fastRecipe)) {
             throw new DAOException("未找到对应药方单！");
         } else {
+            if(!operationClient.isAuthorisedOrgan(fastRecipe.getClinicOrgan())) {
+                throw new DAOException("您没有修改该药方的权限！");
+            }
             fastRecipe.setOrderNum(fastRecipeVO.getOrderNum());
             fastRecipe.setMaxNum(fastRecipeVO.getMaxNum());
             fastRecipe.setMinNum(fastRecipeVO.getMinNum());
@@ -262,6 +270,9 @@ public class FastRecipeService implements IFastRecipeBusinessService {
         if (Objects.isNull(fastRecipe)) {
             throw new DAOException("未找到对应药方单！");
         } else {
+            if(!operationClient.isAuthorisedOrgan(fastRecipe.getClinicOrgan())) {
+                throw new DAOException("您没有修改该药方的权限！");
+            }
             fastRecipe.setBackgroundImg(fastRecipeVO.getBackgroundImg());
             fastRecipe.setIntroduce(fastRecipeVO.getIntroduce());
             fastRecipeDAO.update(fastRecipe);

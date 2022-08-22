@@ -157,6 +157,21 @@ public enum RecipeSupportGiveModeEnum {
     }
 
     /**
+     * 根据 text获取 名称
+     *
+     * @param text key
+     * @return 名称
+     */
+    public static String getNameByText(String text) {
+        for (RecipeSupportGiveModeEnum e : RecipeSupportGiveModeEnum.values()) {
+            if (e.text.equals(text)) {
+                return e.name;
+            }
+        }
+        return null;
+    }
+
+    /**
      *
      * @param textList
      * @return

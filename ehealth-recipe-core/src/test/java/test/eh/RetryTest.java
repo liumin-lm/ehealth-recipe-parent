@@ -1,80 +1,42 @@
 package test.eh;
 
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
-import com.ngari.common.mode.HisResponseTO;
-import com.ngari.his.recipe.mode.DrugInfoRequestTO;
-import com.ngari.his.recipe.mode.DrugInfoTO;
 import com.ngari.his.recipe.mode.PayNotifyReqTO;
 import com.ngari.his.recipe.mode.PayNotifyResTO;
-import com.ngari.his.recipe.service.IRecipeToTestService;
-import com.ngari.patient.dto.PatientDTO;
-import com.ngari.patient.service.PatientService;
-import com.ngari.recipe.RecipeAPI;
-import com.ngari.recipe.common.RecipeResultBean;
-import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
-import com.ngari.recipe.drugsenterprise.model.EnterpriseDecoctionAddressDTO;
-import com.ngari.recipe.drugsenterprise.model.EnterpriseDecoctionAddressReq;
-import com.ngari.recipe.drugsenterprise.model.EnterpriseDecoctionList;
-import com.ngari.recipe.drugsenterprise.service.IDrugsEnterpriseService;
-import com.ngari.recipe.dto.PatientDrugWithEsDTO;
-import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.*;
-import com.ngari.recipe.organdrugsep.model.OrganAndDrugsepRelationBean;
-import com.ngari.recipe.pay.service.IRecipePayCallBackService;
-import com.ngari.recipe.recipe.model.PatientInfoDTO;
-import com.ngari.recipe.recipe.model.RecipeBean;
-import com.ngari.recipe.recipe.model.RecipeDetailBean;
-import com.ngari.recipe.recipe.service.IRecipeService;
-import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
-import ctd.persistence.DAOFactory;
-import ctd.util.AppContextHolder;
-import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
-import eh.entity.bus.Order;
-import eh.entity.mpi.Patient;
-import eh.utils.BeanCopyUtils;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.curator.shaded.com.google.common.collect.Lists;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
 import recipe.atop.greenroom.DrugsEnterpriseGmAtop;
 import recipe.atop.greenroom.RecipeOrderRefundGmAtop;
 import recipe.atop.open.DrugOpenAtop;
 import recipe.atop.patient.DrugPatientAtop;
-import recipe.business.DrugsEnterpriseBusinessService;
 import recipe.client.ConsultClient;
 import recipe.client.DrugClient;
 import recipe.client.IConfigurationClient;
 import recipe.core.api.IStockBusinessService;
-import recipe.dao.*;
-import recipe.dao.bean.RecipeListBean;
+import recipe.dao.RecipeDAO;
+import recipe.dao.RecipeExtendDAO;
+import recipe.dao.RecipeOrderDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
-import recipe.enumerate.status.OrderStateEnum;
-import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.factory.offlinetoonline.impl.BaseOfflineToOnlineService;
 import recipe.manager.*;
-import recipe.presettle.RecipePreSettleService;
 import recipe.presettle.settle.MedicalSettleService;
 import recipe.retry.RecipeRetryService;
-import recipe.service.*;
+import recipe.service.HosPrescriptionService;
+import recipe.service.RecipeHisService;
+import recipe.service.RecipeRefundService;
+import recipe.service.RecipeService;
 import recipe.service.buspay.RecipeBusPayInfoService;
-import recipe.service.paycallback.RecipePayInfoCallBackService;
 import recipe.service.sync.DrugSyncToEsService;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
-import recipe.vo.doctor.DrugQueryVO;
-import recipe.vo.greenroom.RecipeRefundVO;
-import recipe.vo.patient.PatientOptionalDrugVo;
 
 import javax.annotation.Resource;
-import java.math.BigDecimal;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * created by shiyuping on 2020/12/9
@@ -130,8 +92,6 @@ public class RetryTest extends AbstractJUnit4SpringContextTests {
     DrugSyncToEsService drugSyncToEsService;
     @Resource
     DrugsEnterpriseGmAtop drugsEnterpriseGmAtop;
-    @Resource
-    DrugsEnterpriseBusinessService drugsEnterpriseBusinessService;
     @Resource
     ConsultClient consultClient;
     @Resource

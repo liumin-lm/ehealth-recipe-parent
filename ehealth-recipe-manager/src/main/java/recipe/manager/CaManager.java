@@ -19,7 +19,6 @@ import org.springframework.stereotype.Service;
 import recipe.aop.LogRecord;
 import recipe.client.CaClient;
 import recipe.client.DoctorClient;
-import recipe.client.IConfigurationClient;
 import recipe.client.RecipeAuditClient;
 import recipe.constant.CARecipeTypeConstant;
 import recipe.dao.sign.SignDoctorRecipeInfoDAO;
@@ -65,8 +64,6 @@ public class CaManager extends BaseManager {
      * 陕西CA密码前缀
      */
     private String SHANXI_CA_PASSWORD = "SHANXI_CA_PASSWORD";
-    @Autowired
-    private IConfigurationClient configurationClient;
     @Autowired
     private DoctorClient doctorClient;
     @Autowired

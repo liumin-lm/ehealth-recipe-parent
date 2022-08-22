@@ -2,9 +2,18 @@ package recipe.client;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.github.rholder.retry.Retryer;
+import com.github.rholder.retry.RetryerBuilder;
+import com.github.rholder.retry.StopStrategies;
+import com.github.rholder.retry.WaitStrategies;
 import com.ngari.base.patient.model.HealthCardBean;
+import com.ngari.common.mode.HisResponseTO;
+import com.ngari.his.recipe.mode.PayNotifyReqTO;
 import com.ngari.his.recipe.mode.RecipeRefundReqTO;
 import com.ngari.his.recipe.mode.RecipeRefundResTO;
+import com.ngari.platform.recipe.CashSettleResultReqTo;
+import com.ngari.platform.recipe.mode.InvoiceInfoReqTO;
+import com.ngari.platform.recipe.mode.InvoiceInfoResTO;
 import com.ngari.recipe.dto.PatientDTO;
 import com.ngari.recipe.dto.RefundResultDTO;
 import com.ngari.recipe.entity.Recipe;
@@ -14,8 +23,7 @@ import com.ngari.wxpay.service.INgariRefundService;
 import coupon.api.service.ICouponBaseService;
 import coupon.api.vo.Coupon;
 import ctd.account.UserRoleToken;
-import ctd.util.JSONUtils;
-import ctd.util.AppContextHolder;
+import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import ctd.util.context.Context;
 import ctd.util.context.ContextUtils;
@@ -28,6 +36,7 @@ import org.hibernate.service.spi.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.aop.LogRecord;
+import recipe.constant.ErrorCode;
 import recipe.constant.PayServiceConstant;
 import recipe.enumerate.status.PayWayEnum;
 import recipe.third.IEasyPayService;
@@ -38,6 +47,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @description： 支付相关client
@@ -50,12 +60,10 @@ public class PayClient extends BaseClient {
     private ICouponBaseService couponService;
     @Autowired
     private INgariRefundService refundService;
-
-//    @Autowired
-//    private ICommonPayFacade commonPayFacade;
-
     @Autowired
     private IEasyPayService iEasyPayService;
+    @Autowired
+    private IConfigurationClient configurationClient;
 
     /**
      * 获取优惠券
@@ -221,6 +229,80 @@ public class PayClient extends BaseClient {
         } catch (Exception e) {
             logger.info("RefundClient recipeRefund error ", e);
             return e.getMessage();
+        }
+    }
+
+    /**
+     * 结算重试
+     *
+     * @param req
+     * @return
+     */
+    public HisResponseTO retrySettle(PayNotifyReqTO req) {
+        // 根据机构配置获取是否调用结算反查接口
+        Boolean isRetrySettle = configurationClient.getValueBooleanCatch(Integer.valueOf(req.getOrganID()), "isRetrySettle", false);
+        if (!isRetrySettle) {
+            logger.info("三次后还是异常");
+            throw new DAOException(609, "重试三次后还是接口异常");
+        }
+        CashSettleResultReqTo cashSettleResultReqTo = CashSettleResultReqTo.builder().orderCode(req.getOrderCode()).organId(Integer.valueOf(req.getOrganID())).recipeCode(req.getRecipeNoS()).build();
+        Retryer<HisResponseTO> retryer = RetryerBuilder.<HisResponseTO>newBuilder()
+                //抛出指定异常重试
+                .retryIfExceptionOfType(Exception.class)
+                .retryIfResult(e -> "99".equals(e.getMsgCode()))
+                //停止重试策略
+                .withStopStrategy(StopStrategies.stopAfterAttempt(2))
+                //每次等待重试时间间隔
+                .withWaitStrategy(WaitStrategies.fixedWait(60000, TimeUnit.MILLISECONDS))
+                .build();
+
+        HisResponseTO hisResponse = new HisResponseTO();
+        try {
+            hisResponse = retryer.call(() -> {
+                logger.info("RecipeSettleClient.retrySettle retry cashSettleResultReqTo={}", JsonUtil.toString(cashSettleResultReqTo));
+                HisResponseTO hisResponseTO = recipeHisService.cashSettleResult(cashSettleResultReqTo);
+                logger.info("RecipeSettleClient.retrySettle hisResponseTO={}", JsonUtil.toString(hisResponseTO));
+                return hisResponseTO;
+            });
+        } catch (Exception e) {
+            hisResponse.setMsgCode("200");
+            return hisResponse;
+        }
+
+        return hisResponse;
+    }
+
+    /**
+     * 查询his是否结算成功
+     *
+     * @param req
+     * @return
+     */
+    @LogRecord
+    public HisResponseTO cashSettleResult(PayNotifyReqTO req) {
+        HisResponseTO response = new HisResponseTO();
+        Boolean isRetrySettle = configurationClient.getValueBooleanCatch(Integer.valueOf(req.getOrganID()), "isRetrySettle", false);
+        if (!isRetrySettle) {
+            response.setMsgCode("200");
+            return response;
+        }
+        CashSettleResultReqTo cashSettleResultReqTo = CashSettleResultReqTo.builder().orderCode(req.getOrderCode()).organId(Integer.valueOf(req.getOrganID())).recipeCode(req.getRecipeNoS()).build();
+        try {
+            HisResponseTO hisResponseTO = recipeHisService.cashSettleResult(cashSettleResultReqTo);
+            return hisResponseTO;
+        } catch (Exception e) {
+            response.setMsgCode("200");
+            return response;
+        }
+    }
+
+    public InvoiceInfoResTO makeUpInvoice(InvoiceInfoReqTO invoiceInfoReqTO) {
+        HisResponseTO<InvoiceInfoResTO> hisResponseTO = recipeHisService.makeUpInvoice(invoiceInfoReqTO);
+        try {
+            return getResponse(hisResponseTO);
+        } catch (Exception e) {
+            logger.error("OrderClient makeUpInvoice error", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
     }
 }

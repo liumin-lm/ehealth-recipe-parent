@@ -503,6 +503,42 @@ public class OfflineRecipeClient extends BaseClient {
         });
     }
 
+
+    /**
+     * @param clinicOrgan
+     * @param recipeId
+     * @param recipeCode
+     * @return
+     */
+    public String queryMedicineCode(Integer clinicOrgan, Integer recipeId, String recipeCode) {
+        try {
+            MedicineCodeInfoTO medicineCodeInfoTO = new MedicineCodeInfoTO();
+            medicineCodeInfoTO.setOrganId(clinicOrgan);
+            medicineCodeInfoTO.setRecipeId(recipeId);
+            medicineCodeInfoTO.setRecipeCode(recipeCode);
+            logger.info("OfflineRecipeClient queryMedicineCode medicineCodeInfoTO:{}.", JSON.toJSONString(medicineCodeInfoTO));
+            HisResponseTO<MedicineCodeResponseTO> medicineCodeResponseTO = queryMedicineCodeRetry(medicineCodeInfoTO);
+            MedicineCodeResponseTO medicineCodeResponse = getResponse(medicineCodeResponseTO);
+            logger.info("OfflineRecipeClient queryMedicineCode medicineCodeResponse:{}.", JSONUtils.toString(medicineCodeResponse));
+            return medicineCodeResponse.getMedicineCode();
+        } catch (Exception e) {
+            logger.error("OfflineRecipeClient queryMedicineCode medicineCodeResponseTO", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
+    }
+
+    public AdvanceInfoResTO getAdvanceInfo(AdvanceInfoReqTO advanceInfoReqTO) {
+        logger.info("RecipeClient AdvanceInfoReqTO advanceInfoReqTO:{}", JSON.toJSONString(advanceInfoReqTO));
+        HisResponseTO<AdvanceInfoResTO> advanceInfo = recipeHisService.getAdvanceInfo(advanceInfoReqTO);
+        try {
+            return getResponse(advanceInfo);
+        } catch (Exception e) {
+            logger.error("RecipeClient getAdvanceInfo hisResponse", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
+    }
+
+
     private RecipeInfoDTO recipeInfoDTO(HisResponseTO<com.ngari.platform.recipe.mode.RecipeDTO> hisResponse, RecipeTherapy recipeTherapy) throws Exception {
         com.ngari.platform.recipe.mode.RecipeDTO hisResponseData = getResponse(hisResponse);
         RecipeInfoDTO recipeInfoDTO = new RecipeInfoDTO();
@@ -559,29 +595,6 @@ public class OfflineRecipeClient extends BaseClient {
         return responseTo;
     }
 
-
-    /**
-     * @param clinicOrgan
-     * @param recipeId
-     * @param recipeCode
-     * @return
-     */
-    public String queryMedicineCode(Integer clinicOrgan, Integer recipeId, String recipeCode) {
-        try {
-            MedicineCodeInfoTO medicineCodeInfoTO = new MedicineCodeInfoTO();
-            medicineCodeInfoTO.setOrganId(clinicOrgan);
-            medicineCodeInfoTO.setRecipeId(recipeId);
-            medicineCodeInfoTO.setRecipeCode(recipeCode);
-            logger.info("OfflineRecipeClient queryMedicineCode medicineCodeInfoTO:{}.", JSON.toJSONString(medicineCodeInfoTO));
-            HisResponseTO<MedicineCodeResponseTO> medicineCodeResponseTO = queryMedicineCodeRetry(medicineCodeInfoTO);
-            MedicineCodeResponseTO medicineCodeResponse = getResponse(medicineCodeResponseTO);
-            logger.info("OfflineRecipeClient queryMedicineCode medicineCodeResponse:{}.", JSONUtils.toString(medicineCodeResponse));
-            return medicineCodeResponse.getMedicineCode();
-        } catch (Exception e) {
-            logger.error("OfflineRecipeClient queryMedicineCode medicineCodeResponseTO", e);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
-        }
-    }
 
     /**
      * his获取取药凭证重试

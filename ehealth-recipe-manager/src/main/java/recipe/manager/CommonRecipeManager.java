@@ -21,12 +21,10 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.client.DoctorClient;
-import recipe.client.OfflineRecipeClient;
 import recipe.constant.ErrorCode;
 import recipe.dao.CommonRecipeDAO;
 import recipe.dao.CommonRecipeDrugDAO;
 import recipe.dao.CommonRecipeExtDAO;
-import recipe.dao.OrganDrugListDAO;
 import recipe.util.ValidateUtil;
 
 import java.math.BigDecimal;
@@ -53,13 +51,9 @@ public class CommonRecipeManager extends BaseManager {
     @Autowired
     private CommonRecipeDrugDAO commonRecipeDrugDAO;
     @Autowired
-    private OrganDrugListDAO organDrugListDAO;
-    @Autowired
     private DrugManager drugManager;
     @Autowired
     private DoctorClient doctorClient;
-    @Autowired
-    private OfflineRecipeClient offlineRecipeClient;
 
     /**
      * 新增常用方信息
