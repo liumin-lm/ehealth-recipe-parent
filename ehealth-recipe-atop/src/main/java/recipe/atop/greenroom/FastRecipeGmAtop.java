@@ -148,6 +148,12 @@ public class FastRecipeGmAtop extends BaseAtop {
         }
     }
 
+    /**
+     * 患者端查询药方详情
+     *
+     * @param ids
+     * @return
+     */
     @RpcService
     public List<FastRecipeVO> findFastRecipeListByIds(List<Integer> ids) {
         if (CollectionUtils.isEmpty(ids)) {
