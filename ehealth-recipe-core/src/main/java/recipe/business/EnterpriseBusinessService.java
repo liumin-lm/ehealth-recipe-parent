@@ -89,7 +89,7 @@ import java.util.stream.Collectors;
  * @date： 2021-12-08 18:58
  */
 @Service
-public class DrugsEnterpriseBusinessService extends BaseService implements IDrugsEnterpriseBusinessService {
+public class EnterpriseBusinessService extends BaseService implements IDrugsEnterpriseBusinessService {
     @Autowired
     private EnterpriseManager enterpriseManager;
     @Autowired
