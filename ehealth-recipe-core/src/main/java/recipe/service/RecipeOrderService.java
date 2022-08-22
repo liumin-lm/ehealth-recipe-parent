@@ -2,12 +2,11 @@ package recipe.service;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.gson.JsonObject;
 import com.ngari.base.hisconfig.model.HisServiceConfigBean;
 import com.ngari.base.hisconfig.service.IHisConfigService;
 import com.ngari.base.organconfig.model.OrganConfigBean;
@@ -905,8 +904,8 @@ public class RecipeOrderService extends RecipeBaseService {
                 //TODO 这两个需要前端在切换地址或者物流公司的时候需要给
                 Integer logisticsCompany = MapValueUtil.getInteger(extInfo, "logisticsCompany");
                 Integer addressId = MapValueUtil.getInteger(extInfo, "addressId");
-                OrganLogisticsManageDto organLogisticsManageDto=new OrganLogisticsManageDto();
-                obtainExpressFee(order,enterpriseId,logisticsCompany,address,organLogisticsManageDto);
+                OrganLogisticsManageDto organLogisticsManageDto=null;
+                organLogisticsManageDto=obtainExpressFee(order,enterpriseId,logisticsCompany,address,organLogisticsManageDto);
                 if(organLogisticsManageDto!=null&&
                         !ExpressFeePayMethodEnum.CASHONDELIVERYOFFLINE.getType().equals(organLogisticsManageDto.getPayMethod())&&
                         ConsignmentPricingMethodEnum.LOGISTICS_COMPANY_PRICE.getType().equals(organLogisticsManageDto.getConsignmentPricingMethod())){
@@ -994,23 +993,25 @@ public class RecipeOrderService extends RecipeBaseService {
         }
     }
 
+//    private void obtainExpressFee1(RecipeOrder order, Integer enterpriseId, Integer logisticsCompany, AddressDTO address, OrganLogisticsManageDto organLogisticsManageDto) {
+//        organLogisticsManageDto=obtainExpressFee(order,enterpriseId,logisticsCompany,address,organLogisticsManageDto);
+//        LOGGER.info(JSONUtils.toString(organLogisticsManageDto));
+//    }
 
     /**
-     * //当患者选择的快递为顺丰快递时，快递费用查询取物流管理获取，根据物流管理返回的值去判断取值情况
-     * //1、返回为取预估价格时，直接展示物流返回的价格
-     * //2、返回为到付时，展示快递费为：到付
-     * //3、返回为取平台价格时，取处方业务线的快递费用（现有取值逻辑不变）
-     *
+     ** //当患者选择的快递为顺丰快递时，快递费用查询取物流管理获取，根据物流管理返回的值去判断取值情况
+     *      * //1、返回为取预估价格时，直接展示物流返回的价格
+     *      * //2、返回为到付时，展示快递费为：到付
+     *      * //3、返回为取平台价格时，取处方业务线的快递费用（现有取值逻辑不变）
      * @param order
      * @param enterpriseId
      * @param logisticsCompany
      * @param address
-     * @return
+     * @param organLogisticsManageDto
      */
-    private void obtainExpressFee(RecipeOrder order, Integer enterpriseId, Integer logisticsCompany, AddressDTO address,OrganLogisticsManageDto organLogisticsManageDto ) {
+    private OrganLogisticsManageDto obtainExpressFee(RecipeOrder order, Integer enterpriseId, Integer logisticsCompany, AddressDTO address,OrganLogisticsManageDto organLogisticsManageDto ) {
         try {
             DrugEnterpriseLogistics drugEnterpriseLogistics=new DrugEnterpriseLogistics();
-            organLogisticsManageDto=new OrganLogisticsManageDto();
             //lm如果前端没给物流公司，则获取默认物流公司计算快递费
             if(null ==logisticsCompany ){
                 ThirdEnterpriseCallService takeDrugService = ApplicationUtils.getRecipeService(ThirdEnterpriseCallService.class, "takeDrugService");
@@ -1032,9 +1033,11 @@ public class RecipeOrderService extends RecipeBaseService {
             if(null!=logisticsCompany&&"1".equals(String.valueOf(logisticsCompany))){
                 List<OrganLogisticsManageDto>  organLogisticsManageDtos=infraClient.findLogisticsManageByOrganIdAndLogisticsCompanyIdAndAccount(enterpriseId,logisticsCompany+"",DrugEnterpriseConstant.BUSINESS_TYPE,0);
                 if(CollectionUtils.isEmpty(organLogisticsManageDtos)){
-                    return;
+                    return organLogisticsManageDto;
                 }
                 organLogisticsManageDto=organLogisticsManageDtos.get(0);
+                LOGGER.info("organLogisticsManageDto:{}",JSONUtils.toString(organLogisticsManageDto));
+                if(organLogisticsManageDto==null){return organLogisticsManageDto;}
                 if(ExpressFeePayMethodEnum.CASHONDELIVERYOFFLINE.getType().equals(organLogisticsManageDto.getPayMethod())){
                     //lm到付 展示快递费为：到付
                     order.setExpressFeePayMethod(ExpressFeePayMethodEnum.CASHONDELIVERYOFFLINE.getType());
@@ -1053,22 +1056,25 @@ public class RecipeOrderService extends RecipeBaseService {
                         openApiAddressTO.setDestProvince(getAddressDic(address.getAddress1()));
                         openApiAddressTO.setDestCity(getAddressDic(address.getAddress2()));
                         openApiAddressTO.setDestDistrict(getAddressDic(address.getAddress3()));
-                        openApiAddressTO.setDestAddress(getAddressDic(address.getAddress4()));
+                        openApiAddressTO.setDestAddress(address.getAddress4());
                         wayBillExceptPriceTO.setOpenApiAddressTO(openApiAddressTO);
                         String expectPriceResult=infraClient.getExpectPrice(wayBillExceptPriceTO);
-                        JsonObject jsonObject = JSONObject.parseObject(expectPriceResult, JsonObject.class);
-                        JSONArray jsonArray = JSONArray.parseArray(jsonObject.get("result").toString());
-                        String price = (String) jsonArray.getJSONObject(0).get("price");
+                        if(StringUtils.isEmpty(expectPriceResult)){return organLogisticsManageDto;}
+                        ObjectMapper objectMapper=new ObjectMapper();
+                        Map<String, Object> responseMap = objectMapper.readValue(expectPriceResult, Map.class);
+                        if(null==responseMap||responseMap.isEmpty()){return organLogisticsManageDto;}
+                        List<Map<String, Object>> responseContentListMap = (List<Map<String, Object>>) responseMap.get("result");
+                        if(CollectionUtils.isEmpty(responseContentListMap)){return organLogisticsManageDto;}
+                        String price =  responseContentListMap.get(0).get("price")==null?"":String.valueOf(responseContentListMap.get(0).get("price"));
                         order.setExpressFee(new BigDecimal(price));
                     }
                 }
-
             }
         } catch (Exception e) {
             e.printStackTrace();
-            return;
+            return organLogisticsManageDto;
         }
-
+        return organLogisticsManageDto;
     }
 
     private BigDecimal getPriceForRecipeRegister(Integer organId) {
