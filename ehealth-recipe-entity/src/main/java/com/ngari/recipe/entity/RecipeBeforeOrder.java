@@ -63,6 +63,9 @@ public class RecipeBeforeOrder implements Serializable {
     @ItemProperty(alias = "地址（区）")
     private String address3;
 
+    @ItemProperty(alias = "地址（街道）")
+    private String streetAddress;
+
     @ItemProperty(alias = "详细地址")
     private String address4;
 
@@ -71,6 +74,9 @@ public class RecipeBeforeOrder implements Serializable {
 
     @ItemProperty(alias = "社区名称")
     private String address5Text;
+
+    @ItemProperty(alias = "当前地址是否可进行配送")
+    private Boolean addressCanSend;
 
     @ItemProperty(alias = "邮政编码")
     private String zipCode;
@@ -426,5 +432,23 @@ public class RecipeBeforeOrder implements Serializable {
 
     public void setRecipeFee(BigDecimal recipeFee) {
         this.recipeFee = recipeFee;
+    }
+
+    @Column(name = "street_address")
+    public String getStreetAddress() {
+        return streetAddress;
+    }
+
+    public void setStreetAddress(String streetAddress) {
+        this.streetAddress = streetAddress;
+    }
+
+    @Transient
+    public Boolean getAddressCanSend() {
+        return addressCanSend;
+    }
+
+    public void setAddressCanSend(Boolean addressCanSend) {
+        this.addressCanSend = addressCanSend;
     }
 }

@@ -963,10 +963,10 @@ public class OrderManager extends BaseManager {
             }
         //配送方式为医院配送或药企配送
         }else if(new Integer(1).equals(shoppingCartReqDTO.getGiveMode())){
-            recipeBeforeOrder.setGiveModeKey(shoppingCartReqDTO.getGiveModeKey());
-            recipeBeforeOrder.setGiveModeText(shoppingCartReqDTO.getGiveModeKey().equals("showSendToHos") ? "医院配送" : "药企配送");
             recipeBeforeOrder.setIsReady(0);
         }
+        recipeBeforeOrder.setGiveModeKey(shoppingCartReqDTO.getGiveModeKey());
+        recipeBeforeOrder.setGiveModeText(RecipeSupportGiveModeEnum.getNameByText(shoppingCartReqDTO.getGiveModeKey()));
         recipeBeforeOrder.setDeleteFlag(0);
         recipeBeforeOrder.setCreateTime(new Date());
         recipeBeforeOrder.setUpdateTime(new Date());

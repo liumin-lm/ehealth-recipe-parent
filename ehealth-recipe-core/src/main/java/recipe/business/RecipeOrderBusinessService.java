@@ -1060,31 +1060,17 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
             List<List<RecipeBeforeOrder>> mergeBeforeOrder = orderManager.mergeBeforeOrder(recipeBeforeOrderList);
             logger.info("getShoppingCartDetail mergeBeforeOrder ={}",JSONUtils.toString(mergeBeforeOrder));
             for(List<RecipeBeforeOrder> recipeBeforeOrders : mergeBeforeOrder){
-                List<List<Recipedetail>> recipeDetail = new ArrayList<>();
                 ShoppingCartDetailDTO shoppingCartDetailDTO = new ShoppingCartDetailDTO();
                 RecipeBeforeOrder beforeOrder = recipeBeforeOrders.get(0);
                 RecipeOrder recipeOrder = new RecipeOrder();
-                BigDecimal expressFee = null;
-                AddressDTO addressDTO = new AddressDTO();
-                addressDTO.setAddress1(beforeOrder.getAddress1());
-                addressDTO.setAddress2(beforeOrder.getAddress2());
-                addressDTO.setAddress3(beforeOrder.getAddress3());
-                addressDTO.setAddress4(beforeOrder.getAddress4());
-                addressDTO.setRecMobile(beforeOrder.getRecMobile());
-                List<Integer> recipeIds = new ArrayList<>();
-                Integer recipeId = beforeOrder.getRecipeId();
-                recipeIds.add(recipeId);
-                recipeOrder.setEnterpriseId(beforeOrder.getEnterpriseId());
-                //运费
-                orderService.setOrderAddress(new OrderCreateResult(200),recipeOrder,recipeIds, new RecipePayModeSupportBean(),null,0,addressDTO);
-                beforeOrder.setExpressFee(recipeOrder.getExpressFee());
-                expressFee = recipeOrder.getExpressFee();
-                BigDecimal recipeFee = BigDecimal.ONE;
-                BigDecimal tcmFee = BigDecimal.ONE;
-                BigDecimal decoctionFee = BigDecimal.ONE;
-                BigDecimal auditFee = BigDecimal.ONE;
+                BigDecimal recipeFee = BigDecimal.ZERO;
+                BigDecimal tcmFee = BigDecimal.ZERO;
+                BigDecimal decoctionFee = BigDecimal.ZERO;
+                BigDecimal auditFee = BigDecimal.ZERO;
+                List<Recipe> recipeList = new ArrayList<>();
+                List<RecipeDTO> recipeDTOList = new ArrayList<>();
                 for(RecipeBeforeOrder recipeBeforeOrder : recipeBeforeOrders){
-                    List<Recipe> recipeList = new ArrayList<>();
+                    RecipeDTO recipeDTO = new RecipeDTO();
                     Recipe recipe = recipeDAO.getByRecipeId(recipeBeforeOrder.getRecipeId());
                     if(recipe != null){
                         //处方费用
@@ -1093,6 +1079,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                             recipeFee = recipeFee.add(recipe.getTotalMoney());
                         }
                         recipeList.add(recipe);
+                        recipeDTO.setRecipe(recipe);
                         orderFeeManager.setRecipeChineseMedicineFee(recipeList,recipeOrder,null);
                         if(recipeOrder.getTcmFee() != null){
                             //中医辨证论治费
@@ -1110,15 +1097,16 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                             recipeBeforeOrder.setAuditFee(recipeOrder.getAuditFee());
                             auditFee = auditFee.add(recipeOrder.getAuditFee());
                         }
-                        recipeBeforeOrder.setExpressFee(expressFee);
+                        //recipeBeforeOrder.setExpressFee(expressFee);
                         recipeBeforeOrderDAO.updateNonNullFieldByPrimaryKey(recipeBeforeOrder);
                     }
                     List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipeBeforeOrder.getRecipeId());
-                    recipeDetail.add(recipeDetailList);
+                    recipeDTO.setRecipeDetails(recipeDetailList);
+                    recipeDTOList.add(recipeDTO);
                 }
                 //处方费
                 beforeOrder.setRecipeFee(recipeFee);
-                shoppingCartDetailDTO.setRecipeDetail(recipeDetail);
+                shoppingCartDetailDTO.setRecipeDTO(recipeDTOList);
                 shoppingCartDetailDTO.setRecipeBeforeOrder(beforeOrder);
                 shoppingCartDetailDTOList.add(shoppingCartDetailDTO);
                 logger.info("getShoppingCartDetail shoppingCartDetailDTOList={}",JSONUtils.toString(shoppingCartDetailDTOList));

@@ -1,7 +1,6 @@
 package com.ngari.recipe.dto;
 
 import com.ngari.recipe.entity.RecipeBeforeOrder;
-import com.ngari.recipe.entity.Recipedetail;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -13,5 +12,5 @@ public class ShoppingCartDetailDTO implements Serializable {
 
     private RecipeBeforeOrder recipeBeforeOrder;
 
-    private List<List<Recipedetail>> recipeDetail;
+    private List<RecipeDTO> recipeDTO;
 }
