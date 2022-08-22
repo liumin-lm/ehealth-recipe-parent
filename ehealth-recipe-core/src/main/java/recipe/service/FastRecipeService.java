@@ -2,18 +2,17 @@ package recipe.service;
 
 import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
+import com.ngari.recipe.dto.EmrDetailDTO;
 import com.ngari.recipe.dto.FastRecipeReq;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
-import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import com.ngari.recipe.vo.FastRecipeDetailVO;
 import com.ngari.recipe.vo.FastRecipeVO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
-import eh.cdr.api.vo.MedicalDetailBean;
 import eh.utils.ValidateUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
@@ -139,9 +138,9 @@ public class FastRecipeService implements IFastRecipeBusinessService {
         fastRecipe.setDecoctionPrice(recipeExtend.getDecoctionPrice());
         fastRecipe.setDecoctionText(recipeExtend.getDecoctionText());
         if (Objects.nonNull(recipeExtend.getDocIndexId())) {
-            MedicalDetailBean medicalDetailBean = docIndexClient.getEmrMedicalDetail(recipeExtend.getDocIndexId());
-            if (Objects.nonNull(medicalDetailBean) && CollectionUtils.isNotEmpty(medicalDetailBean.getDetailList())) {
-                fastRecipe.setDocText(JSONUtils.toString(medicalDetailBean.getDetailList()));
+            EmrDetailDTO emrDetailDTO = docIndexClient.getEmrDetails(recipeExtend.getDocIndexId());
+            if (Objects.nonNull(emrDetailDTO)) {
+                fastRecipe.setDocText(JSONUtils.toString(emrDetailDTO));
             }
         }
         fastRecipe.setFromFlag(recipeExtend.getFromFlag());
