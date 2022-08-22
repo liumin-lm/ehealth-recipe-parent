@@ -2,10 +2,12 @@ package recipe.service;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.gson.JsonObject;
 import com.ngari.base.hisconfig.model.HisServiceConfigBean;
 import com.ngari.base.hisconfig.service.IHisConfigService;
 import com.ngari.base.organconfig.model.OrganConfigBean;
@@ -19,6 +21,9 @@ import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.recipe.mode.QueryHisRecipResTO;
 import com.ngari.his.recipe.mode.RecipeThirdUrlReqTO;
 import com.ngari.his.recipe.service.IRecipeEnterpriseService;
+import com.ngari.infra.logistics.mode.OpenApiAddressTO;
+import com.ngari.infra.logistics.mode.OrganLogisticsManageDto;
+import com.ngari.infra.logistics.mode.WayBillExceptPriceTO;
 import com.ngari.patient.dto.AddressDTO;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
@@ -66,6 +71,7 @@ import recipe.bean.RecipePayModeSupportBean;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.client.IConfigurationClient;
+import recipe.client.InfraClient;
 import recipe.client.PayClient;
 import recipe.common.CommonConstant;
 import recipe.common.ResponseUtils;
@@ -73,6 +79,7 @@ import recipe.constant.*;
 import recipe.core.api.IStockBusinessService;
 import recipe.dao.*;
 import recipe.drugsenterprise.*;
+import recipe.drugsenterprise.bean.DrugsEnterpriseDTO;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.status.*;
 import recipe.enumerate.type.*;
@@ -179,6 +186,10 @@ public class RecipeOrderService extends RecipeBaseService {
     private StateManager stateManager;
     @Autowired
     private DrugSaleStrategyDAO drugSaleStrategyDAO;
+    @Autowired
+    private InfraClient infraClient;
+
+
 
     /**
      * 处方结算时创建临时订单
@@ -867,6 +878,16 @@ public class RecipeOrderService extends RecipeBaseService {
         return recipeOrderDAO.updateByOrdeCode(order.getOrderCode(), orderInfo);
     }
 
+    /**
+     * 计算快递费、设置收货人信息
+     * @param result
+     * @param order
+     * @param recipeIds
+     * @param payModeSupport
+     * @param extInfo
+     * @param toDbFlag
+     * @param address
+     */
     private void setOrderAddress(OrderCreateResult result, RecipeOrder order, List<Integer> recipeIds, RecipePayModeSupportBean payModeSupport, Map<String, String> extInfo, Integer toDbFlag, AddressDTO address) {
         Integer takeMedicineWay = MapValueUtil.getInteger(extInfo, "takeMedicineWay");
         if (TakeMedicineWayEnum.TAKE_MEDICINE_STATION.getType().equals(takeMedicineWay)) {
@@ -880,35 +901,51 @@ public class RecipeOrderService extends RecipeBaseService {
             if (StringUtils.isNotEmpty(paramExpressFee)) {
                 expressFee = new BigDecimal(paramExpressFee);
             } else {
-                //优化快递费用获取，当费用是从第三方获取需要取第三方接口返回的快递费用
-                DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
-                if (drugsEnterprise != null && new Integer(1).equals(drugsEnterprise.getExpressFeeType())) {
-                    //获取地址信息
-                    String address1 = address.getAddress1();  //省
-                    String address2 = address.getAddress2();  //市
-                    String address3 = address.getAddress3();  //区
-                    String address4 = address.getAddress4();  //详细地址
-                    String phone = address.getRecMobile();
-                    Map<String, Object> parames = new HashMap<>();
-                    parames.put("province", getAddressDic(address1));
-                    parames.put("city", getAddressDic(address2));
-                    parames.put("district", getAddressDic(address3));
-                    parames.put("depId", order.getEnterpriseId());
-                    parames.put("recipeId", recipeIds.get(0));
-                    parames.put("provinceCode", address1);
-                    parames.put("address", address4);
-                    parames.put("phone", phone);
-                    RemoteDrugEnterpriseService drugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
-                    Map<String, Object> expressFeeResult = drugEnterpriseService.getExpressFee(parames);
-                    if ("0".equals(expressFeeResult.get("expressFeeType").toString())) {
-                        //需要从平台获取
-                        expressFee = orderFeeManager.getPlatformExpressFee(order.getEnterpriseId(), address.getAddress3());
+                Integer enterpriseId = MapValueUtil.getInteger(extInfo, "depId");
+                //TODO 这两个需要前端在切换地址或者物流公司的时候需要给
+                Integer logisticsCompany = MapValueUtil.getInteger(extInfo, "logisticsCompany");
+                Integer addressId = MapValueUtil.getInteger(extInfo, "addressId");
+                OrganLogisticsManageDto organLogisticsManageDto=new OrganLogisticsManageDto();
+                obtainExpressFee(order,enterpriseId,logisticsCompany,address,organLogisticsManageDto);
+                if(organLogisticsManageDto!=null&&
+                        !ExpressFeePayMethodEnum.CASHONDELIVERYOFFLINE.getType().equals(organLogisticsManageDto.getPayMethod())&&
+                        ConsignmentPricingMethodEnum.LOGISTICS_COMPANY_PRICE.getType().equals(organLogisticsManageDto.getConsignmentPricingMethod())){
+                    //取物流公司预估价格
+                    expressFee=order.getExpressFee();
+                }else{
+                    //取机构设置物流价格
+                    //优化快递费用获取，当费用是从第三方获取需要取第三方接口返回的快递费用
+                    DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
+                    if (drugsEnterprise != null && new Integer(1).equals(drugsEnterprise.getExpressFeeType())) {
+                        //获取地址信息
+                        String address1 = address.getAddress1();  //省
+                        String address2 = address.getAddress2();  //市
+                        String address3 = address.getAddress3();  //区
+                        String address4 = address.getAddress4();  //详细地址
+                        String phone = address.getRecMobile();
+                        Map<String, Object> parames = new HashMap<>();
+                        parames.put("province", getAddressDic(address1));
+                        parames.put("city", getAddressDic(address2));
+                        parames.put("district", getAddressDic(address3));
+                        parames.put("depId", order.getEnterpriseId());
+                        parames.put("recipeId", recipeIds.get(0));
+                        parames.put("provinceCode", address1);
+                        parames.put("address", address4);
+                        parames.put("phone", phone);
+                        RemoteDrugEnterpriseService drugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+                        Map<String, Object> expressFeeResult = drugEnterpriseService.getExpressFee(parames);
+                        if ("0".equals(expressFeeResult.get("expressFeeType").toString())) {
+                            //需要从平台获取
+                            expressFee = orderFeeManager.getPlatformExpressFee(order.getEnterpriseId(), address.getAddress3());
+                        } else {
+                            expressFee = new BigDecimal(expressFeeResult.get("expressFee").toString());
+                        }
                     } else {
-                        expressFee = new BigDecimal(expressFeeResult.get("expressFee").toString());
+                        expressFee = orderFeeManager.getPlatformExpressFee(order.getEnterpriseId(), address.getAddress3());
                     }
-                } else {
-                    expressFee = orderFeeManager.getPlatformExpressFee(order.getEnterpriseId(), address.getAddress3());
                 }
+
+
             }
             LOGGER.info("setOrderAddress recipeIds:{}, expressFee:{}.", JSONUtils.toString(recipeIds), expressFee);
             order.setExpressFee(expressFee);
@@ -955,6 +992,83 @@ public class RecipeOrderService extends RecipeBaseService {
                 result.setMsg("没有配送地址");
             }
         }
+    }
+
+
+    /**
+     * //当患者选择的快递为顺丰快递时，快递费用查询取物流管理获取，根据物流管理返回的值去判断取值情况
+     * //1、返回为取预估价格时，直接展示物流返回的价格
+     * //2、返回为到付时，展示快递费为：到付
+     * //3、返回为取平台价格时，取处方业务线的快递费用（现有取值逻辑不变）
+     *
+     * @param order
+     * @param enterpriseId
+     * @param logisticsCompany
+     * @param address
+     * @return
+     */
+    private void obtainExpressFee(RecipeOrder order, Integer enterpriseId, Integer logisticsCompany, AddressDTO address,OrganLogisticsManageDto organLogisticsManageDto ) {
+        try {
+            DrugEnterpriseLogistics drugEnterpriseLogistics=new DrugEnterpriseLogistics();
+            organLogisticsManageDto=new OrganLogisticsManageDto();
+            //lm如果前端没给物流公司，则获取默认物流公司计算快递费
+            if(null ==logisticsCompany ){
+                ThirdEnterpriseCallService takeDrugService = ApplicationUtils.getRecipeService(ThirdEnterpriseCallService.class, "takeDrugService");
+                DrugsEnterpriseDTO drugsEnterpriseDTO=takeDrugService.findByEnterpriseId(enterpriseId);
+                if(drugsEnterpriseDTO!=null){
+                    List<DrugEnterpriseLogistics> drugEnterpriseLogisticsList=drugsEnterpriseDTO.getDrugEnterpriseLogisticsList();
+                    if(CollectionUtils.isNotEmpty(drugEnterpriseLogisticsList)){
+                        List<DrugEnterpriseLogistics> drugEnterpriseLogisticsExistsDefault=drugEnterpriseLogisticsList.stream().filter(a -> "1".equals(a.getIsDefault())).collect(Collectors.toList());
+                        if(CollectionUtils.isNotEmpty(drugEnterpriseLogisticsExistsDefault)){
+                            drugEnterpriseLogistics=drugEnterpriseLogisticsExistsDefault.get(0);
+                        }else{
+                            drugEnterpriseLogistics=drugEnterpriseLogisticsList.get(0);
+                        }
+                    }
+                    logisticsCompany=drugEnterpriseLogistics.getLogisticsCompany();
+                }
+            }
+            //顺丰
+            if(null!=logisticsCompany&&"1".equals(String.valueOf(logisticsCompany))){
+                List<OrganLogisticsManageDto>  organLogisticsManageDtos=infraClient.findLogisticsManageByOrganIdAndLogisticsCompanyIdAndAccount(enterpriseId,logisticsCompany+"",DrugEnterpriseConstant.BUSINESS_TYPE,0);
+                if(CollectionUtils.isEmpty(organLogisticsManageDtos)){
+                    return;
+                }
+                organLogisticsManageDto=organLogisticsManageDtos.get(0);
+                if(ExpressFeePayMethodEnum.CASHONDELIVERYOFFLINE.getType().equals(organLogisticsManageDto.getPayMethod())){
+                    //lm到付 展示快递费为：到付
+                    order.setExpressFeePayMethod(ExpressFeePayMethodEnum.CASHONDELIVERYOFFLINE.getType());
+                }else{
+                    //lm寄付
+                    if(ConsignmentPricingMethodEnum.LOGISTICS_COMPANY_PRICE.getType().equals(organLogisticsManageDto.getConsignmentPricingMethod())){
+                        //lm物流公司预估价格
+                        WayBillExceptPriceTO wayBillExceptPriceTO=new WayBillExceptPriceTO();
+                        wayBillExceptPriceTO.setType(1);
+                        wayBillExceptPriceTO.setOrganid(order.getOrganId());
+                        OpenApiAddressTO openApiAddressTO=new OpenApiAddressTO();
+                        openApiAddressTO.setSrcProvince(organLogisticsManageDto.getConsignorProvince());
+                        openApiAddressTO.setSrcCity(organLogisticsManageDto.getConsignorCity());
+                        openApiAddressTO.setSrcDistrict(organLogisticsManageDto.getConsignorDistrict());
+                        openApiAddressTO.setSrcAddress(organLogisticsManageDto.getConsignorAddress());
+                        openApiAddressTO.setDestProvince(getAddressDic(address.getAddress1()));
+                        openApiAddressTO.setDestCity(getAddressDic(address.getAddress2()));
+                        openApiAddressTO.setDestDistrict(getAddressDic(address.getAddress3()));
+                        openApiAddressTO.setDestAddress(getAddressDic(address.getAddress4()));
+                        wayBillExceptPriceTO.setOpenApiAddressTO(openApiAddressTO);
+                        String expectPriceResult=infraClient.getExpectPrice(wayBillExceptPriceTO);
+                        JsonObject jsonObject = JSONObject.parseObject(expectPriceResult, JsonObject.class);
+                        JSONArray jsonArray = JSONArray.parseArray(jsonObject.get("result").toString());
+                        String price = (String) jsonArray.getJSONObject(0).get("price");
+                        order.setExpressFee(new BigDecimal(price));
+                    }
+                }
+
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return;
+        }
+
     }
 
     private BigDecimal getPriceForRecipeRegister(Integer organId) {

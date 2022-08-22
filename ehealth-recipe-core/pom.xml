@@ -216,6 +216,10 @@
             <artifactId>barcode4j-light</artifactId>
             <version>2.0</version>
         </dependency>
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
+        </dependency>
 
 
     </dependencies>
