@@ -906,7 +906,9 @@ public class RecipeOrderService extends RecipeBaseService {
                 Integer addressId = MapValueUtil.getInteger(extInfo, "addressId");
                 OrganLogisticsManageDto organLogisticsManageDto=null;
                 organLogisticsManageDto=obtainExpressFee(order,enterpriseId,logisticsCompany,address,organLogisticsManageDto);
-                if(organLogisticsManageDto!=null&&
+                if(ExpressFeePayMethodEnum.CASHONDELIVERYOFFLINE.getType().equals(order.getExpressFeePayMethod())){
+                    expressFee=null;
+                }else if(organLogisticsManageDto!=null&&
                         !ExpressFeePayMethodEnum.CASHONDELIVERYOFFLINE.getType().equals(organLogisticsManageDto.getPayMethod())&&
                         ConsignmentPricingMethodEnum.LOGISTICS_COMPANY_PRICE.getType().equals(organLogisticsManageDto.getConsignmentPricingMethod())){
                     //取物流公司预估价格

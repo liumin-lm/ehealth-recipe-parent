@@ -378,6 +378,17 @@ public class RecipeOrderBean implements Serializable {
     @ItemProperty(alias = "发票记录ID")
     private Integer invoiceRecordId;
 
+    @ItemProperty(alias = "配送费付款方式ExpressFeePayMethodEnum")
+    private Integer expressFeePayMethod;
+
+    public Integer getExpressFeePayMethod() {
+        return expressFeePayMethod;
+    }
+
+    public void setExpressFeePayMethod(Integer expressFeePayMethod) {
+        this.expressFeePayMethod = expressFeePayMethod;
+    }
+
     public BigDecimal getDecoctionTotalFee() {
         return decoctionTotalFee;
     }
