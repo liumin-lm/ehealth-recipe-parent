@@ -2,6 +2,8 @@ package com.ngari.recipe.dto;
 
 import lombok.Data;
 
+import java.util.List;
+
 /**
  * @Description
  * @Author yzl
@@ -17,4 +19,6 @@ public class FastRecipeReq {
     private Integer start;
 
     private Integer limit;
+
+    private List<Integer> statusList;
 }
