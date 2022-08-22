@@ -1039,7 +1039,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
             return recipeBeforeOrder.getIsReady();
         }
         logger.info("getImperfectFlag recipeBeforeOrder为null");
-        return null;
+        return 0;
     }
 
     /**
