@@ -2,10 +2,12 @@ package recipe.service;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.gson.JsonObject;
 import com.ngari.base.hisconfig.model.HisServiceConfigBean;
 import com.ngari.base.hisconfig.service.IHisConfigService;
 import com.ngari.base.organconfig.model.OrganConfigBean;
@@ -19,6 +21,9 @@ import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.recipe.mode.QueryHisRecipResTO;
 import com.ngari.his.recipe.mode.RecipeThirdUrlReqTO;
 import com.ngari.his.recipe.service.IRecipeEnterpriseService;
+import com.ngari.infra.logistics.mode.OpenApiAddressTO;
+import com.ngari.infra.logistics.mode.OrganLogisticsManageDto;
+import com.ngari.infra.logistics.mode.WayBillExceptPriceTO;
 import com.ngari.patient.dto.AddressDTO;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
@@ -74,6 +79,7 @@ import recipe.constant.*;
 import recipe.core.api.IStockBusinessService;
 import recipe.dao.*;
 import recipe.drugsenterprise.*;
+import recipe.drugsenterprise.bean.DrugsEnterpriseDTO;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.status.*;
 import recipe.enumerate.type.*;
@@ -882,7 +888,7 @@ public class RecipeOrderService extends RecipeBaseService {
      * @param toDbFlag
      * @param address
      */
-    private void setOrderAddress(OrderCreateResult result, RecipeOrder order, List<Integer> recipeIds, RecipePayModeSupportBean payModeSupport, Map<String, String> extInfo, Integer toDbFlag, AddressDTO address) {
+    public void setOrderAddress(OrderCreateResult result, RecipeOrder order, List<Integer> recipeIds, RecipePayModeSupportBean payModeSupport, Map<String, String> extInfo, Integer toDbFlag, AddressDTO address) {
         Integer takeMedicineWay = MapValueUtil.getInteger(extInfo, "takeMedicineWay");
         if (TakeMedicineWayEnum.TAKE_MEDICINE_STATION.getType().equals(takeMedicineWay)) {
             return;
