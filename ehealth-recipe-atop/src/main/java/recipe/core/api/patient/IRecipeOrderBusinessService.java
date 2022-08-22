@@ -4,12 +4,10 @@ package recipe.core.api.patient;
 import com.ngari.common.dto.CheckRequestCommonOrderPageDTO;
 import com.ngari.common.dto.SyncOrderVO;
 import com.ngari.recipe.common.RecipeResultBean;
-import com.ngari.recipe.dto.RecipeFeeDTO;
-import com.ngari.recipe.dto.RecipeOrderDto;
-import com.ngari.recipe.dto.ReimbursementDTO;
-import com.ngari.recipe.dto.SkipThirdDTO;
+import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.recipe.model.*;
+import com.ngari.recipe.vo.ShoppingCartReqVO;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
 import ctd.util.annotation.RpcService;
 import easypay.entity.vo.param.bus.SelfPreSettleQueryReq;
@@ -179,4 +177,34 @@ public interface IRecipeOrderBusinessService {
      * @return
      */
     SelfPreSettleQueryReq selfPreSettleQueryInfo(Integer busId);
+
+    /**
+     * 第三方获取订单预算信息
+     * @param thirdOrderPreSettleReq
+     * @return
+     */
+    ThirdOrderPreSettleRes thirdOrderPreSettle(ThirdOrderPreSettleReq thirdOrderPreSettleReq);
+
+
+    /**
+     * 获取未完善或完善标识
+     * @param organId
+     * @param recipeCode
+     * @return
+     */
+    Integer getImperfectFlag(Integer organId, String recipeCode);
+
+    /**
+     * 获取购物车信息
+     * @param mpiId
+     * @return
+     */
+    List<ShoppingCartDetailDTO> getShoppingCartDetail(String mpiId);
+
+    /**
+     * 保存购物车信息
+     * @param shoppingCartReqVO
+     * @return
+     */
+    void saveRecipeBeforeOrderInfo(ShoppingCartReqVO shoppingCartReqVO);
 }

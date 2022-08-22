@@ -167,29 +167,25 @@ public class OrganDrugList implements java.io.Serializable {
     @ItemProperty(alias="药品适用业务   历史数据默认 1    1-药品处方 2-诊疗处方 多选： 1,2   eh.base.dictionary.ApplyBusiness ")
     private String applyBusiness;
 
-    @ItemProperty(alias="药品单复方  0单复方可报  1单方不可报， 复方可报 2 单复方均不可报 ")
+    @ItemProperty(alias = "药品单复方  0单复方可报  1单方不可报， 复方可报 2 单复方均不可报 ")
     @Dictionary(id = "eh.cdr.dictionary.UnilateralCompound")
     private Integer unilateralCompound;
-    @ItemProperty(alias="是否靶向药  0否  1是 ")
+    @ItemProperty(alias = "是否靶向药  0否  1是 ")
     private Integer targetedDrugType;
 
     @ItemProperty(alias = "最小销售倍数")
     private Integer smallestSaleMultiple;
 
-//    @ItemProperty(alias = "销售策略")
-//    private String salesStrategy;
-//
-//    @ItemProperty(alias = "类型")
-//    private String type;
+    @ItemProperty(alias = "不可在线开具:开关，默认关闭(0),开启（1）")
+    private Integer unavailable;
 
-//    @Column(name = "sales_strategy")
-//    public String getSalesStrategy() {
-//        return salesStrategy;
-//    }
-//
-//    public void setSalesStrategy(String salesStrategy) {
-//        this.salesStrategy = salesStrategy;
-//    }
+    public Integer getUnavailable() {
+        return unavailable;
+    }
+
+    public void setUnavailable(Integer unavailable) {
+        this.unavailable = unavailable;
+    }
 
     @Column(name = "smallest_sale_multiple")
     public Integer getSmallestSaleMultiple() {

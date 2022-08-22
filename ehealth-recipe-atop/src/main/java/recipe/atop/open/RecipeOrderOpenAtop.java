@@ -164,6 +164,12 @@ public class RecipeOrderOpenAtop extends BaseAtop implements IRecipeOrderAtopSer
         logger.info("RecipeOrderOpenAtop thirdCreateOrder thirdCreateOrderReqDTO:{}.", JSONUtils.toString(thirdCreateOrderReqDTO));
         return recipeOrderService.thirdCreateOrder(thirdCreateOrderReqDTO);
     }
+
+    @Override
+    public ThirdOrderPreSettleRes thirdOrderPreSettle(ThirdOrderPreSettleReq thirdOrderPreSettleReq) {
+        return recipeOrderService.thirdOrderPreSettle(thirdOrderPreSettleReq);
+    }
+
     @Override
     public CabinetVO validateCabinetRecipeStatus(CabinetVO cabinetVO) {
         validateAtop(cabinetVO.getOrganId(),cabinetVO.getRecipeCode());
@@ -174,10 +180,12 @@ public class RecipeOrderOpenAtop extends BaseAtop implements IRecipeOrderAtopSer
     @Override
     public void putInCabinetNotice(CabinetVO cabinetVO) {
         validateAtop(cabinetVO);
-
         recipeOrderService.putInCabinetNotice(cabinetVO);
     }
 
-
+    @Override
+    public Integer getImperfectFlag(Integer organId, String recipeCode) {
+        return recipeOrderService.getImperfectFlag(organId,recipeCode);
+    }
 
 }

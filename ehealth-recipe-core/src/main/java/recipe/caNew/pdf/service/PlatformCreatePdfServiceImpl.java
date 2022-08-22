@@ -390,15 +390,12 @@ public class PlatformCreatePdfServiceImpl extends BaseCreatePdf implements Creat
             StringBuilder stringBuilder = new StringBuilder(i + 1);
             stringBuilder.append(i + 1).append("、");
             //药品显示名处理
-            if (StringUtils.isNotEmpty(d.getDrugDisplaySplicedName())) {
-                stringBuilder.append(d.getDrugDisplaySplicedName());
-            } else {
-                stringBuilder.append(d.getDrugName()).append(d.getDrugSpec()).append("/").append(d.getDrugUnit());
-            }
+            stringBuilder.append(d.getDrugName());
             if (DrugBelongTypeEnum.SECRECY_DRUG.getType().equals(d.getType())) {
                 list.add(new RecipeLabelDTO("medicine", "drugInfo" + i, stringBuilder.toString()));
                 continue;
             }
+            stringBuilder.append("   ").append(d.getDrugSpec()).append("/").append(d.getDrugUnit());
             stringBuilder.append("   ").append("X").append(d.getUseTotalDose()).append(d.getDrugUnit());
             Boolean canShowDrugCost = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "canShowDrugCost", false);
             if (canShowDrugCost) {

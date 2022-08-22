@@ -703,6 +703,7 @@ public class CreatePdfFactory {
             address.append(getDictionary("eh.base.dictionary.AddrArea", order.getAddress1()));
             address.append(getDictionary("eh.base.dictionary.AddrArea", order.getAddress2()));
             address.append(getDictionary("eh.base.dictionary.AddrArea", order.getAddress3()));
+            address.append(getDictionary("eh.base.dictionary.AddrArea", order.getStreetAddress()));
             address.append(StringUtils.isEmpty(order.getAddress4()) ? "" : order.getAddress4());
         }
         return address.toString();

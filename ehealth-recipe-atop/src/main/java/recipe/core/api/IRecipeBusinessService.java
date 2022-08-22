@@ -1,6 +1,7 @@
 package recipe.core.api;
 
 import com.ngari.patient.dto.HealthCardDTO;
+import com.ngari.recipe.entity.DoctorCommonPharmacy;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.OutPatientRecipeDTO;
@@ -17,6 +18,7 @@ import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.greenroom.DrugUsageLabelResp;
 import recipe.vo.patient.PatientOptionalDrugVo;
 import recipe.vo.second.MedicalDetailVO;
+import recipe.vo.second.RecipeOutpatientPaymentReq;
 import recipe.vo.second.RecipePayHISCallbackReq;
 
 import java.util.Date;
@@ -287,4 +289,14 @@ public interface IRecipeBusinessService {
      * @param recipePayHISCallbackReq
      */
     void recipePayHISCallback(RecipePayHISCallbackReq recipePayHISCallbackReq);
+
+    DoctorCommonPharmacy findDoctorCommonPharmacyByOrganIdAndDoctorId(Integer organId, Integer doctorId);
+
+    void saveDoctorCommonPharmacy(DoctorCommonPharmacy doctorCommonPharmacy);
+
+    /**
+     * 门诊缴费支付回调
+     * @param recipeOutpatientPaymentReq
+     */
+    void recipeOutpatientPaymentCallback(RecipeOutpatientPaymentReq recipeOutpatientPaymentReq);
 }

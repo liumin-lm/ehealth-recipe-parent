@@ -1142,15 +1142,21 @@ public class RecipeService extends RecipeBaseService {
                 }
             }
             //第三步校验库存
-            Integer appointEnterpriseType = recipeBean.getRecipeExtend().getAppointEnterpriseType();
-            if ((continueFlag == 0 || continueFlag == 4) && ValidateUtil.integerIsEmpty(appointEnterpriseType)
-                    && ValidateUtil.integerIsEmpty(recipeBean.getVersion())) {
-                rMap = drugEnterpriseBusinessService.enterpriseStockMap(recipeBean.getRecipeId());
-                boolean signResult = Boolean.valueOf(rMap.get("signResult").toString());
-                if (!signResult) {
-                    return rMap;
+            if (ValidateUtil.integerIsEmpty(recipeBean.getVersion())) {
+                Integer appointEnterpriseType = recipeBean.getRecipeExtend().getAppointEnterpriseType();
+                if ((continueFlag == 0 || continueFlag == 4) && ValidateUtil.integerIsEmpty(appointEnterpriseType)) {
+                    rMap = drugEnterpriseBusinessService.enterpriseStockMap(recipeBean.getRecipeId());
+                    boolean signResult = Boolean.valueOf(rMap.get("signResult").toString());
+                    if (!signResult) {
+                        return rMap;
+                    }
+                }
+            } else {
+                if (StringUtils.isEmpty(recipeBean.getRecipeSupportGiveMode())) {
+                    throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, "无够药方式");
                 }
             }
+
             //跳转所需要的复诊信息
             Integer consultId = recipeBean.getClinicId();
             Integer bussSource = recipeBean.getBussSource();

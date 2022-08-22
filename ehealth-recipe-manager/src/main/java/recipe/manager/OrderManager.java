@@ -8,11 +8,11 @@ import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.recipe.mode.RecipeThirdUrlReqTO;
 import com.ngari.infra.logistics.mode.ControlLogisticsOrderDto;
+import com.ngari.infra.logistics.mode.LogisticsDistanceDto;
 import com.ngari.infra.logistics.mode.OrganLogisticsManageDto;
 import com.ngari.infra.logistics.service.IOrganLogisticsManageService;
 import com.ngari.patient.dto.AddressDTO;
 import com.ngari.patient.dto.DoctorDTO;
-import com.ngari.patient.dto.HealthCardDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.AddressService;
 import com.ngari.patient.service.DoctorService;
@@ -41,6 +41,7 @@ import recipe.client.*;
 import recipe.constant.DrugEnterpriseConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.dao.*;
+import recipe.enumerate.status.GiveModeEnum;
 import recipe.enumerate.status.OrderStateEnum;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
@@ -73,8 +74,6 @@ public class OrderManager extends BaseManager {
     private RevisitClient revisitClient;
     @Resource
     private RecipeOrderPayFlowDao recipeOrderPayFlowDao;
-    @Resource
-    private IConfigurationClient configurationClient;
     @Autowired
     private DoctorService doctorService;
     @Autowired
@@ -86,12 +85,46 @@ public class OrderManager extends BaseManager {
     @Autowired
     private PatientService patientService;
     @Autowired
-    private OrderClient orderClient;
-    @Autowired
     private RecipeOrderBillDAO recipeOrderBillDAO;
     @Autowired
-    private OrganDrugListDAO organDrugListDAO;
+    private RecipeBeforeOrderDAO recipeBeforeOrderDAO;
+    @Autowired
+    private AddressService addressService;
 
+    /**
+     * 合并预下单信息
+     * @param beforeOrderList
+     * @return
+     */
+    @LogRecord
+    public List<List<RecipeBeforeOrder>> mergeBeforeOrder(List<RecipeBeforeOrder> beforeOrderList) {
+        if (CollectionUtils.isEmpty(beforeOrderList)) {
+            return new ArrayList<>();
+        }
+        // 根据购药方式对所有预下单数据分组
+        Map<Integer, List<RecipeBeforeOrder>> map = beforeOrderList.stream().collect(Collectors.groupingBy(RecipeBeforeOrder::getGiveMode));
+        Set<Integer> keySet = map.keySet();
+        List<List<RecipeBeforeOrder>> list = new ArrayList<>();
+        keySet.forEach(key -> {
+            List<RecipeBeforeOrder> recipeBeforeOrders = map.get(key);
+            recipeBeforeOrders.forEach(recipeBeforeOrder -> {
+                switch (GiveModeEnum.getGiveModeEnum(key)) {
+                    case GIVE_MODE_HOME_DELIVERY:
+                    case GIVE_MODE_PHARMACY_DRUG:
+                        Map<String, List<RecipeBeforeOrder>> collect = recipeBeforeOrders.stream().collect(Collectors.groupingBy(beforeOrder -> beforeOrder.getEnterpriseId() + beforeOrder.getDrugStoreCode()));
+                        collect.forEach((k, value) -> {
+                            list.add(value);
+                        });
+                        break;
+                    case GIVE_MODE_HOSPITAL_DRUG:
+                    default:
+                        list.add(recipeBeforeOrders);
+                        break;
+                }
+            });
+        });
+        return list;
+    }
     /**
      * 订单能否配送 物流管控
      *
@@ -832,7 +865,7 @@ public class OrderManager extends BaseManager {
         });
         invoiceInfoReqTO.setRecipeDetailList(ObjectCopyUtils.convert(recipeDetailList, RecipeDetailBean.class));
         logger.info("EleInvoiceService.makeUpInvoice invoiceInfoReqTO={}",JSONUtils.toString(invoiceInfoReqTO));
-        InvoiceInfoResTO invoiceInfoResTO = orderClient.makeUpInvoice(invoiceInfoReqTO);
+        InvoiceInfoResTO invoiceInfoResTO = payClient.makeUpInvoice(invoiceInfoReqTO);
         logger.info("EleInvoiceService.makeUpInvoice invoiceInfoResTO={}",JSONUtils.toString(invoiceInfoResTO));
         RecipeOrderBill recipeOrderBill = new RecipeOrderBill();
         recipeOrderBill.setRecipeOrderCode(orderCode);
@@ -843,5 +876,107 @@ public class OrderManager extends BaseManager {
         recipeOrderBill.setCreateTime(new Date());
         recipeOrderBillDAO.save(recipeOrderBill);
         return invoiceInfoResTO;
+    }
+
+    /**
+     * 若同城速递，用户的收货地址与发件地址，距离超过100KM，则无法下单
+     * @param extInfo
+     * @return true表示可以下单
+     */
+    @LogRecord
+    public boolean controlLogisticsDistance(Map<String, String> extInfo) {
+        Integer logisticsCompany = MapValueUtil.getInteger(extInfo, "logisticsCompany");
+        Integer addressId = MapValueUtil.getInteger(extInfo, "addressId");
+        Integer organId = MapValueUtil.getInteger(extInfo, "organId");
+
+        if(!"301".equals(logisticsCompany)){
+            return true;
+        }
+        if(addressId==null){
+            return false;
+        }
+        AddressDTO addressDTO=addressService.getByAddressId(addressId);
+        logger.info("controlLogisticsDistance addressDTO:{}",JSONUtils.toString(addressDTO));
+        if(addressDTO==null){
+            return false;
+        }
+        LogisticsDistanceDto logisticsDistanceDto=new LogisticsDistanceDto();
+        logisticsDistanceDto.setLatitude(addressDTO.getLatitude());
+        logisticsDistanceDto.setLongitude(addressDTO.getLongitude());
+        logisticsDistanceDto.setLogisticsCode(String.valueOf(logisticsCompany));
+        logisticsDistanceDto.setOrganId(organId);
+        logisticsDistanceDto.setBusinessType(1);
+        Map<String,String> result=infraClient.controlLogisticsDistance(logisticsDistanceDto);
+        if(result!=null){
+            if("1".equals(result.get("code"))){
+                return false;
+            }
+        }else{
+            return false;
+        }
+        return true;
+    }
+
+    public void saveRecipeBeforeOrderInfo(ShoppingCartReqDTO shoppingCartReqDTO) {
+        //判断是新增到购物车还是在原有的基础上修改购药方式
+        Integer recipeId = shoppingCartReqDTO.getRecipeId();
+        if(recipeId != null){
+            //查询有效的预下单信息
+            RecipeBeforeOrder recipeBeforeOrder = recipeBeforeOrderDAO.getRecipeBeforeOrderByRecipeId(recipeId);
+            if(Objects.nonNull(recipeBeforeOrder)){
+                //把原有的删除状态置为1，再新增一条数据
+                recipeBeforeOrder.setDeleteFlag(1);
+                recipeBeforeOrderDAO.updateNonNullFieldByPrimaryKey(recipeBeforeOrder);
+            }
+        }
+        RecipeBeforeOrder recipeBeforeOrder = new RecipeBeforeOrder();
+        recipeBeforeOrder.setRecipeId(shoppingCartReqDTO.getRecipeId());
+        Recipe recipe = recipeDAO.getByRecipeId(shoppingCartReqDTO.getRecipeId());
+        if(recipe != null){
+            recipeBeforeOrder.setOrganId(recipe.getClinicOrgan());
+            recipeBeforeOrder.setRecipeCode(recipe.getRecipeCode());
+        }
+        recipeBeforeOrder.setEnterpriseId(shoppingCartReqDTO.getEnterpriseId());
+        recipeBeforeOrder.setGiveMode(shoppingCartReqDTO.getGiveMode());
+        //购药方式为到院取药时预下单信息为完善
+        if(new Integer(2).equals(shoppingCartReqDTO.getGiveMode())){
+            recipeBeforeOrder.setIsReady(1);
+        }
+        //购药方式为到店取药时
+        else if (new Integer(3).equals(shoppingCartReqDTO.getGiveMode())){
+            //有药店信息则为完善否则为不完善
+            if(shoppingCartReqDTO.getDrugStoreName() != null && shoppingCartReqDTO.getDrugStoreCode() != null ){
+                recipeBeforeOrder.setIsReady(1);
+                recipeBeforeOrder.setDrugStoreName(shoppingCartReqDTO.getDrugStoreName());
+                recipeBeforeOrder.setDrugStoreAddr(shoppingCartReqDTO.getDrugStoreAddr());
+                recipeBeforeOrder.setDrugStoreCode(shoppingCartReqDTO.getDrugStoreCode());
+            }
+            else {
+                recipeBeforeOrder.setIsReady(0);
+            }
+        //配送方式为医院配送或药企配送
+        }else if(new Integer(1).equals(shoppingCartReqDTO.getGiveMode())){
+            recipeBeforeOrder.setIsReady(0);
+        }
+        recipeBeforeOrder.setGiveModeKey(shoppingCartReqDTO.getGiveModeKey());
+        recipeBeforeOrder.setGiveModeText(RecipeSupportGiveModeEnum.getNameByText(shoppingCartReqDTO.getGiveModeKey()));
+        recipeBeforeOrder.setDeleteFlag(0);
+        recipeBeforeOrder.setCreateTime(new Date());
+        recipeBeforeOrder.setUpdateTime(new Date());
+        //recipeBeforeOrder.setPayWay(shoppingCartReqDTO.getPayWay());
+        recipeBeforeOrder.setOperMpiId(shoppingCartReqDTO.getOperMpiId());
+        if(shoppingCartReqDTO.getGiveMode() != null){
+            switch (shoppingCartReqDTO.getGiveMode()){
+                case 1:
+                case 2:
+                    recipeBeforeOrder.setTakeMedicineWay(0);
+                    break;
+                case 3:
+                    recipeBeforeOrder.setTakeMedicineWay(1);
+                    break;
+            }
+        }
+        logger.info("saveRecipeBeforeOrderInfo recipeBeforeOrder={}",JSONUtils.toString(recipeBeforeOrder));
+        recipeBeforeOrderDAO.save(recipeBeforeOrder);
     }
 }

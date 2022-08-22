@@ -97,7 +97,8 @@ public class RecipeDetailBusinessService implements IRecipeDetailBusinessService
             //校验机构药品
             OrganDrugList organDrug = recipeDetailValidateTool.validateOrganDrug(a, organDrugGroup);
             if (null == organDrug || RecipeDetailValidateTool.VALIDATE_STATUS_FAILURE.equals(a.getValidateStatus())) {
-                a.setValidateStatusText("机构药品不存在");
+                String text = null != organDrug && Integer.valueOf(1).equals(organDrug.getUnavailable()) ? "该药品已设置为无法在线开具" : "机构药品不存在";
+                a.setValidateStatusText(text);
                 return;
             }
             //校验药品药房是否变动

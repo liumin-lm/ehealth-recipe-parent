@@ -1,6 +1,5 @@
 package recipe.audit.auditmode;
 
-import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
@@ -21,7 +20,7 @@ import recipe.constant.ReviewTypeConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
-import recipe.enumerate.status.RecipeStateEnum;
+import recipe.enumerate.status.OrderStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.manager.StateManager;
 import recipe.service.RecipeLogService;
@@ -63,7 +62,7 @@ public class AuditPostMode extends AbstractAuditMode {
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         Integer giveMode = null == MapValueUtil.getInteger(attrMap,"giveMode") ? dbRecipe.getGiveMode() : MapValueUtil.getInteger(attrMap,"giveMode");
         Integer payFlag = MapValueUtil.getInteger(attrMap, "payFlag");
-        // 获取paymode
+        //获取paymode
         RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         RecipeOrder byOrderCode = orderDAO.getByOrderCode(dbRecipe.getOrderCode());
         Integer payMode = byOrderCode.getPayMode();
@@ -128,6 +127,8 @@ public class AuditPostMode extends AbstractAuditMode {
             }
             //设置新的审方状态
             super.setAuditStateToPendingReview(dbRecipe,status);
+            StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
+            stateManager.updateOrderState(byOrderCode.getOrderId(), OrderStateEnum.NONE, OrderStateEnum.NONE);
             if (RecipeStatusConstant.CHECK_PASS_YS == status) {
                 //说明是可进行医保支付的单子或者是中药或膏方处方
                 RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);

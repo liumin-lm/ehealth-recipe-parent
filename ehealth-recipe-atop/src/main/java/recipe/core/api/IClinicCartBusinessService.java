@@ -7,13 +7,13 @@ import java.util.List;
 public interface IClinicCartBusinessService {
 
     /**
-     * 方便门诊购物车列表查询
+     * 方便门诊\便捷购药 购物车列表查询
      *
      * @param organId
      * @param userId
      * @return
      */
-    List<ClinicCartVO> findClinicCartsByOrganIdAndUserId(Integer organId, String userId);
+    List<ClinicCartVO> findClinicCartsByOrganIdAndUserId(Integer organId, String userId, Integer workType);
 
     /**
      * 方便门诊购物车新增

@@ -69,6 +69,9 @@ public class OrganDrugsSaleConfig implements Serializable {
     @ItemProperty(alias = "是否支持打印发票：0不支持，1支持")
     private Integer invoiceSupportFlag;
 
+    @ItemProperty(alias = "退款申请中允许发药：0不允许，1允许")
+    private Integer refundFeeisAllowSendDrug;
+
     @ItemProperty(alias = "创建时间")
     private Date createTime;
 
@@ -81,6 +84,8 @@ public class OrganDrugsSaleConfig implements Serializable {
     @ItemProperty(alias = "退费审核通知电话")
     private String refundNotifyPhone;
 
+
+
     @Id
     @GeneratedValue(strategy = IDENTITY)
     @Column(name = "id", unique = true, nullable = false)
@@ -90,6 +95,16 @@ public class OrganDrugsSaleConfig implements Serializable {
 
     public void setId(Integer id) {
         this.id = id;
+    }
+
+
+    @Column(name = "refund_fee_is_allow_send_drug")
+    public Integer getRefundFeeisAllowSendDrug() {
+        return refundFeeisAllowSendDrug;
+    }
+
+    public void setRefundFeeisAllowSendDrug(Integer refundFeeisAllowSendDrug) {
+        this.refundFeeisAllowSendDrug = refundFeeisAllowSendDrug;
     }
 
     @Column(name = "organ_id")

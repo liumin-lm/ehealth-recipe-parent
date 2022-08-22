@@ -177,11 +177,21 @@ public class SearchDrugDetailDTO implements IDrugInventory, Serializable {
     private String drugEntrustId;
     @ItemProperty(alias = "单复方 ")
     private Integer unilateralCompound;
-    @ItemProperty(alias="是否靶向药  0否  1是 ")
+    @ItemProperty(alias = "是否靶向药  0否  1是 ")
     private Integer targetedDrugType;
     @ItemProperty(alias = "最小销售倍数")
     private Integer smallestSaleMultiple;
 
+    @ItemProperty(alias = "不可在线开具:开关，默认关闭(0),开启（1）")
+    private Integer unavailable;
+
+    public Integer getUnavailable() {
+        return unavailable;
+    }
+
+    public void setUnavailable(Integer unavailable) {
+        this.unavailable = unavailable;
+    }
 
     public Integer getTargetedDrugType() {
         return targetedDrugType;

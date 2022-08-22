@@ -89,7 +89,7 @@ import java.util.stream.Collectors;
  * @date： 2021-12-08 18:58
  */
 @Service
-public class DrugsEnterpriseBusinessService extends BaseService implements IDrugsEnterpriseBusinessService {
+public class EnterpriseBusinessService extends BaseService implements IDrugsEnterpriseBusinessService {
     @Autowired
     private EnterpriseManager enterpriseManager;
     @Autowired
@@ -435,6 +435,11 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
         recipeOrderList.forEach(recipeOrder -> {
             List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
             recipeDAO.updateRecipeByDepIdAndRecipes(drugsEnterprise.getId(), recipeIdList);
+        });
+        //记录日志
+        List<Recipe> recipeList = recipeDAO.findByOrderCode(orderCodeList);
+        recipeList.forEach(recipe -> {
+            recipeManager.saveRecipeLog(recipe.getRecipeId(), RecipeStatusEnum.getRecipeStatusEnum(recipe.getStatus()), RecipeStatusEnum.getRecipeStatusEnum(recipe.getStatus()), drugsEnterprise.getMemo() + "获取处方成功");
         });
         return EnterpriseResultBean.getSuccess("成功");
     }

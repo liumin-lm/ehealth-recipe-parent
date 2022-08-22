@@ -1,17 +1,17 @@
 package recipe.business;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.google.common.collect.Lists;
 import com.ngari.follow.utils.ObjectCopyUtil;
 import com.ngari.his.recipe.mode.OutPatientRecipeReq;
 import com.ngari.his.recipe.mode.OutRecipeDetailReq;
 import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
-import com.ngari.patient.dto.*;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.dto.*;
 import com.ngari.patient.service.IUsePathwaysService;
 import com.ngari.patient.service.IUsingRateService;
-import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
@@ -19,8 +19,6 @@ import com.ngari.recipe.recipe.ChineseMedicineMsgVO;
 import com.ngari.recipe.recipe.constant.RecipeTypeEnum;
 import com.ngari.recipe.recipe.constant.RecipecCheckStatusConstant;
 import com.ngari.recipe.recipe.model.*;
-import com.ngari.recipe.recipe.service.IRecipeService;
-import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import com.ngari.recipe.vo.*;
 import coupon.api.service.ICouponBaseService;
 import ctd.persistence.exception.DAOException;
@@ -28,7 +26,6 @@ import ctd.schema.exception.ValidateException;
 import ctd.util.AppContextHolder;
 import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
-import ctd.util.converter.ConversionUtils;
 import eh.cdr.api.vo.MedicalDetailBean;
 import eh.cdr.constant.RecipeConstant;
 import eh.wxpay.constant.PayConstant;
@@ -57,6 +54,8 @@ import recipe.enumerate.type.PayFlagEnum;
 import recipe.enumerate.type.PayFlowTypeEnum;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.manager.*;
+import recipe.presettle.RecipeOrderTypeEnum;
+import recipe.purchase.CommonOrder;
 import recipe.service.*;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.serviceprovider.recipelog.service.RemoteRecipeLogService;
@@ -69,6 +68,7 @@ import recipe.vo.greenroom.DrugUsageLabelResp;
 import recipe.vo.patient.PatientOptionalDrugVo;
 import recipe.vo.second.EmrConfigVO;
 import recipe.vo.second.MedicalDetailVO;
+import recipe.vo.second.RecipeOutpatientPaymentReq;
 import recipe.vo.second.RecipePayHISCallbackReq;
 
 import javax.annotation.Resource;
@@ -106,6 +106,8 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     private IConfigurationClient configurationClient;
     @Autowired
     private PharmacyTcmDAO pharmacyTcmDAO;
+    @Autowired
+    private DoctorCommonPharmacyDAO doctorCommonPharmacyDao;
     @Autowired
     private PatientOptionalDrugDAO patientOptionalDrugDAO;
     @Autowired
@@ -146,6 +148,11 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     private RemoteRecipeOrderService recipeOrderService;
     @Autowired
     private RecipeOrderPayFlowManager recipeOrderPayFlowManager;
+    @Autowired
+    private RecipeBeforeOrderDAO recipeBeforeOrderDAO;
+    @Autowired
+    private DrugsEnterpriseDAO drugsEnterpriseDAO;
+
 
 
     /**
@@ -933,6 +940,94 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             }
         }
         return;
+    }
+
+    @Override
+    public DoctorCommonPharmacy findDoctorCommonPharmacyByOrganIdAndDoctorId(Integer organId, Integer doctorId) {
+        List<DoctorCommonPharmacy> doctorCommonPharmacies = doctorCommonPharmacyDao.findByOrganIdAndDoctorId(organId,doctorId);
+        return CollectionUtils.isEmpty(doctorCommonPharmacies)?null:doctorCommonPharmacies.get(0);
+    }
+
+    @Override
+    public void saveDoctorCommonPharmacy(DoctorCommonPharmacy doctorCommonPharmacy) {
+        List<DoctorCommonPharmacy> doctorCommonPharmacies=doctorCommonPharmacyDao.findByOrganIdAndDoctorId(doctorCommonPharmacy.getOrganId(),doctorCommonPharmacy.getDoctorId());
+        if(CollectionUtils.isEmpty(doctorCommonPharmacies)){
+            doctorCommonPharmacy.setCreateTime(new Date());
+            doctorCommonPharmacyDao.save(doctorCommonPharmacy);
+        }else{
+            DoctorCommonPharmacy doctorCommonPharmacyDb=doctorCommonPharmacies.get(0);
+            doctorCommonPharmacy.setId(doctorCommonPharmacyDb.getId());
+            doctorCommonPharmacyDao.updateNonNullFieldByPrimaryKey(doctorCommonPharmacy);
+        }
+    }
+
+    @Override
+    public void recipeOutpatientPaymentCallback(RecipeOutpatientPaymentReq recipeOutpatientPaymentReq) {
+        List<Recipe> recipes = recipeDAO.findByRecipeCodeAndClinicOrgan(recipeOutpatientPaymentReq.getRecipeCodes(), recipeOutpatientPaymentReq.getOrganId());
+        if (CollectionUtils.isEmpty(recipes)) {
+            logger.info("recipeOutpatientPaymentCallback recipe is null, recipeCode[{}]", JSONArray.toJSONString(recipeOutpatientPaymentReq.getRecipeCodes()));
+        }
+        List<RecipeBeforeOrder> recipeBeforeOrders = recipeBeforeOrderDAO.getByOrganIdAndRecipeCodes(recipeOutpatientPaymentReq.getOrganId(), recipeOutpatientPaymentReq.getRecipeCodes());
+        List<List<RecipeBeforeOrder>> lists = orderManager.mergeBeforeOrder(recipeBeforeOrders);
+        if (CollectionUtils.isEmpty(lists)) {
+            return;
+        }
+        lists.forEach(recipeBeforeOrderList -> {
+            // 分组创建订单
+            RecipeOrder order = new RecipeOrder();
+            RecipeBeforeOrder recipeBeforeOrder = recipeBeforeOrderList.get(0);
+            BeanUtils.copy(recipeBeforeOrder, order);
+            order.setOrderCode(LocalStringUtil.getOrderCode());
+            order.setMpiId(recipeBeforeOrder.getOperMpiId());
+            order.setOrderType(RecipeOrderTypeEnum.OUT_PATIENT_PAY.getType());
+            if (StringUtils.isEmpty(order.getExpectStartTakeTime())) {
+                order.setExpectStartTakeTime("1970-01-01 00:00:01");
+                order.setExpectEndTakeTime("1970-01-01 00:00:01");
+            }
+            if (Objects.isNull(order.getThirdPayFee())) {
+                order.setThirdPayType(0);
+                order.setThirdPayFee(0d);
+            }
+            List<Integer> recipeIds = recipeBeforeOrderList.stream().map(RecipeBeforeOrder::getRecipeId).collect(Collectors.toList());
+            order.setRecipeIdList(JSONUtils.toString(recipeIds));
+            order.setGiveModeKey(recipeBeforeOrder.getGiveModeKey());
+            order.setGiveModeText(CommonOrder.getGiveModeText(recipeBeforeOrder.getOrganId(), recipeBeforeOrder.getGiveModeKey()));
+            order.setSettleAmountState(SettleAmountStateEnum.SETTLE_SUCCESS.getType());
+            order.setEnterpriseId(recipeBeforeOrder.getEnterpriseId());
+            DrugsEnterprise dep = drugsEnterpriseDAO.get(recipeBeforeOrder.getEnterpriseId());
+            if (dep != null) {
+                order.setEnterpriseName(dep.getName());
+                //设置配送费支付方式
+                order.setExpressFeePayWay(dep.getExpressFeePayWay());
+                order.setSendType(dep.getSendType());
+                //设置是否显示期望配送时间,默认否 0:否,1:是
+                order.setIsShowExpectSendDate(dep.getIsShowExpectSendDate());
+            }
+            order.setPayMode(1);
+            order.setPayFlag(PayFlagEnum.PAYED.getType());
+            order.setPayTime(recipeOutpatientPaymentReq.getPayTime());
+            order.setStatus(RecipeOrderStatusEnum.ORDER_STATUS_READY_GET_DRUG.getType());
+            order.setEffective(1);
+            order.setOutTradeNo(recipeOutpatientPaymentReq.getOutTradeNo());
+            order.setTradeNo(recipeOutpatientPaymentReq.getTradeNo());
+            order.setPayOrganId(recipeOutpatientPaymentReq.getPayOrganId());
+            // 保存订单
+            recipeOrderDAO.save(order);
+            // 保存处方与订单关联关系
+            recipeIds.forEach(recipeId -> {
+                Recipe r = new Recipe();
+                r.setRecipeId(recipeId);
+                r.setOrderCode(order.getOrderCode());
+                recipeDAO.updateNonNullFieldByPrimaryKey(r);
+            });
+            //业务支付回调
+            Integer payMode = PayModeGiveModeUtil.getPayMode(order.getPayMode(), recipeBeforeOrder.getGiveMode());
+            recipeOrderService.finishOrderPay(order.getOrderCode(), PayConstant.PAY_FLAG_PAY_SUCCESS, payMode);
+
+            //更新处方支付日志
+            String memo = "订单: 收到门诊缴费支付消息 ";
+            updateRecipePayLog(order, memo);
+        });
     }
 
     /**

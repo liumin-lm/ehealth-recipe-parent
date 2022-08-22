@@ -95,4 +95,7 @@ public class OrganDrugsSaleConfigVo implements Serializable {
      */
     private Integer invoiceSupportFlag;
 
+    @ItemProperty(alias = "退款申请中允许发药：0不允许，1允许")
+    private Integer refundFeeisAllowSendDrug;
+
 }

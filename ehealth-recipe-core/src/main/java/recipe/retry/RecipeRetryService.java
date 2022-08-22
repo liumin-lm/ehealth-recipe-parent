@@ -7,21 +7,14 @@ import com.github.rholder.retry.WaitStrategies;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.PayNotifyReqTO;
 import com.ngari.his.recipe.mode.PayNotifyResTO;
-import com.ngari.his.recipe.service.IRecipeHisService;
-import com.ngari.platform.recipe.CashSettleResultReqTo;
-import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
-import org.apache.curator.shaded.com.google.common.base.Predicates;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import recipe.client.IConfigurationClient;
-import recipe.client.RecipeSettleClient;
+import recipe.client.PayClient;
 import recipe.presettle.settle.IRecipeSettleService;
 
-import javax.annotation.Resource;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -32,10 +25,8 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class RecipeRetryService {
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipeRetryService.class);
-
     @Autowired
-    private RecipeSettleClient recipeSettleClient;
-
+    private PayClient payClient;
 
     /**
      * 结算异常处理----补偿机制--异常将重试三次
@@ -62,7 +53,7 @@ public class RecipeRetryService {
             });
         } catch (Exception e) {
             // 异常启动结算反查机制
-            HisResponseTO hisResponseTO = recipeSettleClient.retrySettle(req);
+            HisResponseTO hisResponseTO = payClient.retrySettle(req);
             // 反查成功或异常都算结算成功
             if("99".equals(hisResponseTO.getMsgCode()) || "200".equals(hisResponseTO.getMsgCode())){
                 resTO.setMsgCode(0);

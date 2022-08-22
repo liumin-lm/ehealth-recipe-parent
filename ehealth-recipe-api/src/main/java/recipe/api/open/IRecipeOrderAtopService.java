@@ -96,6 +96,14 @@ public interface IRecipeOrderAtopService {
      */
     @RpcService
     Integer thirdCreateOrder(ThirdCreateOrderReqDTO thirdCreateOrderReqDTO);
+
+    /**
+     * 第三方订单预算使用
+     * @param thirdOrderPreSettleReq
+     * @return
+     */
+    @RpcService
+    ThirdOrderPreSettleRes thirdOrderPreSettle(ThirdOrderPreSettleReq thirdOrderPreSettleReq);
  /**
      * 判断处方是否有效(到院取药-存储药柜)
      * @param cabinetVO
@@ -112,5 +120,14 @@ public interface IRecipeOrderAtopService {
     @RpcService(mvcDisabled = true)
     void putInCabinetNotice(CabinetVO cabinetVO);
 
+
+    /**
+     * 获取未完善或完善标识
+     * @param organId
+     * @param recipeCode
+     * @return
+     */
+    @RpcService(mvcDisabled = true)
+    Integer getImperfectFlag(Integer organId,String recipeCode);
 
 }

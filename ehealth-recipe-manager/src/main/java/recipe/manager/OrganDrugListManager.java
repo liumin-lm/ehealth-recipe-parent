@@ -240,8 +240,10 @@ public class OrganDrugListManager extends BaseManager {
         }
         if (null == organDrug) {
             validateOrganDrugDTO.setValidateStatus(false);
-            logger.info("RecipeDetailService validateDrug organDrug is null OrganDrugCode ：  {}", validateOrganDrugDTO.getOrganDrugCode());
             return null;
+        }
+        if (Integer.valueOf(1).equals(organDrug.getUnavailable())) {
+            validateOrganDrugDTO.setValidateStatus(false);
         }
         return organDrug;
     }

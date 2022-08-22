@@ -47,9 +47,7 @@ import recipe.bean.PltPurchaseResponse;
 import recipe.client.IConfigurationClient;
 import recipe.constant.*;
 import recipe.dao.*;
-import recipe.enumerate.status.OfflineToOnlineEnum;
-import recipe.enumerate.status.RecipeStatusEnum;
-import recipe.enumerate.status.SettleAmountStateEnum;
+import recipe.enumerate.status.*;
 import recipe.enumerate.type.GiveModeTextEnum;
 import recipe.enumerate.type.RecipeDistributionFlagEnum;
 import recipe.enumerate.type.RecipeTypeEnum;
@@ -113,9 +111,6 @@ public class PurchaseService {
     private OrganDrugsSaleConfigDAO organDrugsSaleConfigDAO;
 
     @Autowired
-    private OrganDrugListDAO organDrugListDAO;
-
-    @Autowired
     private SaleDrugListDAO saleDrugListDAO;
 
     @Autowired
@@ -126,6 +121,9 @@ public class PurchaseService {
 
     @Autowired
     private DrugsEnterpriseDAO drugsEnterpriseDAO;
+
+    @Autowired
+    private StateManager stateManager;
 
     /**
      * 获取可用购药方式------------已废弃---已改造成从处方单详情里获取
@@ -412,6 +410,10 @@ public class PurchaseService {
         boolean sendFlag = orderManager.orderCanSend(extInfo);
         if (!sendFlag) {
             throw new DAOException(609, "由于疫情影响，本地无法进行快递配送，敬请见谅！");
+        }
+        boolean canSend = orderManager.controlLogisticsDistance(extInfo);
+        if (!canSend) {
+            throw new DAOException(609, "超出配送范围，无法支持同城快递，请换一个快递公司");
         }
         return result;
     }
@@ -1015,20 +1017,26 @@ public class PurchaseService {
         }
     }
 
-    public void setRecipePayWay(RecipeOrder recipeOrder) {
-        LOG.info("PurchaseService setRecipePayWay recipeOrder input:{}", JSON.toJSONString(recipeOrder));
+    public void setRecipeOrderInfo(Recipe recipe, RecipeOrder recipeOrder, int payFlag) {
+        LOG.info("PurchaseService setRecipeOrderInfo recipeOrder:{}", JSON.toJSONString(recipeOrder));
         try {
-            RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-            LOG.info("PurchaseService setRecipePayWay WxPayWay:{}", recipeOrder.getWxPayWay());
-            if ("111".equals(recipeOrder.getWxPayWay())) {
-                recipeOrder.setPayMode(1);
-                recipeOrder.setSettleAmountState(SettleAmountStateEnum.SETTLE_SUCCESS.getType());
-                LOG.info("PurchaseService setRecipePayWay recipeOrder:{}", JSON.toJSONString(recipeOrder));
-                recipeOrderDAO.update(recipeOrder);
+            if (PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag) {
+                if (PayWayEnum.WN_WAP.getCode().equals(recipeOrder.getWxPayWay())) {
+                    recipeOrder.setPayMode(PayModeEnum.OFFLINE_PAY.getType());
+                    recipeOrder.setSettleAmountState(SettleAmountStateEnum.SETTLE_SUCCESS.getType());
+                    recipeOrderDAO.update(recipeOrder);
+                }
+                if (ReviewTypeConstant.Postposition_Check == recipe.getReviewType()) {
+                    stateManager.updateOrderState(recipeOrder.getOrderId(), OrderStateEnum.PROCESS_STATE_ORDER_PLACED, OrderStateEnum.SUB_ORDER_PLACED_AUDIT);
+                } else {
+                    stateManager.updateOrderState(recipeOrder.getOrderId(), OrderStateEnum.NONE, OrderStateEnum.NONE);
+                    stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_ORDER, RecipeStateEnum.SUB_ORDER_HAD_SUBMIT_ORDER);
+                }
+            } else {
+                stateManager.updateOrderState(recipeOrder.getOrderId(), OrderStateEnum.PROCESS_STATE_READY_PAY, OrderStateEnum.SUB_READY_PAY_NONE);
             }
         } catch (Exception e) {
-            LOG.info("setRecipePayWay error msg:{}.", e.getMessage());
+            LOG.info("PurchaseService setRecipeOrderInfo error:{}.", e.getMessage());
         }
     }
-
 }
