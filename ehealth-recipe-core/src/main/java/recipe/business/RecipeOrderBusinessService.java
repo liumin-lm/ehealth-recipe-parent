@@ -66,7 +66,6 @@ import recipe.enumerate.type.NeedSendTypeEnum;
 import recipe.factory.status.givemodefactory.GiveModeProxy;
 import recipe.hisservice.RecipeToHisService;
 import recipe.manager.EnterpriseManager;
-import recipe.manager.OrderFeeManager;
 import recipe.manager.OrderManager;
 import recipe.manager.RecipeManager;
 import recipe.presettle.IRecipePreSettleService;
@@ -135,9 +134,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
     @Autowired
     private RecipeBeforeOrderDAO recipeBeforeOrderDAO;
     @Autowired
-    private OrderFeeManager orderFeeManager;
-    @Autowired
-    private RecipeDetailDAO recipeDetailDAO;
+    private AddressService addressService;
 
 
     @Override
