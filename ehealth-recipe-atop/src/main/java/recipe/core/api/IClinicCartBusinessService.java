@@ -38,4 +38,12 @@ public interface IClinicCartBusinessService {
      * @return
      */
     Boolean updateClinicCartById(ClinicCartVO clinicCartVO);
+
+    /**
+     * 购物车根据用户Id,机构id和业务场景删除数据
+     *
+     * @param clinicCartVO
+     * @return
+     */
+    Boolean deleteClinicCartByUserId(ClinicCartVO clinicCartVO);
 }

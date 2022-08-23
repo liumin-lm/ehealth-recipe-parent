@@ -88,4 +88,10 @@ public class ClinicCartService implements IClinicCartBusinessService {
         }
     }
 
+    @Override
+    public Boolean deleteClinicCartByUserId(ClinicCartVO clinicCartVO) {
+        clinicCartDAO.deleteClinicCartByUserId(clinicCartVO.getOrganId(), clinicCartVO.getUserId(), clinicCartVO.getWorkType());
+        return true;
+    }
+
 }
