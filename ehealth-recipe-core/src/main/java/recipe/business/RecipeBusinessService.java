@@ -47,6 +47,7 @@ import recipe.client.OrganClient;
 import recipe.client.PatientClient;
 import recipe.constant.ErrorCode;
 import recipe.constant.RecipeStatusConstant;
+import recipe.constant.ReviewTypeConstant;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.dao.*;
 import recipe.enumerate.status.*;
@@ -1020,11 +1021,14 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
 
             // 保存订单
             recipeOrderDAO.save(order);
+            if (ReviewTypeConstant.Postposition_Check.equals(recipes.get(0).getReviewType())) {
+                stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_ORDER_PLACED, OrderStateEnum.SUB_ORDER_PLACED_AUDIT);
+            } else {
+                stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_ORDER_PLACED, OrderStateEnum.SUB_ORDER_ORDER_PLACED);
+            }
             // 保存处方与订单关联关系
             recipeIds.forEach(recipeId -> {
                 Recipe r = new Recipe();
-                r.setProcessState(RecipeStateEnum.PROCESS_STATE_ORDER.getType());
-                r.setSubState(RecipeStateEnum.SUB_ORDER_HAD_SUBMIT_ORDER.getType());
                 r.setRecipeId(recipeId);
                 r.setOrderCode(order.getOrderCode());
                 r.setGiveMode(recipeBeforeOrder.getGiveMode());
