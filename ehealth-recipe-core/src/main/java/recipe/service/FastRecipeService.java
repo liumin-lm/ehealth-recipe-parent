@@ -143,7 +143,7 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
         fastRecipe.setBackgroundImg("");
         fastRecipe.setStatus(1);
         fastRecipe.setMinNum(0);
-        fastRecipe.setMaxNum(0);
+        fastRecipe.setMaxNum(null);
         fastRecipe.setOrderNum(0);
         fastRecipe.setClinicOrgan(recipe.getClinicOrgan());
         fastRecipe.setOrganName(recipe.getOrganName());
