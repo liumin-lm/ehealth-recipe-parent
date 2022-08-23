@@ -1134,13 +1134,21 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                     List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipeBeforeOrder.getRecipeId());
                     recipeDTO.setRecipeDetails(recipeDetailList);
                     recipeDTOList.add(recipeDTO);
-                    recipeFee = recipeFee.add(recipeOrder.getRecipeFee());
-                    tcmFee = tcmFee.add(recipeOrder.getTcmFee());
+                    if(recipeOrder.getRecipeFee() != null){
+                        recipeFee = recipeFee.add(recipeOrder.getRecipeFee());
+                    }
+                    if(recipeOrder.getTcmFee() != null){
+                        tcmFee = tcmFee.add(recipeOrder.getTcmFee());
+                    }
                     if(recipeOrder.getDecoctionFee() != null){
                         decoctionFee = decoctionFee.add(recipeOrder.getDecoctionFee());
                     }
-                    auditFee = auditFee.add(recipeOrder.getAuditFee());
-                    expressFee = expressFee.add(recipeOrder.getExpressFee());
+                    if(recipeOrder.getAuditFee() != null){
+                        auditFee = auditFee.add(recipeOrder.getAuditFee());
+                    }
+                    if(recipeOrder.getExpressFee() != null){
+                        expressFee = expressFee.add(recipeOrder.getExpressFee());
+                    }
                 }
                 if(new Integer(3).equals(beforeOrder.getGiveMode())){
                     if(beforeOrder.getDrugStoreCode() != null){
