@@ -24,6 +24,8 @@ import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.*;
+import com.ngari.recipe.recipeorder.model.OrderCreateResult;
+import com.ngari.recipe.vo.PreOrderInfoReqVO;
 import com.ngari.recipe.vo.ShoppingCartReqVO;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
 import com.ngari.revisit.RevisitAPI;
@@ -50,6 +52,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.ApplicationUtils;
+import recipe.bean.RecipePayModeSupportBean;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.*;
 import recipe.constant.RecipeBussConstant;
@@ -63,7 +66,6 @@ import recipe.enumerate.type.NeedSendTypeEnum;
 import recipe.factory.status.givemodefactory.GiveModeProxy;
 import recipe.hisservice.RecipeToHisService;
 import recipe.manager.EnterpriseManager;
-import recipe.manager.OrderFeeManager;
 import recipe.manager.OrderManager;
 import recipe.manager.RecipeManager;
 import recipe.presettle.IRecipePreSettleService;
@@ -72,6 +74,8 @@ import recipe.service.RecipeLogService;
 import recipe.service.RecipeOrderService;
 import recipe.third.IFileDownloadService;
 import recipe.util.*;
+import recipe.util.LocalStringUtil;
+import recipe.util.ObjectCopyUtils;
 import recipe.vo.ResultBean;
 import recipe.vo.base.BaseRecipeDetailVO;
 import recipe.vo.greenroom.InvoiceRecordVO;
@@ -89,7 +93,7 @@ import java.util.stream.Collectors;
  * @author fuzi
  */
 @Service
-public class OrderBusinessService implements IRecipeOrderBusinessService {
+public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private final static long VALID_TIME_SECOND = 3600 * 24 * 30;
@@ -130,9 +134,7 @@ public class OrderBusinessService implements IRecipeOrderBusinessService {
     @Autowired
     private RecipeBeforeOrderDAO recipeBeforeOrderDAO;
     @Autowired
-    private OrderFeeManager orderFeeManager;
-    @Autowired
-    private RecipeDetailDAO recipeDetailDAO;
+    private AddressService addressService;
 
 
     @Override
@@ -1037,7 +1039,7 @@ public class OrderBusinessService implements IRecipeOrderBusinessService {
             return recipeBeforeOrder.getIsReady();
         }
         logger.info("getImperfectFlag recipeBeforeOrder为null");
-        return null;
+        return 0;
     }
 
     /**
@@ -1048,72 +1050,67 @@ public class OrderBusinessService implements IRecipeOrderBusinessService {
     @Override
     public List<ShoppingCartDetailDTO> getShoppingCartDetail(String mpiId) {
         logger.info("getShoppingCartDetail mpiId={}",mpiId);
-        List<ShoppingCartDetailDTO> shoppingCartDetailDTOList = new ArrayList<>();
-        List<RecipeBeforeOrder> recipeBeforeOrderList = recipeBeforeOrderDAO.findByMpiId(mpiId);
-        logger.info("getShoppingCartDetail recipeBeforeOrderList={}",JSONUtils.toString(recipeBeforeOrderList));
-        if(CollectionUtils.isNotEmpty(recipeBeforeOrderList)){
-            //需要合并的处方
-            List<List<RecipeBeforeOrder>> mergeBeforeOrder = orderManager.mergeBeforeOrder(recipeBeforeOrderList);
-            logger.info("getShoppingCartDetail mergeBeforeOrder ={}",JSONUtils.toString(mergeBeforeOrder));
-            for(List<RecipeBeforeOrder> recipeBeforeOrders : mergeBeforeOrder){
-                ShoppingCartDetailDTO shoppingCartDetailDTO = new ShoppingCartDetailDTO();
-                RecipeBeforeOrder beforeOrder = recipeBeforeOrders.get(0);
-                RecipeOrder recipeOrder = new RecipeOrder();
-                BigDecimal recipeFee = BigDecimal.ZERO;
-                BigDecimal tcmFee = BigDecimal.ZERO;
-                BigDecimal decoctionFee = BigDecimal.ZERO;
-                BigDecimal auditFee = BigDecimal.ZERO;
-                List<Recipe> recipeList = new ArrayList<>();
-                List<RecipeDTO> recipeDTOList = new ArrayList<>();
-                for(RecipeBeforeOrder recipeBeforeOrder : recipeBeforeOrders){
-                    RecipeDTO recipeDTO = new RecipeDTO();
-                    Recipe recipe = recipeDAO.getByRecipeId(recipeBeforeOrder.getRecipeId());
-                    if(recipe != null){
-                        //处方费用
-                        if (null != recipe.getTotalMoney()) {
-                            recipeBeforeOrder.setRecipeFee(recipe.getTotalMoney());
-                            recipeFee = recipeFee.add(recipe.getTotalMoney());
-                        }
-                        recipeList.add(recipe);
-                        recipeDTO.setRecipe(recipe);
-                        orderFeeManager.setRecipeChineseMedicineFee(recipeList,recipeOrder,null);
-                        if(recipeOrder.getTcmFee() != null){
-                            //中医辨证论治费
-                            recipeBeforeOrder.setTcmFee(recipeOrder.getTcmFee());
-                            tcmFee = tcmFee.add(recipeOrder.getTcmFee());
-                        }
-                        if(recipeOrder.getDecoctionFee() != null){
-                            //代煎费
-                            recipeBeforeOrder.setDecoctionFee(recipeOrder.getDecoctionFee());
-                            decoctionFee = decoctionFee.add(recipeOrder.getDecoctionFee());
-                        }
-                        orderFeeManager.setAuditFee(recipeOrder,recipeList);
-                        if(recipeOrder.getAuditFee() != null){
-                            //药事服务费
-                            recipeBeforeOrder.setAuditFee(recipeOrder.getAuditFee());
-                            auditFee = auditFee.add(recipeOrder.getAuditFee());
-                        }
-                        //recipeBeforeOrder.setExpressFee(expressFee);
-                        recipeBeforeOrderDAO.updateNonNullFieldByPrimaryKey(recipeBeforeOrder);
-                    }
-                    List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipeBeforeOrder.getRecipeId());
-                    recipeDTO.setRecipeDetails(recipeDetailList);
-                    recipeDTOList.add(recipeDTO);
-                }
-                //处方费
-                beforeOrder.setRecipeFee(recipeFee);
-                shoppingCartDetailDTO.setRecipeDTO(recipeDTOList);
-                shoppingCartDetailDTO.setRecipeBeforeOrder(beforeOrder);
-                shoppingCartDetailDTOList.add(shoppingCartDetailDTO);
-                logger.info("getShoppingCartDetail shoppingCartDetailDTOList={}",JSONUtils.toString(shoppingCartDetailDTOList));
-            }
-        }
-        return shoppingCartDetailDTOList;
+        return orderManager.getShoppingCartDetail(mpiId);
     }
 
     @Override
     public void saveRecipeBeforeOrderInfo(ShoppingCartReqVO shoppingCartReqVO) {
         logger.info("saveRecipeBeforeOrderInfo shoppingCartReqVO={}",JSONUtils.toString(shoppingCartReqVO));
         orderManager.saveRecipeBeforeOrderInfo(Objects.requireNonNull(ObjectCopyUtils.convert(shoppingCartReqVO, ShoppingCartReqDTO.class)));
+    }
+
+    @Override
+    public void improvePreOrderInfo(PreOrderInfoReqVO preOrderInfoReqVO) {
+        logger.info("improvePreOrderInfo preOrderInfoReqVO={}",JSONUtils.toString(preOrderInfoReqVO));
+        if(preOrderInfoReqVO.getRecipeId() != null){
+            RecipeBeforeOrder recipeBeforeOrder = recipeBeforeOrderDAO.getRecipeBeforeOrderByRecipeId(preOrderInfoReqVO.getRecipeId());
+            if(Objects.nonNull(recipeBeforeOrder)){
+                Integer giveMode = recipeBeforeOrder.getGiveMode();
+                //购药方式为配送到家（医院配送、药企配送）
+                if(new Integer(1).equals(giveMode)){
+                    if(preOrderInfoReqVO.getAddressId() != null){
+                        RecipeOrder recipeOrder = new RecipeOrder();
+                        recipeBeforeOrder.setAddressId(preOrderInfoReqVO.getAddressId());
+                        AddressDTO addressDTO = addressService.getByAddressId(preOrderInfoReqVO.getAddressId());
+                        if (addressDTO != null) {
+                            recipeBeforeOrder.setIsReady(1);
+                            recipeBeforeOrder.setAddress1(addressDTO.getAddress1());
+                            recipeBeforeOrder.setAddress2(addressDTO.getAddress2());
+                            recipeBeforeOrder.setAddress3(addressDTO.getAddress3());
+                            recipeBeforeOrder.setStreetAddress(addressDTO.getStreetAddress());
+                            recipeBeforeOrder.setAddress4(addressDTO.getAddress4());
+                            recipeBeforeOrder.setAddress5(addressDTO.getAddress5());
+                            recipeBeforeOrder.setAddress5Text(addressDTO.getAddress5Text());
+                            recipeBeforeOrder.setReceiver(addressDTO.getReceiver());
+                            recipeBeforeOrder.setRecMobile(addressDTO.getRecMobile());
+                            recipeBeforeOrder.setRecTel(addressDTO.getRecTel());
+                            recipeBeforeOrder.setZipCode(addressDTO.getZipCode());
+                        }else {
+                            logger.info("improvePreOrderInfo addressDTO为null");
+                        }
+                        List<Integer> recipeIds = new ArrayList<>();
+                        Integer recipeId = recipeBeforeOrder.getRecipeId();
+                        recipeIds.add(recipeId);
+                        if(recipeBeforeOrder.getEnterpriseId() != null){
+                            recipeOrder.setEnterpriseId(recipeBeforeOrder.getEnterpriseId());
+                            orderService.setOrderAddress(new OrderCreateResult(200),recipeOrder,recipeIds, new RecipePayModeSupportBean(),null,0,addressDTO);
+                        }
+                        //运费
+                        recipeBeforeOrder.setExpressFee(recipeOrder.getExpressFee());
+                    }
+                }
+                //购药方式为到店取药
+                else if (new Integer(3).equals(giveMode)){
+                    recipeBeforeOrder.setDrugStoreName(preOrderInfoReqVO.getDrugStoreName());
+                    recipeBeforeOrder.setDrugStoreCode(preOrderInfoReqVO.getDrugStoreCode());
+                    recipeBeforeOrder.setDrugStoreAddr(preOrderInfoReqVO.getDrugStoreAddr());
+                    recipeBeforeOrder.setIsReady(1);
+                }
+                logger.info("improvePreOrderInfo recipeBeforeOrder={}",JSONUtils.toString(recipeBeforeOrder));
+                recipeBeforeOrder.setUpdateTime(new Date());
+                recipeBeforeOrderDAO.update(recipeBeforeOrder);
+
+            }
+        }
     }
 }

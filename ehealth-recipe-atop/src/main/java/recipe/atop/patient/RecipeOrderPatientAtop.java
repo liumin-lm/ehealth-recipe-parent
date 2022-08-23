@@ -6,6 +6,7 @@ import com.ngari.recipe.dto.RecipeFeeDTO;
 import com.ngari.recipe.dto.ShoppingCartDetailDTO;
 import com.ngari.recipe.dto.SkipThirdDTO;
 import com.ngari.recipe.recipe.model.SkipThirdReqVO;
+import com.ngari.recipe.vo.PreOrderInfoReqVO;
 import com.ngari.recipe.vo.ShoppingCartReqVO;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
 import ctd.persistence.exception.DAOException;
@@ -237,6 +238,16 @@ public class RecipeOrderPatientAtop extends BaseAtop {
     @RpcService
     public void saveRecipeBeforeOrderInfo(ShoppingCartReqVO shoppingCartReqVO){
         recipeOrderService.saveRecipeBeforeOrderInfo(shoppingCartReqVO);
+    }
+
+    /**
+     * 完善购物车信息
+     * @param preOrderInfoReqVO
+     * @return
+     */
+    @RpcService
+    public void improvePreOrderInfo(PreOrderInfoReqVO preOrderInfoReqVO){
+        recipeOrderService.improvePreOrderInfo(preOrderInfoReqVO);
     }
 
 

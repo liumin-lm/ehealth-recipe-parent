@@ -1,4 +1,4 @@
-package recipe.vo.second;
+package com.ngari.recipe.dto;
 
 import ctd.schema.annotation.ItemProperty;
 import lombok.Getter;
@@ -16,7 +16,7 @@ import java.util.List;
  */
 @Getter
 @Setter
-public class RecipeOutpatientPaymentReq implements Serializable {
+public class RecipeOutpatientPaymentDTO implements Serializable {
     private static final long serialVersionUID = -6404621147270133670L;
 
     @ItemProperty(alias = "处方his单号")

@@ -147,4 +147,34 @@ public class FastRecipeGmAtop extends BaseAtop {
             return null;
         }
     }
+
+    /**
+     * 患者端查询药方详情
+     *
+     * @param ids
+     * @return
+     */
+    @RpcService
+    public List<FastRecipeVO> findFastRecipeListByIds(List<Integer> ids) {
+        if (CollectionUtils.isEmpty(ids)) {
+            return Lists.newArrayList();
+        }
+
+        List<FastRecipeVO> fastRecipeVOList = Lists.newArrayList();
+        for (Integer id : ids) {
+            FastRecipeReq fastRecipeReq = new FastRecipeReq();
+            fastRecipeReq.setFastRecipeId(id);
+            List<FastRecipe> fastRecipeList = fastRecipeService.findFastRecipeListByParam(fastRecipeReq);
+            if (CollectionUtils.isEmpty(fastRecipeList)) {
+                continue;
+            }
+            FastRecipeVO fastRecipeVO = BeanUtils.map(fastRecipeList.get(0), FastRecipeVO.class);
+            List<FastRecipeDetail> fastRecipeDetailList = fastRecipeService.findFastRecipeDetailsByFastRecipeId(fastRecipeVO.getId());
+            if (CollectionUtils.isNotEmpty(fastRecipeDetailList)) {
+                fastRecipeVO.setFastRecipeDetailList(BeanCopyUtils.copyList(fastRecipeDetailList, FastRecipeDetailVO::new));
+            }
+            fastRecipeVOList.add(fastRecipeVO);
+        }
+        return fastRecipeVOList;
+    }
 }

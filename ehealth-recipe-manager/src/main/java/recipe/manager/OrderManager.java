@@ -90,6 +90,10 @@ public class OrderManager extends BaseManager {
     private RecipeBeforeOrderDAO recipeBeforeOrderDAO;
     @Autowired
     private AddressService addressService;
+    @Autowired
+    private OrderFeeManager orderFeeManager;
+    @Autowired
+    private PharmacyDAO pharmacyDAO;
 
     /**
      * 合并预下单信息
@@ -926,6 +930,7 @@ public class OrderManager extends BaseManager {
             if(Objects.nonNull(recipeBeforeOrder)){
                 //把原有的删除状态置为1，再新增一条数据
                 recipeBeforeOrder.setDeleteFlag(1);
+                recipeBeforeOrder.setUpdateTime(new Date());
                 recipeBeforeOrderDAO.updateNonNullFieldByPrimaryKey(recipeBeforeOrder);
             }
         }
@@ -978,5 +983,91 @@ public class OrderManager extends BaseManager {
         }
         logger.info("saveRecipeBeforeOrderInfo recipeBeforeOrder={}",JSONUtils.toString(recipeBeforeOrder));
         recipeBeforeOrderDAO.save(recipeBeforeOrder);
+    }
+
+    public List<ShoppingCartDetailDTO> getShoppingCartDetail(String mpiId) {
+        List<ShoppingCartDetailDTO> shoppingCartDetailDTOList = new ArrayList<>();
+        List<RecipeBeforeOrder> recipeBeforeOrderList = recipeBeforeOrderDAO.findByMpiId(mpiId);
+        logger.info("getShoppingCartDetail recipeBeforeOrderList={}",JSONUtils.toString(recipeBeforeOrderList));
+        if(CollectionUtils.isNotEmpty(recipeBeforeOrderList)){
+            //需要合并的处方
+            List<List<RecipeBeforeOrder>> mergeBeforeOrder = mergeBeforeOrder(recipeBeforeOrderList);
+            logger.info("getShoppingCartDetail mergeBeforeOrder ={}",JSONUtils.toString(mergeBeforeOrder));
+            for(List<RecipeBeforeOrder> recipeBeforeOrders : mergeBeforeOrder){
+                ShoppingCartDetailDTO shoppingCartDetailDTO = new ShoppingCartDetailDTO();
+                RecipeBeforeOrder beforeOrder = recipeBeforeOrders.get(0);
+                RecipeOrder recipeOrder = new RecipeOrder();
+                //需要完善之后才会有addressId
+                if(beforeOrder.getAddressId() != null){
+                    recipeOrder.setAddress1(beforeOrder.getAddress1());
+                    recipeOrder.setAddress2(beforeOrder.getAddress2());
+                    recipeOrder.setAddress3(beforeOrder.getAddress3());
+                    recipeOrder.setStreetAddress(beforeOrder.getStreetAddress());
+                }
+
+                BigDecimal recipeFee = BigDecimal.ZERO;
+                BigDecimal tcmFee = BigDecimal.ZERO;
+                BigDecimal decoctionFee = BigDecimal.ZERO;
+                BigDecimal auditFee = BigDecimal.ZERO;
+                List<Recipe> recipeList = new ArrayList<>();
+                List<RecipeDTO> recipeDTOList = new ArrayList<>();
+                for(RecipeBeforeOrder recipeBeforeOrder : recipeBeforeOrders){
+                    RecipeDTO recipeDTO = new RecipeDTO();
+                    Recipe recipe = recipeDAO.getByRecipeId(recipeBeforeOrder.getRecipeId());
+                    if(recipe != null){
+                        //处方费用
+                        if (null != recipe.getTotalMoney()) {
+                            recipeBeforeOrder.setRecipeFee(recipe.getTotalMoney());
+                            recipeFee = recipeFee.add(recipe.getTotalMoney());
+                        }
+                        recipeList.add(recipe);
+                        recipeDTO.setRecipe(recipe);
+                        orderFeeManager.setRecipeChineseMedicineFee(recipeList,recipeOrder,null);
+                        if(recipeOrder.getTcmFee() != null){
+                            //中医辨证论治费
+                            recipeBeforeOrder.setTcmFee(recipeOrder.getTcmFee());
+                            tcmFee = tcmFee.add(recipeOrder.getTcmFee());
+                        }
+                        if(recipeOrder.getDecoctionFee() != null){
+                            //代煎费
+                            recipeBeforeOrder.setDecoctionFee(recipeOrder.getDecoctionFee());
+                            decoctionFee = decoctionFee.add(recipeOrder.getDecoctionFee());
+                        }
+                        orderFeeManager.setAuditFee(recipeOrder,recipeList);
+                        if(recipeOrder.getAuditFee() != null){
+                            //药事服务费
+                            recipeBeforeOrder.setAuditFee(recipeOrder.getAuditFee());
+                            auditFee = auditFee.add(recipeOrder.getAuditFee());
+                        }
+                        //recipeBeforeOrder.setExpressFee(expressFee);
+                        recipeBeforeOrder.setUpdateTime(new Date());
+                        recipeBeforeOrderDAO.updateNonNullFieldByPrimaryKey(recipeBeforeOrder);
+                    }
+                    AddressDTO addressDTO = addressService.getByAddressId(beforeOrder.getAddressId());
+                    //地址是否可以配送
+                    beforeOrder.setAddressCanSend(new Integer(0).equals(addressDTO.getBeyondDelivery()));
+                    //完整地址
+                    beforeOrder.setCompleteAddress(getCompleteAddress(recipeOrder));
+                    List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipeBeforeOrder.getRecipeId());
+                    recipeDTO.setRecipeDetails(recipeDetailList);
+                    recipeDTOList.add(recipeDTO);
+                }
+                if(new Integer(3).equals(beforeOrder.getGiveMode())){
+                    if(beforeOrder.getDrugStoreCode() != null){
+                        Pharmacy pharmacy = pharmacyDAO.getPharmacyByPharmacyCode(beforeOrder.getDrugStoreCode());
+                        if(Objects.nonNull(pharmacy)){
+                            beforeOrder.setDrugStorePhone(pharmacy.getPharmacyPhone());
+                        }
+                    }
+                }
+                //处方费
+                beforeOrder.setRecipeFee(recipeFee);
+                shoppingCartDetailDTO.setRecipeDTO(recipeDTOList);
+                shoppingCartDetailDTO.setRecipeBeforeOrder(beforeOrder);
+                shoppingCartDetailDTOList.add(shoppingCartDetailDTO);
+                logger.info("getShoppingCartDetail shoppingCartDetailDTOList={}",JSONUtils.toString(shoppingCartDetailDTOList));
+            }
+        }
+        return shoppingCartDetailDTOList;
     }
 }

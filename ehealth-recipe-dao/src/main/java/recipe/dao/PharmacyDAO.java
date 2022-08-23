@@ -99,4 +99,6 @@ public abstract class PharmacyDAO extends HibernateSupportDelegateDAO<Pharmacy> 
                                                @DAOParam(pageStart = true) int start,
                                                @DAOParam(pageLimit = true) int limit);
 
+    @DAOMethod(sql = "from Pharmacy where pharmacyCode=:pharmacyCode ")
+    public abstract Pharmacy getPharmacyByPharmacyCode(@DAOParam("pharmacyCode") String pharmacyCode);
 }
