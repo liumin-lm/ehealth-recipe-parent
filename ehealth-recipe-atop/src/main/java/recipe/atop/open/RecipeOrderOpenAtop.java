@@ -13,6 +13,7 @@ import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.*;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
+import ctd.util.annotation.RpcService;
 import eh.utils.BeanCopyUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.BeanUtils;
@@ -189,6 +190,7 @@ public class RecipeOrderOpenAtop extends BaseAtop implements IRecipeOrderAtopSer
         return recipeOrderService.getImperfectFlag(organId,recipeCode);
     }
 
+    @RpcService
     @Override
     public List<ImperfectInfoVO> batchGetImperfectFlag(List<RecipeBean> recipeBeans) {
         return recipeOrderService.batchGetImperfectFlag(recipeBeans);
