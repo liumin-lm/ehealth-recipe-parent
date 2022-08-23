@@ -1080,7 +1080,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                 for(RecipeBeforeOrderDTO recipeBeforeOrder : recipeBeforeOrderDTOList){
                     Map<String,String> extInfo = new HashMap<>();
                     extInfo.put("operMpiId",recipeBeforeOrder.getOperMpiId());
-                    if(new Integer(2).equals(recipeBeforeOrder.getGiveMode()) && recipeBeforeOrder.getEnterpriseId() != null){
+                    if(recipeBeforeOrder.getEnterpriseId() != null){
                         extInfo.put("depId",recipeBeforeOrder.getEnterpriseId().toString());
                     }
                     RecipeOrder recipeOrder = new RecipeOrder();
