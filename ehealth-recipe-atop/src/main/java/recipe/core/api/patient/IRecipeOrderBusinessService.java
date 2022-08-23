@@ -214,6 +214,6 @@ public interface IRecipeOrderBusinessService {
      * @param preOrderInfoReqVO
      * @return
      */
-    void improvePreOrderInfo(PreOrderInfoReqVO preOrderInfoReqVO);
+    String improvePreOrderInfo(PreOrderInfoReqVO preOrderInfoReqVO);
 
 }

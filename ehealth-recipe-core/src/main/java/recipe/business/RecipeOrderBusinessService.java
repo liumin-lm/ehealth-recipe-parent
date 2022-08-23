@@ -55,6 +55,7 @@ import recipe.ApplicationUtils;
 import recipe.bean.RecipePayModeSupportBean;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.*;
+import recipe.constant.ErrorCode;
 import recipe.constant.RecipeBussConstant;
 import recipe.core.api.patient.IRecipeOrderBusinessService;
 import recipe.dao.*;
@@ -1060,57 +1061,65 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
     }
 
     @Override
-    public void improvePreOrderInfo(PreOrderInfoReqVO preOrderInfoReqVO) {
+    public String improvePreOrderInfo(PreOrderInfoReqVO preOrderInfoReqVO) {
         logger.info("improvePreOrderInfo preOrderInfoReqVO={}",JSONUtils.toString(preOrderInfoReqVO));
         if(preOrderInfoReqVO.getRecipeId() != null){
-            RecipeBeforeOrder recipeBeforeOrder = recipeBeforeOrderDAO.getRecipeBeforeOrderByRecipeId(preOrderInfoReqVO.getRecipeId());
-            if(Objects.nonNull(recipeBeforeOrder)){
-                Integer giveMode = recipeBeforeOrder.getGiveMode();
-                //购药方式为配送到家（医院配送、药企配送）
-                if(new Integer(1).equals(giveMode)){
-                    if(preOrderInfoReqVO.getAddressId() != null){
-                        RecipeOrder recipeOrder = new RecipeOrder();
-                        recipeBeforeOrder.setAddressId(preOrderInfoReqVO.getAddressId());
-                        AddressDTO addressDTO = addressService.getByAddressId(preOrderInfoReqVO.getAddressId());
-                        if (addressDTO != null) {
+            Recipe recipe = recipeDAO.getByRecipeId(preOrderInfoReqVO.getRecipeId());
+            if(recipe != null){
+                if(new Integer(1).equals(recipe.getReviewType()) && new Integer(8).equals(recipe.getStatus())){
+                    throw new DAOException(ErrorCode.SERVICE_ERROR, "处方待药师审核");
+                }
+                else {
+                    RecipeBeforeOrder recipeBeforeOrder = recipeBeforeOrderDAO.getRecipeBeforeOrderByRecipeId(preOrderInfoReqVO.getRecipeId());
+                    if(Objects.nonNull(recipeBeforeOrder)){
+                        Integer giveMode = recipeBeforeOrder.getGiveMode();
+                        //购药方式为配送到家（医院配送、药企配送）
+                        if(new Integer(1).equals(giveMode)){
+                            if(preOrderInfoReqVO.getAddressId() != null){
+                                RecipeOrder recipeOrder = new RecipeOrder();
+                                recipeBeforeOrder.setAddressId(preOrderInfoReqVO.getAddressId());
+                                AddressDTO addressDTO = addressService.getByAddressId(preOrderInfoReqVO.getAddressId());
+                                if (addressDTO != null) {
+                                    recipeBeforeOrder.setIsReady(1);
+                                    recipeBeforeOrder.setAddress1(addressDTO.getAddress1());
+                                    recipeBeforeOrder.setAddress2(addressDTO.getAddress2());
+                                    recipeBeforeOrder.setAddress3(addressDTO.getAddress3());
+                                    recipeBeforeOrder.setStreetAddress(addressDTO.getStreetAddress());
+                                    recipeBeforeOrder.setAddress4(addressDTO.getAddress4());
+                                    recipeBeforeOrder.setAddress5(addressDTO.getAddress5());
+                                    recipeBeforeOrder.setAddress5Text(addressDTO.getAddress5Text());
+                                    recipeBeforeOrder.setReceiver(addressDTO.getReceiver());
+                                    recipeBeforeOrder.setRecMobile(addressDTO.getRecMobile());
+                                    recipeBeforeOrder.setRecTel(addressDTO.getRecTel());
+                                    recipeBeforeOrder.setZipCode(addressDTO.getZipCode());
+                                }else {
+                                    logger.info("improvePreOrderInfo addressDTO为null");
+                                }
+                                List<Integer> recipeIds = new ArrayList<>();
+                                Integer recipeId = recipeBeforeOrder.getRecipeId();
+                                recipeIds.add(recipeId);
+                                if(recipeBeforeOrder.getEnterpriseId() != null){
+                                    recipeOrder.setEnterpriseId(recipeBeforeOrder.getEnterpriseId());
+                                    orderService.setOrderAddress(new OrderCreateResult(200),recipeOrder,recipeIds, new RecipePayModeSupportBean(),null,0,addressDTO);
+                                }
+                                //运费
+                                recipeBeforeOrder.setExpressFee(recipeOrder.getExpressFee());
+                            }
+                        }
+                        //购药方式为到店取药
+                        else if (new Integer(3).equals(giveMode)){
+                            recipeBeforeOrder.setDrugStoreName(preOrderInfoReqVO.getDrugStoreName());
+                            recipeBeforeOrder.setDrugStoreCode(preOrderInfoReqVO.getDrugStoreCode());
+                            recipeBeforeOrder.setDrugStoreAddr(preOrderInfoReqVO.getDrugStoreAddr());
                             recipeBeforeOrder.setIsReady(1);
-                            recipeBeforeOrder.setAddress1(addressDTO.getAddress1());
-                            recipeBeforeOrder.setAddress2(addressDTO.getAddress2());
-                            recipeBeforeOrder.setAddress3(addressDTO.getAddress3());
-                            recipeBeforeOrder.setStreetAddress(addressDTO.getStreetAddress());
-                            recipeBeforeOrder.setAddress4(addressDTO.getAddress4());
-                            recipeBeforeOrder.setAddress5(addressDTO.getAddress5());
-                            recipeBeforeOrder.setAddress5Text(addressDTO.getAddress5Text());
-                            recipeBeforeOrder.setReceiver(addressDTO.getReceiver());
-                            recipeBeforeOrder.setRecMobile(addressDTO.getRecMobile());
-                            recipeBeforeOrder.setRecTel(addressDTO.getRecTel());
-                            recipeBeforeOrder.setZipCode(addressDTO.getZipCode());
-                        }else {
-                            logger.info("improvePreOrderInfo addressDTO为null");
                         }
-                        List<Integer> recipeIds = new ArrayList<>();
-                        Integer recipeId = recipeBeforeOrder.getRecipeId();
-                        recipeIds.add(recipeId);
-                        if(recipeBeforeOrder.getEnterpriseId() != null){
-                            recipeOrder.setEnterpriseId(recipeBeforeOrder.getEnterpriseId());
-                            orderService.setOrderAddress(new OrderCreateResult(200),recipeOrder,recipeIds, new RecipePayModeSupportBean(),null,0,addressDTO);
-                        }
-                        //运费
-                        recipeBeforeOrder.setExpressFee(recipeOrder.getExpressFee());
+                        logger.info("improvePreOrderInfo recipeBeforeOrder={}",JSONUtils.toString(recipeBeforeOrder));
+                        recipeBeforeOrder.setUpdateTime(new Date());
+                        recipeBeforeOrderDAO.update(recipeBeforeOrder);
                     }
                 }
-                //购药方式为到店取药
-                else if (new Integer(3).equals(giveMode)){
-                    recipeBeforeOrder.setDrugStoreName(preOrderInfoReqVO.getDrugStoreName());
-                    recipeBeforeOrder.setDrugStoreCode(preOrderInfoReqVO.getDrugStoreCode());
-                    recipeBeforeOrder.setDrugStoreAddr(preOrderInfoReqVO.getDrugStoreAddr());
-                    recipeBeforeOrder.setIsReady(1);
-                }
-                logger.info("improvePreOrderInfo recipeBeforeOrder={}",JSONUtils.toString(recipeBeforeOrder));
-                recipeBeforeOrder.setUpdateTime(new Date());
-                recipeBeforeOrderDAO.update(recipeBeforeOrder);
-
             }
         }
+        return "success";
     }
 }

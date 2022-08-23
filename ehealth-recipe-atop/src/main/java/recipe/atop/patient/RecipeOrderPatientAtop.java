@@ -246,8 +246,8 @@ public class RecipeOrderPatientAtop extends BaseAtop {
      * @return
      */
     @RpcService
-    public void improvePreOrderInfo(PreOrderInfoReqVO preOrderInfoReqVO){
-        recipeOrderService.improvePreOrderInfo(preOrderInfoReqVO);
+    public String improvePreOrderInfo(PreOrderInfoReqVO preOrderInfoReqVO){
+        return recipeOrderService.improvePreOrderInfo(preOrderInfoReqVO);
     }
 
 
