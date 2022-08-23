@@ -18,7 +18,7 @@ public interface IFastRecipeBusinessService {
      * @param recipeInfoVOList
      * @return
      */
-    List<Integer> fastRecipeSaveRecipe(List<RecipeInfoVO> recipeInfoVOList);
+    List<Integer> fastRecipeSaveRecipeList(List<RecipeInfoVO> recipeInfoVOList);
 
 
     /**
