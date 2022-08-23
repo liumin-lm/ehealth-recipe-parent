@@ -884,39 +884,44 @@ public class OrderManager extends BaseManager {
 
     /**
      * 若同城速递，用户的收货地址与发件地址，距离超过100KM，则无法下单
+     *
+     * @param recipeIds
      * @param extInfo
      * @return true表示可以下单
      */
     @LogRecord
-    public boolean controlLogisticsDistance(Map<String, String> extInfo) {
+    public boolean controlLogisticsDistance( Map<String, String> extInfo) {
         Integer logisticsCompany = MapValueUtil.getInteger(extInfo, "logisticsCompany");
-        Integer addressId = MapValueUtil.getInteger(extInfo, "addressId");
-        Integer organId = MapValueUtil.getInteger(extInfo, "organId");
-
         if(!new Integer(301).equals(logisticsCompany)){
             return true;
         }
+        Integer addressId = MapValueUtil.getInteger(extInfo, "addressId");
+        Integer depId = MapValueUtil.getInteger(extInfo, "depId");
         if(addressId==null){
+            logger.info("addressId is null");
+            return false;
+        }
+        if(depId==null){
+            logger.info("depId is null");
             return false;
         }
         AddressDTO addressDTO=addressService.getByAddressId(addressId);
         logger.info("controlLogisticsDistance addressDTO:{}",JSONUtils.toString(addressDTO));
         if(addressDTO==null){
+            logger.info("addressDTO is null");
             return false;
         }
         LogisticsDistanceDto logisticsDistanceDto=new LogisticsDistanceDto();
         logisticsDistanceDto.setLatitude(addressDTO.getLatitude());
         logisticsDistanceDto.setLongitude(addressDTO.getLongitude());
         logisticsDistanceDto.setLogisticsCode(String.valueOf(logisticsCompany));
-        logisticsDistanceDto.setOrganId(organId);
+        logisticsDistanceDto.setOrganId(depId);
         logisticsDistanceDto.setBusinessType(1);
         Map<String,String> result=infraClient.controlLogisticsDistance(logisticsDistanceDto);
         if(result!=null){
             if("1".equals(result.get("code"))){
                 return false;
             }
-        }else{
-            return false;
         }
         return true;
     }
@@ -998,15 +1003,6 @@ public class OrderManager extends BaseManager {
                 RecipeBeforeOrder beforeOrder = recipeBeforeOrders.get(0);
                 RecipeOrder recipeOrder = new RecipeOrder();
                 AddressDTO addressDTO = new AddressDTO();
-                //需要完善之后才会有addressId
-                if(beforeOrder.getAddressId() != null){
-                    addressDTO = addressService.getByAddressId(beforeOrder.getAddressId());
-                    recipeOrder.setAddress1(beforeOrder.getAddress1());
-                    recipeOrder.setAddress2(beforeOrder.getAddress2());
-                    recipeOrder.setAddress3(beforeOrder.getAddress3());
-                    recipeOrder.setStreetAddress(beforeOrder.getStreetAddress());
-                }
-
                 BigDecimal recipeFee = BigDecimal.ZERO;
                 BigDecimal tcmFee = BigDecimal.ZERO;
                 BigDecimal decoctionFee = BigDecimal.ZERO;
@@ -1049,8 +1045,6 @@ public class OrderManager extends BaseManager {
                         //地址是否可以配送
                         beforeOrder.setAddressCanSend(new Integer(0).equals(addressDTO.getBeyondDelivery()));
                     }
-                    //完整地址
-                    beforeOrder.setCompleteAddress(getCompleteAddress(recipeOrder));
                     List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipeBeforeOrder.getRecipeId());
                     recipeDTO.setRecipeDetails(recipeDetailList);
                     recipeDTOList.add(recipeDTO);

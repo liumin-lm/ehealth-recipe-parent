@@ -144,8 +144,8 @@
         <property name="kafkaGroup" value="${canal_kafka_group}"/>
         <property name="drugListNursingTopic" value="${kafka_drugList_topic}"/>
         <property name="easyPayTopic" value="${ons_topic_easyPay}"/>
+        <property name="settleStateSyncRecipeTag" value="${settleStateSyncRecipeTag}"/>
     </bean>
-
     <bean id="urlConfig" class="recipe.common.UrlConfig">
         <property name="fileViewUrl" value="${urlresource.fileViewUrl}"/>
     </bean>

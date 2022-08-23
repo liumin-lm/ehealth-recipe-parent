@@ -20,6 +20,7 @@ import com.ngari.patient.service.AddressService;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.PatientService;
 import com.ngari.platform.recipe.mode.InvoiceInfoResTO;
+import com.ngari.platform.recipe.mode.RecipeBean;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
@@ -79,6 +80,7 @@ import recipe.util.LocalStringUtil;
 import recipe.util.ObjectCopyUtils;
 import recipe.vo.ResultBean;
 import recipe.vo.base.BaseRecipeDetailVO;
+import recipe.vo.greenroom.ImperfectInfoVO;
 import recipe.vo.greenroom.InvoiceRecordVO;
 import recipe.vo.second.CabinetVO;
 import recipe.vo.second.enterpriseOrder.*;
@@ -1092,6 +1094,11 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                                     recipeBeforeOrder.setRecMobile(addressDTO.getRecMobile());
                                     recipeBeforeOrder.setRecTel(addressDTO.getRecTel());
                                     recipeBeforeOrder.setZipCode(addressDTO.getZipCode());
+                                    recipeOrder.setAddress1(addressDTO.getAddress1());
+                                    recipeOrder.setAddress2(addressDTO.getAddress2());
+                                    recipeOrder.setAddress3(addressDTO.getAddress3());
+                                    recipeOrder.setStreetAddress(addressDTO.getStreetAddress());
+                                    recipeBeforeOrder.setCompleteAddress(orderManager.getCompleteAddress(recipeOrder));
                                 }else {
                                     logger.info("improvePreOrderInfo addressDTO为null");
                                 }
@@ -1130,5 +1137,10 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
             return true;
         }
         return false;
+    }
+
+    @Override
+    public List<ImperfectInfoVO> batchGetImperfectFlag(List<RecipeBean> recipeBeans) {
+        return null;
     }
 }
