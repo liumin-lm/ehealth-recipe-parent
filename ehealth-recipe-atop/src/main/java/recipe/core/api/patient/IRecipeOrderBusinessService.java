@@ -219,6 +219,12 @@ public interface IRecipeOrderBusinessService {
     String improvePreOrderInfo(PreOrderInfoReqVO preOrderInfoReqVO);
 
     /**
+     * 获取加入购物车标识
+     * @param recipeId
+     * @return
+     */
+    Boolean getPreOrderFlag(Integer recipeId);
+    /**
      * 批量获取未完善或完善标识
      * @param recipeBeans
      * @return

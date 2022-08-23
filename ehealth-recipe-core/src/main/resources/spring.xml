@@ -20,7 +20,7 @@
     <import resource="classpath:/ctd/util/exp/spring-expr-base.xml"/>
     <import resource="spring-hibernate.xml"/>
     <import resource="spring-controller.xml"/>
-    <import resource="${spring.mq.file:spring-mq.xml}"/>
+    <import resource="spring-mq-rocket.xml"/>
     <import resource="spring-service.xml"/>
     <import resource="spring-redis.xml"/>
     <import resource="spring-service-base.xml"/>
@@ -144,10 +144,7 @@
         <property name="kafkaGroup" value="${canal_kafka_group}"/>
         <property name="drugListNursingTopic" value="${kafka_drugList_topic}"/>
         <property name="easyPayTopic" value="${ons_topic_easyPay}"/>
-    </bean>
-
-    <bean id="urlConfig" class="recipe.common.UrlConfig">
-        <property name="fileViewUrl" value="${urlresource.fileViewUrl}"/>
+        <property name="settleStateSyncRecipeTag" value="${settleStateSyncRecipeTag}"/>
     </bean>
 
     <bean id="tokenUpdateService" class="recipe.service.TokenUpdateService" init-method="updateTokenAfterInit"></bean>

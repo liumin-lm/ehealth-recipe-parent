@@ -80,7 +80,6 @@ import recipe.util.LocalStringUtil;
 import recipe.util.ObjectCopyUtils;
 import recipe.vo.ResultBean;
 import recipe.vo.base.BaseRecipeDetailVO;
-import recipe.vo.greenroom.ImperfectInfoVO;
 import recipe.vo.greenroom.InvoiceRecordVO;
 import recipe.vo.second.CabinetVO;
 import recipe.vo.second.enterpriseOrder.*;
@@ -1128,6 +1127,15 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
             }
         }
         return "success";
+    }
+
+    @Override
+    public Boolean getPreOrderFlag(Integer recipeId) {
+        RecipeBeforeOrder recipeBeforeOrder = recipeBeforeOrderDAO.getRecipeBeforeOrderByRecipeId(recipeId);
+        if(Objects.nonNull(recipeBeforeOrder)){
+            return true;
+        }
+        return false;
     }
 
     @Override

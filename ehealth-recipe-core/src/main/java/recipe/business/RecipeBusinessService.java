@@ -1016,6 +1016,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             order.setProcessState(OrderStateEnum.PROCESS_STATE_ORDER_PLACED.getType());
             order.setSettleMode(recipeOutpatientPaymentDTO.getSettleMode());
             order.setHisSettlementNo(recipeOutpatientPaymentDTO.getHisSettlementNo());
+            order.setAddressID(recipeBeforeOrder.getAddressId());
 
             // 保存订单
             recipeOrderDAO.save(order);
