@@ -107,6 +107,12 @@ public class FastRecipeVO implements Serializable {
     @ItemProperty(alias = "电子病历文本")
     private String docText;
 
+    @ItemProperty(alias = "是否需要问卷，0不需要，1需要")
+    private Integer needQuestionnaire;
+
+    @ItemProperty(alias = "问卷链接")
+    private String questionnaireUrl;
+
     @ItemProperty(alias = "药方详情，药品信息")
     private List<FastRecipeDetailVO> fastRecipeDetailList;
 }
