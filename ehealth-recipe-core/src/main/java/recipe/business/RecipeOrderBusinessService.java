@@ -1080,7 +1080,9 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                 for(RecipeBeforeOrderDTO recipeBeforeOrder : recipeBeforeOrderDTOList){
                     Map<String,String> extInfo = new HashMap<>();
                     extInfo.put("operMpiId",recipeBeforeOrder.getOperMpiId());
-                    extInfo.put("depId",recipeBeforeOrder.getEnterpriseId().toString());
+                    if(!new Integer(2).equals(recipeBeforeOrder.getGiveMode())){
+                        extInfo.put("depId",recipeBeforeOrder.getEnterpriseId().toString());
+                    }
                     RecipeOrder recipeOrder = new RecipeOrder();
                     recipeOrder.setOrganId(beforeOrder.getOrganId());
                     recipeOrder.setEnterpriseId(beforeOrder.getEnterpriseId());
@@ -1146,6 +1148,10 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                 }
                 //处方费
                 beforeOrder.setRecipeFee(recipeFee);
+                beforeOrder.setAuditFee(auditFee);
+                beforeOrder.setExpressFee(expressFee);
+                beforeOrder.setTcmFee(tcmFee);
+                beforeOrder.setDecoctionFee(decoctionFee);
                 shoppingCartDetailDTO.setRecipeDTO(recipeDTOList);
                 shoppingCartDetailDTO.setRecipeBeforeOrder(beforeOrder);
                 shoppingCartDetailDTOList.add(shoppingCartDetailDTO);
