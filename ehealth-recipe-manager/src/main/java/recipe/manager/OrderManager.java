@@ -893,7 +893,7 @@ public class OrderManager extends BaseManager {
         Integer addressId = MapValueUtil.getInteger(extInfo, "addressId");
         Integer organId = MapValueUtil.getInteger(extInfo, "organId");
 
-        if(!"301".equals(logisticsCompany)){
+        if(!new Integer(301).equals(logisticsCompany)){
             return true;
         }
         if(addressId==null){

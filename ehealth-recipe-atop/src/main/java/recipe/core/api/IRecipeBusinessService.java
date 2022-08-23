@@ -18,7 +18,7 @@ import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.greenroom.DrugUsageLabelResp;
 import recipe.vo.patient.PatientOptionalDrugVo;
 import recipe.vo.second.MedicalDetailVO;
-import com.ngari.recipe.dto.RecipeOutpatientPaymentDTO;
+import com.ngari.recipe.recipe.model.RecipeOutpatientPaymentDTO;
 import recipe.vo.second.RecipePayHISCallbackReq;
 
 import java.util.Date;

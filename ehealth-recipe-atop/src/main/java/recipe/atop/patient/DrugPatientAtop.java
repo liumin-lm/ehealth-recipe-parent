@@ -156,4 +156,16 @@ public class DrugPatientAtop extends BaseAtop {
         return clinicCartService.updateClinicCartById(clinicCartVO);
     }
 
+    /**
+     * 购物车根据用户Id,机构id和业务场景删除数据
+     *
+     * @param clinicCartVO
+     * @return
+     */
+    @RpcService
+    public Boolean deleteClinicCartByUserId(ClinicCartVO clinicCartVO) {
+        validateAtop(clinicCartVO.getUserId(), clinicCartVO.getOrganId(), clinicCartVO.getWorkType());
+        return clinicCartService.deleteClinicCartByUserId(clinicCartVO);
+    }
+
 }
