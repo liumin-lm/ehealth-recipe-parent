@@ -1122,4 +1122,13 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
         }
         return "success";
     }
+
+    @Override
+    public Boolean getPreOrderFlag(Integer recipeId) {
+        RecipeBeforeOrder recipeBeforeOrder = recipeBeforeOrderDAO.getRecipeBeforeOrderByRecipeId(recipeId);
+        if(Objects.nonNull(recipeBeforeOrder)){
+            return true;
+        }
+        return false;
+    }
 }
