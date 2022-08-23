@@ -190,7 +190,6 @@ public class RecipeOrderOpenAtop extends BaseAtop implements IRecipeOrderAtopSer
         return recipeOrderService.getImperfectFlag(organId,recipeCode);
     }
 
-    @RpcService
     @Override
     public List<ImperfectInfoVO> batchGetImperfectFlag(List<RecipeBean> recipeBeans) {
         return recipeOrderService.batchGetImperfectFlag(recipeBeans);
