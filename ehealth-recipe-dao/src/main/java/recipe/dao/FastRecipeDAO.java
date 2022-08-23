@@ -1,9 +1,7 @@
 package recipe.dao;
 
-import com.alibaba.druid.util.StringUtils;
 import com.ngari.recipe.dto.FastRecipeReq;
 import com.ngari.recipe.entity.FastRecipe;
-import com.ngari.recipe.entity.ItemList;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;
 import ctd.persistence.exception.DAOException;
@@ -12,7 +10,6 @@ import ctd.persistence.support.hibernate.template.AbstractHibernateStatelessResu
 import ctd.persistence.support.hibernate.template.HibernateSessionTemplate;
 import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction;
 import ctd.util.annotation.RpcSupportDAO;
-import eh.utils.ValidateUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.hibernate.Query;
 import org.hibernate.StatelessSession;

@@ -6,7 +6,9 @@ import com.ngari.recipe.entity.FastRecipe;
 import com.ngari.recipe.entity.FastRecipeDetail;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.vo.FastRecipeDetailVO;
+import com.ngari.recipe.vo.FastRecipeRespVO;
 import com.ngari.recipe.vo.FastRecipeVO;
+import ctd.persistence.bean.QueryResult;
 import ctd.util.BeanUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -56,12 +58,20 @@ public class FastRecipeGmAtop extends BaseAtop {
      * @return
      */
     @RpcService
-    public List<FastRecipeVO> findFastRecipeListByOrganId(FastRecipeReq fastRecipeReq) {
+    public FastRecipeRespVO findFastRecipeListByOrganId(FastRecipeReq fastRecipeReq) {
         validateAtop(fastRecipeReq, fastRecipeReq.getOrganId());
         isAuthorisedOrgan(fastRecipeReq.getOrganId());
         fastRecipeReq.setStatusList(Lists.newArrayList(1, 2));
         List<FastRecipe> fastRecipeList = fastRecipeService.findFastRecipeListByParam(fastRecipeReq);
-        return CollectionUtils.isEmpty(fastRecipeList) ? Lists.newArrayList() : BeanCopyUtils.copyList(fastRecipeList, FastRecipeVO::new);
+        FastRecipeRespVO fastRecipeRespVO = new FastRecipeRespVO();
+        if (CollectionUtils.isNotEmpty(fastRecipeList)) {
+            fastRecipeRespVO.setFastRecipeList(BeanCopyUtils.copyList(fastRecipeList, FastRecipeVO::new));
+            fastRecipeReq.setStart(null);
+            fastRecipeReq.setStart(null);
+            List<FastRecipe> fastRecipeListAll = fastRecipeService.findFastRecipeListByParam(fastRecipeReq);
+            fastRecipeRespVO.setTotal(fastRecipeListAll.size());
+        }
+        return fastRecipeRespVO;
     }
 
     /**
