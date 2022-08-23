@@ -1,6 +1,8 @@
 package com.ngari.recipe.vo;
 
+import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
+import ctd.schema.annotation.Schema;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -13,6 +15,7 @@ import java.util.List;
  * @Date 2022-08-16
  */
 @Data
+@Schema
 public class FastRecipeVO implements Serializable {
 
     private static final long serialVersionUID = -4078142463611099079L;
@@ -33,6 +36,7 @@ public class FastRecipeVO implements Serializable {
     private String backgroundImg;
 
     @ItemProperty(alias = "处方类型")
+    @Dictionary(id = "eh.cdr.dictionary.RecipeType")
     private Integer recipeType;
 
     @ItemProperty(alias = "销售数量上限")
