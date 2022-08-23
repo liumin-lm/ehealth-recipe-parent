@@ -44,9 +44,6 @@ public class RecipeBeforeOrder implements Serializable {
     @ItemProperty(alias = "取药药店或站点地址")
     private String drugStoreAddr;
 
-    @ItemProperty(alias = "取药药店或站点电话号")
-    private String drugStorePhone;
-
     @ItemProperty(alias = "配送地址id")
     private Integer addressId;
 
@@ -82,9 +79,6 @@ public class RecipeBeforeOrder implements Serializable {
 
     @ItemProperty(alias = "社区名称")
     private String address5Text;
-
-    @ItemProperty(alias = "当前地址是否可进行配送")
-    private Boolean addressCanSend;
 
     @ItemProperty(alias = "邮政编码")
     private String zipCode;
@@ -451,15 +445,6 @@ public class RecipeBeforeOrder implements Serializable {
         this.streetAddress = streetAddress;
     }
 
-    @Transient
-    public Boolean getAddressCanSend() {
-        return addressCanSend;
-    }
-
-    public void setAddressCanSend(Boolean addressCanSend) {
-        this.addressCanSend = addressCanSend;
-    }
-
     @Column(name = "complete_address")
     public String getCompleteAddress() {
         return completeAddress;
@@ -469,12 +454,4 @@ public class RecipeBeforeOrder implements Serializable {
         this.completeAddress = completeAddress;
     }
 
-    @Transient
-    public String getDrugStorePhone() {
-        return drugStorePhone;
-    }
-
-    public void setDrugStorePhone(String drugStorePhone) {
-        this.drugStorePhone = drugStorePhone;
-    }
 }
