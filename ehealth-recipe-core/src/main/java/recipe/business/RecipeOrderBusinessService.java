@@ -1048,7 +1048,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                 return recipeBeforeOrder.getIsReady();
             }
         }catch (Exception e){
-            logger.error("RecipeOrderBusinessService getImperfectFlag error",e);
+            return 0;
         }
         logger.info("getImperfectFlag recipeBeforeOrder为null");
         return 0;
