@@ -189,6 +189,8 @@ public class CaManager extends BaseManager {
             caSignResult.setBusstype(isDoctor ? 1:3); //1 处方 3药师
             caSignResult.setDoctorId(isDoctor?recipe.getDoctor():recipe.getChecker());
             caSignResult.setOrganId(recipe.getClinicOrgan());
+//            caSignResult.setSignFileDoc("签名文件")//文件id
+//            caSignResult.setCertificate("ca证书base64");//对应SignRemarkDoc字段
             caClient.saveCaSignResult(caSignResult);
         } catch (Exception e) {
             logger.info("saveESignResult error recipeId[{}] errorMsg[{}]", recipe.getRecipeId(), e.getMessage(), e);

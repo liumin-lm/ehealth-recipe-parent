@@ -42,7 +42,8 @@ public class RegulationRecipeIndicatorsDTO implements Serializable {
     private String auditDoctorCertID;//	审方医师身份证号
     private String auditDoctor;//	审方医师姓名
     private String auditDoctorNo;// 审方医生工号
-    private String auditDoctorSign;//审核医生电子签名
+    private String auditDoctorSign;//审核医生电子签名SignCodeDoc
+    private String auditCACertBase64;//审方医生签名证书SignRemarkDoc
     private String auditProTitle;//审方医生职称
     private String auditDeptID;//审方医师所属科室代码
     private String auditDeptName;//审方医师所属科室名称
@@ -91,7 +92,7 @@ public class RegulationRecipeIndicatorsDTO implements Serializable {
     private String  recipeSignImgId; // 处方图片文件id
     @ItemProperty(alias = "签名的处方PDF")
     private String doctorSignFile;
-    @ItemProperty(alias = "药师签名的处方PDF")
+    @ItemProperty(alias = "药师签名的处方PDF/最终的pdf文件")
     private String chemistSignFile;
     private String medicalFileId; //患者病历文件id
     private String icdCode;//	诊断ICD码
@@ -141,7 +142,9 @@ public class RegulationRecipeIndicatorsDTO implements Serializable {
 
     private String cancelFlag;//撤销标记 1-正常 2-撤销
 
-    private String doctorSign;//开方医生电子签名
+    private String doctorSign;//开方医生电子签名SignCodeDoc
+
+    private String doctorCACertBase64;//开方医生签名证书SignRemarkDoc
 
     private String mainDieaseDescribe;//主诉
 
@@ -1048,5 +1051,21 @@ public class RegulationRecipeIndicatorsDTO implements Serializable {
 
     public void setChemistSignFile(String chemistSignFile) {
         this.chemistSignFile = chemistSignFile;
+    }
+
+    public String getAuditCACertBase64() {
+        return auditCACertBase64;
+    }
+
+    public void setAuditCACertBase64(String auditCACertBase64) {
+        this.auditCACertBase64 = auditCACertBase64;
+    }
+
+    public String getDoctorCACertBase64() {
+        return doctorCACertBase64;
+    }
+
+    public void setDoctorCACertBase64(String doctorCACertBase64) {
+        this.doctorCACertBase64 = doctorCACertBase64;
     }
 }

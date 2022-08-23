@@ -3,7 +3,9 @@ package recipe.hisservice.syncdata;
 import ca.service.ISignRecipeInfoService;
 import ca.vo.model.SignDoctorRecipeInfoDTO;
 import com.alibaba.fastjson.JSON;
+import com.ngari.base.BaseAPI;
 import com.ngari.base.cdr.model.DiseaseDTO;
+import com.ngari.base.esign.service.IESignBaseService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.serviceconfig.mode.ServiceConfigResponseTO;
 import com.ngari.base.serviceconfig.service.IHisServiceConfigService;
@@ -36,6 +38,7 @@ import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
+import ctd.util.FileAuth;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -55,9 +58,11 @@ import recipe.ApplicationUtils;
 import recipe.aop.LogRecord;
 import recipe.bean.EleInvoiceDTO;
 import recipe.bussutil.RecipeUtil;
+import recipe.client.CaClient;
 import recipe.client.DoctorClient;
 import recipe.common.CommonConstant;
 import recipe.common.ResponseUtils;
+import recipe.common.UrlConfig;
 import recipe.common.response.CommonResponse;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
@@ -69,6 +74,7 @@ import recipe.enumerate.type.SettlementModeTypeEnum;
 import recipe.hisservice.EleInvoiceService;
 import recipe.manager.EmrRecipeManager;
 import recipe.manager.OrganManager;
+import recipe.manager.RecipeManager;
 import recipe.service.RecipeExtendService;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeService;
@@ -96,6 +102,10 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
     private IAuditMedicinesService iAuditMedicinesService;
     @Autowired
     private DoctorClient doctorClient;
+    @Autowired
+    private CaClient caClient;
+    @Autowired
+    private RecipeManager recipeManager;
     @Autowired
     private ISignRecipeInfoService signRecipeInfoService;
     @Resource
@@ -409,12 +419,12 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             //江苏ca用到
             docCaInfo = signRecipeInfoService.getSignRecipeInfoByRecipeIdAndServerType(recipe.getRecipeId(), 1);
             if (docCaInfo != null) {
-                //医生签名值
+                //医生签名值SignCodeDoc
                 req.setDoctorSign(docCaInfo.getSignCodeDoc());
             }
             phaCaInfo = signRecipeInfoService.getSignRecipeInfoByRecipeIdAndServerType(recipe.getRecipeId(), 3);
             if (phaCaInfo != null) {
-                //药师签名值
+                //药师签名值SignCodeDoc
                 req.setAuditDoctorSign(phaCaInfo.getSignCodeDoc());
             }
 
@@ -702,7 +712,42 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 DoctorDTO dispensingApothecary = doctorService.get(Integer.valueOf(doctorId));
                 req.setDispensingApothecaryIdCard(dispensingApothecary.getIdNumber());
             }
+
+            //新增ca证书
+            setEsignCertBase64(req);
+
             request.add(req);
+        }
+    }
+
+    /**
+     * 根据签名的pdf获取ca信息
+     * 只有实时上传的那种才可以，若是定时反查上传有概率验签失败导致证书信息不全
+     * @param req
+     */
+    private void setEsignCertBase64(RegulationRecipeIndicatorsReq req){
+        try{
+            //签名是E签宝的才进行验签
+            IESignBaseService esignBaseService = BaseAPI.getService(IESignBaseService.class);
+
+            String pdfOssid=req.getRecipeFileId();
+            String thirdCASign=caClient.getThirdCASign(Integer.valueOf(req.getOrganID()));
+            if("esign".equals(thirdCASign) && !StringUtils.isEmpty(pdfOssid)){
+                //拼装url验签
+                String pdfUrl= recipeManager.getRecipeSignFileUrl(pdfOssid,UrlConfig.VALID_TIME_SECOND);
+                List<String> cerBase64List=esignBaseService.verifyPdf(pdfUrl);
+
+                //一个处方笺签了两次名，会有两个证书返回
+                if(cerBase64List!=null && cerBase64List.size()==1){
+                    req.setDoctorCACertBase64(cerBase64List.get(0));
+                } else if(cerBase64List!=null && cerBase64List.size()>1){
+                    req.setDoctorCACertBase64(cerBase64List.get(0));
+                    req.setAuditCACertBase64(cerBase64List.get(1));
+                }
+            }
+
+        }catch (Exception e){
+            LOGGER.warn("uploadRecipeIndicators setEsignCertBase64 验签异常，recipeId={}", req.getRecipeID(),e);
         }
     }
 
