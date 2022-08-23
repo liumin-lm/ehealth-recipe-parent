@@ -1141,6 +1141,32 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
 
     @Override
     public List<ImperfectInfoVO> batchGetImperfectFlag(List<RecipeBean> recipeBeans) {
-        return null;
+        logger.info("batchGetImperfectFlag recipeBeans={}",recipeBeans);
+        List<ImperfectInfoVO> imperfectInfoVOS = new ArrayList<>();
+        List<String> recipeCodes = recipeBeans.stream().map(RecipeBean::getRecipeCode).collect(Collectors.toList());
+        Set<Integer> organIds = recipeBeans.stream().map(RecipeBean::getClinicOrgan).collect(Collectors.toSet());
+        List<RecipeBeforeOrder> recipeBeforeOrders = recipeBeforeOrderDAO.findByRecipeCodesAndOrganIds(recipeCodes,organIds);
+        List<String> recipeCodeList = recipeBeforeOrders.stream().map(RecipeBeforeOrder::getRecipeCode).collect(Collectors.toList());
+        if(CollectionUtils.isNotEmpty(recipeBeforeOrders)){
+            recipeBeforeOrders.forEach(recipeBeforeOrder -> {
+                ImperfectInfoVO imperfectInfoVO = new ImperfectInfoVO();
+                imperfectInfoVO.setOrganId(recipeBeforeOrder.getOrganId());
+                imperfectInfoVO.setRecipeCode(recipeBeforeOrder.getRecipeCode());
+                imperfectInfoVO.setImperfectFlag(recipeBeforeOrder.getIsReady());
+                imperfectInfoVOS.add(imperfectInfoVO);
+            });
+        }
+        //处理不存在预订单信息中的处方（例：线下处方）
+        Map<String, Integer> collectMap = recipeBeans.stream().collect(Collectors.toMap(RecipeBean::getRecipeCode, RecipeBean::getClinicOrgan));
+        List<String> recipeCodeLists = recipeCodes.stream().filter(a -> !recipeCodeList.contains(a)).collect(Collectors.toList());
+        recipeCodeLists.forEach(a -> {
+            ImperfectInfoVO imperfectInfoVO = new ImperfectInfoVO();
+            imperfectInfoVO.setOrganId(collectMap.get(a));
+            imperfectInfoVO.setRecipeCode(a);
+            imperfectInfoVO.setImperfectFlag(0);
+            imperfectInfoVOS.add(imperfectInfoVO);
+        });
+        logger.info("batchGetImperfectFlag imperfectInfoVOS={}",JSONUtils.toString(imperfectInfoVOS));
+        return imperfectInfoVOS;
     }
 }

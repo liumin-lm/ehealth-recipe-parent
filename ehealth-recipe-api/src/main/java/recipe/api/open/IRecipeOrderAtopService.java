@@ -136,7 +136,7 @@ public interface IRecipeOrderAtopService {
      * @param recipeBeans
      * @return
      */
-    @RpcService(mvcDisabled = true)
+    @RpcService
     List<ImperfectInfoVO> batchGetImperfectFlag(List<RecipeBean> recipeBeans);
 
 }

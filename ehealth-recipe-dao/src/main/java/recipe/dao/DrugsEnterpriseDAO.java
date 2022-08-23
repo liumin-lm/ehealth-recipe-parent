@@ -331,7 +331,7 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
                 query = ss.createQuery("SELECT d " + hql.toString());
                 query.setProperties(params);
                 List<DrugsEnterpriseBean> list = query.list();
-                setResult(new QueryResult<DrugsEnterpriseBean>(total, 0, (int) total, list));
+                setResult(new QueryResult<>(total, 0, (int) total, list));
             }
         };
         HibernateSessionTemplate.instance().execute(action);
