@@ -216,4 +216,10 @@ public interface IRecipeOrderBusinessService {
      */
     String improvePreOrderInfo(PreOrderInfoReqVO preOrderInfoReqVO);
 
+    /**
+     * 获取加入购物车标识
+     * @param recipeId
+     * @return
+     */
+    Boolean getPreOrderFlag(Integer recipeId);
 }
