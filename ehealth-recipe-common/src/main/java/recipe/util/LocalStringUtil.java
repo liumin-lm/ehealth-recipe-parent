@@ -1,5 +1,6 @@
 package recipe.util;
 
+import com.ngari.recipe.entity.Recipe;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import org.apache.commons.lang3.StringUtils;
@@ -127,5 +128,39 @@ public class LocalStringUtil {
             }
         }
         return "";
+    }
+
+
+    public static String getInvalidTime(Recipe recipe) {
+        String invalidTime = "3日";
+        try {
+            if (null != recipe.getInvalidTime()) {
+                Date now = new Date();
+                long nd = 1000 * 24 * 60 * 60;
+                long nh = 1000 * 60 * 60;
+                long nm = 1000 * 60;
+                long ns = 1000;
+                long diff = recipe.getInvalidTime().getTime() - now.getTime();
+                // 处方已到失效时间，失效定时任务未执行（每30分钟执行一次）
+                if (diff <= 0) {
+                    invalidTime = "30分钟";
+                } else {
+                    long day = diff / nd;
+                    long hour = diff % nd / nh;
+                    long min = diff % nd % nh / nm;
+                    long sec = diff % nd % nh % nm / ns;
+                    if (day <= 0 && hour <= 0 && min <= 0 && sec > 0) {
+                        invalidTime = "1分钟";
+                    } else {
+                        hour = hour + (day * 24);
+                        invalidTime = hour > 0 ? (hour + "小时") : "";
+                        invalidTime = min > 0 ? (invalidTime + min + "分钟") : (invalidTime + "");
+                    }
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.error("失效时间倒计时计算异常，recipeid={}", recipe.getRecipeId(), e);
+        }
+        return invalidTime;
     }
 }
