@@ -7,6 +7,7 @@ import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.recipe.model.*;
+import com.ngari.recipe.vo.PreOrderInfoReqVO;
 import com.ngari.recipe.vo.ShoppingCartReqVO;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
 import ctd.util.annotation.RpcService;
@@ -207,4 +208,12 @@ public interface IRecipeOrderBusinessService {
      * @return
      */
     void saveRecipeBeforeOrderInfo(ShoppingCartReqVO shoppingCartReqVO);
+
+    /**
+     * 完善购物车信息
+     * @param preOrderInfoReqVO
+     * @return
+     */
+    void improvePreOrderInfo(PreOrderInfoReqVO preOrderInfoReqVO);
+
 }

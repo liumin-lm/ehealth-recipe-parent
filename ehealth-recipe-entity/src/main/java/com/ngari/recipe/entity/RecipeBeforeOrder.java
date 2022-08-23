@@ -1,5 +1,7 @@
 package com.ngari.recipe.entity;
 
+import ctd.schema.annotation.Desensitizations;
+import ctd.schema.annotation.DesensitizationsType;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
@@ -42,8 +44,14 @@ public class RecipeBeforeOrder implements Serializable {
     @ItemProperty(alias = "取药药店或站点地址")
     private String drugStoreAddr;
 
+    @ItemProperty(alias = "取药药店或站点电话号")
+    private String drugStorePhone;
+
     @ItemProperty(alias = "配送地址id")
     private Integer addressId;
+
+    @ItemProperty(alias = "完整地址")
+    private String completeAddress;
 
     @ItemProperty(alias = "收货人")
     private String receiver;
@@ -450,5 +458,23 @@ public class RecipeBeforeOrder implements Serializable {
 
     public void setAddressCanSend(Boolean addressCanSend) {
         this.addressCanSend = addressCanSend;
+    }
+
+    @Transient
+    public String getCompleteAddress() {
+        return completeAddress;
+    }
+
+    public void setCompleteAddress(String completeAddress) {
+        this.completeAddress = completeAddress;
+    }
+
+    @Transient
+    public String getDrugStorePhone() {
+        return drugStorePhone;
+    }
+
+    public void setDrugStorePhone(String drugStorePhone) {
+        this.drugStorePhone = drugStorePhone;
     }
 }
