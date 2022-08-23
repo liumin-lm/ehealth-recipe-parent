@@ -2,6 +2,7 @@ package com.ngari.recipe.vo;
 
 import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
+import ctd.schema.annotation.Schema;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -14,6 +15,7 @@ import java.util.List;
  * @Date 2022-08-16
  */
 @Data
+@Schema
 public class FastRecipeVO implements Serializable {
 
     private static final long serialVersionUID = -4078142463611099079L;

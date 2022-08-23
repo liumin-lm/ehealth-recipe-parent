@@ -44,7 +44,7 @@ public class OnsConfig {
     /**
      * 门诊缴费支付信息回调topic
      */
-    public static String settleStateSyncRecipeTag;
+    public static String paymentReportTopic;
 
 
     public void setKafkaSwitch(boolean kafkaSwitch) {
@@ -56,8 +56,8 @@ public class OnsConfig {
         OnsConfig.drugListNursingTopic = drugListNursingTopic;
     }
 
-    public void setSettleStateSyncRecipeTag(String settleStateSyncRecipeTag) {
-        OnsConfig.settleStateSyncRecipeTag = settleStateSyncRecipeTag;
+    public void setPaymentReportTopic(String paymentReportTopic) {
+        OnsConfig.paymentReportTopic = paymentReportTopic;
     }
 
     public void setKafkaServers(String kafkaServers) {

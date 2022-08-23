@@ -72,6 +72,7 @@ import recipe.manager.OrderManager;
 import recipe.manager.RecipeManager;
 import recipe.presettle.IRecipePreSettleService;
 import recipe.presettle.factory.PreSettleFactory;
+import recipe.service.PayModeGiveModeUtil;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeOrderService;
 import recipe.third.IFileDownloadService;
@@ -138,6 +139,10 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
     private RecipeBeforeOrderDAO recipeBeforeOrderDAO;
     @Autowired
     private AddressService addressService;
+    @Autowired
+    private PharmacyDAO pharmacyDAO;
+    @Autowired
+    private RecipeDetailDAO recipeDetailDAO;
 
 
     @Override
@@ -1053,8 +1058,110 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
     @Override
     public List<ShoppingCartDetailDTO> getShoppingCartDetail(String mpiId) {
         logger.info("getShoppingCartDetail mpiId={}",mpiId);
-        return orderManager.getShoppingCartDetail(mpiId);
-    }
+        List<ShoppingCartDetailDTO> shoppingCartDetailDTOList = new ArrayList<>();
+        List<RecipeBeforeOrder> recipeBeforeOrderList = recipeBeforeOrderDAO.findByMpiId(mpiId);
+        logger.info("getShoppingCartDetail recipeBeforeOrderList={}",JSONUtils.toString(recipeBeforeOrderList));
+        if(CollectionUtils.isNotEmpty(recipeBeforeOrderList)){
+            //需要合并的处方
+            List<List<RecipeBeforeOrder>> mergeBeforeOrder = orderManager.mergeBeforeOrder(recipeBeforeOrderList);
+            logger.info("getShoppingCartDetail mergeBeforeOrder ={}",JSONUtils.toString(mergeBeforeOrder));
+            for(List<RecipeBeforeOrder> recipeBeforeOrders : mergeBeforeOrder){
+                ShoppingCartDetailDTO shoppingCartDetailDTO = new ShoppingCartDetailDTO();
+                List<RecipeBeforeOrderDTO> recipeBeforeOrderDTOList = ObjectCopyUtils.convert(recipeBeforeOrders, RecipeBeforeOrderDTO.class);
+                RecipeBeforeOrderDTO beforeOrder = recipeBeforeOrderDTOList.get(0);
+                BigDecimal recipeFee = BigDecimal.ZERO;
+                BigDecimal tcmFee = BigDecimal.ZERO;
+                BigDecimal decoctionFee = BigDecimal.ZERO;
+                BigDecimal auditFee = BigDecimal.ZERO;
+                BigDecimal expressFee = BigDecimal.ZERO;
+                List<Recipe> recipeList = new ArrayList<>();
+                List<Integer> recipeIds = new ArrayList<>();
+                List<RecipeDTO> recipeDTOList = new ArrayList<>();
+                for(RecipeBeforeOrderDTO recipeBeforeOrder : recipeBeforeOrderDTOList){
+                    Map<String,String> extInfo = new HashMap<>();
+                    extInfo.put("operMpiId",recipeBeforeOrder.getOperMpiId());
+                    extInfo.put("depId",recipeBeforeOrder.getEnterpriseId().toString());
+                    RecipeOrder recipeOrder = new RecipeOrder();
+                    recipeOrder.setOrganId(beforeOrder.getOrganId());
+                    recipeOrder.setEnterpriseId(beforeOrder.getEnterpriseId());
+                    RecipeDTO recipeDTO = new RecipeDTO();
+                    Recipe recipe = recipeDAO.getByRecipeId(recipeBeforeOrder.getRecipeId());
+                    Integer payMode = PayModeGiveModeUtil.getPayMode(1, recipeBeforeOrder.getGiveMode());
+                    RecipePayModeSupportBean payModeSupportBean = orderService.setPayModeSupport(recipeOrder, payMode);
+                    if(recipe != null){
+                        recipeList.add(recipe);
+                        recipeIds.add(recipe.getRecipeId());
+                        recipeDTO.setRecipe(recipe);
+                        orderService.setOrderFee(new OrderCreateResult(200),recipeOrder,recipeIds,recipeList,payModeSupportBean,extInfo,0);
+                    }
+                    //当购药方式为配送到家（药企配送、医院配送）和获取到了默认地址时才保存地址
+                    if(new Integer(1).equals(recipeBeforeOrder.getGiveMode())){
+                        if(recipeOrder.getAddressID() != null){
+                            recipeBeforeOrder.setAddressId(recipeOrder.getAddressID());
+                            recipeBeforeOrder.setAddress1(recipeOrder.getAddress1());
+                            recipeBeforeOrder.setAddress2(recipeOrder.getAddress2());
+                            recipeBeforeOrder.setAddress3(recipeOrder.getAddress3());
+                            recipeBeforeOrder.setAddress4(recipeOrder.getAddress4());
+                            recipeBeforeOrder.setStreetAddress(recipeOrder.getStreetAddress());
+                            recipeBeforeOrder.setAddress5(recipeOrder.getAddress5());
+                            recipeBeforeOrder.setAddress5Text(recipeOrder.getAddress5Text());
+                            recipeBeforeOrder.setReceiver(recipeOrder.getReceiver());
+                            recipeBeforeOrder.setRecMobile(recipeOrder.getRecMobile());
+                            recipeBeforeOrder.setRecTel(recipeOrder.getRecTel());
+                            recipeBeforeOrder.setZipCode(recipeOrder.getZipCode());
+                            recipeBeforeOrder.setCompleteAddress(orderManager.getCompleteAddress(recipeOrder));
+                            //有地址则为完善
+                            recipeBeforeOrder.setIsReady(1);
+                        }else {
+                            //否则为不完善
+                            recipeBeforeOrder.setIsReady(0);
+                        }
+                    }
+                    recipeBeforeOrder.setRecipeFee(recipeOrder.getRecipeFee());
+                    recipeBeforeOrder.setAuditFee(recipeOrder.getAuditFee());
+                    recipeBeforeOrder.setTcmFee(recipeOrder.getTcmFee());
+                    recipeBeforeOrder.setExpressFee(recipeOrder.getExpressFee());
+                    recipeBeforeOrder.setDecoctionFee(recipeOrder.getDecoctionFee());
+                    recipeBeforeOrder.setAddressCanSend(recipeOrder.getAddressCanSend());
+                    recipeBeforeOrder.setUpdateTime(new Date());
+                    recipeBeforeOrderDAO.updateNonNullFieldByPrimaryKey(ObjectCopyUtils.convert(recipeBeforeOrder,RecipeBeforeOrder.class));
+                    List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipeBeforeOrder.getRecipeId());
+                    recipeDTO.setRecipeDetails(recipeDetailList);
+                    recipeDTOList.add(recipeDTO);
+                    recipeFee = recipeFee.add(recipeOrder.getRecipeFee());
+                    tcmFee = tcmFee.add(recipeOrder.getTcmFee());
+                    if(recipeOrder.getDecoctionFee() != null){
+                        decoctionFee = decoctionFee.add(recipeOrder.getDecoctionFee());
+                    }
+                    auditFee = auditFee.add(recipeOrder.getAuditFee());
+                    expressFee = expressFee.add(recipeOrder.getExpressFee());
+                }
+                if(new Integer(3).equals(beforeOrder.getGiveMode())){
+                    if(beforeOrder.getDrugStoreCode() != null){
+                        Pharmacy pharmacy = pharmacyDAO.getPharmacyByPharmacyCode(beforeOrder.getDrugStoreCode());
+                        if(Objects.nonNull(pharmacy)){
+                            beforeOrder.setDrugStorePhone(pharmacy.getPharmacyPhone());
+                        }
+                    }
+                }
+                //处方费
+                beforeOrder.setRecipeFee(recipeFee);
+                shoppingCartDetailDTO.setRecipeDTO(recipeDTOList);
+                shoppingCartDetailDTO.setRecipeBeforeOrder(beforeOrder);
+                shoppingCartDetailDTOList.add(shoppingCartDetailDTO);
+                logger.info("getShoppingCartDetail shoppingCartDetailDTOList={}",JSONUtils.toString(shoppingCartDetailDTOList));
+            }
+        }
+        Map<RecipeBeforeOrderDTO, ShoppingCartDetailDTO> shoppingCartDetailDTOMap = shoppingCartDetailDTOList.stream()
+                .collect(Collectors.toMap(ShoppingCartDetailDTO::getRecipeBeforeOrder, a -> a, (k1, k2) -> k1));
+        List<RecipeBeforeOrderDTO> beforeOrderList = shoppingCartDetailDTOList.stream().map(ShoppingCartDetailDTO::getRecipeBeforeOrder).collect(Collectors.toList());
+        List<RecipeBeforeOrderDTO> recipeBeforeOrders = beforeOrderList.stream().sorted(Comparator.comparing(RecipeBeforeOrderDTO::getGiveMode)).collect(Collectors.toList());
+        List<ShoppingCartDetailDTO> shoppingCartDetailDTOs = new ArrayList<>();
+        recipeBeforeOrders.forEach(recipeBeforeOrder -> {
+            shoppingCartDetailDTOs.add(shoppingCartDetailDTOMap.get(recipeBeforeOrder));
+        } );
+        return shoppingCartDetailDTOs;
+}
 
     @Override
     public void saveRecipeBeforeOrderInfo(ShoppingCartReqVO shoppingCartReqVO) {
