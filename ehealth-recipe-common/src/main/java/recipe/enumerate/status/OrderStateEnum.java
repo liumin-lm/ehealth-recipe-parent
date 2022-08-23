@@ -19,7 +19,7 @@ public enum OrderStateEnum {
     /**
      * 订单子状态:待支付
      */
-    SUB_READY_PAY_NONE(11, "请在${invalidTime}内完成支付", ""),
+    SUB_READY_PAY_NONE(11, "请在invalidTime内完成支付", ""),
 
     /**
      * 订单子状态:已下单
