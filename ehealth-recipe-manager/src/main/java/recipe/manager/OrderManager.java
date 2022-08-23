@@ -919,7 +919,7 @@ public class OrderManager extends BaseManager {
         logisticsDistanceDto.setBusinessType(1);
         Map<String,String> result=infraClient.controlLogisticsDistance(logisticsDistanceDto);
         if(result!=null){
-            if("1".equals(result.get("code"))){
+            if("1".equals(result.get("distance"))){
                 return false;
             }
         }
