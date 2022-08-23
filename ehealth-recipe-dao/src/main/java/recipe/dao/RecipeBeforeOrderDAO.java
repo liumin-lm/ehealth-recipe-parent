@@ -99,4 +99,12 @@ public abstract class RecipeBeforeOrderDAO extends
      */
     @DAOMethod(sql = "update RecipeBeforeOrder set deleteFlag=1 where recipeId in (:recipeIds)")
     public abstract void updateDeleteFlagByRecipeId(@DAOParam("recipeIds")List<Integer> recipeIds) ;
+
+    /**
+     * 根据处方单号查询有效的预下单信息
+     * @param mpiId
+     * @return
+     */
+    @DAOMethod(sql = "from RecipeBeforeOrder where recipeId=:recipeId and deleteFlag = 0")
+    public abstract RecipeBeforeOrder findRecipeBeforeOrderByRecipeId(@DAOParam("recipeId") Integer recipeId);
 }

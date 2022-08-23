@@ -998,15 +998,6 @@ public class OrderManager extends BaseManager {
                 RecipeBeforeOrder beforeOrder = recipeBeforeOrders.get(0);
                 RecipeOrder recipeOrder = new RecipeOrder();
                 AddressDTO addressDTO = new AddressDTO();
-                //需要完善之后才会有addressId
-                if(beforeOrder.getAddressId() != null){
-                    addressDTO = addressService.getByAddressId(beforeOrder.getAddressId());
-                    recipeOrder.setAddress1(beforeOrder.getAddress1());
-                    recipeOrder.setAddress2(beforeOrder.getAddress2());
-                    recipeOrder.setAddress3(beforeOrder.getAddress3());
-                    recipeOrder.setStreetAddress(beforeOrder.getStreetAddress());
-                }
-
                 BigDecimal recipeFee = BigDecimal.ZERO;
                 BigDecimal tcmFee = BigDecimal.ZERO;
                 BigDecimal decoctionFee = BigDecimal.ZERO;
@@ -1049,8 +1040,6 @@ public class OrderManager extends BaseManager {
                         //地址是否可以配送
                         beforeOrder.setAddressCanSend(new Integer(0).equals(addressDTO.getBeyondDelivery()));
                     }
-                    //完整地址
-                    beforeOrder.setCompleteAddress(getCompleteAddress(recipeOrder));
                     List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipeBeforeOrder.getRecipeId());
                     recipeDTO.setRecipeDetails(recipeDetailList);
                     recipeDTOList.add(recipeDTO);
