@@ -108,4 +108,7 @@ public abstract class RecipeBeforeOrderDAO extends
      */
     @DAOMethod(sql = "from RecipeBeforeOrder where recipeCode in (:recipeCodes) and organId in (:organIds) and deleteFlag = 0")
     public abstract List<RecipeBeforeOrder> findByRecipeCodesAndOrganIds(@DAOParam("recipeCodes") List<String> recipeCode,@DAOParam("organIds") Set<Integer> organIds);
+
+    @DAOMethod(sql = "from RecipeBeforeOrder where recipeId=:recipeId operMpiId=:mpiId and deleteFlag = 0")
+    public abstract RecipeBeforeOrder getRecipeBeforeOrderByRecipeIdAndMpiId(@DAOParam("recipeId") Integer recipeId, @DAOParam("mpiId") String mpiId);
 }

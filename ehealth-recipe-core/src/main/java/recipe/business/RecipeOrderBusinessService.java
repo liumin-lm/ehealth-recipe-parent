@@ -1238,8 +1238,8 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
     }
 
     @Override
-    public Boolean getPreOrderFlag(Integer recipeId) {
-        RecipeBeforeOrder recipeBeforeOrder = recipeBeforeOrderDAO.getRecipeBeforeOrderByRecipeId(recipeId);
+    public Boolean getPreOrderFlag(Integer recipeId,String mpiId) {
+        RecipeBeforeOrder recipeBeforeOrder = recipeBeforeOrderDAO.getRecipeBeforeOrderByRecipeIdAndMpiId(recipeId,mpiId);
         if(Objects.nonNull(recipeBeforeOrder)){
             return true;
         }
