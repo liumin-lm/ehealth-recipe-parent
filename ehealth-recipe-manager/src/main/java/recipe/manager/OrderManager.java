@@ -27,6 +27,7 @@ import com.ngari.revisit.RevisitBean;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
+import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import eh.utils.BeanCopyUtils;
@@ -885,7 +886,7 @@ public class OrderManager extends BaseManager {
     /**
      * 若同城速递，用户的收货地址与发件地址，距离超过100KM，则无法下单
      *
-     * @param recipeIds
+     * @param
      * @param extInfo
      * @return true表示可以下单
      */
@@ -919,7 +920,7 @@ public class OrderManager extends BaseManager {
         logisticsDistanceDto.setBusinessType(1);
         Map<String,String> result=infraClient.controlLogisticsDistance(logisticsDistanceDto);
         if(result!=null){
-            if("1".equals(result.get("code"))){
+            if("1".equals(result.get("distance"))){
                 return false;
             }
         }
@@ -929,6 +930,10 @@ public class OrderManager extends BaseManager {
     public void saveRecipeBeforeOrderInfo(ShoppingCartReqDTO shoppingCartReqDTO) {
         //判断是新增到购物车还是在原有的基础上修改购药方式
         Integer recipeId = shoppingCartReqDTO.getRecipeId();
+        Recipe recipe = recipeDAO.getByRecipeId(shoppingCartReqDTO.getRecipeId());
+        if(StringUtils.isNotEmpty(recipe.getOrderCode())){
+            throw new DAOException(609,"处方已经存在订单信息");
+        }
         if(recipeId != null){
             //查询有效的预下单信息
             RecipeBeforeOrder recipeBeforeOrder = recipeBeforeOrderDAO.getRecipeBeforeOrderByRecipeId(recipeId);
@@ -941,7 +946,6 @@ public class OrderManager extends BaseManager {
         }
         RecipeBeforeOrder recipeBeforeOrder = new RecipeBeforeOrder();
         recipeBeforeOrder.setRecipeId(shoppingCartReqDTO.getRecipeId());
-        Recipe recipe = recipeDAO.getByRecipeId(shoppingCartReqDTO.getRecipeId());
         if(recipe != null){
             recipeBeforeOrder.setOrganId(recipe.getClinicOrgan());
             recipeBeforeOrder.setRecipeCode(recipe.getRecipeCode());

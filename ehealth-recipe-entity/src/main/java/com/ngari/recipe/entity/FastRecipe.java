@@ -109,6 +109,12 @@ public class FastRecipe {
     @ItemProperty(alias = "电子病历文本")
     private String docText;
 
+    @ItemProperty(alias = "是否需要问卷，0不需要，1需要")
+    private Integer needQuestionnaire;
+
+    @ItemProperty(alias = "问卷链接")
+    private String questionnaireUrl;
+
     @Id
     @GeneratedValue(strategy = IDENTITY)
     @Column(name = "id", unique = true, nullable = false)
@@ -379,5 +385,22 @@ public class FastRecipe {
 
     public void setDocText(String docText) {
         this.docText = docText;
+    }
+
+    @Column(name = "need_questionnaire")
+    public Integer getNeedQuestionnaire() {
+        return needQuestionnaire;
+    }
+
+    public void setNeedQuestionnaire(Integer needQuestionnaire) {
+        this.needQuestionnaire = needQuestionnaire;
+    }
+    @Column(name = "questionnaire_url")
+    public String getQuestionnaireUrl() {
+        return questionnaireUrl;
+    }
+
+    public void setQuestionnaireUrl(String questionnaireUrl) {
+        this.questionnaireUrl = questionnaireUrl;
     }
 }
