@@ -460,7 +460,7 @@ public class RecipeBeforeOrder implements Serializable {
         this.addressCanSend = addressCanSend;
     }
 
-    @Transient
+    @Column(name = "complete_address")
     public String getCompleteAddress() {
         return completeAddress;
     }

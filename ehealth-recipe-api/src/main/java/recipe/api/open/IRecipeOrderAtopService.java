@@ -7,6 +7,7 @@ import com.ngari.platform.recipe.mode.RecipeOrderBean;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.recipe.model.*;
 import ctd.util.annotation.RpcService;
+import recipe.vo.greenroom.ImperfectInfoVO;
 import recipe.vo.second.CabinetVO;
 import recipe.vo.second.RecipeOrderVO;
 import recipe.vo.second.enterpriseOrder.DownOrderRequestVO;
@@ -129,5 +130,13 @@ public interface IRecipeOrderAtopService {
      */
     @RpcService(mvcDisabled = true)
     Integer getImperfectFlag(Integer organId,String recipeCode);
+
+    /**
+     * 批量获取未完善或完善标识
+     * @param recipeBeans
+     * @return
+     */
+    @RpcService(mvcDisabled = true)
+    List<ImperfectInfoVO> batchGetImperfectFlag(List<RecipeBean> recipeBeans);
 
 }

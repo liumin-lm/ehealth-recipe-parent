@@ -3,6 +3,7 @@ package recipe.core.api.patient;
 
 import com.ngari.common.dto.CheckRequestCommonOrderPageDTO;
 import com.ngari.common.dto.SyncOrderVO;
+import com.ngari.platform.recipe.mode.RecipeBean;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.RecipeOrder;
@@ -13,6 +14,7 @@ import com.ngari.recipe.vo.UpdateOrderStatusVO;
 import ctd.util.annotation.RpcService;
 import easypay.entity.vo.param.bus.SelfPreSettleQueryReq;
 import recipe.vo.ResultBean;
+import recipe.vo.greenroom.ImperfectInfoVO;
 import recipe.vo.second.CabinetVO;
 import recipe.vo.second.enterpriseOrder.DownOrderRequestVO;
 import recipe.vo.second.enterpriseOrder.EnterpriseDownDataVO;
@@ -216,4 +218,10 @@ public interface IRecipeOrderBusinessService {
      */
     String improvePreOrderInfo(PreOrderInfoReqVO preOrderInfoReqVO);
 
+    /**
+     * 批量获取未完善或完善标识
+     * @param recipeBeans
+     * @return
+     */
+    List<ImperfectInfoVO> batchGetImperfectFlag(List<RecipeBean> recipeBeans);
 }
