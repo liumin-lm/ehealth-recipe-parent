@@ -2006,6 +2006,10 @@ public class RecipeOrderService extends RecipeBaseService {
             result.setObject(orderBean);
             // 支付完成后跳转到订单详情页需要加挂号费服务费可配置
             result.setExt(RecipeUtil.getParamFromOgainConfig(order, recipeList));
+            if (OrderStateEnum.PROCESS_STATE_READY_PAY.getType().equals(order.getProcessState())) {
+                String invalidTime = LocalStringUtil.getInvalidTime(recipe);
+                orderBean.setSubStateText(orderBean.getSubStateText().replace("invalidTime", invalidTime));
+            }
             //在扩展内容中设置下载处方签的判断
             getDownConfig(result, order, recipeList);
             //在扩展内容中添加展示审核金额
