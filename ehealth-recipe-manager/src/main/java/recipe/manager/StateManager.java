@@ -109,8 +109,8 @@ public class StateManager extends BaseManager {
             updateRecipe.setProcessState(RecipeStateEnum.NONE.getType());
         }
         if (RecipeStateEnum.PROCESS_STATE_ORDER == processState && RecipeStateEnum.SUB_ORDER_CANCEL_ORDER == subState) {
-            updateRecipe.setSubState(RecipeStateEnum.PROCESS_STATE_ORDER.getType());
-            updateRecipe.setProcessState(RecipeStateEnum.SUB_ORDER_READY_SUBMIT_ORDER.getType());
+            updateRecipe.setProcessState(RecipeStateEnum.PROCESS_STATE_ORDER.getType());
+            updateRecipe.setSubState(RecipeStateEnum.SUB_ORDER_READY_SUBMIT_ORDER.getType());
         }
         recipeDAO.updateNonNullFieldByPrimaryKey(updateRecipe);
         return true;
