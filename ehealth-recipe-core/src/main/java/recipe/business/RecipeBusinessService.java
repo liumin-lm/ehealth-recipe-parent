@@ -47,7 +47,6 @@ import recipe.client.OrganClient;
 import recipe.client.PatientClient;
 import recipe.constant.ErrorCode;
 import recipe.constant.RecipeStatusConstant;
-import recipe.constant.ReviewTypeConstant;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.dao.*;
 import recipe.enumerate.status.*;
@@ -70,7 +69,7 @@ import recipe.vo.greenroom.DrugUsageLabelResp;
 import recipe.vo.patient.PatientOptionalDrugVo;
 import recipe.vo.second.EmrConfigVO;
 import recipe.vo.second.MedicalDetailVO;
-import com.ngari.recipe.dto.RecipeOutpatientPaymentDTO;
+import com.ngari.recipe.recipe.model.RecipeOutpatientPaymentDTO;
 import recipe.vo.second.RecipePayHISCallbackReq;
 
 import javax.annotation.Resource;
@@ -1015,6 +1014,8 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             order.setTradeNo(recipeOutpatientPaymentDTO.getTradeNo());
             order.setPayOrganId(recipeOutpatientPaymentDTO.getPayOrganId());
             order.setProcessState(OrderStateEnum.PROCESS_STATE_ORDER_PLACED.getType());
+            order.setSettleMode(recipeOutpatientPaymentDTO.getSettleMode());
+            order.setHisSettlementNo(recipeOutpatientPaymentDTO.getHisSettlementNo());
 
             // 保存订单
             recipeOrderDAO.save(order);
@@ -1025,6 +1026,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
                 r.setSubState(RecipeStateEnum.SUB_ORDER_HAD_SUBMIT_ORDER.getType());
                 r.setRecipeId(recipeId);
                 r.setOrderCode(order.getOrderCode());
+                r.setGiveMode(recipeBeforeOrder.getGiveMode());
                 recipeDAO.updateNonNullFieldByPrimaryKey(r);
             });
             //业务支付回调

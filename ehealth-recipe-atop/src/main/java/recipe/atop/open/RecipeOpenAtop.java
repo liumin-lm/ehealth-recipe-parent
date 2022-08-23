@@ -36,7 +36,6 @@ import recipe.enumerate.status.SignEnum;
 import recipe.util.ObjectCopyUtils;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.patient.PatientOptionalDrugVo;
-import com.ngari.recipe.dto.RecipeOutpatientPaymentDTO;
 import recipe.vo.second.RecipePayHISCallbackReq;
 import recipe.vo.second.RevisitRecipeTraceVo;
 
