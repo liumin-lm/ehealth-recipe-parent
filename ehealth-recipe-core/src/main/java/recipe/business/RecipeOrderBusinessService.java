@@ -1042,9 +1042,13 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
     @Override
     public Integer getImperfectFlag(Integer organId, String recipeCode) {
         logger.info("getImperfectFlag organId={},recipeCode={}",organId,recipeCode);
-        RecipeBeforeOrder recipeBeforeOrder = recipeBeforeOrderDAO.getByOrganIdAndRecipeCode(organId, recipeCode);
-        if(recipeBeforeOrder != null){
-            return recipeBeforeOrder.getIsReady();
+        try{
+            RecipeBeforeOrder recipeBeforeOrder = recipeBeforeOrderDAO.getByOrganIdAndRecipeCode(organId, recipeCode);
+            if(recipeBeforeOrder != null){
+                return recipeBeforeOrder.getIsReady();
+            }
+        }catch (Exception e){
+            logger.error("RecipeOrderBusinessService getImperfectFlag error",e);
         }
         logger.info("getImperfectFlag recipeBeforeOrder为null");
         return 0;
