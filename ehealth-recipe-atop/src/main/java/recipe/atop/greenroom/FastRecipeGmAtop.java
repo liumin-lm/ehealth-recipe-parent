@@ -46,7 +46,7 @@ public class FastRecipeGmAtop extends BaseAtop {
             RecipeBean recipeBean = fastRecipeVO.getRecipeBean();
             validateAtop(recipeBean.getDoctor(), recipeBean.getMpiid(), recipeBean.getClinicOrgan(), recipeBean.getClinicId(), recipeBean.getDepart());
         }
-        return fastRecipeService.fastRecipeSaveRecipe(recipeInfoVOList);
+        return fastRecipeService.fastRecipeSaveRecipeList(recipeInfoVOList);
     }
 
     /**
