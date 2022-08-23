@@ -1015,23 +1015,12 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             order.setTradeNo(recipeOutpatientPaymentDTO.getTradeNo());
             order.setPayOrganId(recipeOutpatientPaymentDTO.getPayOrganId());
             order.setProcessState(OrderStateEnum.PROCESS_STATE_ORDER_PLACED.getType());
-            // 订单新状态
-            Integer auditState = null;
-            if (ReviewTypeConstant.Postposition_Check.equals(recipes.get(0).getReviewType())) {
-                order.setSubState(OrderStateEnum.SUB_ORDER_PLACED_AUDIT.getType());
-                auditState = RecipeAuditStateEnum.PENDING_REVIEW.getType();
-            } else {
-                order.setSubState(OrderStateEnum.SUB_ORDER_ORDER_PLACED.getType());
-            }
+
             // 保存订单
             recipeOrderDAO.save(order);
             // 保存处方与订单关联关系
-            Integer finalAuditState = auditState;
             recipeIds.forEach(recipeId -> {
                 Recipe r = new Recipe();
-                if (Objects.nonNull(finalAuditState)) {
-                    r.setAuditState(finalAuditState);
-                }
                 r.setProcessState(RecipeStateEnum.PROCESS_STATE_ORDER.getType());
                 r.setSubState(RecipeStateEnum.SUB_ORDER_HAD_SUBMIT_ORDER.getType());
                 r.setRecipeId(recipeId);
