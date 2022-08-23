@@ -19,7 +19,7 @@ public class RecipeOutpatientPaymentConsumer implements Observer<String> {
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipeOutpatientPaymentConsumer.class);
     @Override
     public void onMessage(String message) {
-        LOGGER.info("RecipeStatusFromHisObserver onMessage topic={}, message={}", OnsConfig.settleStateSyncRecipeTag, message);
+        LOGGER.info("RecipeStatusFromHisObserver onMessage topic={}, message={}", OnsConfig.paymentReportTopic, message);
         RecipeOutpatientPaymentDTO recipeOutpatientPaymentDTO = JSONArray.parseObject(message, RecipeOutpatientPaymentDTO.class);
         IRecipeBusinessService recipeBusinessService = AppContextHolder.getBean("recipeBusinessService", IRecipeBusinessService.class);
         recipeBusinessService.recipeOutpatientPaymentCallback(recipeOutpatientPaymentDTO);
