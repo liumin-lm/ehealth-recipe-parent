@@ -1002,14 +1002,7 @@ public class OrderManager extends BaseManager {
                 ShoppingCartDetailDTO shoppingCartDetailDTO = new ShoppingCartDetailDTO();
                 RecipeBeforeOrder beforeOrder = recipeBeforeOrders.get(0);
                 RecipeOrder recipeOrder = new RecipeOrder();
-                //需要完善之后才会有addressId
-                if(beforeOrder.getAddressId() != null){
-                    recipeOrder.setAddress1(beforeOrder.getAddress1());
-                    recipeOrder.setAddress2(beforeOrder.getAddress2());
-                    recipeOrder.setAddress3(beforeOrder.getAddress3());
-                    recipeOrder.setStreetAddress(beforeOrder.getStreetAddress());
-                }
-
+                AddressDTO addressDTO = new AddressDTO();
                 BigDecimal recipeFee = BigDecimal.ZERO;
                 BigDecimal tcmFee = BigDecimal.ZERO;
                 BigDecimal decoctionFee = BigDecimal.ZERO;
@@ -1048,11 +1041,10 @@ public class OrderManager extends BaseManager {
                         recipeBeforeOrder.setUpdateTime(new Date());
                         recipeBeforeOrderDAO.updateNonNullFieldByPrimaryKey(recipeBeforeOrder);
                     }
-                    AddressDTO addressDTO = addressService.getByAddressId(beforeOrder.getAddressId());
-                    //地址是否可以配送
-                    beforeOrder.setAddressCanSend(new Integer(0).equals(addressDTO.getBeyondDelivery()));
-                    //完整地址
-                    beforeOrder.setCompleteAddress(getCompleteAddress(recipeOrder));
+                    if(addressDTO.getBeyondDelivery() != null){
+                        //地址是否可以配送
+                        beforeOrder.setAddressCanSend(new Integer(0).equals(addressDTO.getBeyondDelivery()));
+                    }
                     List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipeBeforeOrder.getRecipeId());
                     recipeDTO.setRecipeDetails(recipeDetailList);
                     recipeDTOList.add(recipeDTO);
@@ -1073,6 +1065,14 @@ public class OrderManager extends BaseManager {
                 logger.info("getShoppingCartDetail shoppingCartDetailDTOList={}",JSONUtils.toString(shoppingCartDetailDTOList));
             }
         }
-        return shoppingCartDetailDTOList;
+        Map<RecipeBeforeOrder, ShoppingCartDetailDTO> shoppingCartDetailDTOMap = shoppingCartDetailDTOList.stream()
+                .collect(Collectors.toMap(ShoppingCartDetailDTO::getRecipeBeforeOrder, a -> a, (k1, k2) -> k1));
+        List<RecipeBeforeOrder> beforeOrderList = shoppingCartDetailDTOList.stream().map(ShoppingCartDetailDTO::getRecipeBeforeOrder).collect(Collectors.toList());
+        List<RecipeBeforeOrder> recipeBeforeOrders = beforeOrderList.stream().sorted(Comparator.comparing(RecipeBeforeOrder::getGiveMode)).collect(Collectors.toList());
+        List<ShoppingCartDetailDTO> shoppingCartDetailDTOs = new ArrayList<>();
+        recipeBeforeOrders.forEach(recipeBeforeOrder -> {
+            shoppingCartDetailDTOs.add(shoppingCartDetailDTOMap.get(recipeBeforeOrder));
+        } );
+        return shoppingCartDetailDTOs;
     }
 }

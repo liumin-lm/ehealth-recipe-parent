@@ -56,7 +56,7 @@ public class OnsConfig {
         OnsConfig.drugListNursingTopic = drugListNursingTopic;
     }
 
-    public static void setSettleStateSyncRecipeTag(String settleStateSyncRecipeTag) {
+    public void setSettleStateSyncRecipeTag(String settleStateSyncRecipeTag) {
         OnsConfig.settleStateSyncRecipeTag = settleStateSyncRecipeTag;
     }
 

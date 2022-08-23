@@ -1,4 +1,4 @@
-package com.ngari.recipe.dto;
+package com.ngari.recipe.recipe.model;
 
 import ctd.schema.annotation.ItemProperty;
 import lombok.Getter;

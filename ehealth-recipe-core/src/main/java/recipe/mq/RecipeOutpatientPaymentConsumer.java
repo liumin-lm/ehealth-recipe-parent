@@ -1,7 +1,7 @@
 package recipe.mq;
 
 import com.alibaba.fastjson.JSONArray;
-import com.ngari.recipe.dto.RecipeOutpatientPaymentDTO;
+import com.ngari.recipe.recipe.model.RecipeOutpatientPaymentDTO;
 import ctd.net.broadcast.Observer;
 import ctd.util.AppContextHolder;
 import org.slf4j.Logger;

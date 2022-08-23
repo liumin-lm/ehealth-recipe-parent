@@ -21,6 +21,7 @@ import recipe.api.open.IRecipeOrderAtopService;
 import recipe.atop.BaseAtop;
 import recipe.core.api.patient.IRecipeOrderBusinessService;
 import recipe.util.ObjectCopyUtils;
+import recipe.vo.greenroom.ImperfectInfoVO;
 import recipe.vo.second.CabinetVO;
 import recipe.vo.second.RecipeOrderVO;
 import recipe.vo.second.RecipeVo;
@@ -186,6 +187,11 @@ public class RecipeOrderOpenAtop extends BaseAtop implements IRecipeOrderAtopSer
     @Override
     public Integer getImperfectFlag(Integer organId, String recipeCode) {
         return recipeOrderService.getImperfectFlag(organId,recipeCode);
+    }
+
+    @Override
+    public List<ImperfectInfoVO> batchGetImperfectFlag(List<RecipeBean> recipeBeans) {
+        return recipeOrderService.batchGetImperfectFlag(recipeBeans);
     }
 
 }

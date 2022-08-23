@@ -246,8 +246,18 @@ public class RecipeOrderPatientAtop extends BaseAtop {
      * @return
      */
     @RpcService
-    public void improvePreOrderInfo(PreOrderInfoReqVO preOrderInfoReqVO){
-        recipeOrderService.improvePreOrderInfo(preOrderInfoReqVO);
+    public String improvePreOrderInfo(PreOrderInfoReqVO preOrderInfoReqVO){
+        return recipeOrderService.improvePreOrderInfo(preOrderInfoReqVO);
+    }
+
+    /**
+     * 获取加入购物车标识
+     * @param recipeId
+     * @return
+     */
+    @RpcService
+    public Boolean getPreOrderFlag(Integer recipeId){
+        return recipeOrderService.getPreOrderFlag(recipeId);
     }
 
 
