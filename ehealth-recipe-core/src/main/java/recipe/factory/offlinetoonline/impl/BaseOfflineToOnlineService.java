@@ -70,7 +70,7 @@ import java.util.stream.Collectors;
 public class BaseOfflineToOnlineService {
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseOfflineToOnlineService.class);
 
-    private final String BY_REGISTERID = "e.registerId";
+    protected final String BY_REGISTERID = "e.registerId";
 
     private ObjectMapper objectMapper = new ObjectMapper();
 
