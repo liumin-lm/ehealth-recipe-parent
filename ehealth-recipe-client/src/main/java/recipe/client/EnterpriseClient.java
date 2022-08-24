@@ -131,12 +131,14 @@ public class EnterpriseClient extends BaseClient {
         logger.info("EnterpriseClient pushRecipeInfoForThird recipeId:{} responseTO:{}.",
                 pushRecipeAndOrder.getRecipeBean().getRecipeId(), JSONUtils.toString(responseTO));
         SkipThirdDTO result = new SkipThirdDTO();
-        //推送药企失败
-        result.setType(ByteUtils.strValueOf(ByteUtils.objValueOf(responseTO.getExtend().get("type"))));
         if (null == responseTO || !responseTO.isSuccess()) {
             result.setCode(0);
             result.setMsg(responseTO.getMsg());
             return result;
+        }
+        if (null != responseTO.getExtend()) {
+            //推送药企失败
+            result.setType(ByteUtils.strValueOf(ByteUtils.objValueOf(responseTO.getExtend().get("type"))));
         }
         //推送药企处方成功,判断是否为扁鹊平台
         result.setCode(1);

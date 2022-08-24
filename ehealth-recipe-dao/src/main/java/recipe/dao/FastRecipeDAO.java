@@ -50,7 +50,7 @@ public abstract class FastRecipeDAO extends HibernateSupportDelegateDAO<FastReci
                         if (CollectionUtils.isNotEmpty(fastRecipeReq.getStatusList())) {
                             hql.append("AND status IN (:statusList) ");
                         }
-                        hql.append("order by orderNum  ");
+                        hql.append("order by orderNum , id desc");
                         Query query = ss.createQuery(hql.toString());
 
                         if (Objects.nonNull(fastRecipeReq.getOrganId())) {
