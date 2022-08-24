@@ -2,7 +2,7 @@ package recipe.atop.open;
 
 import com.alibaba.fastjson.JSONArray;
 import com.ngari.common.mode.HisResponseTO;
-import com.ngari.recipe.dto.FastRecipeReq;
+import com.ngari.recipe.vo.FastRecipeReq;
 import com.ngari.recipe.entity.FastRecipe;
 import com.ngari.recipe.entity.FastRecipeDetail;
 import com.ngari.recipe.entity.Recipe;

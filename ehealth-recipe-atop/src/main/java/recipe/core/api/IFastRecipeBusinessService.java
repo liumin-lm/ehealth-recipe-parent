@@ -1,6 +1,6 @@
 package recipe.core.api;
 
-import com.ngari.recipe.dto.FastRecipeReq;
+import com.ngari.recipe.vo.FastRecipeReq;
 import com.ngari.recipe.entity.FastRecipe;
 import com.ngari.recipe.entity.FastRecipeDetail;
 import com.ngari.recipe.vo.FastRecipeVO;
