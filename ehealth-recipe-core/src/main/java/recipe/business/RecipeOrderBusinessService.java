@@ -1105,7 +1105,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                         }
                         RecipeExtend recipeExtendVO = recipeExtendDAO.getByRecipeId(recipeBeforeOrder.getRecipeId());
                         RecipeExtend recipeExtend = new RecipeExtend();
-                        if(recipeExtendVO != null){
+                        if(recipeExtendVO != null && recipeExtendVO.getDecoctionId() != null){
                             recipeExtend.setDecoctionId(recipeExtendVO.getDecoctionId());
                             recipeDTO.setRecipeExtend(recipeExtend);
                         }
