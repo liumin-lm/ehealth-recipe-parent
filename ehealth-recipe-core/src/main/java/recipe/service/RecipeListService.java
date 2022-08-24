@@ -1210,7 +1210,10 @@ public class RecipeListService extends RecipeBaseService {
                     if (!"-1".equals(recipeListBean.getRegisterID())) {
                         patientTabStatusMergeRecipeDTO.setGroupField(recipeListBean.getRegisterID());
                     }
-                } else {
+                } else if("organId".equals(mergeRecipeWayAfter)) {
+                    // 支持同一个机构下同一个就诊人合并支付
+                    patientTabStatusMergeRecipeDTO.setGroupField(recipeListBean.getOrganName());
+                }else {
                     // 慢病名称
                     if (!"-1".equals(recipeListBean.getChronicDiseaseName())) {
                         patientTabStatusMergeRecipeDTO.setGroupField(recipeListBean.getChronicDiseaseName());
