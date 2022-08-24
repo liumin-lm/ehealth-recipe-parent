@@ -80,7 +80,7 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
             futureTasks.add(futureTask);
             GlobalEventExecFactory.instance().getExecutor().submit(futureTask);
         }
-        return super.futureTaskCallbackBeanList(futureTasks);
+        return super.futureTaskCallbackBeanList(futureTasks, 15000);
     }
 
     private Integer fastRecipeSaveRecipe(RecipeInfoVO recipeInfoVO) {

@@ -1042,9 +1042,13 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
     @Override
     public Integer getImperfectFlag(Integer organId, String recipeCode) {
         logger.info("getImperfectFlag organId={},recipeCode={}",organId,recipeCode);
-        RecipeBeforeOrder recipeBeforeOrder = recipeBeforeOrderDAO.getByOrganIdAndRecipeCode(organId, recipeCode);
-        if(recipeBeforeOrder != null){
-            return recipeBeforeOrder.getIsReady();
+        try{
+            RecipeBeforeOrder recipeBeforeOrder = recipeBeforeOrderDAO.getByOrganIdAndRecipeCode(organId, recipeCode);
+            if(recipeBeforeOrder != null){
+                return recipeBeforeOrder.getIsReady();
+            }
+        }catch (Exception e){
+            return 0;
         }
         logger.info("getImperfectFlag recipeBeforeOrder为null");
         return 0;
@@ -1080,7 +1084,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                 for(RecipeBeforeOrderDTO recipeBeforeOrder : recipeBeforeOrderDTOList){
                     Map<String,String> extInfo = new HashMap<>();
                     extInfo.put("operMpiId",recipeBeforeOrder.getOperMpiId());
-                    if(new Integer(2).equals(recipeBeforeOrder.getGiveMode()) && recipeBeforeOrder.getEnterpriseId() != null){
+                    if(recipeBeforeOrder.getEnterpriseId() != null){
                         extInfo.put("depId",recipeBeforeOrder.getEnterpriseId().toString());
                     }
                     RecipeOrder recipeOrder = new RecipeOrder();
@@ -1130,13 +1134,21 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                     List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipeBeforeOrder.getRecipeId());
                     recipeDTO.setRecipeDetails(recipeDetailList);
                     recipeDTOList.add(recipeDTO);
-                    recipeFee = recipeFee.add(recipeOrder.getRecipeFee());
-                    tcmFee = tcmFee.add(recipeOrder.getTcmFee());
+                    if(recipeOrder.getRecipeFee() != null){
+                        recipeFee = recipeFee.add(recipeOrder.getRecipeFee());
+                    }
+                    if(recipeOrder.getTcmFee() != null){
+                        tcmFee = tcmFee.add(recipeOrder.getTcmFee());
+                    }
                     if(recipeOrder.getDecoctionFee() != null){
                         decoctionFee = decoctionFee.add(recipeOrder.getDecoctionFee());
                     }
-                    auditFee = auditFee.add(recipeOrder.getAuditFee());
-                    expressFee = expressFee.add(recipeOrder.getExpressFee());
+                    if(recipeOrder.getAuditFee() != null){
+                        auditFee = auditFee.add(recipeOrder.getAuditFee());
+                    }
+                    if(recipeOrder.getExpressFee() != null){
+                        expressFee = expressFee.add(recipeOrder.getExpressFee());
+                    }
                 }
                 if(new Integer(3).equals(beforeOrder.getGiveMode())){
                     if(beforeOrder.getDrugStoreCode() != null){
