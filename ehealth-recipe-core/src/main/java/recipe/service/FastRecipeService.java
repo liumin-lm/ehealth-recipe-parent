@@ -173,6 +173,8 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
         fastRecipe.setSymptomName(recipeExtend.getSymptomName());
         fastRecipe.setTitle(title);
         fastRecipe.setTotalMoney(recipe.getTotalMoney());
+        fastRecipe.setEveryTcmNumFre(recipeExtend.getEveryTcmNumFre());
+        fastRecipe.setDoctorIsDecoction(recipeExtend.getDoctorIsDecoction());
         FastRecipe fastRecipeResult = fastRecipeDAO.save(fastRecipe);
 
         //2.保存药方详情
