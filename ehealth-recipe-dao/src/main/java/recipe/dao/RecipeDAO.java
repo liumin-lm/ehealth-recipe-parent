@@ -4631,6 +4631,36 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         }
         return recipes;
     }
+
+    public Integer countByPatientAndOrgan(String mpiid, Integer clinicOrgan){
+        HibernateStatelessResultAction<Integer> action = new AbstractHibernateStatelessResultAction<Integer>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder sql = new StringBuilder("SELECT\n" +
+                        "\tCOUNT( d.RecipeID ) \n" +
+                        "FROM\n" +
+                        "\tcdr_recipe d\n" +
+                        "\n" +
+                        "WHERE\n" +
+                        "\t d.ClinicOrgan =:organId and d.MPIID =:mpiId\n" +
+                        "\tAND d.STATUS = 2 \n" +
+                        "\tAND d.orderCode IS NULL");
+
+                Query q = ss.createSQLQuery(sql.toString());
+                q.setParameter("organId", clinicOrgan);
+                q.setParameter("mpiId", mpiid);
+
+                if (q.uniqueResult() == null) {
+                    setResult(0);
+                } else {
+                    Number number = (Number) q.uniqueResult();
+                    setResult(number.intValue());
+                }
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    };
 }
 
 
