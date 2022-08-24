@@ -1103,6 +1103,12 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                         if(CollectionUtils.isNotEmpty(recipeDetailList)){
                             recipeDTO.setRecipeDetails(recipeDetailList);
                         }
+                        RecipeExtend recipeExtendVO = recipeExtendDAO.getByRecipeId(recipeBeforeOrder.getRecipeId());
+                        RecipeExtend recipeExtend = new RecipeExtend();
+                        if(recipeExtendVO != null && recipeExtendVO.getDecoctionId() != null){
+                            recipeExtend.setDecoctionId(recipeExtendVO.getDecoctionId());
+                            recipeDTO.setRecipeExtend(recipeExtend);
+                        }
                         recipeDTOList.add(recipeDTO);
                     }
                     //当购药方式为配送到家（药企配送、医院配送）和获取到了默认地址时才保存地址

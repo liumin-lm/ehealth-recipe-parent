@@ -70,6 +70,10 @@ import java.util.stream.Collectors;
 public class BaseOfflineToOnlineService {
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseOfflineToOnlineService.class);
 
+    private final String BY_REGISTERID = "e.registerId";
+
+    private ObjectMapper objectMapper = new ObjectMapper();
+
     @Autowired
     private HisRecipeDAO hisRecipeDao;
 
@@ -98,9 +102,6 @@ public class BaseOfflineToOnlineService {
     private EmrRecipeManager emrRecipeManager;
 
     @Resource
-    private DrugsEnterpriseService drugsEnterpriseService;
-
-    @Resource
     private RecipeService recipeService;
 
     @Autowired
@@ -111,8 +112,6 @@ public class BaseOfflineToOnlineService {
 
     @Autowired
     private SymptomDAO symptomDAO;
-
-    private ObjectMapper objectMapper = new ObjectMapper();
 
     @Autowired
     private HisRecipeManager hisRecipeManager;
@@ -132,17 +131,14 @@ public class BaseOfflineToOnlineService {
     @Autowired
     private RevisitManager revisitManager;
 
-    final String BY_REGISTERID = "e.registerId";
-
     @Autowired
     private ButtonManager buttonManager;
 
-    @Autowired
-    private PatientService patientService;
-
-
     @Resource
     private StockBusinessService stockBusinessService;
+
+    @Autowired
+    private StateManager stateManager;
 
     /**
      * 获取购药按钮
@@ -733,6 +729,7 @@ public class BaseOfflineToOnlineService {
         recipe.setWriteHisState(WriteHisEnum.WRITE_HIS_STATE_ORDER.getType());
         recipe.setCheckerSignState(SignEnum.SIGN_STATE_ORDER.getType());
         recipe = recipeDAO.saveOrUpdate(recipe);
+        stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_ORDER, RecipeStateEnum.SUB_ORDER_READY_SUBMIT_ORDER);
         LOGGER.info("BaseOfflineToOnlineService saveRecipeFromHisRecipe res:{}", JSONUtils.toString(recipe));
         return recipe;
     }
