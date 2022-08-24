@@ -341,6 +341,16 @@ public class ObtainConfirmOrderObjectResNoDS implements Serializable {
     private Integer payMode;
     @ItemProperty(alias = "发药方式文案")
     private String giveModeText;
+    @ItemProperty(alias = "配送费付款方式ExpressFeePayMethodEnum")
+    private Integer expressFeePayMethod;
+
+    public Integer getExpressFeePayMethod() {
+        return expressFeePayMethod;
+    }
+
+    public void setExpressFeePayMethod(Integer expressFeePayMethod) {
+        this.expressFeePayMethod = expressFeePayMethod;
+    }
 
     public Integer getOrderId() {
         return orderId;
