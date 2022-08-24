@@ -70,6 +70,9 @@ public class FastRecipeGmAtop extends BaseAtop {
             fastRecipeReq.setStart(null);
             List<FastRecipe> fastRecipeListAll = fastRecipeService.findFastRecipeListByParam(fastRecipeReq);
             fastRecipeRespVO.setTotal(fastRecipeListAll.size());
+        } else {
+            fastRecipeRespVO.setFastRecipeList(Lists.newArrayList());
+            fastRecipeRespVO.setTotal(0);
         }
         return fastRecipeRespVO;
     }
@@ -154,7 +157,7 @@ public class FastRecipeGmAtop extends BaseAtop {
             }
             return fastRecipeVOList;
         } else {
-            return null;
+            return Lists.newArrayList();
         }
     }
 
