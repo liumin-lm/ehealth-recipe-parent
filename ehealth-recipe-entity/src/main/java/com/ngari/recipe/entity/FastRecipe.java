@@ -115,6 +115,12 @@ public class FastRecipe {
     @ItemProperty(alias = "问卷链接")
     private String questionnaireUrl;
 
+    @ItemProperty(alias = "医生选择是否代煎（ 0:否 1：是）")
+    private String doctorIsDecoction;
+
+    @ItemProperty(alias = "每贴次数")
+    private String everyTcmNumFre;
+
     @Id
     @GeneratedValue(strategy = IDENTITY)
     @Column(name = "id", unique = true, nullable = false)
@@ -402,5 +408,23 @@ public class FastRecipe {
 
     public void setQuestionnaireUrl(String questionnaireUrl) {
         this.questionnaireUrl = questionnaireUrl;
+    }
+
+    @Column(name = "doctor_is_decoction")
+    public String getDoctorIsDecoction() {
+        return doctorIsDecoction;
+    }
+
+    public void setDoctorIsDecoction(String doctorIsDecoction) {
+        this.doctorIsDecoction = doctorIsDecoction;
+    }
+
+    @Column(name = "every_tcm_num_fre")
+    public String getEveryTcmNumFre() {
+        return everyTcmNumFre;
+    }
+
+    public void setEveryTcmNumFre(String everyTcmNumFre) {
+        this.everyTcmNumFre = everyTcmNumFre;
     }
 }

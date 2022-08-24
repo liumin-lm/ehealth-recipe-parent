@@ -119,4 +119,10 @@ public class FastRecipeVO implements Serializable {
 
     @ItemProperty(alias = "药方详情，药品信息")
     private List<FastRecipeDetailVO> fastRecipeDetailList;
+
+    @ItemProperty(alias = "医生选择是否代煎（ 0:否 1：是）")
+    private String doctorIsDecoction;
+
+    @ItemProperty(alias = "每贴次数")
+    private String everyTcmNumFre;
 }
