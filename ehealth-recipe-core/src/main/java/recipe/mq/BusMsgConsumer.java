@@ -87,7 +87,7 @@ public class BusMsgConsumer {
         /**
          * 门诊缴费支付回调
          */
-        subscriber.attach(OnsConfig.settleStateSyncRecipeTag, "", new RecipeOutpatientPaymentConsumer());
+        subscriber.attach(OnsConfig.paymentReportTopic, "settleStateSyncRecipeTag", new RecipeOutpatientPaymentConsumer());
 
     }
 

@@ -12,13 +12,15 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import recipe.aop.LogRecord;
 import recipe.client.DrugStockClient;
 import recipe.client.IConfigurationClient;
 import recipe.client.OperationClient;
 import recipe.constant.ErrorCode;
 import recipe.core.api.IStockBusinessService;
-import recipe.dao.*;
+import recipe.dao.DrugsEnterpriseDAO;
+import recipe.dao.OrganDrugListDAO;
+import recipe.dao.RecipeDAO;
+import recipe.dao.RecipeDetailDAO;
 import recipe.drugsenterprise.AccessDrugEnterpriseService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.enumerate.status.GiveModeEnum;
@@ -334,7 +336,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
             futureTasks.add(ft);
             GlobalEventExecFactory.instance().getExecutor().submit(ft);
         }
-        return super.futureTaskCallbackBeanList(futureTasks);
+        return super.futureTaskCallbackBeanList(futureTasks, null);
     }
 
     /**
@@ -368,7 +370,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
             futureTasks.add(ft);
             GlobalEventExecFactory.instance().getExecutor().submit(ft);
         }
-        return super.futureTaskCallbackBeanList(futureTasks);
+        return super.futureTaskCallbackBeanList(futureTasks, null);
     }
 
     /**

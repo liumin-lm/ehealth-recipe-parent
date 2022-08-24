@@ -2668,16 +2668,14 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         HibernateStatelessResultAction<QueryResult<Recipe>> action = new AbstractHibernateStatelessResultAction<QueryResult<Recipe>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                String hql = "from Recipe where requestMpiId=:mpiid and clinicOrgan =:clinicOrgan and status in (2,3,4,5,6,7,8,9,12,13,14,15,40,41,42) order by createDate desc";
+                String hql = "from Recipe where requestMpiId=:mpiid  and status in (2,3,4,5,6,7,8,9,12,13,14,15,40,41,42) order by createDate desc";
                 Query query = ss.createQuery(hql);
                 query.setParameter("mpiid", mpiId);
-                query.setParameter("clinicOrgan", organId);
                 query.setFirstResult(start);
                 query.setMaxResults(limit);
 
                 Query countQuery = ss.createQuery("select count(*) " + hql);
                 countQuery.setParameter("mpiid", mpiId);
-                countQuery.setParameter("clinicOrgan", organId);
                 Long total = (Long) countQuery.uniqueResult();
                 List<Recipe> lists = query.list();
                 setResult(new QueryResult<Recipe>(total, query.getFirstResult(), query.getMaxResults(), lists));
@@ -2953,7 +2951,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         HibernateStatelessResultAction<List<WorkLoadTopDTO>> action = new AbstractHibernateStatelessResultAction<List<WorkLoadTopDTO>>() {
             @Override
             public void execute(StatelessSession statelessSession) throws Exception {
-                String sql = "SELECT\n" + "\to.dispensingApothecaryName AS dispensingApothecaryName,\n" + "\tcount(recipeId) AS recipeCount,\n" + "\tsum(totalMoney) totalMoney\n" + "FROM\n" + "\tcdr_recipe r\n" + "LEFT JOIN cdr_recipeorder o ON (r.ordercode = o.ordercode)\n" + "WHERE\n" + "\tr.ordercode IS NOT NULL\n" + "AND o.OrganId = :organId\n" + (StringUtils.isNotEmpty(doctorName) ? "AND o.dispensingApothecaryName like :dispensingApothecaryName\n" : "") + "AND o." +
+                String sql = "SELECT\n" + "\to.dispensingApothecaryName AS dispensingApothecaryName,\n" + "\tcount(recipeId) AS recipeCount,\n" + "\tsum(totalMoney) totalMoney\n" + "FROM\n" + "\tcdr_recipe r\n" + "LEFT JOIN cdr_recipeorder o ON (r.ordercode = o.ordercode)\n" + "WHERE\n" + "\tr.ordercode IS NOT NULL\n" + "AND o.OrganId = :organId\n" + (StringUtils.isNotEmpty(doctorName) ? "AND o.dispensingApothecaryName like :dispensingApothecaryName\n" : "") + "AND o.status in " +
                         " (" + orderStatus + ")\n" + "AND o.dispensingStatusAlterTime BETWEEN '" + startDate + "'\n" + "AND '" + endDate + "'\n" + (StringUtils.isNotEmpty(recipeType) ? "AND r.recipeType in (:recipeType)\n" : "") + "GROUP BY\n" + "\to.dispensingApothecaryName";
                 Query q = statelessSession.createSQLQuery(sql);
                 q.setParameter("organId", organId);

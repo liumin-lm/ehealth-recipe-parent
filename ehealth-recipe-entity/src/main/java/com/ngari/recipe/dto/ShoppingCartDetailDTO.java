@@ -10,7 +10,7 @@ import java.util.List;
 public class ShoppingCartDetailDTO implements Serializable {
     private static final long serialVersionUID = 4663398515404143885L;
 
-    private RecipeBeforeOrder recipeBeforeOrder;
+    private RecipeBeforeOrderDTO recipeBeforeOrder;
 
     private List<RecipeDTO> recipeDTO;
 }

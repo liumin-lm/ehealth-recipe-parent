@@ -19,7 +19,8 @@ public class RecipeOutpatientPaymentConsumer implements Observer<String> {
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipeOutpatientPaymentConsumer.class);
     @Override
     public void onMessage(String message) {
-        LOGGER.info("RecipeStatusFromHisObserver onMessage topic={}, message={}", OnsConfig.settleStateSyncRecipeTag, message);
+        LOGGER.info("RecipeOutpatientPaymentConsumer onMessage topic={}, message={}", OnsConfig.paymentReportTopic, message);
+        // {"recipeCodes":["22222333"],"organId":1,"hisSettlementNo":"1122221","tradeNo":"out_A001_166123514827527","outTradeNo":"out_A001_166123514827527","preSettleTotalAmount":3333,"isMedicalSettle":0,"settleMode":1,"payTime":"2022-08-23 17:56:16"}
         RecipeOutpatientPaymentDTO recipeOutpatientPaymentDTO = JSONArray.parseObject(message, RecipeOutpatientPaymentDTO.class);
         IRecipeBusinessService recipeBusinessService = AppContextHolder.getBean("recipeBusinessService", IRecipeBusinessService.class);
         recipeBusinessService.recipeOutpatientPaymentCallback(recipeOutpatientPaymentDTO);

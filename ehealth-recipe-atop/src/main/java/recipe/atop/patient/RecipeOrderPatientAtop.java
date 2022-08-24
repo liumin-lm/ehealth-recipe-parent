@@ -256,8 +256,8 @@ public class RecipeOrderPatientAtop extends BaseAtop {
      * @return
      */
     @RpcService
-    public Boolean getPreOrderFlag(Integer recipeId){
-        return recipeOrderService.getPreOrderFlag(recipeId);
+    public Boolean getPreOrderFlag(Integer recipeId,String mpiId){
+        return recipeOrderService.getPreOrderFlag(recipeId,mpiId);
     }
 
 

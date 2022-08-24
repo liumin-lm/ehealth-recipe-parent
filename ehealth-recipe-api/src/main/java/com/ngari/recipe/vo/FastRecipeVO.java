@@ -1,6 +1,8 @@
 package com.ngari.recipe.vo;
 
+import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
+import ctd.schema.annotation.Schema;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -13,6 +15,7 @@ import java.util.List;
  * @Date 2022-08-16
  */
 @Data
+@Schema
 public class FastRecipeVO implements Serializable {
 
     private static final long serialVersionUID = -4078142463611099079L;
@@ -33,6 +36,7 @@ public class FastRecipeVO implements Serializable {
     private String backgroundImg;
 
     @ItemProperty(alias = "处方类型")
+    @Dictionary(id = "eh.cdr.dictionary.RecipeType")
     private Integer recipeType;
 
     @ItemProperty(alias = "销售数量上限")
@@ -115,4 +119,10 @@ public class FastRecipeVO implements Serializable {
 
     @ItemProperty(alias = "药方详情，药品信息")
     private List<FastRecipeDetailVO> fastRecipeDetailList;
+
+    @ItemProperty(alias = "医生选择是否代煎（ 0:否 1：是）")
+    private String doctorIsDecoction;
+
+    @ItemProperty(alias = "每贴次数")
+    private String everyTcmNumFre;
 }

@@ -11,6 +11,7 @@ import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,8 +29,10 @@ import recipe.vo.patient.FTYSendTimeReq;
 import recipe.vo.patient.MedicineStationVO;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 药企相关入口
@@ -155,6 +158,33 @@ public class DrugEnterprisePatientAtop extends BaseAtop {
             a.setDrugInfoList(null);
         });
         return result;
+    }
+
+    /**
+     * 购物清单中校验煎法是否可以配送地址
+     * @param checkAddressReqList
+     * @return
+     */
+    @RpcService
+    public CheckAddressRes shoppingCheckEnterpriseDecoctionAddress(List<CheckAddressReq> checkAddressReqList){
+        List<CheckAddressRes> checkAddressResList = new ArrayList<>();
+        checkAddressReqList.forEach(checkAddressReq -> {
+            validateAtop(checkAddressReq, checkAddressReq.getOrganId(), checkAddressReq.getEnterpriseId(),checkAddressReq.getDecoctionId(),checkAddressReq.getAddress3());
+            CheckAddressRes checkAddressRes = enterpriseBusinessService.checkEnterpriseDecoctionAddress(checkAddressReq);
+            checkAddressResList.add(checkAddressRes);
+        });
+        CheckAddressRes checkAddressRes = new CheckAddressRes();
+        if(CollectionUtils.isNotEmpty(checkAddressResList)){
+            List<CheckAddressRes> collect = checkAddressResList.stream().filter(a -> !a.getSendFlag()).collect(Collectors.toList());
+            if(CollectionUtils.isNotEmpty(collect)){
+                checkAddressRes.setSendFlag(false);
+                checkAddressRes.setAreaList(collect.get(0).getAreaList());
+            }else {
+                checkAddressRes.setSendFlag(true);
+                checkAddressRes.setAreaList(collect.get(0).getAreaList());
+            }
+        }
+        return checkAddressRes;
     }
 
 }

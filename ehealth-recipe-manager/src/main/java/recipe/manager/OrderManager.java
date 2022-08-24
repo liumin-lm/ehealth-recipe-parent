@@ -98,6 +98,7 @@ public class OrderManager extends BaseManager {
 
     /**
      * 合并预下单信息
+     *
      * @param beforeOrderList
      * @return
      */
@@ -112,24 +113,23 @@ public class OrderManager extends BaseManager {
         List<List<RecipeBeforeOrder>> list = new ArrayList<>();
         keySet.forEach(key -> {
             List<RecipeBeforeOrder> recipeBeforeOrders = map.get(key);
-            recipeBeforeOrders.forEach(recipeBeforeOrder -> {
-                switch (GiveModeEnum.getGiveModeEnum(key)) {
-                    case GIVE_MODE_HOME_DELIVERY:
-                    case GIVE_MODE_PHARMACY_DRUG:
-                        Map<String, List<RecipeBeforeOrder>> collect = recipeBeforeOrders.stream().collect(Collectors.groupingBy(beforeOrder -> beforeOrder.getEnterpriseId() + beforeOrder.getDrugStoreCode()));
-                        collect.forEach((k, value) -> {
-                            list.add(value);
-                        });
-                        break;
-                    case GIVE_MODE_HOSPITAL_DRUG:
-                    default:
-                        list.add(recipeBeforeOrders);
-                        break;
-                }
-            });
+            switch (GiveModeEnum.getGiveModeEnum(key)) {
+                case GIVE_MODE_HOME_DELIVERY:
+                case GIVE_MODE_PHARMACY_DRUG:
+                    Map<String, List<RecipeBeforeOrder>> collect = recipeBeforeOrders.stream().collect(Collectors.groupingBy(beforeOrder -> beforeOrder.getEnterpriseId() + beforeOrder.getDrugStoreCode()));
+                    collect.forEach((k, value) -> {
+                        list.add(value);
+                    });
+                    break;
+                case GIVE_MODE_HOSPITAL_DRUG:
+                default:
+                    list.add(recipeBeforeOrders);
+                    break;
+            }
         });
         return list;
     }
+
     /**
      * 订单能否配送 物流管控
      *
@@ -157,12 +157,12 @@ public class OrderManager extends BaseManager {
             return true;
         }
         DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(depId);
-        if (null != enterprise && enterprise.getLogisticsType() != null && enterprise.getLogisticsType().equals(DrugEnterpriseConstant.LOGISTICS_PLATFORM)&&logisticsCompany!=null) {
-            List<OrganLogisticsManageDto>  organLogisticsManageDtos=organLogisticsManageService.findLogisticsManageByOrganIdAndLogisticsCompanyIdAndAccount(enterprise.getId(),logisticsCompany.toString(),DrugEnterpriseConstant.BUSINESS_TYPE,0);
-            logger.info("getCreateLogisticsOrderDto organLogisticsManageDtos:{}",JSONUtils.toString(organLogisticsManageDtos));
-            OrganLogisticsManageDto organLogisticsManageDto=new OrganLogisticsManageDto();
-            if(CollectionUtils.isNotEmpty(organLogisticsManageDtos) && organLogisticsManageDtos.get(0)!=null){
-                organLogisticsManageDto=organLogisticsManageDtos.get(0);
+        if (null != enterprise && enterprise.getLogisticsType() != null && enterprise.getLogisticsType().equals(DrugEnterpriseConstant.LOGISTICS_PLATFORM) && logisticsCompany != null) {
+            List<OrganLogisticsManageDto> organLogisticsManageDtos = organLogisticsManageService.findLogisticsManageByOrganIdAndLogisticsCompanyIdAndAccount(enterprise.getId(), logisticsCompany.toString(), DrugEnterpriseConstant.BUSINESS_TYPE, 0);
+            logger.info("getCreateLogisticsOrderDto organLogisticsManageDtos:{}", JSONUtils.toString(organLogisticsManageDtos));
+            OrganLogisticsManageDto organLogisticsManageDto = new OrganLogisticsManageDto();
+            if (CollectionUtils.isNotEmpty(organLogisticsManageDtos) && organLogisticsManageDtos.get(0) != null) {
+                organLogisticsManageDto = organLogisticsManageDtos.get(0);
             }
             ControlLogisticsOrderDto controlLogisticsOrderDto = new ControlLogisticsOrderDto();
             //TODO lium物流下单
@@ -221,8 +221,8 @@ public class OrderManager extends BaseManager {
             }
             logger.info("orderCanSend req controlLogisticsOrderDto={}", controlLogisticsOrderDto);
             String orderCanSend = infraClient.orderCanSend(controlLogisticsOrderDto);
-            logger.info("orderCanSend:{}",orderCanSend);
-            if(Objects.isNull(orderCanSend)){
+            logger.info("orderCanSend:{}", orderCanSend);
+            if (Objects.isNull(orderCanSend)) {
                 return true;
             }
             JSONObject jsonObject = JSONObject.parseObject(orderCanSend);
@@ -505,13 +505,14 @@ public class OrderManager extends BaseManager {
 
     /**
      * 查询订单处方信息
+     *
      * @param enterpriseIdList 药企ID列表
-     * @param mpiIdList 患者mpiId列表
-     * @param beginTime 查询开始时间
-     * @param endTime 查询结束时间
+     * @param mpiIdList        患者mpiId列表
+     * @param beginTime        查询开始时间
+     * @param endTime          查询结束时间
      * @return
      */
-    public List<DownLoadRecipeOrderDTO> findOrderAndRecipes(List<Integer> enterpriseIdList, List<String> mpiIdList, Date beginTime, Date endTime){
+    public List<DownLoadRecipeOrderDTO> findOrderAndRecipes(List<Integer> enterpriseIdList, List<String> mpiIdList, Date beginTime, Date endTime) {
         List<DownLoadRecipeOrderDTO> downLoadRecipeOrderDTOList = new ArrayList<>();
         //查询订单信息
         List<RecipeOrder> recipeOrderList = recipeOrderDAO.findOrderForEnterprise(enterpriseIdList, mpiIdList, beginTime, endTime);
@@ -568,7 +569,7 @@ public class OrderManager extends BaseManager {
         return new QueryResult<>();
     }
 
-    public void cancelOrder(RecipeOrder order, List<Recipe> recipeList, Boolean canCancelOrderCode, Integer identity){
+    public void cancelOrder(RecipeOrder order, List<Recipe> recipeList, Boolean canCancelOrderCode, Integer identity) {
         logger.info("RecipeOrderService cancelOrder  order= {}，recipeList={}, canCancelOrderCode= {} ,identity={}", JSON.toJSONString(order), JSON.toJSONString(recipeList), canCancelOrderCode, identity);
         // 邵逸夫手动取消要查看是否有支付审方费
         Boolean syfPayMode = configurationClient.getValueBooleanCatch(order.getOrganId(), "syfPayMode", false);
@@ -727,20 +728,20 @@ public class OrderManager extends BaseManager {
         return statusText;
     }
 
-    public String queryEinvoiceNumberByRecipeId(Integer recipeId){
+    public String queryEinvoiceNumberByRecipeId(Integer recipeId) {
         String einvoiceNumber = "";
-        if (null != recipeId){
+        if (null != recipeId) {
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
             if (null != recipeExtend && StringUtils.isNotBlank(recipeExtend.getEinvoiceNumber())) {
                 einvoiceNumber = recipeExtend.getEinvoiceNumber();
-            }else {
+            } else {
                 RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
                 Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-                if (recipe != null && StringUtils.isNotBlank(recipe.getOrderCode())){
+                if (recipe != null && StringUtils.isNotBlank(recipe.getOrderCode())) {
                     RecipeOrderBillDAO recipeOrderBillDAO = DAOFactory.getDAO(RecipeOrderBillDAO.class);
                     RecipeOrderBill recipeOrderBill = recipeOrderBillDAO.getRecipeOrderBillByOrderCode(recipe.getOrderCode());
-                    if (null != recipeOrderBill){
+                    if (null != recipeOrderBill) {
                         einvoiceNumber = recipeOrderBill.getBillNumber();
                     }
                 }
@@ -753,30 +754,30 @@ public class OrderManager extends BaseManager {
         List<ReimbursementDTO> reimbursementDTOList = new ArrayList<>();
         //根据机构ID、患者唯一标识查询规定时间内的处方单（orderCode不为空的）
         List<Recipe> recipeList = recipeDAO.findRecipesByClinicOrganAndMpiId(reimbursementListReq.getOrganId(), reimbursementListReq.getMpiId(), reimbursementListReq.getStartTime(), reimbursementListReq.getEndTime());
-        logger.info("findReimbursementList recipeList={}",JSONUtils.toString(recipeList));
-        if(CollectionUtils.isEmpty(recipeList)){
+        logger.info("findReimbursementList recipeList={}", JSONUtils.toString(recipeList));
+        if (CollectionUtils.isEmpty(recipeList)) {
             logger.info("findReimbursementList 处方单不存在");
             return null;
         }
-        for(Recipe recipe : recipeList){
+        for (Recipe recipe : recipeList) {
             PatientDTO patientDTO = patientClient.getPatientBeanByMpiId(reimbursementListReq.getMpiId());
-            if(patientDTO == null){
+            if (patientDTO == null) {
                 logger.info("findReimbursementList 患者不存在");
                 return null;
             }
             //已经开过发票的处方单
             String invoiceNumber = queryEinvoiceNumberByRecipeId(recipe.getRecipeId());
-            if(StringUtils.isNotEmpty(invoiceNumber)){
+            if (StringUtils.isNotEmpty(invoiceNumber)) {
                 RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
                 //支付成功、未退费的处方单
-                if(new Integer(1).equals(recipeOrder.getPayFlag()) && new Integer(0).equals(recipeOrder.getRefundFlag())){
+                if (new Integer(1).equals(recipeOrder.getPayFlag()) && new Integer(0).equals(recipeOrder.getRefundFlag())) {
                     ReimbursementDTO reimbursementListDTO = new ReimbursementDTO();
-                    reimbursementListDTO.setPatientDTO(ObjectCopyUtils.convert(patientDTO,com.ngari.recipe.dto.PatientDTO.class));
+                    reimbursementListDTO.setPatientDTO(ObjectCopyUtils.convert(patientDTO, com.ngari.recipe.dto.PatientDTO.class));
                     reimbursementListDTO.setInvoiceNumber(invoiceNumber);
                     reimbursementListDTO.setRecipe(recipe);
                     reimbursementListDTO.setRecipeOrder(recipeOrder);
                     List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
-                    if(CollectionUtils.isEmpty(recipeDetailList)){
+                    if (CollectionUtils.isEmpty(recipeDetailList)) {
                         return null;
                     }
                     reimbursementListDTO.setRecipeDetailList(recipeDetailList);
@@ -784,14 +785,14 @@ public class OrderManager extends BaseManager {
                 }
             }
         }
-        logger.info("findReimbursementList reimbursementDTOList={}",JSONUtils.toString(reimbursementDTOList));
+        logger.info("findReimbursementList reimbursementDTOList={}", JSONUtils.toString(reimbursementDTOList));
         return reimbursementDTOList;
     }
 
     public ReimbursementDTO findReimbursementDetail(Integer recipeId) {
         ReimbursementDTO reimbursementDetailDTO = new ReimbursementDTO();
         Recipe recipe = recipeDAO.get(recipeId);
-        if(recipe == null){
+        if (recipe == null) {
             logger.info("findReimbursementDetail 处方单不存在");
             return null;
         }
@@ -799,26 +800,26 @@ public class OrderManager extends BaseManager {
         reimbursementDetailDTO.setRecipe(recipe);
         reimbursementDetailDTO.setInvoiceNumber(queryEinvoiceNumberByRecipeId(recipeId));
         PatientDTO patientDTO = patientClient.getPatientBeanByMpiId(recipe.getMpiid());
-        if(patientDTO == null){
+        if (patientDTO == null) {
             logger.info("findReimbursementDetail 患者不存在");
             return null;
         }
-        logger.info("findReimbursementDetail patientDTO={}",JSONUtils.toString(patientDTO));
-        reimbursementDetailDTO.setPatientDTO(ObjectCopyUtils.convert(patientDTO,com.ngari.recipe.dto.PatientDTO.class));
-        if(StringUtils.isNotBlank(recipe.getOrderCode())){
+        logger.info("findReimbursementDetail patientDTO={}", JSONUtils.toString(patientDTO));
+        reimbursementDetailDTO.setPatientDTO(ObjectCopyUtils.convert(patientDTO, com.ngari.recipe.dto.PatientDTO.class));
+        if (StringUtils.isNotBlank(recipe.getOrderCode())) {
             RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
             reimbursementDetailDTO.setRecipeOrder(recipeOrder);
         }
         List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipeId);
-        if (CollectionUtils.isNotEmpty(recipeDetailList)){
+        if (CollectionUtils.isNotEmpty(recipeDetailList)) {
             reimbursementDetailDTO.setRecipeDetailList(recipeDetailList);
         }
-        logger.info("findReimbursementDetail reimbursementDetailDTO={}",JSONUtils.toString(reimbursementDetailDTO));
+        logger.info("findReimbursementDetail reimbursementDetailDTO={}", JSONUtils.toString(reimbursementDetailDTO));
         return reimbursementDetailDTO;
     }
 
     public String getOrderTips(RecipeOrder order) {
-        if(OrderStateEnum.PROCESS_STATE_DISPENSING.getType().equals(order.getProcessState())){
+        if (OrderStateEnum.PROCESS_STATE_DISPENSING.getType().equals(order.getProcessState())) {
             return "已完成";
         }
 
@@ -826,7 +827,7 @@ public class OrderManager extends BaseManager {
     }
 
     public InvoiceInfoResTO makeUpInvoice(String orderCode) {
-        logger.info("EleInvoiceService.makeUpInvoice orderCode={}",orderCode);
+        logger.info("EleInvoiceService.makeUpInvoice orderCode={}", orderCode);
         InvoiceInfoReqTO invoiceInfoReqTO = new InvoiceInfoReqTO();
         RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(orderCode);
         List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
@@ -834,14 +835,14 @@ public class OrderManager extends BaseManager {
         PatientDTO patientDTO = new PatientDTO();
         Integer organId = recipeList.get(0).getClinicOrgan();
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        if(recipeList.get(0).getBussSource().equals(2)){
+        if (recipeList.get(0).getBussSource().equals(2)) {
             RevisitBean revisitBean = revisitClient.getRevisitByClinicId(recipeList.get(0).getClinicId());
-            if(Objects.nonNull(revisitBean)){
+            if (Objects.nonNull(revisitBean)) {
                 //就诊时间
                 invoiceInfoReqTO.setVisitTime(df.format(revisitBean.getRequestTime()));
             }
         }
-        if(recipeList.size()>0){
+        if (recipeList.size() > 0) {
             patientDTO = patientService.get(recipeList.get(0).getMpiid());
             invoiceInfoReqTO.setRecipeBean(ObjectCopyUtils.convert(recipeList, RecipeBean.class));
             invoiceInfoReqTO.setOrganId(organId);
@@ -855,7 +856,7 @@ public class OrderManager extends BaseManager {
         invoiceInfoReqTO.setPayTime(df.format(recipeOrder.getPayTime()));
         //就诊流水号
         invoiceInfoReqTO.setTradeNo(recipeOrder.getTradeNo());
-        if(Objects.nonNull(patientDTO)){
+        if (Objects.nonNull(patientDTO)) {
             invoiceInfoReqTO.setPatientName(patientDTO.getPatientName());
             invoiceInfoReqTO.setSex(patientDTO.getPatientSex());
             invoiceInfoReqTO.setAge(String.valueOf(patientDTO.getAge()));
@@ -869,9 +870,9 @@ public class OrderManager extends BaseManager {
             recipeDetail.setDrugForm(organDrugList.getDrugForm());
         });
         invoiceInfoReqTO.setRecipeDetailList(ObjectCopyUtils.convert(recipeDetailList, RecipeDetailBean.class));
-        logger.info("EleInvoiceService.makeUpInvoice invoiceInfoReqTO={}",JSONUtils.toString(invoiceInfoReqTO));
+        logger.info("EleInvoiceService.makeUpInvoice invoiceInfoReqTO={}", JSONUtils.toString(invoiceInfoReqTO));
         InvoiceInfoResTO invoiceInfoResTO = payClient.makeUpInvoice(invoiceInfoReqTO);
-        logger.info("EleInvoiceService.makeUpInvoice invoiceInfoResTO={}",JSONUtils.toString(invoiceInfoResTO));
+        logger.info("EleInvoiceService.makeUpInvoice invoiceInfoResTO={}", JSONUtils.toString(invoiceInfoResTO));
         RecipeOrderBill recipeOrderBill = new RecipeOrderBill();
         recipeOrderBill.setRecipeOrderCode(orderCode);
         recipeOrderBill.setBillNumber(invoiceInfoResTO.getInvoiceNo());
@@ -891,36 +892,36 @@ public class OrderManager extends BaseManager {
      * @return true表示可以下单
      */
     @LogRecord
-    public boolean controlLogisticsDistance( Map<String, String> extInfo) {
+    public boolean controlLogisticsDistance(Map<String, String> extInfo) {
         Integer logisticsCompany = MapValueUtil.getInteger(extInfo, "logisticsCompany");
-        if(!new Integer(301).equals(logisticsCompany)){
+        if (!new Integer(301).equals(logisticsCompany)) {
             return true;
         }
         Integer addressId = MapValueUtil.getInteger(extInfo, "addressId");
         Integer depId = MapValueUtil.getInteger(extInfo, "depId");
-        if(addressId==null){
+        if (addressId == null) {
             logger.info("addressId is null");
             return false;
         }
-        if(depId==null){
+        if (depId == null) {
             logger.info("depId is null");
             return false;
         }
-        AddressDTO addressDTO=addressService.getByAddressId(addressId);
-        logger.info("controlLogisticsDistance addressDTO:{}",JSONUtils.toString(addressDTO));
-        if(addressDTO==null){
+        AddressDTO addressDTO = addressService.getByAddressId(addressId);
+        logger.info("controlLogisticsDistance addressDTO:{}", JSONUtils.toString(addressDTO));
+        if (addressDTO == null) {
             logger.info("addressDTO is null");
             return false;
         }
-        LogisticsDistanceDto logisticsDistanceDto=new LogisticsDistanceDto();
+        LogisticsDistanceDto logisticsDistanceDto = new LogisticsDistanceDto();
         logisticsDistanceDto.setLatitude(addressDTO.getLatitude());
         logisticsDistanceDto.setLongitude(addressDTO.getLongitude());
         logisticsDistanceDto.setLogisticsCode(String.valueOf(logisticsCompany));
         logisticsDistanceDto.setOrganId(depId);
         logisticsDistanceDto.setBusinessType(1);
-        Map<String,String> result=infraClient.controlLogisticsDistance(logisticsDistanceDto);
-        if(result!=null){
-            if("1".equals(result.get("distance"))){
+        Map<String, String> result = infraClient.controlLogisticsDistance(logisticsDistanceDto);
+        if (result != null) {
+            if ("1".equals(result.get("distance"))) {
                 return false;
             }
         }
@@ -931,13 +932,13 @@ public class OrderManager extends BaseManager {
         //判断是新增到购物车还是在原有的基础上修改购药方式
         Integer recipeId = shoppingCartReqDTO.getRecipeId();
         Recipe recipe = recipeDAO.getByRecipeId(shoppingCartReqDTO.getRecipeId());
-        if(StringUtils.isNotEmpty(recipe.getOrderCode())){
-            throw new DAOException(609,"处方已经存在订单信息");
+        if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
+            throw new DAOException(609, "处方已经存在订单信息");
         }
-        if(recipeId != null){
+        if (recipeId != null) {
             //查询有效的预下单信息
             RecipeBeforeOrder recipeBeforeOrder = recipeBeforeOrderDAO.getRecipeBeforeOrderByRecipeId(recipeId);
-            if(Objects.nonNull(recipeBeforeOrder)){
+            if (Objects.nonNull(recipeBeforeOrder)) {
                 //把原有的删除状态置为1，再新增一条数据
                 recipeBeforeOrder.setDeleteFlag(1);
                 recipeBeforeOrder.setUpdateTime(new Date());
@@ -946,30 +947,29 @@ public class OrderManager extends BaseManager {
         }
         RecipeBeforeOrder recipeBeforeOrder = new RecipeBeforeOrder();
         recipeBeforeOrder.setRecipeId(shoppingCartReqDTO.getRecipeId());
-        if(recipe != null){
+        if (recipe != null) {
             recipeBeforeOrder.setOrganId(recipe.getClinicOrgan());
             recipeBeforeOrder.setRecipeCode(recipe.getRecipeCode());
         }
         recipeBeforeOrder.setEnterpriseId(shoppingCartReqDTO.getEnterpriseId());
         recipeBeforeOrder.setGiveMode(shoppingCartReqDTO.getGiveMode());
         //购药方式为到院取药时预下单信息为完善
-        if(new Integer(2).equals(shoppingCartReqDTO.getGiveMode())){
+        if (new Integer(2).equals(shoppingCartReqDTO.getGiveMode())) {
             recipeBeforeOrder.setIsReady(1);
         }
         //购药方式为到店取药时
-        else if (new Integer(3).equals(shoppingCartReqDTO.getGiveMode())){
+        else if (new Integer(3).equals(shoppingCartReqDTO.getGiveMode())) {
             //有药店信息则为完善否则为不完善
-            if(shoppingCartReqDTO.getDrugStoreName() != null && shoppingCartReqDTO.getDrugStoreCode() != null ){
+            if (shoppingCartReqDTO.getDrugStoreName() != null && shoppingCartReqDTO.getDrugStoreCode() != null) {
                 recipeBeforeOrder.setIsReady(1);
                 recipeBeforeOrder.setDrugStoreName(shoppingCartReqDTO.getDrugStoreName());
                 recipeBeforeOrder.setDrugStoreAddr(shoppingCartReqDTO.getDrugStoreAddr());
                 recipeBeforeOrder.setDrugStoreCode(shoppingCartReqDTO.getDrugStoreCode());
-            }
-            else {
+            } else {
                 recipeBeforeOrder.setIsReady(0);
             }
-        //配送方式为医院配送或药企配送
-        }else if(new Integer(1).equals(shoppingCartReqDTO.getGiveMode())){
+            //配送方式为医院配送或药企配送
+        } else if (new Integer(1).equals(shoppingCartReqDTO.getGiveMode())) {
             recipeBeforeOrder.setIsReady(0);
         }
         recipeBeforeOrder.setGiveModeKey(shoppingCartReqDTO.getGiveModeKey());
@@ -979,8 +979,8 @@ public class OrderManager extends BaseManager {
         recipeBeforeOrder.setUpdateTime(new Date());
         //recipeBeforeOrder.setPayWay(shoppingCartReqDTO.getPayWay());
         recipeBeforeOrder.setOperMpiId(shoppingCartReqDTO.getOperMpiId());
-        if(shoppingCartReqDTO.getGiveMode() != null){
-            switch (shoppingCartReqDTO.getGiveMode()){
+        if (shoppingCartReqDTO.getGiveMode() != null) {
+            switch (shoppingCartReqDTO.getGiveMode()) {
                 case 1:
                 case 2:
                     recipeBeforeOrder.setTakeMedicineWay(0);
@@ -990,93 +990,7 @@ public class OrderManager extends BaseManager {
                     break;
             }
         }
-        logger.info("saveRecipeBeforeOrderInfo recipeBeforeOrder={}",JSONUtils.toString(recipeBeforeOrder));
+        logger.info("saveRecipeBeforeOrderInfo recipeBeforeOrder={}", JSONUtils.toString(recipeBeforeOrder));
         recipeBeforeOrderDAO.save(recipeBeforeOrder);
-    }
-
-    public List<ShoppingCartDetailDTO> getShoppingCartDetail(String mpiId) {
-        List<ShoppingCartDetailDTO> shoppingCartDetailDTOList = new ArrayList<>();
-        List<RecipeBeforeOrder> recipeBeforeOrderList = recipeBeforeOrderDAO.findByMpiId(mpiId);
-        logger.info("getShoppingCartDetail recipeBeforeOrderList={}",JSONUtils.toString(recipeBeforeOrderList));
-        if(CollectionUtils.isNotEmpty(recipeBeforeOrderList)){
-            //需要合并的处方
-            List<List<RecipeBeforeOrder>> mergeBeforeOrder = mergeBeforeOrder(recipeBeforeOrderList);
-            logger.info("getShoppingCartDetail mergeBeforeOrder ={}",JSONUtils.toString(mergeBeforeOrder));
-            for(List<RecipeBeforeOrder> recipeBeforeOrders : mergeBeforeOrder){
-                ShoppingCartDetailDTO shoppingCartDetailDTO = new ShoppingCartDetailDTO();
-                RecipeBeforeOrder beforeOrder = recipeBeforeOrders.get(0);
-                RecipeOrder recipeOrder = new RecipeOrder();
-                AddressDTO addressDTO = new AddressDTO();
-                BigDecimal recipeFee = BigDecimal.ZERO;
-                BigDecimal tcmFee = BigDecimal.ZERO;
-                BigDecimal decoctionFee = BigDecimal.ZERO;
-                BigDecimal auditFee = BigDecimal.ZERO;
-                List<Recipe> recipeList = new ArrayList<>();
-                List<RecipeDTO> recipeDTOList = new ArrayList<>();
-                for(RecipeBeforeOrder recipeBeforeOrder : recipeBeforeOrders){
-                    RecipeDTO recipeDTO = new RecipeDTO();
-                    Recipe recipe = recipeDAO.getByRecipeId(recipeBeforeOrder.getRecipeId());
-                    if(recipe != null){
-                        //处方费用
-                        if (null != recipe.getTotalMoney()) {
-                            recipeBeforeOrder.setRecipeFee(recipe.getTotalMoney());
-                            recipeFee = recipeFee.add(recipe.getTotalMoney());
-                        }
-                        recipeList.add(recipe);
-                        recipeDTO.setRecipe(recipe);
-                        orderFeeManager.setRecipeChineseMedicineFee(recipeList,recipeOrder,null);
-                        if(recipeOrder.getTcmFee() != null){
-                            //中医辨证论治费
-                            recipeBeforeOrder.setTcmFee(recipeOrder.getTcmFee());
-                            tcmFee = tcmFee.add(recipeOrder.getTcmFee());
-                        }
-                        if(recipeOrder.getDecoctionFee() != null){
-                            //代煎费
-                            recipeBeforeOrder.setDecoctionFee(recipeOrder.getDecoctionFee());
-                            decoctionFee = decoctionFee.add(recipeOrder.getDecoctionFee());
-                        }
-                        orderFeeManager.setAuditFee(recipeOrder,recipeList);
-                        if(recipeOrder.getAuditFee() != null){
-                            //药事服务费
-                            recipeBeforeOrder.setAuditFee(recipeOrder.getAuditFee());
-                            auditFee = auditFee.add(recipeOrder.getAuditFee());
-                        }
-                        //recipeBeforeOrder.setExpressFee(expressFee);
-                        recipeBeforeOrder.setUpdateTime(new Date());
-                        recipeBeforeOrderDAO.updateNonNullFieldByPrimaryKey(recipeBeforeOrder);
-                    }
-                    if(addressDTO.getBeyondDelivery() != null){
-                        //地址是否可以配送
-                        beforeOrder.setAddressCanSend(new Integer(0).equals(addressDTO.getBeyondDelivery()));
-                    }
-                    List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipeBeforeOrder.getRecipeId());
-                    recipeDTO.setRecipeDetails(recipeDetailList);
-                    recipeDTOList.add(recipeDTO);
-                }
-                if(new Integer(3).equals(beforeOrder.getGiveMode())){
-                    if(beforeOrder.getDrugStoreCode() != null){
-                        Pharmacy pharmacy = pharmacyDAO.getPharmacyByPharmacyCode(beforeOrder.getDrugStoreCode());
-                        if(Objects.nonNull(pharmacy)){
-                            beforeOrder.setDrugStorePhone(pharmacy.getPharmacyPhone());
-                        }
-                    }
-                }
-                //处方费
-                beforeOrder.setRecipeFee(recipeFee);
-                shoppingCartDetailDTO.setRecipeDTO(recipeDTOList);
-                shoppingCartDetailDTO.setRecipeBeforeOrder(beforeOrder);
-                shoppingCartDetailDTOList.add(shoppingCartDetailDTO);
-                logger.info("getShoppingCartDetail shoppingCartDetailDTOList={}",JSONUtils.toString(shoppingCartDetailDTOList));
-            }
-        }
-        Map<RecipeBeforeOrder, ShoppingCartDetailDTO> shoppingCartDetailDTOMap = shoppingCartDetailDTOList.stream()
-                .collect(Collectors.toMap(ShoppingCartDetailDTO::getRecipeBeforeOrder, a -> a, (k1, k2) -> k1));
-        List<RecipeBeforeOrder> beforeOrderList = shoppingCartDetailDTOList.stream().map(ShoppingCartDetailDTO::getRecipeBeforeOrder).collect(Collectors.toList());
-        List<RecipeBeforeOrder> recipeBeforeOrders = beforeOrderList.stream().sorted(Comparator.comparing(RecipeBeforeOrder::getGiveMode)).collect(Collectors.toList());
-        List<ShoppingCartDetailDTO> shoppingCartDetailDTOs = new ArrayList<>();
-        recipeBeforeOrders.forEach(recipeBeforeOrder -> {
-            shoppingCartDetailDTOs.add(shoppingCartDetailDTOMap.get(recipeBeforeOrder));
-        } );
-        return shoppingCartDetailDTOs;
     }
 }

@@ -80,7 +80,7 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
             futureTasks.add(futureTask);
             GlobalEventExecFactory.instance().getExecutor().submit(futureTask);
         }
-        return super.futureTaskCallbackBeanList(futureTasks);
+        return super.futureTaskCallbackBeanList(futureTasks, 15000);
     }
 
     private Integer fastRecipeSaveRecipe(RecipeInfoVO recipeInfoVO) {
@@ -143,7 +143,7 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
         fastRecipe.setBackgroundImg("");
         fastRecipe.setStatus(1);
         fastRecipe.setMinNum(0);
-        fastRecipe.setMaxNum(0);
+        fastRecipe.setMaxNum(null);
         fastRecipe.setOrderNum(0);
         fastRecipe.setClinicOrgan(recipe.getClinicOrgan());
         fastRecipe.setOrganName(recipe.getOrganName());
@@ -173,6 +173,8 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
         fastRecipe.setSymptomName(recipeExtend.getSymptomName());
         fastRecipe.setTitle(title);
         fastRecipe.setTotalMoney(recipe.getTotalMoney());
+        fastRecipe.setEveryTcmNumFre(recipeExtend.getEveryTcmNumFre());
+        fastRecipe.setDoctorIsDecoction(recipeExtend.getDoctorIsDecoction());
         FastRecipe fastRecipeResult = fastRecipeDAO.save(fastRecipe);
 
         //2.保存药方详情
@@ -264,10 +266,19 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
             if (!operationClient.isAuthorisedOrgan(fastRecipe.getClinicOrgan())) {
                 throw new DAOException("您没有修改该药方的权限！");
             }
-            fastRecipe.setOrderNum(fastRecipeVO.getOrderNum());
-            fastRecipe.setMaxNum(fastRecipeVO.getMaxNum());
-            fastRecipe.setMinNum(fastRecipeVO.getMinNum());
-            fastRecipe.setStatus(fastRecipeVO.getStatus());
+            if (Objects.nonNull(fastRecipeVO.getOrderNum())) {
+                fastRecipe.setOrderNum(fastRecipeVO.getOrderNum());
+            }
+            if (Objects.nonNull(fastRecipeVO.getMaxNum())) {
+                fastRecipe.setMaxNum(fastRecipeVO.getMaxNum());
+            }
+            if (Objects.nonNull(fastRecipeVO.getMinNum())) {
+                fastRecipe.setMinNum(fastRecipeVO.getMinNum());
+            }
+            if (Objects.nonNull(fastRecipeVO.getStatus())) {
+                fastRecipe.setStatus(fastRecipeVO.getStatus());
+            }
+
             fastRecipeDAO.update(fastRecipe);
         }
         return true;
