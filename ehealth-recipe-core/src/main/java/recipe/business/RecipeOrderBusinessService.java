@@ -1090,15 +1090,20 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                     RecipeOrder recipeOrder = new RecipeOrder();
                     recipeOrder.setOrganId(beforeOrder.getOrganId());
                     recipeOrder.setEnterpriseId(beforeOrder.getEnterpriseId());
-                    RecipeDTO recipeDTO = new RecipeDTO();
                     Recipe recipe = recipeDAO.getByRecipeId(recipeBeforeOrder.getRecipeId());
                     Integer payMode = PayModeGiveModeUtil.getPayMode(1, recipeBeforeOrder.getGiveMode());
                     RecipePayModeSupportBean payModeSupportBean = orderService.setPayModeSupport(recipeOrder, payMode);
                     if(recipe != null){
+                        RecipeDTO recipeDTO = new RecipeDTO();
                         recipeList.add(recipe);
                         recipeIds.add(recipe.getRecipeId());
                         recipeDTO.setRecipe(recipe);
                         orderService.setOrderFee(new OrderCreateResult(200),recipeOrder,recipeIds,recipeList,payModeSupportBean,extInfo,0);
+                        List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipeBeforeOrder.getRecipeId());
+                        if(CollectionUtils.isNotEmpty(recipeDetailList)){
+                            recipeDTO.setRecipeDetails(recipeDetailList);
+                        }
+                        recipeDTOList.add(recipeDTO);
                     }
                     //当购药方式为配送到家（药企配送、医院配送）和获取到了默认地址时才保存地址
                     if(new Integer(1).equals(recipeBeforeOrder.getGiveMode())){
@@ -1131,9 +1136,6 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                     recipeBeforeOrder.setAddressCanSend(recipeOrder.getAddressCanSend());
                     recipeBeforeOrder.setUpdateTime(new Date());
                     recipeBeforeOrderDAO.updateNonNullFieldByPrimaryKey(ObjectCopyUtils.convert(recipeBeforeOrder,RecipeBeforeOrder.class));
-                    List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipeBeforeOrder.getRecipeId());
-                    recipeDTO.setRecipeDetails(recipeDetailList);
-                    recipeDTOList.add(recipeDTO);
                     if(recipeOrder.getRecipeFee() != null){
                         recipeFee = recipeFee.add(recipeOrder.getRecipeFee());
                     }
@@ -1164,7 +1166,9 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                 beforeOrder.setExpressFee(expressFee);
                 beforeOrder.setTcmFee(tcmFee);
                 beforeOrder.setDecoctionFee(decoctionFee);
-                shoppingCartDetailDTO.setRecipeDTO(recipeDTOList);
+                if(CollectionUtils.isNotEmpty(recipeDTOList)){
+                    shoppingCartDetailDTO.setRecipeDTO(recipeDTOList);
+                }
                 shoppingCartDetailDTO.setRecipeBeforeOrder(beforeOrder);
                 shoppingCartDetailDTOList.add(shoppingCartDetailDTO);
                 logger.info("getShoppingCartDetail shoppingCartDetailDTOList={}",JSONUtils.toString(shoppingCartDetailDTOList));
