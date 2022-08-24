@@ -592,18 +592,6 @@ public class BaseOfflineToOnlineService {
             return recipeDb;
         }
         Recipe recipe = new Recipe();
-//        if (recipeDb != null && !RecipeUtil.isAllowDeleteByPayFlag(recipeDb.getPayFlag())) {
-//            //已支付状态下的处方不允许修改
-//            return recipeDb;
-//        }
-//        if (recipeDb != null) {
-//            //如果为已删除状态，则重新生成
-//            if (RecipeStatusEnum.RECIPE_STATUS_DELETE.equals(recipeDb.getStatus())) {
-//                recipe.setRecipeId(recipeDb.getRecipeId());
-//            } else {
-//                return recipeDb;
-//            }
-//        }
         recipe.setBussSource(0);
         recipe.setMedicalFlag(hisRecipe.getMedicalFlag());
         //通过挂号序号关联复诊
