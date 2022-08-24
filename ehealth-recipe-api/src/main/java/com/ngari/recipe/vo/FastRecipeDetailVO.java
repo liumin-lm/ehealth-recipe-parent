@@ -1,6 +1,8 @@
 package com.ngari.recipe.vo;
 
+import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
+import ctd.schema.annotation.Schema;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,6 +12,7 @@ import java.util.Date;
 
 @Setter
 @Getter
+@Schema
 public class FastRecipeDetailVO implements Serializable {
     private static final long serialVersionUID = -1666706830573590374L;
 
@@ -59,15 +62,19 @@ public class FastRecipeDetailVO implements Serializable {
     private String dosageUnit;
 
     @ItemProperty(alias = "平台药物使用频率代码")
+    @Dictionary(id = "eh.cdr.dictionary.UsingRate")
     private String usingRate;
 
     @ItemProperty(alias = "平台药物使用途径代码")
+    @Dictionary(id = "eh.cdr.dictionary.UsePathways")
     private String usePathways;
 
     @ItemProperty(alias = "使用频率id")
+    @Dictionary(id = "eh.cdr.dictionary.NewUsingRate")
     private String usingRateId;
 
     @ItemProperty(alias = "用药途径id")
+    @Dictionary(id = "eh.cdr.dictionary.NewUsePathways")
     private String usePathwaysId;
 
     @ItemProperty(alias = "医院频次代码")
