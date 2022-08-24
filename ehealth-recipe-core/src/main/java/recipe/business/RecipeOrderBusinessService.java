@@ -1042,9 +1042,13 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
     @Override
     public Integer getImperfectFlag(Integer organId, String recipeCode) {
         logger.info("getImperfectFlag organId={},recipeCode={}",organId,recipeCode);
-        RecipeBeforeOrder recipeBeforeOrder = recipeBeforeOrderDAO.getByOrganIdAndRecipeCode(organId, recipeCode);
-        if(recipeBeforeOrder != null){
-            return recipeBeforeOrder.getIsReady();
+        try{
+            RecipeBeforeOrder recipeBeforeOrder = recipeBeforeOrderDAO.getByOrganIdAndRecipeCode(organId, recipeCode);
+            if(recipeBeforeOrder != null){
+                return recipeBeforeOrder.getIsReady();
+            }
+        }catch (Exception e){
+            return 0;
         }
         logger.info("getImperfectFlag recipeBeforeOrder为null");
         return 0;
@@ -1080,19 +1084,26 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                 for(RecipeBeforeOrderDTO recipeBeforeOrder : recipeBeforeOrderDTOList){
                     Map<String,String> extInfo = new HashMap<>();
                     extInfo.put("operMpiId",recipeBeforeOrder.getOperMpiId());
-                    extInfo.put("depId",recipeBeforeOrder.getEnterpriseId().toString());
+                    if(recipeBeforeOrder.getEnterpriseId() != null){
+                        extInfo.put("depId",recipeBeforeOrder.getEnterpriseId().toString());
+                    }
                     RecipeOrder recipeOrder = new RecipeOrder();
                     recipeOrder.setOrganId(beforeOrder.getOrganId());
                     recipeOrder.setEnterpriseId(beforeOrder.getEnterpriseId());
-                    RecipeDTO recipeDTO = new RecipeDTO();
                     Recipe recipe = recipeDAO.getByRecipeId(recipeBeforeOrder.getRecipeId());
                     Integer payMode = PayModeGiveModeUtil.getPayMode(1, recipeBeforeOrder.getGiveMode());
                     RecipePayModeSupportBean payModeSupportBean = orderService.setPayModeSupport(recipeOrder, payMode);
                     if(recipe != null){
+                        RecipeDTO recipeDTO = new RecipeDTO();
                         recipeList.add(recipe);
                         recipeIds.add(recipe.getRecipeId());
                         recipeDTO.setRecipe(recipe);
                         orderService.setOrderFee(new OrderCreateResult(200),recipeOrder,recipeIds,recipeList,payModeSupportBean,extInfo,0);
+                        List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipeBeforeOrder.getRecipeId());
+                        if(CollectionUtils.isNotEmpty(recipeDetailList)){
+                            recipeDTO.setRecipeDetails(recipeDetailList);
+                        }
+                        recipeDTOList.add(recipeDTO);
                     }
                     //当购药方式为配送到家（药企配送、医院配送）和获取到了默认地址时才保存地址
                     if(new Integer(1).equals(recipeBeforeOrder.getGiveMode())){
@@ -1125,16 +1136,21 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                     recipeBeforeOrder.setAddressCanSend(recipeOrder.getAddressCanSend());
                     recipeBeforeOrder.setUpdateTime(new Date());
                     recipeBeforeOrderDAO.updateNonNullFieldByPrimaryKey(ObjectCopyUtils.convert(recipeBeforeOrder,RecipeBeforeOrder.class));
-                    List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipeBeforeOrder.getRecipeId());
-                    recipeDTO.setRecipeDetails(recipeDetailList);
-                    recipeDTOList.add(recipeDTO);
-                    recipeFee = recipeFee.add(recipeOrder.getRecipeFee());
-                    tcmFee = tcmFee.add(recipeOrder.getTcmFee());
+                    if(recipeOrder.getRecipeFee() != null){
+                        recipeFee = recipeFee.add(recipeOrder.getRecipeFee());
+                    }
+                    if(recipeOrder.getTcmFee() != null){
+                        tcmFee = tcmFee.add(recipeOrder.getTcmFee());
+                    }
                     if(recipeOrder.getDecoctionFee() != null){
                         decoctionFee = decoctionFee.add(recipeOrder.getDecoctionFee());
                     }
-                    auditFee = auditFee.add(recipeOrder.getAuditFee());
-                    expressFee = expressFee.add(recipeOrder.getExpressFee());
+                    if(recipeOrder.getAuditFee() != null){
+                        auditFee = auditFee.add(recipeOrder.getAuditFee());
+                    }
+                    if(recipeOrder.getExpressFee() != null){
+                        expressFee = expressFee.add(recipeOrder.getExpressFee());
+                    }
                 }
                 if(new Integer(3).equals(beforeOrder.getGiveMode())){
                     if(beforeOrder.getDrugStoreCode() != null){
@@ -1146,7 +1162,13 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                 }
                 //处方费
                 beforeOrder.setRecipeFee(recipeFee);
-                shoppingCartDetailDTO.setRecipeDTO(recipeDTOList);
+                beforeOrder.setAuditFee(auditFee);
+                beforeOrder.setExpressFee(expressFee);
+                beforeOrder.setTcmFee(tcmFee);
+                beforeOrder.setDecoctionFee(decoctionFee);
+                if(CollectionUtils.isNotEmpty(recipeDTOList)){
+                    shoppingCartDetailDTO.setRecipeDTO(recipeDTOList);
+                }
                 shoppingCartDetailDTO.setRecipeBeforeOrder(beforeOrder);
                 shoppingCartDetailDTOList.add(shoppingCartDetailDTO);
                 logger.info("getShoppingCartDetail shoppingCartDetailDTOList={}",JSONUtils.toString(shoppingCartDetailDTOList));
@@ -1238,8 +1260,8 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
     }
 
     @Override
-    public Boolean getPreOrderFlag(Integer recipeId) {
-        RecipeBeforeOrder recipeBeforeOrder = recipeBeforeOrderDAO.getRecipeBeforeOrderByRecipeId(recipeId);
+    public Boolean getPreOrderFlag(Integer recipeId,String mpiId) {
+        RecipeBeforeOrder recipeBeforeOrder = recipeBeforeOrderDAO.getRecipeBeforeOrderByRecipeIdAndMpiId(recipeId,mpiId);
         if(Objects.nonNull(recipeBeforeOrder)){
             return true;
         }

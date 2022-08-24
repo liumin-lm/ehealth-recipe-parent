@@ -223,7 +223,7 @@ public interface IRecipeOrderBusinessService {
      * @param recipeId
      * @return
      */
-    Boolean getPreOrderFlag(Integer recipeId);
+    Boolean getPreOrderFlag(Integer recipeId,String mpiId);
     /**
      * 批量获取未完善或完善标识
      * @param recipeBeans

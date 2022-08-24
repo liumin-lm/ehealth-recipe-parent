@@ -24,9 +24,9 @@ public class BaseService {
      * @param futureTasks
      * @return
      */
-    protected <T> List<T> futureTaskCallbackBeanList(List<FutureTask<T>> futureTasks) {
+    protected <T> List<T> futureTaskCallbackBeanList(List<FutureTask<T>> futureTasks, Integer timeOut) {
         List<T> futureTaskCallbackBeanList = new LinkedList<>();
-        int timeOut = 15000;
+        timeOut = null == timeOut ? 10000 : timeOut;
         for (FutureTask<T> futureTask : futureTasks) {
             long start = System.currentTimeMillis();
             try {
