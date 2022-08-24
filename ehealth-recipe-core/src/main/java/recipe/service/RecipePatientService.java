@@ -837,6 +837,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         recipe.setFastRecipeFlag(1);
         recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType());
         recipe = recipeManager.saveRecipe(recipe);
+        stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_ORDER, RecipeStateEnum.SUB_ORDER_READY_SUBMIT_ORDER);
         //保存处方扩展
         if (null != recipeInfoVO.getRecipeExtendBean()) {
             RecipeExtend recipeExtend = ObjectCopyUtils.convert(recipeInfoVO.getRecipeExtendBean(), RecipeExtend.class);
