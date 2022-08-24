@@ -296,6 +296,8 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
             }
             fastRecipe.setBackgroundImg(fastRecipeVO.getBackgroundImg());
             fastRecipe.setIntroduce(fastRecipeVO.getIntroduce());
+            fastRecipe.setNeedQuestionnaire(fastRecipeVO.getNeedQuestionnaire());
+            fastRecipe.setQuestionnaireUrl(fastRecipeVO.getQuestionnaireUrl());
             fastRecipeDAO.update(fastRecipe);
         }
         //1.更新药方详情（目前只能删除药品，修改药品随后版本做）
