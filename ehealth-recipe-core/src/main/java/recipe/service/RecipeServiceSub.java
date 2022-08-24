@@ -1781,7 +1781,12 @@ public class RecipeServiceSub {
                     mergeRecipeFlag = groupRecipeConfDTO.getMergeRecipeFlag();
                     if (mergeRecipeFlag) {
                         String mergeRecipeWay = (String) configService.getConfiguration(recipe.getClinicOrgan(), "mergeRecipeWay");
-                        Integer numCanMergeRecipe = recipeDAO.getNumCanMergeRecipeByMergeRecipeWay(recipe.getMpiid(), recipeExtend.getRegisterID(), recipe.getClinicOrgan(), mergeRecipeWay, recipeExtend.getChronicDiseaseName());
+                        Integer numCanMergeRecipe = 0;
+                        if ("organId".equals(mergeRecipeWay)) {
+                            numCanMergeRecipe = recipeDAO.countByPatientAndOrgan(recipe.getMpiid(),recipe.getClinicOrgan());
+                        } else {
+                            numCanMergeRecipe = recipeDAO.getNumCanMergeRecipeByMergeRecipeWay(recipe.getMpiid(), recipeExtend.getRegisterID(), recipe.getClinicOrgan(), mergeRecipeWay, recipeExtend.getChronicDiseaseName());
+                        }
                         LOGGER.info("RecipeServiceSub getRecipeAndDetailByIdImpl recipeId:{},numCanMergeRecipe:{}.", recipe.getRecipeId(), numCanMergeRecipe);
                         //获取能合并处方的单数大于1的时候才能跳转列表页
                         if (numCanMergeRecipe <= 1) {
