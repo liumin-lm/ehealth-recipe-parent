@@ -377,6 +377,9 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "配送费付款方式ExpressFeePayMethodEnum")
     private Integer expressFeePayMethod;
 
+    @ItemProperty(alias = "支付回调返回的医保出参，含医保编号")
+    private String medicalInsurance;
+
     //todo 默认构造器不要给init默认值啊 此方法慎用
     @Deprecated
     public RecipeOrder() {
@@ -1436,5 +1439,14 @@ public class RecipeOrder implements Serializable {
 
     public void setExpressFeePayMethod(Integer expressFeePayMethod) {
         this.expressFeePayMethod = expressFeePayMethod;
+    }
+
+    @Column(name = "medical_insurance")
+    public String getMedicalInsurance() {
+        return medicalInsurance;
+    }
+
+    public void setMedicalInsurance(String medicalInsurance) {
+        this.medicalInsurance = medicalInsurance;
     }
 }
