@@ -439,7 +439,7 @@ public class EnterpriseBusinessService extends BaseService implements IDrugsEnte
         //记录日志
         List<Recipe> recipeList = recipeDAO.findByOrderCode(orderCodeList);
         recipeList.forEach(recipe -> {
-            recipeManager.saveRecipeLog(recipe.getRecipeId(), RecipeStatusEnum.getRecipeStatusEnum(recipe.getStatus()), RecipeStatusEnum.getRecipeStatusEnum(recipe.getStatus()), drugsEnterprise.getMemo() + "获取处方成功");
+            recipeManager.saveRecipeLog(recipe.getRecipeId(), RecipeStatusEnum.getRecipeStatusEnum(recipe.getStatus()), RecipeStatusEnum.getRecipeStatusEnum(recipe.getStatus()), drugsEnterprise.getName() + "获取处方成功");
         });
         return EnterpriseResultBean.getSuccess("成功");
     }
