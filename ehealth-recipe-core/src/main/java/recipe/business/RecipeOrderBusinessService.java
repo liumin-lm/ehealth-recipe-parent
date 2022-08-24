@@ -785,6 +785,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
             if (ext2 != null) {
                 if (StringUtils.isNotEmpty(ext2.getRegisterID())) {
                     request.setRegisterID(ext2.getRegisterID());
+                    selfPreSettleQueryReq.setRegisterNo(ext2.getRegisterID());
                 }
             }
             List<String> supportRecharge = configurationClient.getValueListCatch(recipe.getClinicOrgan(), "supportRecharge", null);
@@ -798,21 +799,29 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
             if (hisResult != null && "200".equals(hisResult.getMsgCode())) {
                 if (hisResult.getData() != null) {
                     //总金额
+                    selfPreSettleQueryReq.setRecipeNos(join);
                     String totalAmount = hisResult.getData().getZje();
                     String accountBalance = hisResult.getData().getZhye();
-                    String rechargeAmount = hisResult.getData().getZhzf();
+                    String rechargeAmount = hisResult.getData().getYfje();
                     //his收据号
                     String hisSettlementNo = hisResult.getData().getSjh();
+
                     selfPreSettleQueryReq.setOrganId(recipe.getClinicOrgan());
                     selfPreSettleQueryReq.setOutTradeNo(recipeOrder.getOutTradeNo());
                     //获取就诊卡号--一般来说处方里已经保存了复诊里的就诊卡号了取不到再从复诊里取
                     selfPreSettleQueryReq.setMrn(getMrnForRecipe(recipe));
                     selfPreSettleQueryReq.setClinicNo(String.valueOf(recipe.getClinicId()));
                     selfPreSettleQueryReq.setHisSettlementNo(hisSettlementNo);
-                    selfPreSettleQueryReq.setTotalAmount(new BigDecimal(totalAmount));
-                    selfPreSettleQueryReq.setAccountBalance(new BigDecimal(accountBalance));
-                    selfPreSettleQueryReq.setRechargeAmount(new BigDecimal(rechargeAmount));
-                    selfPreSettleQueryReq.setRecipeNos(join);
+                    if (StringUtils.isNotEmpty(totalAmount)) {
+                        selfPreSettleQueryReq.setTotalAmount(new BigDecimal(totalAmount));
+                    }
+                    if (StringUtils.isNotEmpty(accountBalance)) {
+                        selfPreSettleQueryReq.setAccountBalance(new BigDecimal(accountBalance));
+                    }
+                    if (StringUtils.isNotEmpty(rechargeAmount)) {
+                        selfPreSettleQueryReq.setRechargeAmount(new BigDecimal(rechargeAmount));
+                    }
+
                     selfPreSettleQueryReq.setIsInHosPay(supportRecipeRechargeFlag);
                 }
 
