@@ -61,6 +61,7 @@ import recipe.constant.ErrorCode;
 import recipe.constant.RecipeBussConstant;
 import recipe.core.api.patient.IRecipeOrderBusinessService;
 import recipe.dao.*;
+import recipe.drugsenterprise.AccessDrugEnterpriseService;
 import recipe.enumerate.status.GiveModeEnum;
 import recipe.enumerate.status.PayModeEnum;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
@@ -144,6 +145,8 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
     private PharmacyDAO pharmacyDAO;
     @Autowired
     private RecipeDetailDAO recipeDetailDAO;
+    @Autowired
+    private AccessDrugEnterpriseService accessDrugEnterpriseService;
 
 
     @Override
@@ -1144,7 +1147,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                             recipeBeforeOrder.setRecMobile(recipeOrder.getRecMobile());
                             recipeBeforeOrder.setRecTel(recipeOrder.getRecTel());
                             recipeBeforeOrder.setZipCode(recipeOrder.getZipCode());
-                            recipeBeforeOrder.setCompleteAddress(orderManager.getCompleteAddress(recipeOrder));
+                            recipeBeforeOrder.setCompleteAddress(accessDrugEnterpriseService.getCompleteAddress(recipeOrder));
                             //有地址则为完善
                             recipeBeforeOrder.setIsReady(1);
                         }else {
