@@ -41,4 +41,6 @@ public interface ITextService {
     FastRecipeAndDetailResVO getFastRecipeJson(FastRecipeReqVO fastRecipeReqVO);
 
     void generateRecipePdf(Integer recipeId);
+
+    void signFileByte(String organSealId);
 }

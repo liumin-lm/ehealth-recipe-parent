@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.bussutil.CreateRecipePdfUtil;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.ConsultClient;
 import recipe.constant.ErrorCode;
@@ -99,4 +100,11 @@ public class TextService implements ITextService {
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
     }
+
+    @Override
+    public void signFileByte(String organSealId) {
+        byte[] b = CreateRecipePdfUtil.signFileByte(organSealId);
+        logger.info("signFileByte11111 b = {}", b);
+    }
+
 }
