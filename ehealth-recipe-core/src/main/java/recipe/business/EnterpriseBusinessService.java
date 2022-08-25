@@ -819,6 +819,9 @@ public class EnterpriseBusinessService extends BaseService implements IDrugsEnte
             Map<Integer, List<Recipedetail>> recipeDetailMap = recipeDetailManager.findRecipeDetailMap(recipeIdList);
             if (!ValidateUtil.integerIsEmpty(logisticsCompanyCode) && StringUtils.isNotEmpty(enterpriseSendOrderVO.getTrackingNumber())) {
                 recipeList.forEach(recipe -> {
+                    String memo = "配送中，配送人：" + enterpriseSendOrderVO.getSender() +"，快递公司：" + logisticsCompanyCode + "，快递单号：" + enterpriseSendOrderVO.getTrackingNumber();
+                    enterpriseManager.saveRecipeLog(recipe.getRecipeId(), RecipeStatusEnum.RECIPE_STATUS_WAIT_SEND, RecipeStatusEnum.RECIPE_STATUS_IN_SEND, memo);
+
                     RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
                     PatientDTO patientDTO = patientClient.getPatientDTO(recipe.getMpiid());
                     PatientBean patientBean = ObjectCopyUtils.convert(patientDTO, PatientBean.class);
@@ -831,8 +834,6 @@ public class EnterpriseBusinessService extends BaseService implements IDrugsEnte
                 });
             }
         });
-        String memo = "配送中，配送人：" + enterpriseSendOrderVO.getSender() +"，快递公司：" + logisticsCompanyCode + "，快递单号：" + enterpriseSendOrderVO.getTrackingNumber();
-        enterpriseManager.saveRecipeLog(recipeIdList.get(0), RecipeStatusEnum.RECIPE_STATUS_WAIT_SEND, RecipeStatusEnum.RECIPE_STATUS_IN_SEND, memo);
     }
 
     private boolean addressCan(List<EnterpriseAddress> list, String address) {

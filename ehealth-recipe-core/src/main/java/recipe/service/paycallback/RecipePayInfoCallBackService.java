@@ -267,6 +267,11 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
                 if (null != ysbody && ysbody.get("yfje") != null) {
                     attr.put("cashAmount", ConversionUtils.convert(ysbody.get("yfje"), Double.class));
                 }
+                //医保出参（含有医保编号）
+                if (body.get("ybcc") != null) {
+                    String ybcc = StringUtils.defaultString(body.get("ybcc"), "");
+                    attr.put("medicalInsurance", ybcc);
+                }
             }
 
             //医保信息逻辑优化
@@ -323,7 +328,7 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
             attr.put("PayBackPrice", payBackPrice);
             try {
                 medicalSettleInfo = new String(Base64.decode(medicalSettleInfo, 1));
-                if (StringUtils.isNotEmpty(medicalSettleInfo)) {
+                if (StringUtils.isNotEmpty(medicalSettleInfo) && medicalSettleInfo.length() < 1500) {
                     attr.put("medicalSettleInfo", medicalSettleInfo);
                 }
             } catch (Exception e) {

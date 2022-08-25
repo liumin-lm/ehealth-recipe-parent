@@ -549,13 +549,15 @@ public class DrugManager extends BaseManager {
                 return;
             }
             DrugCommon drugCommon = drugCommonDAO.getByOrganIdAndDoctorIdAndDrugCode(recipe.getClinicOrgan(), recipe.getDoctor(), a.getOrganDrugCode());
+            Integer drugType = ValidateUtil.integerIsEmpty(a.getDrugType()) ? recipe.getRecipeType() : a.getDrugType();
             if (null != drugCommon) {
                 drugCommon.setSort(drugCommon.getSort() + 1);
+                drugCommon.setDrugType(drugType);
                 drugCommonDAO.update(drugCommon);
             } else {
                 drugCommon = new DrugCommon();
                 drugCommon.setDrugId(a.getDrugId());
-                drugCommon.setDrugType(a.getDrugType());
+                drugCommon.setDrugType(drugType);
                 drugCommon.setOrganDrugCode(a.getOrganDrugCode());
                 drugCommon.setDoctorId(recipe.getDoctor());
                 drugCommon.setOrganId(recipe.getClinicOrgan());
