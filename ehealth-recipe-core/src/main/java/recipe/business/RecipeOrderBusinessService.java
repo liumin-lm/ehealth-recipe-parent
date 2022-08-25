@@ -1130,7 +1130,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                         recipeDTOList.add(recipeDTO);
                     }
                     //当购药方式为配送到家（药企配送、医院配送）和获取到了默认地址时才保存地址
-                    if(new Integer(1).equals(recipeBeforeOrder.getGiveMode())){
+                    if(new Integer(1).equals(recipeBeforeOrder.getGiveMode()) && recipeBeforeOrder.getAddressId() == null){
                         if(recipeOrder.getAddressID() != null){
                             recipeBeforeOrder.setAddressId(recipeOrder.getAddressID());
                             recipeBeforeOrder.setAddress1(recipeOrder.getAddress1());
