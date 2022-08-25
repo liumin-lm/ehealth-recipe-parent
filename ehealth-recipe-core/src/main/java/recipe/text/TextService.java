@@ -109,12 +109,18 @@ public class TextService implements ITextService {
             RecipeBusiThreadPool.execute(() -> {
                 long start = System.currentTimeMillis();
                 logger.info("TextService signFileByte i={} b= {}", finalI, start);
-                byte[] b = CreateRecipePdfUtil.signFileByte(organSealId);
-                Long end = System.currentTimeMillis() - start;
-                if (null != b) {
-                    logger.info("TextService signFileByte i={} b= {},end={}", finalI, b, end);
-                } else {
-                    logger.info("TextService signFileByte i={} end={}", finalI, end);
+                byte[] b = null;
+                try {
+                    b = CreateRecipePdfUtil.signFileByte(organSealId);
+                } catch (Exception e) {
+                    logger.error("TextService signFileByte error  i={}", finalI, e);
+                } finally {
+                    Long end = System.currentTimeMillis() - start;
+                    if (null != b) {
+                        logger.info("TextService signFileByte i={} b= {},end={}", finalI, b.length, end);
+                    } else {
+                        logger.info("TextService signFileByte i={} end={}", finalI, end);
+                    }
                 }
             });
         }
