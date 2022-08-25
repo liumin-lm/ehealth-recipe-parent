@@ -1088,7 +1088,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                     DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(beforeOrder.getEnterpriseId());
                     if(Objects.nonNull(enterprise)){
                         beforeOrder.setOrganName(enterprise.getName());
-                        beforeOrder.setOrganPhone(enterprise.getEnterprisePhone());
+                        beforeOrder.setOrganPhone(enterprise.getTel());
                     }
                 }
                 //购药方式为到院取药没有药企ID时返回机构名称和电话
