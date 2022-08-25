@@ -1094,11 +1094,11 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                         beforeOrder.setOrganPhone(organDTO.getPhoneNumber());
                     }
                 }
-                BigDecimal recipeFee = BigDecimal.ZERO;
-                BigDecimal tcmFee = BigDecimal.ZERO;
-                BigDecimal decoctionFee = BigDecimal.ZERO;
-                BigDecimal auditFee = BigDecimal.ZERO;
-                BigDecimal expressFee = BigDecimal.ZERO;
+                BigDecimal recipeFee = null;
+                BigDecimal tcmFee = null;
+                BigDecimal decoctionFee = null;
+                BigDecimal auditFee = null;
+                BigDecimal expressFee = null;
                 List<Recipe> recipeList = new ArrayList<>();
                 List<Integer> recipeIds = new ArrayList<>();
                 List<RecipeDTO> recipeDTOList = new ArrayList<>();
