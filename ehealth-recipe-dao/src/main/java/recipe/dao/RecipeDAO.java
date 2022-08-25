@@ -1495,7 +1495,6 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder sbHql = preparedHql;
-                System.out.println(preparedHql);
                 Query query = ss.createSQLQuery(sbHql.append(" order by r.recipeId DESC").toString())
                         .addEntity(RecipeExportDTO.class)
                         .addEntity(RecipeOrderExportDTO.class)
