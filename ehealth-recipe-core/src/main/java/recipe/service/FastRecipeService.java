@@ -35,6 +35,8 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
 import java.util.stream.Collectors;
 
@@ -80,7 +82,22 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
             futureTasks.add(futureTask);
             GlobalEventExecFactory.instance().getExecutor().submit(futureTask);
         }
-        return super.futureTaskCallbackBeanList(futureTasks, 15000);
+        List<Integer> resultList = super.futureTaskCallbackBeanList(futureTasks, 15000);
+
+        ExecutorService singleExecutor = Executors.newSingleThreadExecutor();
+        singleExecutor.execute(() -> {
+            if (CollectionUtils.isNotEmpty(resultList)) {
+                for (Integer recipeId : resultList) {
+                    recipePatientService.esignRecipeCa(recipeId);
+                    try {
+                        Thread.sleep(500);
+                    } catch (InterruptedException e) {
+                        logger.error("fastRecipeSaveRecipeList sleep error", e);
+                    }
+                }
+            }
+        });
+        return resultList;
     }
 
     private Integer fastRecipeSaveRecipe(RecipeInfoVO recipeInfoVO) {
@@ -112,7 +129,7 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
             int buyNum = ValidateUtil.nullOrZeroInteger(recipeInfoVO.getBuyNum()) ? 1 : recipeInfoVO.getBuyNum();
             packageTotalParamByBuyNum(recipeInfoVO, buyNum);
             Integer recipeId = recipePatientService.saveRecipe(recipeInfoVO);
-            recipePatientService.esignRecipeCa(recipeId);
+            //recipePatientService.esignRecipeCa(recipeId);
             recipePatientService.updateRecipeIdByConsultId(recipeId, recipeInfoVO.getRecipeBean().getClinicId());
             return recipeId;
         } catch (Exception e) {
