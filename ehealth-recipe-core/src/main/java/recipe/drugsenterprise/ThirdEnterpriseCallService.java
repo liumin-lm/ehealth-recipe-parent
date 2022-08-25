@@ -498,7 +498,12 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         }
         //更新处方信息
         Boolean rs = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.FINISH, attrMap);
-        stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_DONE, RecipeStateEnum.SUB_DONE_SEND);
+
+        List<Recipe> recipes = orderManager.getRecipesByOrderCode(recipe.getOrderCode());
+        recipes.stream().filter(recipe1 -> !recipeId.equals(recipe1.getRecipeId())).forEach(recipe2 -> {
+            recipeDAO.updateRecipeInfoByRecipeId(recipe2.getRecipeId(), RecipeStatusConstant.FINISH, attrMap);
+            stateManager.updateRecipeState(recipe2.getRecipeId(), RecipeStateEnum.PROCESS_STATE_DONE, RecipeStateEnum.SUB_DONE_SEND);
+        });
 
         if (rs) {
             //完成订单

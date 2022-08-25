@@ -1,7 +1,7 @@
 package recipe.service;
 
 import com.alibaba.fastjson.JSON;
-import com.ngari.recipe.dto.FastRecipeReq;
+import com.ngari.recipe.vo.FastRecipeReq;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
@@ -175,6 +175,7 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
         fastRecipe.setTotalMoney(recipe.getTotalMoney());
         fastRecipe.setEveryTcmNumFre(recipeExtend.getEveryTcmNumFre());
         fastRecipe.setDoctorIsDecoction(recipeExtend.getDoctorIsDecoction());
+        fastRecipe.setNeedQuestionnaire(0);
         FastRecipe fastRecipeResult = fastRecipeDAO.save(fastRecipe);
 
         //2.保存药方详情
@@ -296,6 +297,8 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
             }
             fastRecipe.setBackgroundImg(fastRecipeVO.getBackgroundImg());
             fastRecipe.setIntroduce(fastRecipeVO.getIntroduce());
+            fastRecipe.setNeedQuestionnaire(fastRecipeVO.getNeedQuestionnaire());
+            fastRecipe.setQuestionnaireUrl(fastRecipeVO.getQuestionnaireUrl());
             fastRecipeDAO.update(fastRecipe);
         }
         //1.更新药方详情（目前只能删除药品，修改药品随后版本做）

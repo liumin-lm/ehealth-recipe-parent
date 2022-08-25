@@ -1,14 +1,13 @@
 package recipe.atop.greenroom;
 
 import com.google.common.collect.Lists;
-import com.ngari.recipe.dto.FastRecipeReq;
+import com.ngari.recipe.vo.FastRecipeReq;
 import com.ngari.recipe.entity.FastRecipe;
 import com.ngari.recipe.entity.FastRecipeDetail;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.vo.FastRecipeDetailVO;
 import com.ngari.recipe.vo.FastRecipeRespVO;
 import com.ngari.recipe.vo.FastRecipeVO;
-import ctd.persistence.bean.QueryResult;
 import ctd.util.BeanUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -43,7 +42,7 @@ public class FastRecipeGmAtop extends BaseAtop {
     public List<Integer> fastRecipeSaveRecipeList(List<RecipeInfoVO> recipeInfoVOList) {
         for (RecipeInfoVO fastRecipeVO : recipeInfoVOList) {
             validateAtop(fastRecipeVO, fastRecipeVO.getRecipeBean());
-            validateAtop("请添加项目信息！", fastRecipeVO.getRecipeDetails());
+            validateAtop("请完善药品信息！", fastRecipeVO.getRecipeDetails());
             validateAtop("请完善药方购买数量！", fastRecipeVO.getBuyNum());
             RecipeBean recipeBean = fastRecipeVO.getRecipeBean();
             validateAtop(recipeBean.getDoctor(), recipeBean.getMpiid(), recipeBean.getClinicOrgan(), recipeBean.getClinicId(), recipeBean.getDepart());
@@ -61,6 +60,7 @@ public class FastRecipeGmAtop extends BaseAtop {
     public FastRecipeRespVO findFastRecipeListByOrganId(FastRecipeReq fastRecipeReq) {
         validateAtop(fastRecipeReq, fastRecipeReq.getOrganId());
         isAuthorisedOrgan(fastRecipeReq.getOrganId());
+        fastRecipeReq.setStart((fastRecipeReq.getStart() - 1) * fastRecipeReq.getLimit());
         fastRecipeReq.setStatusList(Lists.newArrayList(1, 2));
         List<FastRecipe> fastRecipeList = fastRecipeService.findFastRecipeListByParam(fastRecipeReq);
         FastRecipeRespVO fastRecipeRespVO = new FastRecipeRespVO();

@@ -1,6 +1,5 @@
 package com.ngari.recipe.dto;
 
-
 import ctd.schema.annotation.ItemProperty;
 import lombok.Data;
 

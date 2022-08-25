@@ -1,6 +1,6 @@
 package recipe.dao;
 
-import com.ngari.recipe.dto.FastRecipeReq;
+import com.ngari.recipe.vo.FastRecipeReq;
 import com.ngari.recipe.entity.FastRecipe;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;

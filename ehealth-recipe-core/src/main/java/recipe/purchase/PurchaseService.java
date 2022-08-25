@@ -126,7 +126,8 @@ public class PurchaseService {
 
     @Autowired
     private StateManager stateManager;
-
+    @Autowired
+    private RecipeBeforeOrderDAO recipeBeforeOrderDAO;
     /**
      * 获取可用购药方式------------已废弃---已改造成从处方单详情里获取
      *
@@ -529,6 +530,8 @@ public class PurchaseService {
             Integer giveMode = PayModeGiveModeUtil.getGiveMode(payMode);
             IPurchaseService purchaseService = getService(giveMode);
             result = purchaseService.order(recipeList, extInfo);
+            // 生成订单后删除预下单信息
+            recipeBeforeOrderDAO.updateDeleteFlagByRecipeId(recipeIds);
         } catch (Exception e) {
             LOG.error("order error", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
@@ -990,7 +993,7 @@ public class PurchaseService {
         LOG.info("PurchaseService setRecipeOrderInfo recipeOrder:{}", JSON.toJSONString(recipeOrder));
         try {
             if (PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag) {
-                if (PayWayEnum.WN_WAP.getCode().equals(recipeOrder.getWxPayWay())) {
+                if (new Integer(1).equals(recipeOrder.getSettleMode())) {
                     recipeOrder.setPayMode(PayModeEnum.OFFLINE_PAY.getType());
                     recipeOrder.setSettleAmountState(SettleAmountStateEnum.SETTLE_SUCCESS.getType());
                     recipeOrderDAO.update(recipeOrder);
