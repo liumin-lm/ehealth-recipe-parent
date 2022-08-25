@@ -64,4 +64,15 @@ public class TextGmAtop {
     public void generateRecipePdf(Integer recipeId) {
         textBusinessService.generateRecipePdf(recipeId);
     }
+
+
+    /**
+     * 生产pdf文件
+     *
+     * @param organSealId
+     */
+    @RpcService
+    public void signFileByte(String organSealId) {
+        textBusinessService.signFileByte(organSealId);
+    }
 }
