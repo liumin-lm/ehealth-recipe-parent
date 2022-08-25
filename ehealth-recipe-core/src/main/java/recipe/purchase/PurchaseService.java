@@ -990,7 +990,7 @@ public class PurchaseService {
         LOG.info("PurchaseService setRecipeOrderInfo recipeOrder:{}", JSON.toJSONString(recipeOrder));
         try {
             if (PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag) {
-                if (PayWayEnum.WN_WAP.getCode().equals(recipeOrder.getWxPayWay())) {
+                if (new Integer(1).equals(recipeOrder.getSettleMode())) {
                     recipeOrder.setPayMode(PayModeEnum.OFFLINE_PAY.getType());
                     recipeOrder.setSettleAmountState(SettleAmountStateEnum.SETTLE_SUCCESS.getType());
                     recipeOrderDAO.update(recipeOrder);
