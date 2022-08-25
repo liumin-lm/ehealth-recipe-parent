@@ -18,6 +18,7 @@ import com.ngari.patient.dto.AddressDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.AddressService;
 import com.ngari.patient.service.BasicAPI;
+import com.ngari.patient.service.OrganService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.platform.recipe.mode.InvoiceInfoResTO;
 import com.ngari.platform.recipe.mode.RecipeBean;
@@ -1073,6 +1074,23 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                 ShoppingCartDetailDTO shoppingCartDetailDTO = new ShoppingCartDetailDTO();
                 List<RecipeBeforeOrderDTO> recipeBeforeOrderDTOList = ObjectCopyUtils.convert(recipeBeforeOrders, RecipeBeforeOrderDTO.class);
                 RecipeBeforeOrderDTO beforeOrder = recipeBeforeOrderDTOList.get(0);
+                //购药方式为配送到家时返回药企名称和电话，或到院取药并有药企ID时
+                if(new Integer(1).equals(beforeOrder.getGiveMode()) || new Integer(2).equals(beforeOrder.getGiveMode()) && beforeOrder.getEnterpriseId() != null){
+                    DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(beforeOrder.getEnterpriseId());
+                    if(Objects.nonNull(enterprise)){
+                        beforeOrder.setOrganName(enterprise.getName());
+                        beforeOrder.setOrganPhone(enterprise.getEnterprisePhone());
+                    }
+                }
+                //购药方式为到院取药没有药企ID时返回机构名称和电话
+                if(new Integer(2).equals(beforeOrder.getGiveMode()) && beforeOrder.getEnterpriseId() == null){
+                    OrganService organDAO = AppContextHolder.getBean("basic.organService", OrganService.class);
+                    com.ngari.patient.dto.OrganDTO organDTO = organDAO.getByOrganId(beforeOrder.getOrganId());
+                    if(Objects.nonNull(organDTO)){
+                        beforeOrder.setOrganName(organDTO.getName());
+                        beforeOrder.setOrganPhone(organDTO.getPhoneNumber());
+                    }
+                }
                 BigDecimal recipeFee = BigDecimal.ZERO;
                 BigDecimal tcmFee = BigDecimal.ZERO;
                 BigDecimal decoctionFee = BigDecimal.ZERO;

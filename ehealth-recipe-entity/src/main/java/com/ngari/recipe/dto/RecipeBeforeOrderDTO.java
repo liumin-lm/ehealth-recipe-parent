@@ -26,6 +26,12 @@ public class RecipeBeforeOrderDTO implements Serializable {
     @ItemProperty(alias = "药企ID")
     private Integer enterpriseId;
 
+    @ItemProperty(alias = "机构或药企名称")
+    private String organName;
+
+    @ItemProperty(alias = "机构或药企电话")
+    private String organPhone;
+
     @ItemProperty(alias = "取药药店或站点名称")
     private String drugStoreName;
 
