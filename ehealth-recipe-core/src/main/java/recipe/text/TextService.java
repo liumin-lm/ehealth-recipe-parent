@@ -20,6 +20,7 @@ import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.manager.RedisManager;
+import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.ObjectCopyUtils;
 
 import java.util.ArrayList;
@@ -103,8 +104,20 @@ public class TextService implements ITextService {
 
     @Override
     public void signFileByte(String organSealId) {
-        byte[] b = CreateRecipePdfUtil.signFileByte(organSealId);
-        logger.info("signFileByte11111 b = {}", b);
+        for (int i = 0; i < 10; i++) {
+            int finalI = i;
+            RecipeBusiThreadPool.execute(() -> {
+                long start = System.currentTimeMillis();
+                logger.info("TextService signFileByte i={} b= {}", finalI, start);
+                byte[] b = CreateRecipePdfUtil.signFileByte(organSealId);
+                Long end = System.currentTimeMillis() - start;
+                if (null != b) {
+                    logger.info("TextService signFileByte i={} b= {},end={}", finalI, b, end);
+                } else {
+                    logger.info("TextService signFileByte i={} end={}", finalI, end);
+                }
+            });
+        }
     }
 
 }
