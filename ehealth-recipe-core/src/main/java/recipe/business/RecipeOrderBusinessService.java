@@ -1255,6 +1255,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                                     recipeOrder.setAddress1(addressDTO.getAddress1());
                                     recipeOrder.setAddress2(addressDTO.getAddress2());
                                     recipeOrder.setAddress3(addressDTO.getAddress3());
+                                    recipeOrder.setAddress4(addressDTO.getAddress4());
                                     recipeOrder.setStreetAddress(addressDTO.getStreetAddress());
                                     recipeBeforeOrder.setCompleteAddress(orderManager.getCompleteAddress(recipeOrder));
                                 }else {
