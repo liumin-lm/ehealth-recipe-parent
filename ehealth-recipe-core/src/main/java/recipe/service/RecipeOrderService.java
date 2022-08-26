@@ -2298,28 +2298,6 @@ public class RecipeOrderService extends RecipeBaseService {
     }
 
     /**
-     * 获取运费
-     *
-     * @param enterpriseId
-     * @param address
-     * @return
-     */
-//    private BigDecimal getExpressFee(Integer enterpriseId, String address) {
-//        LOGGER.info("getExpressFee enterpriseId:{}, address:{}.", enterpriseId, address);
-//        if (null == enterpriseId || StringUtils.isEmpty(address)) {
-//            return null;
-//        }
-//        DrugDistributionPriceService priceService = ApplicationUtils.getRecipeService(DrugDistributionPriceService.class);
-//        DrugDistributionPriceBean expressFee = priceService.getDistributionPriceByEnterpriseIdAndAddrArea(enterpriseId, address);
-//        LOGGER.info("getExpressFee expressFee:{}.", expressFee);
-//        if (null != expressFee) {
-//            return expressFee.getDistributionPrice();
-//        }
-//
-//        return null;
-//    }
-
-    /**
      * 订单支付完成后调用 (包括支付完成和退款都会调用)
      *
      * @param orderCode
@@ -2367,8 +2345,6 @@ public class RecipeOrderService extends RecipeBaseService {
         LOGGER.info("finishOrderPayImpl order:{}.", JSONUtils.toString(order));
         Map<String, Object> attrMap = Maps.newHashMap();
         attrMap.put("payFlag", payFlag);
-        OrderStateEnum processState = OrderStateEnum.NONE;
-        OrderStateEnum subState = OrderStateEnum.NONE;
         //date 20190919
         //根据不同的购药方式设置订单的状态
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
