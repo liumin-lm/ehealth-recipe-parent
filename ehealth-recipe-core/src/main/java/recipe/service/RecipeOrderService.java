@@ -63,7 +63,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 import recipe.ApplicationUtils;
-import recipe.aop.LogRecord;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.PurchaseResponse;
 import recipe.bean.RecipePayModeSupportBean;
@@ -1008,8 +1007,8 @@ public class RecipeOrderService extends RecipeBaseService {
                     if(ConsignmentPricingMethodEnum.LOGISTICS_COMPANY_PRICE.getType().equals(organLogisticsManageDto.getConsignmentPricingMethod())){
                         //lm物流公司预估价格
                         WayBillExceptPriceTO wayBillExceptPriceTO=new WayBillExceptPriceTO();
-                        wayBillExceptPriceTO.setType(1);
-                        wayBillExceptPriceTO.setOrganid(order.getOrganId());
+                        wayBillExceptPriceTO.setType(0);
+                        wayBillExceptPriceTO.setOrganid(enterpriseId);
                         OpenApiAddressTO openApiAddressTO=new OpenApiAddressTO();
                         openApiAddressTO.setSrcProvince(organLogisticsManageDto.getConsignorProvince());
                         openApiAddressTO.setSrcCity(organLogisticsManageDto.getConsignorCity());
