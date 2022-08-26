@@ -494,7 +494,7 @@ public class HisRecipeManager extends BaseManager {
         Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeCode, clinicOrgan);
         if (recipe != null && StringUtils.isNotEmpty(recipe.getOrderCode())) {
             RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
-            if (recipeOrder != null) {
+            if (recipeOrder != null&&!Objects.isNull(recipeOrder.getWxPayWay())) {
                 realPayFlag = payClient.orderQuery(recipeOrder);
             }
         }
@@ -521,17 +521,6 @@ public class HisRecipeManager extends BaseManager {
             HisRecipe hisRecipe = hisRecipeMap.get(recipeCode);
             if (null == hisRecipe) {
                 return;
-            } else {
-                if (!hisRecipe.getMpiId().equals(mpiId)) {
-                    //如果已经支付，则不允许删除（场景：a操作用户绑定就诊人支付，且支付成功，但是支付平台回调慢，导致处方支付状态未更改   所以需要回查，是否已支付 如果已经支付，则不允许更改数据）
-                    String payFlag = obtainPayStatus(recipeCode, hisRecipe.getClinicOrgan());
-                    if (PayConstant.RESULT_SUCCESS.equals(payFlag) || PayConstant.RESULT_WAIT.equals(payFlag) || PayConstant.ERROR.equals(payFlag)) {
-                        return;
-                    }
-                    deleteSetRecipeCode.add(recipeCode);
-                    LOGGER.info("deleteSetRecipeCode cause mpiid recipeCode:{}", recipeCode);
-                    return;
-                }
             }
             //场景：没付钱跑到线下去支付了
             //如果已缴费处方在数据库里已存在，且数据里的状态是未缴费，则处理数据
@@ -544,6 +533,16 @@ public class HisRecipeManager extends BaseManager {
 
             //已处理处方(现在因为其他用户绑定了该就诊人也要查询到数据，所以mpiid不一致，数据需要删除)
             if (2 == hisRecipe.getStatus()) {
+                return;
+            }
+            if (!hisRecipe.getMpiId().equals(mpiId)) {
+                //如果已经支付，则不允许删除（场景：a操作用户绑定就诊人支付，且支付成功，但是支付平台回调慢，导致处方支付状态未更改   所以需要回查，是否已支付 如果已经支付，则不允许更改数据）
+                String payFlag = obtainPayStatus(recipeCode, hisRecipe.getClinicOrgan());
+                if (PayConstant.RESULT_SUCCESS.equals(payFlag) || PayConstant.RESULT_WAIT.equals(payFlag) || PayConstant.ERROR.equals(payFlag)) {
+                    return;
+                }
+                deleteSetRecipeCode.add(recipeCode);
+                LOGGER.info("deleteSetRecipeCode cause mpiid recipeCode:{}", recipeCode);
                 return;
             }
             List<HisRecipeDetail> hisDetailList = hisRecipeIdDetailMap.get(hisRecipe.getHisRecipeID());
