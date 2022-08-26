@@ -58,7 +58,7 @@ public class AuditPreMode extends AbstractAuditMode {
             if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipeMode)) {
                 RecipeServiceSub.sendRecipeTagToPatient(recipe, detailDAO.findByRecipeId(recipeId), null, true);
                 //向患者推送处方消息
-                RecipeMsgService.batchSendMsg(recipe, RecipeStateEnum.PROCESS_STATE_ORDER.getType());
+                RecipeMsgService.batchSendMsg(recipe, RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType());
             } else {
                 //平台前置发送审核通过消息 /向患者推送处方消息 处方通知您有一张处方单需要处理，请及时查看。
                 RecipeMsgService.batchSendMsg(recipe, RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS_YS.getType());
