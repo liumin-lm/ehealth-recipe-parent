@@ -3,10 +3,19 @@ package recipe.dao;
 import com.ngari.recipe.entity.ClinicCart;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;
+import ctd.persistence.exception.DAOException;
 import ctd.persistence.support.hibernate.HibernateSupportDelegateDAO;
+import ctd.persistence.support.hibernate.template.AbstractHibernateStatelessResultAction;
+import ctd.persistence.support.hibernate.template.HibernateSessionTemplate;
+import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction;
 import ctd.util.annotation.RpcSupportDAO;
+import org.apache.commons.lang3.StringUtils;
+import org.hibernate.Query;
+import org.hibernate.StatelessSession;
+import recipe.vo.second.ClinicCartVO;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @Description
@@ -35,5 +44,50 @@ public abstract class ClinicCartDAO extends HibernateSupportDelegateDAO<ClinicCa
     public abstract void deleteClinicCartByUserId(@DAOParam("organId") Integer organId,
                                                   @DAOParam("userId") String userId,
                                                   @DAOParam("workType") Integer workType);
+
+    public List<ClinicCart> findClinicCartsByParam(ClinicCartVO clinicCartVO) {
+        HibernateStatelessResultAction<List<ClinicCart>> action = new AbstractHibernateStatelessResultAction<List<ClinicCart>>() {
+            @Override
+            public void execute(StatelessSession ss) throws DAOException {
+                StringBuilder hql = new StringBuilder("FROM ClinicCart where deleteFlag = 0 ");
+                if (Objects.nonNull(clinicCartVO.getOrganId())) {
+                    hql.append(" AND organId = :organId");
+                }
+                if (StringUtils.isNotEmpty(clinicCartVO.getUserId())) {
+                    hql.append(" AND userId = :userId");
+                }
+                if (StringUtils.isNotEmpty(clinicCartVO.getItemId())) {
+                    hql.append(" AND itemId = :itemId");
+                }
+                if (Objects.nonNull(clinicCartVO.getItemType())) {
+                    hql.append(" AND itemType = :itemType");
+                }
+                if (Objects.nonNull(clinicCartVO.getWorkType())) {
+                    hql.append(" AND workType = :workType");
+                }
+                hql.append(" order by id desc");
+                Query query = ss.createQuery(hql.toString());
+
+                if (Objects.nonNull(clinicCartVO.getOrganId())) {
+                    query.setParameter("organId", clinicCartVO.getOrganId());
+                }
+                if (StringUtils.isNotEmpty(clinicCartVO.getUserId())) {
+                    query.setParameter("userId", clinicCartVO.getUserId());
+                }
+                if (StringUtils.isNotEmpty(clinicCartVO.getItemId())) {
+                    query.setParameter("itemId", clinicCartVO.getItemId());
+                }
+                if (Objects.nonNull(clinicCartVO.getItemType())) {
+                    query.setParameter("itemType", clinicCartVO.getItemType());
+                }
+                if (Objects.nonNull(clinicCartVO.getWorkType())) {
+                    query.setParameter("workType", clinicCartVO.getWorkType());
+                }
+                setResult(query.list());
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
 }
 
