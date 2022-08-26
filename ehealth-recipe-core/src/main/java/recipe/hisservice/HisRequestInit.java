@@ -301,7 +301,6 @@ public class HisRequestInit {
 
     }
 
-
     public RecipeSendRequestTO initRecipeSendRequestTO(Recipe recipe, List<Recipedetail> details, PatientBean patient) {
         RecipeSendRequestTO requestTO = new RecipeSendRequestTO();
         EmploymentService iEmploymentService = ApplicationUtils.getBasicService(EmploymentService.class);
@@ -311,7 +310,7 @@ public class HisRequestInit {
         requestTO.setDatein(recipe.getSignDate());
         requestTO.setStartDate(recipe.getSignDate());
         requestTO.setIsPay((null != recipe.getPayFlag()) ? Integer.toString(recipe.getPayFlag()) : null);
-        requestTO.setDeptID("");
+        requestTO.setDeptID(Objects.nonNull(recipe.getDepart())?recipe.getDepart().toString():"");
         requestTO.setRecipeType((null != recipe.getRecipeType()) ? recipe.getRecipeType().toString() : null);
         //处方附带信息
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
@@ -409,14 +408,18 @@ public class HisRequestInit {
         requestTO.setDepartCode((null != appointDepart) ? appointDepart.getAppointDepartCode() : "");
         //科室名称
         requestTO.setDepartName((null != appointDepart) ? appointDepart.getAppointDepartName() : "");
+        DepartmentService departService = ApplicationUtils.getBasicService(DepartmentService.class);
+        DepartmentDTO departmentDTO = departService.getById(recipe.getDepart());
         //互联网环境下没有挂号科室 取department表
         if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())) {
-            DepartmentService departService = ApplicationUtils.getBasicService(DepartmentService.class);
-            DepartmentDTO departmentDTO = departService.getById(recipe.getDepart());
             //科室编码
             requestTO.setDepartCode((null != departmentDTO) ? departmentDTO.getCode() : "");
             //科室名称
             requestTO.setDepartName((null != departmentDTO) ? departmentDTO.getName() : "");
+        }
+        if (Objects.nonNull(departmentDTO)) {
+            requestTO.setDeptCode(departmentDTO.getCode());
+            requestTO.setDeptName(departmentDTO.getName());
         }
         //医生名字
         requestTO.setDoctorName(recipe.getDoctorName());

@@ -91,10 +91,6 @@ public class OrderManager extends BaseManager {
     private RecipeBeforeOrderDAO recipeBeforeOrderDAO;
     @Autowired
     private AddressService addressService;
-    @Autowired
-    private OrderFeeManager orderFeeManager;
-    @Autowired
-    private PharmacyDAO pharmacyDAO;
 
     /**
      * 合并预下单信息

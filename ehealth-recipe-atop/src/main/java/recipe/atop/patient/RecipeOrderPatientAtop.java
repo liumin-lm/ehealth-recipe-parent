@@ -237,6 +237,7 @@ public class RecipeOrderPatientAtop extends BaseAtop {
      */
     @RpcService
     public void saveRecipeBeforeOrderInfo(ShoppingCartReqVO shoppingCartReqVO){
+        validateAtop(shoppingCartReqVO.getRecipeId());
         recipeOrderService.saveRecipeBeforeOrderInfo(shoppingCartReqVO);
     }
 

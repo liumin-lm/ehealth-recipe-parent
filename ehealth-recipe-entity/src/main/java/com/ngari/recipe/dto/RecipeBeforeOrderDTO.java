@@ -130,4 +130,10 @@ public class RecipeBeforeOrderDTO implements Serializable {
 
     @ItemProperty(alias = "处方费")
     private BigDecimal recipeFee;
+
+    @ItemProperty(alias = "配送费支付方式 1-在线支付 2-线下支付 3-第三方支付 4-上传运费细则标准")
+    private Integer expressFeePayWay;
+
+    @ItemProperty(alias = "配送费付款方式ExpressFeePayMethodEnum")
+    private Integer expressFeePayMethod;
 }

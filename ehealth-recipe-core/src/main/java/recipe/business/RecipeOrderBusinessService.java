@@ -74,6 +74,7 @@ import recipe.manager.OrderManager;
 import recipe.manager.RecipeManager;
 import recipe.presettle.IRecipePreSettleService;
 import recipe.presettle.factory.PreSettleFactory;
+import recipe.purchase.PurchaseService;
 import recipe.service.PayModeGiveModeUtil;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeOrderService;
@@ -146,7 +147,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
     @Autowired
     private RecipeDetailDAO recipeDetailDAO;
     @Autowired
-    private CommonRemoteService commonRemoteService;
+    private PurchaseService purchaseService;
 
 
     @Override
@@ -1077,12 +1078,17 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                 ShoppingCartDetailDTO shoppingCartDetailDTO = new ShoppingCartDetailDTO();
                 List<RecipeBeforeOrderDTO> recipeBeforeOrderDTOList = ObjectCopyUtils.convert(recipeBeforeOrders, RecipeBeforeOrderDTO.class);
                 RecipeBeforeOrderDTO beforeOrder = recipeBeforeOrderDTOList.get(0);
-                //购药方式为配送到家时返回药企名称和电话，或到院取药并有药企ID时
-                if(new Integer(1).equals(beforeOrder.getGiveMode()) || new Integer(2).equals(beforeOrder.getGiveMode()) && beforeOrder.getEnterpriseId() != null){
+                RecipeOrder recipeOrder = new RecipeOrder();
+                if(beforeOrder.getEnterpriseId() != null){
                     DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(beforeOrder.getEnterpriseId());
                     if(Objects.nonNull(enterprise)){
-                        beforeOrder.setOrganName(enterprise.getName());
-                        beforeOrder.setOrganPhone(enterprise.getTel());
+                        beforeOrder.setExpressFeePayWay(enterprise.getExpressFeePayWay());
+                        recipeOrder.setExpressFeePayWay(enterprise.getExpressFeePayWay());
+                        //购药方式为配送到家时返回药企名称和电话，或到院取药并有药企ID时
+                        if(new Integer(1).equals(beforeOrder.getGiveMode()) || new Integer(2).equals(beforeOrder.getGiveMode()) ){
+                            beforeOrder.setOrganName(enterprise.getName());
+                            beforeOrder.setOrganPhone(enterprise.getTel());
+                        }
                     }
                 }
                 //购药方式为到院取药没有药企ID时返回机构名称和电话
@@ -1091,7 +1097,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                     com.ngari.patient.dto.OrganDTO organDTO = organDAO.getByOrganId(beforeOrder.getOrganId());
                     if(Objects.nonNull(organDTO)){
                         beforeOrder.setOrganName(organDTO.getName());
-                        beforeOrder.setOrganPhone(organDTO.getPhoneNumber());
+                        beforeOrder.setOrganPhone(organDTO.getPhoneNumber().split("\\|")[0]);
                     }
                 }
                 BigDecimal recipeFee = BigDecimal.ZERO;
@@ -1108,7 +1114,6 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                     if(recipeBeforeOrder.getEnterpriseId() != null){
                         extInfo.put("depId",recipeBeforeOrder.getEnterpriseId().toString());
                     }
-                    RecipeOrder recipeOrder = new RecipeOrder();
                     recipeOrder.setOrganId(beforeOrder.getOrganId());
                     recipeOrder.setEnterpriseId(beforeOrder.getEnterpriseId());
                     Recipe recipe = recipeDAO.getByRecipeId(recipeBeforeOrder.getRecipeId());
@@ -1189,6 +1194,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                         }
                     }
                 }
+                beforeOrder.setExpressFeePayMethod(recipeOrder.getExpressFeePayMethod());
                 //处方费
                 beforeOrder.setRecipeFee(recipeFee);
                 beforeOrder.setAuditFee(auditFee);
@@ -1218,6 +1224,8 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
     public void saveRecipeBeforeOrderInfo(ShoppingCartReqVO shoppingCartReqVO) {
         logger.info("saveRecipeBeforeOrderInfo shoppingCartReqVO={}",JSONUtils.toString(shoppingCartReqVO));
         orderManager.saveRecipeBeforeOrderInfo(Objects.requireNonNull(ObjectCopyUtils.convert(shoppingCartReqVO, ShoppingCartReqDTO.class)));
+        //根据购药方式更新处方详情
+        purchaseService.updateRecipeDetail(shoppingCartReqVO.getRecipeId());
     }
 
     @Override
