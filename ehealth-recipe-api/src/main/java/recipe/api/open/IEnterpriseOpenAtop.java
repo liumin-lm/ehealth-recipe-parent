@@ -33,13 +33,6 @@ public interface IEnterpriseOpenAtop {
     @RpcService
     Integer checkSendAddressForEnterprises(CheckOrderAddressVo checkOrderAddressVo);
 
-    /**
-     * 端批量校验订单配送地址
-     * @param checkOrderAddressVoList
-     * @return
-     */
-    @RpcService
-    Integer batchCheckSendAddressForOrder(List<CheckOrderAddressVo> checkOrderAddressVoList);
 
     /**
      * 复诊校验订单配送地址
