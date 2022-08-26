@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.client.DepartClient;
 
+import java.util.Objects;
+
 /**
  * 科室通用业务处理类
  *
@@ -32,15 +34,17 @@ public class DepartManager extends BaseManager {
      */
     public AppointDepartDTO getAppointDepartByOrganIdAndDepart(Recipe recipe) {
         logger.info("getAppointDepartByOrganIdAndDepart param:{}", JSONUtils.toString(recipe));
-        AppointDepartDTO appointDepartDTO = new AppointDepartDTO();
         if (recipe == null) {
-            return appointDepartDTO;
+            return null;
         }
+        AppointDepartDTO appointDepartDTO = new AppointDepartDTO();
         if (StringUtils.isNotEmpty(recipe.getAppointDepart())) {
             appointDepartDTO.setAppointDepartCode(recipe.getAppointDepart());
             appointDepartDTO.setAppointDepartName(recipe.getAppointDepartName());
-        } else {
+        } else if (Objects.nonNull(recipe.getDepart())) {
             appointDepartDTO = departClient.getAppointDepartByOrganIdAndDepart(recipe.getClinicOrgan(), recipe.getDepart());
+        } else {
+            appointDepartDTO = null;
         }
         logger.info("getAppointDepartByOrganIdAndDepart res:{}", JSONUtils.toString(appointDepartDTO));
         return appointDepartDTO;
