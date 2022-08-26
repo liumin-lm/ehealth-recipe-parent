@@ -30,10 +30,7 @@ import recipe.constant.ErrorCode;
 import recipe.constant.HisRecipeConstant;
 import recipe.constant.OrderStatusConstant;
 import recipe.constant.PayConstant;
-import recipe.dao.HisRecipeDataDelDAO;
-import recipe.dao.HisRecipeDetailDAO;
-import recipe.dao.HisRecipeExtDAO;
-import recipe.dao.RecipeParameterDao;
+import recipe.dao.*;
 import recipe.enumerate.status.OfflineToOnlineEnum;
 import recipe.enumerate.status.OrderStateEnum;
 import recipe.enumerate.status.RecipeStateEnum;
@@ -74,6 +71,8 @@ public class HisRecipeManager extends BaseManager {
     private RecipeParameterDao recipeParameterDao;
     @Autowired
     private PayClient payClient;
+    @Autowired
+    private RecipeBeforeOrderDAO recipeBeforeOrderDAO;
 
     /**
      * 获取患者信息
@@ -404,6 +403,7 @@ public class HisRecipeManager extends BaseManager {
         recipeExtendDAO.deleteByRecipeIds(recipeIds);
         recipeDetailDAO.deleteByRecipeIds(recipeIds);
         recipeDAO.deleteByRecipeIds(recipeIds);
+        recipeBeforeOrderDAO.updateDeleteFlagByRecipeId(recipeIds);
         //日志记录
         Map<Integer, Recipe> recipeMap = recipeList.stream().collect(Collectors.toMap(Recipe::getRecipeId, Function.identity(), (key1, key2) -> key2));
         recipeIds.forEach(a -> {
