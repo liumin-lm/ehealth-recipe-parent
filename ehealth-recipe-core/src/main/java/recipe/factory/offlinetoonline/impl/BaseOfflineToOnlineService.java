@@ -8,7 +8,10 @@ import com.ngari.his.recipe.mode.MedicalInfo;
 import com.ngari.his.recipe.mode.QueryHisRecipResTO;
 import com.ngari.his.recipe.mode.RecipeDetailTO;
 import com.ngari.patient.dto.*;
-import com.ngari.patient.service.*;
+import com.ngari.patient.service.BasicAPI;
+import com.ngari.patient.service.DoctorService;
+import com.ngari.patient.service.EmploymentService;
+import com.ngari.patient.service.OrganService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.dto.GiveModeButtonDTO;
 import com.ngari.recipe.dto.GiveModeShowButtonDTO;
@@ -43,7 +46,6 @@ import recipe.business.StockBusinessService;
 import recipe.client.DepartClient;
 import recipe.client.RevisitClient;
 import recipe.constant.HisRecipeConstant;
-import recipe.constant.PayConstant;
 import recipe.dao.*;
 import recipe.dao.bean.HisRecipeListBean;
 import recipe.enumerate.status.*;
@@ -51,7 +53,6 @@ import recipe.enumerate.type.AppointEnterpriseTypeEnum;
 import recipe.factory.offlinetoonline.IOfflineToOnlineStrategy;
 import recipe.factory.offlinetoonline.OfflineToOnlineFactory;
 import recipe.manager.*;
-import recipe.service.DrugsEnterpriseService;
 import recipe.service.RecipeService;
 import recipe.util.RecipeUtil;
 import recipe.vo.patient.RecipeGiveModeButtonRes;
@@ -511,18 +512,18 @@ public class BaseOfflineToOnlineService {
         Map<String, Object> recipeDetailMap;
         Recipe recipe = recipeDAO.get(recipeId);
         HisRecipe hisRecipe = hisRecipeDao.get(hisRecipeId);
-        if (!UserRoleToken.getCurrent().getOwnMpiId().equals(recipe.getMpiid())) {
-            String payFlag = hisRecipeManager.obtainPayStatus(hisRecipe.getRecipeCode(), hisRecipe.getClinicOrgan());
-            if (PayConstant.RESULT_SUCCESS.equals(payFlag)) {
-                throw new DAOException(609, "该处方单已被他人支付！");
-            }
-            if (PayConstant.RESULT_WAIT.equals(payFlag)) {
-                throw new DAOException(609, "该处方单被他人正在处理中！");
-            }
-            if (PayConstant.ERROR.equals(payFlag)) {
-                throw new DAOException(609, "调用支付平台异常！");
-            }
-        }
+//        if (!UserRoleToken.getCurrent().getOwnMpiId().equals(recipe.getMpiid())) {
+//            String payFlag = hisRecipeManager.obtainPayStatus(hisRecipe.getRecipeCode(), hisRecipe.getClinicOrgan());
+//            if (PayConstant.RESULT_SUCCESS.equals(payFlag)) {
+//                throw new DAOException(609, "该处方单已被他人支付！");
+//            }
+//            if (PayConstant.RESULT_WAIT.equals(payFlag)) {
+//                throw new DAOException(609, "该处方单被他人正在处理中！");
+//            }
+//            if (PayConstant.ERROR.equals(payFlag)) {
+//                throw new DAOException(609, "调用支付平台异常！");
+//            }
+//        }
 
 
         List<HisRecipeExt> hisRecipeExts = hisRecipeExtDAO.findByHisRecipeId(hisRecipeId);
