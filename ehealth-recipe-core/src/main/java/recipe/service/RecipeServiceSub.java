@@ -2922,6 +2922,9 @@ public class RecipeServiceSub {
         if (RecipeStatusEnum.RECIPE_STATUS_READY_CHECK_YS.getType().equals(recipe.getStatus())) {
             ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussCancelEvent(recipeId, BussTypeConstant.RECIPE));
         }
+        // 删除预下单信息
+        RecipeBeforeOrderDAO recipeBeforeOrderDAO = DAOFactory.getDAO(RecipeBeforeOrderDAO.class);
+        recipeBeforeOrderDAO.updateDeleteFlagByRecipeId(Lists.newArrayList(recipeId));
         //推送处方到监管平台
         RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(Collections.singletonList(recipe.getRecipeId()), 1));
         message = StringUtils.isNotEmpty(message) ? message : "";
