@@ -1097,7 +1097,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                     com.ngari.patient.dto.OrganDTO organDTO = organDAO.getByOrganId(beforeOrder.getOrganId());
                     if(Objects.nonNull(organDTO)){
                         beforeOrder.setOrganName(organDTO.getName());
-                        beforeOrder.setOrganPhone(organDTO.getPhoneNumber());
+                        beforeOrder.setOrganPhone(organDTO.getPhoneNumber().split("\\|")[0]);
                     }
                 }
                 BigDecimal recipeFee = BigDecimal.ZERO;
