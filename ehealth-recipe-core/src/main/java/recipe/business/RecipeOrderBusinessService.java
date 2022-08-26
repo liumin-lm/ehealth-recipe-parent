@@ -59,6 +59,7 @@ import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.*;
 import recipe.constant.ErrorCode;
 import recipe.constant.RecipeBussConstant;
+import recipe.core.api.IDrugsEnterpriseBusinessService;
 import recipe.core.api.patient.IRecipeOrderBusinessService;
 import recipe.dao.*;
 import recipe.drugsenterprise.CommonRemoteService;
@@ -87,6 +88,7 @@ import recipe.vo.base.BaseRecipeDetailVO;
 import recipe.vo.greenroom.ImperfectInfoVO;
 import recipe.vo.greenroom.InvoiceRecordVO;
 import recipe.vo.second.CabinetVO;
+import recipe.vo.second.CheckOrderAddressVo;
 import recipe.vo.second.enterpriseOrder.*;
 
 import java.math.BigDecimal;
@@ -148,6 +150,8 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
     private RecipeDetailDAO recipeDetailDAO;
     @Autowired
     private PurchaseService purchaseService;
+    @Autowired
+    private IDrugsEnterpriseBusinessService enterpriseBusinessService;
 
 
     @Override
@@ -1344,5 +1348,23 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
         });
         logger.info("batchGetImperfectFlag imperfectInfoVOS={}",JSONUtils.toString(imperfectInfoVOS));
         return imperfectInfoVOS;
+    }
+
+    @Override
+    public Integer batchCheckSendAddressForOrder(List<CheckOrderAddressVo> checkOrderAddressVoList) {
+        //0可以配送，1不能配送
+        int flags = 0;
+        if (CollectionUtils.isNotEmpty(checkOrderAddressVoList)){
+            for(CheckOrderAddressVo checkOrderAddressVo : checkOrderAddressVoList){
+                Integer flag = enterpriseBusinessService.checkSendAddressForOrder(checkOrderAddressVo);
+                if(new Integer(0).equals(flag)){
+                    flags = 0;
+                }else{
+                    flags =  1;
+                    break;
+                }
+            }
+        }
+        return flags;
     }
 }
