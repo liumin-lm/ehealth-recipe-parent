@@ -74,6 +74,7 @@ import recipe.manager.OrderManager;
 import recipe.manager.RecipeManager;
 import recipe.presettle.IRecipePreSettleService;
 import recipe.presettle.factory.PreSettleFactory;
+import recipe.purchase.PurchaseService;
 import recipe.service.PayModeGiveModeUtil;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeOrderService;
@@ -146,7 +147,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
     @Autowired
     private RecipeDetailDAO recipeDetailDAO;
     @Autowired
-    private CommonRemoteService commonRemoteService;
+    private PurchaseService purchaseService;
 
 
     @Override
@@ -1105,7 +1106,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                     com.ngari.patient.dto.OrganDTO organDTO = organDAO.getByOrganId(beforeOrder.getOrganId());
                     if(Objects.nonNull(organDTO)){
                         beforeOrder.setOrganName(organDTO.getName());
-                        beforeOrder.setOrganPhone(organDTO.getPhoneNumber());
+                        beforeOrder.setOrganPhone(organDTO.getPhoneNumber().split("\\|")[0]);
                     }
                 }
                 BigDecimal recipeFee = BigDecimal.ZERO;
@@ -1232,6 +1233,8 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
     public void saveRecipeBeforeOrderInfo(ShoppingCartReqVO shoppingCartReqVO) {
         logger.info("saveRecipeBeforeOrderInfo shoppingCartReqVO={}",JSONUtils.toString(shoppingCartReqVO));
         orderManager.saveRecipeBeforeOrderInfo(Objects.requireNonNull(ObjectCopyUtils.convert(shoppingCartReqVO, ShoppingCartReqDTO.class)));
+        //根据购药方式更新处方详情
+        purchaseService.updateRecipeDetail(shoppingCartReqVO.getRecipeId());
     }
 
     @Override
