@@ -16,6 +16,7 @@ import easypay.entity.vo.param.bus.SelfPreSettleQueryReq;
 import recipe.vo.ResultBean;
 import recipe.vo.greenroom.ImperfectInfoVO;
 import recipe.vo.second.CabinetVO;
+import recipe.vo.second.CheckOrderAddressVo;
 import recipe.vo.second.enterpriseOrder.DownOrderRequestVO;
 import recipe.vo.second.enterpriseOrder.EnterpriseDownDataVO;
 
@@ -230,4 +231,6 @@ public interface IRecipeOrderBusinessService {
      * @return
      */
     List<ImperfectInfoVO> batchGetImperfectFlag(List<RecipeBean> recipeBeans);
+
+    Integer batchCheckSendAddressForOrder(List<CheckOrderAddressVo> checkOrderAddressVoList);
 }

@@ -23,6 +23,7 @@ import recipe.core.api.patient.IRecipeOrderBusinessService;
 import recipe.util.ValidateUtil;
 import recipe.vo.ResultBean;
 import recipe.vo.patient.PatientSubmitRecipeVO;
+import recipe.vo.second.CheckOrderAddressVo;
 
 import java.util.List;
 import java.util.Map;
@@ -259,6 +260,15 @@ public class RecipeOrderPatientAtop extends BaseAtop {
     @RpcService
     public Boolean getPreOrderFlag(Integer recipeId,String mpiId){
         return recipeOrderService.getPreOrderFlag(recipeId,mpiId);
+    }
+    /**
+     * 批量校验订单配送地址
+     * @param checkOrderAddressVoList
+     * @return
+     */
+    @RpcService
+    public Integer batchCheckSendAddressForOrder(List<CheckOrderAddressVo> checkOrderAddressVoList) {
+        return recipeOrderService.batchCheckSendAddressForOrder(checkOrderAddressVoList);
     }
 
 
