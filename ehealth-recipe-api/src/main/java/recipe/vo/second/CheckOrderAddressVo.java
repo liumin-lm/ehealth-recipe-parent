@@ -7,6 +7,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * @description： 端校验地址入参
@@ -21,6 +22,9 @@ public class CheckOrderAddressVo implements Serializable {
 
     @ItemProperty(alias = "药企id")
     private Integer enterpriseId;
+
+    @ItemProperty(alias = "多个药企id")
+    private List<Integer> enterpriseIds;
 
     @ItemProperty(alias = "地址（省）")
     @Dictionary(id = "eh.base.dictionary.AddrArea")

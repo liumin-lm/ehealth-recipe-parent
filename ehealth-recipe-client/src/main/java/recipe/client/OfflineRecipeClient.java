@@ -10,6 +10,7 @@ import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.recipe.mode.EmrDetailValueDTO;
 import com.ngari.his.recipe.mode.*;
 import com.ngari.patient.dto.AppointDepartDTO;
+import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.EmploymentService;
@@ -706,6 +707,12 @@ public class OfflineRecipeClient extends BaseClient {
             recipe.setDepartCode(appointDepart.getAppointDepartCode());
             //科室名称
             recipe.setDepartName(appointDepart.getAppointDepartName());
+        }
+        DepartmentDTO departmentDTO = departClient.getDepartmentByDepart(recipe.getDepart());
+        if (Objects.nonNull(departmentDTO)) {
+            //行政科室编码
+            recipe.setDeptCode(departmentDTO.getCode());
+            recipe.setDeptName(departmentDTO.getName());
         }
         recipeDTO.setRecipeBean(recipe);
         List<RecipeDetailBean> detailList = ObjectCopyUtils.convert(recipePdfDTO.getRecipeDetails(), RecipeDetailBean.class);
