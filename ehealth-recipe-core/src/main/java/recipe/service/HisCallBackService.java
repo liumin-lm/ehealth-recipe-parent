@@ -1,5 +1,6 @@
 package recipe.service;
 
+import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Maps;
 import com.ngari.consult.ConsultAPI;
 import com.ngari.consult.common.model.ConsultExDTO;
@@ -341,71 +342,75 @@ public class HisCallBackService {
      * @param recipeCodes 医院处方CODE
      */
     public static void havePayRecipesFromHis(List<String> recipeCodes, Integer organId) {
+        LOGGER.info("havePayRecipesFromHis recipeCodes:{}", JSON.toJSONString(recipeCodes));
         if (CollectionUtils.isEmpty(recipeCodes) || null == organId) {
             return;
         }
 
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        try {
+            RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+            //数据共用
+            Map<String, Object> attrMap = Maps.newHashMap();
+            attrMap.put("chooseFlag", 1);
+            attrMap.put("payFlag", 1);
+            //以免进行处方失效前提醒
+            attrMap.put("remindFlag", 1);
 
-        //数据共用
-        Map<String, Object> attrMap = Maps.newHashMap();
-        attrMap.put("chooseFlag", 1);
-        attrMap.put("payFlag", 1);
-        //以免进行处方失效前提醒
-        attrMap.put("remindFlag", 1);
+            String logMemo = "HIS返回状态：医院取药已支付";
+            Integer msgStatus = RecipeStatusConstant.PATIENT_REACHHOS_PAYONLINE;
 
-        String logMemo = "HIS返回状态：医院取药已支付";
-        Integer msgStatus = RecipeStatusConstant.PATIENT_REACHHOS_PAYONLINE;
-
-        for (String recipeCode : recipeCodes) {
-            if (StringUtils.isNotEmpty(recipeCode)) {
-                Recipe recipe = null;
-                try {
-                    recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeCode, organId);
-                } catch (Exception e) {
-                    LOGGER.error("havePayRecipesFromHis HIS获取信息更新处方状态时存在相同处方数据,recipeCode:" + recipeCode + ",clinicOrgan:" + organId, e);
-                }
-                if (null != recipe) {
-                    //对于已经在线上支付的处方不能直接取消
-                    RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-                    RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
-                    if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
-                        if (new Integer(1).equals(recipeOrder.getPayFlag())) {
-                            return;
-                        }
+            for (String recipeCode : recipeCodes) {
+                if (StringUtils.isNotEmpty(recipeCode)) {
+                    Recipe recipe = null;
+                    try {
+                        recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeCode, organId);
+                    } catch (Exception e) {
+                        LOGGER.error("havePayRecipesFromHis HIS获取信息更新处方状态时存在相同处方数据,recipeCode:" + recipeCode + ",clinicOrgan:" + organId, e);
                     }
-                    Integer recipeId = recipe.getRecipeId();
-                    Integer beforeStatus = recipe.getStatus();
-                    if (null != recipeId) {
-                        //先进行比较状态是否需要更新，可能HIS返回的仍是已支付的状态
-                        if (beforeStatus == RecipeStatusConstant.HAVE_PAY) {
-                            LOGGER.info("havePayRecipesFromHis recipeId=[{}], 已是已支付状态，无需更新", recipeId);
-                            continue;
-                        }
-                        if (null == recipe.getPayDate()) {
-                            attrMap.put("payDate", DateTime.now().toDate());
-                        }
-                        attrMap.put("giveMode", RecipeBussConstant.GIVEMODE_TO_HOS);
-                        attrMap.put("enterpriseId", null);
-
-                        Boolean rs = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.HAVE_PAY, attrMap);
-                        if (rs) {
-                            //线下支付完成后取消订单
-                            RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
-                            StateManager stateManager = ApplicationUtils.getRecipeService(StateManager.class);
-                            orderService.cancelOrderByRecipeId(recipeId, OrderStatusConstant.CANCEL_AUTO);
-
-                            if (Objects.nonNull(recipeOrder)) {
-                                stateManager.updateOrderState(recipeOrder.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION, OrderStateEnum.SUB_CANCELLATION_USER);
+                    if (null != recipe) {
+                        //对于已经在线上支付的处方不能直接取消
+                        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+                        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+                        if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
+                            if (new Integer(1).equals(recipeOrder.getPayFlag())) {
+                                return;
                             }
-                            //日志记录
-                            RecipeLogService.saveRecipeLog(recipeId, beforeStatus, RecipeStatusConstant.HAVE_PAY, logMemo);
-                            //消息推送
-                            RecipeMsgService.batchSendMsg(recipeId, msgStatus);
+                        }
+                        Integer recipeId = recipe.getRecipeId();
+                        Integer beforeStatus = recipe.getStatus();
+                        if (null != recipeId) {
+                            //先进行比较状态是否需要更新，可能HIS返回的仍是已支付的状态
+                            if (beforeStatus == RecipeStatusConstant.HAVE_PAY) {
+                                LOGGER.info("havePayRecipesFromHis recipeId=[{}], 已是已支付状态，无需更新", recipeId);
+                                continue;
+                            }
+                            if (null == recipe.getPayDate()) {
+                                attrMap.put("payDate", DateTime.now().toDate());
+                            }
+                            attrMap.put("giveMode", RecipeBussConstant.GIVEMODE_TO_HOS);
+                            attrMap.put("enterpriseId", null);
+
+                            Boolean rs = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.HAVE_PAY, attrMap);
+                            if (rs) {
+                                //线下支付完成后取消订单
+                                RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
+                                StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
+                                orderService.cancelOrderByRecipeId(recipeId, OrderStatusConstant.CANCEL_AUTO);
+
+                                if (Objects.nonNull(recipeOrder)) {
+                                    stateManager.updateOrderState(recipeOrder.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION, OrderStateEnum.SUB_CANCELLATION_USER);
+                                }
+                                //日志记录
+                                RecipeLogService.saveRecipeLog(recipeId, beforeStatus, RecipeStatusConstant.HAVE_PAY, logMemo);
+                                //消息推送
+                                RecipeMsgService.batchSendMsg(recipeId, msgStatus);
+                            }
                         }
                     }
                 }
             }
+        } catch (Exception e) {
+            LOGGER.error("havePayRecipesFromHis error", e);
         }
 
     }
