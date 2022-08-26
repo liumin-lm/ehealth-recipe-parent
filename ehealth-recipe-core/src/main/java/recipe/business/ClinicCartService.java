@@ -54,7 +54,7 @@ public class ClinicCartService implements IClinicCartBusinessService {
     public Integer addClinicCart(ClinicCartVO clinicCartVO) {
         ClinicCart clinicCart = BeanUtils.map(clinicCartVO, ClinicCart.class);
         List<ClinicCart> clinicCartList = clinicCartDAO.findClinicCartsByParam(clinicCartVO);
-        if (CollectionUtils.isNotEmpty(clinicCartList)) {
+        if (CollectionUtils.isEmpty(clinicCartList)) {
             clinicCart.setDeleteFlag(0);
             ClinicCart result = clinicCartDAO.save(clinicCart);
             return result.getId();
