@@ -1147,7 +1147,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                             recipeBeforeOrder.setRecMobile(recipeOrder.getRecMobile());
                             recipeBeforeOrder.setRecTel(recipeOrder.getRecTel());
                             recipeBeforeOrder.setZipCode(recipeOrder.getZipCode());
-                            recipeBeforeOrder.setCompleteAddress(commonRemoteService.getCompleteAddress(recipeOrder));
+                            recipeBeforeOrder.setCompleteAddress(orderManager.getCompleteAddress(recipeOrder));
                             //有地址则为完善
                             recipeBeforeOrder.setIsReady(1);
                         }else {

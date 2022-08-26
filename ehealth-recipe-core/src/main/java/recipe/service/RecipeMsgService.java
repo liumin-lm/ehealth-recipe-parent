@@ -196,7 +196,7 @@ public class RecipeMsgService {
                 sendMsgInfo(recipeId, RECIPE_HIS_FAIL, organId);
             } else if (RecipeStatusConstant.READY_CHECK_YS == afterStatus) {
                 sendMsgInfo(recipeId, RECIPE_READY_CHECK_YS, organId);
-            } else if ((RecipeStatusConstant.CHECK_PASS == afterStatus) || (RecipeStateEnum.PROCESS_STATE_ORDER.getType() == afterStatus)) {
+            } else if (RecipeStatusConstant.CHECK_PASS == afterStatus) {
                 if (StringUtils.isEmpty(recipeMode) || RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipeMode)) {
                     sendMsgInfo(recipeId, RECIPE_CHECK_PASS, organId);
                 } else if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipeMode)) {

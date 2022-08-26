@@ -9,6 +9,7 @@ import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.persistence.exception.DAOException;
+import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
@@ -167,6 +168,7 @@ public class DrugEnterprisePatientAtop extends BaseAtop {
      */
     @RpcService
     public CheckAddressRes shoppingCheckEnterpriseDecoctionAddress(List<CheckAddressReq> checkAddressReqList){
+        logger.info("shoppingCheckEnterpriseDecoctionAddress checkAddressReqList={} ", JSONUtils.toString(checkAddressReqList));
         List<CheckAddressRes> checkAddressResList = new ArrayList<>();
         checkAddressReqList.forEach(checkAddressReq -> {
             validateAtop(checkAddressReq, checkAddressReq.getOrganId(), checkAddressReq.getEnterpriseId(),checkAddressReq.getDecoctionId(),checkAddressReq.getAddress3());
@@ -181,7 +183,7 @@ public class DrugEnterprisePatientAtop extends BaseAtop {
                 checkAddressRes.setAreaList(collect.get(0).getAreaList());
             }else {
                 checkAddressRes.setSendFlag(true);
-                checkAddressRes.setAreaList(collect.get(0).getAreaList());
+                checkAddressRes.setAreaList(checkAddressResList.get(0).getAreaList());
             }
         }
         return checkAddressRes;
