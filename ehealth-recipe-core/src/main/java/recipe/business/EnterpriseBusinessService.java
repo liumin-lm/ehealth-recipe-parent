@@ -753,7 +753,7 @@ public class EnterpriseBusinessService extends BaseService implements IDrugsEnte
     @Override
     public Integer batchCheckSendAddressForOrder(List<CheckOrderAddressVo> checkOrderAddressVoList) {
         //0可以配送，1不能配送
-        Integer flags = null;
+        Integer flags = 0;
         if (CollectionUtils.isNotEmpty(checkOrderAddressVoList)){
             for(CheckOrderAddressVo checkOrderAddressVo : checkOrderAddressVoList){
                 Integer flag = checkSendAddressForOrder(checkOrderAddressVo);
