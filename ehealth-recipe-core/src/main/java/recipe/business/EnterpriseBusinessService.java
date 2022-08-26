@@ -750,6 +750,24 @@ public class EnterpriseBusinessService extends BaseService implements IDrugsEnte
         return flag;
     }
 
+    @Override
+    public Integer batchCheckSendAddressForOrder(List<CheckOrderAddressVo> checkOrderAddressVoList) {
+        //0可以配送，1不能配送
+        Integer flags = null;
+        if (CollectionUtils.isNotEmpty(checkOrderAddressVoList)){
+            for(CheckOrderAddressVo checkOrderAddressVo : checkOrderAddressVoList){
+                Integer flag = checkSendAddressForOrder(checkOrderAddressVo);
+                if(new Integer(0).equals(flag)){
+                    flags = 0;
+                }else{
+                    flags =  1;
+                    break;
+                }
+            }
+        }
+        return flags;
+    }
+
     /**
      * 判断有误街道数据
      * @param address

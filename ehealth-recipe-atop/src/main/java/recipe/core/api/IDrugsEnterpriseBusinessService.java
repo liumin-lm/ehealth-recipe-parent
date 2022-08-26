@@ -266,6 +266,13 @@ public interface IDrugsEnterpriseBusinessService {
     Integer checkSendAddressForOrder(CheckOrderAddressVo checkAddressVo);
 
     /**
+     * 端批量校验订单配送地址
+     * @param checkOrderAddressVoList
+     * @return
+     */
+    Integer batchCheckSendAddressForOrder(List<CheckOrderAddressVo> checkOrderAddressVoList);
+
+    /**
      * 腹透液配送时间获取
      *
      * @param ftySendTimeREQ
