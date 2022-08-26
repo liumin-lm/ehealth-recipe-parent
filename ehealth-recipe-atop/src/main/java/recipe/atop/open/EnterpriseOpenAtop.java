@@ -35,6 +35,12 @@ public class EnterpriseOpenAtop  extends BaseAtop implements IEnterpriseOpenAtop
     }
 
     @Override
+    public Integer checkSendAddressForEnterprises(CheckOrderAddressVo checkOrderAddressVo) {
+        validateAtop(checkOrderAddressVo, checkOrderAddressVo.getEnterpriseIds());
+        return enterpriseBusinessService.checkSendAddressForEnterprises(checkOrderAddressVo);
+    }
+
+    @Override
     public Boolean checkSendAddress(CheckAddressVo checkAddressVo) {
         validateAtop(checkAddressVo, checkAddressVo.getOrganId());
         return enterpriseBusinessService.checkSendAddress(checkAddressVo);

@@ -272,4 +272,11 @@ public interface IDrugsEnterpriseBusinessService {
      * @return
      */
     List<String> getFTYSendTime(FTYSendTimeReq ftySendTimeREQ);
+
+    /**
+     * 端多个药企获取配送地址 是否可配送
+     * @param checkOrderAddressVo
+     * @return
+     */
+    Integer checkSendAddressForEnterprises(CheckOrderAddressVo checkOrderAddressVo);
 }

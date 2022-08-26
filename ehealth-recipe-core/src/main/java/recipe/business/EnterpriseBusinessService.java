@@ -776,6 +776,56 @@ public class EnterpriseBusinessService extends BaseService implements IDrugsEnte
         return list;
     }
 
+    @Override
+    public Integer checkSendAddressForEnterprises(CheckOrderAddressVo checkOrderAddressVo) {
+        EnterpriseAddressDAO enterpriseAddressDAO = DAOFactory.getDAO(EnterpriseAddressDAO.class);
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        //查询对应药企配送的地址
+        //没有子订单而且配送药企为空，则提示
+        if (CollectionUtils.isEmpty(checkOrderAddressVo.getEnterpriseIds())) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "药企ID为空");
+        }
+        List<DrugsEnterprise> enterprises = drugsEnterpriseDAO.findByIdIn(checkOrderAddressVo.getEnterpriseIds());
+        if (CollectionUtils.isEmpty(enterprises)) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "药企不存在");
+        }
+        //0-能配送 1-省不能配送 2-市不能配送 3-区域不能配送 4-街道不能配送
+        Integer flag = 0;
+        for (DrugsEnterprise enterprise : enterprises) {
+            if (flag != 0) {
+                continue;
+            }
+            if (enterprise.getOrderType() == 0) {
+                //标识跳转到第三方支付,不需要对配送地址进行校验
+                flag = 0;
+            }
+            List<EnterpriseAddress> list = enterpriseAddressDAO.findByEnterPriseId(enterprise.getId());
+            if (CollectionUtils.isEmpty(list)) {
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "该药企没有配送地址");
+            }
+            if (!addressCan(list, checkOrderAddressVo.getAddress1())) {
+                logger.error("address1不能配送！depId:" + checkOrderAddressVo.getEnterpriseId() + ",address1:" + checkOrderAddressVo.getAddress1());
+                flag = 1;
+            }
+            if (!addressCan(list, checkOrderAddressVo.getAddress2())) {
+                logger.error("address2不能配送！depId:" + checkOrderAddressVo.getEnterpriseId() + ",address2:" + checkOrderAddressVo.getAddress2());
+                flag = 2;
+            }
+            if (!addressCan(list, checkOrderAddressVo.getAddress3())) {
+                logger.error("address3不能配送！depId:" + checkOrderAddressVo.getEnterpriseId() + ",address3:" + checkOrderAddressVo.getAddress3());
+                flag = 3;
+            }
+            // 目前不是所有机构都用了街道,所以需要先判空
+            Boolean haveStreet = checkAddressHaveStreet(checkOrderAddressVo.getAddress3(), list);
+            if (haveStreet && StringUtils.isNotEmpty(checkOrderAddressVo.getAddress4()) && !addressCan(list, checkOrderAddressVo.getAddress4())) {
+                logger.error("address4不能配送！depId:" + checkOrderAddressVo.getEnterpriseId() + ",address4:" + checkOrderAddressVo.getAddress4());
+                flag = 4;
+            }
+        }
+        return flag;
+
+    }
+
     private void syncFinishOrderHandle(List<Integer> recipeIdList, RecipeOrder recipeOrder, boolean isSendFlag) {
         logger.info("syncFinishOrderHandle recipeIdList:{}, recipeOrder:{}", recipeIdList, JSON.toJSONString(recipeOrder));
         RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
