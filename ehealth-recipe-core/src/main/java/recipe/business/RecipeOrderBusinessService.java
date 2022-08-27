@@ -1137,6 +1137,12 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                         recipeList.add(recipe);
                         recipeIds.add(recipe.getRecipeId());
                         recipeDTO.setRecipe(recipe);
+                        //防止当西药没有某些费用时还有值
+                        recipeOrder.setRecipeFee(BigDecimal.ZERO);
+                        recipeOrder.setAuditFee(BigDecimal.ZERO);
+                        recipeOrder.setTcmFee(BigDecimal.ZERO);
+                        recipeOrder.setExpressFee(BigDecimal.ZERO);
+                        recipeOrder.setDecoctionFee(BigDecimal.ZERO);
                         orderService.setOrderFee(new OrderCreateResult(200),recipeOrder,recipeIds,recipeList,payModeSupportBean,extInfo,0);
                         List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipeBeforeOrder.getRecipeId());
                         if(CollectionUtils.isNotEmpty(recipeDetailList)){
