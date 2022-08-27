@@ -137,7 +137,7 @@ public interface IRecipeAtopService {
      * @param organId    机构ID
      * @return 处方
      */
-    @RpcService(mvcDisabled = true)
+    @RpcService
     RecipeBean getByRecipeCodeAndRegisterIdAndOrganId(String recipeCode, String registerId, int organId);
 
     /**
