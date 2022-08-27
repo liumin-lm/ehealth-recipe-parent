@@ -230,7 +230,7 @@ public class PayModeToHos implements IPurchaseService {
 
         // 到院自取也需要更新药品实际销售价格
         recipeIdLists.forEach(recipeId -> {
-            purchaseService.updateRecipeDetail(recipeId);
+            purchaseService.updateRecipeDetail(recipeId,null);
         });
         orderService.setCreateOrderResult(result, order, payModeSupport, 1);
         //更新处方信息

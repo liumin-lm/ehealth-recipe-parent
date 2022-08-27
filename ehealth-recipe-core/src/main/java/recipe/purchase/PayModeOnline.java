@@ -353,7 +353,7 @@ public class PayModeOnline implements IPurchaseService {
         }
         for (Integer recipeId2 : recipeIdLists) {
             PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
-            purchaseService.updateRecipeDetail(recipeId2);
+            purchaseService.updateRecipeDetail(recipeId2,null);
             //date 20200318
             //确认订单后同步配送信息接口
             extInfo.put("payMode", "1");

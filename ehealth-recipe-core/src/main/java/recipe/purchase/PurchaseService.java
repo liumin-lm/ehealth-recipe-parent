@@ -543,13 +543,18 @@ public class PurchaseService {
         return result;
     }
 
-    public void updateRecipeDetail(Integer recipeId) {
+    public void updateRecipeDetail(Integer recipeId,Integer enterpriseId) {
         try {
             Recipe recipe = recipeDAO.getByRecipeId(recipeId);
             List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipeId);
             List<Integer> drugList = recipeDetails.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
             if (recipe.getEnterpriseId() != null) {
-                DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipe.getEnterpriseId());
+                DrugsEnterprise drugsEnterprise;
+                if(enterpriseId != null){
+                    drugsEnterprise = drugsEnterpriseDAO.getById(enterpriseId);
+                }else {
+                    drugsEnterprise = drugsEnterpriseDAO.getById(recipe.getEnterpriseId());
+                }
                 //结算方式 0:药店价格 1:医院价格
                 int settlementMode = 0;
                 if (drugsEnterprise != null && drugsEnterprise.getSettlementMode() != null && drugsEnterprise.getSettlementMode() == 1) {

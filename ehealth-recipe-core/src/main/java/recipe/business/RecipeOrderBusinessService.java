@@ -1131,6 +1131,11 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                         orderService.setOrderFee(new OrderCreateResult(200),recipeOrder,recipeIds,recipeList,payModeSupportBean,extInfo,0);
                         List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipeBeforeOrder.getRecipeId());
                         if(CollectionUtils.isNotEmpty(recipeDetailList)){
+                            for(Recipedetail recipedetail : recipeDetailList){
+                                if(recipedetail.getActualSalePrice() != null){
+                                    recipedetail.setSalePrice(recipedetail.getActualSalePrice());
+                                }
+                            }
                             recipeDTO.setRecipeDetails(recipeDetailList);
                         }
                         RecipeExtend recipeExtendVO = recipeExtendDAO.getByRecipeId(recipeBeforeOrder.getRecipeId());
@@ -1229,7 +1234,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
         logger.info("saveRecipeBeforeOrderInfo shoppingCartReqVO={}",JSONUtils.toString(shoppingCartReqVO));
         orderManager.saveRecipeBeforeOrderInfo(Objects.requireNonNull(ObjectCopyUtils.convert(shoppingCartReqVO, ShoppingCartReqDTO.class)));
         //根据购药方式更新处方详情
-        purchaseService.updateRecipeDetail(shoppingCartReqVO.getRecipeId());
+        purchaseService.updateRecipeDetail(shoppingCartReqVO.getRecipeId(),shoppingCartReqVO.getEnterpriseId());
     }
 
     @Override
