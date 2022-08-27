@@ -548,7 +548,7 @@ public class PurchaseService {
             Recipe recipe = recipeDAO.getByRecipeId(recipeId);
             List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipeId);
             List<Integer> drugList = recipeDetails.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
-            if (recipe.getEnterpriseId() != null) {
+            if (recipe.getEnterpriseId() != null || enterpriseId != null) {
                 DrugsEnterprise drugsEnterprise;
                 if(enterpriseId != null){
                     drugsEnterprise = drugsEnterpriseDAO.getById(enterpriseId);
