@@ -1118,7 +1118,6 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                 BigDecimal decoctionFee = BigDecimal.ZERO;
                 BigDecimal auditFee = BigDecimal.ZERO;
                 BigDecimal expressFee = BigDecimal.ZERO;
-                List<Recipe> recipeList = new ArrayList<>();
                 List<Integer> recipeIds = new ArrayList<>();
                 List<RecipeDTO> recipeDTOList = new ArrayList<>();
                 for(RecipeBeforeOrderDTO recipeBeforeOrder : recipeBeforeOrderDTOList){
@@ -1133,6 +1132,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                     Integer payMode = PayModeGiveModeUtil.getPayMode(1, recipeBeforeOrder.getGiveMode());
                     RecipePayModeSupportBean payModeSupportBean = orderService.setPayModeSupport(recipeOrder, payMode);
                     if(recipe != null){
+                        List<Recipe> recipeList = new ArrayList<>();
                         RecipeDTO recipeDTO = new RecipeDTO();
                         recipeList.add(recipe);
                         recipeIds.add(recipe.getRecipeId());
@@ -1140,6 +1140,11 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                         orderService.setOrderFee(new OrderCreateResult(200),recipeOrder,recipeIds,recipeList,payModeSupportBean,extInfo,0);
                         List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipeBeforeOrder.getRecipeId());
                         if(CollectionUtils.isNotEmpty(recipeDetailList)){
+                            for(Recipedetail recipedetail : recipeDetailList){
+                                if(recipedetail.getActualSalePrice() != null){
+                                    recipedetail.setSalePrice(recipedetail.getActualSalePrice());
+                                }
+                            }
                             recipeDTO.setRecipeDetails(recipeDetailList);
                         }
                         RecipeExtend recipeExtendVO = recipeExtendDAO.getByRecipeId(recipeBeforeOrder.getRecipeId());
@@ -1238,7 +1243,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
         logger.info("saveRecipeBeforeOrderInfo shoppingCartReqVO={}",JSONUtils.toString(shoppingCartReqVO));
         orderManager.saveRecipeBeforeOrderInfo(Objects.requireNonNull(ObjectCopyUtils.convert(shoppingCartReqVO, ShoppingCartReqDTO.class)));
         //根据购药方式更新处方详情
-        purchaseService.updateRecipeDetail(shoppingCartReqVO.getRecipeId());
+        purchaseService.updateRecipeDetail(shoppingCartReqVO.getRecipeId(),shoppingCartReqVO.getEnterpriseId());
     }
 
     @Override
@@ -1277,7 +1282,11 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                                         recipeOrder.setAddress1(addressDTO.getAddress1());
                                         recipeOrder.setAddress2(addressDTO.getAddress2());
                                         recipeOrder.setAddress3(addressDTO.getAddress3());
-                                        recipeOrder.setAddress4(addressDTO.getAddress4());
+                                        if (StringUtils.isNotEmpty(addressDTO.getAddress5Text())) {
+                                            recipeOrder.setAddress4(addressDTO.getAddress5Text() + addressDTO.getAddress4());
+                                        } else {
+                                            recipeOrder.setAddress4(addressDTO.getAddress4());
+                                        }
                                         recipeOrder.setStreetAddress(addressDTO.getStreetAddress());
                                         recipeBeforeOrder.setCompleteAddress(orderManager.getCompleteAddress(recipeOrder));
                                     }else {
