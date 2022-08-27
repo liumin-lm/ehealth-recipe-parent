@@ -1109,7 +1109,6 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                 BigDecimal decoctionFee = BigDecimal.ZERO;
                 BigDecimal auditFee = BigDecimal.ZERO;
                 BigDecimal expressFee = BigDecimal.ZERO;
-                List<Integer> recipeIds = new ArrayList<>();
                 List<RecipeDTO> recipeDTOList = new ArrayList<>();
                 for(RecipeBeforeOrderDTO recipeBeforeOrder : recipeBeforeOrderDTOList){
                     Map<String,String> extInfo = new HashMap<>();
@@ -1123,6 +1122,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                     Integer payMode = PayModeGiveModeUtil.getPayMode(1, recipeBeforeOrder.getGiveMode());
                     RecipePayModeSupportBean payModeSupportBean = orderService.setPayModeSupport(recipeOrder, payMode);
                     if(recipe != null){
+                        List<Integer> recipeIds = new ArrayList<>();
                         List<Recipe> recipeList = new ArrayList<>();
                         RecipeDTO recipeDTO = new RecipeDTO();
                         recipeList.add(recipe);
