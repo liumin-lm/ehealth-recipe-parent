@@ -32,7 +32,6 @@ import easypay.entity.vo.param.OrderQueryParam;
 import eh.utils.MapValueUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.service.spi.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.aop.LogRecord;
@@ -46,7 +45,6 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -95,9 +93,9 @@ public class PayClient extends BaseClient {
         // 1.获取参数
         // 1.1获取payWay
         PayWayEnum payWayEnum = PayWayEnum.fromCode(recipeOrder.getWxPayWay());
-        if (Objects.isNull(payWayEnum)) {
-            throw new ServiceException("当前订单无法获取到支付方式！");
-        }
+//        if (Objects.isNull(payWayEnum)) {
+//            throw new ServiceException("当前订单无法获取到支付方式！");
+//        }
 
         // 1.2获取userId, clientId
         String userId = "";
