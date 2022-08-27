@@ -71,6 +71,7 @@ import recipe.enumerate.type.NeedSendTypeEnum;
 import recipe.factory.status.givemodefactory.GiveModeProxy;
 import recipe.hisservice.RecipeToHisService;
 import recipe.manager.EnterpriseManager;
+import recipe.manager.OrderFeeManager;
 import recipe.manager.OrderManager;
 import recipe.manager.RecipeManager;
 import recipe.presettle.IRecipePreSettleService;
@@ -152,6 +153,8 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
     private PurchaseService purchaseService;
     @Autowired
     private IDrugsEnterpriseBusinessService enterpriseBusinessService;
+    @Autowired
+    private OrderFeeManager orderFeeManager;
 
 
     @Override
@@ -1146,6 +1149,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                         }
                         RecipeExtend recipeExtendVO = recipeExtendDAO.getByRecipeId(recipeBeforeOrder.getRecipeId());
                         RecipeExtend recipeExtend = new RecipeExtend();
+                        recipeExtend.setRegisterID(recipeExtendVO.getRegisterID());
                         if(recipeExtendVO != null && recipeExtendVO.getDecoctionId() != null){
                             recipeExtend.setDecoctionId(recipeExtendVO.getDecoctionId());
                             recipeDTO.setRecipeExtend(recipeExtend);
@@ -1213,7 +1217,12 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                 //处方费
                 beforeOrder.setRecipeFee(recipeFee);
                 beforeOrder.setAuditFee(auditFee);
-                beforeOrder.setExpressFee(expressFee);
+                //为了判断总的运费是不是包邮
+                recipeOrder.setRecipeFee(recipeFee);
+                recipeOrder.setExpressFee(expressFee);
+                recipeOrder.setAddress3(beforeOrder.getAddress3());
+                orderFeeManager.setExpressFee(recipeOrder);
+                beforeOrder.setExpressFee(recipeOrder.getExpressFee());
                 beforeOrder.setTcmFee(tcmFee);
                 beforeOrder.setDecoctionFee(decoctionFee);
                 if(CollectionUtils.isNotEmpty(recipeDTOList)){
