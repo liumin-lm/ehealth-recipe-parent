@@ -61,4 +61,11 @@ public interface IFastRecipeBusinessService {
      * @return
      */
     Boolean fullUpdateFastRecipe(FastRecipeVO fastRecipeVO);
+
+    /**
+     * 便捷购药处理老数据
+     *
+     * @param paramName
+     */
+    void handleFastRecipeOldData(String paramName);
 }
