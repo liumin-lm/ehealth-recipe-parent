@@ -1373,9 +1373,11 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
     }
 
     @Override
-    public Integer batchCheckSendAddressForOrder(List<CheckOrderAddressVo> checkOrderAddressVoList) {
+    public String batchCheckSendAddressForOrder(List<CheckOrderAddressVo> checkOrderAddressVoList) {
         //0可以配送，1不能配送
         int flags = 0;
+        String msg = "【";
+        boolean bool = true;
         if (CollectionUtils.isNotEmpty(checkOrderAddressVoList)){
             for(CheckOrderAddressVo checkOrderAddressVo : checkOrderAddressVoList){
                 Integer flag = enterpriseBusinessService.checkSendAddressForOrder(checkOrderAddressVo);
@@ -1383,10 +1385,16 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                     flags = 0;
                 }else{
                     flags =  1;
-                    break;
+                    bool = false;
+                    DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(checkOrderAddressVo.getEnterpriseId());
+                    msg = msg.equals("【") ? (msg + drugsEnterprise.getName() + "】") : (msg + "【" + drugsEnterprise.getName() + "】");
                 }
             }
         }
-        return flags;
+        if(bool){
+            return String.valueOf(flags);
+        }else {
+            return msg + "不支持本收获地址";
+        }
     }
 }
