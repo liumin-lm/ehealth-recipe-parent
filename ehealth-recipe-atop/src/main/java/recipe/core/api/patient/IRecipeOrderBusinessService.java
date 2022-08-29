@@ -232,5 +232,5 @@ public interface IRecipeOrderBusinessService {
      */
     List<ImperfectInfoVO> batchGetImperfectFlag(List<com.ngari.recipe.recipe.model.RecipeBean> recipeBeans);
 
-    Integer batchCheckSendAddressForOrder(List<CheckOrderAddressVo> checkOrderAddressVoList);
+    String batchCheckSendAddressForOrder(List<CheckOrderAddressVo> checkOrderAddressVoList);
 }

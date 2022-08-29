@@ -267,7 +267,7 @@ public class RecipeOrderPatientAtop extends BaseAtop {
      * @return
      */
     @RpcService
-    public Integer batchCheckSendAddressForOrder(List<CheckOrderAddressVo> checkOrderAddressVoList) {
+    public String batchCheckSendAddressForOrder(List<CheckOrderAddressVo> checkOrderAddressVoList) {
         return recipeOrderService.batchCheckSendAddressForOrder(checkOrderAddressVoList);
     }
 
