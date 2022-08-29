@@ -129,7 +129,7 @@ public interface IRecipeOrderAtopService {
      * @return
      */
     @RpcService
-    Integer getImperfectFlag(RecipeBean recipeBean);
+    Integer getImperfectFlag(com.ngari.recipe.recipe.model.RecipeBean recipeBean);
 
     /**
      * 批量获取未完善或完善标识
@@ -137,6 +137,6 @@ public interface IRecipeOrderAtopService {
      * @return
      */
     @RpcService
-    List<ImperfectInfoVO> batchGetImperfectFlag(List<RecipeBean> recipeBeans);
+    List<ImperfectInfoVO> batchGetImperfectFlag(List<com.ngari.recipe.recipe.model.RecipeBean> recipeBeans);
 
 }

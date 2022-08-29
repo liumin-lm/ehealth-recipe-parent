@@ -186,12 +186,12 @@ public class RecipeOrderOpenAtop extends BaseAtop implements IRecipeOrderAtopSer
     }
 
     @Override
-    public Integer getImperfectFlag(RecipeBean recipeBean) {
+    public Integer getImperfectFlag(com.ngari.recipe.recipe.model.RecipeBean recipeBean) {
         return recipeOrderService.getImperfectFlag(recipeBean);
     }
 
     @Override
-    public List<ImperfectInfoVO> batchGetImperfectFlag(List<RecipeBean> recipeBeans) {
+    public List<ImperfectInfoVO> batchGetImperfectFlag(List<com.ngari.recipe.recipe.model.RecipeBean> recipeBeans) {
         return recipeOrderService.batchGetImperfectFlag(recipeBeans);
     }
 

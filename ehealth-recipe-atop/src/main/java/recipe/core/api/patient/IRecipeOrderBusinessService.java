@@ -196,7 +196,7 @@ public interface IRecipeOrderBusinessService {
      * @param recipeCode
      * @return
      */
-    Integer getImperfectFlag(RecipeBean recipeBean);
+    Integer getImperfectFlag(com.ngari.recipe.recipe.model.RecipeBean recipeBean);
 
     /**
      * 获取购物车信息
@@ -230,7 +230,7 @@ public interface IRecipeOrderBusinessService {
      * @param recipeBeans
      * @return
      */
-    List<ImperfectInfoVO> batchGetImperfectFlag(List<RecipeBean> recipeBeans);
+    List<ImperfectInfoVO> batchGetImperfectFlag(List<com.ngari.recipe.recipe.model.RecipeBean> recipeBeans);
 
-    Integer batchCheckSendAddressForOrder(List<CheckOrderAddressVo> checkOrderAddressVoList);
+    String batchCheckSendAddressForOrder(List<CheckOrderAddressVo> checkOrderAddressVoList);
 }
