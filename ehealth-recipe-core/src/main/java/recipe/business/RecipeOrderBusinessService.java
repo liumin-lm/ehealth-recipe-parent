@@ -1047,12 +1047,11 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
 
     /**
      * 获取未完善或完善标识
-     * @param organId
-     * @param recipeCode
+     * @param recipeBean
      * @return
      */
     @Override
-    public Integer getImperfectFlag(RecipeBean recipeBean) {
+    public Integer getImperfectFlag(com.ngari.recipe.recipe.model.RecipeBean recipeBean) {
         logger.info("getImperfectFlag recipeBean={}",recipeBean);
         try{
             RecipeBeforeOrder recipeBeforeOrder = recipeBeforeOrderDAO.getByOrganIdAndRecipeCode(recipeBean.getClinicOrgan(),recipeBean.getRecipeCode(),recipeBean.getMpiid());
@@ -1342,12 +1341,12 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
     }
 
     @Override
-    public List<ImperfectInfoVO> batchGetImperfectFlag(List<RecipeBean> recipeBeans) {
+    public List<ImperfectInfoVO> batchGetImperfectFlag(List<com.ngari.recipe.recipe.model.RecipeBean> recipeBeans) {
         logger.info("batchGetImperfectFlag recipeBeans={}",recipeBeans);
         List<ImperfectInfoVO> imperfectInfoVOS = new ArrayList<>();
-        List<String> recipeCodes = recipeBeans.stream().map(RecipeBean::getRecipeCode).collect(Collectors.toList());
-        Set<Integer> organIds = recipeBeans.stream().map(RecipeBean::getClinicOrgan).collect(Collectors.toSet());
-        Set<String> operMpiIds = recipeBeans.stream().map(RecipeBean::getMpiid).collect(Collectors.toSet());
+        List<String> recipeCodes = recipeBeans.stream().map(com.ngari.recipe.recipe.model.RecipeBean::getRecipeCode).collect(Collectors.toList());
+        Set<Integer> organIds = recipeBeans.stream().map(com.ngari.recipe.recipe.model.RecipeBean::getClinicOrgan).collect(Collectors.toSet());
+        Set<String> operMpiIds = recipeBeans.stream().map(com.ngari.recipe.recipe.model.RecipeBean::getMpiid).collect(Collectors.toSet());
         List<RecipeBeforeOrder> recipeBeforeOrders = recipeBeforeOrderDAO.findByRecipeCodesAndOrganIds(recipeCodes,organIds,operMpiIds);
         List<String> recipeCodeList = recipeBeforeOrders.stream().map(RecipeBeforeOrder::getRecipeCode).collect(Collectors.toList());
         if(CollectionUtils.isNotEmpty(recipeBeforeOrders)){
@@ -1360,7 +1359,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
             });
         }
         //处理不存在预订单信息中的处方（例：线下处方）
-        Map<String, Integer> collectMap = recipeBeans.stream().collect(Collectors.toMap(RecipeBean::getRecipeCode, RecipeBean::getClinicOrgan));
+        Map<String, Integer> collectMap = recipeBeans.stream().collect(Collectors.toMap(com.ngari.recipe.recipe.model.RecipeBean::getRecipeCode, com.ngari.recipe.recipe.model.RecipeBean::getClinicOrgan));
         List<String> recipeCodeLists = recipeCodes.stream().filter(a -> !recipeCodeList.contains(a)).collect(Collectors.toList());
         recipeCodeLists.forEach(a -> {
             ImperfectInfoVO imperfectInfoVO = new ImperfectInfoVO();
