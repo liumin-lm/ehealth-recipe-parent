@@ -70,6 +70,9 @@ public class FastRecipe {
     @ItemProperty(alias = "诊断备注")
     private String memo;
 
+    @ItemProperty(alias = "中药嘱托")
+    private String recipeMemo;
+
     @ItemProperty(alias = "制法")
     private String makeMethodId;
 
@@ -426,5 +429,14 @@ public class FastRecipe {
 
     public void setEveryTcmNumFre(String everyTcmNumFre) {
         this.everyTcmNumFre = everyTcmNumFre;
+    }
+
+    @Column(name = "recipe_memo")
+    public String getRecipeMemo() {
+        return recipeMemo;
+    }
+
+    public void setRecipeMemo(String recipeMemo) {
+        this.recipeMemo = recipeMemo;
     }
 }

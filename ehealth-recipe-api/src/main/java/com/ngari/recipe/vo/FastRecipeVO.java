@@ -125,4 +125,7 @@ public class FastRecipeVO implements Serializable {
 
     @ItemProperty(alias = "每贴次数")
     private String everyTcmNumFre;
+
+    @ItemProperty(alias = "中药嘱托")
+    private String recipeMemo;
 }
