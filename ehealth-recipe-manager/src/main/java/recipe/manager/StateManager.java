@@ -79,14 +79,12 @@ public class StateManager extends BaseManager {
             case PROCESS_STATE_DISPENSING:
             case PROCESS_STATE_DISTRIBUTION:
             case PROCESS_STATE_MEDICINE:
+            case PROCESS_STATE_ORDER:
                 result = this.defaultRecipe(recipe, processState, subState);
                 break;
             case PROCESS_STATE_DELETED:
             case PROCESS_STATE_CANCELLATION:
                 result = this.cancellation(recipe, processState, subState);
-                break;
-            case PROCESS_STATE_ORDER:
-                result = this.readySubmitOrder(recipe, processState, subState);
                 break;
             default:
                 result = false;
