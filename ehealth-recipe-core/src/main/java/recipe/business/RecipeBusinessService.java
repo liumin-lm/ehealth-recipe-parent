@@ -1032,6 +1032,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
                 r.setRecipeId(recipeId);
                 r.setOrderCode(order.getOrderCode());
                 r.setGiveMode(recipeBeforeOrder.getGiveMode());
+                r.setEnterpriseId(recipeBeforeOrder.getEnterpriseId());
                 recipeDAO.updateNonNullFieldByPrimaryKey(r);
             });
             //业务支付回调
