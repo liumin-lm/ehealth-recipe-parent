@@ -1052,10 +1052,10 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
      * @return
      */
     @Override
-    public Integer getImperfectFlag(Integer organId, String recipeCode) {
-        logger.info("getImperfectFlag organId={},recipeCode={}",organId,recipeCode);
+    public Integer getImperfectFlag(RecipeBean recipeBean) {
+        logger.info("getImperfectFlag recipeBean={}",recipeBean);
         try{
-            RecipeBeforeOrder recipeBeforeOrder = recipeBeforeOrderDAO.getByOrganIdAndRecipeCode(organId, recipeCode);
+            RecipeBeforeOrder recipeBeforeOrder = recipeBeforeOrderDAO.getByOrganIdAndRecipeCode(recipeBean.getClinicOrgan(),recipeBean.getRecipeCode(),recipeBean.getMpiid());
             if(recipeBeforeOrder != null){
                 return recipeBeforeOrder.getIsReady();
             }
@@ -1347,7 +1347,8 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
         List<ImperfectInfoVO> imperfectInfoVOS = new ArrayList<>();
         List<String> recipeCodes = recipeBeans.stream().map(RecipeBean::getRecipeCode).collect(Collectors.toList());
         Set<Integer> organIds = recipeBeans.stream().map(RecipeBean::getClinicOrgan).collect(Collectors.toSet());
-        List<RecipeBeforeOrder> recipeBeforeOrders = recipeBeforeOrderDAO.findByRecipeCodesAndOrganIds(recipeCodes,organIds);
+        Set<String> operMpiIds = recipeBeans.stream().map(RecipeBean::getMpiid).collect(Collectors.toSet());
+        List<RecipeBeforeOrder> recipeBeforeOrders = recipeBeforeOrderDAO.findByRecipeCodesAndOrganIds(recipeCodes,organIds,operMpiIds);
         List<String> recipeCodeList = recipeBeforeOrders.stream().map(RecipeBeforeOrder::getRecipeCode).collect(Collectors.toList());
         if(CollectionUtils.isNotEmpty(recipeBeforeOrders)){
             recipeBeforeOrders.forEach(recipeBeforeOrder -> {

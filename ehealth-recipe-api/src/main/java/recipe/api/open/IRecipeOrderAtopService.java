@@ -128,8 +128,8 @@ public interface IRecipeOrderAtopService {
      * @param recipeCode
      * @return
      */
-    @RpcService(mvcDisabled = true)
-    Integer getImperfectFlag(Integer organId,String recipeCode);
+    @RpcService
+    Integer getImperfectFlag(RecipeBean recipeBean);
 
     /**
      * 批量获取未完善或完善标识
