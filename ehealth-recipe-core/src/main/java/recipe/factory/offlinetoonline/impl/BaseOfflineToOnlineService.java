@@ -46,6 +46,7 @@ import recipe.business.StockBusinessService;
 import recipe.client.DepartClient;
 import recipe.client.RevisitClient;
 import recipe.constant.HisRecipeConstant;
+import recipe.constant.PayConstant;
 import recipe.dao.*;
 import recipe.dao.bean.HisRecipeListBean;
 import recipe.enumerate.status.*;
@@ -512,23 +513,25 @@ public class BaseOfflineToOnlineService {
         Map<String, Object> recipeDetailMap;
         Recipe recipe = recipeDAO.get(recipeId);
         HisRecipe hisRecipe = hisRecipeDao.get(hisRecipeId);
-//        if (!UserRoleToken.getCurrent().getOwnMpiId().equals(recipe.getMpiid())) {
-//            String payFlag = hisRecipeManager.obtainPayStatus(hisRecipe.getRecipeCode(), hisRecipe.getClinicOrgan());
-//            if (PayConstant.RESULT_SUCCESS.equals(payFlag)) {
-//                throw new DAOException(609, "该处方单已被他人支付！");
-//            }
-//            if (PayConstant.RESULT_WAIT.equals(payFlag)) {
-//                throw new DAOException(609, "该处方单被他人正在处理中！");
-//            }
-//            if (PayConstant.ERROR.equals(payFlag)) {
-//                throw new DAOException(609, "调用支付平台异常！");
-//            }
-//        }
-
 
         List<HisRecipeExt> hisRecipeExts = hisRecipeExtDAO.findByHisRecipeId(hisRecipeId);
-        if (recipe == null) {
+        if (recipe == null ) {
             throw new DAOException(DAOException.DAO_NOT_FOUND, "没有查询到来自医院的处方单,请刷新页面！");
+        }
+        if (!UserRoleToken.getCurrent().getOwnMpiId().equals(recipe.getMpiid())) {
+            if(hisRecipe!=null && HisRecipeConstant.HISRECIPESTATUS_ALREADYIDEAL.equals(hisRecipe.getStatus())){
+                throw new DAOException(609, "该处方单已被他人处理！");
+            }
+            String payFlag = hisRecipeManager.obtainPayStatus(hisRecipe.getRecipeCode(), hisRecipe.getClinicOrgan());
+            if (PayConstant.RESULT_SUCCESS.equals(payFlag)) {
+                throw new DAOException(609, "该处方单已被他人支付！");
+            }
+            if (PayConstant.RESULT_WAIT.equals(payFlag)) {
+                throw new DAOException(609, "该处方单被他人正在处理中！");
+            }
+            if (PayConstant.ERROR.equals(payFlag)) {
+                throw new DAOException(609, "调用支付平台异常！");
+            }
         }
         if (HisRecipeConstant.HISRECIPESTATUS_ALREADYIDEAL.equals(hisRecipe.getStatus())) {
             recipeDetailMap = recipeService.getPatientRecipeByIdForOfflineRecipe(recipeId);

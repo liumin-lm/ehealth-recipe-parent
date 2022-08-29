@@ -186,8 +186,8 @@ public class RecipeOrderOpenAtop extends BaseAtop implements IRecipeOrderAtopSer
     }
 
     @Override
-    public Integer getImperfectFlag(Integer organId, String recipeCode) {
-        return recipeOrderService.getImperfectFlag(organId,recipeCode);
+    public Integer getImperfectFlag(RecipeBean recipeBean) {
+        return recipeOrderService.getImperfectFlag(recipeBean);
     }
 
     @Override

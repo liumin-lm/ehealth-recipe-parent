@@ -196,7 +196,7 @@ public interface IRecipeOrderBusinessService {
      * @param recipeCode
      * @return
      */
-    Integer getImperfectFlag(Integer organId, String recipeCode);
+    Integer getImperfectFlag(RecipeBean recipeBean);
 
     /**
      * 获取购物车信息

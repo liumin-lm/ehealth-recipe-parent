@@ -41,13 +41,13 @@ public abstract class RecipeBeforeOrderDAO extends
     }
 
     /**
-     * 根据机构id及his处方编码查询预下单信息
+     * 根据机构id及his处方编码和操作人mpiId查询预下单信息
      * @param organId
      * @param recipeCode
      * @return
      */
-    @DAOMethod(sql = "from RecipeBeforeOrder where organId=:organId and recipeCode=:recipeCode and delete_flag = 0")
-    public abstract RecipeBeforeOrder getByOrganIdAndRecipeCode(@DAOParam("organId") Integer organId, @DAOParam("recipeCode") String  recipeCode);
+    @DAOMethod(sql = "from RecipeBeforeOrder where organId=:organId and recipeCode=:recipeCode and operMpiId=:mpiId and delete_flag = 0")
+    public abstract RecipeBeforeOrder getByOrganIdAndRecipeCode(@DAOParam("organId") Integer organId, @DAOParam("recipeCode") String  recipeCode,@DAOParam("mpiId") String  mpiId);
 
     /**
      * 根据操作人mpiId查询预下单信息
@@ -106,8 +106,8 @@ public abstract class RecipeBeforeOrderDAO extends
      * @param mpiId
      * @return
      */
-    @DAOMethod(sql = "from RecipeBeforeOrder where recipeCode in (:recipeCodes) and organId in (:organIds) and deleteFlag = 0")
-    public abstract List<RecipeBeforeOrder> findByRecipeCodesAndOrganIds(@DAOParam("recipeCodes") List<String> recipeCode,@DAOParam("organIds") Set<Integer> organIds);
+    @DAOMethod(sql = "from RecipeBeforeOrder where recipeCode in (:recipeCodes) and organId in (:organIds) and operMpiId in (:operMpiIds) and deleteFlag = 0")
+    public abstract List<RecipeBeforeOrder> findByRecipeCodesAndOrganIds(@DAOParam("recipeCodes") List<String> recipeCode,@DAOParam("organIds") Set<Integer> organIds,@DAOParam("operMpiIds") Set<String> operMpiIds);
 
     @DAOMethod(sql = "from RecipeBeforeOrder where recipeId=:recipeId and operMpiId=:mpiId and deleteFlag = 0")
     public abstract RecipeBeforeOrder getRecipeBeforeOrderByRecipeIdAndMpiId(@DAOParam("recipeId") Integer recipeId, @DAOParam("mpiId") String mpiId);

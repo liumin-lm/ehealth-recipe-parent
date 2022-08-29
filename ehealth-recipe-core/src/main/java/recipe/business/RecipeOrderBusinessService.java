@@ -1061,10 +1061,10 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
      * @return
      */
     @Override
-    public Integer getImperfectFlag(Integer organId, String recipeCode) {
-        logger.info("getImperfectFlag organId={},recipeCode={}",organId,recipeCode);
+    public Integer getImperfectFlag(RecipeBean recipeBean) {
+        logger.info("getImperfectFlag recipeBean={}",recipeBean);
         try{
-            RecipeBeforeOrder recipeBeforeOrder = recipeBeforeOrderDAO.getByOrganIdAndRecipeCode(organId, recipeCode);
+            RecipeBeforeOrder recipeBeforeOrder = recipeBeforeOrderDAO.getByOrganIdAndRecipeCode(recipeBean.getClinicOrgan(),recipeBean.getRecipeCode(),recipeBean.getMpiid());
             if(recipeBeforeOrder != null){
                 return recipeBeforeOrder.getIsReady();
             }
@@ -1097,6 +1097,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                 RecipeOrder recipeOrder = new RecipeOrder();
                 if(beforeOrder.getEnterpriseId() != null){
                     DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(beforeOrder.getEnterpriseId());
+                    logger.info("getShoppingCartDetail enterprise ={}",JSONUtils.toString(enterprise));
                     if(Objects.nonNull(enterprise)){
                         beforeOrder.setExpressFeePayWay(enterprise.getExpressFeePayWay());
                         recipeOrder.setExpressFeePayWay(enterprise.getExpressFeePayWay());
@@ -1111,6 +1112,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                 if(new Integer(2).equals(beforeOrder.getGiveMode()) && beforeOrder.getEnterpriseId() == null){
                     OrganService organDAO = AppContextHolder.getBean("basic.organService", OrganService.class);
                     com.ngari.patient.dto.OrganDTO organDTO = organDAO.getByOrganId(beforeOrder.getOrganId());
+                    logger.info("getShoppingCartDetail organDTO ={}",JSONUtils.toString(organDTO));
                     if(Objects.nonNull(organDTO)){
                         beforeOrder.setOrganName(organDTO.getName());
                         beforeOrder.setOrganPhone(organDTO.getPhoneNumber().split("\\|")[0]);
@@ -1133,6 +1135,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                     Recipe recipe = recipeDAO.getByRecipeId(recipeBeforeOrder.getRecipeId());
                     Integer payMode = PayModeGiveModeUtil.getPayMode(1, recipeBeforeOrder.getGiveMode());
                     RecipePayModeSupportBean payModeSupportBean = orderService.setPayModeSupport(recipeOrder, payMode);
+                    logger.info("getShoppingCartDetail payModeSupportBean ={}",JSONUtils.toString(payModeSupportBean));
                     if(recipe != null){
                         List<Integer> recipeIds = new ArrayList<>();
                         List<Recipe> recipeList = new ArrayList<>();
@@ -1147,6 +1150,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                         recipeOrder.setExpressFee(BigDecimal.ZERO);
                         recipeOrder.setDecoctionFee(BigDecimal.ZERO);
                         orderService.setOrderFee(new OrderCreateResult(200),recipeOrder,recipeIds,recipeList,payModeSupportBean,extInfo,0);
+                        logger.info("getShoppingCartDetail recipeOrder ={}",JSONUtils.toString(recipeOrder));
                         List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipeBeforeOrder.getRecipeId());
                         if(CollectionUtils.isNotEmpty(recipeDetailList)){
                             for(Recipedetail recipedetail : recipeDetailList){
@@ -1242,6 +1246,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                 logger.info("getShoppingCartDetail shoppingCartDetailDTOList={}",JSONUtils.toString(shoppingCartDetailDTOList));
             }
         }
+        //根据购药方式进行排序（把配送方式排在最前面，因为对象包了两层，排序比较麻烦）
         Map<RecipeBeforeOrderDTO, ShoppingCartDetailDTO> shoppingCartDetailDTOMap = shoppingCartDetailDTOList.stream()
                 .collect(Collectors.toMap(ShoppingCartDetailDTO::getRecipeBeforeOrder, a -> a, (k1, k2) -> k1));
         List<RecipeBeforeOrderDTO> beforeOrderList = shoppingCartDetailDTOList.stream().map(ShoppingCartDetailDTO::getRecipeBeforeOrder).collect(Collectors.toList());
@@ -1351,7 +1356,8 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
         List<ImperfectInfoVO> imperfectInfoVOS = new ArrayList<>();
         List<String> recipeCodes = recipeBeans.stream().map(RecipeBean::getRecipeCode).collect(Collectors.toList());
         Set<Integer> organIds = recipeBeans.stream().map(RecipeBean::getClinicOrgan).collect(Collectors.toSet());
-        List<RecipeBeforeOrder> recipeBeforeOrders = recipeBeforeOrderDAO.findByRecipeCodesAndOrganIds(recipeCodes,organIds);
+        Set<String> operMpiIds = recipeBeans.stream().map(RecipeBean::getMpiid).collect(Collectors.toSet());
+        List<RecipeBeforeOrder> recipeBeforeOrders = recipeBeforeOrderDAO.findByRecipeCodesAndOrganIds(recipeCodes,organIds,operMpiIds);
         List<String> recipeCodeList = recipeBeforeOrders.stream().map(RecipeBeforeOrder::getRecipeCode).collect(Collectors.toList());
         if(CollectionUtils.isNotEmpty(recipeBeforeOrders)){
             recipeBeforeOrders.forEach(recipeBeforeOrder -> {
