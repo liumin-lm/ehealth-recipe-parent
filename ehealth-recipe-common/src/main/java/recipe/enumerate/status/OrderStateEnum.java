@@ -28,6 +28,13 @@ public enum OrderStateEnum {
     SUB_ORDER_ORDER_PLACED(22, "已完成下单", ""),
 
     /**
+     * 订单子状态:处理中
+     */
+    SUB_ORDER_DELIVERED_MEDICINE(31,"待发药","请耐心等待发药"),
+    SUB_ORDER_DELIVERED(32,"配送中","药品已送出，请耐心等待"),
+    SUB_ORDER_TAKE_MEDICINE(33,"待取药","请尽快前往相关药房取药"),
+
+    /**
      * 订单子状态:已完成
      */
     SUB_DONE_DOWNLOAD(41,"下载处方笺",""),
