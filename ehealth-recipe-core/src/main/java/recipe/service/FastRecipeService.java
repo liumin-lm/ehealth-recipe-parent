@@ -193,6 +193,7 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
         fastRecipe.setEveryTcmNumFre(recipeExtend.getEveryTcmNumFre());
         fastRecipe.setDoctorIsDecoction(recipeExtend.getDoctorIsDecoction());
         fastRecipe.setNeedQuestionnaire(0);
+        fastRecipe.setRecipeMemo(recipe.getRecipeMemo());
         FastRecipe fastRecipeResult = fastRecipeDAO.save(fastRecipe);
 
         //2.保存药方详情

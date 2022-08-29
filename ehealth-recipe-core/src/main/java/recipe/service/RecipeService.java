@@ -921,22 +921,20 @@ public class RecipeService extends RecipeBaseService {
         Integer caType = caManager.caProcessType(recipe);
         try {
             String fileId = null;
-            DoctorDTO doctorDTOn = doctorService.getByDoctorId(recipe.getChecker());
-            if (null == doctorDTOn) {
+            DoctorDTO doctorDTO = doctorService.getByDoctorId(recipe.getChecker());
+            if (null == doctorDTO) {
                 LOGGER.warn("当前处方{}审核药师为空，请检查处方相关信息", recipeId);
                 return;
             }
             if (MapUtils.isNotEmpty(esignResponseMap)) {
-                LOGGER.info("reviewRecipe  esignService backMap:{} ,e=============", JSONUtils.toString(esignResponseMap));
+                LOGGER.info("reviewRecipe esignService esignResponseMap:{}", JSONUtils.toString(esignResponseMap));
                 //易签保返回0表示成功
                 Integer code = MapValueUtil.getInteger(esignResponseMap, "code");
                 if (new Integer(0).equals(code)) {
                     checkResult.setCode(RecipeResultBean.SUCCESS);
                 }
             } else {
-
-                if (resultVo != null && new Integer(200).equals(resultVo.getCode())) {
-
+                if (new Integer(200).equals(resultVo.getCode())) {
                     //date 202001013 修改非易签保流程下的pdf
                     boolean usePlatform = true;
                     Object recipeUsePlatformCAPDF = configService.getConfiguration(organId, "recipeUsePlatformCAPDF");
@@ -954,7 +952,7 @@ public class RecipeService extends RecipeBaseService {
                         // 是否需要跳过pdf渲染
                         if (!usePlatform) {
                             if (null == resultVo.getPdfBase64()) {
-                                LOGGER.warn("当前处方[}返回CA图片为空！", recipeId);
+                                LOGGER.warn("当前处方{}返回CA图片为空！", recipeId);
                             }
                             //只有当使用CApdf的时候才去赋值
                             pdfString = resultVo.getPdfBase64();
@@ -976,14 +974,14 @@ public class RecipeService extends RecipeBaseService {
                     smsInfo.setOrganId(0);
                     smsInfo.setBusType("PhaSignNotify");
                     smsInfo.setSmsType("PhaSignNotify");
-                    smsInfo.setExtendValue(doctorDTOn.getUrt() + "|" + recipeId + "|" + doctorDTOn.getLoginId());
+                    smsInfo.setExtendValue(doctorDTO.getUrt() + "|" + recipeId + "|" + doctorDTO.getLoginId());
                     smsPushService.pushMsgData2OnsExtendValue(smsInfo);
                     checkResult.setCode(RecipeResultBean.FAIL);
                 }
             }
 
         } catch (Exception e) {
-            LOGGER.error("reviewRecipe  signFile 标准化CA签章报错 recipeId={} ,doctor={} ,e=============", recipeId, recipe.getDoctor(), e);
+            LOGGER.error("reviewRecipe signFile 标准化CA签章报错 recipeId={}, doctor={}", recipeId, recipe.getDoctor(), e);
         }
 
         //首先判断当前ca是否是有结束结果的
