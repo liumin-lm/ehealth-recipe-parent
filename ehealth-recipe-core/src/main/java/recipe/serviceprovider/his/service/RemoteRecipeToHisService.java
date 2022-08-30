@@ -217,7 +217,7 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
     @Override
     public RecipeCommonResTO visitRegistSuccess(Integer consultId) {
         IHosrelationService hosrelationService = BaseAPI.getService(IHosrelationService.class);
-        HosrelationBean hosrelationBean = hosrelationService.getByBusIdAndBusType(consultId, BusTypeEnum.CONSULT.getId());
+        HosrelationBean hosrelationBean = hosrelationService.getByBusIdAndBusType(consultId, 100);
         RecipeCommonResTO response = new RecipeCommonResTO();
         response.setCode(RecipeCommonResTO.FAIL);
         if(null != hosrelationBean){
@@ -238,7 +238,7 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
     @Override
     public RecipeCommonResTO queryVisitStatus(Integer consultId) {
         IHosrelationService hosrelationService = BaseAPI.getService(IHosrelationService.class);
-        HosrelationBean hosrelationBean = hosrelationService.getByBusIdAndBusType(consultId, BusTypeEnum.CONSULT.getId());
+        HosrelationBean hosrelationBean = hosrelationService.getByBusIdAndBusType(consultId, 100);
         RecipeCommonResTO response = new RecipeCommonResTO();
         if(null != hosrelationBean){
             IVisitService hisService = AppDomainContext.getBean("his.visitService", IVisitService.class);
@@ -297,7 +297,7 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
     @Override
     public RecipeCommonResTO cancelVisit(Integer consultId) {
         IHosrelationService hosrelationService = BaseAPI.getService(IHosrelationService.class);
-        HosrelationBean hosrelationBean = hosrelationService.getByBusIdAndBusType(consultId, BusTypeEnum.CONSULT.getId());
+        HosrelationBean hosrelationBean = hosrelationService.getByBusIdAndBusType(consultId, 100);
         RecipeCommonResTO response = new RecipeCommonResTO();
         response.setCode(RecipeCommonResTO.FAIL);
         if(null != hosrelationBean) {

@@ -1032,7 +1032,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.info("obtainExpressFee error",e);
             return organLogisticsManageDto;
         }
         return organLogisticsManageDto;
