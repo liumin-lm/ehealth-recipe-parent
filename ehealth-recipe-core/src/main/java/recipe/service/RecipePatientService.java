@@ -57,6 +57,7 @@ import recipe.core.api.patient.IOfflineRecipeBusinessService;
 import recipe.core.api.patient.IPatientBusinessService;
 import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
+import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.enumerate.status.RecipeSourceTypeEnum;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
@@ -835,6 +836,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         Recipe recipe = ObjectCopyUtils.convert(recipeInfoVO.getRecipeBean(), Recipe.class);
         RecipeUtil.setDefaultData(recipe);
         recipe.setFastRecipeFlag(1);
+        recipe.setAuditState(RecipeAuditStateEnum.PASS.getType());
         recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType());
         recipe = recipeManager.saveRecipe(recipe);
         stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_ORDER, RecipeStateEnum.SUB_ORDER_READY_SUBMIT_ORDER);
