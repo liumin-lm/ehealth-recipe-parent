@@ -93,6 +93,7 @@ import recipe.util.LocalStringUtil;
 import recipe.util.MapValueUtil;
 
 import javax.annotation.Resource;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
@@ -1024,9 +1025,9 @@ public class RecipeOrderService extends RecipeBaseService {
                         ObjectMapper objectMapper=new ObjectMapper();
                         Map<String, Object> responseMap = objectMapper.readValue(expectPriceResult, Map.class);
                         if(null==responseMap||responseMap.isEmpty()){return organLogisticsManageDto;}
-                        List<Map<String, Object>> responseContentListMap = (List<Map<String, Object>>) responseMap.get("result");
-                        if(CollectionUtils.isEmpty(responseContentListMap)){return organLogisticsManageDto;}
-                        String price =  responseContentListMap.get(0).get("price")==null?"":String.valueOf(responseContentListMap.get(0).get("price"));
+                        Map<String, Object> responseContentListMap = (Map<String, Object>) responseMap.get("result");
+                        if(Objects.nonNull(responseContentListMap)){return organLogisticsManageDto;}
+                        String price =  responseContentListMap.get("price")==null?"":String.valueOf(responseContentListMap.get("price"));
                         order.setExpressFee(new BigDecimal(price));
                     }
                 }
