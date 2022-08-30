@@ -681,7 +681,7 @@ public class CreatePdfFactory {
         } else {
             organSealId = configurationClient.getValueCatch(recipe.getClinicOrgan(), OperationConstant.OP_CONFIG_PDF, "");
         }
-
+        logger.info("CreatePdfFactory createPdfService recipeId:{}, organSealId:{}", JSON.toJSONString(recipe), organSealId);
         CreatePdfService createPdfService;
         if (StringUtils.isNotEmpty(organSealId)) {
             createPdfService = customCreatePdfServiceImpl;
