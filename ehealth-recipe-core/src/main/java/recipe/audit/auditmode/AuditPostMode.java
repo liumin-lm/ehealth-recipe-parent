@@ -51,7 +51,8 @@ public class AuditPostMode extends AbstractAuditMode {
     }
 
     @Override
-    public void afterCheckNotPassYs(Recipe recipe) { recipeService.afterCheckNotPassYs(recipe);
+    public void afterCheckNotPassYs(Recipe recipe) {
+        recipeService.afterCheckNotPassYs(recipe);
     }
 
     @Override
