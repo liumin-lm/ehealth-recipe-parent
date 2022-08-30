@@ -191,5 +191,8 @@ public class FastRecipeGmAtop extends BaseAtop {
         return fastRecipeVOList;
     }
 
-
+    @RpcService
+    public void handleFastRecipeOldData(String paramName) {
+        fastRecipeService.handleFastRecipeOldData(paramName);
+    }
 }
