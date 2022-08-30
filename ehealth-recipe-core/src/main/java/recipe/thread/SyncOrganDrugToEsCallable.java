@@ -16,7 +16,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.util.StringUtils;
-import recipe.aop.LogRecord;
 import recipe.dao.DrugListDAO;
 import recipe.dao.OrganDrugListDAO;
 import recipe.util.LocalStringUtil;
@@ -52,7 +51,6 @@ public class SyncOrganDrugToEsCallable implements Callable<String> {
     }
 
     @Override
-    @LogRecord
     public String call() throws Exception {
         LOG.info("SyncOrganDrugToEsCallable start");
         long start = System.currentTimeMillis();
