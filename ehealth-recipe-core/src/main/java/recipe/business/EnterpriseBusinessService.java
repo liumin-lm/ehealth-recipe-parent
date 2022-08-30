@@ -323,7 +323,7 @@ public class EnterpriseBusinessService extends BaseService implements IDrugsEnte
     public CheckAddressRes checkEnterpriseDecoctionAddress(CheckAddressReq checkAddressReq) {
         CheckAddressRes checkAddressRes = new CheckAddressRes();
         Boolean sendFlag = false;
-        List<EnterpriseDecoctionAddress> enterpriseDecoctionAddressList = enterpriseDecoctionAddressDAO.findEnterpriseDecoctionAddressList(checkAddressReq.getOrganId(),
+        List<EnterpriseDecoctionAddress> enterpriseDecoctionAddressList = enterpriseDecoctionAddressDAO.findEnterpriseDecoctionAddressListAndStatus(checkAddressReq.getOrganId(),
                 checkAddressReq.getEnterpriseId(),
                 checkAddressReq.getDecoctionId());
         String checkAddress = checkAddressReq.getAddress3();

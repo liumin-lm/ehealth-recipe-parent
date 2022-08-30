@@ -1587,7 +1587,7 @@ public class RecipeService extends RecipeBaseService {
         recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), afterStatus, updateMap);
         afterCheckPassYs(dbRecipe);
         //date20200227 判断前置的时候二次签名成功，发对应的消息
-        if (ReviewTypeConstant.Preposition_Check == dbRecipe.getReviewType()) {
+        if (ReviewTypeConstant.Preposition_Check.equals(dbRecipe.getReviewType())) {
             auditModeContext.getAuditModes(dbRecipe.getReviewType()).afterCheckPassYs(dbRecipe);
         }
         docIndexClient.updateStatusByBussIdBussType(recipe.getRecipeId(), DocIndexShowEnum.SHOW.getCode());
@@ -1620,7 +1620,7 @@ public class RecipeService extends RecipeBaseService {
         RecipeOrder order = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
         //正常平台处方
         if (RecipeBussConstant.FROMFLAG_PLATFORM.equals(recipe.getFromflag())) {
-            if (ReviewTypeConstant.Postposition_Check == recipe.getReviewType()) {
+            if (ReviewTypeConstant.Postposition_Check.equals(recipe.getReviewType())) {
                 if (recipe.canMedicalPay()) {
                     //如果是可医保支付的单子，审核通过之后是变为待处理状态，需要用户支付完成才发往药企
                     RecipeServiceSub.sendRecipeTagToPatient(recipe, recipedetailList, null, true);
