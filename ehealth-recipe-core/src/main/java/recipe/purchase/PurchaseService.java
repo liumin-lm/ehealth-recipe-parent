@@ -1008,7 +1008,7 @@ public class PurchaseService {
                 } else {
                     stateManager.updateOrderState(recipeOrder.getOrderId(), OrderStateEnum.NONE, OrderStateEnum.NONE);
                     List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
-                    recipeIdList.forEach(recipeId->stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_ORDER, RecipeStateEnum.SUB_ORDER_HAD_SUBMIT_ORDER));
+                    recipeIdList.forEach(recipeId->stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_ORDER, RecipeStateEnum.SUB_ORDER_HAD_SUBMIT_ORDER));
                 }
             } else {
                 stateManager.updateOrderState(recipeOrder.getOrderId(), OrderStateEnum.PROCESS_STATE_READY_PAY, OrderStateEnum.SUB_READY_PAY_NONE);
