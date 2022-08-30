@@ -1,7 +1,6 @@
 package recipe.audit.auditmode;
 
 import com.alibaba.fastjson.JSON;
-import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
@@ -10,10 +9,6 @@ import com.ngari.recipe.entity.Recipedetail;
 import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
 import eh.cdr.constant.RecipeStatusConstant;
-import eh.recipeaudit.api.IRecipeAuditService;
-import eh.recipeaudit.model.recipe.RecipeDTO;
-import eh.recipeaudit.model.recipe.RecipeDetailDTO;
-import eh.recipeaudit.util.RecipeAuditAPI;
 import eh.wxpay.constant.PayConstant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,8 +27,6 @@ import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.SignImageTypeEnum;
-import recipe.enumerate.type.SupportModeTypeEnum;
-import recipe.manager.RecipeManager;
 import recipe.manager.StateManager;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeMsgService;
@@ -80,7 +73,7 @@ public abstract class AbstractAuditMode implements IAuditMode {
         //日志记录
         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), currentRecipe.getStatus(), memo);
         //发送消息--待审核或者待处理消息
-        RecipeMsgService.batchSendMsg(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_ORDER.getType());
+        RecipeMsgService.batchSendMsg(recipe.getRecipeId(), RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType());
         //处方审核
         startRecipeAuditProcess(recipe.getRecipeId());
     }
