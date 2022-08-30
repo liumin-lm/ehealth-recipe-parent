@@ -1026,7 +1026,8 @@ public class RecipeOrderService extends RecipeBaseService {
                         Map<String, Object> responseMap = objectMapper.readValue(expectPriceResult, Map.class);
                         if(null==responseMap||responseMap.isEmpty()){return organLogisticsManageDto;}
                         Map<String, Object> responseContentListMap = (Map<String, Object>) responseMap.get("result");
-                        if(Objects.nonNull(responseContentListMap)){return organLogisticsManageDto;}
+                        LOGGER.info("obtainExpressFee responseContentListMap:{}", JSON.toJSONString(responseContentListMap));
+                        if(null==responseContentListMap||responseContentListMap.isEmpty()){return organLogisticsManageDto;}
                         String price =  responseContentListMap.get("price")==null?"":String.valueOf(responseContentListMap.get("price"));
                         order.setExpressFee(new BigDecimal(price));
                     }
