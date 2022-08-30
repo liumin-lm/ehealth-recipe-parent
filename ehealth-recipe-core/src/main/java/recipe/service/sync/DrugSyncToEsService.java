@@ -3,7 +3,6 @@ package recipe.service.sync;
 import ctd.persistence.DAOFactory;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
-import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.dao.DrugListDAO;
@@ -11,9 +10,6 @@ import recipe.dao.OrganDrugListDAO;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.thread.SyncDrugToEsRunable;
 import recipe.thread.SyncOrganDrugToEsCallable;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author： 0184/yu_yun
@@ -72,7 +68,7 @@ public class DrugSyncToEsService {
         LOG.info("syncDrugList 同步数量-" + total);
         if (total > 0) {
             int time = (int) Math.ceil(total / Double.parseDouble(String.valueOf(ONCETIME_DEAL_NUM)));
-            List<SyncOrganDrugToEsCallable> callableList = new ArrayList<>(time);
+       //     List<SyncOrganDrugToEsCallable> callableList = new ArrayList<>(time);
             for (int i = 0; i < time; i++) {
                 int start = i * ONCETIME_DEAL_NUM;
                 int end = start + ONCETIME_DEAL_NUM;
@@ -80,16 +76,17 @@ public class DrugSyncToEsService {
                     end = (int) total;
                 }
                 LOG.info("syncOrganDrugList start={}, end={}", start, end);
-                callableList.add(new SyncOrganDrugToEsCallable(start, end));
+//                callableList.add(new SyncOrganDrugToEsCallable(start, end));
+                RecipeBusiThreadPool.submit(new SyncOrganDrugToEsCallable(start, end));
             }
 
-            if (CollectionUtils.isNotEmpty(callableList)) {
-                try {
-                    RecipeBusiThreadPool.submitList(callableList);
-                } catch (InterruptedException e) {
-                    LOG.error("syncOrganDrugList 线程池异常",e);
-                }
-            }
+//            if (CollectionUtils.isNotEmpty(callableList)) {
+//                try {
+//                    RecipeBusiThreadPool.submitList(callableList);
+//                } catch (InterruptedException e) {
+//                    LOG.error("syncOrganDrugList 线程池异常",e);
+//                }
+//            }
         }
 
         return total;
