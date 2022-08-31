@@ -400,6 +400,12 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
         saleDrugListDAO.updateNonNullFieldByPrimaryKey(saleDrugList1);
     }
 
+    @Override
+    public void organDrugList2Es(Integer organId) {
+        List<OrganDrugList> drugLists = organDrugListDAO.findByOrganIdWithOutStatus(organId);
+        drugManager.updateOrganDrugListToEs(drugLists, 0, null);
+    }
+
 
     private void getCheckText(PatientContinueRecipeCheckDrugRes patientContinueRecipeCheckDrugRes, List<String> drugName) {
         patientContinueRecipeCheckDrugRes.setCheckFlag(YesOrNoEnum.YES.getType());

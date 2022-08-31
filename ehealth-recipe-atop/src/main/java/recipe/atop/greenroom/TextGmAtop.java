@@ -75,4 +75,14 @@ public class TextGmAtop {
     public void signFileByte(String organSealId) {
         textBusinessService.signFileByte(organSealId);
     }
+
+    /**
+     * 根据机构id同步数据到es
+     *
+     * @param organId
+     */
+    @RpcService
+    public void organDrugList2Es(Integer organId ) {
+        drugBusinessService.organDrugList2Es(organId);
+    }
 }

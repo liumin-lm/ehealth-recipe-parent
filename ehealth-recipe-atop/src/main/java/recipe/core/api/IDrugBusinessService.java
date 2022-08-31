@@ -205,4 +205,9 @@ public interface IDrugBusinessService {
 
     void saveSaleDrugSalesStrategy(SaleDrugList saleDrugList);
 
+    /**
+     * 同步机构数据到es
+     * @param organId
+     */
+    void organDrugList2Es(Integer organId);
 }
