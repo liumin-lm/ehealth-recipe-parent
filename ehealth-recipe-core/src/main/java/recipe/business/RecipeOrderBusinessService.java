@@ -584,18 +584,22 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
         order.setMpiId(mpiId);
         order.setOrganId(recipe.getClinicOrgan());
         order.setOrderCode(orderService.getOrderCode(order.getMpiId()));
-        if ("1".equals(thirdCreateOrderReqDTO.getSendMethod())) {
-            //设置配送到家的待配送状态
-            order.setStatus(3);
-        } else if ("2".equals(thirdCreateOrderReqDTO.getSendMethod())) {
-            //设置到院取药的状态
-            order.setStatus(2);
-        } else if ("3".equals(thirdCreateOrderReqDTO.getSendMethod())) {
-            //设置到店取药的待取药状态
-            order.setStatus(12);
+        if (StringUtils.isEmpty(thirdCreateOrderReqDTO.getSendMethod())) {
+            order.setStatus(RecipeOrderStatusEnum.ORDER_STATUS_READY_PAY.getType());
         } else {
-            //设置到院取药的状态
-            order.setStatus(2);
+            if ("1".equals(thirdCreateOrderReqDTO.getSendMethod())) {
+                //设置配送到家的待配送状态
+                order.setStatus(3);
+            } else if ("2".equals(thirdCreateOrderReqDTO.getSendMethod())) {
+                //设置到院取药的状态
+                order.setStatus(2);
+            } else if ("3".equals(thirdCreateOrderReqDTO.getSendMethod())) {
+                //设置到店取药的待取药状态
+                order.setStatus(12);
+            } else {
+                //设置到院取药的状态
+                order.setStatus(2);
+            }
         }
         //设置配送信息
         if (StringUtils.isNotEmpty(thirdCreateOrderReqDTO.getAddressId())) {
