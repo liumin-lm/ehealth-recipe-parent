@@ -23,7 +23,7 @@ public class RecipeOrderDetailExportDTO implements Serializable {
     @ItemProperty(alias = "处方发起者id,用户标识")
     private String requestMpiId;
 
-    @ItemProperty(alias = "快捷购药处方标识 0 非快捷处方 1 快捷处方")
+    @ItemProperty(alias = "快捷购药处方标识： 0其他, 1快捷处方, 2方便门诊")
     private String fastRecipeFlag;
 
     @ItemProperty(alias = "订单号")
