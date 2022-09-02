@@ -166,6 +166,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @Autowired
     private RecipeDAO recipeDAO;
     @Autowired
+    private RecipeDetailDAO recipeDetailDAO;
+    @Autowired
     private DepartmentService departmentService;
     @Autowired
     private PatientService patientService;
@@ -1376,8 +1378,18 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
     @Override
     public List<RecipeBean> findByClinicId(Integer consultId) {
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        return ObjectCopyUtils.convert(recipeDAO.findByClinicId(consultId), RecipeBean.class);
+        List<RecipeBean> list = ObjectCopyUtils.convert(recipeDAO.findByClinicId(consultId), RecipeBean.class);
+        if (CollectionUtils.isEmpty(list)) {
+            return Collections.emptyList();
+        }
+        List<Integer> recipeIds = list.stream().map(RecipeBean::getRecipeId).collect(Collectors.toList());
+        List<Recipedetail> details = recipeDetailDAO.findByRecipeIds(recipeIds);
+        if (CollectionUtils.isEmpty(details)) {
+            return list;
+        }
+        Map<Integer, List<Recipedetail>> detailMap = details.stream().collect(Collectors.groupingBy(Recipedetail::getRecipeId));
+        list.forEach(a -> a.setRecipeDetailBeanList(ObjectCopyUtils.convert(detailMap.get(a.getRecipeId()), RecipeDetailBean.class)));
+        return list;
     }
 
     @Override
