@@ -30,10 +30,7 @@ import recipe.manager.*;
 import recipe.util.ByteUtils;
 import recipe.util.MapValueUtil;
 
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -76,6 +73,12 @@ public class CommonRecipeBusinessService extends BaseService implements ICommonR
         }
     }
 
+    @Override
+    public void refreshCommonValidateStatus(List<CommonRecipeDrugDTO> drugList) {
+        List<CommonRecipeDrug> commonDrugList = ObjectCopyUtils.convert(drugList, CommonRecipeDrug.class);
+        commonRecipeManager.refreshCommonValidateStatus(commonDrugList);
+    }
+
     /**
      * 删除常用方
      *
@@ -87,6 +90,63 @@ public class CommonRecipeBusinessService extends BaseService implements ICommonR
         commonRecipeManager.removeCommonRecipe(commonRecipeId);
     }
 
+    @Override
+    public List<CommonRecipe> commonRecipeListV2(Integer organId, Integer doctorId, List<Integer> recipeType, int start, int limit) {
+        List<CommonRecipe> list = commonRecipeManager.commonRecipeList(organId, doctorId, recipeType, start, limit);
+        if (CollectionUtils.isEmpty(list)) {
+            return Collections.emptyList();
+        }
+        //药房
+        Map<Integer, PharmacyTcm> pharmacyIdMap = pharmacyManager.pharmacyIdMap(organId);
+        list.forEach(a -> {
+            PharmacyTcm pharmacyTcm = PharmacyManager.pharmacyById(a.getPharmacyId(), pharmacyIdMap);
+            if (null != pharmacyTcm) {
+                a.setPharmacyCode(pharmacyTcm.getPharmacyCode());
+                a.setPharmacyName(pharmacyTcm.getPharmacyName());
+            }
+        });
+        return list;
+    }
+
+    @Override
+    public CommonDTO commonRecipeInfo(Integer commonRecipeId) {
+        CommonDTO commonDTO = new CommonDTO();
+        //常用方头部数据
+        CommonRecipe commonRecipe = commonRecipeManager.getByCommonRecipeId(commonRecipeId);
+        //药房
+        Map<Integer, PharmacyTcm> pharmacyIdMap = pharmacyManager.pharmacyIdMap(commonRecipe.getOrganId());
+        PharmacyTcm pharmacyTcm = PharmacyManager.pharmacyById(commonRecipe.getPharmacyId(), pharmacyIdMap);
+        if (null != pharmacyTcm) {
+            commonRecipe.setPharmacyCode(pharmacyTcm.getPharmacyCode());
+            commonRecipe.setPharmacyName(pharmacyTcm.getPharmacyName());
+        }
+        commonDTO.setCommonRecipeDTO(ObjectCopyUtils.convert(commonRecipe, CommonRecipeDTO.class));
+        //常用方扩展表数据
+        CommonRecipeExt commonRecipeExt = commonRecipeManager.commonRecipeExt(commonRecipeId);
+        commonDTO.setCommonRecipeExt(ObjectCopyUtils.convert(commonRecipeExt, CommonRecipeExtDTO.class));
+        //常用方药品，与机构药品关联返回
+        Map<Integer, List<com.ngari.recipe.dto.CommonRecipeDrugDTO>> commonDrugGroup = commonRecipeManager.commonDrugGroup(commonRecipe.getOrganId(), Collections.singletonList(commonRecipeId));
+        if (null != commonDrugGroup) {
+            List<com.ngari.recipe.dto.CommonRecipeDrugDTO> commonDrugList = commonDrugGroup.get(commonRecipeId);
+            if (CollectionUtils.isNotEmpty(commonDrugList)) {
+                List<CommonRecipeDrugDTO> commonRecipeDrugList = new LinkedList<>();
+                //药品名拼接配置
+                Map<String, Integer> configDrugNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getDrugNameConfigByDrugType(commonRecipe.getOrganId(), commonRecipe.getRecipeType()));
+                //药品商品名拼接配置
+                Map<String, Integer> configSaleNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getSaleNameConfigByDrugType(commonRecipe.getOrganId(), commonRecipe.getRecipeType()));
+                commonDrugList.forEach(item -> {
+                    //药品名历史数据处理---取实时的
+                    item.setDrugDisplaySplicedName(DrugDisplayNameProducer.getDrugName(item, configDrugNameMap, DrugNameDisplayUtil.getDrugNameConfigKey(commonRecipe.getRecipeType())));
+                    item.setDrugDisplaySplicedSaleName(DrugDisplayNameProducer.getDrugName(item, configSaleNameMap, DrugNameDisplayUtil.getSaleNameConfigKey(commonRecipe.getRecipeType())));
+                    CommonRecipeDrugDTO commonRecipeDrugDTO = ObjectCopyUtils.convert(item, CommonRecipeDrugDTO.class);
+                    commonRecipeDrugDTO.setUseDoseAndUnitRelation(RecipeUtil.defaultUseDose(item.getOrganDrugList()));
+                    commonRecipeDrugList.add(commonRecipeDrugDTO);
+                });
+                commonDTO.setCommonRecipeDrugList(commonRecipeDrugList);
+            }
+        }
+        return commonDTO;
+    }
 
     @Override
     public List<CommonDTO> commonRecipeList(Integer organId, Integer doctorId, List<Integer> recipeType, int start, int limit) {

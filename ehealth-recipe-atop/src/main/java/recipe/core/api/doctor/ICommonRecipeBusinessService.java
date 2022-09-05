@@ -2,7 +2,9 @@ package recipe.core.api.doctor;
 
 import com.ngari.recipe.commonrecipe.model.CommonDTO;
 import com.ngari.recipe.commonrecipe.model.CommonRecipeDTO;
+import com.ngari.recipe.commonrecipe.model.CommonRecipeDrugDTO;
 import com.ngari.recipe.dto.HisRecipeDTO;
+import com.ngari.recipe.entity.CommonRecipe;
 import com.ngari.recipe.recipe.model.RecipeBean;
 
 import java.util.List;
@@ -23,7 +25,28 @@ public interface ICommonRecipeBusinessService {
      * @param limit      分页条数
      * @return
      */
+    @Deprecated
     List<CommonDTO> commonRecipeList(Integer organId, Integer doctorId, List<Integer> recipeType, int start, int limit);
+
+    /**
+     * 获取常用方列表
+     *
+     * @param recipeType 处方类型
+     * @param doctorId   医生id
+     * @param organId    机构id
+     * @param start      开始
+     * @param limit      分页条数
+     * @return
+     */
+    List<CommonRecipe> commonRecipeListV2(Integer organId, Integer doctorId, List<Integer> recipeType, int start, int limit);
+
+    /**
+     * 获取常用方详情
+     *
+     * @param commonRecipeId 常用方id
+     * @return
+     */
+    CommonDTO commonRecipeInfo(Integer commonRecipeId);
 
     /**
      * 新增或更新常用方
@@ -31,6 +54,13 @@ public interface ICommonRecipeBusinessService {
      * @param common 常用方集合对象
      */
     void saveCommonRecipe(CommonDTO common);
+
+    /**
+     * 刷新常用方校验状态
+     *
+     * @param drugList 常用方药品
+     */
+    void refreshCommonValidateStatus(List<CommonRecipeDrugDTO> drugList);
 
     /**
      * 删除常用方
@@ -74,4 +104,6 @@ public interface ICommonRecipeBusinessService {
      * @return
      */
     HisRecipeDTO offlineCommonV1(Integer organId, String commonRecipeCode);
+
+
 }

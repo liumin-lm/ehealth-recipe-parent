@@ -1,7 +1,9 @@
 package recipe.manager;
 
 import com.alibaba.fastjson.JSON;
+import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.PharmacyTcm;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -58,6 +60,29 @@ public class PharmacyManager extends BaseManager {
         return pharmacyId;
     }
 
+
+    /**
+     * 校验药品药房是否变动
+     *
+     * @param pharmacyId    预比对药房id
+     * @param organPharmacy 机构药房id
+     * @return true 不一致
+     */
+    public Boolean pharmacyVariationV1(Integer pharmacyId, String organPharmacy) {
+        if (ValidateUtil.integerIsEmpty(pharmacyId) && StringUtils.isNotEmpty(organPharmacy)) {
+            return true;
+        }
+        if (!ValidateUtil.integerIsEmpty(pharmacyId) && StringUtils.isEmpty(organPharmacy)) {
+            return true;
+        }
+        if (!ValidateUtil.integerIsEmpty(pharmacyId) && StringUtils.isNotEmpty(organPharmacy) &&
+                !Arrays.asList(organPharmacy.split(ByteUtils.COMMA)).contains(String.valueOf(pharmacyId))) {
+            return true;
+        }
+        return false;
+    }
+
+
     /**
      * 药房信息
      *
@@ -107,5 +132,37 @@ public class PharmacyManager extends BaseManager {
         return pharmacyTcm;
     }
 
+    /**
+     * 获取机构药品最大匹配药房id
+     *
+     * @param organId           机构id
+     * @param organDrugCodeList 机构药品code
+     * @return
+     */
+    public Integer organDrugPharmacyId(Integer organId, List<String> organDrugCodeList) {
+        Map<Integer, PharmacyTcm> pharmacyIdMap = this.pharmacyIdMap(organId);
+        if (null == pharmacyIdMap) {
+            return null;
+        }
+        int pharmacyId = 0;
+        List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugCodes(organId, organDrugCodeList);
+        List<String> pharmacyList = organDrugList.stream().map(OrganDrugList::getPharmacy).filter(StringUtils::isNotEmpty).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(pharmacyList)) {
+            return pharmacyId;
+        }
+        List<String> pharmacyIds = pharmacyList.stream().map(a -> Arrays.asList(a.split(ByteUtils.COMMA))).flatMap(Collection::stream).collect(Collectors.toList());
+        Map<String, List<String>> pharmacyMap = pharmacyIds.stream().collect(Collectors.groupingBy(String::valueOf));
 
+        int i = 0;
+        for (String key : pharmacyMap.keySet()) {
+            if (null == pharmacyIdMap.get(Integer.valueOf(key))) {
+                continue;
+            }
+            if (pharmacyMap.get(key).size() > i) {
+                i = pharmacyMap.get(key).size();
+                pharmacyId = Integer.valueOf(key);
+            }
+        }
+        return pharmacyId;
+    }
 }

@@ -72,11 +72,15 @@ public class CommonRecipeDTO implements Serializable {
     @ItemProperty(alias = "机构的用法代码名称")
     private String organUsePathwaysName;
 
-    
+
     @ItemProperty(alias = "药品列表")
     @Deprecated
     private List<CommonRecipeDrugDTO> commonDrugList;
     @ItemProperty(alias = "常用方扩展信息")
     @Deprecated
     private CommonRecipeExtDTO commonRecipeExt;
+
+
+    @ItemProperty(alias = "返回药品状态 0:正常，1已失效，2未完善")
+    private Integer validateStatus;
 }

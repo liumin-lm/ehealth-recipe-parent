@@ -5,23 +5,25 @@ import com.google.common.collect.Lists;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.commonrecipe.model.CommonDTO;
 import com.ngari.recipe.commonrecipe.model.CommonRecipeDTO;
+import com.ngari.recipe.commonrecipe.model.CommonRecipeDrugDTO;
 import com.ngari.recipe.dto.HisRecipeDTO;
 import com.ngari.recipe.dto.HisRecipeInfoDTO;
+import com.ngari.recipe.entity.CommonRecipe;
 import com.ngari.recipe.recipe.model.HisRecipeBean;
 import com.ngari.recipe.recipe.model.HisRecipeDetailBean;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeExtendBean;
-import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
-import recipe.constant.ErrorCode;
 import recipe.core.api.doctor.ICommonRecipeBusinessService;
 import recipe.util.ValidateUtil;
 
 import java.sql.Timestamp;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -48,27 +50,17 @@ public class CommonRecipeDoctorAtop extends BaseAtop {
     @RpcService
     @Deprecated
     public List<CommonRecipeDTO> commonRecipeList(Integer organId, Integer doctorId, List<Integer> recipeType, int start, int limit) {
-        logger.info("CommonRecipeAtop commonRecipeList organId = {},doctorId = {},recipeType = {},start = {},limit = {}"
-                , organId, doctorId, recipeType, start, limit);
         validateAtop(doctorId, organId);
-        try {
-            List<CommonDTO> resultNew = commonRecipeService.commonRecipeList(organId, doctorId, recipeType, start, limit);
-            logger.info("CommonRecipeAtop commonRecipeList resultNew = {}", JSON.toJSONString(resultNew));
-            List<CommonRecipeDTO> result = new LinkedList<>();
-            resultNew.forEach(a -> {
-                CommonRecipeDTO commonRecipeDTO = a.getCommonRecipeDTO();
-                commonRecipeDTO.setCommonRecipeExt(a.getCommonRecipeExt());
-                commonRecipeDTO.setCommonDrugList(a.getCommonRecipeDrugList());
-                result.add(commonRecipeDTO);
-            });
-            return result;
-        } catch (DAOException e1) {
-            logger.warn("CommonRecipeAtop commonRecipeList error", e1);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
-        } catch (Exception e) {
-            logger.error("CommonRecipeAtop commonRecipeList error", e);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
-        }
+        List<CommonDTO> resultNew = commonRecipeService.commonRecipeList(organId, doctorId, recipeType, start, limit);
+        logger.info("CommonRecipeAtop commonRecipeList resultNew = {}", JSON.toJSONString(resultNew));
+        List<CommonRecipeDTO> result = new LinkedList<>();
+        resultNew.forEach(a -> {
+            CommonRecipeDTO commonRecipeDTO = a.getCommonRecipeDTO();
+            commonRecipeDTO.setCommonRecipeExt(a.getCommonRecipeExt());
+            commonRecipeDTO.setCommonDrugList(a.getCommonRecipeDrugList());
+            result.add(commonRecipeDTO);
+        });
+        return result;
     }
 
     /**
@@ -82,12 +74,44 @@ public class CommonRecipeDoctorAtop extends BaseAtop {
      * @return 常用方列表
      */
     @RpcService
+    @Deprecated
     public List<CommonDTO> commonRecipeListV1(Integer organId, Integer doctorId, List<Integer> recipeType, int start, int limit) {
-        logger.info("CommonRecipeAtop commonRecipeListV1 organId = {},doctorId = {},recipeType = {},start = {},limit = {}"
-                , organId, doctorId, recipeType, start, limit);
         validateAtop(doctorId, organId);
         return commonRecipeService.commonRecipeList(organId, doctorId, recipeType, start, limit);
     }
+
+    /**
+     * 获取常用方列表
+     *
+     * @param recipeType 处方类型
+     * @param doctorId   医生id
+     * @param organId    机构id
+     * @param start      开始
+     * @param limit      分页条数
+     * @return 常用方列表
+     */
+    @RpcService
+    public List<CommonRecipeDTO> commonRecipeListV2(Integer organId, Integer doctorId, List<Integer> recipeType, int start, int limit) {
+        validateAtop(doctorId, organId);
+        List<CommonRecipe> list = commonRecipeService.commonRecipeListV2(organId, doctorId, recipeType, start, limit);
+        if (CollectionUtils.isEmpty(list)) {
+            return Collections.emptyList();
+        }
+        return ObjectCopyUtils.convert(list, CommonRecipeDTO.class);
+    }
+
+    /**
+     * 获取常用方详情
+     *
+     * @param commonRecipeId 常用方id
+     * @return
+     */
+    @RpcService
+    public CommonDTO commonRecipeInfo(Integer commonRecipeId) {
+        validateAtop(commonRecipeId);
+        return commonRecipeService.commonRecipeInfo(commonRecipeId);
+    }
+
 
     /**
      * 新增或更新常用方  选好药品后将药品加入到常用处方
@@ -96,20 +120,22 @@ public class CommonRecipeDoctorAtop extends BaseAtop {
      */
     @RpcService
     public void saveCommonRecipe(CommonDTO common) {
-        logger.info("CommonRecipeAtop addCommonRecipe common = {}", JSON.toJSONString(common));
         validateAtop("常用方必填参数为空", common, common.getCommonRecipeDTO(), common.getCommonRecipeDrugList());
         CommonRecipeDTO commonRecipe = common.getCommonRecipeDTO();
         validateAtop("常用方必填参数为空", commonRecipe.getDoctorId(), commonRecipe.getRecipeType(), commonRecipe.getCommonRecipeType(), commonRecipe.getCommonRecipeName());
+        commonRecipeService.saveCommonRecipe(common);
+    }
 
-        try {
-            commonRecipeService.saveCommonRecipe(common);
-        } catch (DAOException e1) {
-            logger.warn("CommonRecipeAtop addCommonRecipe error", e1);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
-        } catch (Exception e) {
-            logger.error("CommonRecipeAtop addCommonRecipe error", e);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
-        }
+    /**
+     * 刷新常用方校验状态
+     *
+     * @param drugList 常用方药品
+     */
+    @RpcService
+    public void refreshCommonValidateStatus(List<CommonRecipeDrugDTO> drugList) {
+        validateAtop(drugList);
+        drugList.forEach(a -> validateAtop(a.getCommonRecipeId(), a.getId()));
+        commonRecipeService.refreshCommonValidateStatus(drugList);
     }
 
     /**
@@ -119,17 +145,9 @@ public class CommonRecipeDoctorAtop extends BaseAtop {
      */
     @RpcService
     public void deleteCommonRecipe(Integer commonRecipeId) {
-        logger.info("CommonRecipeAtop deleteCommonRecipe commonRecipeId = {}", commonRecipeId);
         validateAtop(commonRecipeId);
-        try {
-            commonRecipeService.deleteCommonRecipe(commonRecipeId);
-        } catch (DAOException e1) {
-            logger.warn("CommonRecipeAtop deleteCommonRecipe error", e1);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
-        } catch (Exception e) {
-            logger.error("CommonRecipeAtop deleteCommonRecipe error", e);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
-        }
+        commonRecipeService.deleteCommonRecipe(commonRecipeId);
+
     }
 
     /**
@@ -145,9 +163,7 @@ public class CommonRecipeDoctorAtop extends BaseAtop {
     @Deprecated
     public List<CommonDTO> offlineCommon(Integer organId, Integer doctorId) {
         validateAtop(doctorId, organId);
-        List<CommonDTO> result = commonRecipeService.offlineCommon(organId, doctorId);
-        logger.info("CommonRecipeAtop offlineCommon result = {}", JSON.toJSONString(result));
-        return result;
+        return commonRecipeService.offlineCommon(organId, doctorId);
 
     }
 
@@ -161,19 +177,8 @@ public class CommonRecipeDoctorAtop extends BaseAtop {
     @RpcService
     @Deprecated
     public List<String> batchAddOfflineCommon(Integer organId, List<CommonDTO> commonList) {
-        logger.info("CommonRecipeAtop addOfflineCommon commonList = {}", JSON.toJSONString(commonList));
         validateAtop(organId, commonList);
-        try {
-            List<String> result = commonRecipeService.addOfflineCommon(organId, commonList);
-            logger.info("CommonRecipeAtop addOfflineCommon result = {}", result);
-            return result;
-        } catch (DAOException e1) {
-            logger.warn("CommonRecipeAtop addOfflineCommon error", e1);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
-        } catch (Exception e) {
-            logger.error("CommonRecipeAtop addOfflineCommon error", e);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
-        }
+        return commonRecipeService.addOfflineCommon(organId, commonList);
     }
 
     /**
