@@ -251,6 +251,11 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "终端类型 1 自助机")
     private Integer terminalType;
 
+    /**
+     * his订单编号(邵逸夫)
+     */
+    private String hisOrderCode;
+
     @Column(name = "terminal_id")
     public String getTerminalId() {
         return terminalId;
@@ -981,5 +986,14 @@ public class RecipeExtend implements Serializable {
 
     public void setMedicineCode(String medicineCode) {
         this.medicineCode = medicineCode;
+    }
+
+    @Column(name = "his_order_code")
+    public String getHisOrderCode() {
+        return hisOrderCode;
+    }
+
+    public void setHisOrderCode(String hisOrderCode) {
+        this.hisOrderCode = hisOrderCode;
     }
 }

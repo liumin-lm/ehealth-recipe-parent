@@ -85,6 +85,7 @@ public class HisCallBackService {
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         Map<String, Object> extendMap = new HashedMap();
         extendMap.put("recipeCostNumber", result.getRecipeCostNumber());
+        extendMap.put("hisOrderCode", result.getHisOrderCode());
         // 将取药窗口更新到ext表
         extendMap.put("pharmNo", result.getPharmNo());
         recipeExtendDAO.updateRecipeExInfoByRecipeId(Integer.valueOf(result.getRecipeId()), extendMap);

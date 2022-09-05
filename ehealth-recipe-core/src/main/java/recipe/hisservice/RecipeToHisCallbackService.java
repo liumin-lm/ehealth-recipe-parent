@@ -79,6 +79,7 @@ public class RecipeToHisCallbackService {
             RecipeCheckPassResult result = new RecipeCheckPassResult();
             //以下数据取第一个数据是因为这些数据是处方相关的
             String recipeNo = repList.get(0).getRecipeNo();
+            String hisOrderCode = response.getYbid();
             String patientId = repList.get(0).getPatientID();
             String amount = repList.get(0).getAmount();
             String registerId = repList.get(0).getRegisterID();
@@ -135,6 +136,7 @@ public class RecipeToHisCallbackService {
             result.setRecipeCostNumber(recipeCostNumber);
             result.setRecipeId(Integer.valueOf(response.getRecipeId()));
             result.setRecipeCode(recipeNo);
+            result.setHisOrderCode(hisOrderCode);
             result.setPatientID(patientId);
             result.setRegisterID(registerId);
             result.setMedicalType(medicalType);

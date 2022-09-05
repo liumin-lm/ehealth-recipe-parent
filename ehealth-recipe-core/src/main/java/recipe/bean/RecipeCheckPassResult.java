@@ -93,6 +93,11 @@ public class RecipeCheckPassResult {
     @ItemProperty(alias = "0：默认(未写入)，1：写入中，2：写入失败，3：写入成功")
     private Integer writeHisState;
 
+    /**
+     * his订单编号(邵逸夫)
+     */
+    private String hisOrderCode;
+
     public Integer getWriteHisState() {
         return writeHisState;
     }
@@ -220,5 +225,13 @@ public class RecipeCheckPassResult {
 
     public void setMedicalRecordNumber(String medicalRecordNumber) {
         this.medicalRecordNumber = medicalRecordNumber;
+    }
+
+    public String getHisOrderCode() {
+        return hisOrderCode;
+    }
+
+    public void setHisOrderCode(String hisOrderCode) {
+        this.hisOrderCode = hisOrderCode;
     }
 }
