@@ -1152,7 +1152,7 @@ public class RecipeService extends RecipeBaseService {
                 }
             } else {
                 if (StringUtils.isEmpty(recipeBean.getRecipeSupportGiveMode())) {
-                    throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, "无够药方式");
+                    throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, "无购药方式");
                 }
             }
 
