@@ -168,4 +168,7 @@ public class CommonRecipeDrugDTO implements java.io.Serializable {
 
     @ItemProperty(alias = "不可在线开具:开关，默认关闭(0),开启（1）")
     private Integer unavailable;
+    @ItemProperty(alias = "返回药品状态 0:正常，1已失效，2未完善")
+    private Integer validateStatus;
+
 }

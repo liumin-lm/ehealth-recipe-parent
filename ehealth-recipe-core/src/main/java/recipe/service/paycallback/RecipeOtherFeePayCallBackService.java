@@ -10,19 +10,15 @@ import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.converter.ConversionUtils;
 import eh.entity.bus.Order;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import recipe.enumerate.type.PayBusTypeEnum;
 import recipe.enumerate.type.PayFlagEnum;
 import recipe.enumerate.type.PayFlowTypeEnum;
 import recipe.manager.OrderManager;
 import recipe.manager.RecipeManager;
 import recipe.manager.RecipeOrderPayFlowManager;
 import recipe.service.RecipeOrderService;
-import recipe.serviceprovider.recipeorder.service.RemoteRecipeOrderService;
 
 import java.util.List;
 import java.util.Map;
@@ -44,13 +40,11 @@ public class RecipeOtherFeePayCallBackService implements IRecipeOtherFeePayCallB
     private RecipeOrderPayFlowManager recipeOrderPayFlowManager;
 
     @Autowired
-    private RecipeOrderService orderService;
+    private RecipeOrderService recipeOrderService;
 
     @Autowired
     private RecipeManager recipeManager;
 
-    @Autowired
-    private RemoteRecipeOrderService recipeOrderService;
 
     @Override
     public boolean doHandleAfterPay(PayResultDTO payResult) {
@@ -111,7 +105,7 @@ public class RecipeOtherFeePayCallBackService implements IRecipeOtherFeePayCallB
                     default:
                         break;
                 }
-                orderService.finishOrderPay(order.getOrderCode(), PayFlagEnum.PAYED.getType(), payMode);
+                recipeOrderService.finishOrderPay(order.getOrderCode(), PayFlagEnum.PAYED.getType(), payMode);
             }
         });
 

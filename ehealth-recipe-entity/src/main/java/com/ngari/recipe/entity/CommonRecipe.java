@@ -39,12 +39,6 @@ public class CommonRecipe implements Serializable{
     @ItemProperty(alias = "处方类型")
     @Dictionary(id = "eh.cdr.dictionary.RecipeType")
     private Integer recipeType;
-//
-//    @ItemProperty(alias = "创建时间")
-//    private Date createDt;
-//
-//    @ItemProperty(alias = "最后修改时间")
-//    private Date lastModify;
 
     @ItemProperty(alias = "机构代码")
     private Integer organId;
@@ -59,10 +53,21 @@ public class CommonRecipe implements Serializable{
     @ItemProperty(alias = "是否是长处方")
     private String isLongRecipe;
 
-
     //开当前处方的配置项信息
     @ItemProperty(alias = "可开长处方按钮状态、长处方开药天数、非长处方开药天数")
     private String recipeJsonConfig;
+
+    @ItemProperty(alias = "返回药品状态 0:正常，1已失效，2未完善")
+    private Integer validateStatus;
+
+    @Column(name = "validate_status")
+    public Integer getValidateStatus() {
+        return validateStatus;
+    }
+
+    public void setValidateStatus(Integer validateStatus) {
+        this.validateStatus = validateStatus;
+    }
 
 
     @Column(name = "pharmacyCode")
@@ -129,24 +134,6 @@ public class CommonRecipe implements Serializable{
     public void setCommonRecipeName(String commonRecipeName) {
         this.commonRecipeName = commonRecipeName;
     }
-//
-//    @Column(name = "CreateDt", length = 19)
-//    public Date getCreateDt() {
-//        return createDt;
-//    }
-//
-//    public void setCreateDt(Date createDt) {
-//        this.createDt = createDt;
-//    }
-//
-//    @Column(name = "LastModify", length = 19)
-//    public Date getLastModify() {
-//        return lastModify;
-//    }
-//
-//    public void setLastModify(Date lastModify) {
-//        this.lastModify = lastModify;
-//    }
 
     public String getRecipeJsonConfig() {
         return recipeJsonConfig;

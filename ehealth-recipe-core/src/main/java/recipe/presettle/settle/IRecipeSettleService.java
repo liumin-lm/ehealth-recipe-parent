@@ -22,5 +22,5 @@ public interface IRecipeSettleService {
      * @param recipe
      * @param result
      */
-    void doRecipeSettleResponse(PayNotifyResTO res, Recipe recipe, RecipeResultBean result);
+    Boolean doRecipeSettleResponse(PayNotifyResTO res, Recipe recipe, RecipeResultBean result);
 }

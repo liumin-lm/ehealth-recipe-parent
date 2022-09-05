@@ -37,11 +37,12 @@ public class CashSettleService implements IRecipeSettleService {
     }
 
     @Override
-    public void doRecipeSettleResponse(PayNotifyResTO response, Recipe recipe, RecipeResultBean result) {
+    public Boolean doRecipeSettleResponse(PayNotifyResTO response, Recipe recipe, RecipeResultBean result) {
+        Boolean settleFlag = true;
         if (response == null){
             //非医保结算前置机返回null可能未对接接口
             LOGGER.error("payNotify 前置机未返回null，可能未对接结算接口");
-            return;
+            return settleFlag;
         }
         if (response.getMsgCode() == 0) {
             //结算成功
@@ -55,6 +56,7 @@ public class CashSettleService implements IRecipeSettleService {
             }
 
         } else if (response.getMsgCode() != 0) {
+            settleFlag = false;
             //前置机返回结算失败
             if (result != null){
                 result.setCode(RecipeResultBean.FAIL);
@@ -67,5 +69,6 @@ public class CashSettleService implements IRecipeSettleService {
             HisCallBackService.havePayFail(recipe.getRecipeId());
             RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "支付完成结算失败，his返回原因：" + response.getMsg());
         }
+        return settleFlag;
     }
 }

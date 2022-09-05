@@ -47,6 +47,7 @@ import recipe.drugsenterprise.paymodeonlineshowdep.PayModeOnlineShowDepServicePr
 import recipe.enumerate.status.OrderStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.status.SettleAmountStateEnum;
+import recipe.enumerate.status.YesOrNoEnum;
 import recipe.hisservice.RecipeToHisService;
 import recipe.manager.EnterpriseManager;
 import recipe.manager.OrderManager;
@@ -86,6 +87,8 @@ public class PayModeOnline implements IPurchaseService {
     private PatientClient patientClient;
     @Autowired
     private StateManager stateManager;
+    @Autowired
+    private OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO;
 
     @Override
     public RecipeResultBean findSupportDepList(Recipe dbRecipe, Map<String, String> extInfo) {
@@ -193,6 +196,16 @@ public class PayModeOnline implements IPurchaseService {
         Integer logisticsCompany = MapValueUtil.getInteger(extInfo, "logisticsCompany");
         Integer takeMedicineWay = MapValueUtil.getInteger(extInfo, "takeMedicineWay");
         Integer templateId = MapValueUtil.getInteger(extInfo, "invoiceRecordId");
+        Integer patientIsDecoction = MapValueUtil.getInteger(extInfo, "patientIsDecoction");
+        // 检验是中药处方
+        List<Integer> list = recipeList.stream().map(Recipe::getRecipeType).collect(Collectors.toList());
+        if (list.contains(RecipeBussConstant.RECIPETYPE_TCM)) {
+            // 中药处方代煎需要校验药企是否支持配送代煎
+            OrganAndDrugsepRelation relation = organAndDrugsepRelationDAO.getOrganAndDrugsepByOrganIdAndEntId(recipeList.get(0).getClinicOrgan(), depId);
+            if (Objects.nonNull(relation.getSupportDecoctionType()) && !relation.getSupportDecoctionType().equals(patientIsDecoction)) {
+                throw new DAOException(609, "当前代煎类型不支持该购药方式，请换一种购药方式");
+            }
+        }
 
         if (StringUtils.isNotEmpty(insuredArea)) {
             for (Recipe recipe : recipeList) {

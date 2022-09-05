@@ -72,6 +72,7 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
@@ -123,6 +124,8 @@ public class RecipeServiceSub {
 
     private static final String UNCHECK = "uncheck";
 
+    private static final String REVISIT_SOURCE_FBMZ = "fz-fbmz-001";
+
     private static CaManager caManager = AppContextHolder.getBean("caManager", CaManager.class);
     private static HisRecipeManager hisRecipeManager = AppContextHolder.getBean("hisRecipeManager", HisRecipeManager.class);
 
@@ -165,6 +168,10 @@ public class RecipeServiceSub {
     private static IRevisitHosRecordService iRevisitHosRecordService = AppContextHolder.getBean("revisit.revisitHosRecordApiService", IRevisitHosRecordService.class);
 
     private static IConfigurationClient configurationClient = AppContextHolder.getBean("IConfigurationClient", IConfigurationClient.class);
+
+    @Autowired
+    private RevisitClient revisitClient;
+
     /**
      * @param recipeBean
      * @param detailBeanList
@@ -255,10 +262,15 @@ public class RecipeServiceSub {
             //根据业务id 保存就诊卡号和就诊卡类型
             if (null != recipeBean.getClinicId()) {
                 if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipeBean.getBussSource())) {
+                    RevisitBean revisitBean = revisitClient.getRevisitByClinicId(recipeBean.getClinicId());
                     RevisitExDTO revisitExDTO = iRevisitExService.getByConsultId(recipeBean.getClinicId());
                     HosRecordDTO hosRecordDTO = iRevisitHosRecordService.getByConsultId(recipeBean.getClinicId());
                     LOGGER.info("iRevisitExService.getByConsultId:{}", JSONUtils.toString(revisitExDTO));
                     if (null != revisitExDTO) {
+                        String sourceTag = revisitBean.getSourceTag();
+                        if (StringUtils.isNotEmpty(sourceTag) && REVISIT_SOURCE_FBMZ.equals(sourceTag)) {
+                            recipeBean.setFastRecipeFlag(2);
+                        }
                         recipeExtend.setCardNo(revisitExDTO.getCardId());
                         recipeExtend.setCardType(revisitExDTO.getCardType());
                         recipeExtend.setRegisterID(revisitExDTO.getRegisterNo());
@@ -267,7 +279,7 @@ public class RecipeServiceSub {
                         recipeExtend.setIllnessType(revisitExDTO.getDbType());
                         recipeExtend.setIllnessName(revisitExDTO.getDbTypeName());
                         recipeExtend.setTerminalId(revisitExDTO.getSelfServiceMachineNo());
-                        if(StringUtils.isNotEmpty(recipeExtend.getTerminalId())){
+                        if (StringUtils.isNotEmpty(recipeExtend.getTerminalId())) {
                             recipeExtend.setTerminalType(1);
                         }
                         if (new Integer(6).equals(recipeChooseChronicDisease)) {
@@ -278,7 +290,7 @@ public class RecipeServiceSub {
                             }
                         }
                     }
-                    if(null != hosRecordDTO){
+                    if (null != hosRecordDTO) {
                         recipeExtend.setSideCourtYardType(hosRecordDTO.getType());
                     }
                 } else if (RecipeBussConstant.BUSS_SOURCE_WZ.equals(recipeBean.getBussSource())) {
