@@ -72,10 +72,7 @@ import recipe.dao.bean.DrugInfoHisBean;
 import recipe.drugsenterprise.AccessDrugEnterpriseService;
 import recipe.drugsenterprise.CommonRemoteService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
-import recipe.enumerate.status.RecipeStateEnum;
-import recipe.enumerate.status.RecipeStatusEnum;
-import recipe.enumerate.status.SettleAmountStateEnum;
-import recipe.enumerate.status.WriteHisEnum;
+import recipe.enumerate.status.*;
 import recipe.enumerate.type.PayFlagEnum;
 import recipe.hisservice.HisRequestInit;
 import recipe.hisservice.RecipeToHisCallbackService;
@@ -142,6 +139,8 @@ public class RecipeHisService extends RecipeBaseService {
     private PayClient payClient;
     @Autowired
     private StateManager stateManager;
+    @Autowired
+    private RecipeOrderDAO orderDAO;
 
     /**
      * 发送处方
@@ -468,8 +467,8 @@ public class RecipeHisService extends RecipeBaseService {
             if (RecipeResultBean.SUCCESS.equals(result.getCode()) && 1 == payFlag) {
                 //处理处方结算
                 canDrugTakeChange = doRecipeSettle(recipe, patientBean, cardBean, result);
+                updateState(canDrugTakeChange,recipe);
             }
-
             if (canDrugTakeChange) {
                 DrugTakeChangeReqTO request = HisRequestInit.initDrugTakeChangeReqTO(recipe, details, patientBean, cardBean);
                 LOGGER.info("drugTakeChange 请求参数:{}.", JSONUtils.toString(request));
@@ -499,6 +498,41 @@ public class RecipeHisService extends RecipeBaseService {
     }
 
     /**
+     * 修改处方订单 新状态
+     * @param canDrugTakeChange
+     * @param recipe
+     */
+    private void updateState(boolean canDrugTakeChange,Recipe recipe){
+        // 结算成功后状态流转到待取药或待发药
+        RecipeStateEnum processStateDispensing = null;
+        RecipeStateEnum subStateDispensing = null;
+        OrderStateEnum processStateOrder = null;
+        if (canDrugTakeChange) {
+            switch (GiveModeEnum.getGiveModeEnum(recipe.getGiveMode())) {
+                case GIVE_MODE_HOME_DELIVERY:
+                    processStateDispensing = RecipeStateEnum.PROCESS_STATE_DISPENSING;
+                    subStateDispensing = RecipeStateEnum.SUB_ORDER_DELIVERED_MEDICINE;
+                    processStateOrder = OrderStateEnum.SUB_ORDER_DELIVERED_MEDICINE;
+                    break;
+                case GIVE_MODE_HOSPITAL_DRUG:
+                case GIVE_MODE_PHARMACY_DRUG:
+                    processStateDispensing = RecipeStateEnum.PROCESS_STATE_MEDICINE;
+                    subStateDispensing = RecipeStateEnum.SUB_ORDER_TAKE_MEDICINE;
+                    processStateOrder = OrderStateEnum.SUB_ORDER_TAKE_MEDICINE;
+                    break;
+            }
+            if(Objects.isNull(processStateDispensing)){
+                return;
+            }
+            stateManager.updateRecipeState(recipe.getRecipeId(), processStateDispensing, subStateDispensing);
+            RecipeOrder order = orderDAO.getByOrderCode(recipe.getOrderCode());
+            if (Objects.nonNull(order)) {
+                stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_ORDER, processStateOrder);
+
+            }
+        }
+    }
+    /**
      * @param recipe
      * @param patientBean
      * @param cardBean
@@ -506,6 +540,7 @@ public class RecipeHisService extends RecipeBaseService {
      * @return 是否走更新配送信息接口
      */
     private boolean doRecipeSettle(Recipe recipe, PatientBean patientBean, HealthCardBean cardBean, RecipeResultBean result) {
+        Boolean settleFlag = true;
         //调用前置机结算支持两种方式---配送到家和药店取药
         // 到院取药线上支付
         if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(recipe.getGiveMode()) || RecipeBussConstant.GIVEMODE_TFDS.equals(recipe.getGiveMode())
@@ -573,7 +608,7 @@ public class RecipeHisService extends RecipeBaseService {
                 recipeOrder.setSettleAmountState(SettleAmountStateEnum.SETTLE_SUCCESS.getType());
                 recipeOrderDAO.updateNonNullFieldByPrimaryKey(recipeOrder);
             }
-            settleService.doRecipeSettleResponse(response, recipe, result);
+            settleFlag = settleService.doRecipeSettleResponse(response, recipe, result);
         } else {
             RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
             RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
@@ -582,7 +617,7 @@ public class RecipeHisService extends RecipeBaseService {
                 recipeOrderDAO.updateNonNullFieldByPrimaryKey(recipeOrder);
             }
         }
-        return true;
+        return settleFlag;
     }
 
     /**

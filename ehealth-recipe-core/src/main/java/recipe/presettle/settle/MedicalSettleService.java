@@ -37,7 +37,8 @@ public class MedicalSettleService implements IRecipeSettleService {
     }
 
     @Override
-    public void doRecipeSettleResponse(PayNotifyResTO response, Recipe recipe, RecipeResultBean result) {
+    public Boolean doRecipeSettleResponse(PayNotifyResTO response, Recipe recipe, RecipeResultBean result) {
+        Boolean settleFlag = true;
         if (response != null && response.getMsgCode() == 0) {
             //结算成功
             if (response.getData() != null) {
@@ -50,6 +51,7 @@ public class MedicalSettleService implements IRecipeSettleService {
             }
 
         } else {
+            settleFlag = false;
             //前置机返回结算失败，或者医保结算前置机返回null
             if (result != null){
                 result.setCode(RecipeResultBean.FAIL);
@@ -62,5 +64,6 @@ public class MedicalSettleService implements IRecipeSettleService {
             HisCallBackService.havePayFail(recipe.getRecipeId());
             RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "支付完成结算失败，his返回：" + JSONUtils.toString(response));
         }
+        return settleFlag;
     }
 }

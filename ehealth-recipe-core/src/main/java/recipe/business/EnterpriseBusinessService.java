@@ -47,9 +47,7 @@ import recipe.constant.RecipeStatusConstant;
 import recipe.core.api.IDrugsEnterpriseBusinessService;
 import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
-import recipe.enumerate.status.GiveModeEnum;
-import recipe.enumerate.status.RecipeOrderStatusEnum;
-import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.status.*;
 import recipe.enumerate.type.PayFlagEnum;
 import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.hisservice.HisRequestInit;
@@ -59,6 +57,7 @@ import recipe.hisservice.syncdata.SyncExecutorService;
 import recipe.manager.EnterpriseManager;
 import recipe.manager.RecipeDetailManager;
 import recipe.manager.RecipeManager;
+import recipe.manager.StateManager;
 import recipe.purchase.CommonOrder;
 import recipe.service.RecipeHisService;
 import recipe.service.RecipeLogService;
@@ -122,6 +121,8 @@ public class EnterpriseBusinessService extends BaseService implements IDrugsEnte
     private OrganClient organClient;
     @Resource
     private EnterpriseClient enterpriseClient;
+    @Resource
+    private StateManager stateManager;
 
 
     @Override
@@ -462,6 +463,10 @@ public class EnterpriseBusinessService extends BaseService implements IDrugsEnte
             SyncExecutorService syncExecutorService = ApplicationUtils.getRecipeService(SyncExecutorService.class);
             syncExecutorService.uploadRecipeVerificationIndicators(recipeId);
         });
+        recipeIdList.forEach(recipeId -> {
+            stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_DISPENSING, RecipeStateEnum.SUB_ORDER_DELIVERED_MEDICINE);
+        });
+        stateManager.updateOrderState(recipeOrder.getOrderId(), OrderStateEnum.PROCESS_STATE_ORDER, OrderStateEnum.SUB_ORDER_DELIVERED_MEDICINE);
         return EnterpriseResultBean.getSuccess("成功");
     }
 
@@ -493,6 +498,10 @@ public class EnterpriseBusinessService extends BaseService implements IDrugsEnte
         recipeOrder.setDrugStoreCode(enterpriseSendOrderVO.getDrugStoreCode());
         recipeOrder.setSendTime(DateConversion.parseDate(enterpriseSendOrderVO.getSendDate(), DateConversion.DEFAULT_DATE_TIME));
         recipeOrderDAO.updateNonNullFieldByPrimaryKey(recipeOrder);
+        recipeIdList.forEach(recipeId -> {
+            stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_DISTRIBUTION, RecipeStateEnum.SUB_ORDER_DELIVERED);
+        });
+        stateManager.updateOrderState(recipeOrder.getOrderId(), OrderStateEnum.PROCESS_STATE_ORDER, OrderStateEnum.SUB_ORDER_DELIVERED);
         //异步处理后续流程
         syncSendOrderHandle(enterpriseSendOrderVO, logisticsCompanyCode, recipeIdList, recipeOrder);
         return EnterpriseResultBean.getSuccess("成功");
