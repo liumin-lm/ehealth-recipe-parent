@@ -293,12 +293,12 @@ public class RecipeDetailManager extends BaseManager {
             return totalMoney;
         }
         for (Recipedetail detail : detailList) {
-            OrganDrugList organDrug = organDrugCodeMap.get(detail.getDrugId() + detail.getOrganDrugCode());
-            BigDecimal price = organDrug.getSalePrice();
+            // OrganDrugList organDrug = organDrugCodeMap.get(detail.getDrugId() + detail.getOrganDrugCode());
+            BigDecimal price = detail.getSalePrice();
             BigDecimal drugCost;
             if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipeType)) {
                 //保留3位小数
-                drugCost = price.multiply(BigDecimal.valueOf(detail.getUseTotalDose())).divide(BigDecimal.valueOf(organDrug.getPack()), 4, RoundingMode.HALF_UP).setScale(4, RoundingMode.HALF_UP);
+                drugCost = price.multiply(BigDecimal.valueOf(detail.getUseTotalDose())).divide(BigDecimal.valueOf(detail.getPack()), 4, RoundingMode.HALF_UP).setScale(4, RoundingMode.HALF_UP);
             } else {
                 //保留3位小数
                 drugCost = price.multiply(BigDecimal.valueOf(detail.getUseTotalDose())).setScale(4, RoundingMode.HALF_UP);

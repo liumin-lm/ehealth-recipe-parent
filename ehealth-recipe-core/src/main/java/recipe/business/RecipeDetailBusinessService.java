@@ -6,7 +6,6 @@ import com.ngari.recipe.dto.RecipeDetailDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.vo.RecipeSkipVO;
-import ctd.persistence.exception.DAOException;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +14,6 @@ import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.client.IConfigurationClient;
-import recipe.constant.ErrorCode;
 import recipe.core.api.IRecipeDetailBusinessService;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeParameterDao;
@@ -258,13 +256,13 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
         if (null != number) {
             list.add(ObjectCopyUtils.convert(number, ConfigOptionsVO.class));
         }
-        List<Integer> drugIds = detailList.stream().map(Recipedetail::getDrugId).distinct().collect(Collectors.toList());
-        Map<String, OrganDrugList> organDrugCodeMap = organDrugListManager.getOrganDrugByIdAndCode(validateDetailVO.getOrganId(), drugIds);
-        if (organDrugCodeMap.isEmpty()) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "入参错误");
-        }
+//        List<Integer> drugIds = detailList.stream().map(Recipedetail::getDrugId).distinct().collect(Collectors.toList());
+//        Map<String, OrganDrugList> organDrugCodeMap = organDrugListManager.getOrganDrugByIdAndCode(validateDetailVO.getOrganId(), drugIds);
+//        if (organDrugCodeMap.isEmpty()) {
+//            throw new DAOException(ErrorCode.SERVICE_ERROR, "入参错误");
+//        }
         //金额
-        BigDecimal totalMoney = recipeDetailManager.totalMoney(validateDetailVO.getRecipeType(), detailList, organDrugCodeMap);
+        BigDecimal totalMoney = recipeDetailManager.totalMoney(validateDetailVO.getRecipeType(), detailList, null);
         logger.info("RecipeDetailBusinessService validateConfigOptions totalMoney={}", JSON.toJSONString(totalMoney));
         ConfigOptionsDTO money = organManager.recipeMoneyDoctorConfirm(validateDetailVO.getOrganId(), totalMoney);
         if (null != money) {
