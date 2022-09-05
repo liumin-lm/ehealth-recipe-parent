@@ -60,5 +60,5 @@ public class OrganEnterpriseRelationVo extends PageVO implements Serializable {
     /**
      * 支持煎法的类型  药企配置后，将不支持配送 0 非代煎 1 代煎
      */
-    private Integer supportDecoctionType;
+    private List<Integer> supportDecoctionType;
 }

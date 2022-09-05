@@ -202,8 +202,11 @@ public class PayModeOnline implements IPurchaseService {
         if (list.contains(RecipeBussConstant.RECIPETYPE_TCM)) {
             // 中药处方代煎需要校验药企是否支持配送代煎
             OrganAndDrugsepRelation relation = organAndDrugsepRelationDAO.getOrganAndDrugsepByOrganIdAndEntId(recipeList.get(0).getClinicOrgan(), depId);
-            if (Objects.nonNull(relation.getSupportDecoctionType()) && !relation.getSupportDecoctionType().equals(patientIsDecoction)) {
-                throw new DAOException(609, "当前代煎类型不支持该购药方式，请换一种购药方式");
+            if (StringUtils.isNotEmpty(relation.getSupportDecoctionState())) {
+                List<Integer> supportDecoctionType = JSONUtils.parse((relation.getSupportDecoctionState()), List.class);
+                if (supportDecoctionType.contains(patientIsDecoction)) {
+                    throw new DAOException(609, "当前代煎类型不支持该购药方式，请换一种购药方式");
+                }
             }
         }
 

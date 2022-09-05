@@ -49,8 +49,12 @@ public class OrganAndDrugsepRelation implements java.io.Serializable {
     @ItemProperty(alias = "药品剂型 药企配置后，对应处方单及药品属性，将不支持配送")
     private String enterpriseDrugForm;
 
+    // todo 这个字段没有用!
     @ItemProperty(alias = "支持煎法的类型  药企配置后，将不支持配送 0 非代煎 1 代煎 ")
     private Integer supportDecoctionType;
+
+    @ItemProperty(alias = "支持煎法的类型  药企配置后，将不支持配送 0 非代煎 1 代煎 ")
+    private String supportDecoctionState;
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
@@ -133,5 +137,14 @@ public class OrganAndDrugsepRelation implements java.io.Serializable {
 
     public void setSupportDecoctionType(Integer supportDecoctionType) {
         this.supportDecoctionType = supportDecoctionType;
+    }
+
+    @Column(name = "support_decoction_state")
+    public String getSupportDecoctionState() {
+        return supportDecoctionState;
+    }
+
+    public void setSupportDecoctionState(String supportDecoctionState) {
+        this.supportDecoctionState = supportDecoctionState;
     }
 }
