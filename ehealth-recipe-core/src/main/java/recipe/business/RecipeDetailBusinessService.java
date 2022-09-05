@@ -1,14 +1,13 @@
 package recipe.business;
 
 import com.alibaba.fastjson.JSON;
+import com.ngari.recipe.dto.ConfigOptionsDTO;
 import com.ngari.recipe.dto.RecipeDetailDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.vo.RecipeSkipVO;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.bussutil.RecipeUtil;
@@ -23,10 +22,13 @@ import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.manager.*;
 import recipe.util.LocalStringUtil;
 import recipe.util.MapValueUtil;
+import recipe.util.ObjectCopyUtils;
 import recipe.util.ValidateUtil;
 import recipe.vo.ResultBean;
+import recipe.vo.doctor.ConfigOptionsVO;
 import recipe.vo.doctor.ValidateDetailVO;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -40,8 +42,7 @@ import static recipe.drugTool.validate.RecipeDetailValidateTool.VALIDATE_STATUS_
  * @author fuzi
  */
 @Service
-public class RecipeDetailBusinessService implements IRecipeDetailBusinessService {
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+public class RecipeDetailBusinessService extends BaseService implements IRecipeDetailBusinessService {
     /**
      * 1、不可开重复处方；2、不可开重复药品;3、重复药品提示但可开;4、不需要校验
      */
@@ -244,6 +245,25 @@ public class RecipeDetailBusinessService implements IRecipeDetailBusinessService
             logger.info("RecipeDetailBusinessService validateHisDrugRule 靶向药权限 recipeDetails={}", JSON.toJSONString(recipeDetails));
         }
         return recipeDetails;
+    }
+
+    @Override
+    public List<ConfigOptionsVO> validateConfigOptions(ValidateDetailVO validateDetailVO) {
+        List<ConfigOptionsVO> list = new ArrayList<>();
+        List<Recipedetail> detailList = ObjectCopyUtils.convert(validateDetailVO.getRecipeDetails(), Recipedetail.class);
+        ConfigOptionsDTO number = organManager.recipeNumberDoctorConfirm(validateDetailVO.getOrganId(), detailList);
+        if (null != number) {
+            list.add(ObjectCopyUtils.convert(number, ConfigOptionsVO.class));
+        }
+        List<Integer> drugIds = detailList.stream().map(Recipedetail::getDrugId).distinct().collect(Collectors.toList());
+        Map<String, OrganDrugList> organDrugCodeMap = organDrugListManager.getOrganDrugByIdAndCode(validateDetailVO.getOrganId(), drugIds);
+        BigDecimal totalMoney = recipeDetailManager.totalMoney(validateDetailVO.getRecipeType(), detailList, organDrugCodeMap);
+        logger.info("RecipeDetailBusinessService validateConfigOptions totalMoney={}", JSON.toJSONString(totalMoney));
+        ConfigOptionsDTO money = organManager.recipeMoneyDoctorConfirm(validateDetailVO.getOrganId(), totalMoney);
+        if (null != money) {
+            list.add(ObjectCopyUtils.convert(money, ConfigOptionsVO.class));
+        }
+        return list;
     }
 
 
