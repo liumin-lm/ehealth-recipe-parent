@@ -1640,17 +1640,6 @@ public class RecipeServiceSub {
         RecipeOrder recipeOrder = null;
         if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
             recipeOrder = orderDAO.getByOrderCode(recipe.getOrderCode());
-            //如果购药方式为到院取药,则获取配置项判断是否支持撤销
-            if(recipeOrder.getGiveModeKey().equals(GiveModeTextEnum.SUPPORTTOHIS.getGiveModeTextV1())){
-                Boolean flag = (Boolean) configService.getConfiguration(recipe.getClinicOrgan(), "supportToHosRevokeFlag");
-                if(flag && recipeOrder.getActualPrice() > 0){
-                    map.put("supportToHosRevokeFlag", true);
-                }else{
-                    map.put("supportToHosRevokeFlag", false);
-                }
-            }else{
-                map.put("supportToHosRevokeFlag", true);
-            }
             map.put("recipeOrder", recipeOrder);
         }
         map.put("patient", patient);
@@ -1685,6 +1674,13 @@ public class RecipeServiceSub {
                 RecipeOrder recipeOrders = orderDAO.getByOrderCode(recipe.getOrderCode());
                 cancelFlag = RecipeStatusEnum.checkRecipeRevokeStatus(recipe, recipeOrders);
                 status = null != recipeOrders && Integer.valueOf(1).equals(recipeOrders.getEffective()) ? recipeOrders.getStatus() : null;
+                //如果购药方式为到院取药,则获取配置项判断是否支持撤销
+                if(recipeOrders != null){
+                    if(recipeOrders.getGiveModeKey().equals(GiveModeTextEnum.SUPPORTTOHIS.getGiveModeTextV1())){
+                        Boolean flag = (Boolean) configService.getConfiguration(recipe.getClinicOrgan(), "supportToHosRevokeFlag");
+                        cancelFlag = cancelFlag && flag && recipeOrders.getActualPrice() > 0;
+                    }
+                }
             }
             Map<String, String> tipMap = RecipeServiceSub.getTipsByStatusCopy(recipe.getStatus(), recipe, null, status);
             map.put("cancelReason", MapValueUtil.getString(tipMap, "cancelReason"));
