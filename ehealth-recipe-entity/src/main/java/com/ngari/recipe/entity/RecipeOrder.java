@@ -266,6 +266,12 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "第三方支付金额")
     private Double thirdPayFee;
 
+    @ItemProperty(alias = "少儿医保费用")
+    private BigDecimal childMedicalFee;
+
+    @ItemProperty(alias = "家庭统筹费用")
+    private BigDecimal familyMedicalFee;
+
     @ItemProperty(alias = "处方预结算返回门诊挂号序号")
     private String registerNo;
 
@@ -526,6 +532,24 @@ public class RecipeOrder implements Serializable {
 
     public void setThirdPayFee(Double thirdPayFee) {
         this.thirdPayFee = thirdPayFee;
+    }
+
+    @Column(name = "child_medical_fee")
+    public BigDecimal getChildMedicalFee() {
+        return childMedicalFee;
+    }
+
+    public void setChildMedicalFee(BigDecimal childMedicalFee) {
+        this.childMedicalFee = childMedicalFee;
+    }
+
+    @Column(name = "family_medical_fee")
+    public BigDecimal getFamilyMedicalFee() {
+        return familyMedicalFee;
+    }
+
+    public void setFamilyMedicalFee(BigDecimal familyMedicalFee) {
+        this.familyMedicalFee = familyMedicalFee;
     }
 
     @Column(name = "cancelReason")
