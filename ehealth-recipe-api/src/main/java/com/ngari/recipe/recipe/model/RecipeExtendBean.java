@@ -240,6 +240,11 @@ public class RecipeExtendBean implements Serializable {
     @ItemProperty(alias = "电子票号")
     private String einvoiceNumber;
 
+    /**
+     * his订单编号(邵逸夫)
+     */
+    private String hisOrderCode;
+
     public String getTerminalId() {
         return terminalId;
     }
@@ -866,5 +871,17 @@ public class RecipeExtendBean implements Serializable {
 
     public void setEinvoiceNumber(String einvoiceNumber) {
         this.einvoiceNumber = einvoiceNumber;
+    }
+
+    public Boolean getSelfServiceMachineFlag() {
+        return selfServiceMachineFlag;
+    }
+
+    public String getHisOrderCode() {
+        return hisOrderCode;
+    }
+
+    public void setHisOrderCode(String hisOrderCode) {
+        this.hisOrderCode = hisOrderCode;
     }
 }

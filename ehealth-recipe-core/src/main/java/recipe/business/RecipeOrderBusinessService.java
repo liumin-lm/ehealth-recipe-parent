@@ -813,7 +813,6 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                 if (StringUtils.isNotEmpty(ext2.getRegisterID())) {
                     request.setRegisterID(ext2.getRegisterID());
                     selfPreSettleQueryReq.setRegisterNo(ext2.getRegisterID());
-                    selfPreSettleQueryReq.setYbIdSyf(ext2.getHisOrderCode());
                 }
             }
             List<String> supportRecharge = configurationClient.getValueListCatch(recipe.getClinicOrgan(), "supportRecharge", null);
