@@ -1,15 +1,13 @@
 package recipe.business;
 
+import com.ngari.patient.dto.OrganConfigDTO;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.HospitalDrugListDTO;
 import com.ngari.platform.recipe.mode.HospitalDrugListReqDTO;
 import com.ngari.recipe.drug.model.CommonDrugListDTO;
 import com.ngari.recipe.drug.model.DispensatoryDTO;
 import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
-import com.ngari.recipe.dto.DrugInfoDTO;
-import com.ngari.recipe.dto.DrugSpecificationInfoDTO;
-import com.ngari.recipe.dto.PatientDrugWithEsDTO;
-import com.ngari.recipe.dto.RecipeInfoDTO;
+import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.vo.DrugSaleStrategyVO;
 import com.ngari.recipe.vo.HospitalDrugListReqVO;
@@ -18,13 +16,16 @@ import com.ngari.recipe.vo.SearchDrugReqVO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 import recipe.aop.LogRecord;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.client.DrugClient;
 import recipe.client.IConfigurationClient;
+import recipe.client.OrganClient;
 import recipe.constant.RecipeBussConstant;
 import recipe.core.api.IDrugBusinessService;
 import recipe.dao.*;
@@ -34,6 +35,8 @@ import recipe.manager.DrugManager;
 import recipe.manager.HisRecipeManager;
 import recipe.manager.OrganDrugListManager;
 import recipe.util.MapValueUtil;
+import recipe.vo.greenroom.OrganConfigVO;
+import recipe.vo.greenroom.OrganDrugListSyncFieldVo;
 import recipe.vo.patient.PatientContinueRecipeCheckDrugReq;
 import recipe.vo.patient.PatientContinueRecipeCheckDrugRes;
 import recipe.vo.patient.PatientOptionalDrugVo;
@@ -69,6 +72,10 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
     private SaleDrugListDAO saleDrugListDAO;
     @Autowired
     private DrugListDAO drugListDAO;
+    @Autowired
+    private OrganClient organClient;
+    @Autowired
+    private OrganDrugListSyncFieldDAO organDrugListSyncFieldDAO;
 
     @Override
     public List<PatientDrugWithEsDTO> findDrugWithEsByPatient(SearchDrugReqVO searchDrugReqVo) {
@@ -404,6 +411,47 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
     public void organDrugList2Es(Integer organId) {
         List<OrganDrugList> drugLists = organDrugListDAO.findByOrganIdWithOutStatus(organId);
         drugManager.updateOrganDrugListToEs(drugLists, 0, null);
+    }
+
+    @Override
+    public OrganConfigVO getConfigByOrganId(Integer organId) {
+        OrganConfigVO organConfigVO=new OrganConfigVO();
+        OrganConfigDTO organConfigDTO=organClient.getOrganConfigByOrganId(organId);
+        if (ObjectUtils.isEmpty(organConfigDTO)){
+            throw new DAOException(DAOException.VALUE_NEEDED, "未找到该机构配置"+organId);
+        }
+        if(ObjectUtils.isEmpty(organConfigDTO.getAddDrugDataRange())){
+            organConfigDTO.setAddDrugDataRange(2);
+        }
+        if(ObjectUtils.isEmpty(organConfigDTO.getUpdateDrugDataRange())){
+            organConfigDTO.setUpdateDrugDataRange(2);
+        }
+        if(ObjectUtils.isEmpty(organConfigDTO.getUpdateDrugDataRange())){
+            organConfigDTO.setUpdateDrugDataRange(2);
+        }
+        BeanUtils.copyProperties(organConfigDTO, organConfigVO);
+        List<OrganDrugListSyncField> organDrugListSyncFields=organDrugListSyncFieldDAO.findByOrganId(organId);
+        if(CollectionUtils.isEmpty(organDrugListSyncFields)){
+            logger.info("addOrganDrugListSyncFieldForOrgan 新增配置:{}",organId);
+            organConfigVO.setOrganDrugListSyncFieldList(ObjectCopyUtils.convert(drugManager.addOrganDrugListSyncFieldForOrgan(organId), OrganDrugListSyncFieldVo.class));
+        }else{
+            organConfigVO.setOrganDrugListSyncFieldList(ObjectCopyUtils.convert(organDrugListSyncFields, OrganDrugListSyncFieldVo.class));
+        }
+        return organConfigVO;
+    }
+
+    @Override
+    public OrganConfigVO updateOrganConfig(OrganConfigVO organConfigVO) {
+        organClient.updateOrganConfig(ObjectCopyUtils.convert(organConfigVO,OrganConfigDTO.class));
+        List<OrganDrugListSyncField> organDrugListSyncFieldList=ObjectCopyUtils.convert(organConfigVO.getOrganDrugListSyncFieldList(),OrganDrugListSyncField.class);
+        if(CollectionUtils.isEmpty(organDrugListSyncFieldList)){
+            drugManager.addOrganDrugListSyncFieldForOrgan(organConfigVO.getOrganId());
+        }else{
+            organDrugListSyncFieldList.forEach(a->{
+                drugManager.addOrUpdateOrganDrugListSyncField(a);
+            });
+        }
+        return organConfigVO;
     }
 
 

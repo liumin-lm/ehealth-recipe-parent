@@ -2,30 +2,30 @@ package com.ngari.recipe.entity;
 
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
+import org.springframework.util.ObjectUtils;
 
 import javax.persistence.*;
-
 import java.util.Date;
 
 import static javax.persistence.GenerationType.IDENTITY;
 
 /**
- * 药企药品目录同步字段
+ * 机构药品目录同步字段
  *
  *
  */
 @Entity
 @Schema
-@Table(name = "saledruglist_sync_field")
+@Table(name = "organ_drug_list_sync_field")
 @Access(AccessType.PROPERTY)
-public class SaleDrugListSyncField implements java.io.Serializable {
+public class OrganDrugListSyncField implements java.io.Serializable {
     private static final long serialVersionUID = -7090271704460035622L;
 
     @ItemProperty(alias = "id")
     private Integer id;
 
-    @ItemProperty(alias = "药企id")
-    private Integer drugsenterpriseId;
+    @ItemProperty(alias = "机构id")
+    private Integer organId;
 
     @ItemProperty(alias = "<dic>\n" +
             "\t<item key=\"1\" text=\"新增药品\"/>\n" +
@@ -90,13 +90,13 @@ public class SaleDrugListSyncField implements java.io.Serializable {
         this.id = id;
     }
 
-    @Column(name = "drugsenterprise_id")
-    public Integer getDrugsenterpriseId() {
-        return drugsenterpriseId;
+    @Column(name = "organ_id")
+    public Integer getOrganId() {
+        return organId;
     }
 
-    public void setDrugsenterpriseId(Integer drugsenterpriseId) {
-        this.drugsenterpriseId = drugsenterpriseId;
+    public void setOrganId(Integer organId) {
+        this.organId = organId;
     }
 
     @Column(name = "type")
@@ -135,5 +135,14 @@ public class SaleDrugListSyncField implements java.io.Serializable {
         this.isSync = isSync;
     }
 
+    public void init(OrganDrugListSyncField obj) {
+        if (ObjectUtils.isEmpty(obj.getCreateTime())){
+            obj.setCreateTime(new Date());
+        }
+        if (ObjectUtils.isEmpty(obj.getIsSync())){
+            obj.setIsSync("1");
+        }
+        obj.setUpdateTime(new Date());
+    }
 
 }
