@@ -88,10 +88,7 @@ import recipe.enumerate.status.OrderStateEnum;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
-import recipe.enumerate.type.DrugBelongTypeEnum;
-import recipe.enumerate.type.PayBusTypeEnum;
-import recipe.enumerate.type.RecipeDistributionFlagEnum;
-import recipe.enumerate.type.RecipeSupportGiveModeEnum;
+import recipe.enumerate.type.*;
 import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
 import recipe.manager.*;
@@ -1631,6 +1628,17 @@ public class RecipeServiceSub {
         RecipeOrder recipeOrder = null;
         if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
             recipeOrder = orderDAO.getByOrderCode(recipe.getOrderCode());
+            //如果购药方式为到院取药,则获取配置项判断是否支持撤销
+            if(recipeOrder.getGiveModeKey().equals(GiveModeTextEnum.SUPPORTTOHIS.getGiveModeTextV1())){
+                Boolean flag = (Boolean) configService.getConfiguration(recipe.getClinicOrgan(), "supportToHosRevokeFlag");
+                if(flag && recipeOrder.getActualPrice() > 0){
+                    map.put("supportToHosRevokeFlag", true);
+                }else{
+                    map.put("supportToHosRevokeFlag", false);
+                }
+            }else{
+                map.put("supportToHosRevokeFlag", true);
+            }
             map.put("recipeOrder", recipeOrder);
         }
         map.put("patient", patient);
