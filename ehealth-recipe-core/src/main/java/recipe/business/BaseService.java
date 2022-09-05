@@ -3,6 +3,8 @@ package recipe.business;
 import com.alibaba.fastjson.JSON;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import recipe.manager.OrganManager;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -15,6 +17,9 @@ import java.util.concurrent.TimeUnit;
  * @author fuzi
  */
 public class BaseService {
+    @Autowired
+    protected OrganManager organManager;
+
     protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 
