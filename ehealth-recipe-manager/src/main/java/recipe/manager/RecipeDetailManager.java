@@ -289,6 +289,9 @@ public class RecipeDetailManager extends BaseManager {
      */
     public BigDecimal totalMoney(Integer recipeType, List<Recipedetail> detailList, Map<String, OrganDrugList> organDrugCodeMap) {
         BigDecimal totalMoney = new BigDecimal(0d);
+        if (CollectionUtils.isEmpty(detailList)) {
+            return totalMoney;
+        }
         for (Recipedetail detail : detailList) {
             OrganDrugList organDrug = organDrugCodeMap.get(detail.getDrugId() + detail.getOrganDrugCode());
             BigDecimal price = organDrug.getSalePrice();
