@@ -152,7 +152,7 @@ public class EnterpriseBusinessService extends BaseService implements IDrugsEnte
         relation.setEnterpriseDecoctionIds(decoctionIds);
 
         relation.setEnterpriseDrugForm(JSONArray.toJSONString(organEnterpriseRelationVo.getEnterpriseDrugForm()));
-
+        relation.setSupportDecoctionType(organEnterpriseRelationVo.getSupportDecoctionType());
         organAndDrugsepRelationDAO.updateNonNullFieldByPrimaryKey(relation);
     }
 
@@ -187,6 +187,7 @@ public class EnterpriseBusinessService extends BaseService implements IDrugsEnte
             List<String> drugFrom = JSONUtils.parse((relation.getEnterpriseDrugForm()), List.class);
             organEnterpriseRelationVo.setEnterpriseDrugForm(drugFrom);
         }
+        organEnterpriseRelationVo.setSupportDecoctionType(relation.getSupportDecoctionType());
         logger.info("DrugsEnterpriseBusinessService getOrganEnterpriseRelation res organEnterpriseRelationVo={}", JSONArray.toJSONString(organEnterpriseRelationVo));
         return organEnterpriseRelationVo;
     }
