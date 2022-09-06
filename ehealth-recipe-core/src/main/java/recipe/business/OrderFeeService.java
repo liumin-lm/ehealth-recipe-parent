@@ -155,7 +155,9 @@ public class OrderFeeService implements IRecipeOrderRefundService {
             // 便捷购药订单(=1):便捷购药处方
             // 普通订单(=0)：普通复诊=0/方便门诊复诊=2/null值
             Integer fastRecipeFlag=recipeOrderCodeMap.get(recipeOrder.getOrderCode()).getFastRecipeFlag();
-            if(fastRecipeFlag==null || Integer.valueOf(2).equals(fastRecipeFlag)){
+            if(fastRecipeFlag!=null && Integer.valueOf(1).equals(fastRecipeFlag)){
+                fastRecipeFlag=1;
+            }else {
                 fastRecipeFlag=0;
             }
             recipeOrderRefundVO.setFastRecipeFlag(fastRecipeFlag);
