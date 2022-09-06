@@ -173,6 +173,18 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
     }
 
     /**
+     * 医生端开处方：获取煎法关联服用要求
+     *
+     * @param decoctionId
+     * @return
+     */
+    @RpcService
+    public List<RequirementsForTakingVO> getRequirementsForTakingByDecoctionId(Integer organId, Integer decoctionId) {
+        validateAtop(organId);
+        return recipeBusinessService.findRequirementsForTakingByDecoctionId(organId, decoctionId);
+    }
+
+    /**
      * 查询医生选择的常用默认药房
      *
      * @param organId
