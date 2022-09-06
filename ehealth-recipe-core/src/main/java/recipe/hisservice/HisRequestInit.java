@@ -29,6 +29,7 @@ import ctd.controller.exception.ControllerException;
 import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
+import ctd.schema.annotation.ItemProperty;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import eh.cdr.api.service.IDocIndexService;
@@ -375,6 +376,13 @@ public class HisRequestInit {
                 if (StringUtils.isNotBlank(recipeExtend.getEveryTcmNumFre())) {
                     requestTO.getRecipeExtend().setEveryTcmNumFre(recipeExtend.getEveryTcmNumFre());
                 }
+                //TODO requirementsForTakingText
+//                if (StringUtils.isNotBlank(recipeExtend.getRequirementsForTakingCode())) {
+//                    requestTO.getRecipeExtend().setRequirementsForTakingCode(recipeExtend.getRequirementsForTakingCod();
+//                }
+//                if (StringUtils.isNotBlank(recipeExtend.getRequirementsForTakingText())) {
+//                    requestTO.getRecipeExtend().setRequirementsForTakingText(recipeExtend.getRequirementsForTakingText();
+//                }
                 if (StringUtils.isNotBlank(recipeExtend.getSymptomId())) {
                     requestTO.getRecipeExtend().setSymptomCode(recipeExtend.getSymptomId());
                 }
