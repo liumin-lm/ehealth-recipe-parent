@@ -19,6 +19,7 @@ import recipe.util.ObjectCopyUtils;
 import recipe.util.RecipeUtil;
 import recipe.util.ValidateUtil;
 import recipe.vo.ResultBean;
+import recipe.vo.doctor.ConfigOptionsVO;
 import recipe.vo.doctor.ValidateDetailVO;
 
 import java.util.List;
@@ -53,20 +54,30 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
      */
     @RpcService
     public ValidateDetailVO validateDetailV1(ValidateDetailVO validateDetailVO) {
-        logger.info("RecipeValidateDoctorAtop validateDetailV1 validateDetailVO ：{}", JSON.toJSONString(validateDetailVO));
         validateAtop(validateDetailVO.getOrganId(), validateDetailVO.getRecipeType(), validateDetailVO.getRecipeExtendBean(), validateDetailVO.getRecipeDetails());
         validateDetailVO.setLongRecipe(!IS_LONG_RECIPE_FALSE.equals(validateDetailVO.getRecipeExtendBean().getIsLongRecipe()));
-        try {
-            ValidateDetailVO result = recipeDetailService.continueRecipeValidateDrug(validateDetailVO);
-            logger.info("RecipeValidateDoctorAtop validateDetailV1 result = {}", JSON.toJSONString(result));
-            return result;
-        } catch (DAOException e1) {
-            logger.error("RecipeValidateDoctorAtop validateDetailV1 error", e1);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
-        } catch (Exception e) {
-            logger.error("RecipeValidateDoctorAtop validateDetailV1 error e", e);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
-        }
+        validateDetailVO.getRecipeDetails().forEach(a -> {
+            a.setPharmacyId(null);
+            a.setPharmacyName(null);
+            a.setPharmacyCode(null);
+        });
+        return recipeDetailService.continueRecipeValidateDrug(validateDetailVO);
+    }
+
+
+    /**
+     * 复杂逻辑配置项处理
+     * 由于判断配置项逻辑 对于前端复杂，由后端统一处理返回结果，此接口仅仅处理复杂逻辑判断
+     *
+     * @param validateDetailVO
+     * @return
+     */
+    @RpcService
+    public List<ConfigOptionsVO> validateConfigOptions(ValidateDetailVO validateDetailVO) {
+        validateAtop(validateDetailVO.getRecipeDetails(), validateDetailVO.getRecipeType(), validateDetailVO.getOrganId());
+        List<RecipeDetailBean> recipeDetails = validateDetailVO.getRecipeDetails();
+        recipeDetails.forEach(a -> validateAtop(a.getUseDays(), a.getUseTotalDose()));
+        return recipeDetailService.validateConfigOptions(validateDetailVO);
     }
 
     /**
@@ -235,28 +246,4 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
         return ObjectCopyUtils.convert(result, RecipeDetailBean.class);
     }
 
-    /**
-     * 复杂逻辑配置项处理
-     * 由于判断配置项逻辑 对于前端复杂，由后端统一处理返回结果，此接口仅仅处理复杂逻辑判断
-     * <p>
-     * 处方天数大于多少天需要医生二次确认
-     * recipeNumberDoctorConfirmCaution
-     * <p>
-     * <p>
-     * 处方天数大于多少天不允许开具
-     * recipeNumberDoctorConfirmBlocking
-     * <p>
-     * 处方金额大于多少元需要医生二次确认
-     * recipeMoneyDoctorConfirmCaution
-     * <p>
-     * 处方金额大于多少元不允许开具
-     * recipeMoneyDoctorConfirmBlocking
-     *
-     * @param validateDetailVO
-     * @return
-     */
-    @RpcService
-    public List<RecipeDetailBean> validateConfigOptions(ValidateDetailVO validateDetailVO) {
-        return null;
-    }
 }

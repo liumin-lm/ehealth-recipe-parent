@@ -5,6 +5,7 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.vo.RecipeSkipVO;
 import recipe.vo.ResultBean;
+import recipe.vo.doctor.ConfigOptionsVO;
 import recipe.vo.doctor.ValidateDetailVO;
 
 import java.util.List;
@@ -72,4 +73,24 @@ public interface IRecipeDetailBusinessService {
      */
     List<RecipeDetailDTO> validateHisDrugRule(Recipe recipe, List<RecipeDetailDTO> recipeDetailDTO, String registerId, String dbType);
 
+    /**
+     * 复杂逻辑配置项处理
+     * 由于判断配置项逻辑 对于前端复杂，由后端统一处理返回结果，此接口仅仅处理复杂逻辑判断
+     * <p>
+     * 处方天数大于多少天需要医生二次确认
+     * recipeNumberDoctorConfirmCaution
+     * <p>
+     * 处方天数大于多少天不允许开具
+     * recipeNumberDoctorConfirmBlocking
+     * <p>
+     * 处方金额大于多少元需要医生二次确认
+     * recipeMoneyDoctorConfirmCaution
+     * <p>
+     * 处方金额大于多少元不允许开具
+     * recipeMoneyDoctorConfirmBlocking
+     *
+     * @param validateDetailVO
+     * @return
+     */
+    List<ConfigOptionsVO> validateConfigOptions(ValidateDetailVO validateDetailVO);
 }
