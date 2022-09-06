@@ -111,7 +111,7 @@ public class OrganManager extends BaseManager {
         if (null == number) {
             return null;
         }
-        boolean blocking = detailList.stream().allMatch(a -> a.getUseDays() < number);
+        boolean blocking = detailList.stream().allMatch(a -> a.getUseDays() <= number);
         if (blocking) {
             return null;
         }
@@ -124,12 +124,10 @@ public class OrganManager extends BaseManager {
             return null;
         }
         BigDecimal moneyBig = new BigDecimal(money);
-        //totalMoney 大于 money
-        if (0 > totalMoney.compareTo(moneyBig)) {
+        //totalMoney 小于等于 money
+        if (0 >= totalMoney.compareTo(moneyBig)) {
             return null;
         }
         return new ConfigOptionsDTO("recipeMoneyDoctorConfirm", money.toString(), type);
     }
-
-
 }
