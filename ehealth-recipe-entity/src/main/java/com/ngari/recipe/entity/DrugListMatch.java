@@ -221,6 +221,30 @@ public class DrugListMatch implements java.io.Serializable {
     @ItemProperty(alias = "最小销售倍数")
     private Integer smallestSaleMultiple;
 
+    @ItemProperty(alias = "是否抗肿瘤药物  0否  1是 ")
+    private Integer antiTumorDrugFlag;
+
+    @ItemProperty(alias = "抗肿瘤药物等级  1普通级 2限制级 ")
+    private Integer antiTumorDrugLevel;
+
+    @Column(name = "anti_tumor_drug_flag")
+    public Integer getAntiTumorDrugFlag() {
+        return antiTumorDrugFlag;
+    }
+
+    public void setAntiTumorDrugFlag(Integer antiTumorDrugFlag) {
+        this.antiTumorDrugFlag = antiTumorDrugFlag;
+    }
+
+    @Column(name = "anti_tumor_drug_level")
+    public Integer getAntiTumorDrugLevel() {
+        return antiTumorDrugLevel;
+    }
+
+    public void setAntiTumorDrugLevel(Integer antiTumorDrugLevel) {
+        this.antiTumorDrugLevel = antiTumorDrugLevel;
+    }
+
     @Column(name = "smallest_sale_multiple")
     public Integer getSmallestSaleMultiple() {
         return smallestSaleMultiple;

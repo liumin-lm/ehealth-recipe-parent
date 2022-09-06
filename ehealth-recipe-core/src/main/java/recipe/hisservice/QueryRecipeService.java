@@ -709,6 +709,12 @@ public class QueryRecipeService implements IQueryRecipeService {
         if (StringUtils.isEmpty(organDrugChange.getSaleName())) {
             list.add("SaleName");
         }
+        //如果是抗肿瘤药物则抗肿瘤药物等级不能为空
+        if(organDrugChange.getAntiTumorDrugFlag() != null && new Integer(1).equals(organDrugChange.getAntiTumorDrugFlag())){
+            if(organDrugChange.getAntiTumorDrugLevel() == null){
+                list.add("AntiTumorDrugLevel");
+            }
+        }
         return list;
     }
 
