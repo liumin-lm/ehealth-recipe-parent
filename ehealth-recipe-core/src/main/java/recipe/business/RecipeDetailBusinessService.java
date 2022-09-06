@@ -79,7 +79,7 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
         List<String> organDrugCodeList = validateDetailVO.getRecipeDetails().stream().map(RecipeDetailBean::getOrganDrugCode).distinct().collect(Collectors.toList());
         Map<String, List<OrganDrugList>> organDrugGroup = organDrugListManager.getOrganDrugCode(organId, organDrugCodeList);
         //药房信息
-        PharmacyTcm pharmacy = pharmacyManager.organDrugPharmacyId(organId, organDrugCodeList);
+        PharmacyTcm pharmacy = pharmacyManager.organDrugPharmacyId(organId, recipeType, organDrugCodeList);
         logger.info("RecipeDetailBusinessService continueRecipeValidateDrug pharmacy = {}", JSON.toJSONString(pharmacy));
         //药品名拼接配置
         Map<String, Integer> configDrugNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getDrugNameConfigByDrugType(organId, recipeType));

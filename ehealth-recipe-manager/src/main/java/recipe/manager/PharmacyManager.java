@@ -8,6 +8,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.dao.PharmacyTcmDAO;
+import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.util.ByteUtils;
 import recipe.util.ValidateUtil;
 
@@ -145,10 +146,16 @@ public class PharmacyManager extends BaseManager {
      * @param organDrugCodeList 机构药品code
      * @return
      */
-    public PharmacyTcm organDrugPharmacyId(Integer organId, List<String> organDrugCodeList) {
+    public PharmacyTcm organDrugPharmacyId(Integer organId, Integer recipeType, List<String> organDrugCodeList) {
         //判断机构药房
-        Map<Integer, PharmacyTcm> pharmacyIdMap = this.pharmacyIdMap(organId);
-        if (pharmacyIdMap.isEmpty()) {
+        List<PharmacyTcm> pharmacys = pharmacyTcmDAO.findByOrganId(organId);
+        if (CollectionUtils.isEmpty(pharmacys)) {
+            return null;
+        }
+        //判断机构药房-药房支持的处方类型
+        String recipeTypeText = RecipeTypeEnum.getRecipeType(recipeType);
+        pharmacys = pharmacys.stream().filter(a -> Arrays.asList(a.getPharmacyCategray().split(ByteUtils.COMMA)).contains(recipeTypeText)).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(pharmacys)) {
             return null;
         }
         //获取机构药品药房
@@ -157,10 +164,11 @@ public class PharmacyManager extends BaseManager {
         if (CollectionUtils.isEmpty(pharmacyList)) {
             return new PharmacyTcm();
         }
-        //计算最多药房
+        //计算最优药房
         List<String> pharmacyIds = pharmacyList.stream().map(a -> Arrays.asList(a.split(ByteUtils.COMMA))).flatMap(Collection::stream).collect(Collectors.toList());
         Map<String, List<String>> pharmacyMap = pharmacyIds.stream().collect(Collectors.groupingBy(String::valueOf));
 
+        Map<Integer, PharmacyTcm> pharmacyIdMap = pharmacys.stream().collect(Collectors.toMap(PharmacyTcm::getPharmacyId, a -> a, (k1, k2) -> k1));
         int i = 0;
         int pharmacyId = 0;
         for (String key : pharmacyMap.keySet()) {
