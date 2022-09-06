@@ -4559,6 +4559,18 @@ public class RecipeService extends RecipeBaseService {
                 }
             }
         }
+        //是否抗肿瘤药物,及抗肿瘤药物等级
+        if(!ObjectUtils.isEmpty(drug.getAntiTumorDrugFlag()) ){
+            if(new Integer(1).equals(drug.getAntiTumorDrugFlag()) && ObjectUtils.isEmpty(drug.getAntiTumorDrugLevel())){
+                throw new DAOException(DAOException.VALUE_NEEDED, "药品为抗肿瘤药物时，抗肿瘤药物等级必填!");
+            }
+            else {
+                drugListMatch.setAntiTumorDrugFlag(drug.getAntiTumorDrugFlag());
+                if(!ObjectUtils.isEmpty(drug.getAntiTumorDrugLevel())){
+                    drugListMatch.setAntiTumorDrugLevel(drug.getAntiTumorDrugLevel());
+                }
+            }
+        }
 
         LOGGER.info("drugInfoSynMovementaddHisDrug" + drug.getDrugName() + "organId=[{}] drug=[{}]", organId, JSONUtils.toString(drug));
         List<DrugListMatch> dataByOrganDrugCode = drugListMatchDAO.findDataByOrganDrugCode(drugListMatch.getOrganDrugCode(), drugListMatch.getSourceOrgan());
