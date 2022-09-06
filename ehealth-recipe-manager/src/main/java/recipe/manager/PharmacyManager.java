@@ -64,19 +64,25 @@ public class PharmacyManager extends BaseManager {
     /**
      * 校验药品药房是否变动
      *
-     * @param pharmacyId    预比对药房id
-     * @param organPharmacy 机构药房id
+     * @param pharmacy      最优药房
+     * @param organPharmacy 当前药品 机构药房id
      * @return true 不一致
      */
-    public Boolean pharmacyVariationV1(Integer pharmacyId, String organPharmacy) {
-        if (ValidateUtil.integerIsEmpty(pharmacyId) && StringUtils.isNotEmpty(organPharmacy)) {
+    public Boolean pharmacyVariationV1(PharmacyTcm pharmacy, String organPharmacy) {
+        //机构没药房
+        if (null == pharmacy) {
+            return false;
+        }
+        //全部机构药品没药房
+        if (ValidateUtil.integerIsEmpty(pharmacy.getPharmacyId())) {
             return true;
         }
-        if (!ValidateUtil.integerIsEmpty(pharmacyId) && StringUtils.isEmpty(organPharmacy)) {
+        //当前机构药品没药房
+        if (StringUtils.isEmpty(organPharmacy)) {
             return true;
         }
-        if (!ValidateUtil.integerIsEmpty(pharmacyId) && StringUtils.isNotEmpty(organPharmacy) &&
-                !Arrays.asList(organPharmacy.split(ByteUtils.COMMA)).contains(String.valueOf(pharmacyId))) {
+        //当前药品药房不包含最优药房
+        if (!Arrays.asList(organPharmacy.split(ByteUtils.COMMA)).contains(String.valueOf(pharmacy.getPharmacyId()))) {
             return true;
         }
         return false;
@@ -139,21 +145,24 @@ public class PharmacyManager extends BaseManager {
      * @param organDrugCodeList 机构药品code
      * @return
      */
-    public Integer organDrugPharmacyId(Integer organId, List<String> organDrugCodeList) {
+    public PharmacyTcm organDrugPharmacyId(Integer organId, List<String> organDrugCodeList) {
+        //判断机构药房
         Map<Integer, PharmacyTcm> pharmacyIdMap = this.pharmacyIdMap(organId);
-        if (null == pharmacyIdMap) {
+        if (pharmacyIdMap.isEmpty()) {
             return null;
         }
-        int pharmacyId = 0;
+        //获取机构药品药房
         List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugCodes(organId, organDrugCodeList);
         List<String> pharmacyList = organDrugList.stream().map(OrganDrugList::getPharmacy).filter(StringUtils::isNotEmpty).collect(Collectors.toList());
         if (CollectionUtils.isEmpty(pharmacyList)) {
-            return pharmacyId;
+            return new PharmacyTcm();
         }
+        //计算最多药房
         List<String> pharmacyIds = pharmacyList.stream().map(a -> Arrays.asList(a.split(ByteUtils.COMMA))).flatMap(Collection::stream).collect(Collectors.toList());
         Map<String, List<String>> pharmacyMap = pharmacyIds.stream().collect(Collectors.groupingBy(String::valueOf));
 
         int i = 0;
+        int pharmacyId = 0;
         for (String key : pharmacyMap.keySet()) {
             if (null == pharmacyIdMap.get(Integer.valueOf(key))) {
                 continue;
@@ -163,6 +172,6 @@ public class PharmacyManager extends BaseManager {
                 pharmacyId = Integer.valueOf(key);
             }
         }
-        return pharmacyId;
+        return pharmacyIdMap.get(pharmacyId);
     }
 }

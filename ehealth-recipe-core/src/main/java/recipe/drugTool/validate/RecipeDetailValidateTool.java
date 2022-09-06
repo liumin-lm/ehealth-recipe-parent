@@ -100,7 +100,8 @@ public class RecipeDetailValidateTool {
      * @param recipeDay    处方药物使用天数时间
      * @param organDrug    机构药品
      */
-    public void validateDrug(RecipeDetailBean recipeDetail, String[] recipeDay, OrganDrugList organDrug, Integer recipeType, Map<String, DrugEntrust> drugEntrustNameMap, Integer organId, Integer version) {
+    public void validateDrug(RecipeDetailBean recipeDetail, String[] recipeDay, OrganDrugList organDrug, Integer recipeType,
+                             Map<String, DrugEntrust> drugEntrustNameMap, Integer organId, Integer version) {
         recipeDetail.setDrugName(organDrug.getDrugName());
         recipeDetail.setSaleName(organDrug.getSaleName());
         //剂量单位是否与机构药品目录单位一致

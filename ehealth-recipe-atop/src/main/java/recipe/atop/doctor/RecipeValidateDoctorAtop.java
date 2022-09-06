@@ -5,6 +5,7 @@ import com.ngari.recipe.dto.RecipeDetailDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.persistence.exception.DAOException;
+import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
@@ -55,6 +56,11 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
     public ValidateDetailVO validateDetailV1(ValidateDetailVO validateDetailVO) {
         validateAtop(validateDetailVO.getOrganId(), validateDetailVO.getRecipeType(), validateDetailVO.getRecipeExtendBean(), validateDetailVO.getRecipeDetails());
         validateDetailVO.setLongRecipe(!IS_LONG_RECIPE_FALSE.equals(validateDetailVO.getRecipeExtendBean().getIsLongRecipe()));
+        validateDetailVO.getRecipeDetails().forEach(a -> {
+            a.setPharmacyId(null);
+            a.setPharmacyName(null);
+            a.setPharmacyCode(null);
+        });
         return recipeDetailService.continueRecipeValidateDrug(validateDetailVO);
     }
 
@@ -70,7 +76,7 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
     public List<ConfigOptionsVO> validateConfigOptions(ValidateDetailVO validateDetailVO) {
         validateAtop(validateDetailVO.getRecipeDetails(), validateDetailVO.getRecipeType(), validateDetailVO.getOrganId());
         List<RecipeDetailBean> recipeDetails = validateDetailVO.getRecipeDetails();
-        recipeDetails.forEach(a -> validateAtop(a.getUseDays(), a.getUseTotalDose()));
+        recipeDetails.forEach(a -> validateAtop(a.getUseDays(), a.getSalePrice()));
         return recipeDetailService.validateConfigOptions(validateDetailVO);
     }
 
@@ -209,13 +215,14 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
     }
 
     /**
-     * 校验his 药品规则，靶向药，大病医保等
+     * 校验his 药品规则，靶向药，大病医保，抗肿瘤药物等
      *
      * @param validateDetailVO 药品信息
      * @return
      */
     @RpcService
     public List<RecipeDetailBean> validateHisDrugRule(ValidateDetailVO validateDetailVO) {
+        logger.info("RecipeValidateDoctorAtop validateHisDrugRule validateDetailVO ：{}", JSONUtils.toString(validateDetailVO));
         validateAtop(validateDetailVO, validateDetailVO.getRecipeDetails(), validateDetailVO.getVersion(), validateDetailVO.getRecipeBean(), validateDetailVO.getRecipeExtendBean());
         List<RecipeDetailDTO> recipeDetailDTO = ObjectCopyUtils.convert(validateDetailVO.getRecipeDetails(), RecipeDetailDTO.class);
         recipeDetailDTO.forEach(a -> a.setValidateHisStatus(0));
@@ -224,7 +231,7 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
         }
         Recipe recipe = ObjectCopyUtils.convert(validateDetailVO.getRecipeBean(), Recipe.class);
         validateAtop(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getDepart());
-        // 校验his 药品规则，靶向药，大病医保等
+        // 校验his 药品规则，靶向药，大病医保，抗肿瘤药物等
         List<RecipeDetailDTO> recipeDetail = recipeDetailDTO.stream().filter(a -> !ValidateUtil.integerIsEmpty(a.getDrugId())).collect(Collectors.toList());
         List<RecipeDetailDTO> result = recipeDetailService.validateHisDrugRule(recipe, recipeDetail, validateDetailVO.getRecipeExtendBean().getRegisterID(), validateDetailVO.getDbType());
         //返回数据处理

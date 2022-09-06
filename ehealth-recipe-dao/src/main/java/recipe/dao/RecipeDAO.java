@@ -1963,10 +1963,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
             hql.append(" and re.recipe_business_type= ").append(recipesQueryVO.getRecipeBusinessType());
         }
         if (null != recipesQueryVO.getFastRecipeFlag()) {
-            if(Integer.valueOf(1).equals(recipesQueryVO.getFastRecipeFlag())){
-                hql.append(" and r.fast_recipe_flag = 1");
-            }else {
+            if(Integer.valueOf(0).equals(recipesQueryVO.getFastRecipeFlag())){
                 hql.append(" and (r.fast_recipe_flag = 0 or r.fast_recipe_flag is null)");
+            }else {
+                hql.append(" and r.fast_recipe_flag = ").append(recipesQueryVO.getFastRecipeFlag());
             }
         }
         LOGGER.info("generateRecipeOderWhereHQLforStatistics hql:{}", hql);

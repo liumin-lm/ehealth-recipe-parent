@@ -23,7 +23,6 @@ import recipe.manager.*;
 import recipe.util.LocalStringUtil;
 import recipe.util.MapValueUtil;
 import recipe.util.ObjectCopyUtils;
-import recipe.util.ValidateUtil;
 import recipe.vo.ResultBean;
 import recipe.vo.doctor.ConfigOptionsVO;
 import recipe.vo.doctor.ValidateDetailVO;
@@ -80,8 +79,8 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
         List<String> organDrugCodeList = validateDetailVO.getRecipeDetails().stream().map(RecipeDetailBean::getOrganDrugCode).distinct().collect(Collectors.toList());
         Map<String, List<OrganDrugList>> organDrugGroup = organDrugListManager.getOrganDrugCode(organId, organDrugCodeList);
         //药房信息
-        Map<Integer, PharmacyTcm> pharmacyIdMap = pharmacyManager.pharmacyIdMap(organId);
-        Integer pharmacyId = pharmacyManager.organDrugPharmacyId(organId, organDrugCodeList);
+        PharmacyTcm pharmacy = pharmacyManager.organDrugPharmacyId(organId, organDrugCodeList);
+        logger.info("RecipeDetailBusinessService continueRecipeValidateDrug pharmacy = {}", JSON.toJSONString(pharmacy));
         //药品名拼接配置
         Map<String, Integer> configDrugNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getDrugNameConfigByDrugType(organId, recipeType));
         //获取嘱托
@@ -102,8 +101,8 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
                 return;
             }
             //校验药品药房是否变动
-            boolean pharmacy = pharmacyManager.pharmacyVariationV1(pharmacyId, organDrug.getPharmacy());
-            if (null != pharmacyIdMap && pharmacy) {
+            Boolean pharmacyBoolean = pharmacyManager.pharmacyVariationV1(pharmacy, organDrug.getPharmacy());
+            if (pharmacyBoolean) {
                 a.setValidateStatusText("机构药品药房错误");
                 a.setValidateStatus(RecipeDetailValidateTool.VALIDATE_STATUS_FAILURE);
                 return;
@@ -111,7 +110,7 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
             //校验数据是否完善
             recipeDetailValidateTool.validateDrug(a, recipeDay, organDrug, recipeType, drugEntrustNameMap, organId, validateDetailVO.getVersion());
             //返回前端必须字段
-            setRecipeDetail(a, organDrug, configDrugNameMap, recipeType, pharmacyId, pharmacyIdMap);
+            setRecipeDetail(a, organDrug, configDrugNameMap, recipeType, pharmacy);
         });
         return validateDetailVO;
     }
@@ -244,6 +243,11 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
             organDrugListManager.validateHisDrugRule(recipe, recipeDetails);
             logger.info("RecipeDetailBusinessService validateHisDrugRule 靶向药权限 recipeDetails={}", JSON.toJSONString(recipeDetails));
         }
+        //"4": "抗肿瘤药物权限"
+        if (hisDrugRule.contains("4")) {
+            organDrugListManager.validateAntiTumorDrug(recipe, recipeDetails);
+            logger.info("RecipeDetailBusinessService validateAntiTumorDrug 抗肿瘤药物权限 recipeDetails={}", JSON.toJSONString(recipeDetails));
+        }
         return recipeDetails;
     }
 
@@ -256,13 +260,9 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
         if (null != number) {
             list.add(ObjectCopyUtils.convert(number, ConfigOptionsVO.class));
         }
-//        List<Integer> drugIds = detailList.stream().map(Recipedetail::getDrugId).distinct().collect(Collectors.toList());
-//        Map<String, OrganDrugList> organDrugCodeMap = organDrugListManager.getOrganDrugByIdAndCode(validateDetailVO.getOrganId(), drugIds);
-//        if (organDrugCodeMap.isEmpty()) {
-//            throw new DAOException(ErrorCode.SERVICE_ERROR, "入参错误");
-//        }
         //金额
-        BigDecimal totalMoney = recipeDetailManager.totalMoney(validateDetailVO.getRecipeType(), detailList, null);
+        Recipe recipe = ObjectCopyUtils.convert(validateDetailVO.getRecipeBean(), Recipe.class);
+        BigDecimal totalMoney = recipeDetailManager.totalMoney(validateDetailVO.getRecipeType(), detailList, recipe);
         logger.info("RecipeDetailBusinessService validateConfigOptions totalMoney={}", JSON.toJSONString(totalMoney));
         ConfigOptionsDTO money = organManager.recipeMoneyDoctorConfirm(validateDetailVO.getOrganId(), totalMoney);
         if (null != money) {
@@ -280,19 +280,17 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
      * @param configDrugNameMap 药品名拼接配置
      * @param recipeType        处方类型
      */
-    private void setRecipeDetail(RecipeDetailBean recipeDetailBean, OrganDrugList organDrug, Map<String, Integer> configDrugNameMap,
-                                 Integer recipeType, Integer pharmacyId, Map<Integer, PharmacyTcm> pharmacyIdMap) {
+    private void setRecipeDetail(RecipeDetailBean recipeDetailBean, OrganDrugList organDrug, Map<String, Integer> configDrugNameMap, Integer recipeType, PharmacyTcm pharmacy) {
         recipeDetailBean.setStatus(organDrug.getStatus());
         recipeDetailBean.setDrugId(organDrug.getDrugId());
-        recipeDetailBean.setUseDoseAndUnitRelation(RecipeUtil.defaultUseDose(organDrug));
         recipeDetailBean.setSalePrice(organDrug.getSalePrice());
+        recipeDetailBean.setUseDoseAndUnitRelation(RecipeUtil.defaultUseDose(organDrug));
         //续方也会走这里但是 续方要用药品名实时配置
         recipeDetailBean.setDrugDisplaySplicedName(DrugDisplayNameProducer.getDrugName(recipeDetailBean, configDrugNameMap, DrugNameDisplayUtil.getDrugNameConfigKey(recipeType)));
-        if (!ValidateUtil.integerIsEmpty(pharmacyId)) {
-            PharmacyTcm pharmacyTcm = pharmacyIdMap.get(pharmacyId);
-            recipeDetailBean.setPharmacyId(pharmacyId);
-            recipeDetailBean.setPharmacyName(pharmacyTcm.getPharmacyName());
-            recipeDetailBean.setPharmacyCode(pharmacyTcm.getPharmacyCode());
+        if (null != pharmacy) {
+            recipeDetailBean.setPharmacyId(pharmacy.getPharmacyId());
+            recipeDetailBean.setPharmacyName(pharmacy.getPharmacyName());
+            recipeDetailBean.setPharmacyCode(pharmacy.getPharmacyCode());
         }
     }
 

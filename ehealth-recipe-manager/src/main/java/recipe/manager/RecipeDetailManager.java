@@ -287,16 +287,16 @@ public class RecipeDetailManager extends BaseManager {
      * @param organDrugCodeMap 机构药品数据
      * @return 处方总金额
      */
-    public BigDecimal totalMoney(Integer recipeType, List<Recipedetail> detailList, Map<String, OrganDrugList> organDrugCodeMap) {
+    public BigDecimal totalMoney(Integer recipeType, List<Recipedetail> detailList, Recipe recipe) {
         BigDecimal totalMoney = new BigDecimal(0d);
         if (CollectionUtils.isEmpty(detailList)) {
             return totalMoney;
         }
         for (Recipedetail detail : detailList) {
-            // OrganDrugList organDrug = organDrugCodeMap.get(detail.getDrugId() + detail.getOrganDrugCode());
             BigDecimal price = detail.getSalePrice();
             BigDecimal drugCost;
             if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipeType)) {
+                detail.setUseTotalDose(BigDecimal.valueOf(recipe.getCopyNum()).multiply(BigDecimal.valueOf(detail.getUseDose())).doubleValue());
                 //保留3位小数
                 drugCost = price.multiply(BigDecimal.valueOf(detail.getUseTotalDose())).divide(BigDecimal.valueOf(detail.getPack()), 4, RoundingMode.HALF_UP).setScale(4, RoundingMode.HALF_UP);
             } else {

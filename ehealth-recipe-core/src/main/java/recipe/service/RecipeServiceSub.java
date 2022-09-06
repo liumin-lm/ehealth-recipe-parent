@@ -152,8 +152,6 @@ public class RecipeServiceSub {
     private static ButtonManager buttonManager = AppContextHolder.getBean("buttonManager", ButtonManager.class);
     private static RecipeDetailManager recipeDetailManager = AppContextHolder.getBean("recipeDetailManager", RecipeDetailManager.class);
 
-    private static List<String> specitalOrganList = Lists.newArrayList("1005790", "1005217", "1005789");
-
     private static DepartClient departClient = AppContextHolder.getBean("departClient", DepartClient.class);
     private static ConsultClient consultClient = AppContextHolder.getBean("consultClient", ConsultClient.class);
 
@@ -2700,7 +2698,10 @@ public class RecipeServiceSub {
             LOGGER.info("getRecipeMsgTagWithOfflineRecipe getNameById error：{}", e);
             e.printStackTrace();
         }
-        if (specitalOrganList.contains(organId.toString()) || organName.contains("上海市第七人民医院")) {
+
+        String pushOfflineRecipeModule = configurationClient.getValueCatch(organId, "pushOfflineRecipeModule", "recipe");
+
+        if("payment".equals(pushOfflineRecipeModule)){
             recipeTagMsg = getRecipeMsgTagWithOfflineRecipe(patientDTO, true);
         } else {
             if (StringUtils.isEmpty(recipeCode)) {

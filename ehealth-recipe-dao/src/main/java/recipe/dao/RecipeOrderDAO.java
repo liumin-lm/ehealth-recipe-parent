@@ -1820,7 +1820,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
             if(Integer.valueOf(1).equals(recipeOrderRefundReqDTO.getFastRecipeFlag())){
                 hql.append(" AND b.fast_recipe_flag = 1 ");
             }else{
-                hql.append(" AND (b.fast_recipe_flag = 0 or b.fast_recipe_flag is null) ");
+                hql.append(" AND (b.fast_recipe_flag in (0,2,3) or b.fast_recipe_flag is null) ");
             }
         }
         logger.info("RecipeOrderDAO getRefundStringBuilder hql:{}", hql);

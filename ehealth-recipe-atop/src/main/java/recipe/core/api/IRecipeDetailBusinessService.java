@@ -65,7 +65,7 @@ public interface IRecipeDetailBusinessService {
     RecipeSkipVO getRecipeSkipUrl(Integer organId, String recipeCode);
 
     /**
-     * 校验his 药品规则，靶向药，大病医保等
+     * 校验his 药品规则，靶向药，大病医保，抗肿瘤药物等
      *
      * @param recipe          处方信息
      * @param recipeDetailDTO 药品信息
