@@ -142,6 +142,12 @@ public class RecipeExtend implements Serializable {
     private String decoctionText;
     @ItemProperty(alias = "煎法单价")
     private Double decoctionPrice;
+    @ItemProperty(alias = "服用要求")
+    private String requirementsForTakingId;
+    @ItemProperty(alias = "服用要求code")
+    private String requirementsForTakingCode;
+    @ItemProperty(alias = "服用要求text")
+    private String requirementsForTakingText;
 
     @ItemProperty(alias = "病历索引Id")
     private Integer docIndexId;
@@ -981,5 +987,32 @@ public class RecipeExtend implements Serializable {
 
     public void setMedicineCode(String medicineCode) {
         this.medicineCode = medicineCode;
+    }
+
+    @Column(name = "requirements_for_taking_id")
+    public String getRequirementsForTakingId() {
+        return requirementsForTakingId;
+    }
+
+    public void setRequirementsForTakingId(String requirementsForTakingId) {
+        this.requirementsForTakingId = requirementsForTakingId;
+    }
+
+    @Column(name = "requirements_for_taking_code")
+    public String getRequirementsForTakingCode() {
+        return requirementsForTakingCode;
+    }
+
+    public void setRequirementsForTakingCode(String requirementsForTakingCode) {
+        this.requirementsForTakingCode = requirementsForTakingCode;
+    }
+
+    @Column(name = "requirements_for_taking_text")
+    public String getRequirementsForTakingText() {
+        return requirementsForTakingText;
+    }
+
+    public void setRequirementsForTakingText(String requirementsForTakingText) {
+        this.requirementsForTakingText = requirementsForTakingText;
     }
 }
