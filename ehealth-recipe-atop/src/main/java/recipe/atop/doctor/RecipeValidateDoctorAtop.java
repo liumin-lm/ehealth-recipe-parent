@@ -76,7 +76,7 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
     public List<ConfigOptionsVO> validateConfigOptions(ValidateDetailVO validateDetailVO) {
         validateAtop(validateDetailVO.getRecipeDetails(), validateDetailVO.getRecipeType(), validateDetailVO.getOrganId());
         List<RecipeDetailBean> recipeDetails = validateDetailVO.getRecipeDetails();
-        recipeDetails.forEach(a -> validateAtop(a.getUseDays(), a.getUseTotalDose()));
+        recipeDetails.forEach(a -> validateAtop(a.getUseDays(), a.getSalePrice()));
         return recipeDetailService.validateConfigOptions(validateDetailVO);
     }
 
