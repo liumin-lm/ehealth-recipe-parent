@@ -363,11 +363,11 @@ public class OrganDrugListManager extends BaseManager {
             }
             //为0时说明两种权限都没有
             else{
-                a.setValidateHisStatus(3);
-                a.setValidateHisStatusText("不可开具抗肿瘤药品");
+                if(organDrug.getAntiTumorDrugLevel() != null){
+                    a.setValidateHisStatus(3);
+                    a.setValidateHisStatusText("不可开具抗肿瘤药品");
+                }
             }
-
-
         });
     }
 
