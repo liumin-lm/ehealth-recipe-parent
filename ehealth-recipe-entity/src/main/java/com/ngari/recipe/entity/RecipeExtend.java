@@ -257,6 +257,7 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "终端类型 1 自助机")
     private Integer terminalType;
 
+    //主要用于运营平台查询使用
     @ItemProperty(alias = "是否自动审核 1自动审核，0/null药师审核")
     private Integer autoCheck;
 
