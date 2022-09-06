@@ -257,6 +257,11 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "终端类型 1 自助机")
     private Integer terminalType;
 
+    @ItemProperty(alias = "是否自动审核 1自动审核，0/null药师审核")
+    private Integer autoCheck;
+
+
+
     @Column(name = "terminal_id")
     public String getTerminalId() {
         return terminalId;
@@ -1014,5 +1019,16 @@ public class RecipeExtend implements Serializable {
 
     public void setRequirementsForTakingText(String requirementsForTakingText) {
         this.requirementsForTakingText = requirementsForTakingText;
+    }
+
+
+
+    @Column(name = "auto_check")
+    public Integer getAutoCheck() {
+        return autoCheck;
+    }
+
+    public void setAutoCheck(Integer autoCheck) {
+        this.autoCheck = autoCheck;
     }
 }
