@@ -2129,7 +2129,8 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 "o.recipeFee,r.totalMoney,r.checker,r.checkDateYs,r.fromflag,r.status,o.payTime, r.doctorName, r.giveUser, o.dispensingTime, " +
                 "sum(cr.useTotalDose) sumDose ,o.send_type sendType ,o.outTradeNo ,o.cashAmount,o.fundAmount,o.orderType,r.recipeType,r.bussSource," +
                 "r.recipeCode,re.recipe_business_type as recipeBusinessType, " +
-                "o.drugStoreName,o.enterpriseId,r.fast_recipe_flag as fastRecipeFlag " +
+                "o.drugStoreName,o.enterpriseId,r.fast_recipe_flag as fastRecipeFlag, " +
+                "r.offline_recipe_name as offlineRecipeName,r.copyNum " +
                 " from cdr_recipe r " +
                 " LEFT JOIN cdr_recipeorder o on r.orderCode=o.orderCode " +
                 " left join cdr_recipedetail cr on cr.recipeId = r.recipeId  and cr.status =1 " +

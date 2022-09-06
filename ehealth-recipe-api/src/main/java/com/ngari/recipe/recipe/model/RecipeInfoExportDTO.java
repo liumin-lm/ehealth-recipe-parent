@@ -77,6 +77,12 @@ public class RecipeInfoExportDTO implements Serializable {
     @ItemProperty(alias ="复诊类别")
     private Integer fastRecipeFlag;
 
+    @ItemProperty(alias = "线下处方名称")
+    private String offlineRecipeName;
+
+    @ItemProperty(alias = "剂数")
+    private Integer copyNum;
+
     public String getEnterpriseId() {
         return enterpriseId;
     }
@@ -317,5 +323,21 @@ public class RecipeInfoExportDTO implements Serializable {
 
     public void setFastRecipeFlag(Integer fastRecipeFlag) {
         this.fastRecipeFlag = fastRecipeFlag;
+    }
+
+    public String getOfflineRecipeName() {
+        return offlineRecipeName;
+    }
+
+    public void setOfflineRecipeName(String offlineRecipeName) {
+        this.offlineRecipeName = offlineRecipeName;
+    }
+
+    public Integer getCopyNum() {
+        return copyNum;
+    }
+
+    public void setCopyNum(Integer copyNum) {
+        this.copyNum = copyNum;
     }
 }
