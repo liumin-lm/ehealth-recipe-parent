@@ -260,13 +260,9 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
         if (null != number) {
             list.add(ObjectCopyUtils.convert(number, ConfigOptionsVO.class));
         }
-//        List<Integer> drugIds = detailList.stream().map(Recipedetail::getDrugId).distinct().collect(Collectors.toList());
-//        Map<String, OrganDrugList> organDrugCodeMap = organDrugListManager.getOrganDrugByIdAndCode(validateDetailVO.getOrganId(), drugIds);
-//        if (organDrugCodeMap.isEmpty()) {
-//            throw new DAOException(ErrorCode.SERVICE_ERROR, "入参错误");
-//        }
         //金额
-        BigDecimal totalMoney = recipeDetailManager.totalMoney(validateDetailVO.getRecipeType(), detailList, null);
+        Recipe recipe = ObjectCopyUtils.convert(validateDetailVO.getRecipeBean(), Recipe.class);
+        BigDecimal totalMoney = recipeDetailManager.totalMoney(validateDetailVO.getRecipeType(), detailList, recipe);
         logger.info("RecipeDetailBusinessService validateConfigOptions totalMoney={}", JSON.toJSONString(totalMoney));
         ConfigOptionsDTO money = organManager.recipeMoneyDoctorConfirm(validateDetailVO.getOrganId(), totalMoney);
         if (null != money) {
