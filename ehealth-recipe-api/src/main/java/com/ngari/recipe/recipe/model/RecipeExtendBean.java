@@ -240,6 +240,9 @@ public class RecipeExtendBean implements Serializable {
     @ItemProperty(alias = "电子票号")
     private String einvoiceNumber;
 
+    @ItemProperty(alias = "是否自动审核 1自动审核，0/null药师审核")
+    private Integer autoCheck;
+
     public String getTerminalId() {
         return terminalId;
     }
@@ -866,5 +869,13 @@ public class RecipeExtendBean implements Serializable {
 
     public void setEinvoiceNumber(String einvoiceNumber) {
         this.einvoiceNumber = einvoiceNumber;
+    }
+
+    public Integer getAutoCheck() {
+        return autoCheck;
+    }
+
+    public void setAutoCheck(Integer autoCheck) {
+        this.autoCheck = autoCheck;
     }
 }
