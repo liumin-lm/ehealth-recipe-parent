@@ -151,8 +151,14 @@ public class OrderFeeService implements IRecipeOrderRefundService {
             recipeOrderRefundVO.setPayModeText(PayModeEnum.getPayModeEnumName(recipeOrder.getPayMode()));
             recipeOrderRefundVO.setGiveModeText(recipeOrder.getGiveModeText());
 
+            //订单类型归属
+            // 便捷购药订单(=1):便捷购药处方
+            // 普通订单(=0)：普通复诊=0/方便门诊复诊=2/null值
             Integer fastRecipeFlag=recipeOrderCodeMap.get(recipeOrder.getOrderCode()).getFastRecipeFlag();
-            recipeOrderRefundVO.setFastRecipeFlag(fastRecipeFlag==null?Integer.valueOf(0):fastRecipeFlag);
+            if(fastRecipeFlag==null || Integer.valueOf(2).equals(fastRecipeFlag)){
+                fastRecipeFlag=0;
+            }
+            recipeOrderRefundVO.setFastRecipeFlag(fastRecipeFlag);
 
             RecipeExtend recipeExtend = recipeExtendMap.get(recipeOrderCodeMap.get(recipeOrder.getOrderCode()).getRecipeId());
             if (null != recipeExtend) {

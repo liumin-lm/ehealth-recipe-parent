@@ -333,7 +333,8 @@ public class Recipe implements Serializable {
     @ItemProperty(alias = "是否医保 0自费 1医保")
     private Integer medicalFlag;
 
-    @ItemProperty(alias = "快捷购药处方标识： 0其他, 1快捷处方, 2方便门诊")
+    @ItemProperty(alias = "快捷购药处方标识： 0其他, 1快捷处方, 2医嘱申请复诊 3一键续方复诊")
+    @Dictionary(id = "eh.cdr.dictionary.FastRecipeFlag")
     private Integer fastRecipeFlag;
 
     @ItemProperty(alias = "线下处方名称")
