@@ -243,6 +243,11 @@ public class RecipeDetailBusinessService implements IRecipeDetailBusinessService
             organDrugListManager.validateHisDrugRule(recipe, recipeDetails);
             logger.info("RecipeDetailBusinessService validateHisDrugRule 靶向药权限 recipeDetails={}", JSON.toJSONString(recipeDetails));
         }
+        //"4": "抗肿瘤药物权限"
+        if (hisDrugRule.contains("4")) {
+            organDrugListManager.validateAntiTumorDrug(recipe, recipeDetails);
+            logger.info("RecipeDetailBusinessService validateAntiTumorDrug 抗肿瘤药物权限 recipeDetails={}", JSON.toJSONString(recipeDetails));
+        }
         return recipeDetails;
     }
 

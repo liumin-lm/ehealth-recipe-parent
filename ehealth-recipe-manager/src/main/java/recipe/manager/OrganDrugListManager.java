@@ -317,6 +317,59 @@ public class OrganDrugListManager extends BaseManager {
         });
     }
 
+    /**
+     * 校验his 药品规则，抗肿瘤药物
+     *
+     * @param recipe        处方信息
+     * @param recipeDetails 药品信息
+     * @return
+     */
+    public void validateAntiTumorDrug(Recipe recipe, List<RecipeDetailDTO> recipeDetails) {
+        Integer antiTumorDrug = consultClient.getAntiTumorDrugLevel(recipe.getDoctor());
+        //为3时说明两种权限都有
+        if (new Integer(3).equals(antiTumorDrug)) {
+            return;
+        }
+        List<Integer> drugIdList = recipeDetails.stream().map(RecipeDetailDTO::getDrugId).collect(Collectors.toList());
+        List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugIds(recipe.getClinicOrgan(), drugIdList);
+        logger.info("OrganDrugListManager validateAntiTumorDrug organDrugList={}", JSON.toJSONString(organDrugList));
+        Map<String, OrganDrugList> organDrugMap = organDrugList.stream().collect(Collectors.toMap(k -> k.getDrugId() + k.getOrganDrugCode(), a -> a, (k1, k2) -> k1));
+        recipeDetails.forEach(a -> {
+            //存在其他权限
+            if (!ValidateUtil.integerIsEmpty(a.getValidateHisStatus())) {
+                return;
+            }
+            //判断靶向药权限
+            OrganDrugList organDrug = organDrugMap.get(a.getDrugId() + a.getOrganDrugCode());
+            if (null == organDrug) {
+                return;
+            }
+            if (ValidateUtil.integerIsEmpty(organDrug.getAntiTumorDrugFlag())) {
+                return;
+            }
+            //为1时说明只有普通级权限
+            if(new Integer(1).equals(antiTumorDrug)){
+                if(!new Integer(1).equals(organDrug.getAntiTumorDrugLevel())){
+                    a.setValidateHisStatus(3);
+                    a.setValidateHisStatusText("不可开具抗肿瘤药品");
+                }
+            }
+            //为2时说明只有限制级权限
+            else if(new Integer(2).equals(antiTumorDrug)){
+                if(!new Integer(2).equals(organDrug.getAntiTumorDrugLevel())){
+                    a.setValidateHisStatus(3);
+                    a.setValidateHisStatusText("不可开具抗肿瘤药品");
+                }
+            }
+            //为0时说明两种权限都没有
+            else{
+                a.setValidateHisStatus(3);
+                a.setValidateHisStatusText("不可开具抗肿瘤药品");
+            }
+
+
+        });
+    }
 
     /**
      * 查询his 药品说明书
