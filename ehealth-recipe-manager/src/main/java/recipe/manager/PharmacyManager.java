@@ -154,8 +154,9 @@ public class PharmacyManager extends BaseManager {
         }
         //判断机构药房-药房支持的处方类型
         String recipeTypeText = RecipeTypeEnum.getRecipeType(recipeType);
-        pharmacys = pharmacys.stream().filter(a -> Arrays.asList(a.getPharmacyCategray().split(ByteUtils.COMMA)).contains(recipeTypeText)).collect(Collectors.toList());
-        if (CollectionUtils.isEmpty(pharmacys)) {
+        List<PharmacyTcm> pharmacyTypes = pharmacys.stream().filter(a -> Arrays.asList(a.getPharmacyCategray().split(ByteUtils.COMMA)).contains(recipeTypeText)).collect(Collectors.toList());
+        logger.info("PharmacyManager organDrugPharmacyId pharmacyTypes = {},recipeTypeText={}", JSON.toJSONString(pharmacyTypes), recipeTypeText);
+        if (CollectionUtils.isEmpty(pharmacyTypes)) {
             return null;
         }
         //获取机构药品药房
@@ -168,7 +169,7 @@ public class PharmacyManager extends BaseManager {
         List<String> pharmacyIds = pharmacyList.stream().map(a -> Arrays.asList(a.split(ByteUtils.COMMA))).flatMap(Collection::stream).collect(Collectors.toList());
         Map<String, List<String>> pharmacyMap = pharmacyIds.stream().collect(Collectors.groupingBy(String::valueOf));
 
-        Map<Integer, PharmacyTcm> pharmacyIdMap = pharmacys.stream().collect(Collectors.toMap(PharmacyTcm::getPharmacyId, a -> a, (k1, k2) -> k1));
+        Map<Integer, PharmacyTcm> pharmacyIdMap = pharmacyTypes.stream().collect(Collectors.toMap(PharmacyTcm::getPharmacyId, a -> a, (k1, k2) -> k1));
         int i = 0;
         int pharmacyId = 0;
         for (String key : pharmacyMap.keySet()) {
@@ -179,6 +180,9 @@ public class PharmacyManager extends BaseManager {
                 i = pharmacyMap.get(key).size();
                 pharmacyId = Integer.valueOf(key);
             }
+        }
+        if (0 == pharmacyId) {
+            return new PharmacyTcm();
         }
         return pharmacyIdMap.get(pharmacyId);
     }
