@@ -376,13 +376,13 @@ public class HisRequestInit {
                 if (StringUtils.isNotBlank(recipeExtend.getEveryTcmNumFre())) {
                     requestTO.getRecipeExtend().setEveryTcmNumFre(recipeExtend.getEveryTcmNumFre());
                 }
-                //TODO requirementsForTakingText
-//                if (StringUtils.isNotBlank(recipeExtend.getRequirementsForTakingCode())) {
-//                    requestTO.getRecipeExtend().setRequirementsForTakingCode(recipeExtend.getRequirementsForTakingCod();
-//                }
-//                if (StringUtils.isNotBlank(recipeExtend.getRequirementsForTakingText())) {
-//                    requestTO.getRecipeExtend().setRequirementsForTakingText(recipeExtend.getRequirementsForTakingText();
-//                }
+
+                if (StringUtils.isNotBlank(recipeExtend.getRequirementsForTakingCode())) {
+                    requestTO.getRecipeExtend().setRequirementsForTakingCode(recipeExtend.getRequirementsForTakingCode());
+                }
+                if (StringUtils.isNotBlank(recipeExtend.getRequirementsForTakingText())) {
+                    requestTO.getRecipeExtend().setRequirementsForTakingText(recipeExtend.getRequirementsForTakingText());
+                }
                 if (StringUtils.isNotBlank(recipeExtend.getSymptomId())) {
                     requestTO.getRecipeExtend().setSymptomCode(recipeExtend.getSymptomId());
                 }

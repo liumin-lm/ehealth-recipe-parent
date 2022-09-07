@@ -30,9 +30,9 @@ public enum OrderStateEnum {
     /**
      * 订单子状态:处理中
      */
-    SUB_ORDER_DELIVERED_MEDICINE(31,"待发药","请耐心等待发药"),
-    SUB_ORDER_DELIVERED(32,"配送中","药品已送出，请耐心等待"),
-    SUB_ORDER_TAKE_MEDICINE(33,"待取药","请尽快前往相关药房取药"),
+    SUB_ORDER_DELIVERED_MEDICINE(31,"请耐心等待发药",""),
+    SUB_ORDER_DELIVERED(32,"药品已送出，请耐心等待",""),
+    SUB_ORDER_TAKE_MEDICINE(33,"请尽快前往相关药房取药",""),
 
     /**
      * 订单子状态:已完成

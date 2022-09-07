@@ -124,6 +124,13 @@ public class FastRecipe {
     @ItemProperty(alias = "每贴次数")
     private String everyTcmNumFre;
 
+    @ItemProperty(alias = "服用要求")
+    private String requirementsForTakingId;
+    @ItemProperty(alias = "服用要求code")
+    private String requirementsForTakingCode;
+    @ItemProperty(alias = "服用要求text")
+    private String requirementsForTakingText;
+
     @Id
     @GeneratedValue(strategy = IDENTITY)
     @Column(name = "id", unique = true, nullable = false)
@@ -439,4 +446,32 @@ public class FastRecipe {
     public void setRecipeMemo(String recipeMemo) {
         this.recipeMemo = recipeMemo;
     }
+
+    @Column(name = "requirements_for_taking_id")
+    public String getRequirementsForTakingId() {
+        return requirementsForTakingId;
+    }
+
+    public void setRequirementsForTakingId(String requirementsForTakingId) {
+        this.requirementsForTakingId = requirementsForTakingId;
+    }
+
+    @Column(name = "requirements_for_taking_code")
+    public String getRequirementsForTakingCode() {
+        return requirementsForTakingCode;
+    }
+
+    public void setRequirementsForTakingCode(String requirementsForTakingCode) {
+        this.requirementsForTakingCode = requirementsForTakingCode;
+    }
+
+    @Column(name = "requirements_for_taking_text")
+    public String getRequirementsForTakingText() {
+        return requirementsForTakingText;
+    }
+
+    public void setRequirementsForTakingText(String requirementsForTakingText) {
+        this.requirementsForTakingText = requirementsForTakingText;
+    }
+
 }

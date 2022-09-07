@@ -1255,7 +1255,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                 recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(req.getRecipeCode(), req.getOrganId());
             }
 
-            //审核结果auditResult: 0审核不通过, 1审核通过, 2审核失败
+            //审核结果auditResult: 0审核不通过, 1审核通过, 2审核失败 3 需要医生二次审核确认
             if (Objects.isNull(recipe)) {
                 resMap.put("msg", "查询不到处方信息");
             } else {
@@ -1265,6 +1265,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                     recipeLogDAO.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "当前处方调用审核接口失败");
                     resMap.put("msg", "当前处方调用审核接口失败");
                     return resMap;
+                } else if ("3".equals(req.getAuditResult())) {
+                    //需要医生二次审核确认
                 }
 
                 Map<String, Object> paramMap = Maps.newHashMap();
@@ -2725,6 +2727,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                 departChargeReportResult.setChinesePatentMedFee(departChargeReportResult.getChinesePatentMedFee().subtract(refundResult.getChinesePatentMedFee()));
                 departChargeReportResult.setMedicalFee(departChargeReportResult.getMedicalFee().subtract(refundResult.getMedicalFee()));
                 departChargeReportResult.setPersonalFee(departChargeReportResult.getPersonalFee().subtract(refundResult.getPersonalFee()));
+                departChargeReportResult.setChildMedicalFee(departChargeReportResult.getChildMedicalFee().subtract(refundResult.getChildMedicalFee()));
+                departChargeReportResult.setFamilyMedicalFee(departChargeReportResult.getFamilyMedicalFee().subtract(refundResult.getFamilyMedicalFee()));
             }
         });
         LOGGER.info("getRecipeFeeDetail RecipeOrderFeeVO.voList is {},voList.size={}", JSONUtils.toString(voList), voList.size());

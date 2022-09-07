@@ -195,6 +195,9 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
         fastRecipe.setTitle(title);
         fastRecipe.setTotalMoney(recipe.getTotalMoney());
         fastRecipe.setEveryTcmNumFre(recipeExtend.getEveryTcmNumFre());
+        fastRecipe.setRequirementsForTakingId(recipeExtend.getRequirementsForTakingId());
+        fastRecipe.setRequirementsForTakingCode(recipeExtend.getRequirementsForTakingCode());
+        fastRecipe.setRequirementsForTakingText(recipeExtend.getRequirementsForTakingText());
         fastRecipe.setDoctorIsDecoction(recipeExtend.getDoctorIsDecoction());
         fastRecipe.setNeedQuestionnaire(0);
         fastRecipe.setRecipeMemo(recipe.getRecipeMemo());

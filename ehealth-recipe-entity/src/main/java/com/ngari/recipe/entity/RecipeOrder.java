@@ -387,6 +387,9 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "支付回调返回的医保出参，含医保编号")
     private String medicalInsurance;
 
+    @ItemProperty(alias = "订单物流状态 0: 默认 1 待发药 2 配送中 3 待取药")
+    private Integer logisticsState;
+
     //todo 默认构造器不要给init默认值啊 此方法慎用
     @Deprecated
     public RecipeOrder() {
@@ -1473,5 +1476,14 @@ public class RecipeOrder implements Serializable {
 
     public void setMedicalInsurance(String medicalInsurance) {
         this.medicalInsurance = medicalInsurance;
+    }
+
+    @Column(name = "logistics_state")
+    public Integer getLogisticsState() {
+        return logisticsState;
+    }
+
+    public void setLogisticsState(Integer logisticsState) {
+        this.logisticsState = logisticsState;
     }
 }
