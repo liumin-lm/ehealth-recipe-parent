@@ -1,10 +1,7 @@
 package com.ngari.recipe.entity;
 
 import ctd.account.session.ClientSession;
-import ctd.schema.annotation.Dictionary;
-import ctd.schema.annotation.FileToken;
-import ctd.schema.annotation.ItemProperty;
-import ctd.schema.annotation.Schema;
+import ctd.schema.annotation.*;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
@@ -242,6 +239,7 @@ public class Recipe implements Serializable {
     private String doctorName;
 
     @ItemProperty(alias = "患者姓名")
+    @Desensitizations(type = DesensitizationsType.NAME)
     private String patientName;
 
     @ItemProperty(alias = "外带处方标志 1:外带药处方")

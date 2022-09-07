@@ -29,6 +29,7 @@ public class PatientVO implements Serializable {
     private String mpiId;
 
     @ItemProperty(alias = "病人姓名")
+    @Desensitizations(type = DesensitizationsType.NAME)
     private String patientName;
 
     @ItemProperty(alias = "病人性别")
