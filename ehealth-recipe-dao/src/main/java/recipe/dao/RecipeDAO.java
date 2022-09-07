@@ -521,7 +521,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 hql.append("select sum(case when r.recipeType =1 then IFNULL(o.payBackPrice,0) ELSE 0 end) westMedFee,");
                 hql.append("sum(case when r.recipeType =2 then IFNULL(o.payBackPrice,0) ELSE 0 end) chinesePatentMedFee,");
                 hql.append("sum(case when r.recipeType =3 then IFNULL(o.payBackPrice,0) ELSE 0 end) chineseMedFee,");
-                hql.append("r.depart,sum(IFNULL(o.fundAmount,0)) medicalFee,sum(IFNULL(o.cashAmount,0)) personalFee from cdr_recipe r left join cdr_recipeorder o on r.orderCode=o.orderCode where r.clinicOrgan=:organId");
+                hql.append("r.depart,sum(IFNULL(o.fundAmount,0)) medicalFee,sum(IFNULL(o.cashAmount,0)) personalFee, sum( IFNULL( o.child_medical_fee, 0 ) ) childMedicalFee,sum( IFNULL( o.family_medical_fee, 0 ) ) familyMedicalFee from cdr_recipe r left join cdr_recipeorder o on r.orderCode=o.orderCode where r.clinicOrgan=:organId");
                 if (depart != null) {
                     hql.append(" and r.depart =:depart");
                 }
@@ -552,6 +552,8 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         recipeOrderFeeVO.setMedicalFee(objs[4] == null ? new BigDecimal(0) : new BigDecimal(objs[4].toString()));
                         //自费金额
                         recipeOrderFeeVO.setPersonalFee(objs[5] == null ? new BigDecimal(0) : new BigDecimal(objs[5].toString()));
+                        recipeOrderFeeVO.setChildMedicalFee(objs[6] == null ? new BigDecimal(0) : new BigDecimal(objs[6].toString()));
+                        recipeOrderFeeVO.setFamilyMedicalFee(objs[7] == null ? new BigDecimal(0) : new BigDecimal(objs[7].toString()));
                         //科室名称
                         if (recipeOrderFeeVO.getDepartId() != null) {
                             recipeOrderFeeVO.setDepartName(DictionaryController.instance().get("eh.base.dictionary.Depart").getText(recipeOrderFeeVO.getDepartId()));
@@ -585,7 +587,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 hql.append("select sum(case when r.recipeType =1 then IFNULL(o.payBackPrice,0) ELSE 0 end) westMedFee,");
                 hql.append("sum(case when r.recipeType =2 then IFNULL(o.payBackPrice,0) ELSE 0 end) chinesePatentMedFee,");
                 hql.append("sum(case when r.recipeType =3 then IFNULL(o.payBackPrice,0) ELSE 0 end) chineseMedFee,");
-                hql.append("r.depart,sum(IFNULL(o.fundAmount,0)) medicalFee,sum(IFNULL(o.cashAmount,0)) personalFee from cdr_recipe r left join cdr_recipeorder o on r.orderCode=o.orderCode where  r.clinicOrgan=:organId");
+                hql.append("r.depart,sum(IFNULL(o.fundAmount,0)) medicalFee,sum(IFNULL(o.cashAmount,0)) personalFee,sum( IFNULL( o.child_medical_fee, 0 ) ) childMedicalFee,sum( IFNULL( o.family_medical_fee, 0 ) )familyMedicalFee  from cdr_recipe r left join cdr_recipeorder o on r.orderCode=o.orderCode where  r.clinicOrgan=:organId");
                 hql.append(" and o.PayFlag = 3");
                 if (depart != null) {
                     hql.append(" and r.depart =:depart");
@@ -617,6 +619,8 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         recipeOrderFeeVO.setMedicalFee(objs[4] == null ? new BigDecimal(0) : new BigDecimal(objs[4].toString()));
                         //自费金额
                         recipeOrderFeeVO.setPersonalFee(objs[5] == null ? new BigDecimal(0) : new BigDecimal(objs[5].toString()));
+                        recipeOrderFeeVO.setChildMedicalFee(objs[6] == null ? new BigDecimal(0) : new BigDecimal(objs[6].toString()));
+                        recipeOrderFeeVO.setFamilyMedicalFee(objs[7] == null ? new BigDecimal(0) : new BigDecimal(objs[7].toString()));
                         //科室名称
                         if (recipeOrderFeeVO.getDepartId() != null) {
                             recipeOrderFeeVO.setDepartName(DictionaryController.instance().get("eh.base.dictionary.Depart").getText(recipeOrderFeeVO.getDepartId()));
