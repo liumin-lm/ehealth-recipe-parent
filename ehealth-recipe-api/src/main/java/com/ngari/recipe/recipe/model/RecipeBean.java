@@ -429,7 +429,7 @@ public class RecipeBean implements Serializable {
     @ItemProperty(alias = "是否医保 0自费 1医保")
     private Integer medicalFlag;
 
-    @ItemProperty(alias = "快捷购药处方标识： 0其他, 1快捷处方, 2医嘱申请复诊 3一键续方复诊")
+    @ItemProperty(alias = "复诊场景类型： 0普通复诊, 1便捷购药复诊, 2医嘱申请复诊, 3一键续方复诊")
     @Dictionary(id = "eh.cdr.dictionary.FastRecipeFlag")
     private Integer fastRecipeFlag;
 
