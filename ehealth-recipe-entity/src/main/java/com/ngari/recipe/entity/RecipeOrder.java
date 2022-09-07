@@ -110,6 +110,7 @@ public class RecipeOrder implements Serializable {
     private Integer addressID;
 
     @ItemProperty(alias = "收货人")
+    @Desensitizations(type = DesensitizationsType.NAME)
     private String receiver;
 
     @ItemProperty(alias = "收货人手机号")

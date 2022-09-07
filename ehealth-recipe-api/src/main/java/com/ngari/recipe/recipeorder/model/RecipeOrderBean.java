@@ -116,6 +116,7 @@ public class RecipeOrderBean implements Serializable {
     private Integer addressID;
 
     @ItemProperty(alias = "收货人")
+    @Desensitizations(type = DesensitizationsType.NAME)
     private String receiver;
 
     @Desensitizations(type = DesensitizationsType.MOBILE)

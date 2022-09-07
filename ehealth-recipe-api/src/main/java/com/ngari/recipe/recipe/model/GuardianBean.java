@@ -16,6 +16,7 @@ import java.io.Serializable;
 public class GuardianBean implements Serializable {
 
     private static final long serialVersionUID = -8882418262625511814L;
+    @Desensitizations(type = DesensitizationsType.NAME)
     private String name;
     private Integer age;
     private String sex;

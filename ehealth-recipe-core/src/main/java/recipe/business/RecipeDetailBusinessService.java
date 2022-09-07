@@ -284,6 +284,7 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
         recipeDetailBean.setStatus(organDrug.getStatus());
         recipeDetailBean.setDrugId(organDrug.getDrugId());
         recipeDetailBean.setSalePrice(organDrug.getSalePrice());
+        recipeDetailBean.setPack(organDrug.getPack());
         recipeDetailBean.setUseDoseAndUnitRelation(RecipeUtil.defaultUseDose(organDrug));
         //续方也会走这里但是 续方要用药品名实时配置
         recipeDetailBean.setDrugDisplaySplicedName(DrugDisplayNameProducer.getDrugName(recipeDetailBean, configDrugNameMap, DrugNameDisplayUtil.getDrugNameConfigKey(recipeType)));
