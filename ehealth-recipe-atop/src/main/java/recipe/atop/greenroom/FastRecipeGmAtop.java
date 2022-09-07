@@ -58,7 +58,7 @@ public class FastRecipeGmAtop extends BaseAtop {
      */
     @RpcService
     public FastRecipeRespVO findFastRecipeListByOrganId(FastRecipeReq fastRecipeReq) {
-        validateAtop(fastRecipeReq, fastRecipeReq.getOrganId());
+        validateAtop(fastRecipeReq);
         isAuthorisedOrgan(fastRecipeReq.getOrganId());
         fastRecipeReq.setStart((fastRecipeReq.getStart() - 1) * fastRecipeReq.getLimit());
         fastRecipeReq.setStatusList(Lists.newArrayList(1, 2));

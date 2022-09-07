@@ -87,6 +87,7 @@ public class RecipePatientAtop extends BaseAtop {
                 result.add(outPatientRecipeVO);
             });
             logger.info("OutPatientRecipeAtop queryOutPatientRecipe result:{}.", JSON.toJSONString(result));
+            Thread.sleep(5000);
             return result;
         } catch (DAOException e1) {
             logger.error("OutPatientRecipeAtop queryOutPatientRecipe DAOException error", e1);
@@ -119,6 +120,18 @@ public class RecipePatientAtop extends BaseAtop {
         } catch (Exception e) {
             logger.error("OutPatientRecipeAtop getOutRecipeDisease error e", e);
             return "";
+        }
+    }
+
+    @RpcService
+    public List<DiseaseInfoDTO> getOutRecipeDiseaseV1(PatientInfoVO patientInfoVO) {
+        logger.info("OutPatientRecipeAtop getOutRecipeDisease patientInfoVO:{}.", JSON.toJSONString(patientInfoVO));
+        validateAtop(patientInfoVO, patientInfoVO.getOrganId(), patientInfoVO.getPatientName(), patientInfoVO.getPatientId(), patientInfoVO.getRegisterID());
+        try {
+            List<DiseaseInfoDTO> result = recipeBusinessService.getOutRecipeDisease(patientInfoVO);
+            return result;
+        } catch (Exception e) {
+            return new ArrayList<>();
         }
     }
 
