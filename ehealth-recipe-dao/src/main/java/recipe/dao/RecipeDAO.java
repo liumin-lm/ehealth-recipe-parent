@@ -1438,6 +1438,31 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     }
 
     /**
+     * 运营平台-业务查询-审方业务导出
+     *
+     */
+    public List<RecipeAuditInfoExportDTO> findRecipeAuditInfoForExcel(RecipesQueryVO recipesQueryVO) {
+        this.validateOptionForStatistics(recipesQueryVO);
+        final StringBuilder sbHql = this.generateRecipeAuditHQLforStatistics(recipesQueryVO);
+        HibernateStatelessResultAction<List<RecipeAuditInfoExportDTO>> action = new AbstractHibernateStatelessResultAction<List<RecipeAuditInfoExportDTO>>() {
+            @Override
+            public void execute(StatelessSession ss) {
+                Query query = ss.createSQLQuery(sbHql.append(" GROUP BY r.recipeId order by r.recipeId DESC").toString())
+                        .addEntity(RecipeAuditInfoExportDTO.class);
+                LOGGER.info("RecipeDAO findRecipeAuditInfoForExcel sbHql = {} ", sbHql);
+
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                query.setParameter("startTime", sdf.format(recipesQueryVO.getBDate()));
+                query.setParameter("endTime", sdf.format(recipesQueryVO.getEDate()));
+                List<RecipeAuditInfoExportDTO> list = query.list();
+                setResult(list);
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
+    /**
      * 根据状态统计
      *
      * @param status   处方状态
@@ -1749,6 +1774,23 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 " from cdr_recipe r " +
                 " LEFT JOIN cdr_recipeorder o on r.orderCode=o.orderCode " +
                 " left join cdr_recipedetail cr on cr.recipeId = r.recipeId  and cr.status =1 " +
+                " left join cdr_recipe_ext re on re.recipeId = r.recipeId " +
+                " where r.recipeSourceType!=3 ");
+
+        return generateRecipeOderWhereHQLforStatistics(hql,recipesQueryVO);
+    }
+
+    /**
+     * 运营平台-处方查询-审方信息列表导出sql查询
+     * @param recipesQueryVO
+     * @return
+     */
+    private StringBuilder generateRecipeAuditHQLforStatistics(RecipesQueryVO recipesQueryVO) {
+        StringBuilder hql = new StringBuilder("select r.recipeId,r.recipeCode,r.patientName, " +
+                "r.mpiid,r.doctor,r.doctorName,r.signDate,r.clinicOrgan,r.organName, " +
+                "r.checkerText,r.CheckDateYs,r.checkFlag,r.reviewType,re.auto_check as autoCheck " +
+                " from cdr_recipe r " +
+                " LEFT JOIN cdr_recipeorder o on r.orderCode=o.orderCode " +
                 " left join cdr_recipe_ext re on re.recipeId = r.recipeId " +
                 " where r.recipeSourceType!=3 ");
 

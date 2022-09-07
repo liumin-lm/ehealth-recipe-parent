@@ -833,6 +833,14 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         return result;
     }
 
+    @Override
+    public List<RecipeAuditInfoExportDTO> findRecipeAuditInfoForExcel(RecipesQueryVO recipesQueryVO){
+        LOGGER.info("remoteRecipeService findRecipeAuditInfoForExcel recipesQueryVO={}", JSONUtils.toString(recipesQueryVO));
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        List<RecipeAuditInfoExportDTO> result = recipeDAO.findRecipeAuditInfoForExcel(recipesQueryVO);
+        LOGGER.info("remoteRecipeService findRecipeAuditInfoForExcel result={}", JSONUtils.toString(result));
+        return result;
+    }
     /**
      * 春节2月17版本 JRK
      * 查询
