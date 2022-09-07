@@ -3,6 +3,7 @@ package recipe.drugTool.validate;
 import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.dto.UsingRateDTO;
 import com.ngari.opbase.base.mode.OrganDictionaryItemDTO;
+import com.ngari.recipe.dto.RequirementsForTakingDTO;
 import com.ngari.recipe.dto.ValidateOrganDrugDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RecipeBean;
@@ -25,6 +26,7 @@ import recipe.dao.DrugMakingMethodDao;
 import recipe.dao.RequirementsForTakingDao;
 import recipe.manager.DrugManager;
 import recipe.manager.OrganDrugListManager;
+import recipe.manager.RecipeManager;
 import recipe.manager.RevisitManager;
 import recipe.util.ObjectCopyUtils;
 import recipe.util.ValidateUtil;
@@ -56,6 +58,8 @@ public class RecipeDetailValidateTool {
     private OperationClient operationClient;
     @Autowired
     private RevisitManager revisitManager;
+    @Autowired
+    private RecipeManager recipeManager;
 
     /**
      * 患者选择煎法
@@ -452,53 +456,50 @@ public class RecipeDetailValidateTool {
      * @param recipeExtendBean
      */
     public void validateRequirementsForTaking(Integer organId, RecipeExtendBean recipeExtendBean) {
+        //强制要求code一定要给
         if (StringUtils.isEmpty(recipeExtendBean.getRequirementsForTakingCode()) && StringUtils.isEmpty(recipeExtendBean.getRequirementsForTakingText())) {
             return;
         }
-        //1、校验服用要求
-        List<RequirementsForTaking> requirementsForTakingList = requirementsForTakingDao.findByOrganId(organId);
-        if (CollectionUtils.isEmpty(requirementsForTakingList)) {
+        //拿到历史处方煎法
+        String writeRecipeSelectDecoctionId=recipeExtendBean.getDecoctionId();
+        //处方煎法煎法关联的服用要求
+        List<RequirementsForTakingDTO> requirementsForTakingDTOList=recipeManager.findRequirementsForTakingByDecoctionId(organId,Integer.parseInt(writeRecipeSelectDecoctionId));
+        //是否包含历史处方上的服用要求
+        if(CollectionUtils.isEmpty(requirementsForTakingDTOList)){
             requirementsForTaking(null, recipeExtendBean);
             return;
         }
-        //code
-        Map<String, RequirementsForTaking> mapCode = requirementsForTakingList.stream().collect(Collectors.toMap(RequirementsForTaking::getCode, a -> a, (k1, k2) -> k1));
-        RequirementsForTaking requirementsForTaking = mapCode.get(recipeExtendBean.getRequirementsForTakingCode());
-        if (null != requirementsForTaking) {
-            //服用要求关联煎法是否包括开方时煎法
-//            String writeRecipeSelectDecoctionCode=recipeExtendBean.getDecoctionCode();
-//            String writeRecipeSelectDecoctionText=recipeExtendBean.getDecoctionText();
-//            String writeRecipeSelectDecoctionId=recipeExtendBean.getDecoctionId();
-//            String decoctionwayId=requirementsForTaking.getDecoctionwayId();
-//            //没有配置服用要求
-//            if(StringUtils.isEmpty(decoctionwayId)){
-//                //开方的时候是否有配置服用要求
+        requirementsForTakingDTOList.forEach(requirementsForTakingDTO->{
+            if(StringUtils.isNotEmpty(requirementsForTakingDTO.getCode())&&requirementsForTakingDTO.getCode().equals(recipeExtendBean.getRequirementsForTakingCode())){
+                //包含
+                requirementsForTaking(ObjectCopyUtils.convert(requirementsForTakingDTO,RequirementsForTaking.class), recipeExtendBean);
+                return;
+            }
+        });
+
+//        //1、校验服用要求
+//        List<RequirementsForTaking> requirementsForTakingList = requirementsForTakingDao.findByOrganId(organId);
+//        if (CollectionUtils.isEmpty(requirementsForTakingList)) {
+//            requirementsForTaking(null, recipeExtendBean);
+//            return;
+//        }
+//        //code
+//        Map<String, RequirementsForTaking> mapCode = requirementsForTakingList.stream().collect(Collectors.toMap(RequirementsForTaking::getCode, a -> a, (k1, k2) -> k1));
+//        RequirementsForTaking requirementsForTaking = mapCode.get(recipeExtendBean.getRequirementsForTakingCode());
+//        if (null != requirementsForTaking) {
 //
-//            }
-//            List<String> decoctionwayIdList=  Arrays.asList(decoctionwayId.split(","));
-//            if(CollectionUtils.isEmpty(decoctionwayIdList)){
-//                return;
-//            }
-//            if(decoctionwayIdList.contains(String.valueOf(decoctionId))){
-//                requirementsForTakingVOS.add(ObjectCopyUtils.convert(requirementsForTaking, RequirementsForTakingVO.class));
-//            }
-//            drugDecoctionWayDao.get(decoctionwayId);
-
-            requirementsForTaking(requirementsForTaking, recipeExtendBean);
-            return;
-        }
-
-        //text
-        Map<String, RequirementsForTaking> mapText = requirementsForTakingList.stream().collect(Collectors.toMap(RequirementsForTaking::getCode, a -> a, (k1, k2) -> k1));
-        requirementsForTaking = mapText.get(recipeExtendBean.getDecoctionText());
-        if (null != requirementsForTaking) {
-            requirementsForTaking(requirementsForTaking, recipeExtendBean);
-            return;
-        }
-
-        //2、校验服用要求是否修改关联煎法
-
-
+//
+//            requirementsForTaking(requirementsForTaking, recipeExtendBean);
+//            return;
+//        }
+//
+//        //text
+//        Map<String, RequirementsForTaking> mapText = requirementsForTakingList.stream().collect(Collectors.toMap(RequirementsForTaking::getCode, a -> a, (k1, k2) -> k1));
+//        requirementsForTaking = mapText.get(recipeExtendBean.getDecoctionText());
+//        if (null != requirementsForTaking) {
+//            requirementsForTaking(requirementsForTaking, recipeExtendBean);
+//            return;
+//        }
 
         requirementsForTaking(null, recipeExtendBean);
     }

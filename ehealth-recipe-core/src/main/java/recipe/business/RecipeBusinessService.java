@@ -861,33 +861,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
 
     @Override
     public List<RequirementsForTakingVO> findRequirementsForTakingByDecoctionId(Integer organId, Integer decoctionId) {
-        List<RequirementsForTakingVO> requirementsForTakingVOS=new ArrayList<>();
-        RequirementsForTakingVO requirementsForTakingVO = new RequirementsForTakingVO();
-        List<RequirementsForTaking> requirementsForTakings=requirementsForTakingDao.findAllByOrganId(organId);
-        if(CollectionUtils.isEmpty(requirementsForTakings)){
-            return requirementsForTakingVOS;
-        }
-        if(decoctionId==null){
-            //如果煎法未选择，则服用要求按展示全部处理
-            logger.info("findRequirementsForTakingByDecoctionId res:{}",JSONUtils.toString(requirementsForTakings));
-            return ObjectCopyUtils.convert(requirementsForTakings,RequirementsForTakingVO.class);
-        }else{
-            //根据煎法筛选出关键的服用要求选项展示给医生选择
-            requirementsForTakings.forEach(requirementsForTaking->{
-                String decoctionwayId=requirementsForTaking.getDecoctionwayId();
-                if(StringUtils.isEmpty(decoctionwayId)){
-                    return;
-                }
-                List<String> decoctionwayIdList=  Arrays.asList(decoctionwayId.split(","));
-                if(CollectionUtils.isEmpty(decoctionwayIdList)){
-                    return;
-                }
-                if(decoctionwayIdList.contains(String.valueOf(decoctionId))){
-                    requirementsForTakingVOS.add(ObjectCopyUtils.convert(requirementsForTaking,RequirementsForTakingVO.class));
-                }
-            });
-        }
-        return requirementsForTakingVOS;
+        return ObjectCopyUtils.convert(recipeManager.findRequirementsForTakingByDecoctionId(organId,decoctionId),RequirementsForTakingVO.class);
     }
 
     @Override

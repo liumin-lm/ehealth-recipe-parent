@@ -86,10 +86,10 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
         //获取嘱托
         Map<String, DrugEntrust> drugEntrustNameMap = drugManager.drugEntrustNameMap(organId);
         /**校验处方扩展字段*/
-        //校验服用要求
-        recipeDetailValidateTool.validateRequirementsForTaking(organId, validateDetailVO.getRecipeExtendBean());
         //校验煎法
         recipeDetailValidateTool.validateDecoction(organId, validateDetailVO.getRecipeExtendBean());
+        //校验服用要求
+        recipeDetailValidateTool.validateRequirementsForTaking(organId, validateDetailVO.getRecipeExtendBean());
         //校验制法
         recipeDetailValidateTool.validateMakeMethod(organId, validateDetailVO.getRecipeExtendBean());
         /**校验药品数据判断状态*/
