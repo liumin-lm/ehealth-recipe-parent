@@ -23,6 +23,7 @@ import recipe.util.ValidateUtil;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * 机构药品处理
@@ -325,9 +326,9 @@ public class OrganDrugListManager extends BaseManager {
      * @return
      */
     public void validateAntiTumorDrug(Recipe recipe, List<RecipeDetailDTO> recipeDetails) {
-        Integer antiTumorDrug = consultClient.getAntiTumorDrugLevel(recipe.getDoctor());
-        //为3时说明两种权限都有
-        if (new Integer(3).equals(antiTumorDrug)) {
+        List<Integer> antiTumorDrug = consultClient.getAntiTumorDrugLevel(recipe.getDoctor());
+        //说明两种权限都有
+        if (antiTumorDrug.containsAll(Stream.of(1,2).collect(Collectors.toList()))) {
             return;
         }
         List<Integer> drugIdList = recipeDetails.stream().map(RecipeDetailDTO::getDrugId).collect(Collectors.toList());
@@ -347,26 +348,9 @@ public class OrganDrugListManager extends BaseManager {
             if (ValidateUtil.integerIsEmpty(organDrug.getAntiTumorDrugFlag())) {
                 return;
             }
-            //为1时说明只有普通级权限
-            if(new Integer(1).equals(antiTumorDrug)){
-                if(!new Integer(1).equals(organDrug.getAntiTumorDrugLevel())){
-                    a.setValidateHisStatus(3);
-                    a.setValidateHisStatusText("不可开具抗肿瘤药品");
-                }
-            }
-            //为2时说明只有限制级权限
-            else if(new Integer(2).equals(antiTumorDrug)){
-                if(!new Integer(2).equals(organDrug.getAntiTumorDrugLevel())){
-                    a.setValidateHisStatus(3);
-                    a.setValidateHisStatusText("不可开具抗肿瘤药品");
-                }
-            }
-            //为0时说明两种权限都没有
-            else{
-                if(organDrug.getAntiTumorDrugLevel() != null){
-                    a.setValidateHisStatus(3);
-                    a.setValidateHisStatusText("不可开具抗肿瘤药品");
-                }
+            if(!antiTumorDrug.contains(organDrug.getAntiTumorDrugLevel())){
+                a.setValidateHisStatus(3);
+                a.setValidateHisStatusText("不可开具抗肿瘤药品");
             }
         });
     }
