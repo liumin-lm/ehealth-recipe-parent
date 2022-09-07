@@ -26,6 +26,7 @@ import ctd.util.annotation.RpcService;
 import eh.msg.constant.MqConstant;
 import eh.recipeaudit.api.IRecipeCheckService;
 import eh.recipeaudit.model.RecipeCheckBean;
+import eh.recipeaudit.util.RecipeAuditAPI;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
@@ -497,5 +498,51 @@ public class RecipeTestService {
     public String getParameterValue(String name){
         RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
         return recipeParameterDao.getByName(name);
+    }
+
+    @RpcService
+    public String updateAutoCheckValue(Date startDate,Date endDate,Integer auditOrgan){
+        IRecipeCheckService recipeCheckService=  RecipeAuditAPI.getService(IRecipeCheckService.class,"recipeCheckServiceImpl");
+        RecipeExtendDAO extendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        StringBuffer buffer=new StringBuffer();
+
+        Integer autoCheck=0;
+        List<Integer> noCheckRecipeIds=recipeCheckService.findByIsAutoCheck(autoCheck,auditOrgan,startDate,endDate);
+        int noCheckUpdateNum = 0;
+        if (0 < noCheckRecipeIds.size()) {
+            int start = 0;
+            int end = 0;
+            while (end < noCheckRecipeIds.size()) {
+                start = end;
+                end = start + 100;
+                if (end > noCheckRecipeIds.size()) {
+                    end = noCheckRecipeIds.size();
+                }
+                Integer flag=extendDAO.updateAutoCheck(autoCheck,noCheckRecipeIds.subList(start, end));
+                noCheckUpdateNum=noCheckUpdateNum+flag;
+            }
+        }
+        buffer.append("更新autoCheck=0数据条数："+noCheckUpdateNum);
+
+
+        autoCheck=1;
+        List<Integer> hasCheckRecipeIds=recipeCheckService.findByIsAutoCheck(autoCheck,auditOrgan,startDate,endDate);
+        int hasCheckUpdateNum = 0;
+        if (0 < hasCheckRecipeIds.size()) {
+            int start = 0;
+            int end = 0;
+            while (end < hasCheckRecipeIds.size()) {
+                start = end;
+                end = start + 100;
+                if (end > hasCheckRecipeIds.size()) {
+                    end = hasCheckRecipeIds.size();
+                }
+                Integer flag=extendDAO.updateAutoCheck(autoCheck,hasCheckRecipeIds.subList(start, end));
+                hasCheckUpdateNum=hasCheckUpdateNum+flag;
+            }
+        }
+        buffer.append("-----更新autoCheck=1数据条数："+hasCheckUpdateNum);
+
+        return buffer.toString();
     }
 }
