@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
 import com.ngari.base.organ.model.OrganBean;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.platform.recipe.mode.RecipeBean;
 import com.ngari.recipe.entity.*;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
@@ -243,5 +244,19 @@ public class RecipeAuditClient extends BaseClient {
         recipeAuditReqDTO.setRecipeExtendDTO(recipeExtendDTO);
         recipeAuditReqDTO.setRecipeDetailDTOList(recipeDetailDTOList);
         recipeAuditService.startRecipeAuditProcess(recipeAuditReqDTO);
+    }
+
+    /**
+     * 处方审核结果通知（HIS）
+     * @param recipeBean
+     * @param checkResult
+     */
+    @LogRecord
+    public void recipeAuditNotice(RecipeBean recipeBean, Integer checkResult){
+        try {
+            recipeAuditService.recipeAuditNotice(recipeBean, checkResult);
+        } catch (Exception e) {
+            logger.error("RecipeAuditClient recipeAuditNotice error recipeId:{}, e", recipeBean.getRecipeId(), e);
+        }
     }
 }
