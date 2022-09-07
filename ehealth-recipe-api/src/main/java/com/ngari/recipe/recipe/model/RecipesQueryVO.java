@@ -46,6 +46,9 @@ public class RecipesQueryVO implements Serializable {
     @Dictionary(id = "eh.cdr.dictionary.FastRecipeFlag")
     private Integer fastRecipeFlag;
 
+    @ItemProperty(alias = "审方方式：0不需要审核 1自动审方 2药师审方")
+    private Integer autoCheckFlag;
+
     private int start;
     private int limit;
 }

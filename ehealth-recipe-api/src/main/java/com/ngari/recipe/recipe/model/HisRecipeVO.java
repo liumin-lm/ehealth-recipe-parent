@@ -32,6 +32,7 @@ public class HisRecipeVO implements Serializable {
     @Desensitizations(type = DesensitizationsType.IDCARD)
     private String certificate; // varchar(18) DEFAULT NULL COMMENT '证件号',
     @ItemProperty(alias = "患者姓名")
+    @Desensitizations(type = DesensitizationsType.NAME)
     private String patientName; // varchar(32) NOT NULL COMMENT '患者姓名',
     @ItemProperty(alias = "患者手机号")
     @Desensitizations(type = DesensitizationsType.MOBILE)

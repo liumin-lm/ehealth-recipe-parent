@@ -1,5 +1,7 @@
 package com.ngari.recipe.recipe.model;
 
+import ctd.schema.annotation.Desensitizations;
+import ctd.schema.annotation.DesensitizationsType;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 import lombok.Getter;
@@ -35,6 +37,7 @@ public class OutPatientRecipeVO implements Serializable{
     /**
      * 患者姓名
      */
+    @Desensitizations(type = DesensitizationsType.NAME)
     private String patientName;
 
     /**

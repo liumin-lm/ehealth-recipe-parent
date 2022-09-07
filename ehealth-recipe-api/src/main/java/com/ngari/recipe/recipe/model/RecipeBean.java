@@ -301,6 +301,7 @@ public class RecipeBean implements Serializable {
     private String doctorName;
 
     @ItemProperty(alias = "患者姓名")
+    @Desensitizations(type = DesensitizationsType.NAME)
     private String patientName;
 
     @ItemProperty(alias = "外带处方标志 1:外带药处方")
