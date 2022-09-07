@@ -45,6 +45,7 @@ import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import com.ngari.recipe.recipeorder.model.RecipeOrderInfoBean;
 import com.ngari.revisit.RevisitAPI;
+import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.request.ValidRevisitRequest;
 import com.ngari.revisit.common.service.IRevisitService;
 import com.ngari.revisit.process.service.IRecipeOnLineRevisitService;
@@ -1151,7 +1152,7 @@ public class RecipeService extends RecipeBaseService {
                 }
             } else {
                 if (StringUtils.isEmpty(recipeBean.getRecipeSupportGiveMode())) {
-                    throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, "无够药方式");
+                    throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, "无购药方式");
                 }
             }
 
@@ -4555,6 +4556,18 @@ public class RecipeService extends RecipeBaseService {
                     throw new DAOException(DAOException.VALUE_NEEDED, error);
                 } else {
                     drugListMatch.setUsingRateId(usingRateDTOByOrganAndKey.getId().toString());
+                }
+            }
+        }
+        //是否抗肿瘤药物,及抗肿瘤药物等级
+        if(!ObjectUtils.isEmpty(drug.getAntiTumorDrugFlag()) ){
+            if(new Integer(1).equals(drug.getAntiTumorDrugFlag()) && ObjectUtils.isEmpty(drug.getAntiTumorDrugLevel())){
+                throw new DAOException(DAOException.VALUE_NEEDED, "药品为抗肿瘤药物时，抗肿瘤药物等级必填!");
+            }
+            else {
+                drugListMatch.setAntiTumorDrugFlag(drug.getAntiTumorDrugFlag());
+                if(!ObjectUtils.isEmpty(drug.getAntiTumorDrugLevel())){
+                    drugListMatch.setAntiTumorDrugLevel(drug.getAntiTumorDrugLevel());
                 }
             }
         }

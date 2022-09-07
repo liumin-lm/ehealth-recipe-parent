@@ -56,4 +56,9 @@ public class OrganEnterpriseRelationVo extends PageVO implements Serializable {
      * 药品剂型 药企配置后，对应处方单及药品属性，将不支持配送
      */
     private List<String> enterpriseDrugForm;
+
+    /**
+     * 支持煎法的类型  药企配置后，将不支持配送 0 非代煎 1 代煎
+     */
+    private List<Integer> supportDecoctionType;
 }

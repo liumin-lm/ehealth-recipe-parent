@@ -142,6 +142,12 @@ public class RecipeExtend implements Serializable {
     private String decoctionText;
     @ItemProperty(alias = "煎法单价")
     private Double decoctionPrice;
+    @ItemProperty(alias = "服用要求")
+    private String requirementsForTakingId;
+    @ItemProperty(alias = "服用要求code")
+    private String requirementsForTakingCode;
+    @ItemProperty(alias = "服用要求text")
+    private String requirementsForTakingText;
 
     @ItemProperty(alias = "病历索引Id")
     private Integer docIndexId;
@@ -198,6 +204,7 @@ public class RecipeExtend implements Serializable {
     private String superviseRecipecode;
 
     @ItemProperty(alias = "监管人姓名")
+    @Desensitizations(type = DesensitizationsType.NAME)
     private String guardianName;
 
     @Desensitizations(type = DesensitizationsType.IDCARD)
@@ -255,6 +262,9 @@ public class RecipeExtend implements Serializable {
      * his订单编号(邵逸夫)
      */
     private String hisOrderCode;
+    //主要用于运营平台查询使用
+    @ItemProperty(alias = "是否自动审核 1自动审核，0/null药师审核")
+    private Integer autoCheck;
 
     @Column(name = "terminal_id")
     public String getTerminalId() {
@@ -995,5 +1005,42 @@ public class RecipeExtend implements Serializable {
 
     public void setHisOrderCode(String hisOrderCode) {
         this.hisOrderCode = hisOrderCode;
+    }
+
+    @Column(name = "requirements_for_taking_id")
+    public String getRequirementsForTakingId() {
+        return requirementsForTakingId;
+    }
+
+    public void setRequirementsForTakingId(String requirementsForTakingId) {
+        this.requirementsForTakingId = requirementsForTakingId;
+    }
+
+    @Column(name = "requirements_for_taking_code")
+    public String getRequirementsForTakingCode() {
+        return requirementsForTakingCode;
+    }
+
+    public void setRequirementsForTakingCode(String requirementsForTakingCode) {
+        this.requirementsForTakingCode = requirementsForTakingCode;
+    }
+
+    @Column(name = "requirements_for_taking_text")
+    public String getRequirementsForTakingText() {
+        return requirementsForTakingText;
+    }
+
+    public void setRequirementsForTakingText(String requirementsForTakingText) {
+        this.requirementsForTakingText = requirementsForTakingText;
+    }
+
+
+    @Column(name = "auto_check")
+    public Integer getAutoCheck() {
+        return autoCheck;
+    }
+
+    public void setAutoCheck(Integer autoCheck) {
+        this.autoCheck = autoCheck;
     }
 }

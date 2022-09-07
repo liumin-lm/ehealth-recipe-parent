@@ -61,6 +61,33 @@ public class ConsultClient extends BaseClient {
     }
 
     /**
+     * 根据医生id获取开抗肿瘤药物的权限
+     * 返回0为两种权限都没有
+     * 返回1为抗肿瘤药物使用权限普通级
+     * 返回2为抗肿瘤药物使用权限限制级
+     * 返回3为两种权限都有
+     * @param doctorId
+     * @return
+     */
+    public Integer getAntiTumorDrugLevel(Integer doctorId) {
+        logger.info("ConsultClient getAntiTumorDrugLevel doctorId={}", JSON.toJSONString(doctorId));
+        ConsultSetDTO consultSetDTO = consultSetService.getBeanByDoctorId(doctorId);
+        logger.info("ConsultClient getAntiTumorDrugLevel consultSetDTO={}", JSON.toJSONString(consultSetDTO));
+        if(consultSetDTO.getAntiTumorDrugCommonLevel() && !consultSetDTO.getAntiTumorDrugRestrictLevel()){
+            return 1;
+        }
+        else if(!consultSetDTO.getAntiTumorDrugCommonLevel() && consultSetDTO.getAntiTumorDrugRestrictLevel()){
+            return 2;
+        }
+        else if(consultSetDTO.getAntiTumorDrugCommonLevel() && consultSetDTO.getAntiTumorDrugRestrictLevel()){
+            return 3;
+        }
+        else {
+            return 0;
+        }
+    }
+
+    /**
      * 向门诊获取代缴费用
      *
      * @param needPaymentRecipeReqTo

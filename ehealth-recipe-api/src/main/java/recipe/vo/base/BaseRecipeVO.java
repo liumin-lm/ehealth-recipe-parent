@@ -85,6 +85,13 @@ public class BaseRecipeVO implements Serializable {
     @ItemProperty(alias = "每贴次数")
     private String everyTcmNumFre;
 
+    @ItemProperty(alias = "服用要求")
+    private String requirementsForTakingId;
+    @ItemProperty(alias = "服用要求code")
+    private String requirementsForTakingCode;
+    @ItemProperty(alias = "服用要求text")
+    private String requirementsForTakingText;
+
     @ItemProperty(alias = "每付取汁")
     private String juice;
 

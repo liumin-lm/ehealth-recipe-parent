@@ -1,11 +1,14 @@
 package recipe.manager;
 
 import com.alibaba.fastjson.JSON;
+import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.PharmacyTcm;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.dao.PharmacyTcmDAO;
+import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.util.ByteUtils;
 import recipe.util.ValidateUtil;
 
@@ -58,6 +61,35 @@ public class PharmacyManager extends BaseManager {
         return pharmacyId;
     }
 
+
+    /**
+     * 校验药品药房是否变动
+     *
+     * @param pharmacy      最优药房
+     * @param organPharmacy 当前药品 机构药房id
+     * @return true 不一致
+     */
+    public Boolean pharmacyVariationV1(PharmacyTcm pharmacy, String organPharmacy) {
+        //机构没药房
+        if (null == pharmacy) {
+            return false;
+        }
+        //全部机构药品没药房
+        if (ValidateUtil.integerIsEmpty(pharmacy.getPharmacyId())) {
+            return true;
+        }
+        //当前机构药品没药房
+        if (StringUtils.isEmpty(organPharmacy)) {
+            return true;
+        }
+        //当前药品药房不包含最优药房
+        if (!Arrays.asList(organPharmacy.split(ByteUtils.COMMA)).contains(String.valueOf(pharmacy.getPharmacyId()))) {
+            return true;
+        }
+        return false;
+    }
+
+
     /**
      * 药房信息
      *
@@ -107,5 +139,51 @@ public class PharmacyManager extends BaseManager {
         return pharmacyTcm;
     }
 
+    /**
+     * 获取机构药品最大匹配药房id
+     *
+     * @param organId           机构id
+     * @param organDrugCodeList 机构药品code
+     * @return
+     */
+    public PharmacyTcm organDrugPharmacyId(Integer organId, Integer recipeType, List<String> organDrugCodeList) {
+        //判断机构药房
+        List<PharmacyTcm> pharmacys = pharmacyTcmDAO.findByOrganId(organId);
+        if (CollectionUtils.isEmpty(pharmacys)) {
+            return null;
+        }
+        //判断机构药房-药房支持的处方类型
+        String recipeTypeText = RecipeTypeEnum.getRecipeType(recipeType);
+        List<PharmacyTcm> pharmacyTypes = pharmacys.stream().filter(a -> Arrays.asList(a.getPharmacyCategray().split(ByteUtils.COMMA)).contains(recipeTypeText)).collect(Collectors.toList());
+        logger.info("PharmacyManager organDrugPharmacyId pharmacyTypes = {},recipeTypeText={}", JSON.toJSONString(pharmacyTypes), recipeTypeText);
+        if (CollectionUtils.isEmpty(pharmacyTypes)) {
+            return null;
+        }
+        //获取机构药品药房
+        List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugCodes(organId, organDrugCodeList);
+        List<String> pharmacyList = organDrugList.stream().map(OrganDrugList::getPharmacy).filter(StringUtils::isNotEmpty).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(pharmacyList)) {
+            return new PharmacyTcm();
+        }
+        //计算最优药房
+        List<String> pharmacyIds = pharmacyList.stream().map(a -> Arrays.asList(a.split(ByteUtils.COMMA))).flatMap(Collection::stream).collect(Collectors.toList());
+        Map<String, List<String>> pharmacyMap = pharmacyIds.stream().collect(Collectors.groupingBy(String::valueOf));
 
+        Map<Integer, PharmacyTcm> pharmacyIdMap = pharmacyTypes.stream().collect(Collectors.toMap(PharmacyTcm::getPharmacyId, a -> a, (k1, k2) -> k1));
+        int i = 0;
+        int pharmacyId = 0;
+        for (String key : pharmacyMap.keySet()) {
+            if (null == pharmacyIdMap.get(Integer.valueOf(key))) {
+                continue;
+            }
+            if (pharmacyMap.get(key).size() > i) {
+                i = pharmacyMap.get(key).size();
+                pharmacyId = Integer.valueOf(key);
+            }
+        }
+        if (0 == pharmacyId) {
+            return new PharmacyTcm();
+        }
+        return pharmacyIdMap.get(pharmacyId);
+    }
 }

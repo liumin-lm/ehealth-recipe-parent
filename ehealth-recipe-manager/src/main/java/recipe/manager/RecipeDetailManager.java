@@ -13,16 +13,14 @@ import com.ngari.recipe.entity.PharmacyTcm;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.revisit.common.model.RevisitExDTO;
-import ctd.persistence.exception.DAOException;
 import org.apache.commons.collections.CollectionUtils;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.constant.RecipeBussConstant;
 import recipe.dao.PharmacyTcmDAO;
-import recipe.enumerate.status.YesOrNoEnum;
 import recipe.enumerate.type.DrugBelongTypeEnum;
 import recipe.util.JsonUtil;
-import recipe.util.MapValueUtil;
 import recipe.util.ObjectCopyUtils;
 import recipe.util.ValidateUtil;
 
@@ -279,5 +277,35 @@ public class RecipeDetailManager extends BaseManager {
         request.setPatientDTO(ObjectCopyUtils.convert(patientDTO, com.ngari.patient.dto.PatientDTO.class));
         request.setAppointDepartCode(appointDepartCode);
         offlineRecipeClient.hisDrugRule(recipeDetails, organDrugList, pharmacyTcmByIds, request);
+    }
+
+    /**
+     * 计算处方总金额
+     *
+     * @param recipeType       处方类型
+     * @param detailList       处方明细
+     * @param organDrugCodeMap 机构药品数据
+     * @return 处方总金额
+     */
+    public BigDecimal totalMoney(Integer recipeType, List<Recipedetail> detailList, Recipe recipe) {
+        BigDecimal totalMoney = new BigDecimal(0d);
+        if (CollectionUtils.isEmpty(detailList)) {
+            return totalMoney;
+        }
+        for (Recipedetail detail : detailList) {
+            BigDecimal price = detail.getSalePrice();
+            BigDecimal drugCost;
+            if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipeType)) {
+                detail.setUseTotalDose(BigDecimal.valueOf(recipe.getCopyNum()).multiply(BigDecimal.valueOf(detail.getUseDose())).doubleValue());
+                //保留3位小数
+                drugCost = price.multiply(BigDecimal.valueOf(detail.getUseTotalDose())).divide(BigDecimal.valueOf(detail.getPack()), 4, RoundingMode.HALF_UP).setScale(4, RoundingMode.HALF_UP);
+            } else {
+                //保留3位小数
+                drugCost = price.multiply(BigDecimal.valueOf(detail.getUseTotalDose())).setScale(4, RoundingMode.HALF_UP);
+            }
+            detail.setDrugCost(drugCost);
+            totalMoney = totalMoney.add(drugCost);
+        }
+        return totalMoney;
     }
 }

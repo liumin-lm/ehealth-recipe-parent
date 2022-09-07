@@ -8,6 +8,7 @@ import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.model.RecipeExtendBean;
+import com.ngari.recipe.recipe.model.RequirementsForTakingVO;
 import ctd.persistence.exception.DAOException;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -21,11 +22,14 @@ import recipe.client.OperationClient;
 import recipe.constant.ErrorCode;
 import recipe.dao.DrugDecoctionWayDao;
 import recipe.dao.DrugMakingMethodDao;
+import recipe.dao.RequirementsForTakingDao;
 import recipe.manager.DrugManager;
 import recipe.manager.OrganDrugListManager;
 import recipe.manager.RevisitManager;
+import recipe.util.ObjectCopyUtils;
 import recipe.util.ValidateUtil;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -44,6 +48,8 @@ public class RecipeDetailValidateTool {
     DrugDecoctionWayDao drugDecoctionWayDao;
     @Autowired
     DrugMakingMethodDao drugMakingMethodDao;
+    @Autowired
+    RequirementsForTakingDao requirementsForTakingDao;
     @Autowired
     private IConfigurationClient configurationClient;
     @Autowired
@@ -100,7 +106,8 @@ public class RecipeDetailValidateTool {
      * @param recipeDay    处方药物使用天数时间
      * @param organDrug    机构药品
      */
-    public void validateDrug(RecipeDetailBean recipeDetail, String[] recipeDay, OrganDrugList organDrug, Integer recipeType, Map<String, DrugEntrust> drugEntrustNameMap, Integer organId, Integer version) {
+    public void validateDrug(RecipeDetailBean recipeDetail, String[] recipeDay, OrganDrugList organDrug, Integer recipeType,
+                             Map<String, DrugEntrust> drugEntrustNameMap, Integer organId, Integer version) {
         recipeDetail.setDrugName(organDrug.getDrugName());
         recipeDetail.setSaleName(organDrug.getSaleName());
         //剂量单位是否与机构药品目录单位一致
@@ -333,6 +340,24 @@ public class RecipeDetailValidateTool {
         }
     }
 
+    /**
+     * 服用要求
+     *
+     * @param requirementsForTaking
+     * @param recipeExtendBean
+     */
+    private void requirementsForTaking(RequirementsForTaking requirementsForTaking, RecipeExtendBean recipeExtendBean) {
+        if (null != requirementsForTaking) {
+            recipeExtendBean.setRequirementsForTakingCode(requirementsForTaking.getCode());
+            recipeExtendBean.setRequirementsForTakingId(String.valueOf(requirementsForTaking.getId()));
+            recipeExtendBean.setRequirementsForTakingText(requirementsForTaking.getText());
+        } else {
+            recipeExtendBean.setRequirementsForTakingCode(null);
+            recipeExtendBean.setRequirementsForTakingId(null);
+            recipeExtendBean.setRequirementsForTakingText(null);
+        }
+    }
+
 
     /**
      * 开药天数是否在当前机构配置项天数范围内
@@ -420,4 +445,61 @@ public class RecipeDetailValidateTool {
     }
 
 
+    /**
+     * 校验服用要求
+     * 此逻辑放在校验煎法前 如果放之后（decoction空：1、开方时没选煎法 2、煎法在开方后被删了）
+     * @param organId
+     * @param recipeExtendBean
+     */
+    public void validateRequirementsForTaking(Integer organId, RecipeExtendBean recipeExtendBean) {
+        if (StringUtils.isEmpty(recipeExtendBean.getRequirementsForTakingCode()) && StringUtils.isEmpty(recipeExtendBean.getRequirementsForTakingText())) {
+            return;
+        }
+        //1、校验服用要求
+        List<RequirementsForTaking> requirementsForTakingList = requirementsForTakingDao.findByOrganId(organId);
+        if (CollectionUtils.isEmpty(requirementsForTakingList)) {
+            requirementsForTaking(null, recipeExtendBean);
+            return;
+        }
+        //code
+        Map<String, RequirementsForTaking> mapCode = requirementsForTakingList.stream().collect(Collectors.toMap(RequirementsForTaking::getCode, a -> a, (k1, k2) -> k1));
+        RequirementsForTaking requirementsForTaking = mapCode.get(recipeExtendBean.getRequirementsForTakingCode());
+        if (null != requirementsForTaking) {
+            //服用要求关联煎法是否包括开方时煎法
+//            String writeRecipeSelectDecoctionCode=recipeExtendBean.getDecoctionCode();
+//            String writeRecipeSelectDecoctionText=recipeExtendBean.getDecoctionText();
+//            String writeRecipeSelectDecoctionId=recipeExtendBean.getDecoctionId();
+//            String decoctionwayId=requirementsForTaking.getDecoctionwayId();
+//            //没有配置服用要求
+//            if(StringUtils.isEmpty(decoctionwayId)){
+//                //开方的时候是否有配置服用要求
+//
+//            }
+//            List<String> decoctionwayIdList=  Arrays.asList(decoctionwayId.split(","));
+//            if(CollectionUtils.isEmpty(decoctionwayIdList)){
+//                return;
+//            }
+//            if(decoctionwayIdList.contains(String.valueOf(decoctionId))){
+//                requirementsForTakingVOS.add(ObjectCopyUtils.convert(requirementsForTaking, RequirementsForTakingVO.class));
+//            }
+//            drugDecoctionWayDao.get(decoctionwayId);
+
+            requirementsForTaking(requirementsForTaking, recipeExtendBean);
+            return;
+        }
+
+        //text
+        Map<String, RequirementsForTaking> mapText = requirementsForTakingList.stream().collect(Collectors.toMap(RequirementsForTaking::getCode, a -> a, (k1, k2) -> k1));
+        requirementsForTaking = mapText.get(recipeExtendBean.getDecoctionText());
+        if (null != requirementsForTaking) {
+            requirementsForTaking(requirementsForTaking, recipeExtendBean);
+            return;
+        }
+
+        //2、校验服用要求是否修改关联煎法
+
+
+
+        requirementsForTaking(null, recipeExtendBean);
+    }
 }

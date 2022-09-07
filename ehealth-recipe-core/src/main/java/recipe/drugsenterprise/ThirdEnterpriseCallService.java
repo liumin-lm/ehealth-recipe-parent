@@ -120,6 +120,10 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
     private AuditDrugListDAO auditDrugListDAO;
     @Autowired
     private RecipeParameterDao recipeParameterDao;
+    @Autowired
+    private StateManager stateManager;
+    @Autowired
+    private RecipeOrderDAO recipeOrderDAO;
 
     /**
      * 待配送状态
@@ -169,6 +173,11 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         //更新处方信息
         Boolean rs = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.WAIT_SEND, attrMap);
 
+        stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_DISPENSING,RecipeStateEnum.SUB_ORDER_DELIVERED_MEDICINE);
+        RecipeOrder order = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+        if (Objects.nonNull(order)) {
+            stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_ORDER, OrderStateEnum.SUB_ORDER_DELIVERED_MEDICINE);
+        }
         if (rs) {
             //记录日志
             RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.CHECK_PASS_YS, RecipeStatusConstant.WAIT_SEND, "待配送,配送人：" + sender);
@@ -375,11 +384,16 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         //以免进行处方失效前提醒
         attrMap.put("remindFlag", 1);
         //更新处方信息
-        Boolean rs = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.IN_SEND, attrMap);
+        Boolean rs = true;
         List<Recipe> recipes = orderManager.getRecipesByOrderCode(recipe.getOrderCode());
-        recipes.stream().filter(recipe1 -> !recipeId.equals(recipe1.getRecipeId())).forEach(recipe2 -> {
-            recipeDAO.updateRecipeInfoByRecipeId(recipe2.getRecipeId(), RecipeStatusConstant.IN_SEND, attrMap);
-        });
+        for (Recipe recipe1 : recipes) {
+            if (!rs) {
+                return;
+            }
+            rs = recipeDAO.updateRecipeInfoByRecipeId(recipe1.getRecipeId(), RecipeStatusConstant.IN_SEND, attrMap);
+            stateManager.updateRecipeState(recipe1.getRecipeId(), RecipeStateEnum.PROCESS_STATE_DISTRIBUTION,RecipeStateEnum.SUB_ORDER_DELIVERED);
+        }
+        stateManager.updateOrderState(order.getOrderId(),OrderStateEnum.PROCESS_STATE_ORDER,OrderStateEnum.SUB_ORDER_DELIVERED);
 
         if (rs) {
             updateRecipeDetainInfo(recipe, paramMap);

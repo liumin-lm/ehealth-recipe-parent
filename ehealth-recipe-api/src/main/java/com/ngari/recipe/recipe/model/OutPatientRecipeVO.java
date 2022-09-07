@@ -1,5 +1,7 @@
 package com.ngari.recipe.recipe.model;
 
+import ctd.schema.annotation.Desensitizations;
+import ctd.schema.annotation.DesensitizationsType;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 import lombok.Getter;
@@ -35,6 +37,7 @@ public class OutPatientRecipeVO implements Serializable{
     /**
      * 患者姓名
      */
+    @Desensitizations(type = DesensitizationsType.NAME)
     private String patientName;
 
     /**
@@ -169,6 +172,12 @@ public class OutPatientRecipeVO implements Serializable{
      * 每贴次数
      */
     private String everyTcmNumFre;
+    @ItemProperty(alias = "服用要求")
+    private String requirementsForTakingId;
+    @ItemProperty(alias = "服用要求code")
+    private String requirementsForTakingCode;
+    @ItemProperty(alias = "服用要求text")
+    private String requirementsForTakingText;
 
     /**
      * 每副取汁

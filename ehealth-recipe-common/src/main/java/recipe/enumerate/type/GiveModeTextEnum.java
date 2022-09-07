@@ -60,4 +60,9 @@ public enum GiveModeTextEnum {
         }
         return null;
     }
+
+    public String getGiveModeTextV1(){
+        return giveModeText;
+    }
+
 }

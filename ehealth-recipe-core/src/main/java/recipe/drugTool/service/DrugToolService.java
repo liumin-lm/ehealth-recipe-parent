@@ -1614,6 +1614,8 @@ public class DrugToolService implements IDrugToolService {
                         }
                         organDrugList.setTargetedDrugType(drugListMatch.getTargetedDrugType());
                         organDrugList.setSmallestSaleMultiple(drugListMatch.getSmallestSaleMultiple());
+                        organDrugList.setAntiTumorDrugFlag(drugListMatch.getAntiTumorDrugFlag());
+                        organDrugList.setAntiTumorDrugLevel(drugListMatch.getAntiTumorDrugLevel());
                         //updateFlag为1时更新药品信息，否则不更新
                         //防止既更新又新增的时候把更新的数据又保存一编
                         boolean handleFlag = false; //数据操作标识

@@ -72,6 +72,7 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
@@ -88,10 +89,7 @@ import recipe.enumerate.status.OrderStateEnum;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
-import recipe.enumerate.type.DrugBelongTypeEnum;
-import recipe.enumerate.type.PayBusTypeEnum;
-import recipe.enumerate.type.RecipeDistributionFlagEnum;
-import recipe.enumerate.type.RecipeSupportGiveModeEnum;
+import recipe.enumerate.type.*;
 import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
 import recipe.manager.*;
@@ -126,6 +124,8 @@ public class RecipeServiceSub {
 
     private static final String UNCHECK = "uncheck";
 
+    private static final String REVISIT_SOURCE_FBMZ = "fz-fbmz-001";
+
     private static CaManager caManager = AppContextHolder.getBean("caManager", CaManager.class);
     private static HisRecipeManager hisRecipeManager = AppContextHolder.getBean("hisRecipeManager", HisRecipeManager.class);
 
@@ -152,8 +152,6 @@ public class RecipeServiceSub {
     private static ButtonManager buttonManager = AppContextHolder.getBean("buttonManager", ButtonManager.class);
     private static RecipeDetailManager recipeDetailManager = AppContextHolder.getBean("recipeDetailManager", RecipeDetailManager.class);
 
-    private static List<String> specitalOrganList = Lists.newArrayList("1005790", "1005217", "1005789");
-
     private static DepartClient departClient = AppContextHolder.getBean("departClient", DepartClient.class);
     private static ConsultClient consultClient = AppContextHolder.getBean("consultClient", ConsultClient.class);
 
@@ -168,6 +166,10 @@ public class RecipeServiceSub {
     private static IRevisitHosRecordService iRevisitHosRecordService = AppContextHolder.getBean("revisit.revisitHosRecordApiService", IRevisitHosRecordService.class);
 
     private static IConfigurationClient configurationClient = AppContextHolder.getBean("IConfigurationClient", IConfigurationClient.class);
+
+    @Autowired
+    private RevisitClient revisitClient;
+
     /**
      * @param recipeBean
      * @param detailBeanList
@@ -258,10 +260,15 @@ public class RecipeServiceSub {
             //根据业务id 保存就诊卡号和就诊卡类型
             if (null != recipeBean.getClinicId()) {
                 if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipeBean.getBussSource())) {
+                    RevisitBean revisitBean = revisitClient.getRevisitByClinicId(recipeBean.getClinicId());
                     RevisitExDTO revisitExDTO = iRevisitExService.getByConsultId(recipeBean.getClinicId());
                     HosRecordDTO hosRecordDTO = iRevisitHosRecordService.getByConsultId(recipeBean.getClinicId());
                     LOGGER.info("iRevisitExService.getByConsultId:{}", JSONUtils.toString(revisitExDTO));
                     if (null != revisitExDTO) {
+                        String sourceTag = revisitBean.getSourceTag();
+                        if (StringUtils.isNotEmpty(sourceTag) && REVISIT_SOURCE_FBMZ.equals(sourceTag)) {
+                            recipeBean.setFastRecipeFlag(2);
+                        }
                         recipeExtend.setCardNo(revisitExDTO.getCardId());
                         recipeExtend.setCardType(revisitExDTO.getCardType());
                         recipeExtend.setRegisterID(revisitExDTO.getRegisterNo());
@@ -270,7 +277,7 @@ public class RecipeServiceSub {
                         recipeExtend.setIllnessType(revisitExDTO.getDbType());
                         recipeExtend.setIllnessName(revisitExDTO.getDbTypeName());
                         recipeExtend.setTerminalId(revisitExDTO.getSelfServiceMachineNo());
-                        if(StringUtils.isNotEmpty(recipeExtend.getTerminalId())){
+                        if (StringUtils.isNotEmpty(recipeExtend.getTerminalId())) {
                             recipeExtend.setTerminalType(1);
                         }
                         if (new Integer(6).equals(recipeChooseChronicDisease)) {
@@ -281,7 +288,7 @@ public class RecipeServiceSub {
                             }
                         }
                     }
-                    if(null != hosRecordDTO){
+                    if (null != hosRecordDTO) {
                         recipeExtend.setSideCourtYardType(hosRecordDTO.getType());
                     }
                 } else if (RecipeBussConstant.BUSS_SOURCE_WZ.equals(recipeBean.getBussSource())) {
@@ -1665,6 +1672,13 @@ public class RecipeServiceSub {
                 RecipeOrder recipeOrders = orderDAO.getByOrderCode(recipe.getOrderCode());
                 cancelFlag = RecipeStatusEnum.checkRecipeRevokeStatus(recipe, recipeOrders);
                 status = null != recipeOrders && Integer.valueOf(1).equals(recipeOrders.getEffective()) ? recipeOrders.getStatus() : null;
+                //如果购药方式为到院取药,则获取配置项判断是否支持撤销
+                if(recipeOrders != null){
+                    if(recipeOrders.getGiveModeKey().equals(GiveModeTextEnum.SUPPORTTOHIS.getGiveModeTextV1())){
+                        Boolean flag = (Boolean) configService.getConfiguration(recipe.getClinicOrgan(), "supportToHosRevokeFlag");
+                        cancelFlag = cancelFlag && flag && recipeOrders.getActualPrice() > 0;
+                    }
+                }
             }
             Map<String, String> tipMap = RecipeServiceSub.getTipsByStatusCopy(recipe.getStatus(), recipe, null, status);
             map.put("cancelReason", MapValueUtil.getString(tipMap, "cancelReason"));
@@ -2684,7 +2698,10 @@ public class RecipeServiceSub {
             LOGGER.info("getRecipeMsgTagWithOfflineRecipe getNameById error：{}", e);
             e.printStackTrace();
         }
-        if (specitalOrganList.contains(organId.toString()) || organName.contains("上海市第七人民医院")) {
+
+        String pushOfflineRecipeModule = configurationClient.getValueCatch(organId, "pushOfflineRecipeModule", "recipe");
+
+        if("payment".equals(pushOfflineRecipeModule)){
             recipeTagMsg = getRecipeMsgTagWithOfflineRecipe(patientDTO, true);
         } else {
             if (StringUtils.isEmpty(recipeCode)) {

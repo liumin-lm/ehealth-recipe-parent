@@ -1,5 +1,7 @@
 package com.ngari.recipe.dto;
 
+import ctd.schema.annotation.Desensitizations;
+import ctd.schema.annotation.DesensitizationsType;
 import ctd.schema.annotation.ItemProperty;
 import lombok.Data;
 
@@ -51,6 +53,7 @@ public class RecipeBeforeOrderDTO implements Serializable {
     private String completeAddress;
 
     @ItemProperty(alias = "收货人")
+    @Desensitizations(type = DesensitizationsType.NAME)
     private String receiver;
 
     @ItemProperty(alias = "收货人手机号")

@@ -5,6 +5,7 @@ import com.ngari.recipe.dto.RecipeDetailDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.persistence.exception.DAOException;
+import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
@@ -18,6 +19,7 @@ import recipe.util.ObjectCopyUtils;
 import recipe.util.RecipeUtil;
 import recipe.util.ValidateUtil;
 import recipe.vo.ResultBean;
+import recipe.vo.doctor.ConfigOptionsVO;
 import recipe.vo.doctor.ValidateDetailVO;
 
 import java.util.List;
@@ -52,20 +54,30 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
      */
     @RpcService
     public ValidateDetailVO validateDetailV1(ValidateDetailVO validateDetailVO) {
-        logger.info("RecipeValidateDoctorAtop validateDetailV1 validateDetailVO ：{}", JSON.toJSONString(validateDetailVO));
         validateAtop(validateDetailVO.getOrganId(), validateDetailVO.getRecipeType(), validateDetailVO.getRecipeExtendBean(), validateDetailVO.getRecipeDetails());
         validateDetailVO.setLongRecipe(!IS_LONG_RECIPE_FALSE.equals(validateDetailVO.getRecipeExtendBean().getIsLongRecipe()));
-        try {
-            ValidateDetailVO result = recipeDetailService.continueRecipeValidateDrug(validateDetailVO);
-            logger.info("RecipeValidateDoctorAtop validateDetailV1 result = {}", JSON.toJSONString(result));
-            return result;
-        } catch (DAOException e1) {
-            logger.error("RecipeValidateDoctorAtop validateDetailV1 error", e1);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
-        } catch (Exception e) {
-            logger.error("RecipeValidateDoctorAtop validateDetailV1 error e", e);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
-        }
+        validateDetailVO.getRecipeDetails().forEach(a -> {
+            a.setPharmacyId(null);
+            a.setPharmacyName(null);
+            a.setPharmacyCode(null);
+        });
+        return recipeDetailService.continueRecipeValidateDrug(validateDetailVO);
+    }
+
+
+    /**
+     * 复杂逻辑配置项处理
+     * 由于判断配置项逻辑 对于前端复杂，由后端统一处理返回结果，此接口仅仅处理复杂逻辑判断
+     *
+     * @param validateDetailVO
+     * @return
+     */
+    @RpcService
+    public List<ConfigOptionsVO> validateConfigOptions(ValidateDetailVO validateDetailVO) {
+        validateAtop(validateDetailVO.getRecipeDetails(), validateDetailVO.getRecipeType(), validateDetailVO.getOrganId());
+        List<RecipeDetailBean> recipeDetails = validateDetailVO.getRecipeDetails();
+        recipeDetails.forEach(a -> validateAtop(a.getSalePrice()));
+        return recipeDetailService.validateConfigOptions(validateDetailVO);
     }
 
     /**
@@ -203,13 +215,14 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
     }
 
     /**
-     * 校验his 药品规则，靶向药，大病医保等
+     * 校验his 药品规则，靶向药，大病医保，抗肿瘤药物等
      *
      * @param validateDetailVO 药品信息
      * @return
      */
     @RpcService
     public List<RecipeDetailBean> validateHisDrugRule(ValidateDetailVO validateDetailVO) {
+        logger.info("RecipeValidateDoctorAtop validateHisDrugRule validateDetailVO ：{}", JSONUtils.toString(validateDetailVO));
         validateAtop(validateDetailVO, validateDetailVO.getRecipeDetails(), validateDetailVO.getVersion(), validateDetailVO.getRecipeBean(), validateDetailVO.getRecipeExtendBean());
         List<RecipeDetailDTO> recipeDetailDTO = ObjectCopyUtils.convert(validateDetailVO.getRecipeDetails(), RecipeDetailDTO.class);
         recipeDetailDTO.forEach(a -> a.setValidateHisStatus(0));
@@ -218,7 +231,7 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
         }
         Recipe recipe = ObjectCopyUtils.convert(validateDetailVO.getRecipeBean(), Recipe.class);
         validateAtop(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getDepart());
-        // 校验his 药品规则，靶向药，大病医保等
+        // 校验his 药品规则，靶向药，大病医保，抗肿瘤药物等
         List<RecipeDetailDTO> recipeDetail = recipeDetailDTO.stream().filter(a -> !ValidateUtil.integerIsEmpty(a.getDrugId())).collect(Collectors.toList());
         List<RecipeDetailDTO> result = recipeDetailService.validateHisDrugRule(recipe, recipeDetail, validateDetailVO.getRecipeExtendBean().getRegisterID(), validateDetailVO.getDbType());
         //返回数据处理
@@ -232,4 +245,5 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
         }
         return ObjectCopyUtils.convert(result, RecipeDetailBean.class);
     }
+
 }

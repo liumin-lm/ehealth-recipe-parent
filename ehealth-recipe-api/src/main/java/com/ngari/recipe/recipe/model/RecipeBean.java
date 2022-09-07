@@ -301,6 +301,7 @@ public class RecipeBean implements Serializable {
     private String doctorName;
 
     @ItemProperty(alias = "患者姓名")
+    @Desensitizations(type = DesensitizationsType.NAME)
     private String patientName;
 
     @ItemProperty(alias = "外带处方标志 1:外带药处方")
@@ -428,7 +429,8 @@ public class RecipeBean implements Serializable {
     @ItemProperty(alias = "是否医保 0自费 1医保")
     private Integer medicalFlag;
 
-    @ItemProperty(alias = "快捷购药处方标识 0 非快捷处方 1 快捷处方")
+    @ItemProperty(alias = "快捷购药处方标识： 0其他, 1快捷处方, 2医嘱申请复诊 3一键续方复诊")
+    @Dictionary(id = "eh.cdr.dictionary.FastRecipeFlag")
     private Integer fastRecipeFlag;
 
     @ItemProperty(alias = "线下处方名称")

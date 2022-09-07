@@ -2,6 +2,7 @@ package com.ngari.recipe.recipe.model;
 
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
+import ctd.schema.annotation.ItemProperty;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -29,6 +30,9 @@ public class RecipesQueryResVO extends RecipeBean implements Serializable {
     private Date payDate;
 
     private String giveModeText;
+
+    @ItemProperty(alias = "审方方式：0不需要审核 1自动审方 2药师审方")
+    private String autoCheckFlagText;
 
     private RecipeExtendBean recipeExtend;
 

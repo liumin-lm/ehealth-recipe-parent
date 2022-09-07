@@ -1,7 +1,10 @@
 package recipe.manager;
 
+import com.ngari.recipe.dto.ConfigOptionsDTO;
+import com.ngari.recipe.entity.Recipedetail;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -9,9 +12,13 @@ import recipe.constant.CacheConstant;
 import recipe.dao.RecipeParameterDao;
 import recipe.util.RedisClient;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
+ * 机构相关
+ *
  * @author fuzi
  */
 @Service
@@ -51,15 +58,76 @@ public class OrganManager extends BaseManager {
         }
 
         //排除空监管，上海监管
-        ArrayList<Integer> excludeRelationJgptIdList= JSONUtils.parse(val,ArrayList.class);
-        if(excludeRelationJgptIdList.contains(relationJgptId)){
+        ArrayList<Integer> excludeRelationJgptIdList = JSONUtils.parse(val, ArrayList.class);
+        if (excludeRelationJgptIdList.contains(relationJgptId)) {
             return Boolean.FALSE;
         }
 
         return Boolean.TRUE;
     }
 
+    /**
+     * 根据配置项判断处方天数
+     *
+     * @param organId    机构id
+     * @param detailList 处方明细
+     * @return
+     */
+    public ConfigOptionsDTO recipeNumberDoctorConfirm(Integer organId, List<Recipedetail> detailList) {
+        if (CollectionUtils.isEmpty(detailList)) {
+            return null;
+        }
+        //用药天数-阻断
+        Integer numberBlocking = configurationClient.getValueCatchReturnInteger(organId, "recipeNumberDoctorConfirmBlocking", null);
+        ConfigOptionsDTO blocking = recipeNumberDoctorConfirm(numberBlocking, detailList, 2);
+        if (null != blocking) {
+            return blocking;
+        }
+        //用药天数-提示
+        Integer numberCaution = configurationClient.getValueCatchReturnInteger(organId, "recipeNumberDoctorConfirmCaution", null);
+        return recipeNumberDoctorConfirm(numberCaution, detailList, 1);
+    }
+
+    /**
+     * 根据配置项判断处方金额
+     *
+     * @param organId    机构id
+     * @param totalMoney 处方金额
+     * @return
+     */
+    public ConfigOptionsDTO recipeMoneyDoctorConfirm(Integer organId, BigDecimal totalMoney) {
+        //处方金额-阻断
+        Integer moneyBlocking = configurationClient.getValueCatchReturnInteger(organId, "recipeMoneyDoctorConfirmBlocking", null);
+        ConfigOptionsDTO blocking = recipeMoneyDoctorConfirm(moneyBlocking, totalMoney, 2);
+        if (null != blocking) {
+            return blocking;
+        }
+        //处方金额-提示
+        Integer moneyCaution = configurationClient.getValueCatchReturnInteger(organId, "recipeMoneyDoctorConfirmCaution", null);
+        return recipeMoneyDoctorConfirm(moneyCaution, totalMoney, 1);
+    }
+
+    private ConfigOptionsDTO recipeNumberDoctorConfirm(Integer number, List<Recipedetail> detailList, Integer type) {
+        if (null == number) {
+            return null;
+        }
+        boolean blocking = detailList.stream().allMatch(a -> a.getUseDays() <= number);
+        if (blocking) {
+            return null;
+        }
+        return new ConfigOptionsDTO("recipeNumberDoctorConfirm", number.toString(), type);
+    }
 
 
-
+    private ConfigOptionsDTO recipeMoneyDoctorConfirm(Integer money, BigDecimal totalMoney, Integer type) {
+        if (null == money) {
+            return null;
+        }
+        BigDecimal moneyBig = new BigDecimal(money);
+        //totalMoney 小于等于 money
+        if (0 >= totalMoney.compareTo(moneyBig)) {
+            return null;
+        }
+        return new ConfigOptionsDTO("recipeMoneyDoctorConfirm", money.toString(), type);
+    }
 }

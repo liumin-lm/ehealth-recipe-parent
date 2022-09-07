@@ -46,6 +46,21 @@ public enum RecipeStateEnum {
     SUB_ORDER_CANCEL_ORDER(33, "取消订单", ""),
 
     /**
+     * 处方子状态:待发药
+     */
+    SUB_ORDER_DELIVERED_MEDICINE(41, "等待相关药房发药", ""),
+
+    /**
+     * 处方子状态:配送中
+     */
+    SUB_ORDER_DELIVERED(51, "药品已送出，等待患者签收", ""),
+
+    /**
+     * 处方子状态:待取药
+     */
+    SUB_ORDER_TAKE_MEDICINE(61, "等待患者前往相关药房取药", ""),
+
+    /**
      * 处方子状态:已完成
      */
     SUB_DONE_DOWNLOAD(71, "下载处方笺", ""),

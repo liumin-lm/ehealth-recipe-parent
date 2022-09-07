@@ -110,6 +110,7 @@ public class RecipeOrder implements Serializable {
     private Integer addressID;
 
     @ItemProperty(alias = "收货人")
+    @Desensitizations(type = DesensitizationsType.NAME)
     private String receiver;
 
     @ItemProperty(alias = "收货人手机号")
@@ -266,6 +267,12 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "第三方支付金额")
     private Double thirdPayFee;
 
+    @ItemProperty(alias = "少儿医保费用")
+    private BigDecimal childMedicalFee;
+
+    @ItemProperty(alias = "家庭统筹费用")
+    private BigDecimal familyMedicalFee;
+
     @ItemProperty(alias = "处方预结算返回门诊挂号序号")
     private String registerNo;
 
@@ -379,6 +386,9 @@ public class RecipeOrder implements Serializable {
 
     @ItemProperty(alias = "支付回调返回的医保出参，含医保编号")
     private String medicalInsurance;
+
+    @ItemProperty(alias = "订单物流状态 0: 默认 1 待发药 2 配送中 3 待取药")
+    private Integer logisticsState;
 
     //todo 默认构造器不要给init默认值啊 此方法慎用
     @Deprecated
@@ -526,6 +536,24 @@ public class RecipeOrder implements Serializable {
 
     public void setThirdPayFee(Double thirdPayFee) {
         this.thirdPayFee = thirdPayFee;
+    }
+
+    @Column(name = "child_medical_fee")
+    public BigDecimal getChildMedicalFee() {
+        return childMedicalFee;
+    }
+
+    public void setChildMedicalFee(BigDecimal childMedicalFee) {
+        this.childMedicalFee = childMedicalFee;
+    }
+
+    @Column(name = "family_medical_fee")
+    public BigDecimal getFamilyMedicalFee() {
+        return familyMedicalFee;
+    }
+
+    public void setFamilyMedicalFee(BigDecimal familyMedicalFee) {
+        this.familyMedicalFee = familyMedicalFee;
     }
 
     @Column(name = "cancelReason")
@@ -1448,5 +1476,14 @@ public class RecipeOrder implements Serializable {
 
     public void setMedicalInsurance(String medicalInsurance) {
         this.medicalInsurance = medicalInsurance;
+    }
+
+    @Column(name = "logistics_state")
+    public Integer getLogisticsState() {
+        return logisticsState;
+    }
+
+    public void setLogisticsState(Integer logisticsState) {
+        this.logisticsState = logisticsState;
     }
 }

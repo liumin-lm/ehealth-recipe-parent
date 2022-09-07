@@ -140,6 +140,7 @@ public class DrugsEnterpriseDTO implements Serializable {
     private Integer logisticsType;
 
     @ItemProperty(alias = "寄件人名称")
+    @Desensitizations(type = DesensitizationsType.NAME)
     private String consignorName;
 
     @ItemProperty(alias = "寄件人手机号")

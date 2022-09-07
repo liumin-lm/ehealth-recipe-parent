@@ -299,4 +299,12 @@ public interface IRecipeBusinessService {
      * @param recipeOutpatientPaymentDTO
      */
     void recipeOutpatientPaymentCallback(RecipeOutpatientPaymentDTO recipeOutpatientPaymentDTO);
+
+    /**
+     * 获取煎法关联服用要求
+     * @param organId
+     * @param decoctionId
+     * @return
+     */
+    List<RequirementsForTakingVO> findRequirementsForTakingByDecoctionId(Integer organId, Integer decoctionId);
 }

@@ -31,6 +31,7 @@ public class PatientDTO implements Serializable {
     private String mpiId;
 
     @ItemProperty(alias = "病人姓名")
+    @Desensitizations(type = DesensitizationsType.NAME)
     private String patientName;
 
     @ItemProperty(alias = "病人性别")
@@ -80,6 +81,7 @@ public class PatientDTO implements Serializable {
     private Integer status;
 
     @ItemProperty(alias = "监护人姓名")
+    @Desensitizations(type = DesensitizationsType.NAME)
     private String guardianName;
 
     @ItemProperty(alias = "监护人标记")
@@ -180,6 +182,7 @@ public class PatientDTO implements Serializable {
     /**
      * 用户姓名
      */
+    @Desensitizations(type = DesensitizationsType.NAME)
     private String userName;
     private Integer urt;
 

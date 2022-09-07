@@ -1957,6 +1957,7 @@ public class RecipeOrderService extends RecipeBaseService {
             orderBean.setList(patientRecipeBeanList);
             orderBean.setProcessStateText(OrderStateEnum.getOrderStateEnum(order.getProcessState()).getName());
             orderBean.setSubStateText(OrderStateEnum.getOrderStateEnum(order.getSubState()).getName());
+            orderBean.setLogisticsStateText(OrderLogisticsStateEnum.getOrderLogisticsStateEnum(order.getLogisticsCompany()).getName());
             String organName = recipeParameterDao.getByName("shwfAccountFee");
             if (StringUtils.isNotEmpty(organName) && LocalStringUtil.hasOrgan(recipe.getClinicOrgan().toString(), organName)) {
                 //上海外服自费金额设置为空

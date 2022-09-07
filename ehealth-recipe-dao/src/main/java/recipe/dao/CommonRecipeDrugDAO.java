@@ -10,6 +10,7 @@ import ctd.persistence.support.hibernate.template.HibernateSessionTemplate;
 import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction;
 import ctd.util.annotation.RpcSupportDAO;
 import org.hibernate.StatelessSession;
+import recipe.dao.comment.ExtendDao;
 
 import java.util.List;
 
@@ -18,7 +19,12 @@ import java.util.List;
  * date:2017/5/23.
  */
 @RpcSupportDAO
-public abstract class CommonRecipeDrugDAO extends HibernateSupportDelegateDAO<CommonRecipeDrug> {
+public abstract class CommonRecipeDrugDAO extends HibernateSupportDelegateDAO<CommonRecipeDrug> implements ExtendDao<CommonRecipeDrug> {
+
+    @Override
+    public boolean updateNonNullFieldByPrimaryKey(CommonRecipeDrug commonRecipeDrug) {
+        return updateNonNullFieldByPrimaryKey(commonRecipeDrug, "id");
+    }
 
     public CommonRecipeDrugDAO() {
         super();

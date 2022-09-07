@@ -1,5 +1,6 @@
 package com.ngari.recipe.recipe.model;
 
+import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
 import lombok.Getter;
 import lombok.Setter;
@@ -41,8 +42,12 @@ public class RecipesQueryVO implements Serializable {
     private Integer refundNodeStatus;
     private Integer bussSource;
     private Integer recipeBusinessType;
-    @ItemProperty(alias = "便捷购药标识：0普通复诊，1便捷购药复诊")
+    @ItemProperty(alias = "快捷购药处方标识： 0其他, 1快捷处方, 2医嘱申请复诊 3一键续方复诊")
+    @Dictionary(id = "eh.cdr.dictionary.FastRecipeFlag")
     private Integer fastRecipeFlag;
+
+    @ItemProperty(alias = "审方方式：0不需要审核 1自动审方 2药师审方")
+    private Integer autoCheckFlag;
 
     private int start;
     private int limit;
