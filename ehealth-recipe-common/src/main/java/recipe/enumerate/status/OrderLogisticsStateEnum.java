@@ -32,4 +32,19 @@ public enum OrderLogisticsStateEnum {
     public String getName() {
         return name;
     }
+
+    /**
+     * 根据类型 获取枚举类型
+     *
+     * @param type
+     * @return
+     */
+    public static OrderLogisticsStateEnum getOrderLogisticsStateEnum(Integer type) {
+        for (OrderLogisticsStateEnum e : OrderLogisticsStateEnum.values()) {
+            if (e.type.equals(type)) {
+                return e;
+            }
+        }
+        return NONE;
+    }
 }

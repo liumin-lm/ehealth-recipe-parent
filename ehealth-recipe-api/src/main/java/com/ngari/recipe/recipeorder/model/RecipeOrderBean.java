@@ -382,6 +382,26 @@ public class RecipeOrderBean implements Serializable {
     @ItemProperty(alias = "配送费付款方式ExpressFeePayMethodEnum")
     private Integer expressFeePayMethod;
 
+    @ItemProperty(alias = "订单物流状态 0: 默认 1 待发药 2 配送中 3 待取药")
+    private Integer logisticsState;
+    private String logisticsStateText;
+
+    public String getLogisticsStateText() {
+        return logisticsStateText;
+    }
+
+    public void setLogisticsStateText(String logisticsStateText) {
+        this.logisticsStateText = logisticsStateText;
+    }
+
+    public Integer getLogisticsState() {
+        return logisticsState;
+    }
+
+    public void setLogisticsState(Integer logisticsState) {
+        this.logisticsState = logisticsState;
+    }
+
     public Integer getExpressFeePayMethod() {
         return expressFeePayMethod;
     }
