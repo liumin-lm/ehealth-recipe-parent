@@ -78,4 +78,14 @@ public class OperationConstant {
      */
     public static final String OP_RECIPE_EXTEND_SUPERVISE = "superviseRecipecode";
 
+    /**
+     * 患者-患者姓名
+     */
+    public static final String OP_PATIENT_NAME = "patientName";
+
+    /**
+     * 处方扩展-陪诊人姓名
+     */
+    public static final String OP_RECIPE_EXTEND_NAME = "guardianName";
+
 }

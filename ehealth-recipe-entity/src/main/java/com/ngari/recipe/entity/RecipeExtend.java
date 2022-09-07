@@ -204,6 +204,7 @@ public class RecipeExtend implements Serializable {
     private String superviseRecipecode;
 
     @ItemProperty(alias = "监管人姓名")
+    @Desensitizations(type = DesensitizationsType.NAME)
     private String guardianName;
 
     @Desensitizations(type = DesensitizationsType.IDCARD)
