@@ -190,6 +190,7 @@ public class OfflineRecipeClient extends BaseClient {
         logger.info("OfflineRecipeClient patientPushRecipe recipeDTO：{}", JSON.toJSONString(recipeDTO));
         try {
             HisResponseTO<com.ngari.platform.recipe.mode.RecipeDTO> hisResponse = recipeHisService.patientPushRecipe(recipeDTO);
+            logger.info("OfflineRecipeClient patientPushRecipe hisResponse：{}", JSON.toJSONString(hisResponse));
             return recipeInfoDTO(hisResponse, recipePdfDTO.getRecipeTherapy());
         } catch (Exception e) {
             logger.error("OfflineRecipeClient offlineCommonRecipe hisResponse", e);
