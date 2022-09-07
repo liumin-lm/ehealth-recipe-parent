@@ -124,7 +124,9 @@ public class RecipeServiceSub {
 
     private static final String UNCHECK = "uncheck";
 
-    private static final String REVISIT_SOURCE_FBMZ = "fz-fbmz-001";
+    private static final String REVISIT_SOURCE_YZSQ = "fz-yzsq-001";
+
+    private static final String REVISIT_SOURCE_YJXF = "fz-yjxf-001";
 
     private static CaManager caManager = AppContextHolder.getBean("caManager", CaManager.class);
     private static HisRecipeManager hisRecipeManager = AppContextHolder.getBean("hisRecipeManager", HisRecipeManager.class);
@@ -265,9 +267,16 @@ public class RecipeServiceSub {
                     HosRecordDTO hosRecordDTO = iRevisitHosRecordService.getByConsultId(recipeBean.getClinicId());
                     LOGGER.info("iRevisitExService.getByConsultId:{}", JSONUtils.toString(revisitExDTO));
                     if (null != revisitExDTO) {
-                        String sourceTag = revisitBean.getSourceTag();
-                        if (StringUtils.isNotEmpty(sourceTag) && REVISIT_SOURCE_FBMZ.equals(sourceTag)) {
-                            recipeBean.setFastRecipeFlag(2);
+                        String sourceTag = Objects.isNull(revisitBean.getSourceTag()) ? "" : revisitBean.getSourceTag();
+                        switch (sourceTag) {
+                            case REVISIT_SOURCE_YZSQ:
+                                recipeBean.setFastRecipeFlag(2);
+                                break;
+                            case REVISIT_SOURCE_YJXF:
+                                recipeBean.setFastRecipeFlag(3);
+                                break;
+                            default:
+                                break;
                         }
                         recipeExtend.setCardNo(revisitExDTO.getCardId());
                         recipeExtend.setCardType(revisitExDTO.getCardType());
