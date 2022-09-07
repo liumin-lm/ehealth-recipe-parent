@@ -1267,6 +1267,13 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                     return resMap;
                 } else if ("3".equals(req.getAuditResult())) {
                     //需要医生二次审核确认
+                    Map<String, Object> updateMap = new HashMap<>();
+                    updateMap.put("checkStatus", RecipecCheckStatusConstant.First_Check_No_Pass);
+                    recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), updateMap);
+                    stateManager.updateAuditState(recipe.getRecipeId(), RecipeAuditStateEnum.FAIL_DOC_CONFIRMING);
+                    stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_AUDIT, RecipeStateEnum.SUB_AUDIT_DOCTOR_READY);
+                    RecipeMsgService.batchSendMsg(recipe, eh.cdr.constant.RecipeStatusConstant.CHECK_NOT_PASSYS_REACHPAY);
+                    return resMap;
                 }
 
                 Map<String, Object> paramMap = Maps.newHashMap();
