@@ -41,10 +41,7 @@ import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.caNew.pdf.CreatePdfFactory;
-import recipe.client.IConfigurationClient;
-import recipe.client.OfflineRecipeClient;
-import recipe.client.OrganClient;
-import recipe.client.PatientClient;
+import recipe.client.*;
 import recipe.constant.ErrorCode;
 import recipe.constant.RecipeStatusConstant;
 import recipe.constant.ReviewTypeConstant;
@@ -156,6 +153,8 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     private DrugsEnterpriseDAO drugsEnterpriseDAO;
     @Autowired
     private RequirementsForTakingDao requirementsForTakingDao;
+    @Autowired
+    private RecipeAuditClient recipeAuditClient;
 
 
 
@@ -440,6 +439,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         auditModeContext.getAuditModes(dbRecipe.getReviewType()).afterCheckNotPassYs(dbRecipe);
         //添加发送不通过消息
         RecipeMsgService.batchSendMsg(dbRecipe, RecipeStatusConstant.CHECK_NOT_PASSYS_REACHPAY);
+        recipeAuditClient.recipeAuditNotice(ObjectCopyUtils.convert(dbRecipe, com.ngari.platform.recipe.mode.RecipeBean.class), 0);
         return stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_AUDIT_NOT_PASS);
     }
 
