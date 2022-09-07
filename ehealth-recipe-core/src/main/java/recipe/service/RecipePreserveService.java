@@ -314,6 +314,9 @@ public class RecipePreserveService {
                 recipeExtend.setIllnessName(recipeInfoTO.getRecipeExtendBean().getIllnessName());
                 //TODO everyTcmNumFre 线下处方
 //                recipeExtend.setEveryTcmNumFre(recipeInfoTO.getRecipeExtendBean().getEveryTcmNumFre());
+                //TODO requirementsForTakingText
+//                recipeExtend.setRequirementsForTakingText(recipeInfoTO.getRecipeExtendBean().getRequirementsForTakingText());
+//                recipeExtend.setRequirementsForTakingCode(recipeInfoTO.getRecipeExtendBean().getRequirementsForTakingCode());
                 recipeExtend.setMinor(recipeInfoTO.getRecipeExtendBean().getMinor());
                 recipeExtend.setMinorUnit(recipeInfoTO.getRecipeExtendBean().getMinorUnit());
             } else {
@@ -324,6 +327,7 @@ public class RecipePreserveService {
                 recipeExtend.setEveryTcmNumFre("");
                 recipeExtend.setMinor("");
                 recipeExtend.setMinorUnit("");
+                recipeExtend.setRequirementsForTakingText("");
             }
             recipeBean.setRecipeExtend(recipeExtend);
             List<RecipeDetailTO> detailData = recipeInfoTO.getDetailData();
@@ -469,6 +473,9 @@ public class RecipePreserveService {
                 recipeExtend.setIllnessName(recipeInfoTO.getRecipeExtendBean().getIllnessName());
                 //TODO everyTcmNumFre 线下处方
 //                recipeExtend.setEveryTcmNumFre(recipeInfoTO.getRecipeExtendBean().getEveryTcmNumFre());
+                //TODO RequirementsForTakingText
+//                recipeExtend.setRequirementsForTakingText(recipeInfoTO.getRecipeExtendBean().getRequirementsForTakingText());
+//                recipeExtend.setRequirementsForTakingCode(recipeInfoTO.getRecipeExtendBean().getRequirementsForTakingCode());
                 recipeExtend.setMinor(recipeInfoTO.getRecipeExtendBean().getMinor());
                 recipeExtend.setMinorUnit(recipeInfoTO.getRecipeExtendBean().getMinorUnit());
             } else {
@@ -479,6 +486,7 @@ public class RecipePreserveService {
                 recipeExtend.setEveryTcmNumFre("");
                 recipeExtend.setMinor("");
                 recipeExtend.setMinorUnit("");
+                recipeExtend.setRequirementsForTakingText("");
             }
             recipeBean.setRecipeExtend(recipeExtend);
             List<RecipeDetailTO> detailData = recipeInfoTO.getDetailData();

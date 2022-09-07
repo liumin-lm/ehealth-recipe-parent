@@ -1212,122 +1212,13 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         return action.getResult();
     }
 
+
     /**
-     * 查询处方列表
      *
-     * @param status      处方状态
-     * @param doctor      开方医生
-     * @param patientName 患者姓名（原为患者主键 mpiid）
-     * @param bDate       开始时间
-     * @param eDate       结束时间
-     * @param dateType    时间类型（0：开方时间，1：审核时间，2：支付时间，3：发药时间）
-     * @param start       分页开始index
-     * @param limit       分页长度
-     * @return QueryResult<Map>
+     * 运营平台-业务查询-处方业务-处方列表查询
+     * @param recipesQueryVO
+     * @return
      */
-//    @Deprecated
-//    public QueryResult<Map> findRecipesByInfo(final Integer organId, final Integer status, final Integer doctor, final String patientName, final Date bDate, final Date eDate, final Integer dateType, final Integer depart, final int start, final int limit, List<Integer> organIds, Integer giveMode, Integer sendType, Integer fromflag,
-//                                              Integer recipeId, Integer enterpriseId, Integer checkStatus, Integer payFlag, Integer orderType, Integer refundNodeStatus, Integer recipeType, Integer bussSource, Integer recipeBusinessType) {
-//        this.validateOptionForStatistics(status, doctor, patientName, bDate, eDate, dateType, start, limit);
-//        final StringBuilder sbHql = this.generateRecipeOderHQLforStatistics(organId, status, doctor, patientName, dateType, depart, organIds, giveMode, sendType, fromflag, recipeId, enterpriseId, checkStatus, payFlag, orderType, refundNodeStatus, recipeType, bussSource, recipeBusinessType);
-//        final StringBuilder sbHqlCount = this.generateRecipeOderHQLforStatisticsCount(organId, status, doctor, patientName, dateType, depart, organIds, giveMode, sendType, fromflag, recipeId, enterpriseId, checkStatus, payFlag, orderType, refundNodeStatus, recipeType, bussSource, recipeBusinessType);
-//        logger.info("RecipeDAO findRecipesByInfo sbHql:{}", sbHql.toString());
-//        HibernateStatelessResultAction<QueryResult<Map>> action = new AbstractHibernateStatelessResultAction<QueryResult<Map>>() {
-//            @Override
-//            public void execute(StatelessSession ss) throws Exception {
-//                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-//
-//                // 查询总记录数
-//                SQLQuery sqlQuery = ss.createSQLQuery(sbHqlCount.toString());
-//                sqlQuery.setParameter("startTime", sdf.format(bDate));
-//                sqlQuery.setParameter("endTime", sdf.format(eDate));
-//                Long total = Long.valueOf(String.valueOf((sqlQuery.uniqueResult())));
-//                // 查询结果
-//                Query query = ss.createSQLQuery(sbHql.append(" order by recipeId DESC").toString()).addEntity(Recipe.class);
-//                query.setParameter("startTime", sdf.format(bDate));
-//                query.setParameter("endTime", sdf.format(eDate));
-//                query.setFirstResult(start);
-//                query.setMaxResults(limit);
-//                List<Recipe> recipeList = query.list();
-//
-//                List<Map> maps = new ArrayList<Map>();
-//                if (recipeList != null) {
-//                    RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
-//                    DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-//                    for (Recipe recipe : recipeList) {
-//                        Map<String, Object> map = Maps.newHashMap();
-//                        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-//                        RecipeOrder order = recipeOrderDAO.getRecipeOrderByRecipeId(recipe.getRecipeId());
-//                        if (order == null) {
-//                            order = new RecipeOrder();
-//                            //跟前端约定好这个字段一定会给的，所以定义了-1作为无支付类型
-//                            order.setOrderType(-1);
-//                            order.setPayFlag(recipe.getPayFlag());
-//                        }
-//                        if (order != null && order.getOrderType() == null) {
-//                            order.setOrderType(0);
-//                            recipe.setPayFlag(order.getPayFlag());
-//                        }
-//                        //处方审核状态处理
-//                        recipe.setCheckStatus(recipe.getCheckFlag());
-//                        BeanUtils.map(recipe, map);
-//                        if (recipe.getBussSource() == null || new Integer(0).equals(recipe.getBussSource())) {
-//                            map.put("bussSourceText", "无诊疗");
-//                        } else {
-//                            map.put("bussSourceText", DictionaryController.instance().get("eh.cdr.dictionary.BussSourceType").getText(recipe.getBussSource()));
-//                        }
-//                        map.put("recipeOrder", order);
-//                        map.put("detailCount", recipeDetailDAO.getCountByRecipeId(recipe.getRecipeId()));
-//                        Integer enterpriseId = recipe.getEnterpriseId();
-//                        if (enterpriseId != null) {
-//                            DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.get(enterpriseId);
-//                            if (null != drugsEnterprise) {
-//                                map.put("drugsEnterprise", drugsEnterprise.getName());
-//                            }
-//                        }
-//                        if (null != order) {
-//                            map.put("payDate", order.getPayTime());
-//                        } else {
-//                            map.put("payDate", null);
-//                        }
-//                        // 处方退费状态
-//                        // 经过表结构讨论，当前不做大修改，因此将退费状态字段RefundNodeStatus放在了RecipeExtend表
-//                        RecipeExtend recipeExtend = getRecipeRefundNodeStatus(recipe);
-//
-//                        // 注意：若不使用BeanUtils.map转换，而直接放对象，
-//                        // 会造成opbase QueryResult<Map>端枚举值的Text字段不会自动生成
-//                        // 还有一种方式是在opbase QueryResult<Map>端循环读取然后重新设置（张宪强的回答）
-//                        if (recipeExtend != null) {
-//                            Map<String, Object> recipeExtendMap = Maps.newHashMap();
-//                            BeanUtils.map(recipeExtend, recipeExtendMap);
-//                            if (null != recipeExtend.getRecipeBusinessType()) {
-//                                switch (recipeExtend.getRecipeBusinessType()) {
-//                                    case 1:
-//                                        recipeExtendMap.put("recipeBusinessText", "门诊处方");
-//                                        break;
-//                                    case 2:
-//                                        recipeExtendMap.put("recipeBusinessText", "复诊处方");
-//                                        break;
-//                                    case 3:
-//                                        recipeExtendMap.put("recipeBusinessText", "其他处方");
-//                                        break;
-//                                }
-//                            }
-//                            map.put("recipeExtend", recipeExtendMap);
-//                        }
-//
-//                        maps.add(map);
-//                    }
-//                }
-//                logger.info("findRecipesByInfo maps:{}", JSONUtils.toString(maps));
-//                setResult(new QueryResult<Map>(total, query.getFirstResult(), query.getMaxResults(), maps));
-//            }
-//        };
-//        HibernateSessionTemplate.instance().execute(action);
-//        return action.getResult();
-//    }
-
-
     public QueryResult<Recipe> findRecipesByInfoV2(RecipesQueryVO recipesQueryVO) {
         this.validateOptionForStatistics(recipesQueryVO);
         final StringBuilder sbHql = this.generateRecipeOderHQLforStatistics(recipesQueryVO);
@@ -1646,18 +1537,8 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         return hql;
     }
 
-//    @Deprecated
-//    private StringBuilder generateRecipeOderHQLforStatistics(Integer organId, Integer status, Integer doctor, String mpiId, Integer dateType, Integer depart, final List<Integer> requestOrgans, Integer giveMode, Integer sendType, Integer fromflag, Integer recipeId,
-//                                                             Integer enterpriseId, Integer checkStatus, Integer payFlag, Integer orderType, Integer refundNodeStatus, Integer recipeType, Integer bussSource, Integer recipeBusinessType) {
-//        StringBuilder hql = new StringBuilder("select r.*  from cdr_recipe r ");
-//        hql.append(" LEFT JOIN cdr_recipeorder o on r.orderCode = o.orderCode ");
-//        hql.append(" LEFT JOIN cdr_recipe_ext re ON r.RecipeID = re.recipeId ");
-//        hql.append(" where  r.recipeSourceType!=3 ");
-//        return generateRecipeOderHQLforStatisticsV1(hql, organId, status, doctor, mpiId, dateType, depart, requestOrgans, giveMode, sendType, fromflag, recipeId, enterpriseId, checkStatus, payFlag, orderType, refundNodeStatus, recipeType, bussSource, recipeBusinessType);
-//    }
-
     /**
-     * 处方列表查询sql
+     * 运营平台-业务查询-处方列表查询sql
      * @param recipesQueryVO
      * @return
      */
@@ -1669,17 +1550,8 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         return generateRecipeOderWhereHQLforStatistics(hql,recipesQueryVO);
     }
 
-//    private StringBuilder generateRecipeOderHQLforStatisticsCount(Integer organId, Integer status, Integer doctor, String mpiId, Integer dateType, Integer depart, final List<Integer> requestOrgans, Integer giveMode, Integer sendType, Integer fromflag, Integer recipeId,
-//                                                                  Integer enterpriseId, Integer checkStatus, Integer payFlag, Integer orderType, Integer refundNodeStatus, Integer recipeType, Integer bussSource, Integer recipeBusinessType) {
-//        StringBuilder hql = new StringBuilder("select count(1)  from cdr_recipe r ");
-//        hql.append(" LEFT JOIN cdr_recipeorder o on r.orderCode = o.orderCode ");
-//        hql.append(" LEFT JOIN cdr_recipe_ext re ON r.RecipeID = re.recipeId ");
-//        hql.append(" where  r.recipeSourceType!=3 ");
-//        return generateRecipeOderHQLforStatisticsV1(hql, organId, status, doctor, mpiId, dateType, depart, requestOrgans, giveMode, sendType, fromflag, recipeId, enterpriseId, checkStatus, payFlag, orderType, refundNodeStatus, recipeType, bussSource, recipeBusinessType);
-//    }
-
     /**
-     * 处方列表总数查询
+     * 运营平台-业务查询-处方列表(总数)查询sql
      * @param recipesQueryVO
      * @return
      */
@@ -1691,144 +1563,11 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         return generateRecipeOderWhereHQLforStatistics(hql,recipesQueryVO);
     }
 
-
-//    @Deprecated
-//    private StringBuilder generateRecipeOderHQLforStatisticsV1(StringBuilder hql, Integer organId, Integer status, Integer doctor, String mpiId, Integer dateType, Integer depart, final List<Integer> requestOrgans, Integer giveMode, Integer sendType, Integer fromflag, Integer recipeId, Integer enterpriseId, Integer checkStatus, Integer payFlag, Integer orderType, Integer refundNodeStatus, Integer recipeType, Integer bussSource, Integer recipeBusinessType) {
-//        //默认查询所有
-//        if (CollectionUtils.isNotEmpty(requestOrgans)) {
-//            // 添加申请机构条件
-//            boolean flag = true;
-//            for (Integer i : requestOrgans) {
-//                if (i != null) {
-//                    if (flag) {
-//                        hql.append(" and r.clinicOrgan in(");
-//                        flag = false;
-//                    }
-//                    hql.append(i + ",");
-//                }
-//            }
-//            if (!flag) {
-//                hql = new StringBuilder(hql.substring(0, hql.length() - 1) + ") ");
-//            }
-//        }
-//        if (organId != null) {
-//            hql.append(" and r.clinicOrgan =" + organId);
-//        }
-//        switch (dateType) {
-//            case 0:
-//                //开方时间
-//                hql.append(" and r.createDate BETWEEN :startTime" + " and :endTime ");
-//                break;
-//            case 1:
-//                //审核时间
-//                hql.append(" and r.CheckDateYs BETWEEN :startTime" + " and :endTime ");
-//                break;
-//            case 2:
-//                //支付时间
-//                hql.append(" and o.payTime BETWEEN :startTime" + " and :endTime ");
-//                break;
-//            case 3:
-//                //发药时间
-//                hql.append(" and o.dispensingTime BETWEEN :startTime" + " and :endTime ");
-//                break;
-//            default:
-//                break;
-//        }
-//        if (status != null) {
-//            //由于已取消状态较多，使用其中一个值查询所有已取消的状态
-//            if (new Integer(11).equals(status)) {
-//                hql.append(" and r.status in (11,12,13,14,17,19,20,25)");
-//            } else {
-//                hql.append(" and r.status =").append(status);
-//            }
-//        }
-//        if (doctor != null) {
-//            hql.append(" and r.doctor=").append(doctor);
-//        }
-//        if (depart != null) {
-//            hql.append(" and r.depart=").append(depart);
-//        }
-//        if (giveMode != null) {
-//            hql.append(" and r.giveMode=").append(giveMode);
-//        }
-//        if (null != sendType) {
-//            hql.append(" and o.send_type=").append(sendType);
-//        }
-//
-//        if (fromflag != null) {
-//            hql.append(" and r.fromflag=").append(fromflag);
-//        }
-//        if (recipeId != null) {
-//            hql.append(" and r.recipeId=").append(recipeId);
-//        }
-//
-//        if (mpiId != null) {
-//            hql.append(" and r.mpiid='").append(mpiId + "'");
-//        }
-//        if (enterpriseId != null) {
-//            hql.append(" and r.enterpriseId=").append(enterpriseId);
-//        }
-//
-//        if (checkStatus != null) {
-//            switch (checkStatus) {
-//                case 0:
-//                    hql.append(" and r.checkFlag=0 ");
-//                    break;
-//                case 1:
-//                    hql.append(" and r.checkFlag=1 ");
-//                    break;
-//                case 2:
-//                    hql.append(" and r.checkFlag=2 ");
-//                    break;
-//                case 3:
-//                    hql.append(" and r.checkFlag in(0,1,2) ");
-//                    break;
-//            }
-//        }
-//
-//        if (payFlag != null) {
-//            if (payFlag == 0) {
-//                hql.append(" and r.payFlag=").append(payFlag);
-//            } else {
-//                hql.append(" and o.payFlag=").append(payFlag);
-//            }
-//        }
-//        if (orderType != null) {
-//            if (orderType == 0) {
-//                hql.append(" and o.orderType=").append(0);
-//            } else {
-//                hql.append(" and o.orderType in (1,2,3,4) ");
-//            }
-//        }
-//        if (refundNodeStatus != null) {
-//            hql.append(" and re.refundNodeStatus=").append(refundNodeStatus);
-//        }
-//        if (recipeType != null) {
-//            hql.append(" and r.recipeType=").append(recipeType);
-//        }
-//        if (bussSource != null) {
-//            switch (bussSource) {
-//                case 1:
-//                    hql.append(" and r.bussSource=1 ");
-//                    break;
-//                case 2:
-//                    hql.append(" and r.bussSource=2 ");
-//                    break;
-//                case 3:
-//                    hql.append(" and r.bussSource=3 ");
-//                    break;
-//                case 5:
-//                    hql.append(" and r.bussSource=5 ");
-//                    break;
-//            }
-//        }
-//        if (recipeBusinessType != null) {
-//            hql.append(" and re.recipe_business_type= ").append(recipeBusinessType);
-//        }
-//        return hql;
-//    }
-
-
+    /**
+     * 运营平台-业务查询-处方列表查询条件组装
+     * @param recipesQueryVO
+     * @return
+     */
     private StringBuilder generateRecipeOderWhereHQLforStatistics(StringBuilder hql,RecipesQueryVO recipesQueryVO) {
         //默认查询所有
         if (CollectionUtils.isNotEmpty(recipesQueryVO.getOrganIds())) {
@@ -1969,158 +1708,30 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 hql.append(" and r.fast_recipe_flag = ").append(recipesQueryVO.getFastRecipeFlag());
             }
         }
+
+        //autoCheckFlag：0不需要审核 1自动审方 2药师审方
+        Integer autoCheckFlag=recipesQueryVO.getAutoCheckFlag();
+        if (null != autoCheckFlag) {
+            switch (autoCheckFlag) {
+                case 0:
+                    hql.append(" and r.reviewType=0");
+                    break;
+                case 1:
+                    hql.append(" and r.reviewType>0 and re.auto_check=1");
+                    break;
+                case 2:
+                    hql.append(" and r.reviewType>0 and (re.auto_check=0 or re.auto_check is null)");
+                    break;
+            }
+        }
         LOGGER.info("generateRecipeOderWhereHQLforStatistics hql:{}", hql);
         return hql;
     }
 
 
-    /**
-     * generateRecipeMsgHQLforStatistics 替换成generateRecipeMsgHQLforStatisticsV1
-     * @param recipesQueryVO
-     * @return
-     */
-//    private StringBuilder generateRecipeMsgHQLforStatistics(RecipesQueryVO recipesQueryVO) {
-//        StringBuilder hql = new StringBuilder("select r.recipeId,r.patientName,r.Mpiid mpiId,r.organName,r.depart,r.doctor,r.organDiseaseName," +
-//                "o.recipeFee,r.totalMoney,r.checker,r.checkDateYs,r.fromflag,r.status,o.payTime, r.doctorName, r.giveUser, o.dispensingTime, sum(cr.useTotalDose) sumDose ,o.send_type sendType ,o.outTradeNo ,o.cashAmount,o.fundAmount,o.orderType,r.recipeType,r.bussSource,r.recipeCode,ce.recipe_business_type as recipeBusinessType, " +
-//                "o.drugStoreName,o.enterpriseId " +
-//                "from cdr_recipe r LEFT JOIN cdr_recipeorder o on r.orderCode=o.orderCode left join cdr_recipedetail cr on cr.recipeId = r.recipeId  and cr.status =1 left join cdr_recipe_ext ce on ce.recipeId = r.recipeId where 1=1 ");
-//        //默认查询所有
-//        if (CollectionUtils.isNotEmpty(recipesQueryVO.getOrganIds())) {
-//            // 添加申请机构条件
-//            boolean flag = true;
-//            for (Integer i : recipesQueryVO.getOrganIds()) {
-//                if (i != null) {
-//                    if (flag) {
-//                        hql.append(" and r.clinicOrgan in(");
-//                        flag = false;
-//                    }
-//                    hql.append(i + ",");
-//                }
-//            }
-//            if (!flag) {
-//                hql = new StringBuilder(hql.substring(0, hql.length() - 1) + ") ");
-//            }
-//        }
-//        if (null != recipesQueryVO.getOrganId()) {
-//            hql.append(" and r.clinicOrgan =" + recipesQueryVO.getOrganId());
-//        }
-//        switch (recipesQueryVO.getDateType()) {
-//            case 0:
-//                //开方时间
-//                hql.append(" and r.createDate BETWEEN :startTime" + " and :endTime ");
-//                break;
-//            case 1:
-//                //审核时间
-//                hql.append(" and r.CheckDateYs BETWEEN :startTime" + " and :endTime ");
-//                break;
-//            case 2:
-//                //支付时间
-//                hql.append(" and o.payTime BETWEEN :startTime" + " and :endTime ");
-//                break;
-//            case 3:
-//                //发药时间
-//                hql.append(" and o.dispensingTime BETWEEN :startTime" + " and :endTime ");
-//                break;
-//            default:
-//                break;
-//        }
-//        if (null != recipesQueryVO.getStatus()) {
-//            //由于已取消状态较多，使用其中一个值查询所有已取消的状态
-//            if (new Integer(11).equals(recipesQueryVO.getStatus())) {
-//                hql.append(" and r.status in (11,12,13,14,17,19,20,25)");
-//            } else {
-//                hql.append(" and r.status =").append(recipesQueryVO.getStatus());
-//            }
-//        }
-//        if (null != recipesQueryVO.getDoctor()) {
-//            hql.append(" and r.doctor=").append(recipesQueryVO.getDoctor());
-//        }
-//        if (null != recipesQueryVO.getDepart()) {
-//            hql.append(" and r.depart=").append(recipesQueryVO.getDepart());
-//        }
-//        if (null != recipesQueryVO.getGiveMode()) {
-//            hql.append(" and r.giveMode=").append(recipesQueryVO.getGiveMode());
-//        }
-//
-//        hql.append(" and r.fromflag=1 ");
-//        if (null != recipesQueryVO.getRecipeId()) {
-//            hql.append(" and r.recipeId=").append(recipesQueryVO.getRecipeId());
-//        }
-//
-//        if (StringUtils.isNotBlank(recipesQueryVO.getPatientName())) {
-//            hql.append(" and r.mpiid='").append(recipesQueryVO.getPatientName() + "'");
-//        }
-//        if (null != recipesQueryVO.getEnterpriseId()) {
-//            hql.append(" and r.enterpriseId=").append(recipesQueryVO.getEnterpriseId());
-//        }
-//        //date 20201012 bug 修改导出处方业务数据的时候没有添加配送方式筛选
-//        if (null != recipesQueryVO.getSendType()) {
-//            hql.append(" and o.send_type=").append(recipesQueryVO.getSendType());
-//        }
-//        //checkResult 0:未审核 1:通过 2:不通过 3:二次签名 4:失效
-//        if (null != recipesQueryVO.getCheckStatus()) {
-//            switch (recipesQueryVO.getCheckStatus()) {
-//                case 0:
-//                    hql.append(" and r.checkFlag = 0");
-//                    break;
-//                case 1:
-//                    hql.append(" and c.checkStatus =").append(1);
-//                    hql.append(" and r.checkFlag = 1");
-//                    break;
-//                case 2:
-//                    hql.append(" and c.checkStatus =").append(0).append(" and r.checker is not null ");
-//                    hql.append(" and r.checkFlag = 2");
-//                    break;
-//                case 3:
-//                    hql.append(" and r.supplementaryMemo is not null ");
-//                    break;
-//                case 4:
-//                    hql.append(" and r.status = ").append(9);
-//                    break;
-//            }
-//        }
-//
-//        if (null != recipesQueryVO.getPayFlag()) {
-//            if (recipesQueryVO.getPayFlag() == 0) {
-//                hql.append(" and r.payFlag=").append(recipesQueryVO.getPayFlag());
-//            } else {
-//                hql.append(" and o.payFlag=").append(recipesQueryVO.getPayFlag());
-//            }
-//        }
-//        if (recipesQueryVO.getOrderType() != null) {
-//            if (recipesQueryVO.getOrderType() == 0) {
-//                hql.append(" and o.orderType=").append(0);
-//            } else {
-//                hql.append(" and o.orderType in (1,2,3,4) ");
-//            }
-//        }
-//        if (null != recipesQueryVO.getRecipeType()) {
-//            hql.append(" and r.recipeType=").append(recipesQueryVO.getRecipeType());
-//        }
-//        if (recipesQueryVO.getBussSource() != null) {
-//            switch (recipesQueryVO.getBussSource()) {
-//                case 1:
-//                    hql.append(" and r.bussSource=1 ");
-//                    break;
-//                case 2:
-//                    hql.append(" and r.bussSource=2 ");
-//                    break;
-//                case 3:
-//                    hql.append(" and r.bussSource=3 ");
-//                    break;
-//                case 5:
-//                    hql.append(" and r.bussSource=5 ");
-//                    break;
-//            }
-//        }
-//        if (null != recipesQueryVO.getRecipeBusinessType()) {
-//            hql.append(" and ce.recipe_business_type=").append(recipesQueryVO.getRecipeBusinessType());
-//        }
-//        return hql;
-//    }
 
     /**
-     * 处方列表导出sql查询
+     * 运营平台-处方查询-处方列表导出sql查询
      * @param recipesQueryVO
      * @return
      */
@@ -2140,19 +1751,21 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         return generateRecipeOderWhereHQLforStatistics(hql,recipesQueryVO);
     }
 
-
+    /**
+     * 运营平台-处方查询-配送订单列表导出sql查询
+     * @param recipesQueryVO
+     * @return
+     */
     private StringBuilder generateRecipeOderHQLforStatisticsN(RecipesQueryVO recipesQueryVO) {
         StringBuilder hql = new StringBuilder("select ");
         hql.append("o.orderId,o.address1,o.address2,o.address3,o.address4,address5Text,o.streetAddress,o.receiver,o.send_type,o.RecMobile,o.CreateTime,o.ExpressFee,o.OrderCode,o.Status,o.ActualPrice,o.TotalFee,o.EnterpriseId,o.ExpectSendDate,o.ExpectSendTime,o.PayFlag,o.PayTime,o.TradeNo,o.RecipeIdList,o.dispensingTime,o.drugStoreName, ");
         hql.append("r.recipeId,r.mpiid,r.patientID,r.doctor,r.organName,r.organDiseaseName,r.doctorName,r.patientName,r.status,r.depart,r.fromflag,r.giveMode,r.recipeType,r.giveUser,r.bussSource,r.recipeCode,re.recipe_business_type as recipeBusinessType,r.clinicOrgan , ");
         hql.append("d.recipeDetailId,d.drugName,d.drugSpec,d.drugUnit,d.salePrice,d.actualSalePrice,d.saleDrugCode,d.producer,d.licenseNumber,d.useDose,d.useDoseUnit,d.usePathways,d.usingRate,d.useTotalDose,d.drugId ,d.organDrugCode,d.his_return_sale_price ");
         hql.append(" ,re.decoctionId,re.decoctionText ");
-//        hql.append(" ,drug.organDrugCode,drug.medicalDrugCode  ");
 
         hql.append(" from cdr_recipe r LEFT JOIN cdr_recipeorder o on r.orderCode=o.orderCode ");
         hql.append("LEFT JOIN cdr_recipedetail d ON r.RecipeID = d.RecipeID")
                 .append(" LEFT JOIN cdr_recipe_ext re on re.recipeId = r.recipeId ");
-//        hql.append("LEFT JOIN base_organdruglist drug on drug.OrganDrugCode=d.OrganDrugCode and drug.OrganID=r.clinicorgan  ");
         hql.append(" where d.Status= 1 and r.recipeSourceType!=3 ");
 
         return generateRecipeOderWhereHQLforStatistics(hql,recipesQueryVO);

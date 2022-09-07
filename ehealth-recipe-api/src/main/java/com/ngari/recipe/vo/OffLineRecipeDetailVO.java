@@ -135,4 +135,11 @@ public class OffLineRecipeDetailVO implements Serializable {
 
     @ItemProperty(alias = "处方标识 0:普通处方 1:儿童处方")
     private Integer recipeFlag;
+
+    @ItemProperty(alias = "服用要求")
+    private String requirementsForTakingId;
+    @ItemProperty(alias = "服用要求code")
+    private String requirementsForTakingCode;
+    @ItemProperty(alias = "服用要求text")
+    private String requirementsForTakingText;
 }

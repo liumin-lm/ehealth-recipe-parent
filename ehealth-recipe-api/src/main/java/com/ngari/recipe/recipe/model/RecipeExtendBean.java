@@ -140,6 +140,12 @@ public class RecipeExtendBean implements Serializable {
     private String decoctionId;
     @ItemProperty(alias = "煎法text")
     private String decoctionText;
+    @ItemProperty(alias = "服用要求")
+    private String requirementsForTakingId;
+    @ItemProperty(alias = "服用要求code")
+    private String requirementsForTakingCode;
+    @ItemProperty(alias = "服用要求text")
+    private String requirementsForTakingText;
 
     @ItemProperty(alias = "制法编码")
     private String makeMethod;
@@ -297,6 +303,30 @@ public class RecipeExtendBean implements Serializable {
 
     public void setAppointEnterpriseType(Integer appointEnterpriseType) {
         this.appointEnterpriseType = appointEnterpriseType;
+    }
+
+    public String getRequirementsForTakingId() {
+        return requirementsForTakingId;
+    }
+
+    public void setRequirementsForTakingId(String requirementsForTakingId) {
+        this.requirementsForTakingId = requirementsForTakingId;
+    }
+
+    public String getRequirementsForTakingCode() {
+        return requirementsForTakingCode;
+    }
+
+    public void setRequirementsForTakingCode(String requirementsForTakingCode) {
+        this.requirementsForTakingCode = requirementsForTakingCode;
+    }
+
+    public String getRequirementsForTakingText() {
+        return requirementsForTakingText;
+    }
+
+    public void setRequirementsForTakingText(String requirementsForTakingText) {
+        this.requirementsForTakingText = requirementsForTakingText;
     }
 
     public String getPharmNo() {
