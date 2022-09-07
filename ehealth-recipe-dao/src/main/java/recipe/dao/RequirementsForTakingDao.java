@@ -42,7 +42,7 @@ public abstract class RequirementsForTakingDao extends HibernateSupportDelegateD
     public abstract List<RequirementsForTaking> findAllByOrganId(@DAOParam("organId") Integer organId);
 
     @DAOMethod
-    public abstract List<DecoctionWay> findByOrganId(Integer organId);
+    public abstract List<RequirementsForTaking> findByOrganId(Integer organId);
 
     @DAOMethod(sql = "from DecoctionWay where organId =:organId and decoctionCode = :decoctionCode")
     public abstract DecoctionWay getDecoctionWayByOrganIdAndCode(@DAOParam("organId") Integer organId

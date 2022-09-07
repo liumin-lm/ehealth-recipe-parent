@@ -811,8 +811,8 @@ public class EnterpriseManager extends BaseManager {
             }
             //TODO everyTcmNumFre 不需要推送药企？？？
 //            recipeExtendBean.setEveryTcmNumFre(recipeExtend.getEveryTcmNumFre());
-            //TODO requirementsForTakingText
-            //**
+            recipeExtend.setRequirementsForTakingText(recipeExtend.getRequirementsForTakingText());
+            recipeExtend.setRequirementsForTakingCode(recipeExtend.getRequirementsForTakingCode());
                 recipeExtendBean.setSymptomCode(recipeExtend.getSymptomId());
         } catch (Exception e) {
             logger.error("getPushRecipeAndOrder recipe:{} error", recipe.getRecipeId(), e);
