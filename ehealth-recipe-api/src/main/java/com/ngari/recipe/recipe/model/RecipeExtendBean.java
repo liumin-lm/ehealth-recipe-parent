@@ -100,6 +100,7 @@ public class RecipeExtendBean implements Serializable {
     private String recipeJsonConfig;
 
     @ItemProperty(alias = "监管人姓名")
+    @Desensitizations(type = DesensitizationsType.NAME)
     private String guardianName;
     @ItemProperty(alias = "监管人证件号")
     @Desensitizations(type = DesensitizationsType.IDCARD)
