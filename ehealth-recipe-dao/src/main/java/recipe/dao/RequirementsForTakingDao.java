@@ -44,16 +44,16 @@ public abstract class RequirementsForTakingDao extends HibernateSupportDelegateD
     @DAOMethod
     public abstract List<RequirementsForTaking> findByOrganId(Integer organId);
 
-    @DAOMethod(sql = "from DecoctionWay where organId =:organId and decoctionCode = :decoctionCode")
-    public abstract DecoctionWay getDecoctionWayByOrganIdAndCode(@DAOParam("organId") Integer organId
+    @DAOMethod(sql = "from RequirementsForTaking where organId =:organId and decoctionCode = :decoctionCode")
+    public abstract RequirementsForTaking getByOrganIdAndCode(@DAOParam("organId") Integer organId
             , @DAOParam("decoctionCode") String decoctionCode);
 
-    @DAOMethod(sql = "from DecoctionWay where organId =:organId and decoctionText = :decoctionText")
-    public abstract DecoctionWay getDecoctionWayByOrganIdAndText(@DAOParam("organId") Integer organId
-            , @DAOParam("decoctionText") String decoctionText);
+    @DAOMethod(sql = "from RequirementsForTaking where organId =:organId and decoctionText = :decoctionText")
+    public abstract RequirementsForTaking getByOrganIdAndText(@DAOParam("organId") Integer organId
+            , @DAOParam("text") String text);
 
-    @DAOMethod(sql = "delete from DecoctionWay where decoctionId =:decoctionId ")
-    public abstract void deleteDecoctionWayByDecoctionId(@DAOParam("decoctionId") Integer decoctionId);
+    @DAOMethod(sql = "delete from RequirementsForTaking where id =:id ")
+    public abstract void deleteDecoctionWayByDecoctionId(@DAOParam("id") Integer id);
 
     public QueryResult<DecoctionWayBean> findDecoctionWayByOrganIdAndName(Integer organId, String decoctionText, Integer start, Integer limit) {
         HibernateStatelessResultAction<QueryResult<DecoctionWay>> action = new AbstractHibernateStatelessResultAction<QueryResult<DecoctionWay>>() {
@@ -100,7 +100,7 @@ public abstract class RequirementsForTakingDao extends HibernateSupportDelegateD
         return new QueryResult<DecoctionWayBean>(result.getTotal(),start,limit,decoctionWayBeansList);
     }
 
-    @DAOMethod(sql = "select count(*) from DecoctionWay where organId=:organId")
+    @DAOMethod(sql = "select count(*) from RequirementsForTaking where organId=:organId")
     public abstract Long getCountOfOrgan(@DAOParam("organId") Integer organId);
 
 }

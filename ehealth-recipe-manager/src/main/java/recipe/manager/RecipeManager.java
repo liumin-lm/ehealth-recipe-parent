@@ -30,6 +30,7 @@ import recipe.common.CommonConstant;
 import recipe.common.UrlConfig;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
+import recipe.dao.RequirementsForTakingDao;
 import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
@@ -37,6 +38,7 @@ import recipe.enumerate.status.WriteHisEnum;
 import recipe.enumerate.type.AppointEnterpriseTypeEnum;
 import recipe.enumerate.type.RecipeShowQrConfigEnum;
 import recipe.util.DictionaryUtil;
+import recipe.util.ObjectCopyUtils;
 import recipe.util.ValidateUtil;
 
 import java.math.BigDecimal;
@@ -72,6 +74,8 @@ public class RecipeManager extends BaseManager {
     private EnterpriseManager enterpriseManager;
     @Autowired
     private IRecipeCheckService iRecipeCheckService;
+    @Autowired
+    private RequirementsForTakingDao requirementsForTakingDao;
 
     /**
      * 保存处方信息
@@ -858,4 +862,35 @@ public class RecipeManager extends BaseManager {
         logger.info("getAdvanceWarning advanceWarningResDTO={}",JSONUtils.toString(advanceWarningResDTO));
         return advanceWarningResDTO;
     }
+
+    public List<RequirementsForTakingDTO> findRequirementsForTakingByDecoctionId(Integer organId, Integer decoctionId) {
+        List<RequirementsForTakingDTO> requirementsForTakingVOS=new ArrayList<>();
+        RequirementsForTakingDTO requirementsForTakingVO = new RequirementsForTakingDTO();
+        List<RequirementsForTaking> requirementsForTakings=requirementsForTakingDao.findAllByOrganId(organId);
+        if(CollectionUtils.isEmpty(requirementsForTakings)){
+            return requirementsForTakingVOS;
+        }
+        if(decoctionId==null){
+            //如果煎法未选择，则服用要求按展示全部处理
+            logger.info("findRequirementsForTakingByDecoctionId res:{}",JSONUtils.toString(requirementsForTakings));
+            return ObjectCopyUtils.convert(requirementsForTakings,RequirementsForTakingDTO.class);
+        }else{
+            //根据煎法筛选出关键的服用要求选项展示给医生选择
+            requirementsForTakings.forEach(requirementsForTaking->{
+                String decoctionwayId=requirementsForTaking.getDecoctionwayId();
+                if(StringUtils.isEmpty(decoctionwayId)){
+                    return;
+                }
+                List<String> decoctionwayIdList=  Arrays.asList(decoctionwayId.split(","));
+                if(CollectionUtils.isEmpty(decoctionwayIdList)){
+                    return;
+                }
+                if(decoctionwayIdList.contains(String.valueOf(decoctionId))){
+                    requirementsForTakingVOS.add(ObjectCopyUtils.convert(requirementsForTaking,RequirementsForTakingDTO.class));
+                }
+            });
+        }
+        return requirementsForTakingVOS;
+    }
+
 }
