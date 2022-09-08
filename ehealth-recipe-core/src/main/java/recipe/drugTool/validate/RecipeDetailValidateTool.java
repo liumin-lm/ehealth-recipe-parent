@@ -451,7 +451,7 @@ public class RecipeDetailValidateTool {
 
     /**
      * 校验服用要求
-     * 此逻辑放在校验煎法前 如果放之后（decoction空：1、开方时没选煎法 2、煎法在开方后被删了）
+     * 此逻辑放在校验煎法后
      * @param organId
      * @param recipeExtendBean
      */
