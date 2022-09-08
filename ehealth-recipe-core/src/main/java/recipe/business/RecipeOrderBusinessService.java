@@ -63,10 +63,7 @@ import recipe.core.api.IDrugsEnterpriseBusinessService;
 import recipe.core.api.patient.IRecipeOrderBusinessService;
 import recipe.dao.*;
 import recipe.drugsenterprise.CommonRemoteService;
-import recipe.enumerate.status.GiveModeEnum;
-import recipe.enumerate.status.OrderStateEnum;
-import recipe.enumerate.status.PayModeEnum;
-import recipe.enumerate.status.RecipeOrderStatusEnum;
+import recipe.enumerate.status.*;
 import recipe.enumerate.type.GiveModeTextEnum;
 import recipe.enumerate.type.NeedSendTypeEnum;
 import recipe.factory.status.givemodefactory.GiveModeProxy;
@@ -214,8 +211,9 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
             orderStatus.setTargetRecipeOrderStatus(RecipeOrderStatusEnum.ORDER_STATUS_DONE.getType());
             giveModeProxy.updateOrderByGiveMode(recipe.getGiveMode(), orderStatus);
         }
-        if(RecipeOrderStatusEnum.ORDER_STATUS_PROCEED_SHIPPING.getType().equals(orderStatus.getSourceRecipeOrderStatus())){
+        if(RecipeOrderStatusEnum.ORDER_STATUS_PROCEED_SHIPPING.getType().equals(orderStatus.getTargetRecipeOrderStatus())){
             stateManager.updateOrderState(recipeOrder.getOrderId(), OrderStateEnum.PROCESS_STATE_ORDER,OrderStateEnum.SUB_ORDER_DELIVERED);
+            stateManager.updateRecipeState(orderStatus.getRecipeId(), RecipeStateEnum.PROCESS_STATE_DISTRIBUTION,RecipeStateEnum.SUB_ORDER_DELIVERED);
         }
         logger.info("RecipeOrderTwoService updateRecipeOrderStatus result = {}", JSON.toJSONString(result));
         return result;
