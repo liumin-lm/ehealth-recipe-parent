@@ -463,19 +463,19 @@ public class RecipeDetailValidateTool {
         //拿到历史处方煎法
         String writeRecipeSelectDecoctionId=recipeExtendBean.getDecoctionId();
         //处方煎法煎法关联的服用要求（如果服用要求被删掉了，通过煎法匹配会查不出来==》不会包含当前服用要求=》清空 ）
-        List<RequirementsForTakingDTO> requirementsForTakingDTOList=recipeManager.findRequirementsForTakingByDecoctionId(organId,Integer.parseInt(writeRecipeSelectDecoctionId));
+        List<RequirementsForTakingDTO> requirementsForTakingDTOList=recipeManager.findRequirementsForTakingByDecoctionId(organId,StringUtils.isEmpty(writeRecipeSelectDecoctionId)?null:Integer.parseInt(writeRecipeSelectDecoctionId));
         //是否包含历史处方上的服用要求
         if(CollectionUtils.isEmpty(requirementsForTakingDTOList)){
             requirementsForTaking(null, recipeExtendBean);
             return;
         }
-        requirementsForTakingDTOList.forEach(requirementsForTakingDTO->{
+        for(RequirementsForTakingDTO requirementsForTakingDTO: requirementsForTakingDTOList){
             if(StringUtils.isNotEmpty(requirementsForTakingDTO.getCode())&&requirementsForTakingDTO.getCode().equals(recipeExtendBean.getRequirementsForTakingCode())){
                 //包含
                 requirementsForTaking(ObjectCopyUtils.convert(requirementsForTakingDTO,RequirementsForTaking.class), recipeExtendBean);
                 return;
             }
-        });
+        }
 
 //        //1、校验服用要求
 //        List<RequirementsForTaking> requirementsForTakingList = requirementsForTakingDao.findByOrganId(organId);
