@@ -138,6 +138,23 @@ public abstract class RecipeExtendDAO extends HibernateSupportDelegateDAO<Recipe
     @DAOMethod(sql = "update RecipeExtend set docIndexId=0 where docIndexId=:docIndexId")
     public abstract void updateDocIndexId(@DAOParam("docIndexId") int docIndexId);
 
+
+    public Integer updateAutoCheck(final Integer autoCheck, final List<Integer> recipeIds) {
+        HibernateStatelessResultAction<Integer> action = new AbstractHibernateStatelessResultAction<Integer>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder("update RecipeExtend set autoCheck=:autoCheck where recipeId in (:recipeIds) and autoCheck is null");
+                Query q = ss.createQuery(hql.toString());
+                q.setParameter("autoCheck", autoCheck);
+                q.setParameterList("recipeIds", recipeIds);
+                int flag = q.executeUpdate();
+                setResult(flag);
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
     /**
      * 根据处方id批量删除
      *
