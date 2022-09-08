@@ -288,11 +288,11 @@ public class OperationClient extends BaseClient {
             }
             //患者姓名
             if (OperationConstant.OP_PATIENT_NAME.equals(fieldName) && StringUtils.isNotEmpty(scratchable.getBoxDesc())) {
-                return DesensitizationsUtil.instance().processField(DesensitizationsType.NAME.getType(), recipePdfDTO.getPatientBean().getPatientName(),"OA");
+                return DesensitizationsUtil.instance().processField(DesensitizationsType.NAME.getType(), recipePdfDTO.getPatientBean().getPatientName());
             }
             //陪诊人姓名
             if (OperationConstant.OP_RECIPE_EXTEND_NAME.equals(fieldName) && StringUtils.isNotEmpty(scratchable.getBoxDesc())) {
-                return DesensitizationsUtil.instance().processField(DesensitizationsType.NAME.getType(), recipePdfDTO.getRecipeExtend().getGuardianName(),"OA");
+                return DesensitizationsUtil.instance().processField(DesensitizationsType.NAME.getType(), recipePdfDTO.getRecipeExtend().getGuardianName());
             }
             return invokeFieldName(objectName, fieldName, recipePdfDTO);
         }
