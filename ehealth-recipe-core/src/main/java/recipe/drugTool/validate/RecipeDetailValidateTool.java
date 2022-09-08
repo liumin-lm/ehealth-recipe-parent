@@ -469,13 +469,13 @@ public class RecipeDetailValidateTool {
             requirementsForTaking(null, recipeExtendBean);
             return;
         }
-        requirementsForTakingDTOList.forEach(requirementsForTakingDTO->{
+        for(RequirementsForTakingDTO requirementsForTakingDTO: requirementsForTakingDTOList){
             if(StringUtils.isNotEmpty(requirementsForTakingDTO.getCode())&&requirementsForTakingDTO.getCode().equals(recipeExtendBean.getRequirementsForTakingCode())){
                 //包含
                 requirementsForTaking(ObjectCopyUtils.convert(requirementsForTakingDTO,RequirementsForTaking.class), recipeExtendBean);
                 return;
             }
-        });
+        }
 
 //        //1、校验服用要求
 //        List<RequirementsForTaking> requirementsForTakingList = requirementsForTakingDao.findByOrganId(organId);
