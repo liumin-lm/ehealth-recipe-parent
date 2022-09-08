@@ -476,31 +476,6 @@ public class RecipeDetailValidateTool {
                 return;
             }
         }
-
-//        //1、校验服用要求
-//        List<RequirementsForTaking> requirementsForTakingList = requirementsForTakingDao.findByOrganId(organId);
-//        if (CollectionUtils.isEmpty(requirementsForTakingList)) {
-//            requirementsForTaking(null, recipeExtendBean);
-//            return;
-//        }
-//        //code
-//        Map<String, RequirementsForTaking> mapCode = requirementsForTakingList.stream().collect(Collectors.toMap(RequirementsForTaking::getCode, a -> a, (k1, k2) -> k1));
-//        RequirementsForTaking requirementsForTaking = mapCode.get(recipeExtendBean.getRequirementsForTakingCode());
-//        if (null != requirementsForTaking) {
-//
-//
-//            requirementsForTaking(requirementsForTaking, recipeExtendBean);
-//            return;
-//        }
-//
-//        //text
-//        Map<String, RequirementsForTaking> mapText = requirementsForTakingList.stream().collect(Collectors.toMap(RequirementsForTaking::getCode, a -> a, (k1, k2) -> k1));
-//        requirementsForTaking = mapText.get(recipeExtendBean.getDecoctionText());
-//        if (null != requirementsForTaking) {
-//            requirementsForTaking(requirementsForTaking, recipeExtendBean);
-//            return;
-//        }
-
         requirementsForTaking(null, recipeExtendBean);
     }
 }
