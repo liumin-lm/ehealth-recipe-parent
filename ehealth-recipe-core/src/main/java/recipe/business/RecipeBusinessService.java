@@ -41,10 +41,7 @@ import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.caNew.pdf.CreatePdfFactory;
-import recipe.client.IConfigurationClient;
-import recipe.client.OfflineRecipeClient;
-import recipe.client.OrganClient;
-import recipe.client.PatientClient;
+import recipe.client.*;
 import recipe.constant.ErrorCode;
 import recipe.constant.RecipeStatusConstant;
 import recipe.constant.ReviewTypeConstant;
@@ -156,6 +153,8 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     private DrugsEnterpriseDAO drugsEnterpriseDAO;
     @Autowired
     private RequirementsForTakingDao requirementsForTakingDao;
+    @Autowired
+    private RecipeAuditClient recipeAuditClient;
 
 
 
@@ -440,6 +439,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         auditModeContext.getAuditModes(dbRecipe.getReviewType()).afterCheckNotPassYs(dbRecipe);
         //添加发送不通过消息
         RecipeMsgService.batchSendMsg(dbRecipe, RecipeStatusConstant.CHECK_NOT_PASSYS_REACHPAY);
+        recipeAuditClient.recipeAuditNotice(ObjectCopyUtils.convert(dbRecipe, com.ngari.platform.recipe.mode.RecipeBean.class), 0);
         return stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_AUDIT_NOT_PASS);
     }
 
@@ -861,33 +861,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
 
     @Override
     public List<RequirementsForTakingVO> findRequirementsForTakingByDecoctionId(Integer organId, Integer decoctionId) {
-        List<RequirementsForTakingVO> requirementsForTakingVOS=new ArrayList<>();
-        RequirementsForTakingVO requirementsForTakingVO = new RequirementsForTakingVO();
-        List<RequirementsForTaking> requirementsForTakings=requirementsForTakingDao.findAllByOrganId(organId);
-        if(CollectionUtils.isEmpty(requirementsForTakings)){
-            return requirementsForTakingVOS;
-        }
-        if(decoctionId==null){
-            //如果煎法未选择，则服用要求按展示全部处理
-            logger.info("findRequirementsForTakingByDecoctionId res:{}",JSONUtils.toString(requirementsForTakings));
-            return ObjectCopyUtils.convert(requirementsForTakings,RequirementsForTakingVO.class);
-        }else{
-            //根据煎法筛选出关键的服用要求选项展示给医生选择
-            requirementsForTakings.forEach(requirementsForTaking->{
-                String decoctionwayId=requirementsForTaking.getDecoctionwayId();
-                if(StringUtils.isEmpty(decoctionwayId)){
-                    return;
-                }
-                List<String> decoctionwayIdList=  Arrays.asList(decoctionwayId.split(","));
-                if(CollectionUtils.isEmpty(decoctionwayIdList)){
-                    return;
-                }
-                if(decoctionwayIdList.contains(String.valueOf(decoctionId))){
-                    requirementsForTakingVOS.add(ObjectCopyUtils.convert(requirementsForTaking,RequirementsForTakingVO.class));
-                }
-            });
-        }
-        return requirementsForTakingVOS;
+        return ObjectCopyUtils.convert(recipeManager.findRequirementsForTakingByDecoctionId(organId,decoctionId),RequirementsForTakingVO.class);
     }
 
     @Override

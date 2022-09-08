@@ -45,7 +45,6 @@ import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import com.ngari.recipe.recipeorder.model.RecipeOrderInfoBean;
 import com.ngari.revisit.RevisitAPI;
-import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.request.ValidRevisitRequest;
 import com.ngari.revisit.common.service.IRevisitService;
 import com.ngari.revisit.process.service.IRecipeOnLineRevisitService;
@@ -223,8 +222,6 @@ public class RecipeService extends RecipeBaseService {
     private RecipeAuditClient recipeAuditClient;
     @Autowired
     private RecipeOrderPayFlowManager recipeOrderPayFlowManager;
-    @Autowired
-    private RevisitClient revisitClient;
     @Autowired
     private ButtonManager buttonManager;
     @Autowired
@@ -1593,6 +1590,7 @@ public class RecipeService extends RecipeBaseService {
         }
         docIndexClient.updateStatusByBussIdBussType(recipe.getRecipeId(), DocIndexShowEnum.SHOW.getCode());
         stateManager.updateAuditState(recipe.getRecipeId(), RecipeAuditStateEnum.DOC_FORCED_PASS);
+        recipeAuditClient.recipeAuditNotice(ObjectCopyUtils.convert(recipe, com.ngari.platform.recipe.mode.RecipeBean.class), 1);
         LOGGER.info("RecipeService doSecondSignRecipe  execute ok!  recipeId ： {} ", recipe.getRecipeId());
         return resultBean;
     }

@@ -18,6 +18,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.util.ValidateUtil;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * 咨询相关服务
  *
@@ -62,29 +65,23 @@ public class ConsultClient extends BaseClient {
 
     /**
      * 根据医生id获取开抗肿瘤药物的权限
-     * 返回0为两种权限都没有
      * 返回1为抗肿瘤药物使用权限普通级
      * 返回2为抗肿瘤药物使用权限限制级
-     * 返回3为两种权限都有
      * @param doctorId
      * @return
      */
-    public Integer getAntiTumorDrugLevel(Integer doctorId) {
+    public List<Integer> getAntiTumorDrugLevel(Integer doctorId) {
         logger.info("ConsultClient getAntiTumorDrugLevel doctorId={}", JSON.toJSONString(doctorId));
         ConsultSetDTO consultSetDTO = consultSetService.getBeanByDoctorId(doctorId);
         logger.info("ConsultClient getAntiTumorDrugLevel consultSetDTO={}", JSON.toJSONString(consultSetDTO));
-        if(consultSetDTO.getAntiTumorDrugCommonLevel() && !consultSetDTO.getAntiTumorDrugRestrictLevel()){
-            return 1;
+        List<Integer> flag = new ArrayList<>();
+        if(consultSetDTO.getAntiTumorDrugCommonLevel()){
+            flag.add(1);
         }
-        else if(!consultSetDTO.getAntiTumorDrugCommonLevel() && consultSetDTO.getAntiTumorDrugRestrictLevel()){
-            return 2;
+        if(consultSetDTO.getAntiTumorDrugRestrictLevel()){
+            flag.add(2);
         }
-        else if(consultSetDTO.getAntiTumorDrugCommonLevel() && consultSetDTO.getAntiTumorDrugRestrictLevel()){
-            return 3;
-        }
-        else {
-            return 0;
-        }
+        return flag;
     }
 
     /**

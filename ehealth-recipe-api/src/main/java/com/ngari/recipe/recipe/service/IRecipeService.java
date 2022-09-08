@@ -347,6 +347,15 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     List<RecipeInfoExportDTO> findRecipesByInfoForExcel2(RecipesQueryVO recipesQueryVO);
 
     /**
+     * 审方导出Excel
+     *
+     * @param recipesQueryVO
+     * @return
+     */
+    @RpcService(timeout = 600000)
+    List<RecipeAuditInfoExportDTO> findRecipeAuditInfoForExcel(RecipesQueryVO recipesQueryVO);
+
+    /**
      * 处方订单导出Excel
      *
      * @param organId
