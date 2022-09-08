@@ -383,16 +383,8 @@ public class RecipeOrderBean implements Serializable {
     private Integer expressFeePayMethod;
 
     @ItemProperty(alias = "订单物流状态 0: 默认 1 待发药 2 配送中 3 待取药")
+    @Dictionary(id = "eh.recipe.orderLogisticsState")
     private Integer logisticsState;
-    private String logisticsStateText;
-
-    public String getLogisticsStateText() {
-        return logisticsStateText;
-    }
-
-    public void setLogisticsStateText(String logisticsStateText) {
-        this.logisticsStateText = logisticsStateText;
-    }
 
     public Integer getLogisticsState() {
         return logisticsState;

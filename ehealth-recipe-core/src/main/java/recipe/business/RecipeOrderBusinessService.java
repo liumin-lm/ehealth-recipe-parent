@@ -64,16 +64,14 @@ import recipe.core.api.patient.IRecipeOrderBusinessService;
 import recipe.dao.*;
 import recipe.drugsenterprise.CommonRemoteService;
 import recipe.enumerate.status.GiveModeEnum;
+import recipe.enumerate.status.OrderStateEnum;
 import recipe.enumerate.status.PayModeEnum;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.type.GiveModeTextEnum;
 import recipe.enumerate.type.NeedSendTypeEnum;
 import recipe.factory.status.givemodefactory.GiveModeProxy;
 import recipe.hisservice.RecipeToHisService;
-import recipe.manager.EnterpriseManager;
-import recipe.manager.OrderFeeManager;
-import recipe.manager.OrderManager;
-import recipe.manager.RecipeManager;
+import recipe.manager.*;
 import recipe.presettle.IRecipePreSettleService;
 import recipe.presettle.factory.PreSettleFactory;
 import recipe.purchase.PurchaseService;
@@ -155,6 +153,8 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
     private IDrugsEnterpriseBusinessService enterpriseBusinessService;
     @Autowired
     private OrderFeeManager orderFeeManager;
+    @Autowired
+    private StateManager stateManager;
 
 
     @Override
@@ -213,6 +213,9 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
         if (NeedSendTypeEnum.NO_NEED_SEND_TYPE.getType().equals(orderStatus.getNeedSendType())) {
             orderStatus.setTargetRecipeOrderStatus(RecipeOrderStatusEnum.ORDER_STATUS_DONE.getType());
             giveModeProxy.updateOrderByGiveMode(recipe.getGiveMode(), orderStatus);
+        }
+        if(RecipeOrderStatusEnum.ORDER_STATUS_PROCEED_SHIPPING.getType().equals(orderStatus.getSourceRecipeOrderStatus())){
+            stateManager.updateOrderState(recipeOrder.getOrderId(), OrderStateEnum.PROCESS_STATE_ORDER,OrderStateEnum.SUB_ORDER_DELIVERED);
         }
         logger.info("RecipeOrderTwoService updateRecipeOrderStatus result = {}", JSON.toJSONString(result));
         return result;
