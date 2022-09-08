@@ -690,11 +690,6 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
         Boolean effectiveFlag=recipe.getGiveMode()==2 && recipeOrder.getStatus()==2 && recipeExtend.getRefundNodeStatus()==null;
         cabinetVO.setEffectiveFlag(effectiveFlag);
 
-        //患者手机号
-        if(effectiveFlag && !StringUtils.isEmpty(recipe.getMpiid())){
-            com.ngari.patient.dto.PatientDTO patientDTO=patientClient.getPatientDTOByMpiId(recipe.getMpiid());
-            cabinetVO.setMobile(patientDTO==null?"":patientDTO.getMobile());
-        }
         return  cabinetVO;
     }
 
