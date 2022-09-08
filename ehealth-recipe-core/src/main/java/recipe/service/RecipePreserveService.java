@@ -271,6 +271,7 @@ public class RecipePreserveService {
         if (StringUtils.isNotEmpty(cityCardNumber)) {
             patientBaseInfo.setCityCardNumber(cityCardNumber);
         }
+        patientBaseInfo.setMobile(patientDTO.getMobile());
         request.setPatientInfo(patientBaseInfo);
         request.setStartDate(startDate);
         request.setEndDate(endDate);

@@ -449,6 +449,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService, IBusPaySer
                 if (StringUtils.isNotEmpty(recipeExtend.getTerminalId())) {
                     simpleBusObject.setTerminalId(recipeExtend.getTerminalId());
                 }
+                simpleBusObject.setYbIdSyf(recipeExtend.getHisOrderCode());
             }
         } else {
             simpleBusObject.setBusId(busId);
@@ -478,6 +479,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService, IBusPaySer
                 if (StringUtils.isNotEmpty(recipeExtend.getTerminalId())) {
                     simpleBusObject.setTerminalId(recipeExtend.getTerminalId());
                 }
+                simpleBusObject.setYbIdSyf(recipeExtend.getHisOrderCode());
             }
             //杭州互联网流程
             if (order.getRegisterNo() != null) {

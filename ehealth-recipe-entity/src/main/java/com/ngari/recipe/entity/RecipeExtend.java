@@ -258,11 +258,13 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "终端类型 1 自助机")
     private Integer terminalType;
 
+    /**
+     * his订单编号(邵逸夫)
+     */
+    private String hisOrderCode;
     //主要用于运营平台查询使用
     @ItemProperty(alias = "是否自动审核 1自动审核，0/null药师审核")
     private Integer autoCheck;
-
-
 
     @Column(name = "terminal_id")
     public String getTerminalId() {
@@ -996,6 +998,15 @@ public class RecipeExtend implements Serializable {
         this.medicineCode = medicineCode;
     }
 
+    @Column(name = "his_order_code")
+    public String getHisOrderCode() {
+        return hisOrderCode;
+    }
+
+    public void setHisOrderCode(String hisOrderCode) {
+        this.hisOrderCode = hisOrderCode;
+    }
+
     @Column(name = "requirements_for_taking_id")
     public String getRequirementsForTakingId() {
         return requirementsForTakingId;
@@ -1022,7 +1033,6 @@ public class RecipeExtend implements Serializable {
     public void setRequirementsForTakingText(String requirementsForTakingText) {
         this.requirementsForTakingText = requirementsForTakingText;
     }
-
 
 
     @Column(name = "auto_check")
