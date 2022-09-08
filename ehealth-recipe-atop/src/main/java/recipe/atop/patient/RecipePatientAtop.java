@@ -87,7 +87,6 @@ public class RecipePatientAtop extends BaseAtop {
                 result.add(outPatientRecipeVO);
             });
             logger.info("OutPatientRecipeAtop queryOutPatientRecipe result:{}.", JSON.toJSONString(result));
-            Thread.sleep(5000);
             return result;
         } catch (DAOException e1) {
             logger.error("OutPatientRecipeAtop queryOutPatientRecipe DAOException error", e1);
