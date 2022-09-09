@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 
 import com.alibaba.fastjson.JSONObject;
+import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import com.ngari.recipe.vo.FastRecipeReq;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RecipeBean;
@@ -104,8 +105,19 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
         return resultList;
     }
 
+    /**
+     * 此处最优方案为前端组装患者信息和需要患者选择的参数，其他参数后端从药方获取，
+     * 目前前端去组装的参数，但是没传全，暂时后台查询补全
+     *
+     * @param recipeInfoVO
+     * @return
+     */
     private Integer fastRecipeSaveRecipe(RecipeInfoVO recipeInfoVO) {
         try {
+            FastRecipe fastRecipe = fastRecipeDAO.get(recipeInfoVO.getMouldId());
+            if (Objects.isNull(fastRecipe)) {
+                return null;
+            }
             //1.参数设置默认值
             RecipeBean recipeBean = recipeInfoVO.getRecipeBean();
             recipeBean.setStatus(RecipeStatusEnum.RECIPE_STATUS_UNSIGNED.getType());
@@ -130,10 +142,20 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
             recipeBean.setGiveMode(2);
             recipeBean.setFastRecipeFlag(1);
             recipeBean.setBussSource(BussSourceTypeEnum.BUSSSOURCE_REVISIT.getType());
+
+            recipeBean.setRecipeMemo(fastRecipe.getRecipeMemo());
+
+            RecipeExtendBean recipeExtendBean = recipeInfoVO.getRecipeExtendBean();
+            recipeExtendBean.setMakeMethodId(fastRecipe.getMakeMethodId());
+            recipeExtendBean.setMakeMethodText(fastRecipe.getMakeMethodText());
+            recipeExtendBean.setJuice(fastRecipe.getJuice());
+            recipeExtendBean.setJuiceUnit(fastRecipe.getJuiceUnit());
+            recipeExtendBean.setDecoctionId(fastRecipe.getDecoctionId());
+            recipeExtendBean.setDecoctionText(fastRecipe.getDecoctionText());
+
             int buyNum = ValidateUtil.nullOrZeroInteger(recipeInfoVO.getBuyNum()) ? 1 : recipeInfoVO.getBuyNum();
             packageTotalParamByBuyNum(recipeInfoVO, buyNum);
             Integer recipeId = recipePatientService.saveRecipe(recipeInfoVO);
-            //recipePatientService.esignRecipeCa(recipeId);
             recipePatientService.updateRecipeIdByConsultId(recipeId, recipeInfoVO.getRecipeBean().getClinicId());
             return recipeId;
         } catch (Exception e) {
