@@ -55,6 +55,9 @@ public class OrganDrugList implements java.io.Serializable {
     @ItemProperty(alias = "最小售卖单位")
     private String unit;
 
+    @ItemProperty(alias = "最小售卖单位/单位HIS编码")
+    private String unitHisCode;
+
     @ItemProperty(alias = "单次剂量（规格单位）")
     private Double useDose;
 
@@ -64,6 +67,9 @@ public class OrganDrugList implements java.io.Serializable {
     @ItemProperty(alias = "规格单位")
     private String useDoseUnit;
 
+    @ItemProperty(alias = "规格单位/单位HIS编码")
+    private String useDoseUnitHisCode;
+
     @ItemProperty(alias = "单次剂量(最小规格包装单位)")
     private Double smallestUnitUseDose;
 
@@ -72,6 +78,9 @@ public class OrganDrugList implements java.io.Serializable {
 
     @ItemProperty(alias = "单位剂量单位（最小单位）")
     private String useDoseSmallestUnit;
+
+    @ItemProperty(alias = "单位剂量单位（最小单位）/单位his编码")
+    private String useDoseSmallestUnitHisCode;
 
     @ItemProperty(alias = "使用频率平台")
     @Dictionary(id = "eh.cdr.dictionary.UsingRate")
@@ -675,7 +684,34 @@ public class OrganDrugList implements java.io.Serializable {
         return drugItemCode;
     }
 
-//    @Transient
+    @Column(name = "unit_his_code")
+    public String getUnitHisCode() {
+        return unitHisCode;
+    }
+
+    public void setUnitHisCode(String unitHisCode) {
+        this.unitHisCode = unitHisCode;
+    }
+
+    @Column(name = "use_dose_unit_his_code")
+    public String getUseDoseUnitHisCode() {
+        return useDoseUnitHisCode;
+    }
+
+    public void setUseDoseUnitHisCode(String useDoseUnitHisCode) {
+        this.useDoseUnitHisCode = useDoseUnitHisCode;
+    }
+
+    @Column(name = "use_dose_smallest_unit_his_code")
+    public String getUseDoseSmallestUnitHisCode() {
+        return useDoseSmallestUnitHisCode;
+    }
+
+    public void setUseDoseSmallestUnitHisCode(String useDoseSmallestUnitHisCode) {
+        this.useDoseSmallestUnitHisCode = useDoseSmallestUnitHisCode;
+    }
+
+    //    @Transient
 //    public String getType() {
 //        return type;
 //    }

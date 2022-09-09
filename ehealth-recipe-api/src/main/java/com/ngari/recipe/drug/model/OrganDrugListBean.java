@@ -184,6 +184,39 @@ public class OrganDrugListBean implements java.io.Serializable {
     @ItemProperty(alias = "抗肿瘤药物等级  1普通级 2限制级 ")
     private Integer antiTumorDrugLevel;
 
+    @ItemProperty(alias = "最小售卖单位/单位HIS编码")
+    private String unitHisCode;
+
+    @ItemProperty(alias = "规格单位/单位HIS编码")
+    private String useDoseUnitHisCode;
+
+    @ItemProperty(alias = "单位剂量单位（最小单位）/单位his编码")
+    private String useDoseSmallestUnitHisCode;
+
+    public String getUnitHisCode() {
+        return unitHisCode;
+    }
+
+    public void setUnitHisCode(String unitHisCode) {
+        this.unitHisCode = unitHisCode;
+    }
+
+    public String getUseDoseUnitHisCode() {
+        return useDoseUnitHisCode;
+    }
+
+    public void setUseDoseUnitHisCode(String useDoseUnitHisCode) {
+        this.useDoseUnitHisCode = useDoseUnitHisCode;
+    }
+
+    public String getUseDoseSmallestUnitHisCode() {
+        return useDoseSmallestUnitHisCode;
+    }
+
+    public void setUseDoseSmallestUnitHisCode(String useDoseSmallestUnitHisCode) {
+        this.useDoseSmallestUnitHisCode = useDoseSmallestUnitHisCode;
+    }
+
     public Integer getAntiTumorDrugFlag() {
         return antiTumorDrugFlag;
     }
@@ -631,4 +664,6 @@ public class OrganDrugListBean implements java.io.Serializable {
     public void setTargetedDrugType(Integer targetedDrugType) {
         this.targetedDrugType = targetedDrugType;
     }
+
+
 }
