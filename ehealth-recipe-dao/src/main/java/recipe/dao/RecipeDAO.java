@@ -1746,10 +1746,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                     hql.append(" and r.reviewType=0");
                     break;
                 case 1:
-                    hql.append(" and r.reviewType>0 and re.auto_check=1");
+                    hql.append(" and r.reviewType>0 and re.auto_check=1 and r.CheckDateYs is not null");
                     break;
                 case 2:
-                    hql.append(" and r.reviewType>0 and (re.auto_check=0 or re.auto_check is null)");
+                    hql.append(" and r.reviewType>0 and (re.auto_check=0 or re.auto_check is null) and r.CheckDateYs is not null");
                     break;
             }
         }
