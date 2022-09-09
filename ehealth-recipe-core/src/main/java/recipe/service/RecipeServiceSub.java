@@ -2883,6 +2883,15 @@ public class RecipeServiceSub {
             rMap.put("msg", msg);
             return rMap;
         }
+
+        //到院取药是否支持撤销
+        if (null != order && RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getText().equals(order.getGiveModeKey())
+             && new Integer(1).equals(order.getPayFlag()) && order.getActualPrice()>0){
+            rMap.put("result", false);
+            rMap.put("msg","患者已经下单无法撤销");
+            return rMap;
+        }
+
         boolean result = true;
         //HIS消息发送
         StringBuilder memo = new StringBuilder();
