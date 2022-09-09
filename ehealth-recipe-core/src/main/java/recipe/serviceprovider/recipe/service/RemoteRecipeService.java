@@ -537,7 +537,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                     }
                     resVo.setRecipeExtend(recipeExtendBean);
 
-                    if(recipe.getReviewType()!=null){
+                    Integer checkFlag=recipe.getCheckFlag();
+                    if(checkFlag!=null && checkFlag!=0 && recipe.getReviewType()!=null){
                         if(recipe.getReviewType()==0){
                             resVo.setAutoCheckFlagText("无需审方");
                         }else{

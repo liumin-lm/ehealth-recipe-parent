@@ -51,7 +51,7 @@ public class RecipeAuditInfoExportDTO implements Serializable {
     private String checkerText;
 
     @ItemProperty(alias = "审核状态")
-    private String checkFlag;
+    private Integer checkFlag;
 
     @ItemProperty(alias = "审核模式")
     private Integer reviewType;
@@ -151,11 +151,11 @@ public class RecipeAuditInfoExportDTO implements Serializable {
         this.checkerText = checkerText;
     }
 
-    public String getCheckFlag() {
+    public Integer getCheckFlag() {
         return checkFlag;
     }
 
-    public void setCheckFlag(String checkFlag) {
+    public void setCheckFlag(Integer checkFlag) {
         this.checkFlag = checkFlag;
     }
 
