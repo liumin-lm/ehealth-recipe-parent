@@ -118,6 +118,7 @@ public class DrugStockClient extends BaseClient {
         DrugInfoRequestTO request = new DrugInfoRequestTO();
         request.setOrganId(organId);
         request.setData(data);
+        long start = System.currentTimeMillis();
         logger.info("DrugStockClient scanDrugStock request={}", JSON.toJSONString(request));
         try {
             DrugInfoResponseTO response = recipeHisService.scanDrugStock(request);
@@ -138,6 +139,9 @@ public class DrugStockClient extends BaseClient {
         } catch (Exception e) {
             logger.error(" DrugStockClient scanDrugStock error ", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, " recipeHisService.scanDrugStock error");
+        } finally {
+            Long end = System.currentTimeMillis() - start;
+            logger.info("StockBusinessServiceScanDrugStock organ end={},size={},id={}", end, data.size(), organId);
         }
     }
 
@@ -197,6 +201,7 @@ public class DrugStockClient extends BaseClient {
                                                         Map<Integer, List<SaleDrugList>> saleDrugListMap, Map<Integer, OrganDrugList> organDrugMap, List<PharmacyTcm> pharmacyTcms) {
         ScanRequestBean scanRequestBean = getScanRequestBean(recipe, saleDrugListMap, drugsEnterprise, recipeDetails, organDrugMap, pharmacyTcms);
         DrugStockAmountDTO drugStockAmountDTO = new DrugStockAmountDTO();
+        long start = System.currentTimeMillis();
         try {
             logger.info("DrugStockClient scanEnterpriseDrugStockV1 scanRequestBean:{}", JSON.toJSONString(scanRequestBean));
             HisResponseTO<List<ScanDrugListBean>> response = recipeEnterpriseService.scanStockV1(scanRequestBean);
@@ -213,6 +218,9 @@ public class DrugStockClient extends BaseClient {
             logger.error("DrugStockClient scanEnterpriseDrugStockV1 error ", e);
             drugStockAmountDTO.setResult(false);
             drugStockAmountDTO.setDrugInfoList(DrugStockClient.getDrugInfoDTO(recipeDetails, false));
+        } finally {
+            Long end = System.currentTimeMillis() - start;
+            logger.info("StockBusinessServiceScanDrugStock Enterprise end={},size={},id={}", end, scanRequestBean.getScanDrugListBeans().size(), drugsEnterprise.getId());
         }
         logger.info("DrugStockClient scanEnterpriseDrugStockV1 drugStockAmountDTO = {} ", JSON.toJSONString(drugStockAmountDTO));
         return drugStockAmountDTO;
