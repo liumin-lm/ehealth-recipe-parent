@@ -36,6 +36,8 @@ public class RecipeOrderStatusProxy implements ApplicationContextAware {
     private RecipeOrderDAO recipeOrderDAO;
     @Autowired
     private RecipeDAO recipeDAO;
+    @Autowired
+    private StateManager stateManager;
 
     /**
      * 根据订单状态 更新处方状态
@@ -76,6 +78,7 @@ public class RecipeOrderStatusProxy implements ApplicationContextAware {
             }
         }
         recipeOrderDAO.updateNonNullFieldByPrimaryKey(recipeOrder);
+        stateManager.updateOrderState(recipeOrder.getOrderId(),OrderStateEnum.getOrderStateEnum(recipeOrder.getProcessState()),OrderStateEnum.getOrderStateEnum(recipeOrder.getSubState()));
         //更新同组处方状态
         factoryService.updateGroupRecipe(recipe, recipeOrder.getOrderId());
         //异步处方信息处理

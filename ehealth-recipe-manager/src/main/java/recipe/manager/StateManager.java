@@ -52,38 +52,7 @@ public class StateManager extends BaseManager {
         return result;
     }
 
-    /**
-     * 修改订单与物流状态(处理中订单)
-     * @param order
-     * @param processState
-     * @param subState
-     * @return
-     */
-    private boolean updateOrderStateWithLogistics(RecipeOrder order, OrderStateEnum processState, OrderStateEnum subState) {
-        RecipeOrder updateOrder = new RecipeOrder(order.getOrderId(),processState.getType(),subState.getType());
-        logger.info("updateOrder:{}",JSONArray.toJSONString(updateOrder));
-        updateOrder.setOrderId(order.getOrderId());
-        updateOrder.setProcessState(processState.getType());
-        updateOrder.setSubState(subState.getType());
-        Integer logisticsStateType = OrderLogisticsStateEnum.NONE.getType();
-        switch (subState){
-            case SUB_ORDER_DELIVERED_MEDICINE:
-                logisticsStateType = OrderLogisticsStateEnum.LOGISTICS_STATE_DISPENSING.getType();
-                break;
-            case SUB_ORDER_DELIVERED:
-                logisticsStateType = OrderLogisticsStateEnum.LOGISTICS_STATE_DISTRIBUTION.getType();
-                break;
-            case SUB_ORDER_TAKE_MEDICINE:
-                logisticsStateType = OrderLogisticsStateEnum.LOGISTICS_STATE_MEDICINE.getType();
-                break;
-            default:
-                break;
-        }
-        updateOrder.setLogisticsState(logisticsStateType);
-        recipeOrderDAO.updateNonNullFieldByPrimaryKey(updateOrder);
-        return true;
 
-    }
 
 
     /**
@@ -323,5 +292,38 @@ public class StateManager extends BaseManager {
         updateRecipe.setSubState(subState.getType());
         recipeDAO.updateNonNullFieldByPrimaryKey(updateRecipe);
         return true;
+    }
+
+    /**
+     * 修改订单与物流状态(处理中订单)
+     * @param order
+     * @param processState
+     * @param subState
+     * @return
+     */
+    private boolean updateOrderStateWithLogistics(RecipeOrder order, OrderStateEnum processState, OrderStateEnum subState) {
+        RecipeOrder updateOrder = new RecipeOrder(order.getOrderId(),processState.getType(),subState.getType());
+        logger.info("updateOrder:{}",JSONArray.toJSONString(updateOrder));
+        updateOrder.setOrderId(order.getOrderId());
+        updateOrder.setProcessState(processState.getType());
+        updateOrder.setSubState(subState.getType());
+        Integer logisticsStateType = OrderLogisticsStateEnum.NONE.getType();
+        switch (subState){
+            case SUB_ORDER_DELIVERED_MEDICINE:
+                logisticsStateType = OrderLogisticsStateEnum.LOGISTICS_STATE_DISPENSING.getType();
+                break;
+            case SUB_ORDER_DELIVERED:
+                logisticsStateType = OrderLogisticsStateEnum.LOGISTICS_STATE_DISTRIBUTION.getType();
+                break;
+            case SUB_ORDER_TAKE_MEDICINE:
+                logisticsStateType = OrderLogisticsStateEnum.LOGISTICS_STATE_MEDICINE.getType();
+                break;
+            default:
+                break;
+        }
+        updateOrder.setLogisticsState(logisticsStateType);
+        recipeOrderDAO.updateNonNullFieldByPrimaryKey(updateOrder);
+        return true;
+
     }
 }
