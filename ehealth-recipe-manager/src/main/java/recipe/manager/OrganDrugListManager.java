@@ -203,6 +203,15 @@ public class OrganDrugListManager extends BaseManager {
             OrganDrugList organDrug = map.get(a.getDrugId() + a.getOrganDrugCode());
             if (null != organDrug) {
                 a.setDrugItemCode(organDrug.getDrugItemCode());
+                if(organDrug.getUnitHisCode() != null){
+                    a.setUnitHisCode(organDrug.getUnitHisCode());
+                }
+                if(organDrug.getUseDoseUnitHisCode() != null){
+                    a.setUseDoseUnitHisCode(organDrug.getUseDoseUnitHisCode());
+                }
+                if(organDrug.getUseDoseSmallestUnitHisCode() != null){
+                    a.setUseDoseSmallestUnitHisCode(organDrug.getUseDoseSmallestUnitHisCode());
+                }
             }
         });
     }

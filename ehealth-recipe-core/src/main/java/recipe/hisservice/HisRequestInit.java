@@ -570,6 +570,18 @@ public class HisRequestInit {
                     orderItem.setDrugManf(organDrug.getProducer());
                     //机构药品编码
                     orderItem.setDrugItemCode(organDrug.getDrugItemCode());
+                    //最小售卖单位/单位HIS编码
+                    if(organDrug.getUnitHisCode() != null){
+                        orderItem.setUnitHisCode(organDrug.getUnitHisCode());
+                    }
+                    //规格单位/单位HIS编码
+                    if(organDrug.getUseDoseUnitHisCode() != null){
+                        orderItem.setUseDoseUnitHisCode(organDrug.getUseDoseUnitHisCode());
+                    }
+                    //单位剂量单位（最小单位）/单位his编码
+                    if(organDrug.getUseDoseSmallestUnitHisCode() != null){
+                        orderItem.setUseDoseSmallestUnitHisCode(organDrug.getUseDoseSmallestUnitHisCode());
+                    }
                 }
                 //设置单个药品医保类型
                 orderItem.setDrugMedicalFlag(detail.getDrugMedicalFlag());

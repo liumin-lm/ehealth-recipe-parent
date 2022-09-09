@@ -322,6 +322,7 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
         ChargeItemDTO chargeItemDTO = new ChargeItemDTO(expressFeePayType, expressFee);
         recipePdfDTO.setChargeItemDTO(chargeItemDTO);
         Recipe recipe = recipePdfDTO.getRecipe();
+        //同时set最小售卖单位/单位HIS编码等
         organDrugListManager.setDrugItemCode(recipe.getClinicOrgan(), recipePdfDTO.getRecipeDetails());
         try {
             Map<Integer, PharmacyTcm> pharmacyIdMap = pharmacyManager.pharmacyIdMap(recipe.getClinicOrgan());

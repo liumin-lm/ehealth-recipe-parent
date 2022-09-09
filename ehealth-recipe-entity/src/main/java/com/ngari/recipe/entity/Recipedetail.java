@@ -279,6 +279,42 @@ public class Recipedetail implements java.io.Serializable {
 	@ItemProperty(alias = "腹透液  空0否  1是  ")
 	private Integer peritonealDialysisFluidType;
 
+	@ItemProperty(alias = "最小售卖单位/单位HIS编码")
+	private String unitHisCode;
+
+	@ItemProperty(alias = "规格单位/单位HIS编码")
+	private String useDoseUnitHisCode;
+
+	@ItemProperty(alias = "单位剂量单位（最小单位）/单位his编码")
+	private String useDoseSmallestUnitHisCode;
+
+	@Transient
+	public String getUnitHisCode() {
+		return unitHisCode;
+	}
+
+	public void setUnitHisCode(String unitHisCode) {
+		this.unitHisCode = unitHisCode;
+	}
+
+	@Transient
+	public String getUseDoseUnitHisCode() {
+		return useDoseUnitHisCode;
+	}
+
+	public void setUseDoseUnitHisCode(String useDoseUnitHisCode) {
+		this.useDoseUnitHisCode = useDoseUnitHisCode;
+	}
+
+	@Transient
+	public String getUseDoseSmallestUnitHisCode() {
+		return useDoseSmallestUnitHisCode;
+	}
+
+	public void setUseDoseSmallestUnitHisCode(String useDoseSmallestUnitHisCode) {
+		this.useDoseSmallestUnitHisCode = useDoseSmallestUnitHisCode;
+	}
+
 	@Column(name = "peritoneal_dialysis_fluid_type")
 	public Integer getPeritonealDialysisFluidType() {
 		return peritonealDialysisFluidType;
