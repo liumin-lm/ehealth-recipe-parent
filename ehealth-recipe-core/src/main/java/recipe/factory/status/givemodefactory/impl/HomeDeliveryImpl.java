@@ -23,9 +23,7 @@ import recipe.constant.RecipeMsgEnum;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDetailDAO;
 import recipe.drugsenterprise.ThirdEnterpriseCallService;
-import recipe.enumerate.status.GiveModeEnum;
-import recipe.enumerate.status.RecipeOrderStatusEnum;
-import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.status.*;
 import recipe.hisservice.HisRequestInit;
 import recipe.hisservice.RecipeToHisService;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
@@ -82,6 +80,12 @@ public class HomeDeliveryImpl extends AbstractGiveMode {
             recipeOrder.setPayTime(date);
             recipe.setPayDate(date);
             recipe.setPayFlag(1);
+        }
+        if (RecipeOrderStatusEnum.ORDER_STATUS_PROCEED_SHIPPING.getType().equals(orderStatus.getTargetRecipeOrderStatus()) || RecipeOrderStatusEnum.ORDER_STATUS_DONE_DISPENSING.getType().equals(orderStatus.getTargetRecipeOrderStatus())){
+            recipeOrder.setProcessState(OrderStateEnum.PROCESS_STATE_ORDER.getType());
+            recipeOrder.setSubState(OrderStateEnum.SUB_ORDER_DELIVERED.getType());
+            recipe.setProcessState(RecipeStateEnum.PROCESS_STATE_DISTRIBUTION.getType());
+            recipe.setSubState(RecipeStateEnum.SUB_ORDER_DELIVERED.getType());
         }
         recipeOrderStatusProxy.updateOrderByStatus(orderStatus, recipeOrder, recipe);
     }
