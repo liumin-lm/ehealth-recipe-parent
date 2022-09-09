@@ -211,10 +211,6 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
             orderStatus.setTargetRecipeOrderStatus(RecipeOrderStatusEnum.ORDER_STATUS_DONE.getType());
             giveModeProxy.updateOrderByGiveMode(recipe.getGiveMode(), orderStatus);
         }
-        if(RecipeOrderStatusEnum.ORDER_STATUS_PROCEED_SHIPPING.getType().equals(orderStatus.getTargetRecipeOrderStatus())){
-            stateManager.updateOrderState(recipeOrder.getOrderId(), OrderStateEnum.PROCESS_STATE_ORDER,OrderStateEnum.SUB_ORDER_DELIVERED);
-            stateManager.updateRecipeState(orderStatus.getRecipeId(), RecipeStateEnum.PROCESS_STATE_DISTRIBUTION,RecipeStateEnum.SUB_ORDER_DELIVERED);
-        }
         logger.info("RecipeOrderTwoService updateRecipeOrderStatus result = {}", JSON.toJSONString(result));
         return result;
     }
@@ -690,11 +686,6 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
         Boolean effectiveFlag=recipe.getGiveMode()==2 && recipeOrder.getStatus()==2 && recipeExtend.getRefundNodeStatus()==null;
         cabinetVO.setEffectiveFlag(effectiveFlag);
 
-        //患者手机号
-        if(effectiveFlag && !StringUtils.isEmpty(recipe.getMpiid())){
-            com.ngari.patient.dto.PatientDTO patientDTO=patientClient.getPatientDTOByMpiId(recipe.getMpiid());
-            cabinetVO.setMobile(patientDTO==null?"":patientDTO.getMobile());
-        }
         return  cabinetVO;
     }
 

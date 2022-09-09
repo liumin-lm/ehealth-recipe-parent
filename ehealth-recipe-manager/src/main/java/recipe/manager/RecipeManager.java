@@ -865,7 +865,6 @@ public class RecipeManager extends BaseManager {
 
     public List<RequirementsForTakingDTO> findRequirementsForTakingByDecoctionId(Integer organId, Integer decoctionId) {
         List<RequirementsForTakingDTO> requirementsForTakingVOS=new ArrayList<>();
-        RequirementsForTakingDTO requirementsForTakingVO = new RequirementsForTakingDTO();
         List<RequirementsForTaking> requirementsForTakings=requirementsForTakingDao.findAllByOrganId(organId);
         if(CollectionUtils.isEmpty(requirementsForTakings)){
             return requirementsForTakingVOS;
