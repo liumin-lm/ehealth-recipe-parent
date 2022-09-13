@@ -286,14 +286,14 @@ public class OperationClient extends BaseClient {
             if (OperationConstant.OP_RECIPE_CARD_NO.equals(fieldName) && StringUtils.isNotEmpty(scratchable.getBoxDesc())) {
                 return DesensitizationsUtil.instance().processField(DesensitizationsType.HEALTHCARD.getType(), recipePdfDTO.getRecipeExtend().getCardNo());
             }
-            //患者姓名
-            if (OperationConstant.OP_PATIENT_NAME.equals(fieldName) && StringUtils.isNotEmpty(scratchable.getBoxDesc())) {
-                return DesensitizationsUtil.instance().processField(DesensitizationsType.NAME.getType(), recipePdfDTO.getPatientBean().getPatientName(),"0A");
-            }
-            //陪诊人姓名
-            if (OperationConstant.OP_RECIPE_EXTEND_NAME.equals(fieldName) && StringUtils.isNotEmpty(scratchable.getBoxDesc())) {
-                return DesensitizationsUtil.instance().processField(DesensitizationsType.NAME.getType(), recipePdfDTO.getRecipeExtend().getGuardianName(),"0A");
-            }
+//            //患者姓名
+//            if (OperationConstant.OP_PATIENT_NAME.equals(fieldName) && StringUtils.isNotEmpty(scratchable.getBoxDesc())) {
+//                return DesensitizationsUtil.instance().processField(DesensitizationsType.NAME.getType(), recipePdfDTO.getPatientBean().getPatientName(),"0A");
+//            }
+//            //陪诊人姓名
+//            if (OperationConstant.OP_RECIPE_EXTEND_NAME.equals(fieldName) && StringUtils.isNotEmpty(scratchable.getBoxDesc())) {
+//                return DesensitizationsUtil.instance().processField(DesensitizationsType.NAME.getType(), recipePdfDTO.getRecipeExtend().getGuardianName(),"0A");
+//            }
             return invokeFieldName(objectName, fieldName, recipePdfDTO);
         }
         //特殊节点处理
