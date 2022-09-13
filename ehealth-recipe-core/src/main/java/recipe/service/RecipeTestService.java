@@ -562,12 +562,14 @@ public class RecipeTestService {
         List<RegulationRecipeIndicatorsReq> request = new ArrayList<>();
         HisSyncSupervisionService service = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
         service.splicingBackRecipeData(Collections.singletonList(recipe), request);
+        if(request==null || request.size()==0){
+            return null;
+        }
         return request.get(0);
     }
 
     /**
      * 监管平台处方实时上传：上传核销信息
-     * todo 待测试
      * @param recipeId
      * @return
      */
@@ -580,7 +582,7 @@ public class RecipeTestService {
 
         HisSyncSupervisionService service = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
         List<RegulationRecipeVerificationIndicatorsReq> requestList=service.getRegulationRecipeVerificationIndicatorsReqs(Collections.singletonList(recipe));
-        return requestList==null?null:requestList.get(0);
+        return requestList==null || requestList.size()==0?null:requestList.get(0);
     }
 
     /**
@@ -602,7 +604,6 @@ public class RecipeTestService {
 
     /**
      * 监管平台处方实时上传：组装处方支付上传接口
-     * todo 待测试
      * @param recipeId
      * @return
      */
