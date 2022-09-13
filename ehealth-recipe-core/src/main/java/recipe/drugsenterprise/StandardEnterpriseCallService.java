@@ -345,6 +345,18 @@ public class StandardEnterpriseCallService {
                 attrMap.put("payDate", DateTime.now().toDate());
                 //更新处方信息
                 Boolean rs = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.FINISH, attrMap);
+                Integer msgStatus = null;
+                RecipeStateEnum subDoneSelfTake = RecipeStateEnum.SUB_DONE_SELF_TAKE;
+                OrderStateEnum orderSubDoneSelfTake = OrderStateEnum.SUB_DONE_SELF_TAKE;
+                if (RecipeBussConstant.GIVEMODE_TO_HOS.equals(dbRecipe.getGiveMode())) {
+                    msgStatus = RecipeStatusConstant.PATIENT_GETGRUG_FINISH;
+                } else if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(dbRecipe.getGiveMode())) {
+                    msgStatus = RecipeStatusConstant.PATIENT_REACHPAY_FINISH;
+                    subDoneSelfTake = RecipeStateEnum.SUB_DONE_SEND;
+                    orderSubDoneSelfTake = OrderStateEnum.SUB_DONE_SEND;
+                } else if (RecipeBussConstant.GIVEMODE_TFDS.equals(dbRecipe.getGiveMode())) {
+                    msgStatus = RecipeStatusConstant.RECIPE_TAKE_MEDICINE_FINISH;
+                }
 
                 if (rs) {
                     RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
@@ -360,14 +372,6 @@ public class StandardEnterpriseCallService {
 
                     //date:20190919
                     //添加用户消息
-                    Integer msgStatus = null;
-                    if(RecipeBussConstant.GIVEMODE_TO_HOS.equals(dbRecipe.getGiveMode())){
-                        msgStatus = RecipeStatusConstant.PATIENT_GETGRUG_FINISH;
-                    }else if(RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(dbRecipe.getGiveMode())){
-                        msgStatus = RecipeStatusConstant.PATIENT_REACHPAY_FINISH;
-                    }else if(RecipeBussConstant.GIVEMODE_TFDS.equals(dbRecipe.getGiveMode())){
-                        msgStatus = RecipeStatusConstant.RECIPE_TAKE_MEDICINE_FINISH;
-                    }
                     if(null != msgStatus){
                         RecipeMsgService.batchSendMsg(dbRecipe, msgStatus);
                     }
@@ -379,10 +383,10 @@ public class StandardEnterpriseCallService {
                     RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_FINISH_4HIS, dbRecipe);
                 }
 
-                stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_DONE, RecipeStateEnum.SUB_DONE_SELF_TAKE);
+                stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_DONE, subDoneSelfTake);
                 RecipeOrder order = orderDAO.getByOrderCode(dbRecipe.getOrderCode());
                 if(Objects.nonNull(order)) {
-                    stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_DISPENSING, OrderStateEnum.SUB_DONE_SELF_TAKE);
+                    stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_DISPENSING, orderSubDoneSelfTake);
                 }
 
             } else {
