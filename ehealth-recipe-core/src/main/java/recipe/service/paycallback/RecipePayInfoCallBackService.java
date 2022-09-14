@@ -226,6 +226,14 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
             String ybbody = StringUtils.defaultString(notifyMap.get("ybbody"), "");
             if(StringUtils.isNotEmpty(ybbody)){
                 attr.put("healthInsurancePayContent", ybbody);
+                // 深圳儿童医院 少儿医保支付金额 或者 家庭统筹的支付金额
+                try {
+                    JSONObject ybbodys = JSONArray.parseObject(ybbody);
+                    attr.put("familyMedicalFee", new BigDecimal(ybbodys.get("ybtczf").toString()));
+                    attr.put("childMedicalFee", new BigDecimal(ybbodys.get("grzhzf").toString()));
+                } catch (Exception e) {
+                    logger.error("少儿医保支付金额 或者 家庭统筹的支付金额 解析错误");
+                }
             }
             // 商保结算内容
             String sbbody = StringUtils.defaultString(notifyMap.get("sbbody"), "");
@@ -242,11 +250,6 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
             String ysbodyString = StringUtils.defaultString(notifyMap.get("ysbody"), "");
             Map<String, String> ysbody = JSONUtils.parse(ysbodyString, Map.class);
             //一些信息先从body取，取不到再从ysbody取（兼容）
-
-            // 深圳儿童医院 少儿医保支付金额 或者 家庭统筹的支付金额 取值路径
-            // body -> ybcc -> kzxx
-            // {"ZHJE":"0.00","psn_no":"44030000000501956095","kzxx":{"insurance_fund_fee":"0.00","insurance_fee":"11.00","insurance_self_fee":"11.00","cash_fee":"0.00","insurance_other_fee":"0.00"},"jfrylb":"A31004"}
-
             if (body != null) {
                 //取药窗口
                 pharmNo = StringUtils.defaultString(body.get("fyyfjh"), "");
@@ -276,23 +279,6 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
                 if (body.get("ybcc") != null) {
                     String ybcc = StringUtils.defaultString(body.get("ybcc"), "");
                     attr.put("medicalInsurance", ybcc);
-                    try{
-                        JSONObject ybccs = JSONArray.parseObject(ybcc);
-                        if (ybccs.get("jfrylb") != null && ybccs.get("kzxx") != null) {
-                            // A31004 少儿医保 A39301 家庭统筹
-                            String jfrylb = ybccs.get("jfrylb").toString();
-                            JSONObject kzxx = JSONArray.parseObject(ybccs.get("kzxx").toString());
-                            if (StringUtils.isNotEmpty(jfrylb) && kzxx != null) {
-                                if ("A31004".equals(jfrylb)) {
-                                    attr.put("childMedicalFee", new BigDecimal(kzxx.get("insurance_self_fee").toString()));
-                                } else if ("A39301".equals(jfrylb)) {
-                                    attr.put("familyMedicalFee", new BigDecimal(kzxx.get("insurance_fund_fee").toString()));
-                                }
-                            }
-                        }
-                    }catch (Exception e){
-                        logger.error("设置 少儿医保 或 家庭统筹 金额失败", e);
-                    }
                 }
             }
 
