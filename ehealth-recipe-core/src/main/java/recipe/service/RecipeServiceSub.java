@@ -1685,7 +1685,9 @@ public class RecipeServiceSub {
                 if(recipeOrders != null){
                     if(recipeOrders.getGiveModeKey().equals(GiveModeTextEnum.SUPPORTTOHIS.getGiveModeTextV1())){
                         Boolean flag = (Boolean) configService.getConfiguration(recipe.getClinicOrgan(), "supportToHosRevokeFlag");
-                        cancelFlag = cancelFlag && flag && !(new Integer(1).equals(recipeOrders.getPayFlag()) && recipeOrders.getActualPrice() > 0);
+                        if(!flag){
+                            cancelFlag = cancelFlag && !(new Integer(1).equals(recipeOrders.getPayFlag()) && recipeOrders.getActualPrice() > 0);
+                        }
                     }
                 }
             }
