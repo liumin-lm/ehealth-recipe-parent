@@ -1710,6 +1710,20 @@ public class RecipeService extends RecipeBaseService {
         } catch (Exception e) {
             LOGGER.error("afterCheckPassYs recipeId:{} error", recipe.getRecipeId(), e);
         }
+        StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
+        if (ReviewTypeConstant.Postposition_Check.equals(recipe.getReviewType())) {
+            RecipeStateEnum processStateDispensing = RecipeStateEnum.PROCESS_STATE_MEDICINE;
+            RecipeStateEnum subOrderDeliveredMedicine = RecipeStateEnum.SUB_ORDER_TAKE_MEDICINE;
+            OrderStateEnum processStateOrder = OrderStateEnum.PROCESS_STATE_ORDER;
+            OrderStateEnum subOrderTakeMedicine = OrderStateEnum.SUB_ORDER_TAKE_MEDICINE;
+            if(RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(recipe.getGiveMode())){
+                processStateDispensing = RecipeStateEnum.PROCESS_STATE_DISPENSING;
+                subOrderDeliveredMedicine = RecipeStateEnum.SUB_ORDER_DELIVERED_MEDICINE;
+                subOrderTakeMedicine = OrderStateEnum.SUB_ORDER_DELIVERED_MEDICINE;
+            }
+            stateManager.updateOrderState(order.getOrderId(),processStateOrder,subOrderTakeMedicine);
+            stateManager.updateRecipeState(recipeId,processStateDispensing,subOrderDeliveredMedicine);
+        }
         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "审核通过处理完成");
         return resultBean;
     }
