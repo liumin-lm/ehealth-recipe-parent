@@ -337,6 +337,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                 RecipeMsgService.batchSendMsg(recipe.getRecipeId(), RecipeStatusConstant.IN_SEND);
             }
             if (Objects.nonNull(recipeProcessStateDispensing)) {
+                recipe.setProcessState(recipeProcessStateDispensing.getType());
+                recipe.setSubState(subOrderDeliveredMedicine.getType());
                 stateManager.updateRecipeState(recipe.getRecipeId(), recipeProcessStateDispensing, subOrderDeliveredMedicine);
             }
             if (new Integer(RecipeStatusEnum.RECIPE_STATUS_FINISH.getType()).equals(recipeStatusReqTO.getStatus())) {
