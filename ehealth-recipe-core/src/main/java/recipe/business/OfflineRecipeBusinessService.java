@@ -324,8 +324,7 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
         ChargeItemDTO chargeItemDTO = new ChargeItemDTO(expressFeePayType, expressFee);
         recipePdfDTO.setChargeItemDTO(chargeItemDTO);
         Recipe recipe = recipePdfDTO.getRecipe();
-        logger.info("RecipeBusinessService pushRecipe recipe:{}", JSON.toJSONString(recipe));
-        if (RecipeStatusEnum.RECIPE_STATUS_REVOKE.equals(recipe.getStatus())) {
+        if (RecipeStatusEnum.RECIPE_STATUS_REVOKE.getType().equals(recipe.getStatus())) {
             logger.info("RecipeBusinessService pushRecipe 当前处方已撤销");
             return recipePdfDTO;
         }
