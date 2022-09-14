@@ -480,8 +480,6 @@ public class RecipeSignService {
             recipeBean.setOrganDiseaseName(emrDetailDTO.getOrganDiseaseName());
             recipeBean.setOrganDiseaseId(emrDetailDTO.getOrganDiseaseId());
         }
-        recipeBean.setSubState(RecipeStateEnum.NONE.getType());
-        recipeBean.setProcessState(RecipeStateEnum.NONE.getType());
         recipeBean.setStatus(RecipeStatusConstant.UNSIGN);
         recipeBean.setSignDate(DateTime.now().toDate());
         recipeBean.setRecipeMode(RecipeBussConstant.RECIPEMODE_ZJJGPT);
