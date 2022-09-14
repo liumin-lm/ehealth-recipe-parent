@@ -309,23 +309,35 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                 stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_REFUSE_ORDER);
                 return true;
             }
+            RecipeStateEnum recipeProcessStateDispensing = null;
+            RecipeStateEnum subOrderDeliveredMedicine = null;
             if (new Integer(RecipeStatusEnum.RECIPE_STATUS_WAIT_SEND.getType()).equals(recipeStatusReqTO.getStatus())) {
                 recipe.setGiveMode(GiveModeEnum.GIVE_MODE_HOME_DELIVERY.getType());
+                recipeProcessStateDispensing = RecipeStateEnum.PROCESS_STATE_DISPENSING;
+                subOrderDeliveredMedicine = RecipeStateEnum.SUB_ORDER_DELIVERED_MEDICINE;
             }
             if (new Integer(RecipeStatusEnum.RECIPE_STATUS_HAVE_PAY.getType()).equals(recipeStatusReqTO.getStatus())) {
+                recipeProcessStateDispensing = RecipeStateEnum.PROCESS_STATE_MEDICINE;
+                subOrderDeliveredMedicine = RecipeStateEnum.SUB_ORDER_TAKE_MEDICINE;
                 recipe.setGiveMode(GiveModeEnum.GIVE_MODE_PHARMACY_DRUG.getType());
                 //药店待取药
                 RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_DRUG_HAVE_STOCK, recipe);
             } else if (new Integer(RecipeStatusEnum.RECIPE_STATUS_IN_SEND.getType()).equals(recipeStatusReqTO.getStatus())) {
+                recipeProcessStateDispensing = RecipeStateEnum.PROCESS_STATE_DISTRIBUTION;
+                subOrderDeliveredMedicine = RecipeStateEnum.SUB_ORDER_DELIVERED;
                 //配送中的处方,更新订单状态
                 if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
                     RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
                     RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
                     recipeOrder.setStatus(RecipeOrderStatusEnum.ORDER_STATUS_PROCEED_SHIPPING.getType());
+                    stateManager.updateOrderState(recipeOrder.getOrderId(),OrderStateEnum.PROCESS_STATE_ORDER,OrderStateEnum.SUB_ORDER_DELIVERED);
                     recipeOrderDAO.update(recipeOrder);
                 }
                 //信息推送
                 RecipeMsgService.batchSendMsg(recipe.getRecipeId(), RecipeStatusConstant.IN_SEND);
+            }
+            if (Objects.nonNull(recipeProcessStateDispensing)) {
+                stateManager.updateRecipeState(recipe.getRecipeId(), recipeProcessStateDispensing, subOrderDeliveredMedicine);
             }
             if (new Integer(RecipeStatusEnum.RECIPE_STATUS_FINISH.getType()).equals(recipeStatusReqTO.getStatus())) {
                 if (new Integer(GiveModeEnum.GIVE_MODE_HOME_DELIVERY.getType()).equals(recipe.getGiveMode())) {

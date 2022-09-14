@@ -1590,7 +1590,7 @@ public class RecipeService extends RecipeBaseService {
         }
         docIndexClient.updateStatusByBussIdBussType(recipe.getRecipeId(), DocIndexShowEnum.SHOW.getCode());
         stateManager.updateAuditState(recipe.getRecipeId(), RecipeAuditStateEnum.DOC_FORCED_PASS);
-        recipeAuditClient.recipeAuditNotice(ObjectCopyUtils.convert(recipe, com.ngari.platform.recipe.mode.RecipeBean.class), 1);
+        recipeAuditClient.recipeAuditNotice(ObjectCopyUtils.convert(dbRecipe, com.ngari.platform.recipe.mode.RecipeBean.class), 1);
         LOGGER.info("RecipeService doSecondSignRecipe  execute ok!  recipeId ： {} ", recipe.getRecipeId());
         return resultBean;
     }
@@ -5592,6 +5592,10 @@ public class RecipeService extends RecipeBaseService {
                 recipeCouponService.unuseCouponByRecipeId(recipeId);
                 //推送处方到监管平台
                 recipeIds.add(recipeId);
+                //药师首页待处理任务---取消未结束任务
+                if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
+                    ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussCancelEvent(recipeId, BussTypeConstant.RECIPE));
+                }
                 //HIS消息发送
                 boolean succFlag = hisService.recipeStatusUpdate(recipeId);
                 if (succFlag) {

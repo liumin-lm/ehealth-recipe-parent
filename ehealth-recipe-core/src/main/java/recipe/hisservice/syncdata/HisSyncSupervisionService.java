@@ -868,6 +868,28 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             commonResponse.setMsg("处方列表为空");
             return commonResponse;
         }
+        List<RegulationRecipeVerificationIndicatorsReq> request = getRegulationRecipeVerificationIndicatorsReqs(recipeList);
+
+        try {
+            IRegulationService hisService = AppDomainContext.getBean("his.regulationService", IRegulationService.class);
+            LOGGER.info("uploadRecipeVerificationIndicators request={}", JSONUtils.toString(request));
+            HisResponseTO response = hisService.uploadRecipeVerificationIndicators((recipeList.get(0)).getClinicOrgan(), request);
+            LOGGER.info("uploadRecipeCirculationIndicators response={}", JSONUtils.toString(response));
+            if (HIS_SUCCESS.equals(response.getMsgCode())) {
+                commonResponse.setCode("000");
+                LOGGER.info("uploadRecipeCirculationIndicators execute success.");
+            } else {
+                commonResponse.setMsg(response.getMsg());
+            }
+        } catch (Exception e) {
+            LOGGER.error("uploadRecipeCirculationIndicators HIS接口调用失败. request={}", JSONUtils.toString(request), e);
+            commonResponse.setMsg("HIS接口调用异常");
+        }
+        LOGGER.info("uploadRecipeVerificationIndicators commonResponse={}", JSONUtils.toString(commonResponse));
+        return commonResponse;
+    }
+
+    public List<RegulationRecipeVerificationIndicatorsReq> getRegulationRecipeVerificationIndicatorsReqs(List<Recipe> recipeList) {
         RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         DrugsEnterpriseDAO enterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         OrganService organService = BasicAPI.getService(OrganService.class);
@@ -1031,24 +1053,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             req.setCreateDate(recipe.getCreateDate());
             request.add(req);
         }
-
-        try {
-            IRegulationService hisService = AppDomainContext.getBean("his.regulationService", IRegulationService.class);
-            LOGGER.info("uploadRecipeVerificationIndicators request={}", JSONUtils.toString(request));
-            HisResponseTO response = hisService.uploadRecipeVerificationIndicators((recipeList.get(0)).getClinicOrgan(), request);
-            LOGGER.info("uploadRecipeCirculationIndicators response={}", JSONUtils.toString(response));
-            if (HIS_SUCCESS.equals(response.getMsgCode())) {
-                commonResponse.setCode("000");
-                LOGGER.info("uploadRecipeCirculationIndicators execute success.");
-            } else {
-                commonResponse.setMsg(response.getMsg());
-            }
-        } catch (Exception e) {
-            LOGGER.error("uploadRecipeCirculationIndicators HIS接口调用失败. request={}", JSONUtils.toString(request), e);
-            commonResponse.setMsg("HIS接口调用异常");
-        }
-        LOGGER.info("uploadRecipeVerificationIndicators commonResponse={}", JSONUtils.toString(commonResponse));
-        return commonResponse;
+        return request;
     }
 
     /**
@@ -1318,10 +1323,9 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
     }
 
     public void uploadRecipePayToRegulation(String orderCode, int payFlag, String refundNo) {
-        LOGGER.info("uploadRecipePayToRegulation param orderCode:{} ,payFlag:{}", orderCode, payFlag);
+        LOGGER.info("uploadRecipePayToRegulation param orderCode:{} ,payFlag:{}，refundNo={}", orderCode, payFlag,refundNo);
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         RecipeOrderDAO recipeOrderDAO = getDAO(RecipeOrderDAO.class);
-        RecipeExtendDAO recipeExtendDAO = getDAO(RecipeExtendDAO.class);
 
         List<Integer> recipeIds = recipeDAO.findRecipeIdsByOrderCode(orderCode);
         if (null != recipeIds) {
@@ -1336,102 +1340,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                         return ;
                     }
 
-                    RegulationOutpatientPayReq req = new RegulationOutpatientPayReq();
-                    //留着兼容
-                    req.setRecipeId(recipe.getRecipeId());
-                    //前置机会根据处方id列表反查
-                    req.setRecipeIds(recipeIds);
-                    PatientService patientService = BasicAPI.getService(PatientService.class);
-                    PatientDTO patientDTO = patientService.getPatientDTOByMpiId(recipe.getMpiid());
-                    if (patientDTO != null) {
-                        req.setIdcardTypeCode("01");
-                        req.setIdcardNo(patientDTO.getIdcard());
-                        req.setCertificate(patientDTO.getCertificate());
-                        req.setCertificateType(patientDTO.getCertificateType());
-                        req.setName(patientDTO.getPatientName());
-                        req.setGenderCode(patientDTO.getPatientSex());
-                        req.setBirthdate(patientDTO.getBirthday());
-                        req.setNation(patientDTO.getNation());
-                    }
-                    req.setVisitNo(String.valueOf(recipe.getClinicId()));
-                    req.setAccountNo(order.getTradeNo());
-                    req.setTotalFee(recipe.getTotalMoney() != null ? recipe.getTotalMoney().doubleValue() : 0);
-                    req.setIndividualPay(recipe.getActualPrice() != null ? recipe.getActualPrice().doubleValue() : 0);
-                    req.setChargeRefundCode(String.valueOf(payFlag));
-                    req.setOrganId(String.valueOf(recipe.getClinicOrgan()));
-                    req.setOrgName(recipe.getOrganName());
-                    req.setRcdDatetime(new Date());
-                    req.setPayTypeCode("07"); //详见医疗费用分类代码表
+                    RegulationOutpatientPayReq req = getRegulationOutpatientPayReq(payFlag, refundNo, recipeIds, order, recipe);
 
-                    List<RegulationCostDetailReq> items = new ArrayList<>();
-                    //取处方单明细
-                    RecipeDetailDAO recipeDetailDAO = getDAO(RecipeDetailDAO.class);
-                    List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeIds(recipeIds);
-                    for (Recipedetail item : recipedetails) {
-                        RegulationCostDetailReq costDetailReq = new RegulationCostDetailReq();
-                        costDetailReq.setProjDeno(String.valueOf(item.getRecipeDetailId()));
-                        costDetailReq.setProjName(item.getDrugName());
-                        costDetailReq.setChargeRefundCode(String.valueOf(payFlag));
-                        costDetailReq.setStatCatCode("010100"); //监管分类代码 his未返回该字段，不知道传什么，默认传  010100 一般医疗服务
-                        costDetailReq.setPinCatCode("9900"); // 财务分类代码 ，his未返回  9900 其他
-                        costDetailReq.setIfOutMedIns("0");
-                        BigDecimal salePrice = BigDecimal.ZERO;
-                        if(SettlementModeTypeEnum.SETTLEMENT_MODE_HOS.getType().equals(item.getSettlementMode())){
-                            salePrice = item.getSalePrice();
-                            if(Objects.nonNull(item.getHisReturnSalePrice())){
-                                salePrice = item.getHisReturnSalePrice();
-                            }
-                        }else {
-                            salePrice = item.getActualSalePrice();
-                        }
-                        costDetailReq.setProjUnitPrice(salePrice != null ? salePrice.doubleValue() : 0);
-                        costDetailReq.setProjCnt(item.getUseTotalDose());
-                        costDetailReq.setProjAmount(item.getDrugCost() != null ? item.getDrugCost().doubleValue() : 0);
-                        items.add(costDetailReq);
-                    }
-                    req.setItems(items);
-                    // 科室相关
-                    DepartmentService departmentService = BasicAPI.getService(DepartmentService.class);
-                    DepartmentDTO departmentDTO = departmentService.getById(recipe.getDepart());
-                    if (departmentDTO != null) {
-                        req.setDeptCode(departmentDTO.getCode());
-                        req.setDeptName(departmentDTO.getName());
-                    }
-                    SubCodeService subCodeService = BasicAPI.getService(SubCodeService.class);
-                    //设置专科编码等
-                    SubCodeDTO subCodeDTO = subCodeService.getByNgariProfessionCode(departmentDTO.getProfessionCode());
-                    if (null == subCodeDTO) {
-                        //专科编码没设置不应该导致推送不了处方到监管平台
-                        LOGGER.warn("uploadRecipePayToRegulation subCode is null. recipe.professionCode={}", departmentDTO.getProfessionCode());
-                    } else {
-                        req.setDeptClassCode(subCodeDTO.getSubCode());
-                        req.setDeptClassName(subCodeDTO.getSubName());
-                    }
-                    // 原交易流水号 缴费流水号
-                    req.setOriginalAccountNo(order.getTradeNo());
-                    req.setOrderNo(order.getOutTradeNo());
-                    // 退费流水号
-                    req.setRefundNo(refundNo);
-
-
-                    //从his返回的挂号序号
-                    RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-                    if (recipeExtend != null) {
-                        req.setRegisterNo(recipeExtend.getRegisterID());
-                        req.setRegisterId(recipeExtend.getRegisterID());
-                    }
-                    //开方医生信息
-                    req.setDoctor(getRegulationBusDocReq(recipe.getDoctor(), recipe.getClinicOrgan(), recipe.getDepart()));
-                    //复诊id
-                    req.setBussID(recipe.getClinicId() != null ? recipe.getClinicId().toString() : null);
-                    //医保金额
-                    req.setFundAmount(order.getFundAmount());
-                    //自费金额
-                    req.setCashAmount(order.getCashAmount());
-                    req.setRecipeCode(recipe.getRecipeCode());
-
-                    // 购药方式
-                    req.setGiveMode(recipe.getGiveMode());
                     LOGGER.info("调用regulation接口，上传处方缴费信息，req = {}，payFlag = {}", JSONUtils.toString(req), payFlag);
                     IRegulationService regulationService = AppDomainContext.getBean("his.regulationService", IRegulationService.class);
                     HisResponseTO hisResponseTO = regulationService.uploadOutpatientPay(recipe.getClinicOrgan(), req);
@@ -1441,6 +1351,108 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 LOGGER.error("调用regulation接口，上传处方缴费信息失败，busId = {}，payFlag = {}", recipe.getRecipeId(), payFlag, e);
             }
         }
+    }
+
+    public RegulationOutpatientPayReq getRegulationOutpatientPayReq(int payFlag, String refundNo, List<Integer> recipeIds, RecipeOrder order, Recipe recipe) {
+        RecipeExtendDAO recipeExtendDAO = getDAO(RecipeExtendDAO.class);
+
+        RegulationOutpatientPayReq req = new RegulationOutpatientPayReq();
+        //留着兼容
+        req.setRecipeId(recipe.getRecipeId());
+        //前置机会根据处方id列表反查
+        req.setRecipeIds(recipeIds);
+        PatientService patientService = BasicAPI.getService(PatientService.class);
+        PatientDTO patientDTO = patientService.getPatientDTOByMpiId(recipe.getMpiid());
+        if (patientDTO != null) {
+            req.setIdcardTypeCode("01");
+            req.setIdcardNo(patientDTO.getIdcard());
+            req.setCertificate(patientDTO.getCertificate());
+            req.setCertificateType(patientDTO.getCertificateType());
+            req.setName(patientDTO.getPatientName());
+            req.setGenderCode(patientDTO.getPatientSex());
+            req.setBirthdate(patientDTO.getBirthday());
+            req.setNation(patientDTO.getNation());
+        }
+        req.setVisitNo(String.valueOf(recipe.getClinicId()));
+        req.setAccountNo(order.getTradeNo());
+        req.setTotalFee(recipe.getTotalMoney() != null ? recipe.getTotalMoney().doubleValue() : 0);
+        req.setIndividualPay(recipe.getActualPrice() != null ? recipe.getActualPrice().doubleValue() : 0);
+        req.setChargeRefundCode(String.valueOf(payFlag));
+        req.setOrganId(String.valueOf(recipe.getClinicOrgan()));
+        req.setOrgName(recipe.getOrganName());
+        req.setRcdDatetime(new Date());
+        req.setPayTypeCode("07"); //详见医疗费用分类代码表
+
+        List<RegulationCostDetailReq> items = new ArrayList<>();
+        //取处方单明细
+        RecipeDetailDAO recipeDetailDAO = getDAO(RecipeDetailDAO.class);
+        List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeIds(recipeIds);
+        for (Recipedetail item : recipedetails) {
+            RegulationCostDetailReq costDetailReq = new RegulationCostDetailReq();
+            costDetailReq.setProjDeno(String.valueOf(item.getRecipeDetailId()));
+            costDetailReq.setProjName(item.getDrugName());
+            costDetailReq.setChargeRefundCode(String.valueOf(payFlag));
+            costDetailReq.setStatCatCode("010100"); //监管分类代码 his未返回该字段，不知道传什么，默认传  010100 一般医疗服务
+            costDetailReq.setPinCatCode("9900"); // 财务分类代码 ，his未返回  9900 其他
+            costDetailReq.setIfOutMedIns("0");
+            BigDecimal salePrice = BigDecimal.ZERO;
+            if(SettlementModeTypeEnum.SETTLEMENT_MODE_HOS.getType().equals(item.getSettlementMode())){
+                salePrice = item.getSalePrice();
+                if(Objects.nonNull(item.getHisReturnSalePrice())){
+                    salePrice = item.getHisReturnSalePrice();
+                }
+            }else {
+                salePrice = item.getActualSalePrice();
+            }
+            costDetailReq.setProjUnitPrice(salePrice != null ? salePrice.doubleValue() : 0);
+            costDetailReq.setProjCnt(item.getUseTotalDose());
+            costDetailReq.setProjAmount(item.getDrugCost() != null ? item.getDrugCost().doubleValue() : 0);
+            items.add(costDetailReq);
+        }
+        req.setItems(items);
+        // 科室相关
+        DepartmentService departmentService = BasicAPI.getService(DepartmentService.class);
+        DepartmentDTO departmentDTO = departmentService.getById(recipe.getDepart());
+        if (departmentDTO != null) {
+            req.setDeptCode(departmentDTO.getCode());
+            req.setDeptName(departmentDTO.getName());
+        }
+        SubCodeService subCodeService = BasicAPI.getService(SubCodeService.class);
+        //设置专科编码等
+        SubCodeDTO subCodeDTO = subCodeService.getByNgariProfessionCode(departmentDTO.getProfessionCode());
+        if (null == subCodeDTO) {
+            //专科编码没设置不应该导致推送不了处方到监管平台
+            LOGGER.warn("uploadRecipePayToRegulation subCode is null. recipe.professionCode={}", departmentDTO.getProfessionCode());
+        } else {
+            req.setDeptClassCode(subCodeDTO.getSubCode());
+            req.setDeptClassName(subCodeDTO.getSubName());
+        }
+        // 原交易流水号 缴费流水号
+        req.setOriginalAccountNo(order.getTradeNo());
+        req.setOrderNo(order.getOutTradeNo());
+        // 退费流水号
+        req.setRefundNo(refundNo);
+
+
+        //从his返回的挂号序号
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+        if (recipeExtend != null) {
+            req.setRegisterNo(recipeExtend.getRegisterID());
+            req.setRegisterId(recipeExtend.getRegisterID());
+        }
+        //开方医生信息
+        req.setDoctor(getRegulationBusDocReq(recipe.getDoctor(), recipe.getClinicOrgan(), recipe.getDepart()));
+        //复诊id
+        req.setBussID(recipe.getClinicId() != null ? recipe.getClinicId().toString() : null);
+        //医保金额
+        req.setFundAmount(order.getFundAmount());
+        //自费金额
+        req.setCashAmount(order.getCashAmount());
+        req.setRecipeCode(recipe.getRecipeCode());
+
+        // 购药方式
+        req.setGiveMode(recipe.getGiveMode());
+        return req;
     }
 
     /**
@@ -1717,7 +1729,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
      * @author zhangx
      * @create 2020-10-13 20:00
      **/
-    private RegulationSendMedicineReq pakRegulationSendMedicineReq(Integer recipeId) {
+    public RegulationSendMedicineReq pakRegulationSendMedicineReq(Integer recipeId) {
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         RecipeOrderDAO recipeOrderDAO = getDAO(RecipeOrderDAO.class);
         RecipeExtendDAO recipeExtendDAO = getDAO(RecipeExtendDAO.class);

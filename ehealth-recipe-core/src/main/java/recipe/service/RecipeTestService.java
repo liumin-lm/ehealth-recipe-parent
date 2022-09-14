@@ -1,10 +1,11 @@
 package recipe.service;
 
 import com.alibaba.fastjson.JSON;
+import com.google.common.collect.Lists;
 import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.base.push.service.ISmsPushService;
 import com.ngari.common.mode.HisResponseTO;
-import com.ngari.his.regulation.entity.RegulationDrugCategoryReq;
+import com.ngari.his.regulation.entity.*;
 import com.ngari.his.regulation.service.IRegulationService;
 import com.ngari.jgpt.zjs.service.IMinkeOrganService;
 import com.ngari.patient.dto.OrganDTO;
@@ -45,6 +46,7 @@ import recipe.core.api.IDrugBusinessService;
 import recipe.dao.*;
 import recipe.drugTool.service.DrugToolService;
 import recipe.enumerate.status.RecipeAuditStateEnum;
+import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.manager.EnterpriseManager;
 import recipe.manager.StateManager;
 import recipe.service.afterpay.LogisticsOnlineOrderService;
@@ -544,5 +546,82 @@ public class RecipeTestService {
         buffer.append("-----更新autoCheck=1数据条数："+hasCheckUpdateNum);
 
         return buffer.toString();
+    }
+
+    /**
+     * 监管平台处方实时上传：开方/审方上传
+     * @param recipeId
+     * @return
+     */
+    @RpcService
+    public RegulationRecipeIndicatorsReq getUploadRecipeIndicatorsReq(Integer recipeId){
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        if (null == recipe) {
+            return null;
+        }
+        List<RegulationRecipeIndicatorsReq> request = new ArrayList<>();
+        HisSyncSupervisionService service = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
+        service.splicingBackRecipeData(Collections.singletonList(recipe), request);
+        if(request==null || request.size()==0){
+            return null;
+        }
+        return request.get(0);
+    }
+
+    /**
+     * 监管平台处方实时上传：上传核销信息
+     * @param recipeId
+     * @return
+     */
+    @RpcService
+    public RegulationRecipeVerificationIndicatorsReq getUploadRecipeVerificationIndicatorsReq(Integer recipeId){
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        if (null == recipe) {
+            return null;
+        }
+
+        HisSyncSupervisionService service = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
+        List<RegulationRecipeVerificationIndicatorsReq> requestList=service.getRegulationRecipeVerificationIndicatorsReqs(Collections.singletonList(recipe));
+        return requestList==null || requestList.size()==0?null:requestList.get(0);
+    }
+
+    /**
+     * 监管平台处方实时上传：组装派药/配送完成接口
+     * @param recipeId
+     * @return
+     */
+    @RpcService
+    public RegulationSendMedicineReq getRegulationSendFinishMedicineReq(Integer recipeId){
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        if (null == recipe) {
+            return null;
+        }
+
+        HisSyncSupervisionService service = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
+        RegulationSendMedicineReq request=service.pakRegulationSendMedicineReq(recipeId);
+        return request;
+    }
+
+    /**
+     * 监管平台处方实时上传：组装处方支付上传接口
+     * @param recipeId
+     * @return
+     */
+    @RpcService
+    public RegulationOutpatientPayReq getRegulationOutpatientPayReq(Integer recipeId,String refundNo){
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        if (null == recipe) {
+            return null;
+        }
+        List<Integer> recipeIds = recipeDAO.findRecipeIdsByOrderCode(recipe.getOrderCode());
+        RecipeOrder order = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+
+        if(recipeIds==null || order==null){
+            return null;
+        }
+        HisSyncSupervisionService service = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
+        RegulationOutpatientPayReq request=service.getRegulationOutpatientPayReq(recipe.getPayFlag(),refundNo,
+                recipeIds,order,recipe);
+        return request;
     }
 }
