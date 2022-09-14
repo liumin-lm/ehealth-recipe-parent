@@ -210,6 +210,8 @@ public class RecipeServiceSub {
     private void doWithRecipeExtend(PatientDTO patient, RecipeBean recipeBean, Integer recipeId) {
         RecipeExtendBean recipeExt = recipeBean.getRecipeExtend();
         if (null != recipeExt && null != recipeId) {
+            RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+            Recipe recipe = recipeDAO.getByRecipeId(recipeId);
             RecipeExtend recipeExtend = ObjectCopyUtils.convert(recipeExt, RecipeExtend.class);
             recipeExtend.setRecipeId(recipeId);
             recipeExtend.setCancellation("");
@@ -271,20 +273,23 @@ public class RecipeServiceSub {
 
                     //设置处方入口类型
                     String sourceTag = Objects.isNull(revisitBean.getSourceTag()) ? "" : revisitBean.getSourceTag();
+                    LOGGER.info("iRevisitExService.getByConsultId sourceTag={}", sourceTag);
                     switch (sourceTag) {
                         case REVISIT_SOURCE_BJGY:
-                            recipeBean.setFastRecipeFlag(1);
+                            recipe.setFastRecipeFlag(1);
                             break;
                         case REVISIT_SOURCE_YZSQ:
-                            recipeBean.setFastRecipeFlag(2);
+                            recipe.setFastRecipeFlag(2);
                             break;
                         case REVISIT_SOURCE_YJXF:
-                            recipeBean.setFastRecipeFlag(3);
+                            recipe.setFastRecipeFlag(3);
                             break;
                         default:
-                            recipeBean.setFastRecipeFlag(0);
+                            recipe.setFastRecipeFlag(0);
                             break;
                     }
+                    recipeDAO.update(recipe);
+
                     if (null != revisitExDTO) {
                         recipeExtend.setCardNo(revisitExDTO.getCardId());
                         recipeExtend.setCardType(revisitExDTO.getCardType());
