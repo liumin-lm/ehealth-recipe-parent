@@ -390,6 +390,9 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "订单物流状态 0: 默认 1 待发药 2 配送中 3 待取药")
     private Integer logisticsState;
 
+    @ItemProperty(alias = "订单新支付状态 0 未支付 1 已支付")
+    private Integer orderPayFlag;
+
     //todo 默认构造器不要给init默认值啊 此方法慎用
     @Deprecated
     public RecipeOrder() {
@@ -425,6 +428,7 @@ public class RecipeOrder implements Serializable {
         this.setRegisterFee(zero);
         this.setThirdPayType(0);
         this.setThirdPayFee(0.00);
+        this.setOrderPayFlag(0);
     }
 
 
@@ -1485,5 +1489,14 @@ public class RecipeOrder implements Serializable {
 
     public void setLogisticsState(Integer logisticsState) {
         this.logisticsState = logisticsState;
+    }
+
+    @Column(name = "order_pay_flag")
+    public Integer getOrderPayFlag() {
+        return orderPayFlag;
+    }
+
+    public void setOrderPayFlag(Integer orderPayFlag) {
+        this.orderPayFlag = orderPayFlag;
     }
 }

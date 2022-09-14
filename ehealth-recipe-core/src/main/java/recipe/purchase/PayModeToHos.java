@@ -189,19 +189,15 @@ public class PayModeToHos implements IPurchaseService {
         if (decoctionId != null) {
             DrugDecoctionWayDao drugDecoctionWayDao = getDAO(DrugDecoctionWayDao.class);
             DecoctionWay decoctionWay = drugDecoctionWayDao.get(decoctionId);
-            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-//            for (Recipe dbRecipe : dbRecipes) {
-                if (decoctionWay != null) {
-                    if (decoctionWay.getDecoctionPrice() != null) {
-                        calculateFee = 1;
-                        order.setDecoctionUnitPrice(BigDecimal.valueOf(decoctionWay.getDecoctionPrice()));
-                    }
-//                    recipeExtendDAO.updateRecipeExInfoByRecipeId(dbRecipe.getRecipeId(), ImmutableMap.of("decoctionId", decoctionId + "", "decoctionText", decoctionWay.getDecoctionText()));
-                } else {
-                    LOG.error("未获取到对应的代煎费,decoctionId={}",  decoctionId);
+            if (decoctionWay != null) {
+                if (decoctionWay.getDecoctionPrice() != null) {
+                    calculateFee = 1;
+                    order.setDecoctionUnitPrice(BigDecimal.valueOf(decoctionWay.getDecoctionPrice()));
                 }
+            } else {
+                LOG.error("未获取到对应的代煎费,decoctionId={}", decoctionId);
             }
-//        }
+        }
         //线下处方和线上PatientIsDecoction处理成一样
         //在患者没有选择的情况下：前端会根据医生是否选择字段传入patientIsDecoction  对于线下处方而言，线下转线上的时候医生是否选择已经赋值
         //在患者选择的情况下：前端会根据患者自己选择传入patientIsDecoction
