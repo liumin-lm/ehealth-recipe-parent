@@ -356,12 +356,9 @@ public class RecipeHisService extends RecipeBaseService {
         LOGGER.info("RecipeHisService cancelRecipeImpl  recipeId = {},otherOrganId={},hisRecipeStatus:{}", recipeId, otherOrganId, hisRecipeStatus);
         RecipeInfoDTO recipePdfDTO = recipeTherapyManager.getRecipeTherapyDTO(recipeId);
         Recipe recipe = recipePdfDTO.getRecipe();
-        if (null == recipe) {
-            return false;
-        }
-        if (skipHis(recipe)) {
-            return true;
-        }
+//        if (skipHis(recipe)) {
+//            return true;
+//        }
 
         Integer sendOrganId = (null == otherOrganId) ? recipe.getClinicOrgan() : otherOrganId;
         if (!isHisEnable(sendOrganId)) {

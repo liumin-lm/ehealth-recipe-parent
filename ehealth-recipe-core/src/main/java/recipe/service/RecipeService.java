@@ -1590,7 +1590,7 @@ public class RecipeService extends RecipeBaseService {
         }
         docIndexClient.updateStatusByBussIdBussType(recipe.getRecipeId(), DocIndexShowEnum.SHOW.getCode());
         stateManager.updateAuditState(recipe.getRecipeId(), RecipeAuditStateEnum.DOC_FORCED_PASS);
-        recipeAuditClient.recipeAuditNotice(ObjectCopyUtils.convert(recipe, com.ngari.platform.recipe.mode.RecipeBean.class), 1);
+        recipeAuditClient.recipeAuditNotice(ObjectCopyUtils.convert(dbRecipe, com.ngari.platform.recipe.mode.RecipeBean.class), 1);
         LOGGER.info("RecipeService doSecondSignRecipe  execute ok!  recipeId ： {} ", recipe.getRecipeId());
         return resultBean;
     }
