@@ -1590,7 +1590,7 @@ public class RecipeService extends RecipeBaseService {
         }
         docIndexClient.updateStatusByBussIdBussType(recipe.getRecipeId(), DocIndexShowEnum.SHOW.getCode());
         stateManager.updateAuditState(recipe.getRecipeId(), RecipeAuditStateEnum.DOC_FORCED_PASS);
-        recipeAuditClient.recipeAuditNotice(ObjectCopyUtils.convert(recipe, com.ngari.platform.recipe.mode.RecipeBean.class), 1);
+        recipeAuditClient.recipeAuditNotice(ObjectCopyUtils.convert(dbRecipe, com.ngari.platform.recipe.mode.RecipeBean.class), 1);
         LOGGER.info("RecipeService doSecondSignRecipe  execute ok!  recipeId ： {} ", recipe.getRecipeId());
         return resultBean;
     }
@@ -1703,8 +1703,6 @@ public class RecipeService extends RecipeBaseService {
 
             orderService.updateOrderInfo(recipe.getOrderCode(), ImmutableMap.of("status", status), resultBean);
         }
-        StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
-        stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_AUDIT, RecipeStateEnum.SUB_AUDIT_READY_DONE);
         // 病历处方-状态修改成显示
         try {
             DocIndexClient docIndexClient = AppContextHolder.getBean("docIndexClient", DocIndexClient.class);

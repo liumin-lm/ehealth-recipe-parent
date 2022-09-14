@@ -63,10 +63,7 @@ import recipe.client.DocIndexClient;
 import recipe.client.IConfigurationClient;
 import recipe.client.OfflineRecipeClient;
 import recipe.client.PayClient;
-import recipe.constant.CacheConstant;
-import recipe.constant.ErrorCode;
-import recipe.constant.RecipeBussConstant;
-import recipe.constant.RecipeStatusConstant;
+import recipe.constant.*;
 import recipe.dao.*;
 import recipe.dao.bean.DrugInfoHisBean;
 import recipe.drugsenterprise.AccessDrugEnterpriseService;
@@ -356,12 +353,9 @@ public class RecipeHisService extends RecipeBaseService {
         LOGGER.info("RecipeHisService cancelRecipeImpl  recipeId = {},otherOrganId={},hisRecipeStatus:{}", recipeId, otherOrganId, hisRecipeStatus);
         RecipeInfoDTO recipePdfDTO = recipeTherapyManager.getRecipeTherapyDTO(recipeId);
         Recipe recipe = recipePdfDTO.getRecipe();
-        if (null == recipe) {
-            return false;
-        }
-        if (skipHis(recipe)) {
-            return true;
-        }
+//        if (skipHis(recipe)) {
+//            return true;
+//        }
 
         Integer sendOrganId = (null == otherOrganId) ? recipe.getClinicOrgan() : otherOrganId;
         if (!isHisEnable(sendOrganId)) {
@@ -503,6 +497,10 @@ public class RecipeHisService extends RecipeBaseService {
      * @param recipe
      */
     private void updateState(boolean canDrugTakeChange,Recipe recipe){
+        // 审方后置的已经处理流转新状态
+        if (ReviewTypeConstant.Postposition_Check == recipe.getReviewType()) {
+            return;
+        }
         // 结算成功后状态流转到待取药或待发药
         RecipeStateEnum processStateDispensing = null;
         RecipeStateEnum subStateDispensing = null;

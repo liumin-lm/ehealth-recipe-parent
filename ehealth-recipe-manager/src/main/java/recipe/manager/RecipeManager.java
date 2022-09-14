@@ -55,6 +55,13 @@ import java.util.stream.Collectors;
  */
 @Service
 public class RecipeManager extends BaseManager {
+
+    private static final String REVISIT_SOURCE_YZSQ = "fz-yzsq-001";
+
+    private static final String REVISIT_SOURCE_YJXF = "fz-yjxf-001";
+
+    private static final String REVISIT_SOURCE_BJGY = "fz-bjgy-001";
+
     @Autowired
     private PatientClient patientClient;
     @Autowired
@@ -422,7 +429,27 @@ public class RecipeManager extends BaseManager {
         //如果处方来源是复诊，则patientID取复诊的
         updateRecipe.setPatientID(recipeResult.getPatientID());
         if (new Integer(2).equals(recipeResult.getBussSource())) {
+            RevisitBean revisitBean = revisitClient.getRevisitByClinicId(recipeResult.getClinicId());
             RevisitExDTO revisitExDTO = revisitClient.getByClinicId(recipeResult.getClinicId());
+            if(Objects.nonNull(revisitBean)) {
+                //设置处方入口类型
+                String sourceTag = Objects.isNull(revisitBean.getSourceTag()) ? "" : revisitBean.getSourceTag();
+                switch (sourceTag) {
+                    case REVISIT_SOURCE_BJGY:
+                        updateRecipe.setFastRecipeFlag(1);
+                        break;
+                    case REVISIT_SOURCE_YZSQ:
+                        updateRecipe.setFastRecipeFlag(2);
+                        break;
+                    case REVISIT_SOURCE_YJXF:
+                        updateRecipe.setFastRecipeFlag(3);
+                        break;
+                    default:
+                        updateRecipe.setFastRecipeFlag(0);
+                        break;
+                }
+            }
+
             if (null != revisitExDTO && StringUtils.isNotEmpty(revisitExDTO.getPatId())) {
                 updateRecipe.setPatientID(revisitExDTO.getPatId());
             }

@@ -14,6 +14,8 @@ import ctd.dictionary.DictionaryItem;
 import ctd.persistence.DAOFactory;
 import ctd.util.annotation.RpcBean;
 import org.apache.commons.collections.CollectionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import recipe.ApplicationUtils;
 import recipe.dao.DispensatoryDAO;
@@ -28,31 +30,38 @@ import java.util.stream.Collectors;
 @RpcBean("drugListOPService")
 public class DrugListOPService implements IDrugListService {
 
+    protected final Logger logger = LoggerFactory.getLogger(this.getClass());
+
     @Override
     public DrugListBean get(final int drugId) {
-        DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
-        DrugList res = drugListDAO.getById(drugId);
-        DrugListBean drugListBean = ObjectCopyUtils.convert(res, DrugListBean.class);
-        //获取扩展信息
-        DispensatoryDAO dispensatoryDAO = DAOFactory.getDAO(DispensatoryDAO.class);
-        Dispensatory dispensatory = dispensatoryDAO.getByDrugId(drugListBean.getDrugId());
-        if (null != dispensatory) {
-            DispensatoryDTO dispensatoryDTO = ObjectCopyUtils.convert(dispensatory, DispensatoryDTO.class);
-            drugListBean.setDispensatory(dispensatoryDTO);
-        }
-        DrugSourcesDAO dao = DAOFactory.getDAO(DrugSourcesDAO.class);
-        if (drugListBean.getSourceOrgan() != null){
-            List<DrugSources> byDrugSourcesId = dao.findByDrugSourcesId(drugListBean.getSourceOrgan());
-            if (byDrugSourcesId != null && byDrugSourcesId.size() > 0 ){
-                drugListBean.setSourceOrganText(byDrugSourcesId.get(0).getDrugSourcesName());
+        logger.info("DrugListOPService get drugId:{}", drugId);
+        try {
+            DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
+            DrugList res = drugListDAO.getById(drugId);
+            DrugListBean drugListBean = ObjectCopyUtils.convert(res, DrugListBean.class);
+            //获取扩展信息
+            DispensatoryDAO dispensatoryDAO = DAOFactory.getDAO(DispensatoryDAO.class);
+            Dispensatory dispensatory = dispensatoryDAO.getByDrugId(drugListBean.getDrugId());
+            if (null != dispensatory) {
+                DispensatoryDTO dispensatoryDTO = ObjectCopyUtils.convert(dispensatory, DispensatoryDTO.class);
+                drugListBean.setDispensatory(dispensatoryDTO);
+            }
+            DrugSourcesDAO dao = DAOFactory.getDAO(DrugSourcesDAO.class);
+            if (drugListBean.getSourceOrgan() != null){
+                List<DrugSources> byDrugSourcesId = dao.findByDrugSourcesId(drugListBean.getSourceOrgan());
+                if (byDrugSourcesId != null && byDrugSourcesId.size() > 0 ){
+                    drugListBean.setSourceOrganText(byDrugSourcesId.get(0).getDrugSourcesName());
+                }else {
+                    drugListBean.setSourceOrgan(0);
+                }
             }else {
                 drugListBean.setSourceOrgan(0);
             }
-        }else {
-            drugListBean.setSourceOrgan(0);
+            return drugListBean;
+        } catch (Exception e) {
+            logger.error("DrugListOPService get error", e);
         }
-
-        return drugListBean;
+        return null;
     }
 
     @Override
