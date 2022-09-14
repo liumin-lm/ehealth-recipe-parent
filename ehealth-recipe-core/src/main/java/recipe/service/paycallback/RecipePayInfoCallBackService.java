@@ -95,6 +95,7 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
         HashMap<String, Object> attr = new HashMap<>();
         attr.put("tradeNo", tradeNo);
         attr.put("outTradeNo", outTradeNo);
+        attr.put("orderPayFlag",PayFlagEnum.PAYED.getType());
         Map<String, String> notifyMap = payResult.getNotifyMap();
         //组装卫宁付返回参数并更新订单
         try {
