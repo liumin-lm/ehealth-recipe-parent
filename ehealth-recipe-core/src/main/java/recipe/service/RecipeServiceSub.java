@@ -128,6 +128,8 @@ public class RecipeServiceSub {
 
     private static final String REVISIT_SOURCE_YJXF = "fz-yjxf-001";
 
+    private static final String REVISIT_SOURCE_BJGY = "fz-bjgy-001";
+
     private static CaManager caManager = AppContextHolder.getBean("caManager", CaManager.class);
     private static HisRecipeManager hisRecipeManager = AppContextHolder.getBean("hisRecipeManager", HisRecipeManager.class);
 
@@ -266,18 +268,24 @@ public class RecipeServiceSub {
                     RevisitExDTO revisitExDTO = iRevisitExService.getByConsultId(recipeBean.getClinicId());
                     HosRecordDTO hosRecordDTO = iRevisitHosRecordService.getByConsultId(recipeBean.getClinicId());
                     LOGGER.info("iRevisitExService.getByConsultId:{}", JSONUtils.toString(revisitExDTO));
+
+                    //设置处方入口类型
+                    String sourceTag = Objects.isNull(revisitBean.getSourceTag()) ? "" : revisitBean.getSourceTag();
+                    switch (sourceTag) {
+                        case REVISIT_SOURCE_BJGY:
+                            recipeBean.setFastRecipeFlag(1);
+                            break;
+                        case REVISIT_SOURCE_YZSQ:
+                            recipeBean.setFastRecipeFlag(2);
+                            break;
+                        case REVISIT_SOURCE_YJXF:
+                            recipeBean.setFastRecipeFlag(3);
+                            break;
+                        default:
+                            recipeBean.setFastRecipeFlag(0);
+                            break;
+                    }
                     if (null != revisitExDTO) {
-                        String sourceTag = Objects.isNull(revisitBean.getSourceTag()) ? "" : revisitBean.getSourceTag();
-                        switch (sourceTag) {
-                            case REVISIT_SOURCE_YZSQ:
-                                recipeBean.setFastRecipeFlag(2);
-                                break;
-                            case REVISIT_SOURCE_YJXF:
-                                recipeBean.setFastRecipeFlag(3);
-                                break;
-                            default:
-                                break;
-                        }
                         recipeExtend.setCardNo(revisitExDTO.getCardId());
                         recipeExtend.setCardType(revisitExDTO.getCardType());
                         recipeExtend.setRegisterID(revisitExDTO.getRegisterNo());
