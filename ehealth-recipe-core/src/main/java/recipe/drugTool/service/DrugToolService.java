@@ -908,6 +908,10 @@ public class DrugToolService implements IDrugToolService {
     }
 
 
+    /**
+     * 这段逻辑是   为什么不直接放automaticDrugMatch处理Status、MatchDrugId了
+     * @param drug
+     */
     public void AutoMatch(DrugListMatch drug) {
         DrugList drugList = null;
         String addrArea = null;

@@ -44,10 +44,12 @@ public class ExcelUtil {
 
     private SheetContentsHandler sheetContentsHandler;
 
+    private int initialization=0;
+
     private OPCPackage pkg;
 
     public ExcelUtil(RowHandler rowHandler) {
-        this(rowHandler,true);
+        this(rowHandler,false);
     }
 
     public ExcelUtil(RowHandler rowHandler, boolean skipHeaderRow) {
@@ -170,6 +172,11 @@ public class ExcelUtil {
         public void startRow(int rowNum) {
             rowCount++;
             rowData.clear();
+            if(rowNum>0){
+                for(int i=0;i<initialization;i++){
+                    rowData.add("");
+                }
+            }
         }
 
         @Override
@@ -178,9 +185,12 @@ public class ExcelUtil {
                 return;
             }
             rowHandler.handle(rowData);
+            if(rowNum==0){
+                initialization=rowData.size();
+            }
         }
 
-//        private boolean firstCellOfRow = false;
+        private boolean firstCellOfRow = true;
         private int currentCol = -1;
 
         /**
@@ -192,15 +202,20 @@ public class ExcelUtil {
         @Override
         public void cell(String cellReference, String formattedValue, XSSFComment comment) {
             int thisCol = (new CellReference(cellReference)).getCol();//当前列的坐标
-            int missedCols = thisCol - currentCol - 1;
-            for (int i=0; i<missedCols; i++) {
-                rowData.add("");
-            }
-            currentCol = thisCol;//记录上一次有值列的坐标
-            if(StringUtils.isNotEmpty(formattedValue)){
+//            int missedCols = thisCol - currentCol - 1;
+//            for (int i=0; i<missedCols; i++) {
+//                rowData.add("");
+//            }
+//            currentCol = thisCol;//记录上一次有值列的坐标
+//            if(StringUtils.isNotEmpty(formattedValue)){
+//                rowData.add(formattedValue);
+//            }else{
+//                rowData.add("");
+//            }
+            if(rowCount==1){
                 rowData.add(formattedValue);
             }else{
-                rowData.add("");
+                rowData.set(thisCol,formattedValue);
             }
 
         }
