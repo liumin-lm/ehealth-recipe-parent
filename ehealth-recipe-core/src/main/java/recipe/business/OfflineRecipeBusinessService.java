@@ -316,7 +316,6 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
         return offLineRecipeDetailVO;
     }
 
-
     @Override
     public RecipeInfoDTO pushRecipe(Integer recipeId, Integer pushType, Integer sysType, Integer expressFeePayType, Double expressFee, String giveModeKey) {
         logger.info("RecipeBusinessService pushRecipe recipeId={}", recipeId);
@@ -324,6 +323,10 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
         ChargeItemDTO chargeItemDTO = new ChargeItemDTO(expressFeePayType, expressFee);
         recipePdfDTO.setChargeItemDTO(chargeItemDTO);
         Recipe recipe = recipePdfDTO.getRecipe();
+        if (RecipeStatusEnum.RECIPE_STATUS_REVOKE.equals(recipe.getStatus())) {
+            logger.info("RecipeBusinessService pushRecipe 当前处方已撤销");
+            return recipePdfDTO;
+        }
         //同时set最小售卖单位/单位HIS编码等
         organDrugListManager.setDrugItemCode(recipe.getClinicOrgan(), recipePdfDTO.getRecipeDetails());
         try {
@@ -334,9 +337,7 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
             result.getRecipe().setClinicId(recipe.getClinicId());
             recipeManager.updatePushHisRecipe(result.getRecipe(), recipeId, pushType);
             recipeManager.updatePushHisRecipeExt(result.getRecipeExtend(), recipeId, pushType);
-            if (CommonConstant.RECIPE_PUSH_TYPE.equals(pushType) && !RecipeStatusEnum.RECIPE_STATUS_REVOKE.equals(recipe.getStatus())) {
-                stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_ORDER, RecipeStateEnum.SUB_ORDER_READY_SUBMIT_ORDER);
-            }
+            stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_ORDER, RecipeStateEnum.SUB_ORDER_READY_SUBMIT_ORDER);
             logger.info("RecipeBusinessService pushRecipe end recipeId:{}", recipeId);
             return result;
         } catch (Exception e) {
