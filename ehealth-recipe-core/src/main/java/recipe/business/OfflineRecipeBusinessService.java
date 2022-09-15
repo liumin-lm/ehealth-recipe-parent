@@ -344,7 +344,11 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
         } catch (Exception e) {
             logger.error("RecipeBusinessService pushRecipe error", e);
             RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "当前处方推送his失败:" + e.getMessage());
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "当前处方推送his失败");
+            if ("1000899".equals(recipe.getClinicOrgan()) && CommonConstant.RECIPE_PATIENT_TYPE.equals(sysType)) {
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "您的处方存在库存不足的药品，请尝试其他购药方式或耐心等待");
+            } else {
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "当前处方推送his失败");
+            }
         }
     }
 
