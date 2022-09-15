@@ -520,14 +520,15 @@ public class OperationPlatformRecipeService {
         }
         if (RecipeStatusConstant.SIGN_ERROR_CODE_PHA == status || RecipeStatusConstant.SIGN_ING_CODE_PHA == status) {
             RecipeCheckBean nowRecipeCheck = recipeCheckService.getNowCheckResultByRecipeId(recipe.getRecipeId());
-            if (null != nowRecipeCheck) {
-                if (1 == nowRecipeCheck.getCheckStatus()) {
-                    checkResult = RecipePharmacistCheckConstant.Check_Pass;
-                } else if (0 == nowRecipeCheck.getCheckStatus() && null != nowRecipeCheck.getChecker()) {
-                    checkResult = RecipePharmacistCheckConstant.Check_Failure;
-                }
-            } else {
+            if (Objects.isNull(nowRecipeCheck)) {
                 LOGGER.warn("当前处方{}不存在！", recipe.getRecipeId());
+            }
+            if (Objects.isNull(nowRecipeCheck.getCheckStatus())) {
+                checkResult = RecipePharmacistCheckConstant.Already_Check;
+            } else if (1 == nowRecipeCheck.getCheckStatus()) {
+                checkResult = RecipePharmacistCheckConstant.Check_Pass;
+            } else if (0 == nowRecipeCheck.getCheckStatus() && null != nowRecipeCheck.getChecker()) {
+                checkResult = RecipePharmacistCheckConstant.Check_Failure;
             }
             return checkResult;
         }
