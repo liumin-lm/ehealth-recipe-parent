@@ -169,15 +169,6 @@ public class PharmacyManager extends BaseManager {
         if (CollectionUtils.isEmpty(pharmacyList)) {
             return new PharmacyTcm();
         }
-        String organDrugPharmacyId = recipeParameterDao.getByName(organId + "_organDrugPharmacyId");
-        if (StringUtils.isEmpty(organDrugPharmacyId)) {
-            //优先使用线上药房
-            List<Integer> pharmacyIdList = pharmacys.stream().map(PharmacyTcm::getPharmacyId).collect(Collectors.toList());
-            if (Objects.nonNull(pharmacy) && pharmacyIdList.contains(pharmacy)) {
-                Map<Integer, PharmacyTcm> currentPharmacyMap = pharmacys.stream().collect(Collectors.toMap(PharmacyTcm::getPharmacyId, a -> a, (k1, k2) -> k1));
-                return currentPharmacyMap.get(pharmacy);
-            }
-        }
         //计算最优药房
         List<String> pharmacyIds = pharmacyList.stream().map(a -> Arrays.asList(a.split(ByteUtils.COMMA))).flatMap(Collection::stream).collect(Collectors.toList());
         Map<String, List<String>> pharmacyMap = pharmacyIds.stream().collect(Collectors.groupingBy(String::valueOf));
