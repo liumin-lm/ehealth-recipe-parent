@@ -149,6 +149,7 @@ public class PharmacyManager extends BaseManager {
     public PharmacyTcm organDrugPharmacyId(Integer organId, Integer recipeType, List<String> organDrugCodeList) {
         //判断机构药房
         List<PharmacyTcm> pharmacys = pharmacyTcmDAO.findByOrganId(organId);
+        logger.info("PharmacyManager organDrugPharmacyId pharmacys:{}", JSON.toJSONString(pharmacys));
         if (CollectionUtils.isEmpty(pharmacys)) {
             return null;
         }
@@ -168,8 +169,9 @@ public class PharmacyManager extends BaseManager {
         //计算最优药房
         List<String> pharmacyIds = pharmacyList.stream().map(a -> Arrays.asList(a.split(ByteUtils.COMMA))).flatMap(Collection::stream).collect(Collectors.toList());
         Map<String, List<String>> pharmacyMap = pharmacyIds.stream().collect(Collectors.groupingBy(String::valueOf));
-
+        logger.info("PharmacyManager organDrugPharmacyId pharmacyMap:{}", JSON.toJSONString(pharmacyMap));
         Map<Integer, PharmacyTcm> pharmacyIdMap = pharmacyTypes.stream().collect(Collectors.toMap(PharmacyTcm::getPharmacyId, a -> a, (k1, k2) -> k1));
+        logger.info("PharmacyManager organDrugPharmacyId pharmacyIdMap:{}", JSON.toJSONString(pharmacyIdMap));
         int i = 0;
         int pharmacyId = 0;
         for (String key : pharmacyMap.keySet()) {

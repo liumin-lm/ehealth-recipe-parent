@@ -500,11 +500,12 @@ public class BaseOfflineToOnlineService {
     /**
      * @param hisRecipeId cdr_his_recipe表主键
      * @param recipeId    cdr_recipe表主键
+     * @param request
      * @return
      * @author liumin
      * @Description 通过hisRecipeId和recipeId查询并返回前端所需数据
      */
-    public FindHisRecipeDetailResVO getHisRecipeDetailByHisRecipeIdAndRecipeId(Integer hisRecipeId, Integer recipeId) {
+    public FindHisRecipeDetailResVO getHisRecipeDetailByHisRecipeIdAndRecipeId(Integer hisRecipeId, Integer recipeId, FindHisRecipeDetailReqVO request) {
         LOGGER.info("BaseOfflineToOnlineService getHisRecipeDetailByHisRecipeIdAndRecipeId param hisRecipeId:{},recipeId:{}", hisRecipeId, recipeId);
         if (hisRecipeId == null || recipeId == null) {
             throw new DAOException(DAOException.DAO_NOT_FOUND, "没有查询到来自医院的处方单,请刷新页面！");
@@ -518,8 +519,7 @@ public class BaseOfflineToOnlineService {
         if (recipe == null ) {
             throw new DAOException(DAOException.DAO_NOT_FOUND, "没有查询到来自医院的处方单,请刷新页面！");
         }
-        if (!UserRoleToken.getCurrent().getOwnMpiId().equals(recipe.getMpiid())) {
-            LOGGER.info("UserRoleToken.getCurrent().getOwnMpiId():{}",UserRoleToken.getCurrent().getOwnMpiId());
+        if (!request.getMpiId().equals(recipe.getMpiid())) {
             if(hisRecipe!=null && HisRecipeConstant.HISRECIPESTATUS_ALREADYIDEAL.equals(hisRecipe.getStatus())){
                 throw new DAOException(609, "该处方单已被他人处理！");
             }

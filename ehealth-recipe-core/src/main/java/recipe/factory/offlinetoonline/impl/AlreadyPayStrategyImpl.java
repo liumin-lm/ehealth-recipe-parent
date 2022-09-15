@@ -74,7 +74,7 @@ public class AlreadyPayStrategyImpl extends BaseOfflineToOnlineService implement
         // 1.保存数据到cdr_recipe相关表（cdr_recipe、cdr_recipeext、cdr_recipeDetail）
         Integer recipeId = saveRecipeInfo(request.getHisRecipeId());
         // 2.通过cdrHisRecipeId返回数据详情
-        FindHisRecipeDetailResVO res = getHisRecipeDetailByHisRecipeIdAndRecipeId(request.getHisRecipeId(), recipeId);
+        FindHisRecipeDetailResVO res = getHisRecipeDetailByHisRecipeIdAndRecipeId(request.getHisRecipeId(), recipeId,request);
         LOGGER.info("AlreadyPayStrategyServiceImpl findHisRecipeDetail res:{}", JSONUtils.toString(res));
         return res;
     }

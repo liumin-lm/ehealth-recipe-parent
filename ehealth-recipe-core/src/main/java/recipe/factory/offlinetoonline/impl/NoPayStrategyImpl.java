@@ -97,7 +97,7 @@ class NoPayStrategyImpl extends BaseOfflineToOnlineService implements IOfflineTo
         Integer recipeId = saveRecipeInfo(hisRecipeId);
 
         // 5.通过cdrHisRecipeId返回数据详情
-        FindHisRecipeDetailResVO res = getHisRecipeDetailByHisRecipeIdAndRecipeId(hisRecipeId, recipeId);
+        FindHisRecipeDetailResVO res = getHisRecipeDetailByHisRecipeIdAndRecipeId(hisRecipeId, recipeId, request);
         LOGGER.info("findHisRecipeDetail res:{}", JSONUtils.toString(res));
         return res;
     }
