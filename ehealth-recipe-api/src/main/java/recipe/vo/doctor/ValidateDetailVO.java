@@ -52,4 +52,8 @@ public class ValidateDetailVO {
      * 大病类型
      */
     private String dbType;
+    /**
+     * 药房ID
+     */
+    private Integer pharmacyId;
 }

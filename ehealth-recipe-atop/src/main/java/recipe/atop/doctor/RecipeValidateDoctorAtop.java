@@ -56,11 +56,17 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
     public ValidateDetailVO validateDetailV1(ValidateDetailVO validateDetailVO) {
         validateAtop(validateDetailVO.getOrganId(), validateDetailVO.getRecipeType(), validateDetailVO.getRecipeExtendBean(), validateDetailVO.getRecipeDetails());
         validateDetailVO.setLongRecipe(!IS_LONG_RECIPE_FALSE.equals(validateDetailVO.getRecipeExtendBean().getIsLongRecipe()));
+        List<RecipeDetailBean> detailList = validateDetailVO.getRecipeDetails().stream().filter(validateDetail->!ValidateUtil.integerIsEmpty(validateDetail.getPharmacyId())).collect(Collectors.toList());
+        Integer pharmacyId = null;
+        if (CollectionUtils.isNotEmpty(detailList)) {
+            pharmacyId = detailList.get(0).getPharmacyId();
+        }
         validateDetailVO.getRecipeDetails().forEach(a -> {
             a.setPharmacyId(null);
             a.setPharmacyName(null);
             a.setPharmacyCode(null);
         });
+        validateDetailVO.setPharmacyId(pharmacyId);
         return recipeDetailService.continueRecipeValidateDrug(validateDetailVO);
     }
 
