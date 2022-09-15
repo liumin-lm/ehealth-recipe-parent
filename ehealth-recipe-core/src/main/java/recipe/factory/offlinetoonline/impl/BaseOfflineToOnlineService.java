@@ -519,6 +519,7 @@ public class BaseOfflineToOnlineService {
             throw new DAOException(DAOException.DAO_NOT_FOUND, "没有查询到来自医院的处方单,请刷新页面！");
         }
         if (!UserRoleToken.getCurrent().getOwnMpiId().equals(recipe.getMpiid())) {
+            LOGGER.info("UserRoleToken.getCurrent().getOwnMpiId():{}",UserRoleToken.getCurrent().getOwnMpiId());
             if(hisRecipe!=null && HisRecipeConstant.HISRECIPESTATUS_ALREADYIDEAL.equals(hisRecipe.getStatus())){
                 throw new DAOException(609, "该处方单已被他人处理！");
             }
