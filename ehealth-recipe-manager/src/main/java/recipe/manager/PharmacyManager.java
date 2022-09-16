@@ -147,21 +147,25 @@ public class PharmacyManager extends BaseManager {
      *
      * @param organId           机构id
      * @param organDrugCodeList 机构药品code
+     * @param pharmacy          前端指定药房
      * @return
      */
     public PharmacyTcm organDrugPharmacyId(Integer organId, Integer recipeType, List<String> organDrugCodeList, Integer pharmacy) {
         //判断机构药房
         List<PharmacyTcm> pharmacys = pharmacyTcmDAO.findByOrganId(organId);
-        logger.info("PharmacyManager organDrugPharmacyId pharmacys:{}", JSON.toJSONString(pharmacys));
+        logger.info("PharmacyManager organDrugPharmacyId pharmacys:{}，pharmacy:{}", JSON.toJSONString(pharmacys), pharmacy);
         if (CollectionUtils.isEmpty(pharmacys)) {
             return null;
         }
         //判断机构药房-药房支持的处方类型
         String recipeTypeText = RecipeTypeEnum.getRecipeType(recipeType);
         List<PharmacyTcm> pharmacyTypes = pharmacys.stream().filter(a -> Arrays.asList(a.getPharmacyCategray().split(ByteUtils.COMMA)).contains(recipeTypeText)).collect(Collectors.toList());
-        logger.info("PharmacyManager organDrugPharmacyId pharmacyTypes = {},recipeTypeText={}", JSON.toJSONString(pharmacyTypes), recipeTypeText);
         if (CollectionUtils.isEmpty(pharmacyTypes)) {
             return null;
+        }
+        Map<Integer, PharmacyTcm> pharmacyIdMap = pharmacyTypes.stream().collect(Collectors.toMap(PharmacyTcm::getPharmacyId, a -> a, (k1, k2) -> k1));
+        if (null != pharmacyIdMap.get(pharmacy)) {
+            return pharmacyIdMap.get(pharmacy);
         }
         //获取机构药品药房
         List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugCodes(organId, organDrugCodeList);
@@ -173,8 +177,6 @@ public class PharmacyManager extends BaseManager {
         List<String> pharmacyIds = pharmacyList.stream().map(a -> Arrays.asList(a.split(ByteUtils.COMMA))).flatMap(Collection::stream).collect(Collectors.toList());
         Map<String, List<String>> pharmacyMap = pharmacyIds.stream().collect(Collectors.groupingBy(String::valueOf));
         logger.info("PharmacyManager organDrugPharmacyId pharmacyMap:{}", JSON.toJSONString(pharmacyMap));
-        Map<Integer, PharmacyTcm> pharmacyIdMap = pharmacyTypes.stream().collect(Collectors.toMap(PharmacyTcm::getPharmacyId, a -> a, (k1, k2) -> k1));
-        logger.info("PharmacyManager organDrugPharmacyId pharmacyIdMap:{}", JSON.toJSONString(pharmacyIdMap));
         int i = 0;
         int pharmacyId = 0;
         for (String key : pharmacyMap.keySet()) {
