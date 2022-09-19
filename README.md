@@ -46,6 +46,8 @@ getPatientRecipeById 患者端处方详情
 购药方式保存：StockBusinessService saveGiveMode
 医生二次签名/审核强制通过 doSecondSignRecipe
 医生端设置购药方式：validateRecipeGiveMode
+机构药品目录药品上传监管平台：uploadDrugToRegulation
+批量同步机构药品到监管平台：uploadOrgansDrugToRegulation
 ```
 ```
 关于机构药品目录同步流程及接口描述：
