@@ -698,6 +698,12 @@ public class DrugToolService implements IDrugToolService {
                         LOGGER.error("是否基药有误 ," + e.getMessage(), e);
                         errMsg.append("是否基药有误").append(";");
                     }
+                }else{
+                    if (("是").equals(getStrFromCell(row.getCell(30)))) {
+                        drug.setBaseDrug(1);
+                    } else if (("否").equals(getStrFromCell(row.getCell(30)))) {
+                        drug.setBaseDrug(0);
+                    }
                 }
                 try {
                     if (!StringUtils.isEmpty(getStrFromCell(row.getCell(31)))) {
