@@ -747,20 +747,8 @@ public class RecipeOrderService extends RecipeBaseService {
             totalFee = order.getTotalFee();
         }
         //计算优惠券价格
-        ICouponBaseService couponService = AppContextHolder.getBean("voucher.couponBaseService", ICouponBaseService.class);
         if (isUsefulCoupon(order.getCouponId())) {
-            Coupon coupon = couponService.lockCouponById(order.getCouponId(), order.getTotalFee());
-            LOGGER.info("RecipeOrderService use coupon , coupon info: {}.", JSONUtils.toString(coupon));
-            if (coupon != null) {
-                order.setCouponName(coupon.getCouponName());
-                order.setCouponFee(coupon.getDiscountAmount());
-                order.setCouponDesc(coupon.getCouponDesc());
-            }
-            if (totalFee.compareTo(order.getCouponFee()) > -1) {
-                order.setActualPrice(totalFee.subtract(order.getCouponFee()).doubleValue());
-            } else {
-                order.setActualPrice(totalFee.doubleValue());
-            }
+            orderFeeManager.setCouponFee(order,firstRecipe);
         } else {
             if (payMode != RecipeBussConstant.PAYMODE_ONLINE && !RecipeServiceSub.isJSOrgan(order.getOrganId())) {
 

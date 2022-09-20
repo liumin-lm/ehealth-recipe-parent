@@ -9,6 +9,7 @@ import com.ngari.his.visit.mode.NeedPaymentRecipeReqTo;
 import com.ngari.his.visit.mode.NeedPaymentRecipeResTo;
 import com.ngari.recipe.dto.PatientDTO;
 import com.ngari.recipe.entity.*;
+import coupon.api.request.CouponCalcReq;
 import coupon.api.vo.Coupon;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
@@ -20,10 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.aop.LogRecord;
-import recipe.client.ConsultClient;
-import recipe.client.PatientClient;
-import recipe.client.PayClient;
-import recipe.client.RecipeRedisClient;
+import recipe.client.*;
 import recipe.constant.ParameterConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeRefundRoleConstant;
@@ -56,8 +54,6 @@ public class OrderFeeManager extends BaseManager {
     @Autowired
     private RecipeRedisClient recipeRedisClient;
     @Autowired
-    private PayClient payClient;
-    @Autowired
     private ConsultClient consultClient;
     @Autowired
     private PatientClient patientClient;
@@ -69,6 +65,8 @@ public class OrderFeeManager extends BaseManager {
     private EnterpriseAddressDAO enterpriseAddressDAO;
     @Autowired
     private RecipeRefundDAO recipeRefundDAO;
+    @Autowired
+    private CouponClient couponClient;
 
     @LogRecord
     public void setSHWFAccountFee(RecipeOrder order) {
@@ -487,14 +485,22 @@ public class OrderFeeManager extends BaseManager {
      *
      * @param order
      */
-    public void setCouponFee(RecipeOrder order) {
-        Coupon coupon = payClient.getCouponById(order.getCouponId(), order.getTotalFee());
+    public void setCouponFee(RecipeOrder order, Recipe recipe) {
+        if (null == order.getCouponId() || order.getCouponId() <= 0) {
+            return;
+        }
+        CouponCalcReq couponCalcReq = CouponCalcReq.builder().couponId(order.getCouponId()).departId(recipe.getDepart()).doctorId(recipe.getDoctor())
+                .drugsEnterpriseId(order.getEnterpriseId()).orderAmount(order.getTotalFee()).partAmount(order.getExpressFee())
+                .build();
+        Coupon coupon = couponClient.getCouponByRecipeOrder(couponCalcReq);
         if (null == coupon) {
             return;
         }
         order.setCouponName(coupon.getCouponName());
         order.setCouponFee(coupon.getDiscountAmount());
         order.setCouponDesc(coupon.getCouponDesc());
+        order.setActualPrice(order.getTotalFee().subtract(order.getCouponFee()).doubleValue());
+
     }
 
     /**
