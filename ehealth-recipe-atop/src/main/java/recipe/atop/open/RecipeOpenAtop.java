@@ -3,14 +3,9 @@ package recipe.atop.open;
 import com.alibaba.fastjson.JSONArray;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.patient.dto.DoctorDTO;
+import com.ngari.platform.recipe.mode.QueryRecipeInfoHisDTO;
 import com.ngari.recipe.dto.PatientDTO;
 import com.ngari.recipe.entity.*;
-import com.ngari.platform.recipe.mode.QueryRecipeInfoHisDTO;
-import com.ngari.recipe.vo.FastRecipeReq;
-import com.ngari.recipe.entity.FastRecipe;
-import com.ngari.recipe.entity.FastRecipeDetail;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.Symptom;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
 import com.ngari.recipe.recipe.model.RecipeBean;
@@ -332,9 +327,9 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
         recipe.setPayFlag(automatonVO.getPayFlag());
         recipe.setMedicalFlag(automatonVO.getMedicalFlag());
         //总条数
-        Long count = recipeBusinessService.automatonCount(automatonVO, recipe);
-        result.setTotal(count.intValue());
-        if (ValidateUtil.nullOrZeroLong(count)) {
+        Integer count = recipeBusinessService.automatonCount(automatonVO, recipe);
+        result.setTotal(count);
+        if (ValidateUtil.nullOrZeroInteger(count)) {
             return result;
         }
         //列表数据

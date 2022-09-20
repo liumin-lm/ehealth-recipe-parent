@@ -2,8 +2,6 @@ package recipe.core.api;
 
 import com.ngari.patient.dto.HealthCardDTO;
 import com.ngari.platform.recipe.mode.QueryRecipeInfoHisDTO;
-import com.ngari.recipe.entity.DoctorCommonPharmacy;
-import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.OutPatientRecipeDTO;
 import com.ngari.recipe.dto.OutPatientRecordResDTO;
@@ -319,7 +317,7 @@ public interface IRecipeBusinessService {
      * @param automatonVO
      * @return
      */
-    Long automatonCount(AutomatonVO automatonVO, Recipe recipe);
+    Integer automatonCount(AutomatonVO automatonVO, Recipe recipe);
 
     /**
      * 自助机查询接口

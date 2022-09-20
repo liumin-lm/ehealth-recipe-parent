@@ -4322,29 +4322,28 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         return action.getResult();
     }
 
-    public Long automatonCount(Recipe recipe, String startTime, String endTime, Integer terminalType,
-                               List<String> terminalIds, List<Integer> processState) {
-        HibernateStatelessResultAction<Long> action = new AbstractHibernateStatelessResultAction<Long>() {
+    public Integer countByAutomaton(Recipe recipe, String startTime, String endTime, Integer terminalType,
+                                    List<String> terminalIds, List<Integer> processState) {
+        HibernateStatelessResultAction<Integer> action = new AbstractHibernateStatelessResultAction<Integer>() {
             @Override
             public void execute(StatelessSession ss) {
-                String hql = createHqlBySearch(recipe, terminalType, terminalIds, processState, startTime, endTime);
-                Query query = ss.createQuery("select count(r.*) " + hql);
+                String sql = createHqlBySearch(recipe, terminalType, terminalIds, processState, startTime, endTime);
+                Query query = ss.createSQLQuery("select count(r.*) " + sql);
                 createQueryBySearch(query, recipe, terminalType, terminalIds, processState, startTime, endTime);
-                Long totalCount = (long) query.uniqueResult();
-                setResult(totalCount);
+                setResult(null == query.uniqueResult() ? 0 : ((Number) query.uniqueResult()).intValue());
             }
         };
         HibernateSessionTemplate.instance().executeReadOnly(action);
         return action.getResult();
     }
 
-    public List<Recipe> automatonList(Recipe recipe, String startTime, String endTime, Integer terminalType,
-                                      List<String> terminalIds, List<Integer> processState, Integer start, Integer limit) {
+    public List<Recipe> findAutomatonList(Recipe recipe, String startTime, String endTime, Integer terminalType,
+                                          List<String> terminalIds, List<Integer> processState, Integer start, Integer limit) {
         HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
             @Override
             public void execute(StatelessSession ss) {
-                String hql = createHqlBySearch(recipe, terminalType, terminalIds, processState, startTime, endTime);
-                Query query = ss.createQuery("select r.*" + hql);
+                String sql = createHqlBySearch(recipe, terminalType, terminalIds, processState, startTime, endTime);
+                Query query = ss.createSQLQuery("select r.*" + sql);
                 createQueryBySearch(query, recipe, terminalType, terminalIds, processState, startTime, endTime);
                 query.setFirstResult(start);
                 query.setMaxResults(limit);
@@ -4356,7 +4355,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     }
 
     private String createHqlBySearch(Recipe recipe, Integer terminalType, List<String> terminalIds, List<Integer> processState, String startTime, String endTime) {
-        StringBuffer hql = new StringBuffer("from cdr_recipe r INNER JOIN cdr_recipe_ext re ON r.RecipeID = re.recipeId  WHERE 1=1 ");
+        StringBuilder hql = new StringBuilder("from cdr_recipe r INNER JOIN cdr_recipe_ext re ON r.RecipeID = re.recipeId  WHERE 1=1 ");
         if (ValidateUtil.notNullAndZeroInteger(recipe.getClinicOrgan())) {
             hql.append(" and r.ClinicOrgan = :clinicOrgan");
         }

@@ -1080,7 +1080,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
 
 
     @Override
-    public Long automatonCount(AutomatonVO automaton, Recipe recipe) {
+    public Integer automatonCount(AutomatonVO automaton, Recipe recipe) {
         return recipeManager.automatonCount(recipe, automaton.getStartTime(), automaton.getEndTime(), automaton.getTerminalType(),
                 automaton.getTerminalIds(), automaton.getProcessStateList());
     }

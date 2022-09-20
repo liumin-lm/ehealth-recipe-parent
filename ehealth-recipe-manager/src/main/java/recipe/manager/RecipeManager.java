@@ -917,9 +917,9 @@ public class RecipeManager extends BaseManager {
      * @param
      * @return
      */
-    public Long automatonCount(Recipe recipe, String startTime, String endTime, Integer terminalType,
-                               List<String> terminalId, List<Integer> processState) {
-        return recipeDAO.automatonCount(recipe, startTime, endTime, terminalType, terminalId, processState);
+    public Integer automatonCount(Recipe recipe, String startTime, String endTime, Integer terminalType,
+                                  List<String> terminalId, List<Integer> processState) {
+        return recipeDAO.countByAutomaton(recipe, startTime, endTime, terminalType, terminalId, processState);
     }
 
     /**
@@ -930,7 +930,7 @@ public class RecipeManager extends BaseManager {
      */
     public List<Recipe> automatonList(Recipe recipe, String startTime, String endTime, Integer terminalType,
                                       List<String> terminalId, List<Integer> processState, Integer start, Integer limit) {
-        return recipeDAO.automatonList(recipe, startTime, endTime, terminalType, terminalId, processState, start, limit);
+        return recipeDAO.findAutomatonList(recipe, startTime, endTime, terminalType, terminalId, processState, start, limit);
     }
 
 
