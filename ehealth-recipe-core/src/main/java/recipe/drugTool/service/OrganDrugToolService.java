@@ -139,7 +139,6 @@ public class OrganDrugToolService implements IOrganDrugToolService {
         }
         importDrugRecordDAO.save(importDrugRecord);
 
-        result.put("importDrugRecord",importDrugRecord);
         LOGGER.info(operator + "结束 readDrugExcel 方法" + System.currentTimeMillis() + "当前进程=" + Thread.currentThread().getName());
         result.put("code", 200);
         LOGGER.info("result={}",JSONUtils.toString(result));
@@ -284,7 +283,6 @@ public class OrganDrugToolService implements IOrganDrugToolService {
         }
         //否则正常读取数据
         else {
-            //TODO why 获取不到首行 先注释？？ over
             // 判断是否是模板
             if (rowIndex == 0) {
                 String drugCode = getStrFromCell(cells.get(0));
@@ -629,7 +627,7 @@ public class OrganDrugToolService implements IOrganDrugToolService {
                     if ((new Integer(3).equals(drug.getDrugType()))) {
                         DrugEntrust byOrganIdAndDrugEntrustName = drugEntrustDAO.getByOrganIdAndDrugEntrustName(organId, getStrFromCell(cells.get(27)));
                         if (byOrganIdAndDrugEntrustName != null) {
-                            drug.setDrugEntrust(byOrganIdAndDrugEntrustName.getDrugEntrustName().toString());
+                            drug.setDrugEntrust(byOrganIdAndDrugEntrustName.getDrugEntrustName());
                         } else {
                             validMsg.append("中药药品字典未找到该嘱托").append(";");
                         }
@@ -659,7 +657,7 @@ public class OrganDrugToolService implements IOrganDrugToolService {
             }
 
             //中药不需要设置
-//            if (!(new Integer(3).equals(drug.getDrugType()))) {
+            if (!(new Integer(3).equals(drug.getDrugType()))) {
                 try {
                     if (("是").equals(getStrFromCell(cells.get(30)))) {
                         drug.setBaseDrug(1);
@@ -674,7 +672,13 @@ public class OrganDrugToolService implements IOrganDrugToolService {
                     LOGGER.error("是否基药有误 ," + e.getMessage(), e);
                     validMsg.append("是否基药有误").append(";");
                 }
-//            }
+            }else{
+                if (("是").equals(getStrFromCell(cells.get(30)))) {
+                    drug.setBaseDrug(1);
+                } else if (("否").equals(getStrFromCell(cells.get(30)))) {
+                    drug.setBaseDrug(0);
+                }
+            }
             try {
                 if (!StringUtils.isEmpty(getStrFromCell(cells.get(31)))) {
                     if (("是").equals(getStrFromCell(cells.get(31)))) {
@@ -790,6 +794,23 @@ public class OrganDrugToolService implements IOrganDrugToolService {
             } catch (Exception e) {
                 LOGGER.error("SmallestSaleMultiple ," + e.getMessage(), e);
                 validMsg.append("SmallestSaleMultiple").append(";");
+            }
+
+            try {
+                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(40)))) {
+                    if (("是").equals(getStrFromCell(cells.get(40)))) {
+                        drug.setUnavailable(1);
+                    } else if (("否").equals(getStrFromCell(cells.get(40)))) {
+                        drug.setUnavailable(0);
+                    } else {
+                        validMsg.append("不可在线开具有误").append(";");
+                    }
+                }else{
+                    drug.setUnavailable(0);
+                }
+            } catch (Exception e) {
+                LOGGER.error("不可在线开具有误," + e.getMessage(), e);
+                validMsg.append("不可在线开具有误").append(";");
             }
 
             if (!ObjectUtils.isEmpty(organId)) {
