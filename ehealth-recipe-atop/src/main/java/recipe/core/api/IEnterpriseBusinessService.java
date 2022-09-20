@@ -25,14 +25,16 @@ import recipe.vo.second.enterpriseOrder.EnterpriseResultBean;
 import recipe.vo.second.enterpriseOrder.EnterpriseSendOrderVO;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 药企相关
  */
-public interface IDrugsEnterpriseBusinessService {
+public interface IEnterpriseBusinessService {
 
     /**
      * 根据名称查询药企是否存在
+     *
      * @param name 药企名称
      * @return 是否存在
      */
@@ -275,8 +277,11 @@ public interface IDrugsEnterpriseBusinessService {
 
     /**
      * 端多个药企获取配送地址 是否可配送
+     *
      * @param checkOrderAddressVo
      * @return
      */
     Integer checkSendAddressForEnterprises(CheckOrderAddressVo checkOrderAddressVo);
+
+    Map<Integer, DrugsEnterprise> findDrugsEnterpriseByIds(List<Integer> ids);
 }

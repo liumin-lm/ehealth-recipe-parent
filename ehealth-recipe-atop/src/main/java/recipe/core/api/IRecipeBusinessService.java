@@ -2,14 +2,14 @@ package recipe.core.api;
 
 import com.ngari.patient.dto.HealthCardDTO;
 import com.ngari.platform.recipe.mode.QueryRecipeInfoHisDTO;
-import com.ngari.recipe.entity.DoctorCommonPharmacy;
-import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.OutPatientRecipeDTO;
 import com.ngari.recipe.dto.OutPatientRecordResDTO;
+import com.ngari.recipe.entity.DoctorCommonPharmacy;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Symptom;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
+import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.vo.*;
 import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.enumerate.status.RecipeStateEnum;
@@ -18,8 +18,9 @@ import recipe.vo.doctor.PatientOptionalDrugVO;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.greenroom.DrugUsageLabelResp;
 import recipe.vo.patient.PatientOptionalDrugVo;
+import recipe.vo.second.AutomatonResultVO;
+import recipe.vo.second.AutomatonVO;
 import recipe.vo.second.MedicalDetailVO;
-import com.ngari.recipe.recipe.model.RecipeOutpatientPaymentDTO;
 import recipe.vo.second.RecipePayHISCallbackReq;
 
 import java.util.Date;
@@ -303,11 +304,29 @@ public interface IRecipeBusinessService {
 
     /**
      * 获取煎法关联服用要求
+     *
      * @param organId
      * @param decoctionId
      * @return
      */
     List<RequirementsForTakingVO> findRequirementsForTakingByDecoctionId(Integer organId, Integer decoctionId);
+
+    /**
+     * 自助机查询接口
+     *
+     * @param automatonVO
+     * @return
+     */
+    Integer automatonCount(AutomatonVO automatonVO, Recipe recipe);
+
+    /**
+     * 自助机查询接口
+     *
+     * @param automatonVO
+     * @return
+     */
+    List<AutomatonResultVO> automatonList(AutomatonVO automatonVO, Recipe recipe);
+
 
     /**
      * 根据处方id 获取处方详细信息

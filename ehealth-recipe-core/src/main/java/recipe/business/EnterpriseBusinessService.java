@@ -44,7 +44,7 @@ import recipe.client.PatientClient;
 import recipe.constant.ErrorCode;
 import recipe.constant.RecipeMsgEnum;
 import recipe.constant.RecipeStatusConstant;
-import recipe.core.api.IDrugsEnterpriseBusinessService;
+import recipe.core.api.IEnterpriseBusinessService;
 import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.enumerate.status.*;
@@ -88,7 +88,7 @@ import java.util.stream.Collectors;
  * @date： 2021-12-08 18:58
  */
 @Service
-public class EnterpriseBusinessService extends BaseService implements IDrugsEnterpriseBusinessService {
+public class EnterpriseBusinessService extends BaseService implements IEnterpriseBusinessService {
     @Autowired
     private EnterpriseManager enterpriseManager;
     @Autowired
@@ -760,8 +760,6 @@ public class EnterpriseBusinessService extends BaseService implements IDrugsEnte
 
     @Override
     public Integer checkSendAddressForEnterprises(CheckOrderAddressVo checkOrderAddressVo) {
-        EnterpriseAddressDAO enterpriseAddressDAO = DAOFactory.getDAO(EnterpriseAddressDAO.class);
-        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         //查询对应药企配送的地址
         //没有子订单而且配送药企为空，则提示
         if (CollectionUtils.isEmpty(checkOrderAddressVo.getEnterpriseIds())) {
@@ -783,7 +781,15 @@ public class EnterpriseBusinessService extends BaseService implements IDrugsEnte
 
     }
 
-    private Integer getEnterpriseSendFlag(DrugsEnterprise enterprise,CheckOrderAddressVo checkOrderAddressVo){
+    @Override
+    public Map<Integer, DrugsEnterprise> findDrugsEnterpriseByIds(List<Integer> ids) {
+        logger.info("EnterpriseBusinessService findDrugsEnterpriseByIds ids :{}", JSON.toJSONString(ids));
+        List<DrugsEnterprise> enterprises = drugsEnterpriseDAO.findByIdIn(ids);
+        return Optional.ofNullable(enterprises).orElseGet(Collections::emptyList)
+                .stream().collect(Collectors.toMap(DrugsEnterprise::getId, a -> a, (k1, k2) -> k1));
+    }
+
+    private Integer getEnterpriseSendFlag(DrugsEnterprise enterprise, CheckOrderAddressVo checkOrderAddressVo) {
         Integer flag = 0;
 
         if (enterprise != null && enterprise.getOrderType() == 0) {
