@@ -288,7 +288,7 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
                 //总金额
                 Double zje = attr.get("zje") != null ? ConversionUtils.convert(attr.get("zje"), Double.class) : ConversionUtils.convert(ysbody.get("zje"), Double.class);
                 //舍入金额
-                Double abandonAmount = attr.get("srje") != null ? ConversionUtils.convert(attr.get("srje"), Double.class) : 0.0;
+                Double abandonAmount = ysbody.get("srje") != null ? ConversionUtils.convert(ysbody.get("srje"), Double.class) : 0.0;
                 logger.info("收银台返回的总金额:{},舍入金额:{}", zje, abandonAmount);
                 //计算舍入金额
                 try {
