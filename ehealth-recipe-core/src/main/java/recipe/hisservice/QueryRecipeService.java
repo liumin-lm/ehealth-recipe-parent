@@ -16,6 +16,7 @@ import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.OrganDrugChangeBean;
+import com.ngari.platform.recipe.mode.QueryRecipeInfoHisDTO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.dto.EmrDetailDTO;
@@ -36,6 +37,7 @@ import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import eh.base.constant.ErrorCode;
 import eh.cdr.api.service.IDocIndexService;
+import eh.utils.BeanCopyUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -195,6 +197,11 @@ public class QueryRecipeService implements IQueryRecipeService {
         List<RegulationRecipeIndicatorsDTO> result = ObjectCopyUtils.convert(request, RegulationRecipeIndicatorsDTO.class);
         LOGGER.info("queryRegulationRecipeData data={}", JSONUtils.toString(result));
         return result;
+    }
+
+    public QueryRecipeInfoHisDTO getRecipeDetailData(List<Recipedetail> details, Recipe recipe, PatientBean patient){
+        QueryRecipeInfoDTO queryRecipeInfoDTO = splicingBackData(details, recipe, patient, null);
+        return BeanCopyUtils.copyProperties(queryRecipeInfoDTO,QueryRecipeInfoHisDTO::new);
     }
 
     /**

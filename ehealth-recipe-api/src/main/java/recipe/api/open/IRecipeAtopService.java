@@ -1,6 +1,7 @@
 package recipe.api.open;
 
 import com.ngari.common.mode.HisResponseTO;
+import com.ngari.platform.recipe.mode.QueryRecipeInfoHisDTO;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
 import com.ngari.recipe.recipe.model.RecipeBean;
@@ -243,6 +244,15 @@ public interface IRecipeAtopService {
      */
     @RpcService
     FastRecipeVO getFastRecipeById(Integer id);
+
+    /**
+     * 根据处方id获取处方详情
+     *
+     * @param recipeIds
+     * @return
+     */
+    @RpcService
+    List<QueryRecipeInfoHisDTO> findRecipeByIds(List<Integer> recipeIds);
 
 
 }

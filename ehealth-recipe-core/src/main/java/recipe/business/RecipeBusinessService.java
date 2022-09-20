@@ -3,6 +3,8 @@ package recipe.business;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.google.common.collect.Lists;
+import com.ngari.base.patient.model.PatientBean;
+import com.ngari.base.patient.service.IPatientService;
 import com.ngari.follow.utils.ObjectCopyUtil;
 import com.ngari.his.recipe.mode.OutPatientRecipeReq;
 import com.ngari.his.recipe.mode.OutRecipeDetailReq;
@@ -12,6 +14,7 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.dto.*;
 import com.ngari.patient.service.IUsePathwaysService;
 import com.ngari.patient.service.IUsingRateService;
+import com.ngari.platform.recipe.mode.QueryRecipeInfoHisDTO;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
@@ -51,6 +54,7 @@ import recipe.enumerate.status.*;
 import recipe.enumerate.type.BussSourceTypeEnum;
 import recipe.enumerate.type.PayFlagEnum;
 import recipe.enumerate.type.PayFlowTypeEnum;
+import recipe.hisservice.QueryRecipeService;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.manager.*;
 import recipe.presettle.RecipeOrderTypeEnum;
@@ -862,6 +866,30 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     @Override
     public List<RequirementsForTakingVO> findRequirementsForTakingByDecoctionId(Integer organId, Integer decoctionId) {
         return ObjectCopyUtils.convert(recipeManager.findRequirementsForTakingByDecoctionId(organId,decoctionId),RequirementsForTakingVO.class);
+    }
+
+    @Override
+    @LogRecord
+    public List<QueryRecipeInfoHisDTO> findRecipeByIds(List<Integer> recipeIds) {
+        if (CollectionUtils.isEmpty(recipeIds)) {
+            throw new DAOException("处方序号不能为空");
+        }
+
+        IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
+        QueryRecipeService remoteQueryRecipeService = AppContextHolder.getBean("remoteQueryRecipeService", QueryRecipeService.class);
+
+        List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIds);
+        if (CollectionUtils.isEmpty(recipes)) {
+            throw new DAOException("查询处方信息不存在");
+        }
+        PatientBean patientBean = iPatientService.get(recipes.get(0).getMpiid());
+        List<QueryRecipeInfoHisDTO> recipeInfoHisDTOS = recipes.stream().map(recipe -> {
+            List<Recipedetail> details = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
+            QueryRecipeInfoHisDTO infoDTO = remoteQueryRecipeService.getRecipeDetailData(details, recipe, patientBean);
+            return infoDTO;
+        }).collect(Collectors.toList());
+        //拼接返回数据
+        return recipeInfoHisDTOS;
     }
 
     @Override

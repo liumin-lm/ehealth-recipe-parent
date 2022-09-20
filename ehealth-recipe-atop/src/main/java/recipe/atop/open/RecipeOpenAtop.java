@@ -2,6 +2,7 @@ package recipe.atop.open;
 
 import com.alibaba.fastjson.JSONArray;
 import com.ngari.common.mode.HisResponseTO;
+import com.ngari.platform.recipe.mode.QueryRecipeInfoHisDTO;
 import com.ngari.recipe.vo.FastRecipeReq;
 import com.ngari.recipe.entity.FastRecipe;
 import com.ngari.recipe.entity.FastRecipeDetail;
@@ -214,6 +215,12 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
             fastRecipeVO.setFastRecipeDetailList(BeanCopyUtils.copyList(fastRecipeDetailList, FastRecipeDetailVO::new));
         }
         return fastRecipeVO;
+    }
+
+    @Override
+    public List<QueryRecipeInfoHisDTO> findRecipeByIds(List<Integer> recipeIds) {
+        validateAtop(recipeIds);
+        return recipeBusinessService.findRecipeByIds(recipeIds);
     }
 
     @Override

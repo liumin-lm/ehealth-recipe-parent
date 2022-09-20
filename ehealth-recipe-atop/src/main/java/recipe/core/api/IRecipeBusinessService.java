@@ -1,6 +1,7 @@
 package recipe.core.api;
 
 import com.ngari.patient.dto.HealthCardDTO;
+import com.ngari.platform.recipe.mode.QueryRecipeInfoHisDTO;
 import com.ngari.recipe.entity.DoctorCommonPharmacy;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.dto.DiseaseInfoDTO;
@@ -307,4 +308,11 @@ public interface IRecipeBusinessService {
      * @return
      */
     List<RequirementsForTakingVO> findRequirementsForTakingByDecoctionId(Integer organId, Integer decoctionId);
+
+    /**
+     * 根据处方id 获取处方详细信息
+     * @param recipeIds
+     * @return
+     */
+    List<QueryRecipeInfoHisDTO> findRecipeByIds(List<Integer> recipeIds);
 }
