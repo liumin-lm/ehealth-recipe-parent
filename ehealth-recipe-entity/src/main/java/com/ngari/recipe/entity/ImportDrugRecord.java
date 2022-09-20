@@ -85,6 +85,7 @@ public class ImportDrugRecord implements java.io.Serializable {
         this.status = status;
     }
 
+    @Column(name = "file_id")
     public String getFileId() {
         return fileId;
     }
