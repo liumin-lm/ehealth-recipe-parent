@@ -69,10 +69,7 @@ import recipe.vo.doctor.PharmacyTcmVO;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.greenroom.DrugUsageLabelResp;
 import recipe.vo.patient.PatientOptionalDrugVo;
-import recipe.vo.second.EmrConfigVO;
-import recipe.vo.second.MedicalDetailVO;
-import com.ngari.recipe.recipe.model.RecipeOutpatientPaymentDTO;
-import recipe.vo.second.RecipePayHISCallbackReq;
+import recipe.vo.second.*;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -155,8 +152,6 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     private RecipeBeforeOrderDAO recipeBeforeOrderDAO;
     @Autowired
     private DrugsEnterpriseDAO drugsEnterpriseDAO;
-    @Autowired
-    private RequirementsForTakingDao requirementsForTakingDao;
     @Autowired
     private RecipeAuditClient recipeAuditClient;
 
@@ -1084,32 +1079,61 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     }
 
 
+    @Override
+    public Integer automatonCount(AutomatonVO automaton, Recipe recipe) {
+        return recipeManager.automatonCount(recipe, automaton.getStartTime(), automaton.getEndTime(), automaton.getTerminalType(),
+                automaton.getTerminalIds(), automaton.getProcessStateList());
+    }
+
+    @Override
+    public List<AutomatonResultVO> automatonList(AutomatonVO automaton, Recipe recipe) {
+        List<Recipe> recipeList = recipeManager.automatonList(recipe, automaton.getStartTime(), automaton.getEndTime(), automaton.getTerminalType(),
+                automaton.getTerminalIds(), automaton.getProcessStateList(), automaton.getStart(), automaton.getLimit());
+        if (CollectionUtils.isEmpty(recipeList)) {
+            return null;
+        }
+        List<Integer> recipeIds = recipeList.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
+        List<RecipeExtend> recipeExtendList = recipeExtendDAO.queryRecipeExtendByRecipeIds(recipeIds);
+        Map<Integer, RecipeExtend> recipeExtendMap = recipeExtendList.stream().collect(Collectors.toMap(RecipeExtend::getRecipeId, a -> a, (k1, k2) -> k1));
+        List<AutomatonResultVO> list = new ArrayList<>();
+        recipeList.forEach(a -> {
+            AutomatonResultVO automatonVO = ObjectCopyUtils.convert(a, AutomatonResultVO.class);
+            RecipeExtend recipeExtend = recipeExtendMap.get(automatonVO.getRecipeId());
+            if (null != recipeExtend) {
+                automatonVO.setTerminalId(recipeExtend.getTerminalId());
+            }
+            list.add(automatonVO);
+        });
+        return list;
+    }
+
 
     /**
      * 保存订单his支付回调信息
+     *
      * @param order
      * @param recipePayHISCallbackReq
      */
     private void saveOrderByPayCallBack(RecipeOrder order, RecipePayHISCallbackReq recipePayHISCallbackReq) {
-        if(Objects.nonNull(recipePayHISCallbackReq.getSettleMode())){
+        if (Objects.nonNull(recipePayHISCallbackReq.getSettleMode())) {
             order.setSettleMode(recipePayHISCallbackReq.getSettleMode());
         }
-        if(Objects.nonNull(recipePayHISCallbackReq.getPreSettleTotalAmount())){
+        if (Objects.nonNull(recipePayHISCallbackReq.getPreSettleTotalAmount())) {
             order.setPreSettletotalAmount(recipePayHISCallbackReq.getPreSettleTotalAmount().doubleValue());
         }
-        if(Objects.nonNull(recipePayHISCallbackReq.getCashAmount())){
+        if (Objects.nonNull(recipePayHISCallbackReq.getCashAmount())) {
             order.setCashAmount(recipePayHISCallbackReq.getCashAmount().doubleValue());
         }
-        if(Objects.nonNull(recipePayHISCallbackReq.getFundAmount())){
+        if (Objects.nonNull(recipePayHISCallbackReq.getFundAmount())) {
             order.setFundAmount(recipePayHISCallbackReq.getFundAmount().doubleValue());
         }
-        if(StringUtils.isNotEmpty(recipePayHISCallbackReq.getHisSettlementNo())){
+        if (StringUtils.isNotEmpty(recipePayHISCallbackReq.getHisSettlementNo())) {
             order.setHisSettlementNo(recipePayHISCallbackReq.getHisSettlementNo());
         }
-        if(StringUtils.isNotEmpty(recipePayHISCallbackReq.getOutTradeNo())){
+        if (StringUtils.isNotEmpty(recipePayHISCallbackReq.getOutTradeNo())) {
             order.setOutTradeNo(recipePayHISCallbackReq.getOutTradeNo());
         }
-        if(StringUtils.isNotEmpty(recipePayHISCallbackReq.getTradeNo())){
+        if (StringUtils.isNotEmpty(recipePayHISCallbackReq.getTradeNo())) {
             order.setTradeNo(recipePayHISCallbackReq.getTradeNo());
         }
         recipeOrderDAO.update(order);

@@ -199,7 +199,8 @@ public class DrugsEnterpriseBean implements Serializable {
     @ItemProperty(alias = "第三方物流页面链接")
     private String showLogisticsLink;
 
-    @ItemProperty(alias = "药企所属商户： 0：普通药企, 1:印象智能, 2:金投云药房")
+    @ItemProperty(alias = "药企所属商户")
+    @Dictionary(id = "eh.cdr.dictionary.MerchantType")
     private Integer merchantType;
 
     @ItemProperty(alias = "优先级")

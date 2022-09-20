@@ -1,10 +1,12 @@
 package recipe.core.api;
 
+import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.recipe.dto.GiveModeButtonDTO;
 import com.ngari.recipe.recipe.model.GiveModeButtonBean;
 import recipe.vo.second.OrganVO;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 机构相关服务
@@ -75,8 +77,17 @@ public interface IOrganBusinessService {
 
     /**
      * 返回订单支付状态
+     *
      * @param orderId
      * @return
      */
     Integer getOrderPayFlag(Integer orderId);
+
+    /**
+     * 获取医生信息
+     *
+     * @param doctorIds
+     * @return
+     */
+    Map<Integer, DoctorDTO> findByDoctorIds(List<Integer> doctorIds);
 }

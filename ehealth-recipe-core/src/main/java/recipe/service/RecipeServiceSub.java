@@ -270,25 +270,26 @@ public class RecipeServiceSub {
                     RevisitExDTO revisitExDTO = iRevisitExService.getByConsultId(recipeBean.getClinicId());
                     HosRecordDTO hosRecordDTO = iRevisitHosRecordService.getByConsultId(recipeBean.getClinicId());
                     LOGGER.info("iRevisitExService.getByConsultId:{}", JSONUtils.toString(revisitExDTO));
-
-                    //设置处方入口类型
-                    String sourceTag = Objects.isNull(revisitBean.getSourceTag()) ? "" : revisitBean.getSourceTag();
-                    LOGGER.info("iRevisitExService.getByConsultId sourceTag={}", sourceTag);
-                    switch (sourceTag) {
-                        case REVISIT_SOURCE_BJGY:
-                            recipe.setFastRecipeFlag(1);
-                            break;
-                        case REVISIT_SOURCE_YZSQ:
-                            recipe.setFastRecipeFlag(2);
-                            break;
-                        case REVISIT_SOURCE_YJXF:
-                            recipe.setFastRecipeFlag(3);
-                            break;
-                        default:
-                            recipe.setFastRecipeFlag(0);
-                            break;
+                    if (Objects.nonNull(revisitBean)) {
+                        //设置处方入口类型
+                        String sourceTag = Objects.isNull(revisitBean.getSourceTag()) ? "" : revisitBean.getSourceTag();
+                        LOGGER.info("iRevisitExService.getByConsultId sourceTag={}", sourceTag);
+                        switch (sourceTag) {
+                            case REVISIT_SOURCE_BJGY:
+                                recipe.setFastRecipeFlag(1);
+                                break;
+                            case REVISIT_SOURCE_YZSQ:
+                                recipe.setFastRecipeFlag(2);
+                                break;
+                            case REVISIT_SOURCE_YJXF:
+                                recipe.setFastRecipeFlag(3);
+                                break;
+                            default:
+                                recipe.setFastRecipeFlag(0);
+                                break;
+                        }
+                        recipeDAO.update(recipe);
                     }
-                    recipeDAO.update(recipe);
 
                     if (null != revisitExDTO) {
                         recipeExtend.setCardNo(revisitExDTO.getCardId());

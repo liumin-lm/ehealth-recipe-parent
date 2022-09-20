@@ -4,6 +4,8 @@ import com.alibaba.fastjson.JSON;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import recipe.client.DoctorClient;
+import recipe.client.IConfigurationClient;
 import recipe.manager.OrganManager;
 
 import java.util.LinkedList;
@@ -19,6 +21,10 @@ import java.util.concurrent.TimeUnit;
 public class BaseService {
     @Autowired
     protected OrganManager organManager;
+    @Autowired
+    protected IConfigurationClient configurationClient;
+    @Autowired
+    protected DoctorClient doctorClient;
 
     protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 

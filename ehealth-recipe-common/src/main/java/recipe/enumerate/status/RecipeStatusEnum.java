@@ -10,9 +10,11 @@ import java.util.List;
 
 /**
  * 处方状态枚举
+ * 新：RecipeStateEnum
  *
  * @author fuzi
  */
+@Deprecated
 public enum RecipeStatusEnum {
     /**
      * 处方状态

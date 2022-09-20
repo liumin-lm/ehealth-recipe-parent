@@ -23,6 +23,7 @@ import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction
 import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcSupportDAO;
+import eh.utils.ValidateUtil;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -4319,7 +4320,104 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         };
         HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
-    };
+    }
+
+    public Integer countByAutomaton(Recipe recipe, String startTime, String endTime, Integer terminalType,
+                                    List<String> terminalIds, List<Integer> processState) {
+        HibernateStatelessResultAction<Integer> action = new AbstractHibernateStatelessResultAction<Integer>() {
+            @Override
+            public void execute(StatelessSession ss) {
+                String sql = createHqlBySearch(recipe, terminalType, terminalIds, processState, startTime, endTime);
+                Query query = ss.createSQLQuery("select count(r.*) " + sql);
+                createQueryBySearch(query, recipe, terminalType, terminalIds, processState, startTime, endTime);
+                setResult(null == query.uniqueResult() ? 0 : ((Number) query.uniqueResult()).intValue());
+            }
+        };
+        HibernateSessionTemplate.instance().executeReadOnly(action);
+        return action.getResult();
+    }
+
+    public List<Recipe> findAutomatonList(Recipe recipe, String startTime, String endTime, Integer terminalType,
+                                          List<String> terminalIds, List<Integer> processState, Integer start, Integer limit) {
+        HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
+            @Override
+            public void execute(StatelessSession ss) {
+                String sql = createHqlBySearch(recipe, terminalType, terminalIds, processState, startTime, endTime);
+                Query query = ss.createSQLQuery("select r.*" + sql);
+                createQueryBySearch(query, recipe, terminalType, terminalIds, processState, startTime, endTime);
+                query.setFirstResult(start);
+                query.setMaxResults(limit);
+                setResult(query.list());
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
+    private String createHqlBySearch(Recipe recipe, Integer terminalType, List<String> terminalIds, List<Integer> processState, String startTime, String endTime) {
+        StringBuilder hql = new StringBuilder("from cdr_recipe r INNER JOIN cdr_recipe_ext re ON r.RecipeID = re.recipeId  WHERE 1=1 ");
+        if (ValidateUtil.notNullAndZeroInteger(recipe.getClinicOrgan())) {
+            hql.append(" and r.ClinicOrgan = :clinicOrgan");
+        }
+        if (ValidateUtil.notNullAndZeroInteger(recipe.getRecipeId())) {
+            hql.append(" and r.RecipeID = :recipeId");
+        }
+        if (ValidateUtil.notNullAndZeroInteger(recipe.getPayFlag())) {
+            hql.append(" and r.PayFlag = :payFlag");
+        }
+        if (ValidateUtil.notNullAndZeroInteger(recipe.getMedicalFlag())) {
+            hql.append(" and r.medical_flag = :medicalFlag");
+        }
+        if (ValidateUtil.notNullAndZeroInteger(terminalType)) {
+            hql.append(" and re.terminal_type = :terminalType");
+        }
+        if (CollectionUtils.isNotEmpty(terminalIds)) {
+            hql.append(" and re.terminal_id in(:terminalIds)");
+        }
+        if (CollectionUtils.isNotEmpty(processState)) {
+            hql.append(" and r.process_state in(:processState)");
+        }
+        if (StringUtils.isNotEmpty(startTime)) {
+            hql.append(" and r.createDate >= :startTime");
+        }
+        if (StringUtils.isNotEmpty(endTime)) {
+            hql.append(" and r.createDate <= :endTime");
+        }
+        hql.append(" order by r.createDate desc ");
+        return hql.toString();
+    }
+
+    private void createQueryBySearch(Query query, Recipe recipe, Integer terminalType, List<String> terminalIds, List<Integer> processState, String startTime, String endTime) {
+        if (ValidateUtil.notNullAndZeroInteger(recipe.getClinicOrgan())) {
+            query.setParameter("clinicOrgan", recipe.getClinicOrgan());
+        }
+        if (ValidateUtil.notNullAndZeroInteger(recipe.getRecipeId())) {
+            query.setParameter("recipeId", recipe.getRecipeId());
+        }
+        if (ValidateUtil.notNullAndZeroInteger(recipe.getPayFlag())) {
+            query.setParameter("payFlag", recipe.getPayFlag());
+        }
+        if (ValidateUtil.notNullAndZeroInteger(recipe.getMedicalFlag())) {
+            query.setParameter("medicalFlag", recipe.getMedicalFlag());
+        }
+        if (ValidateUtil.notNullAndZeroInteger(terminalType)) {
+            query.setParameter("terminalType", terminalType);
+        }
+        if (CollectionUtils.isNotEmpty(terminalIds)) {
+            query.setParameterList("terminalIds", terminalIds);
+        }
+        if (CollectionUtils.isNotEmpty(processState)) {
+            query.setParameterList("processState", processState);
+        }
+        if (StringUtils.isNotEmpty(startTime)) {
+            query.setParameter("startTime", startTime);
+        }
+        if (StringUtils.isNotEmpty(endTime)) {
+            query.setParameter("endTime", endTime);
+        }
+    }
+
+
 }
 
 

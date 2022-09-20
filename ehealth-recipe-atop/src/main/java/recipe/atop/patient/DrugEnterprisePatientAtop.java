@@ -18,7 +18,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
-import recipe.core.api.IDrugsEnterpriseBusinessService;
+import recipe.core.api.IEnterpriseBusinessService;
 import recipe.core.api.IStockBusinessService;
 import recipe.util.ObjectCopyUtils;
 import recipe.util.RecipeUtil;
@@ -46,7 +46,7 @@ public class DrugEnterprisePatientAtop extends BaseAtop {
     @Autowired
     private IStockBusinessService iStockBusinessService;
     @Autowired
-    private IDrugsEnterpriseBusinessService enterpriseBusinessService;
+    private IEnterpriseBusinessService enterpriseBusinessService;
 
 
     /**

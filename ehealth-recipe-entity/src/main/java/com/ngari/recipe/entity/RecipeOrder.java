@@ -261,6 +261,9 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "处方预结算返回自费金额")
     private Double cashAmount;
 
+    @ItemProperty(alias = "舍入金额")
+    private BigDecimal abandonAmount;
+
     @ItemProperty(alias = "第三方支付类型，1 商保支付 2 预存金支付")
     private Integer thirdPayType;
 
@@ -1179,6 +1182,15 @@ public class RecipeOrder implements Serializable {
 
     public void setCashAmount(Double cashAmount) {
         this.cashAmount = cashAmount;
+    }
+
+    @Column(name = "abandon_amount")
+    public BigDecimal getAbandonAmount() {
+        return abandonAmount;
+    }
+
+    public void setAbandonAmount(BigDecimal abandonAmount) {
+        this.abandonAmount = abandonAmount;
     }
 
     @Column(name = "refundFlag")
