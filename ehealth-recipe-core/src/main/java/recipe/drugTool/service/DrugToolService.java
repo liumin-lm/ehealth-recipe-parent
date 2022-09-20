@@ -81,6 +81,7 @@ import recipe.util.DrugMatchUtil;
 import recipe.util.LocalStringUtil;
 import recipe.util.Md5Utils;
 import recipe.util.RedisClient;
+import recipe.vo.greenroom.ImportDrugRecordVO;
 
 import javax.annotation.Resource;
 import java.io.ByteArrayInputStream;
@@ -158,6 +159,8 @@ public class DrugToolService implements IDrugToolService {
     private DrugsEnterpriseDAO drugsEnterpriseDAO;
 
 
+
+
     private LoadingCache<String, List<DrugList>> drugListCache = CacheBuilder.newBuilder().expireAfterWrite(10, TimeUnit.MINUTES).build(new CacheLoader<String, List<DrugList>>() {
         @Override
         public List<DrugList> load(String str) throws Exception {
@@ -230,6 +233,7 @@ public class DrugToolService implements IDrugToolService {
     }
 
     @Override
+    @LogRecord
     public Map<String, Object> readDrugExcel(byte[] buf, String originalFilename, int organId, String operator) {
         LOGGER.info(operator + "开始 readDrugExcel 方法" + System.currentTimeMillis() + "当前进程=" + Thread.currentThread().getName());
         String key = organId + operator;
@@ -928,7 +932,11 @@ public class DrugToolService implements IDrugToolService {
     }
 
 
-    private void AutoMatch(DrugListMatch drug) {
+    /**
+     * 这段逻辑是   为什么不直接放automaticDrugMatch处理Status、MatchDrugId了
+     * @param drug
+     */
+    public void AutoMatch(DrugListMatch drug) {
         DrugList drugList = null;
         String addrArea = null;
         ProvinceDrugList provinceDrugList = null;
