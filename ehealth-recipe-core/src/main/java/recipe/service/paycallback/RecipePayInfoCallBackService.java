@@ -48,6 +48,7 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * created by shiyuping on 2021/1/25
@@ -286,6 +287,18 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
             if (ysbody != null) {
                 //总金额
                 Double zje = attr.get("zje") != null ? ConversionUtils.convert(attr.get("zje"), Double.class) : ConversionUtils.convert(ysbody.get("zje"), Double.class);
+                //舍入金额
+                Double abandonAmount = attr.get("srje") != null ? ConversionUtils.convert(attr.get("srje"), Double.class) : 0.0;
+                logger.info("收银台返回的总金额:{},舍入金额:{}", zje, abandonAmount);
+                //计算舍入金额
+                try {
+                    if (Objects.nonNull(zje) && Objects.nonNull(abandonAmount) && abandonAmount < 0.0) {
+                        attr.put("abandon_amount", new BigDecimal(abandonAmount));
+                        zje = zje + abandonAmount;
+                    }
+                } catch (Exception e) {
+                    logger.error("payCallBackParamAndUpdate 舍入金额计算错误 error", e);
+                }
                 attr.put("preSettleTotalAmount", zje);
 
                 //医保支付金额
