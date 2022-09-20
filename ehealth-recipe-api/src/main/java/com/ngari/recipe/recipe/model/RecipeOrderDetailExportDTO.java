@@ -77,6 +77,9 @@ public class RecipeOrderDetailExportDTO implements Serializable {
     @ItemProperty(alias = "运费")
     private BigDecimal expressFee;
 
+    @ItemProperty(alias = "优惠金额")
+    private BigDecimal couponFee;
+
     @ItemProperty(alias = "代煎费")
     private BigDecimal decoctionFee;
 
@@ -373,5 +376,13 @@ public class RecipeOrderDetailExportDTO implements Serializable {
 
     public void setRequestPatientName(String requestPatientName) {
         this.requestPatientName = requestPatientName;
+    }
+
+    public BigDecimal getCouponFee() {
+        return couponFee;
+    }
+
+    public void setCouponFee(BigDecimal couponFee) {
+        this.couponFee = couponFee;
     }
 }
