@@ -250,6 +250,8 @@ public class RecipeService extends RecipeBaseService {
     private OrganManager organManager;
     @Autowired
     private OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO;
+    @Autowired
+    private OrganConfigService organConfigService;
 
     /**
      * 药师审核不通过
@@ -2407,6 +2409,7 @@ public class RecipeService extends RecipeBaseService {
         map.put("Exception", 0);
         redisClient.del(KEY_THE_DRUG_SYNC + organId.toString());
         redisClient.set(KEY_THE_DRUG_SYNC + organId.toString(), map);
+        OrganConfigDTO byOrganId1 = organConfigService.getByOrganId(organId);
         //List<OrganDrugInfoTO> finalData = data;
         RecipeBusiThreadPool.execute(new Runnable() {
             @Override
@@ -2420,6 +2423,9 @@ public class RecipeService extends RecipeBaseService {
                 request.setData(Lists.newArrayList());
                 request.setDrcode(Lists.newArrayList());
                 request.setDrugItemCode(Lists.newArrayList());
+                if(byOrganId1!=null){
+                    request.setDrugDataSource(StringUtils.isEmpty(byOrganId1.getDrugDataSource())?"1":byOrganId1.getDrugDataSource());
+                }
                 try {
                     LOGGER.info("drugInfoSynMovement request={}", JSONUtils.toString(request));
                     responseTO = recipeHisService.queryOrganDrugInfo(request);
@@ -2699,6 +2705,7 @@ public class RecipeService extends RecipeBaseService {
         SimpleDateFormat myFmt2 = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         Map<String, Object> map = Maps.newHashMap();
         //List<OrganDrugInfoTO> finalData = data;
+        OrganConfigDTO byOrganId1 = organConfigService.getByOrganId(organId);
         IRecipeHisService recipeHisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         OrganDrugInfoResponseTO responseTO = new OrganDrugInfoResponseTO();
         OrganDrugInfoRequestTO request = new OrganDrugInfoRequestTO();
@@ -2707,6 +2714,9 @@ public class RecipeService extends RecipeBaseService {
         request.setData(Lists.newArrayList());
         request.setDrcode(Lists.newArrayList());
         request.setDrugItemCode(Lists.newArrayList());
+        if(byOrganId1!=null){
+            request.setDrugDataSource(StringUtils.isEmpty(byOrganId1.getDrugDataSource())?"1":byOrganId1.getDrugDataSource());
+        }
         try {
             responseTO = recipeHisService.queryOrganDrugInfo(request);
             LOGGER.info("drugInfoSynMovement request={}", JSONUtils.toString(request));
