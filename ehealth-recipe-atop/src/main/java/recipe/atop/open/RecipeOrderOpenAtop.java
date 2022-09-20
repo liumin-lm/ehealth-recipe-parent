@@ -195,4 +195,10 @@ public class RecipeOrderOpenAtop extends BaseAtop implements IRecipeOrderAtopSer
         return recipeOrderService.batchGetImperfectFlag(recipeBeans);
     }
 
+    @Override
+    public ImperfectInfoVO getImperfectInfo(com.ngari.recipe.recipe.model.RecipeBean recipeBean) {
+        validateAtop(recipeBean.getRecipeCode(),recipeBean.getClinicOrgan(),recipeBean.getMpiid());
+        return recipeOrderService.getImperfectInfo(recipeBean);
+    }
+
 }

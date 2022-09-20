@@ -3,7 +3,6 @@ package recipe.core.api.patient;
 
 import com.ngari.common.dto.CheckRequestCommonOrderPageDTO;
 import com.ngari.common.dto.SyncOrderVO;
-import com.ngari.platform.recipe.mode.RecipeBean;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.RecipeOrder;
@@ -192,8 +191,7 @@ public interface IRecipeOrderBusinessService {
 
     /**
      * 获取未完善或完善标识
-     * @param organId
-     * @param recipeCode
+     * @param recipeBean
      * @return
      */
     Integer getImperfectFlag(com.ngari.recipe.recipe.model.RecipeBean recipeBean);
@@ -233,4 +231,6 @@ public interface IRecipeOrderBusinessService {
     List<ImperfectInfoVO> batchGetImperfectFlag(List<com.ngari.recipe.recipe.model.RecipeBean> recipeBeans);
 
     String batchCheckSendAddressForOrder(List<CheckOrderAddressVo> checkOrderAddressVoList);
+
+    ImperfectInfoVO getImperfectInfo(RecipeBean recipeBean);
 }
