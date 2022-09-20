@@ -4328,7 +4328,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
             @Override
             public void execute(StatelessSession ss) {
                 String hql = createHqlBySearch(recipe, terminalType, terminalIds, processState, startTime, endTime);
-                Query query = ss.createQuery("select count(*) " + hql);
+                Query query = ss.createQuery("select count(r.*) " + hql);
                 createQueryBySearch(query, recipe, terminalType, terminalIds, processState, startTime, endTime);
                 Long totalCount = (long) query.uniqueResult();
                 setResult(totalCount);
@@ -4356,7 +4356,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     }
 
     private String createHqlBySearch(Recipe recipe, Integer terminalType, List<String> terminalIds, List<Integer> processState, String startTime, String endTime) {
-        StringBuffer hql = new StringBuffer("from Recipe r , RecipeExtend re WHERE r.recipeId=re.recipeId ");
+        StringBuffer hql = new StringBuffer("from cdr_recipe r INNER JOIN cdr_recipe_ext re ON r.RecipeID = re.recipeId  WHERE 1=1 ");
         if (ValidateUtil.notNullAndZeroInteger(recipe.getClinicOrgan())) {
             hql.append(" and r.ClinicOrgan = :clinicOrgan");
         }
