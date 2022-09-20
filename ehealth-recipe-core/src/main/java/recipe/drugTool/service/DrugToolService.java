@@ -816,6 +816,23 @@ public class DrugToolService implements IDrugToolService {
                     errMsg.append("SmallestSaleMultiple").append(";");
                 }
 
+                try {
+                    if (StringUtils.isNotEmpty(getStrFromCell(row.getCell(40)))) {
+                        if (("是").equals(getStrFromCell(row.getCell(40)))) {
+                            drug.setUnavailable(1);
+                        } else if (("否").equals(getStrFromCell(row.getCell(40)))) {
+                            drug.setUnavailable(0);
+                        } else {
+                            errMsg.append("不可在线开具有误").append(";");
+                        }
+                    }else{
+                        drug.setUnavailable(0);
+                    }
+                } catch (Exception e) {
+                    LOGGER.error("不可在线开具有误," + e.getMessage(), e);
+                    errMsg.append("不可在线开具有误").append(";");
+                }
+
                 if (!ObjectUtils.isEmpty(organId)) {
                     DrugSourcesDAO dao = DAOFactory.getDAO(DrugSourcesDAO.class);
                     List<DrugSources> byDrugSourcesId = dao.findByDrugSourcesId(organId);
@@ -1616,6 +1633,7 @@ public class DrugToolService implements IDrugToolService {
                         organDrugList.setSmallestSaleMultiple(drugListMatch.getSmallestSaleMultiple());
                         organDrugList.setAntiTumorDrugFlag(drugListMatch.getAntiTumorDrugFlag());
                         organDrugList.setAntiTumorDrugLevel(drugListMatch.getAntiTumorDrugLevel());
+                        organDrugList.setUnavailable(drugListMatch.getUnavailable());
                         //updateFlag为1时更新药品信息，否则不更新
                         //防止既更新又新增的时候把更新的数据又保存一编
                         boolean handleFlag = false; //数据操作标识
