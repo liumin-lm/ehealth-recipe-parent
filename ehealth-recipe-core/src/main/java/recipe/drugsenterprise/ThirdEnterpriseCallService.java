@@ -1500,7 +1500,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         StandardResultDTO result = new StandardResultDTO();
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        LOGGER.info("ThirdEnterpriseCallService.recipeDownloadConfirmation appKey:{}, recipeIds", appKey, JSONUtils.toString(recipeIds));
+        LOGGER.info("ThirdEnterpriseCallService.recipeDownloadConfirmation appKey:{}, recipeIds:{}", appKey, JSONUtils.toString(recipeIds));
         result.setCode(StandardResultDTO.SUCCESS);
         List<DrugsEnterprise> drugsEnterprises = drugsEnterpriseDAO.findByAppKey(appKey);
         if (drugsEnterprises == null) {

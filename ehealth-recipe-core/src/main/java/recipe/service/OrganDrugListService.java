@@ -1,5 +1,6 @@
 package recipe.service;
 
+import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.dto.UsePathwaysDTO;
@@ -622,8 +623,9 @@ public class OrganDrugListService implements IOrganDrugListService {
                     AppDomainContext.getBean("his.regulationService", IRegulationService.class);
             RegulationDrugCategoryReq drugCategoryReq = packingDrugCategoryReq(saveOrganDrugList);
             drugCategoryReqs.add(drugCategoryReq);
+            logger.info("uploadDrugToRegulation drugCategoryReqs:{}", JSON.toJSONString(drugCategoryReqs));
             HisResponseTO hisResponseTO = hisService.uploadDrugCatalogue(saveOrganDrugList.getOrganId(), drugCategoryReqs);
-            logger.info("hisResponseTO parames:" + JSONUtils.toString(hisResponseTO));
+            logger.info("hisResponseTO hisResponseTO:" + JSONUtils.toString(hisResponseTO));
         } catch (Exception e) {
             logger.error("上传药品到监管平台失败,{" + JSONUtils.toString(drugCategoryReqs) + "},{" + e.getMessage() + "}.", e);
         }
