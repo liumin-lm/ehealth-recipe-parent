@@ -1358,6 +1358,10 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                 imperfectInfoVO.setOrganId(recipeBeforeOrder.getOrganId());
                 imperfectInfoVO.setRecipeCode(recipeBeforeOrder.getRecipeCode());
                 imperfectInfoVO.setImperfectFlag(recipeBeforeOrder.getIsReady());
+                RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeBeforeOrder.getRecipeId());
+                if(recipeExtend != null){
+                    imperfectInfoVO.setRecipeCostNumber(recipeExtend.getRecipeCostNumber());
+                }
                 imperfectInfoVOS.add(imperfectInfoVO);
             });
         }
@@ -1369,6 +1373,13 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
             imperfectInfoVO.setOrganId(collectMap.get(a));
             imperfectInfoVO.setRecipeCode(a);
             imperfectInfoVO.setImperfectFlag(0);
+            Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(a, collectMap.get(a));
+            if(recipe != null){
+                RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+                if(recipeExtend != null){
+                    imperfectInfoVO.setRecipeCostNumber(recipeExtend.getRecipeCostNumber());
+                }
+            }
             imperfectInfoVOS.add(imperfectInfoVO);
         });
         logger.info("batchGetImperfectFlag imperfectInfoVOS={}",JSONUtils.toString(imperfectInfoVOS));
@@ -1399,5 +1410,21 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
         }else {
             return msg + "不支持本收获地址";
         }
+    }
+
+    @Override
+    public ImperfectInfoVO getImperfectInfo(RecipeBean recipeBean) {
+        ImperfectInfoVO imperfectInfoVO = new ImperfectInfoVO();
+        Integer imperfectFlag = getImperfectFlag(recipeBean);
+        imperfectInfoVO.setImperfectFlag(imperfectFlag);
+        Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeBean.getRecipeCode(), recipeBean.getClinicOrgan());
+        if(recipe != null){
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+            if(recipeExtend != null){
+                imperfectInfoVO.setRecipeCostNumber(recipeExtend.getRecipeCostNumber());
+            }
+        }
+        logger.info("RecipeOrderBusinessService getImperfectInfo ImperfectInfoVO={}",JSONUtils.toString(imperfectInfoVO));
+        return imperfectInfoVO;
     }
 }

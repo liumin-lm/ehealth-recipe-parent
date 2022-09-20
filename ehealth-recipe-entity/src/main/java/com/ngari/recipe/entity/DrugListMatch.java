@@ -227,6 +227,17 @@ public class DrugListMatch implements java.io.Serializable {
     @ItemProperty(alias = "抗肿瘤药物等级  1普通级 2限制级 ")
     private Integer antiTumorDrugLevel;
 
+    @ItemProperty(alias = "不可在线开具:开关，默认关闭(0),开启（1）")
+    private Integer unavailable;
+
+    public Integer getUnavailable() {
+        return unavailable;
+    }
+
+    public void setUnavailable(Integer unavailable) {
+        this.unavailable = unavailable;
+    }
+
     @Column(name = "anti_tumor_drug_flag")
     public Integer getAntiTumorDrugFlag() {
         return antiTumorDrugFlag;

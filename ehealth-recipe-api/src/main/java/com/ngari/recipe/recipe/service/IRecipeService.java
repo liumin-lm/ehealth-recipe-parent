@@ -396,6 +396,9 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     @RpcService
     List<RecipeDetailBean> findRecipeDetailsByRecipeId(Integer recipeId);
 
+    @RpcService
+    List<RecipeDetailBean> findRecipeDetailsByRecipeDetailIds(List<Integer> recipeDetailIds);
+
     /**
      * 查询药品id 根据处方id
      *

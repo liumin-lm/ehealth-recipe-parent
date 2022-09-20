@@ -20,4 +20,8 @@ public abstract class RecipeCommentDAO extends HibernateSupportDelegateDAO<Recip
 
     @DAOMethod(sql = " from RecipeComment where recipeId=:recipeId")
     public abstract List<RecipeComment> findRecipeCommentByRecipeId(@DAOParam("recipeId")Integer recipeId);
+
+    @DAOMethod(sql = " from RecipeComment where recipeId in (:recipeIds) order by id desc",limit = 0)
+    public abstract List<RecipeComment> findCommentByRecipeIds(@DAOParam("recipeIds")List<Integer> recipeIds);
+
 }

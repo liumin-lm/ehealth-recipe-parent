@@ -64,6 +64,15 @@ public abstract class RecipeDetailDAO extends
     public abstract List<Recipedetail> findByRecipeIds(@DAOParam("recipeIds") List<Integer> recipeIds);
 
     /**
+     * 根据主键id集合查询
+     *
+     * @param recipeIds
+     * @return
+     */
+    @DAOMethod(sql = "from Recipedetail where recipeDetailId in :recipeDetailIds and status=1", limit = 0)
+    public abstract List<Recipedetail> findByRecipeDetailIds(@DAOParam("recipeDetailIds") List<Integer> recipeDetailIds);
+
+    /**
      * 根据处方ID获取药品ID
      *
      * @param recipeId

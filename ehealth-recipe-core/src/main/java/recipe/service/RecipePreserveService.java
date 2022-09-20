@@ -159,10 +159,12 @@ public class RecipePreserveService {
      * @param organIds
      * @param mpiId
      * @param daysAgo
+     * @param organId
      * @Author liumin
      * @return
      */
-    public Map<String, Object> getAllHosRecipeList(Integer consultId, List<Integer> organIds, String mpiId, Integer daysAgo) {
+    public Map<String, Object> getAllHosRecipeList(Integer consultId, List<Integer> organIds, String mpiId, Integer daysAgo, Integer organId) {
+        long startTime = System.currentTimeMillis();
         LOGGER.info("getAllHosRecipeList consultId={}, organIds={},mpiId={}", consultId, JSONUtils.toString(organIds), mpiId);
         OrganService bean = AppContextHolder.getBean("basic.organService", OrganService.class);
         List<FutureTask<Map<String, Object> >> futureTasks = new ArrayList<FutureTask<Map<String, Object> >>();
@@ -205,6 +207,7 @@ public class RecipePreserveService {
         upderLineRecipesByHis.put("hisRecipe",hisRecipes);
         upderLineRecipesByHis.put("patient",patientVO);
         LOGGER.info("getAllHosRecipeList response:{}",JSONUtils.toString(upderLineRecipesByHis));
+        LOGGER.info("method-{} ,organId--{} ,耗时:{}ms ",  Thread.currentThread().getStackTrace()[1].getMethodName(),organId, System.currentTimeMillis() - startTime);
         return upderLineRecipesByHis;
     }
 
@@ -219,6 +222,7 @@ public class RecipePreserveService {
     @Deprecated
     @RpcService
     public Map<String, Object> getHosRecipeList(Integer consultId, Integer organId, String mpiId, Integer daysAgo) {
+        long startTime = System.currentTimeMillis();
         LOGGER.info("getHosRecipeList consultId={}, organId={},mpiId={}", consultId, organId, mpiId);
         PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
         HealthCardService healthCardService = ApplicationUtils.getBasicService(HealthCardService.class);
@@ -363,6 +367,7 @@ public class RecipePreserveService {
         }
         result.put("hisRecipe",recipes);
         result.put("patient",convertSensitivePatientForRAP(patientDTO));
+        LOGGER.info("method-{} ,organId--{} ,耗时:{}ms ",  Thread.currentThread().getStackTrace()[1].getMethodName(),organId, System.currentTimeMillis() - startTime);
         return result;
     }
 

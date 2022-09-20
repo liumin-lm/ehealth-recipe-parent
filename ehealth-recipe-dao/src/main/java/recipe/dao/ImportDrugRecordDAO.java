@@ -46,7 +46,7 @@ public abstract class ImportDrugRecordDAO extends HibernateSupportDelegateDAO<Im
         this.setKeyField("recordId");
     }
 
-    @DAOMethod(sql = "from ImportDrugRecord where organId =:organId",limit=0)
+    @DAOMethod(sql = "from ImportDrugRecord where organId =:organId order by createDt desc ",limit=0)
     public abstract List<ImportDrugRecord> findImportDrugRecordByOrganId(@DAOParam("organId") Integer organId);
 
 

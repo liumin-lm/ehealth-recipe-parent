@@ -1,5 +1,9 @@
 package recipe.comment;
 
+import com.google.common.collect.Lists;
+import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.recipe.comment.model.RecipeCommentTO;
+import com.ngari.recipe.comment.service.IRecipeCommentService;
 import com.ngari.recipe.entity.comment.RecipeComment;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -10,7 +14,7 @@ import java.util.Date;
 import java.util.List;
 
 @RpcBean
-public class RecipeCommentService {
+public class RecipeCommentService implements IRecipeCommentService {
 
     @Autowired
     private RecipeCommentDAO recipeCommentDAO;
@@ -34,5 +38,14 @@ public class RecipeCommentService {
             return list.get(0);
         }
         return null;
+    }
+
+    @Override
+    public List<RecipeCommentTO> findCommentByRecipeIds(List<Integer> recipeIds) {
+        if(recipeIds==null || recipeIds.size()==0){
+            return Lists.newArrayList();
+        }
+        List<RecipeComment> list = recipeCommentDAO.findCommentByRecipeIds(recipeIds);
+        return  ObjectCopyUtils.convert(list, RecipeCommentTO.class);
     }
 }

@@ -380,8 +380,13 @@ public class SaleDrugToolService implements ISaleDrugToolService {
     }
 
 
-
-
+    /**
+     *
+     * @param detail
+     * @param config
+     * @param drugsEnterpriseId
+     * @return
+     */
     @RpcService
     public Map<String,Integer>   syncOrganDrugDataToSaleDrugList(OrganDrugList detail,DrugsEnterpriseConfig config, Integer drugsEnterpriseId) {
         Integer addNum=0;

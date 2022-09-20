@@ -5,6 +5,12 @@ import com.ngari.common.mode.HisResponseTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.recipe.dto.PatientDTO;
 import com.ngari.recipe.entity.*;
+import com.ngari.platform.recipe.mode.QueryRecipeInfoHisDTO;
+import com.ngari.recipe.vo.FastRecipeReq;
+import com.ngari.recipe.entity.FastRecipe;
+import com.ngari.recipe.entity.FastRecipeDetail;
+import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.Symptom;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
 import com.ngari.recipe.recipe.model.RecipeBean;
@@ -217,6 +223,12 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
             fastRecipeVO.setFastRecipeDetailList(BeanCopyUtils.copyList(fastRecipeDetailList, FastRecipeDetailVO::new));
         }
         return fastRecipeVO;
+    }
+
+    @Override
+    public List<QueryRecipeInfoHisDTO> findRecipeByIds(List<Integer> recipeIds) {
+        validateAtop(recipeIds);
+        return recipeBusinessService.findRecipeByIds(recipeIds);
     }
 
 
