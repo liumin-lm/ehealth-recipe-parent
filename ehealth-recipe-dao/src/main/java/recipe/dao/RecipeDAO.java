@@ -4328,7 +4328,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
             @Override
             public void execute(StatelessSession ss) {
                 String sql = createHqlBySearch(recipe, terminalType, terminalIds, processState, startTime, endTime);
-                Query query = ss.createSQLQuery("select count(r.*) " + sql);
+                Query query = ss.createSQLQuery("select count(1) " + sql);
                 createQueryBySearch(query, recipe, terminalType, terminalIds, processState, startTime, endTime);
                 setResult(null == query.uniqueResult() ? 0 : ((Number) query.uniqueResult()).intValue());
             }
