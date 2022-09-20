@@ -124,8 +124,7 @@ public interface IRecipeOrderAtopService {
 
     /**
      * 获取未完善或完善标识
-     * @param organId
-     * @param recipeCode
+     * @param recipeBean
      * @return
      */
     @RpcService
@@ -139,4 +138,11 @@ public interface IRecipeOrderAtopService {
     @RpcService
     List<ImperfectInfoVO> batchGetImperfectFlag(List<com.ngari.recipe.recipe.model.RecipeBean> recipeBeans);
 
+    /**
+     * 获取未完善或完善标识、his处方付费序号合集
+     * @param recipeBean
+     * @return
+     */
+    @RpcService
+    ImperfectInfoVO getImperfectInfo(com.ngari.recipe.recipe.model.RecipeBean recipeBean);
 }
