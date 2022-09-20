@@ -21,7 +21,6 @@ import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.platform.recipe.mode.InvoiceInfoResTO;
-import com.ngari.platform.recipe.mode.RecipeBean;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
@@ -59,11 +58,12 @@ import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.*;
 import recipe.constant.ErrorCode;
 import recipe.constant.RecipeBussConstant;
-import recipe.core.api.IDrugsEnterpriseBusinessService;
+import recipe.core.api.IEnterpriseBusinessService;
 import recipe.core.api.patient.IRecipeOrderBusinessService;
 import recipe.dao.*;
-import recipe.drugsenterprise.CommonRemoteService;
-import recipe.enumerate.status.*;
+import recipe.enumerate.status.GiveModeEnum;
+import recipe.enumerate.status.PayModeEnum;
+import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.type.GiveModeTextEnum;
 import recipe.enumerate.type.NeedSendTypeEnum;
 import recipe.factory.status.givemodefactory.GiveModeProxy;
@@ -77,8 +77,6 @@ import recipe.service.RecipeLogService;
 import recipe.service.RecipeOrderService;
 import recipe.third.IFileDownloadService;
 import recipe.util.*;
-import recipe.util.LocalStringUtil;
-import recipe.util.ObjectCopyUtils;
 import recipe.vo.ResultBean;
 import recipe.vo.base.BaseRecipeDetailVO;
 import recipe.vo.greenroom.ImperfectInfoVO;
@@ -147,7 +145,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
     @Autowired
     private PurchaseService purchaseService;
     @Autowired
-    private IDrugsEnterpriseBusinessService enterpriseBusinessService;
+    private IEnterpriseBusinessService enterpriseBusinessService;
     @Autowired
     private OrderFeeManager orderFeeManager;
     @Autowired

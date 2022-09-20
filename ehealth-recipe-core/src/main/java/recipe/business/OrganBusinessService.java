@@ -2,6 +2,7 @@ package recipe.business;
 
 import com.alibaba.fastjson.JSON;
 import com.ngari.base.scratchable.model.ScratchableBean;
+import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.recipe.dto.GiveModeButtonDTO;
 import com.ngari.recipe.dto.OrganDTO;
 import com.ngari.recipe.entity.RecipeOrder;
@@ -10,18 +11,19 @@ import ctd.persistence.exception.DAOException;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import recipe.client.*;
+import recipe.client.IConfigurationClient;
+import recipe.client.OperationClient;
+import recipe.client.OrganClient;
 import recipe.core.api.IOrganBusinessService;
-import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeParameterDao;
 import recipe.enumerate.status.SettleAmountStateEnum;
-import recipe.hisservice.HisRequestInit;
 import recipe.manager.OrderManager;
 import recipe.util.ObjectCopyUtils;
 import recipe.vo.second.OrganVO;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class OrganBusinessService extends BaseService implements IOrganBusinessService {
@@ -113,6 +115,11 @@ public class OrganBusinessService extends BaseService implements IOrganBusinessS
             return SettleAmountStateEnum.SETTLE_SUCCESS.getType();
         }
         return recipeOrder.getSettleAmountState();
+    }
+
+    @Override
+    public Map<Integer, DoctorDTO> findByDoctorIds(List<Integer> doctorIds) {
+        return doctorClient.findByDoctorIds(doctorIds);
     }
 
 }

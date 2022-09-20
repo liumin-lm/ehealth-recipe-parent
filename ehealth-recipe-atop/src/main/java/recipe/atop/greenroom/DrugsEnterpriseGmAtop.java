@@ -1,7 +1,6 @@
 package recipe.atop.greenroom;
 
 import com.alibaba.fastjson.JSON;
-
 import com.ngari.recipe.drugsenterprise.model.*;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.EnterpriseDecoctionAddress;
@@ -18,7 +17,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
-import recipe.core.api.IDrugsEnterpriseBusinessService;
+import recipe.core.api.IEnterpriseBusinessService;
 import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.util.ObjectCopyUtils;
 import recipe.util.ValidateUtil;
@@ -39,10 +38,8 @@ import java.util.stream.Collectors;
 public class DrugsEnterpriseGmAtop extends BaseAtop {
 
     @Autowired
-    private IDrugsEnterpriseBusinessService enterpriseBusinessService;
-//
-//    @Autowired
-//    private IDrugDistributionPriceService drugDistributionPriceService;
+    private IEnterpriseBusinessService enterpriseBusinessService;
+
 
     /**
      * 清除当前煎法下的所有配送信息
@@ -50,8 +47,8 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
      * @param enterpriseDecoctionAddressReq
      */
     @RpcService
-    public void cancelEnterpriseDecoctionAddress(EnterpriseDecoctionAddressReq enterpriseDecoctionAddressReq){
-        validateAtop(enterpriseDecoctionAddressReq, enterpriseDecoctionAddressReq.getDecoctionId(),enterpriseDecoctionAddressReq.getEnterpriseId(),enterpriseDecoctionAddressReq.getOrganId());
+    public void cancelEnterpriseDecoctionAddress(EnterpriseDecoctionAddressReq enterpriseDecoctionAddressReq) {
+        validateAtop(enterpriseDecoctionAddressReq, enterpriseDecoctionAddressReq.getDecoctionId(), enterpriseDecoctionAddressReq.getEnterpriseId(), enterpriseDecoctionAddressReq.getOrganId());
         enterpriseBusinessService.cancelEnterpriseDecoctionAddress(enterpriseDecoctionAddressReq);
     }
 

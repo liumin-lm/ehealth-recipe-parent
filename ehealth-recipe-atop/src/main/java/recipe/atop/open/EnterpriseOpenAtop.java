@@ -6,7 +6,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.api.open.IEnterpriseOpenAtop;
 import recipe.atop.BaseAtop;
-import recipe.core.api.IDrugsEnterpriseBusinessService;
+import recipe.core.api.IEnterpriseBusinessService;
 import recipe.util.DateConversion;
 import recipe.vo.second.CheckAddressVo;
 import recipe.vo.second.CheckOrderAddressVo;
@@ -26,7 +26,7 @@ import java.util.List;
 @RpcBean("enterpriseOpenAtop")
 public class EnterpriseOpenAtop  extends BaseAtop implements IEnterpriseOpenAtop {
     @Autowired
-    private IDrugsEnterpriseBusinessService enterpriseBusinessService;
+    private IEnterpriseBusinessService enterpriseBusinessService;
 
     @Override
     public Integer checkSendAddressForOrder(CheckOrderAddressVo checkAddressVo) {

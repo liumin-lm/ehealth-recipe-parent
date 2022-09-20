@@ -15,6 +15,12 @@ import recipe.util.ByteUtils;
 import recipe.util.RecipeUtil;
 import recipe.util.ValidateUtil;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 /**
  * 获取医生信息处理类
  *
@@ -190,5 +196,14 @@ public class DoctorClient extends BaseClient {
             fileId = doctorExtend.getPictureIdCA();
         }
         return fileId;
+    }
+
+
+    public Map<Integer, DoctorDTO> findByDoctorIds(List<Integer> doctorIds) {
+        logger.info("DoctorClient findByDoctorIds doctorIds : {}", JSON.toJSONString(doctorIds));
+        List<DoctorDTO> doctorList = doctorService.findByDoctorIdIn(doctorIds);
+        logger.info("DoctorClient findByDoctorIds doctorList : {}", doctorList.size());
+        return Optional.ofNullable(doctorList).orElseGet(Collections::emptyList)
+                .stream().collect(Collectors.toMap(DoctorDTO::getDoctorId, a -> a, (k1, k2) -> k1));
     }
 }
