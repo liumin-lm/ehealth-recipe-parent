@@ -4416,9 +4416,6 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         }
     }
 
-
-    };
-
     public QueryResult<RecipeRefundDTO> getRecipeRefundInfo(RecipeRefundInfoReqVO recipeRefundCountVO){
         HibernateStatelessResultAction<QueryResult<RecipeRefundDTO>> action = new AbstractHibernateStatelessResultAction<QueryResult<RecipeRefundDTO>>() {
             @Override
