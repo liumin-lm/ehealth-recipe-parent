@@ -25,7 +25,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import recipe.client.*;
+import recipe.client.DocIndexClient;
+import recipe.client.RecipeAuditClient;
 import recipe.common.CommonConstant;
 import recipe.common.UrlConfig;
 import recipe.constant.RecipeBussConstant;
@@ -61,19 +62,10 @@ public class RecipeManager extends BaseManager {
     private static final String REVISIT_SOURCE_YJXF = "fz-yjxf-001";
 
     private static final String REVISIT_SOURCE_BJGY = "fz-bjgy-001";
-
-    @Autowired
-    private PatientClient patientClient;
     @Autowired
     private DocIndexClient docIndexClient;
     @Autowired
-    private RevisitClient revisitClient;
-    @Autowired
-    private DrugClient drugClient;
-    @Autowired
     private RecipeAuditClient recipeAuditClient;
-    @Autowired
-    private ConsultClient consultClient;
     /**
      * todo 什么情况？
      */
@@ -893,30 +885,53 @@ public class RecipeManager extends BaseManager {
     public List<RequirementsForTakingDTO> findRequirementsForTakingByDecoctionId(Integer organId, Integer decoctionId) {
         List<RequirementsForTakingDTO> requirementsForTakingVOS=new ArrayList<>();
         List<RequirementsForTaking> requirementsForTakings=requirementsForTakingDao.findAllByOrganId(organId);
-        if(CollectionUtils.isEmpty(requirementsForTakings)){
+        if (CollectionUtils.isEmpty(requirementsForTakings)) {
             return requirementsForTakingVOS;
         }
-        if(decoctionId==null){
+        if (decoctionId == null) {
             //如果煎法未选择，则服用要求按展示全部处理
-            logger.info("findRequirementsForTakingByDecoctionId res:{}",JSONUtils.toString(requirementsForTakings));
-            return ObjectCopyUtils.convert(requirementsForTakings,RequirementsForTakingDTO.class);
-        }else{
+            logger.info("findRequirementsForTakingByDecoctionId res:{}", JSONUtils.toString(requirementsForTakings));
+            return ObjectCopyUtils.convert(requirementsForTakings, RequirementsForTakingDTO.class);
+        } else {
             //根据煎法筛选出关键的服用要求选项展示给医生选择
-            requirementsForTakings.forEach(requirementsForTaking->{
-                String decoctionwayId=requirementsForTaking.getDecoctionwayId();
-                if(StringUtils.isEmpty(decoctionwayId)){
+            requirementsForTakings.forEach(requirementsForTaking -> {
+                String decoctionwayId = requirementsForTaking.getDecoctionwayId();
+                if (StringUtils.isEmpty(decoctionwayId)) {
                     return;
                 }
-                List<String> decoctionwayIdList=  Arrays.asList(decoctionwayId.split(","));
-                if(CollectionUtils.isEmpty(decoctionwayIdList)){
+                List<String> decoctionwayIdList = Arrays.asList(decoctionwayId.split(","));
+                if (CollectionUtils.isEmpty(decoctionwayIdList)) {
                     return;
                 }
-                if(decoctionwayIdList.contains(String.valueOf(decoctionId))){
-                    requirementsForTakingVOS.add(ObjectCopyUtils.convert(requirementsForTaking,RequirementsForTakingDTO.class));
+                if (decoctionwayIdList.contains(String.valueOf(decoctionId))) {
+                    requirementsForTakingVOS.add(ObjectCopyUtils.convert(requirementsForTaking, RequirementsForTakingDTO.class));
                 }
             });
         }
         return requirementsForTakingVOS;
     }
+
+    /**
+     * 自助机查询接口
+     *
+     * @param
+     * @return
+     */
+    public Integer automatonCount(Recipe recipe, String startTime, String endTime, Integer terminalType,
+                                  List<String> terminalId, List<Integer> processState) {
+        return recipeDAO.countByAutomaton(recipe, startTime, endTime, terminalType, terminalId, processState);
+    }
+
+    /**
+     * 自助机查询接口
+     *
+     * @param
+     * @return
+     */
+    public List<Recipe> automatonList(Recipe recipe, String startTime, String endTime, Integer terminalType,
+                                      List<String> terminalId, List<Integer> processState, Integer start, Integer limit) {
+        return recipeDAO.findAutomatonList(recipe, startTime, endTime, terminalType, terminalId, processState, start, limit);
+    }
+
 
 }

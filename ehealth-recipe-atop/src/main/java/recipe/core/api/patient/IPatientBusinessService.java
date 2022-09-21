@@ -6,6 +6,7 @@ import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.patient.ReadyRecipeVO;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author yinsheng
@@ -30,13 +31,23 @@ public interface IPatientBusinessService {
 
     /**
      * 根据mpiId获取患者信息
+     *
      * @param mpiId 患者唯一号
      * @return 患者信息
      */
     PatientDTO getPatientDTOByMpiID(String mpiId);
 
     /**
+     * 根据mpiId获取患者信息
+     *
+     * @param mpiIds 患者唯一号
+     * @return 患者信息
+     */
+    Map<String, com.ngari.recipe.dto.PatientDTO> findPatientByMpiIds(List<String> mpiIds);
+
+    /**
      * 获取患者医保信息
+     *
      * @param patientInfoVO 患者信息
      * @return 医保类型相关
      */

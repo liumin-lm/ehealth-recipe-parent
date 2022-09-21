@@ -787,16 +787,24 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
 
     /**
      * 根据mpiId获取患者信息
+     *
      * @param mpiId 患者唯一号
      * @return 患者信息
      */
     @Override
-    public PatientDTO getPatientDTOByMpiID(String mpiId){
+    public PatientDTO getPatientDTOByMpiID(String mpiId) {
         return patientClient.getPatientBeanByMpiId(mpiId);
     }
 
+    @Override
+    public Map<String, com.ngari.recipe.dto.PatientDTO> findPatientByMpiIds(List<String> mpiIds) {
+        return patientClient.findPatientMap(mpiIds);
+    }
+
+
     /**
      * 获取患者医保信息
+     *
      * @param patientInfoVO 患者信息
      * @return 医保类型相关
      */

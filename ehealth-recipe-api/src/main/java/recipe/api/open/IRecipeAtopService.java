@@ -9,8 +9,11 @@ import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.model.SymptomDTO;
 import com.ngari.recipe.vo.FastRecipeVO;
 import ctd.util.annotation.RpcService;
+import recipe.vo.PageGenericsVO;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.patient.PatientOptionalDrugVo;
+import recipe.vo.second.AutomatonResultVO;
+import recipe.vo.second.AutomatonVO;
 import recipe.vo.second.RecipePayHISCallbackReq;
 import recipe.vo.second.RevisitRecipeTraceVo;
 
@@ -254,5 +257,13 @@ public interface IRecipeAtopService {
     @RpcService
     List<QueryRecipeInfoHisDTO> findRecipeByIds(List<Integer> recipeIds);
 
+    /**
+     * 自助机查询接口
+     *
+     * @param automatonVO
+     * @return
+     */
+    @RpcService(mvcDisabled = true)
+    PageGenericsVO<AutomatonResultVO> automatonList(AutomatonVO automatonVO);
 
 }

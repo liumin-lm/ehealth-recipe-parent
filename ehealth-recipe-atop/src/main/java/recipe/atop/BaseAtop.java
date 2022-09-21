@@ -6,7 +6,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.constant.ErrorCode;
+import recipe.core.api.IEnterpriseBusinessService;
 import recipe.core.api.IOrganBusinessService;
+import recipe.core.api.patient.IPatientBusinessService;
 import recipe.util.ValidateUtil;
 
 /**
@@ -19,6 +21,10 @@ public class BaseAtop {
 
     @Autowired
     protected IOrganBusinessService organBusinessService;
+    @Autowired
+    protected IEnterpriseBusinessService enterpriseBusinessService;
+    @Autowired
+    protected IPatientBusinessService recipePatientService;
 
     /**
      * Atop层 入参参数校验：自定义msg

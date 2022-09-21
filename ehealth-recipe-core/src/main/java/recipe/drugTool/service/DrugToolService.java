@@ -81,6 +81,7 @@ import recipe.util.DrugMatchUtil;
 import recipe.util.LocalStringUtil;
 import recipe.util.Md5Utils;
 import recipe.util.RedisClient;
+import recipe.vo.greenroom.ImportDrugRecordVO;
 
 import javax.annotation.Resource;
 import java.io.ByteArrayInputStream;
@@ -158,6 +159,8 @@ public class DrugToolService implements IDrugToolService {
     private DrugsEnterpriseDAO drugsEnterpriseDAO;
 
 
+
+
     private LoadingCache<String, List<DrugList>> drugListCache = CacheBuilder.newBuilder().expireAfterWrite(10, TimeUnit.MINUTES).build(new CacheLoader<String, List<DrugList>>() {
         @Override
         public List<DrugList> load(String str) throws Exception {
@@ -230,6 +233,7 @@ public class DrugToolService implements IDrugToolService {
     }
 
     @Override
+    @LogRecord
     public Map<String, Object> readDrugExcel(byte[] buf, String originalFilename, int organId, String operator) {
         LOGGER.info(operator + "开始 readDrugExcel 方法" + System.currentTimeMillis() + "当前进程=" + Thread.currentThread().getName());
         String key = organId + operator;
@@ -698,6 +702,12 @@ public class DrugToolService implements IDrugToolService {
                         LOGGER.error("是否基药有误 ," + e.getMessage(), e);
                         errMsg.append("是否基药有误").append(";");
                     }
+                }else{
+                    if (("是").equals(getStrFromCell(row.getCell(30)))) {
+                        drug.setBaseDrug(1);
+                    } else if (("否").equals(getStrFromCell(row.getCell(30)))) {
+                        drug.setBaseDrug(0);
+                    }
                 }
                 try {
                     if (!StringUtils.isEmpty(getStrFromCell(row.getCell(31)))) {
@@ -816,6 +826,23 @@ public class DrugToolService implements IDrugToolService {
                     errMsg.append("SmallestSaleMultiple").append(";");
                 }
 
+                try {
+                    if (StringUtils.isNotEmpty(getStrFromCell(row.getCell(40)))) {
+                        if (("是").equals(getStrFromCell(row.getCell(40)))) {
+                            drug.setUnavailable(1);
+                        } else if (("否").equals(getStrFromCell(row.getCell(40)))) {
+                            drug.setUnavailable(0);
+                        } else {
+                            errMsg.append("不可在线开具有误").append(";");
+                        }
+                    }else{
+                        drug.setUnavailable(0);
+                    }
+                } catch (Exception e) {
+                    LOGGER.error("不可在线开具有误," + e.getMessage(), e);
+                    errMsg.append("不可在线开具有误").append(";");
+                }
+
                 if (!ObjectUtils.isEmpty(organId)) {
                     DrugSourcesDAO dao = DAOFactory.getDAO(DrugSourcesDAO.class);
                     List<DrugSources> byDrugSourcesId = dao.findByDrugSourcesId(organId);
@@ -905,7 +932,11 @@ public class DrugToolService implements IDrugToolService {
     }
 
 
-    private void AutoMatch(DrugListMatch drug) {
+    /**
+     * 这段逻辑是   为什么不直接放automaticDrugMatch处理Status、MatchDrugId了
+     * @param drug
+     */
+    public void AutoMatch(DrugListMatch drug) {
         DrugList drugList = null;
         String addrArea = null;
         ProvinceDrugList provinceDrugList = null;
@@ -1616,6 +1647,7 @@ public class DrugToolService implements IDrugToolService {
                         organDrugList.setSmallestSaleMultiple(drugListMatch.getSmallestSaleMultiple());
                         organDrugList.setAntiTumorDrugFlag(drugListMatch.getAntiTumorDrugFlag());
                         organDrugList.setAntiTumorDrugLevel(drugListMatch.getAntiTumorDrugLevel());
+                        organDrugList.setUnavailable(drugListMatch.getUnavailable());
                         //updateFlag为1时更新药品信息，否则不更新
                         //防止既更新又新增的时候把更新的数据又保存一编
                         boolean handleFlag = false; //数据操作标识

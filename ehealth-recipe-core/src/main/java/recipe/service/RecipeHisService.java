@@ -70,6 +70,7 @@ import recipe.drugsenterprise.AccessDrugEnterpriseService;
 import recipe.drugsenterprise.CommonRemoteService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.enumerate.status.*;
+import recipe.enumerate.type.OrderSettleDimensionTypeEnum;
 import recipe.enumerate.type.PayFlagEnum;
 import recipe.hisservice.HisRequestInit;
 import recipe.hisservice.RecipeToHisCallbackService;
@@ -574,10 +575,15 @@ public class RecipeHisService extends RecipeBaseService {
                 recipeOrderDAO.updateNonNullFieldByPrimaryKey(recipeOrder);
                 return true;
             }
-            //PayNotifyResTO response = service.payNotify(payNotifyReq);
             IRecipeSettleService settleService = PreSettleFactory.getSettleService(recipeOrder.getOrganId(), recipeOrder.getOrderType());
             if (settleService == null) {
                 LOGGER.info("doRecipeSettle settleService is null; recipeId={}", recipe.getRecipeId());
+                return true;
+            }
+            //根据订单维度和处方维度处理,默认为订单维度
+            Integer orderSettleDimension = configurationClient.getValueCatchReturnInteger(recipe.getClinicOrgan(), "orderSettleDimension", 0);
+            if (OrderSettleDimensionTypeEnum.ORDER_DIMENSION.getType().equals(orderSettleDimension) && SettleAmountStateEnum.SETTLE_SUCCESS.getType().equals(recipeOrder.getSettleAmountState())) {
+                LOGGER.info("doRecipeSettle 当前处方按照订单维度结算，针对his只结算一次，recipeId:{}", recipe.getRecipeId());
                 return true;
             }
             List<String> recipeIdList = (List<String>) JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
