@@ -61,7 +61,6 @@ import recipe.constant.RecipeBussConstant;
 import recipe.core.api.IDrugsEnterpriseBusinessService;
 import recipe.core.api.patient.IRecipeOrderBusinessService;
 import recipe.dao.*;
-import recipe.drugsenterprise.CommonRemoteService;
 import recipe.enumerate.status.*;
 import recipe.enumerate.type.GiveModeTextEnum;
 import recipe.enumerate.type.NeedSendTypeEnum;
@@ -82,6 +81,7 @@ import recipe.vo.ResultBean;
 import recipe.vo.base.BaseRecipeDetailVO;
 import recipe.vo.greenroom.ImperfectInfoVO;
 import recipe.vo.greenroom.InvoiceRecordVO;
+import recipe.vo.greenroom.RecipeRefundInfoReqVO;
 import recipe.vo.second.CabinetVO;
 import recipe.vo.second.CheckOrderAddressVo;
 import recipe.vo.second.enterpriseOrder.*;
@@ -1415,6 +1415,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
 
     @Override
     public ImperfectInfoVO getImperfectInfo(RecipeBean recipeBean) {
+        logger.info("RecipeOrderBusinessService getImperfectInfo recipeBean={}",JSONUtils.toString(recipeBean));
         ImperfectInfoVO imperfectInfoVO = new ImperfectInfoVO();
         Integer imperfectFlag = getImperfectFlag(recipeBean);
         imperfectInfoVO.setImperfectFlag(imperfectFlag);
@@ -1427,5 +1428,12 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
         }
         logger.info("RecipeOrderBusinessService getImperfectInfo ImperfectInfoVO={}",JSONUtils.toString(imperfectInfoVO));
         return imperfectInfoVO;
+    }
+
+    @Override
+    public Integer getRecipeRefundCount(RecipeRefundInfoReqVO recipeRefundCountVO) {
+        logger.info("RecipeOrderBusinessService getRecipeRefundCount recipeRefundCountVO={}",JSONUtils.toString(recipeRefundCountVO));
+        QueryResult<RecipeRefundDTO> recipeRefundInfo = recipeDAO.getRecipeRefundInfo(recipeRefundCountVO);
+         return (int) recipeRefundInfo.getTotal();
     }
 }

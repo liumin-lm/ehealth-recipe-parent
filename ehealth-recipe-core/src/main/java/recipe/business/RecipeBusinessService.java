@@ -24,6 +24,7 @@ import com.ngari.recipe.recipe.constant.RecipecCheckStatusConstant;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.vo.*;
 import coupon.api.service.ICouponBaseService;
+import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
 import ctd.util.AppContextHolder;
@@ -68,6 +69,7 @@ import recipe.vo.doctor.PatientOptionalDrugVO;
 import recipe.vo.doctor.PharmacyTcmVO;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.greenroom.DrugUsageLabelResp;
+import recipe.vo.greenroom.RecipeRefundInfoReqVO;
 import recipe.vo.patient.PatientOptionalDrugVo;
 import recipe.vo.second.EmrConfigVO;
 import recipe.vo.second.MedicalDetailVO;
@@ -1130,6 +1132,14 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
                 recipeLogService.saveRecipeLog(recipeIdList.get(i), eh.cdr.constant.RecipeStatusConstant.UNKNOW, eh.cdr.constant.RecipeStatusConstant.UNKNOW, memo);
             }
         }
+    }
+
+    @Override
+    public List<RecipeRefundDTO> getRecipeRefundInfo(RecipeRefundInfoReqVO recipeRefundInfoReqVO) {
+        logger.info("RecipeBusinessService getRecipeRefundInfo recipeRefundInfoReqVO={}",JSONUtils.toString(recipeRefundInfoReqVO));
+        QueryResult<RecipeRefundDTO> recipeRefundInfo = recipeDAO.getRecipeRefundInfo(recipeRefundInfoReqVO);
+        logger.info("RecipeBusinessService getRecipeRefundInfo recipeRefundInfo={}",JSONUtils.toString(recipeRefundInfo.getItems()));
+        return recipeRefundInfo.getItems();
     }
 }
 

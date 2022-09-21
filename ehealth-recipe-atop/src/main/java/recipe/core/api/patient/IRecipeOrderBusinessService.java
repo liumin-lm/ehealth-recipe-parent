@@ -14,6 +14,7 @@ import ctd.util.annotation.RpcService;
 import easypay.entity.vo.param.bus.SelfPreSettleQueryReq;
 import recipe.vo.ResultBean;
 import recipe.vo.greenroom.ImperfectInfoVO;
+import recipe.vo.greenroom.RecipeRefundInfoReqVO;
 import recipe.vo.second.CabinetVO;
 import recipe.vo.second.CheckOrderAddressVo;
 import recipe.vo.second.enterpriseOrder.DownOrderRequestVO;
@@ -171,7 +172,6 @@ public interface IRecipeOrderBusinessService {
     /**
      * 补打发票-运营平台药品订单
      */
-    @RpcService
     Boolean makeUpInvoice(String orderCode);
 
     /**
@@ -233,4 +233,6 @@ public interface IRecipeOrderBusinessService {
     String batchCheckSendAddressForOrder(List<CheckOrderAddressVo> checkOrderAddressVoList);
 
     ImperfectInfoVO getImperfectInfo(RecipeBean recipeBean);
+
+    Integer getRecipeRefundCount(RecipeRefundInfoReqVO recipeRefundCountVO);
 }

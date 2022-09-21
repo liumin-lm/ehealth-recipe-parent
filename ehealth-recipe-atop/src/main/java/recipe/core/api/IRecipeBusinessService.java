@@ -2,6 +2,7 @@ package recipe.core.api;
 
 import com.ngari.patient.dto.HealthCardDTO;
 import com.ngari.platform.recipe.mode.QueryRecipeInfoHisDTO;
+import com.ngari.recipe.dto.RecipeRefundDTO;
 import com.ngari.recipe.entity.DoctorCommonPharmacy;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.dto.DiseaseInfoDTO;
@@ -17,6 +18,7 @@ import recipe.enumerate.status.SignEnum;
 import recipe.vo.doctor.PatientOptionalDrugVO;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.greenroom.DrugUsageLabelResp;
+import recipe.vo.greenroom.RecipeRefundInfoReqVO;
 import recipe.vo.patient.PatientOptionalDrugVo;
 import recipe.vo.second.MedicalDetailVO;
 import com.ngari.recipe.recipe.model.RecipeOutpatientPaymentDTO;
@@ -315,4 +317,6 @@ public interface IRecipeBusinessService {
      * @return
      */
     List<QueryRecipeInfoHisDTO> findRecipeByIds(List<Integer> recipeIds);
+
+    List<RecipeRefundDTO> getRecipeRefundInfo(RecipeRefundInfoReqVO recipeRefundInfoReqVO);
 }
