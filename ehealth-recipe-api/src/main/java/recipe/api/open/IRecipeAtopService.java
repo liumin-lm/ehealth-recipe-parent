@@ -263,7 +263,7 @@ public interface IRecipeAtopService {
      * @param automatonVO
      * @return
      */
-    @RpcService
+    @RpcService(mvcDisabled = true)
     PageGenericsVO<AutomatonResultVO> automatonList(AutomatonVO automatonVO);
 
 }
