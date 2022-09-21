@@ -91,7 +91,7 @@ public class OrganDrugToolService implements IOrganDrugToolService {
         ImportDrugRecord importDrugRecord=importDrugRecordDAO.get(id);
         boolean checkResult=checkReadDrugExcel(importDrugRecord);
         String fileId=importDrugRecord.getFileId();
-        if(!checkResult)return result;
+        if(!checkResult){return result;}
         String operator=importDrugRecord.getImportOperator();
         // TODO 数据处理?? 为么取不到
 //        String filePath=recipeManager.getRecipeSignFileUrl(fileId,3600);
