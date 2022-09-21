@@ -56,4 +56,14 @@ public class ReceiverInfoVO implements Serializable {
 
     @ItemProperty(alias = "期望配送时间")
     private String expectSendTime;
+
+
+    @ItemProperty(alias = "物流公司")
+    private Integer logisticsCompany;
+
+    private String logisticsCompanyName;
+
+    @ItemProperty(alias = "快递单号")
+    private String trackingNumber;
+
 }

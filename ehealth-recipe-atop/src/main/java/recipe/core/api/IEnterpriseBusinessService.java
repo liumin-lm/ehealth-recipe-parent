@@ -283,5 +283,11 @@ public interface IEnterpriseBusinessService {
      */
     Integer checkSendAddressForEnterprises(CheckOrderAddressVo checkOrderAddressVo);
 
+    /**
+     * 根据药企id查询药企
+     *
+     * @param ids
+     * @return
+     */
     Map<Integer, DrugsEnterprise> findDrugsEnterpriseByIds(List<Integer> ids);
 }

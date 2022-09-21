@@ -393,6 +393,12 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
             receiverInfo.setDistrict(district);
             receiverInfo.setStreetCode(recipeOrder.getStreetAddress());
             receiverInfo.setStreet(street);
+            receiverInfo.setTrackingNumber(recipeOrder.getTrackingNumber());
+            if (!ValidateUtil.integerIsEmpty(recipeOrder.getLogisticsCompany())) {
+                receiverInfo.setLogisticsCompany(recipeOrder.getLogisticsCompany());
+                String company = DictionaryUtil.getDictionary("eh.infra.dictionary.LogisticsCode", recipeOrder.getLogisticsCompany());
+                receiverInfo.setLogisticsCompanyName(company);
+            }
             receiverInfo.setAddress(recipeOrder.getAddress4());
             if (StringUtils.isNotEmpty(recipeOrder.getAddress1())) {
                 receiverInfo.setProvinceCode(StringUtils.isNotEmpty(recipeOrder.getAddress1()) ? recipeOrder.getAddress1() + "0000" : "");

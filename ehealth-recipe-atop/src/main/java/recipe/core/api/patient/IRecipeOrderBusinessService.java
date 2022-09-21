@@ -100,7 +100,6 @@ public interface IRecipeOrderBusinessService {
      * @param status   状态
      * @return 处方
      */
-    @RpcService(mvcDisabled = true)
     RecipeResultBean cancelOrderByRecipeId(Integer recipeId, Integer status);
 
     /**

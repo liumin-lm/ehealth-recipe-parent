@@ -32,6 +32,7 @@ import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import ctd.util.event.GlobalEventExecFactory;
+import eh.utils.ValidateUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -58,15 +59,15 @@ import recipe.hisservice.syncdata.SyncExecutorService;
 import recipe.manager.*;
 import recipe.presettle.RecipeOrderTypeEnum;
 import recipe.purchase.CommonOrder;
-import recipe.service.*;
+import recipe.service.RecipeHisService;
+import recipe.service.RecipeLogService;
+import recipe.service.RecipeMsgService;
+import recipe.service.RecipeOrderService;
 import recipe.serviceprovider.BaseService;
 import recipe.third.IFileDownloadService;
 import recipe.third.IWXServiceInterface;
 import recipe.thread.RecipeBusiThreadPool;
-import recipe.util.DateConversion;
-import recipe.util.LocalStringUtil;
-import recipe.util.MapValueUtil;
-import recipe.util.ObjectCopyUtils;
+import recipe.util.*;
 import recipe.vo.greenroom.InvoiceRecordVO;
 
 import java.math.BigDecimal;
@@ -1767,6 +1768,12 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             orderDetailBean.setAuditFee(convertParame(recipeOrder.getAuditFee()));
             orderDetailBean.setRegisterFee(convertParame(recipeOrder.getRegisterFee()));
             orderDetailBean.setCommunityCode(convertParame(recipeOrder));
+            orderDetailBean.setTrackingNumber(convertParame(recipeOrder.getTrackingNumber()));
+            if (ValidateUtil.notNullAndZeroInteger(recipeOrder.getLogisticsCompany())) {
+                orderDetailBean.setLogisticsCompany(recipeOrder.getLogisticsCompany());
+                String company = DictionaryUtil.getDictionary("eh.infra.dictionary.LogisticsCode", recipeOrder.getLogisticsCompany());
+                orderDetailBean.setLogisticsCompanyName(company);
+            }
             //代煎费
             orderDetailBean.setDecoctionFee(convertParame(recipeOrder.getDecoctionFee()));
             //设置中医辨证论治费
