@@ -5,6 +5,7 @@ import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.WriteDrugRecipeTO;
 import com.ngari.his.visit.mode.WriteDrugRecipeReqTO;
 import com.ngari.his.visit.service.IVisitService;
+import com.ngari.recipe.entity.Recipe;
 import com.ngari.revisit.RevisitBean;
 import com.ngari.revisit.common.model.RevisitBussNoticeDTO;
 import com.ngari.revisit.common.model.RevisitExDTO;
@@ -13,6 +14,7 @@ import com.ngari.revisit.common.service.IRevisitBusNoticeService;
 import com.ngari.revisit.common.service.IRevisitExService;
 import com.ngari.revisit.common.service.IRevisitService;
 import com.ngari.revisit.dto.response.RevisitBeanVO;
+import com.ngari.revisit.process.service.IRecipeOnLineRevisitService;
 import com.ngari.revisit.traces.service.IRevisitTracesSortService;
 import ctd.util.JSONUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,7 +47,8 @@ public class RevisitClient extends BaseClient {
 
     @Autowired
     private IRevisitBusNoticeService revisitBusNoticeService;
-
+    @Autowired
+    private IRecipeOnLineRevisitService recipeOnLineRevisitService;
 
     /**
      * 根据挂号序号获取复诊信息
@@ -143,11 +146,11 @@ public class RevisitClient extends BaseClient {
     public HisResponseTO<List<WriteDrugRecipeTO>> findWriteDrugRecipeByRevisitFromHis(WriteDrugRecipeReqTO writeDrugRecipeReqTO) {
         HisResponseTO<List<WriteDrugRecipeTO>> hisResponseTOList = new HisResponseTO<>();
         try {
-            logger.info("WriteRecipeDoctorAtop findWriteDrugRecipeByRevisitFromHis writeDrugRecipeReqTO={}", JSONUtils.toString(writeDrugRecipeReqTO));
+            logger.info("RevisitClient findWriteDrugRecipeByRevisitFromHis writeDrugRecipeReqTO={}", JSONUtils.toString(writeDrugRecipeReqTO));
             hisResponseTOList = iVisitService.findWriteDrugRecipeByRevisitFromHis(writeDrugRecipeReqTO);
-            logger.info("WriteRecipeDoctorAtop findWriteDrugRecipeByRevisitFromHis hisResponseTOList={}", JSON.toJSONString(hisResponseTOList));
+            logger.info("RevisitClient findWriteDrugRecipeByRevisitFromHis hisResponseTOList={}", JSON.toJSONString(hisResponseTOList));
         } catch (Exception e) {
-            logger.error("WriteRecipeDoctorAtop findWriteDrugRecipeByRevisitFromHis error ", e);
+            logger.error("RevisitClient findWriteDrugRecipeByRevisitFromHis error ", e);
         }
         return hisResponseTOList;
     }
@@ -168,10 +171,23 @@ public class RevisitClient extends BaseClient {
 
     /**
      * 用药提醒复诊
+     *
      * @param revisitBussNoticeDTO
      */
-    public void remindDrugRevisit(RevisitBussNoticeDTO revisitBussNoticeDTO){
+    public void remindDrugRevisit(RevisitBussNoticeDTO revisitBussNoticeDTO) {
         revisitBusNoticeService.saveSendBussNotice(revisitBussNoticeDTO);
     }
 
+    /**
+     * 发送环信消息
+     *
+     * @param recipe
+     */
+    public void sendRecipeDefeat(Recipe recipe) {
+        logger.info("RevisitClient sendRecipeDefeat recipe={}", JSONUtils.toString(recipe));
+        if (!Integer.valueOf(2).equals(recipe.getBussSource())) {
+            return;
+        }
+        recipeOnLineRevisitService.sendRecipeDefeat(recipe.getRecipeId(), recipe.getClinicId());
+    }
 }

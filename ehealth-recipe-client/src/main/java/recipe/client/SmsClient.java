@@ -1,7 +1,6 @@
 package recipe.client;
 
 import com.alibaba.fastjson.JSON;
-import com.google.common.collect.Maps;
 import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.base.push.service.ISmsPushService;
 import com.ngari.patient.dto.DoctorDTO;
@@ -23,15 +22,20 @@ public class SmsClient extends BaseClient {
     private ISmsPushService smsPushService;
 
     public void pushMsgData2OnsExtendValue(Integer recipeId, Integer doctorId) {
-        DoctorDTO doctorDTO = doctorService.getByDoctorId(doctorId);
-        SmsInfoBean smsInfo = new SmsInfoBean();
-        smsInfo.setBusId(0);
-        smsInfo.setOrganId(0);
-        smsInfo.setBusType("DocSignNotify");
-        smsInfo.setSmsType("DocSignNotify");
-        smsInfo.setExtendValue(doctorDTO.getUrt() + "|" + recipeId + "|" + doctorDTO.getLoginId());
-        smsPushService.pushMsgData2OnsExtendValue(smsInfo);
-        logger.info("SmsClient pushMsgData2OnsExtendValue smsInfo = {}", JSON.toJSONString(smsInfo));
+        try {
+            DoctorDTO doctorDTO = doctorService.getByDoctorId(doctorId);
+            SmsInfoBean smsInfo = new SmsInfoBean();
+            smsInfo.setBusId(0);
+            smsInfo.setOrganId(0);
+            smsInfo.setBusType("DocSignNotify");
+            smsInfo.setSmsType("DocSignNotify");
+            smsInfo.setExtendValue(doctorDTO.getUrt() + "|" + recipeId + "|" + doctorDTO.getLoginId());
+            smsPushService.pushMsgData2OnsExtendValue(smsInfo);
+            logger.info("SmsClient pushMsgData2OnsExtendValue smsInfo = {}", JSON.toJSONString(smsInfo));
+        } catch (Exception e) {
+            logger.info("SmsClient pushMsgData2OnsExtendValue recipeId = {},doctorId={}", recipeId, doctorId, e);
+        }
+
     }
 
     public void pushMsgData2OnsExtendValue(SmsInfoBean smsInfoBean) {

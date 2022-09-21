@@ -2,11 +2,13 @@ package recipe.business;
 
 import com.google.common.collect.ImmutableMap;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeExtend;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.aop.LogRecord;
 import recipe.core.api.doctor.ICaBusinessService;
 import recipe.dao.RecipeDAO;
+import recipe.dao.RecipeExtendDAO;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.status.SignEnum;
@@ -26,6 +28,8 @@ public class CaBusinessService extends BaseService implements ICaBusinessService
     private StateManager stateManager;
     @Autowired
     private RecipeDAO recipeDAO;
+    @Autowired
+    private RecipeExtendDAO recipeExtendDAO;
 
     @Override
     public void signRecipeCAInterruptForStandard(Integer recipeId) {
@@ -75,6 +79,28 @@ public class CaBusinessService extends BaseService implements ICaBusinessService
             recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of("status", RecipeStatusEnum.RECIPE_STATUS_SIGN_ERROR_CODE_PHA.getType()));
             RecipeLogService.saveRecipeLog(recipe.getRecipeId(), beforeStatus, RecipeStatusEnum.RECIPE_STATUS_SIGN_ERROR_CODE_PHA.getType(), "签名失败，设置药师未签名！");
         }
+    }
+
+    /**
+     * ca签名失败修改状态
+     *
+     * @param recipeId
+     * @param msg
+     */
+    public void updateSignFailState(Integer recipeId, String msg, RecipeStatusEnum status, boolean isDoctor) {
+        logger.info("CaBusinessService updateSignFailState recipeId={},msg={},status={},isDoctor={}", recipeId, msg, status, isDoctor);
+        stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_AUDIT_NOT_PASS);
+        if (isDoctor) {
+            RecipeExtend recipeExtend = new RecipeExtend();
+            recipeExtend.setRecipeId(recipeId);
+            recipeExtend.setSignFailReason(msg);
+            recipeExtendDAO.updateNonNullFieldByPrimaryKey(recipeExtend);
+            stateManager.updateStatus(recipeId, status, SignEnum.SIGN_STATE_AUDIT);
+        } else {
+            stateManager.updateStatus(recipeId, status, null);
+            stateManager.updateCheckerSignState(recipeId, SignEnum.SIGN_STATE_AUDIT);
+        }
+        // revisitClient.sendRecipeDefeat(recipe);
     }
 
 }

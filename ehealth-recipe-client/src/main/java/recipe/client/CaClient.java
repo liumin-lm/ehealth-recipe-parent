@@ -66,12 +66,16 @@ public class CaClient extends BaseClient {
      * @param details
      */
     public void signUpdate(Recipe recipe, List<Recipedetail> details) {
-        SignDoctorRecipeInfoDTO signDoctorRecipeInfo = signRecipeInfoService.get(recipe.getRecipeId());
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("recipeBean", JSONObject.toJSONString(recipe));
-        jsonObject.put("details", JSONObject.toJSONString(details));
-        signDoctorRecipeInfo.setSignBefText(jsonObject.toJSONString());
-        signRecipeInfoService.update(signDoctorRecipeInfo);
+        try {
+            SignDoctorRecipeInfoDTO signDoctorRecipeInfo = signRecipeInfoService.get(recipe.getRecipeId());
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("recipeBean", JSONObject.toJSONString(recipe));
+            jsonObject.put("details", JSONObject.toJSONString(details));
+            signDoctorRecipeInfo.setSignBefText(jsonObject.toJSONString());
+            signRecipeInfoService.update(signDoctorRecipeInfo);
+        } catch (Exception e) {
+            logger.info("CaClient signUpdate error recipe：{}", JSON.toJSONString(recipe), e);
+        }
     }
 
     /**

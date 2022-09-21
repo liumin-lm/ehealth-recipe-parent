@@ -809,54 +809,6 @@ public class RecipeService extends RecipeBaseService {
         //根据审方模式改变--审核未通过处理
         auditModeContext.getAuditModes(dbRecipe.getReviewType()).afterCheckNotPassYs(dbRecipe);
     }
-//
-//    //医生端二次审核签名重试
-//    @Deprecated
-//    @RpcService
-//    public void retryDoctorSecondSignCheck(Integer recipeId) {
-//        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
-//        RecipeLogDAO recipeLogDAO = getDAO(RecipeLogDAO.class);
-//        Recipe dbRecipe = recipeDAO.getByRecipeId(recipeId);
-//        //date 20200507
-//        //设置处方的状态为医生签名中
-//        if (null == dbRecipe) {
-//            LOGGER.warn("当前处方{}不存在!", recipeId);
-//            return;
-//        }
-//        try {
-//            //写入his成功后，生成pdf并签名
-//            RecipeResultBean recipeSignResult = generateRecipePdfAndSign(dbRecipe.getRecipeId());
-//            if (RecipeResultBean.FAIL == recipeSignResult.getCode()) {
-//                //说明处方签名失败
-//                LOGGER.info("当前签名处方{}签名失败！", recipeId);
-//                recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.SIGN_ERROR_CODE_DOC, null);
-//                recipeLogDAO.saveRecipeLog(recipeId, dbRecipe.getStatus(), dbRecipe.getStatus(), recipeSignResult.getMsg());
-//                return;
-//            } else {
-//                //说明处方签名成功，记录日志，走签名成功逻辑
-//                LOGGER.info("当前签名处方{}签名成功！", recipeId);
-//                //更新审方checkFlag为待审核
-//                Map<String, Object> attrMap = Maps.newHashMap();
-//                attrMap.put("checkFlag", 0);
-//                recipeDAO.updateRecipeInfoByRecipeId(recipeId, attrMap);
-//                LOGGER.info("checkFlag {} 更新为待审核", recipeId);
-//                recipeLogDAO.saveRecipeLog(recipeId, dbRecipe.getStatus(), dbRecipe.getStatus(), "当前签名处方签名成功");
-//            }
-//
-//
-//        } catch (Exception e) {
-//            LOGGER.error("checkPassSuccess 签名服务或者发送卡片异常. ", e);
-//        }
-//
-//        //根据处方单判断处方二次审核通过原因，判断是否通过
-//        //说明是二次审核不通过
-//        if (StringUtils.isEmpty(dbRecipe.getSupplementaryMemo())) {
-//            retryDoctorSecondCheckNoPass(dbRecipe);
-//        } else {
-//            //说明是二次审核通过
-//            retryDoctorSecondCheckPass(dbRecipe);
-//        }
-//    }
 
     /**
      * his回调后 ca签名处理
