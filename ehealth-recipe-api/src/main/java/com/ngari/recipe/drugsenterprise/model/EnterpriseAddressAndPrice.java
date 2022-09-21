@@ -38,4 +38,7 @@ public class EnterpriseAddressAndPrice implements Serializable {
     @ItemProperty(alias = "金额满多少包邮")
     private BigDecimal buyFreeShipping;
 
+    @ItemProperty(alias = "范围配置, 1:已添加部分地区，2：已添加全部地区")
+    private Integer configFlag;
+
 }

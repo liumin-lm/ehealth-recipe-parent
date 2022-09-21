@@ -8,6 +8,7 @@ import com.ngari.base.organ.model.OrganBean;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.his.recipe.mode.DrugTakeChangeReqTO;
 import com.ngari.his.recipe.mode.FTYSendTimeReqDTO;
+import com.ngari.patient.service.AddrAreaService;
 import com.ngari.platform.recipe.mode.DrugsEnterpriseBean;
 import com.ngari.platform.recipe.mode.MedicineStationDTO;
 import com.ngari.recipe.drugsenterprise.model.EnterpriseAddressAndPrice;
@@ -123,15 +124,14 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
     private EnterpriseClient enterpriseClient;
     @Resource
     private StateManager stateManager;
+    @Autowired
+    private AddrAreaService addrAreaService;
 
 
     @Override
     public Boolean existEnterpriseByName(String name) {
         List<DrugsEnterprise> drugsEnterprises = enterpriseManager.findAllDrugsEnterpriseByName(name);
-        if (CollectionUtils.isNotEmpty(drugsEnterprises)) {
-            return true;
-        }
-        return false;
+        return CollectionUtils.isNotEmpty(drugsEnterprises);
     }
 
     @Override
@@ -377,7 +377,7 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
     public boolean retryPushRecipeOrder(Integer recipeId) {
         RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
         DrugEnterpriseResult result = remoteDrugEnterpriseService.pushSingleRecipeInfo(recipeId);
-        return result.getCode() != 1 ? false : true;
+        return result.getCode() == 1;
     }
 
     @Override
@@ -420,10 +420,7 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
         if (CollectionUtils.isEmpty(list)){
             return false;
         }
-        if (addressCan(list, checkAddressVo.getAddress3())) {
-            return true;
-        }
-        return false;
+        return addressCan(list, checkAddressVo.getAddress3());
     }
 
     @Override
@@ -579,15 +576,14 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
     @Override
     public List<EnterpriseAddressAndPrice> findEnterpriseAddressProvince(Integer enterpriseId) {
         List<EnterpriseAddress> enterpriseAddresses = enterpriseAddressDAO.findByEnterPriseId(enterpriseId);
-        if(CollectionUtils.isEmpty(enterpriseAddresses)){
+        if (CollectionUtils.isEmpty(enterpriseAddresses)) {
             return Lists.newArrayList();
         }
-
+        logger.info("findEnterpriseAddressProvince enterpriseAddresses={}", JSON.toJSONString(enterpriseAddresses));
         List<EnterpriseAddressAndPrice> list = enterpriseAddresses.stream().map(enterpriseAddress -> {
             EnterpriseAddressAndPrice enterpriseAddressAndPrice = new EnterpriseAddressAndPrice();
             enterpriseAddressAndPrice.setEnterpriseId(enterpriseAddress.getEnterpriseId());
             enterpriseAddressAndPrice.setAddress(enterpriseAddress.getAddress().substring(0, 2));
-
             return enterpriseAddressAndPrice;
         }).filter(distinctByKey(e -> e.getAddress())).collect(Collectors.toList());
         return list;
