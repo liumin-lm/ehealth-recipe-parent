@@ -30,6 +30,7 @@ import recipe.constant.DrugMatchConstant;
 import recipe.dao.*;
 import recipe.manager.RecipeManager;
 import recipe.third.IFileDownloadService;
+import recipe.thread.RecipeBusiThreadPool;
 import recipe.vo.greenroom.ImportDrugRecordVO;
 
 import javax.annotation.Resource;
@@ -88,41 +89,42 @@ public class OrganDrugToolService implements IOrganDrugToolService {
     @LogRecord
     public Map<String, Object> readDrugExcel(Integer id) {
         Map<String, Object> result = Maps.newHashMap();
-        ImportDrugRecord importDrugRecord=importDrugRecordDAO.get(id);
-        boolean checkResult=checkReadDrugExcel(importDrugRecord);
-        String fileId=importDrugRecord.getFileId();
-        if(!checkResult){return result;}
-        String operator=importDrugRecord.getImportOperator();
-        // TODO 数据处理?? 为么取不到
+        result.put("code", 200);
+        RecipeBusiThreadPool.execute(() -> {
+            ImportDrugRecord importDrugRecord=importDrugRecordDAO.get(id);
+            boolean checkResult=checkReadDrugExcel(importDrugRecord);
+            String fileId=importDrugRecord.getFileId();
+            if(!checkResult){return ;}
+            String operator=importDrugRecord.getImportOperator();
+            // TODO 数据处理?? 为么取不到
 //        String filePath=recipeManager.getRecipeSignFileUrl(fileId,3600);
 //        LOGGER.info("filePath:{}",filePath);
-        //行下标
-        AtomicReference<Integer> rowIndex= new AtomicReference<>(0);
-        //总条数
-        AtomicReference<Integer> total = new AtomicReference<>(0);
-        ExcelUtil excelUtil = new ExcelUtil(cells -> {
-            //输出每一行的内容
-            LOGGER.info("rowIndex:{},cells:{}",rowIndex,cells);
-            DrugListMatch drug = new DrugListMatch();
-            StringBuilder validMsg = new StringBuilder();
-            obtainDrugListMatchFromReadExcel(cells, rowIndex.get(),importDrugRecord,drug,validMsg);
-             if (validMsg.length() > 1) {
-                 failProcess(importDrugRecord,rowIndex,validMsg);
-             } else {
-                 successProcess(importDrugRecord,drug,operator);
+            //行下标
+            AtomicReference<Integer> rowIndex= new AtomicReference<>(0);
+            //总条数
+            AtomicReference<Integer> total = new AtomicReference<>(0);
+            ExcelUtil excelUtil = new ExcelUtil(cells -> {
+                //输出每一行的内容
+                LOGGER.info("rowIndex:{},cells:{}",rowIndex,cells);
+                DrugListMatch drug = new DrugListMatch();
+                StringBuilder validMsg = new StringBuilder();
+                obtainDrugListMatchFromReadExcel(cells, rowIndex.get(),importDrugRecord,drug,validMsg);
+                if (validMsg.length() > 1) {
+                    failProcess(importDrugRecord,rowIndex,validMsg);
+                } else {
+                    successProcess(importDrugRecord,drug,operator);
+                }
+                rowIndex.getAndSet(rowIndex.get() + 1);
+                total.getAndSet(total.get() + 1);
+            });
+
+            try {
+                excelUtil.load( new ByteArrayInputStream(fileDownloadService.downloadAsByte(fileId))).parse();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (InvalidFormatException e) {
+                e.printStackTrace();
             }
-            rowIndex.getAndSet(rowIndex.get() + 1);
-            total.getAndSet(total.get() + 1);
-
-        });
-
-        try {
-            excelUtil.load( new ByteArrayInputStream(fileDownloadService.downloadAsByte(fileId))).parse();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InvalidFormatException e) {
-            e.printStackTrace();
-        }
 
 
 //        Integer total = sheet.getLastRowNum();
@@ -131,16 +133,15 @@ public class OrganDrugToolService implements IOrganDrugToolService {
 //            result.put("msg", "data is required");
 //            return result;
 //        }
-        //TODO 条数对不上 why?
-        //TODO 状态更新 what?
-        importDrugRecord.setFailNum(total.get() - importDrugRecord.getAddNum() - importDrugRecord.getUpdateNum() - importDrugRecord.getBankNumber());
-        if(importDrugRecord.getFailNum()>0){
-            importDrugRecord.setStatus(3);
-        }
-        importDrugRecordDAO.save(importDrugRecord);
-
-        LOGGER.info(operator + "结束 readDrugExcel 方法" + System.currentTimeMillis() + "当前进程=" + Thread.currentThread().getName());
-        result.put("code", 200);
+            //TODO 条数对不上 why?
+            //TODO 状态更新 what?
+            importDrugRecord.setFailNum(total.get() - importDrugRecord.getAddNum() - importDrugRecord.getUpdateNum() - importDrugRecord.getBankNumber());
+            if(importDrugRecord.getFailNum()>0){
+                importDrugRecord.setStatus(3);
+            }
+            importDrugRecordDAO.save(importDrugRecord);
+            LOGGER.info(operator + "结束 readDrugExcel 方法" + System.currentTimeMillis() + "当前进程=" + Thread.currentThread().getName());
+        });
         LOGGER.info("result={}",JSONUtils.toString(result));
         return result;
     }
