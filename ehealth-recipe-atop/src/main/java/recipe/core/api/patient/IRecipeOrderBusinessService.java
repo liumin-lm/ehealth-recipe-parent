@@ -158,7 +158,6 @@ public interface IRecipeOrderBusinessService {
      * @param cabinetVO
      * @return
      */
-    @RpcService
     CabinetVO validateCabinetRecipeStatus(CabinetVO cabinetVO);
 
     /**
@@ -166,7 +165,6 @@ public interface IRecipeOrderBusinessService {
      * @param cabinetVO
      * @return
      */
-    @RpcService
     void putInCabinetNotice(CabinetVO cabinetVO);
 
     /**
