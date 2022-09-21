@@ -1473,7 +1473,6 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
     @Override
     public Integer getRecipeRefundCount(RecipeRefundInfoReqVO recipeRefundCountVO) {
         logger.info("RecipeOrderBusinessService getRecipeRefundCount recipeRefundCountVO={}",JSONUtils.toString(recipeRefundCountVO));
-        long refundCount = recipeDAO.getRecipeRefundCount(recipeRefundCountVO);
-        return (int) refundCount;
+        return recipeDAO.getRecipeRefundCount(recipeRefundCountVO.getDoctorId(),recipeRefundCountVO.getStartTime(),recipeRefundCountVO.getEndTime());
     }
 }

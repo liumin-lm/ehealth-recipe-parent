@@ -4416,40 +4416,42 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         }
     }
 
-    public long getRecipeRefundCount(RecipeRefundInfoReqVO recipeRefundCountVO){
-        HibernateStatelessResultAction<Long> action = new AbstractHibernateStatelessResultAction<Long>() {
+    public Integer getRecipeRefundCount(Integer doctorId,Date startTime,Date endTime){
+        HibernateStatelessResultAction<Integer> action = new AbstractHibernateStatelessResultAction<Integer>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder str = new StringBuilder("select count(*)");
-                StringBuilder hqlCount = generateRecipeRefundParameter(str, recipeRefundCountVO.getStartTime(), recipeRefundCountVO.getEndTime());
+                StringBuilder hqlCount = generateRecipeRefundParameter(str, startTime, endTime);
                 logger.info("getRecipeRefundInfo hqlCount={}",JSONUtils.toString(hqlCount));
                 Query queryCount = ss.createSQLQuery(hqlCount.toString());
-                queryCount.setParameter("doctorId", recipeRefundCountVO.getDoctorId());
-                if (recipeRefundCountVO.getStartTime() != null && recipeRefundCountVO.getEndTime() != null) {
-                    queryCount.setParameter("startTime",recipeRefundCountVO.getStartTime());
-                    queryCount.setParameter("endTime",recipeRefundCountVO.getEndTime());
+                queryCount.setParameter("doctorId", doctorId);
+                if (startTime != null && endTime != null) {
+                    queryCount.setParameter("startTime",startTime);
+                    queryCount.setParameter("endTime",endTime);
                 }
-                long total = Long.parseLong(String.valueOf((queryCount.uniqueResult())));
-                setResult(total);
+                setResult(null == queryCount.uniqueResult() ? 0 : ((Number) queryCount.uniqueResult()).intValue());
             }
         };
-        HibernateSessionTemplate.instance().execute(action);
+        HibernateSessionTemplate.instance().executeReadOnly(action);
         return action.getResult();
     }
 
-    public List<RecipeRefundDTO> getRecipeRefundInfo(RecipeRefundInfoReqVO recipeRefundCountVO){
+    public List<RecipeRefundDTO> getRecipeRefundInfo(Integer doctorId,Date startTime,Date endTime,Integer start,Integer limit){
         HibernateStatelessResultAction<List<RecipeRefundDTO>> action = new AbstractHibernateStatelessResultAction<List<RecipeRefundDTO>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder str = new StringBuilder("select r.recipeID,r.patientName,r.RecipeType,r.CreateDate,cr.Reason");
-                StringBuilder hql = generateRecipeRefundParameter(str, recipeRefundCountVO.getStartTime(), recipeRefundCountVO.getEndTime());
+                StringBuilder hql = generateRecipeRefundParameter(str, startTime, endTime);
+                hql.append(" order by r.CreateDate desc");
                 logger.info("getRecipeRefundInfo hql={}",JSONUtils.toString(hql));
                 Query query = ss.createSQLQuery(hql.toString()).addEntity(RecipeRefundDTO.class);
-                query.setParameter("doctorId", recipeRefundCountVO.getDoctorId());
-                if (recipeRefundCountVO.getStartTime() != null && recipeRefundCountVO.getEndTime() != null) {
-                    query.setParameter("startTime",recipeRefundCountVO.getStartTime());
-                    query.setParameter("endTime",recipeRefundCountVO.getEndTime());
+                query.setParameter("doctorId", doctorId);
+                if (startTime != null && endTime != null) {
+                    query.setParameter("startTime",startTime);
+                    query.setParameter("endTime",endTime);
                 }
+                query.setFirstResult(start);
+                query.setMaxResults(limit);
                 setResult(query.list());
             }
         };
@@ -4465,7 +4467,6 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         if (startTime != null && endTime != null) {
             hql.append("and r.CreateDate between :startTime and :endTime");
         }
-        hql.append(" order by r.CreateDate desc");
         return hql;
     }
 }

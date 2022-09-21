@@ -13,6 +13,7 @@ import java.util.Date;
 import static javax.persistence.GenerationType.IDENTITY;
 
 @Entity
+@Schema
 public class RecipeRefundDTO implements Serializable {
     private static final long serialVersionUID = 539370524183685327L;
 
