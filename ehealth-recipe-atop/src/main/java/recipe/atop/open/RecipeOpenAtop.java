@@ -313,7 +313,8 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
 
     @Override
     public PageGenericsVO<AutomatonResultVO> automatonList(AutomatonVO automatonVO) {
-        validateAtop(automatonVO, automatonVO.getTerminalType(), automatonVO.getStartTime(), automatonVO.getStartTime(), automatonVO.getStart(), automatonVO.getLimit());
+        validateAtop(automatonVO, automatonVO.getTerminalType(), automatonVO.getStartTime(),
+                automatonVO.getEndTime(), automatonVO.getStart(), automatonVO.getLimit());
         //出参
         int start = automatonVO.getStart();
         PageGenericsVO<AutomatonResultVO> result = new PageGenericsVO<>();
