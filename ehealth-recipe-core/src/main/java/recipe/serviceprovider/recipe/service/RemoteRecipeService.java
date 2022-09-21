@@ -2187,6 +2187,12 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         AbstractCaProcessType.getCaProcessFactory(recipeBean.getClinicOrgan()).signCAAfterRecipeCallBackFunction(recipeBean, detailBeanList);
     }
 
+    /**
+     * ca 回调-医生 便捷够药
+     *
+     * @param recipe
+     * @param resultVo
+     */
     private void CaCallBackToDoctorConvenientDrug(Recipe recipe, CaSignResultVo resultVo) {
         Integer recipeId = recipe.getRecipeId();
         //说明处方签名失败
@@ -2203,28 +2209,32 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
     }
 
-
+    /**
+     * ca 回调-药师 便捷够药
+     *
+     * @param recipe
+     * @param resultVo
+     */
     private void CaCallBackToCheckerConvenientDrug(Recipe recipe, CaSignResultVo resultVo) {
         Integer recipeId = recipe.getRecipeId();
         //说明处方药师签名失败
         if (!Integer.valueOf(200).equals(resultVo.getCode())) {
             CaBusinessService.updateSignFailState(recipeId, resultVo.getMsg(), RecipeStatusEnum.RECIPE_STATUS_SIGN_ERROR_CODE_PHA, false);
             return;
-        } else {
-            //说明处方药师签名成功，记录日志，走签名成功逻辑
-            stateManager.updateCheckerSignState(recipeId, SignEnum.SIGN_STATE_ORDER);
-            stateManager.updateStatus(recipeId, RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS, null);
-            stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_ORDER, RecipeStateEnum.SUB_ORDER_READY_SUBMIT_ORDER);
-            pharmacyToRecipePDF(recipeId);
-            createPdfFactory.updatePdfToImg(recipeId, SignImageTypeEnum.SIGN_IMAGE_TYPE_CHEMIST.getType());
-            //给患者发消息
-            SmsInfoBean smsInfoBean = new SmsInfoBean();
-            smsInfoBean.setBusType("FastRecipeApplySuccess");
-            smsInfoBean.setSmsType("FastRecipeApplySuccess");
-            smsInfoBean.setBusId(recipe.getRecipeId());
-            smsInfoBean.setOrganId(recipe.getClinicOrgan());
-            smsClient.pushMsgData2OnsExtendValue(smsInfoBean);
         }
+        //说明处方药师签名成功，记录日志，走签名成功逻辑
+        stateManager.updateCheckerSignState(recipeId, SignEnum.SIGN_STATE_ORDER);
+        stateManager.updateStatus(recipeId, RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS, null);
+        stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_ORDER, RecipeStateEnum.SUB_ORDER_READY_SUBMIT_ORDER);
+        this.pharmacyToRecipePDF(recipeId);
+        createPdfFactory.updatePdfToImg(recipeId, SignImageTypeEnum.SIGN_IMAGE_TYPE_CHEMIST.getType());
+        //给患者发消息
+        SmsInfoBean smsInfoBean = new SmsInfoBean();
+        smsInfoBean.setBusType("FastRecipeApplySuccess");
+        smsInfoBean.setSmsType("FastRecipeApplySuccess");
+        smsInfoBean.setBusId(recipe.getRecipeId());
+        smsInfoBean.setOrganId(recipe.getClinicOrgan());
+        smsClient.pushMsgData2OnsExtendValue(smsInfoBean);
     }
 
 
