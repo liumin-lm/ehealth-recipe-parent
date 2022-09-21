@@ -11,6 +11,7 @@ import com.ngari.recipe.vo.PreOrderInfoReqVO;
 import com.ngari.recipe.vo.ShoppingCartReqVO;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
 import ctd.util.annotation.RpcService;
+import easypay.entity.vo.param.bus.MedicalPreSettleQueryReq;
 import easypay.entity.vo.param.bus.SelfPreSettleQueryReq;
 import recipe.vo.ResultBean;
 import recipe.vo.greenroom.ImperfectInfoVO;
@@ -179,6 +180,14 @@ public interface IRecipeOrderBusinessService {
      * @return
      */
     SelfPreSettleQueryReq selfPreSettleQueryInfo(Integer busId);
+
+    /**
+     * 提供给支付调用医保预结算接口
+     * @param busId
+     * @return
+     */
+    MedicalPreSettleQueryReq medicalPreSettleQueryInfo(Integer busId);
+
 
     /**
      * 第三方获取订单预算信息

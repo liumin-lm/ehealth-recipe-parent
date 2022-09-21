@@ -16,9 +16,10 @@ import recipe.core.api.patient.IRecipeOrderBusinessService;
 public class RecipePayAtop implements IBusPayService {
     @Autowired
     private IRecipeOrderBusinessService recipeOrderService;
+
     @Override
-    public MedicalPreSettleQueryReq medicalPreSettleQueryInfo(Integer integer) {
-        return null;
+    public MedicalPreSettleQueryReq medicalPreSettleQueryInfo(Integer busId) {
+        return recipeOrderService.medicalPreSettleQueryInfo(busId);
     }
 
     @Override
