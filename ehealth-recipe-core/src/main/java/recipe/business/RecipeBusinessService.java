@@ -24,7 +24,6 @@ import com.ngari.recipe.recipe.constant.RecipecCheckStatusConstant;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.vo.*;
 import coupon.api.service.ICouponBaseService;
-import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
 import ctd.util.AppContextHolder;
@@ -1161,7 +1160,8 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     @Override
     public List<RecipeRefundDTO> getRecipeRefundInfo(RecipeRefundInfoReqVO recipeRefundInfoReqVO) {
         logger.info("RecipeBusinessService getRecipeRefundInfo recipeRefundInfoReqVO={}",JSONUtils.toString(recipeRefundInfoReqVO));
-        List<RecipeRefundDTO> recipeRefundInfo = recipeDAO.getRecipeRefundInfo(recipeRefundInfoReqVO);
+        List<RecipeRefundDTO> recipeRefundInfo = recipeDAO.getRecipeRefundInfo(recipeRefundInfoReqVO.getDoctorId(),recipeRefundInfoReqVO.getStartTime(),recipeRefundInfoReqVO.getEndTime(),
+                recipeRefundInfoReqVO.getStart(),recipeRefundInfoReqVO.getLimit());
         logger.info("RecipeBusinessService getRecipeRefundInfo recipeRefundInfo={}",JSONUtils.toString(recipeRefundInfo));
         return recipeRefundInfo;
     }

@@ -203,7 +203,7 @@ public class RecipeOrderOpenAtop extends BaseAtop implements IRecipeOrderAtopSer
 
     @Override
     public Integer getRecipeRefundCount(RecipeRefundInfoReqVO recipeRefundCountVO) {
-        validateAtop(recipeRefundCountVO);
+        validateAtop(recipeRefundCountVO,recipeRefundCountVO.getDoctorId(),recipeRefundCountVO.getStartTime(),recipeRefundCountVO.getEndTime());
         return recipeOrderService.getRecipeRefundCount(recipeRefundCountVO);
     }
 
