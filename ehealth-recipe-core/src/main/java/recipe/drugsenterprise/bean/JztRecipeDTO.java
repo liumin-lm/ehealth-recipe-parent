@@ -96,6 +96,9 @@ public class JztRecipeDTO implements Serializable {
 
     private String tcmNum;
 
+    //处方笺(base64 图片)
+    private String signImg;
+
     private List<JztDrugDTO> drugList;
 
     public String getCertificateType() {
@@ -432,5 +435,13 @@ public class JztRecipeDTO implements Serializable {
 
     public void setDrugList(List<JztDrugDTO> drugList) {
         this.drugList = drugList;
+    }
+
+    public String getSignImg() {
+        return signImg;
+    }
+
+    public void setSignImg(String signImg) {
+        this.signImg = signImg;
     }
 }
