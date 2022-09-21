@@ -6,8 +6,10 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import ctd.persistence.exception.DAOException;
 import eh.base.constant.ErrorCode;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.aop.LogRecord;
+import recipe.client.CouponClient;
 import recipe.enumerate.status.*;
 
 /**
@@ -17,6 +19,9 @@ import recipe.enumerate.status.*;
  */
 @Service
 public class StateManager extends BaseManager {
+
+    @Autowired
+    private CouponClient couponClient;
 
     /**
      * 修改订单状态
@@ -39,6 +44,12 @@ public class StateManager extends BaseManager {
                 result = this.updateOrderStateWithLogistics(recipeOrder, processState, subState);
                 break;
             case PROCESS_STATE_CANCELLATION:
+                result = this.defaultOrder(recipeOrder, processState, subState);
+                // 如果有优惠券需要解锁优惠券
+                if (null != recipeOrder.getCouponId() && recipeOrder.getCouponId() > 0) {
+                    couponClient.unlockCouponById(recipeOrder.getCouponId());
+                }
+                break;
             case PROCESS_STATE_DISPENSING:
             case PROCESS_STATE_ORDER_PLACED:
             case PROCESS_STATE_READY_PAY:

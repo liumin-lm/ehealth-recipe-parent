@@ -27,4 +27,14 @@ public class CouponClient extends BaseClient {
         Coupon coupon = couponBaseService.calculateCoupon(couponCalcReq);
         return coupon;
     }
+    /**
+     * 解锁优惠券
+     * @param couponId
+     * @return
+     */
+    @LogRecord
+    public Coupon unlockCouponById(Integer couponId) {
+        Coupon coupon = couponBaseService.unlockCouponById(couponId);
+        return coupon;
+    }
 }
