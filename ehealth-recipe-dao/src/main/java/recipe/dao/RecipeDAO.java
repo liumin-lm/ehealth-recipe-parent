@@ -4380,7 +4380,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
             hql.append(" and r.process_state in(:processState)");
         }
         if (StringUtils.isNotEmpty(startTime) && StringUtils.isNotEmpty(endTime)) {
-            hql.append(" and r.createDate between FROM_UNIXTIME(:startTime, '%Y-%m-%d %H:%i:%S') and FROM_UNIXTIME(:endTime, '%Y-%m-%d %H:%i:%S') ");
+            hql.append(" and r.createDate between :startTime and :endTime ");
         }
         hql.append(" order by r.createDate desc ");
         return hql.toString();
@@ -4416,24 +4416,32 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         }
     }
 
-    public QueryResult<RecipeRefundDTO> getRecipeRefundInfo(RecipeRefundInfoReqVO recipeRefundCountVO){
-        HibernateStatelessResultAction<QueryResult<RecipeRefundDTO>> action = new AbstractHibernateStatelessResultAction<QueryResult<RecipeRefundDTO>>() {
+    public Integer getRecipeRefundCount(Integer doctorId,Date startTime,Date endTime){
+        HibernateStatelessResultAction<Integer> action = new AbstractHibernateStatelessResultAction<Integer>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                StringBuilder hqlCount = new StringBuilder("select count(*)");
-                StringBuilder hql = new StringBuilder("select r.recipeID,r.patientName,r.RecipeType,r.CreateDate,cr.Reason");
-                StringBuilder str = new StringBuilder(" from cdr_recipe r left join cdr_recipeorder o on r.orderCode = o.orderCode " +
-                        "left join cdr_recipe_refund cr on r.recipeID = cr.busId " +
-                        " where r.doctor =:doctorId and o.payFlag = 3 and cr.node = -1 ");
-                hqlCount.append(str);
-                hql.append(str);
-                Date startTime = recipeRefundCountVO.getStartTime();
-                Date endTime = recipeRefundCountVO.getEndTime();
-                Integer doctorId = recipeRefundCountVO.getDoctorId();
+                StringBuilder str = new StringBuilder("select count(*)");
+                StringBuilder hqlCount = generateRecipeRefundParameter(str, startTime, endTime);
+                logger.info("getRecipeRefundInfo hqlCount={}",JSONUtils.toString(hqlCount));
+                Query queryCount = ss.createSQLQuery(hqlCount.toString());
+                queryCount.setParameter("doctorId", doctorId);
                 if (startTime != null && endTime != null) {
-                    hqlCount.append("and r.CreateDate between :startTime and :endTime");
-                    hql.append("and r.CreateDate between :startTime and :endTime");
+                    queryCount.setParameter("startTime",startTime);
+                    queryCount.setParameter("endTime",endTime);
                 }
+                setResult(null == queryCount.uniqueResult() ? 0 : ((Number) queryCount.uniqueResult()).intValue());
+            }
+        };
+        HibernateSessionTemplate.instance().executeReadOnly(action);
+        return action.getResult();
+    }
+
+    public List<RecipeRefundDTO> getRecipeRefundInfo(Integer doctorId,Date startTime,Date endTime,Integer start,Integer limit){
+        HibernateStatelessResultAction<List<RecipeRefundDTO>> action = new AbstractHibernateStatelessResultAction<List<RecipeRefundDTO>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder str = new StringBuilder("select r.recipeID,r.patientName,r.RecipeType,r.CreateDate,cr.Reason");
+                StringBuilder hql = generateRecipeRefundParameter(str, startTime, endTime);
                 hql.append(" order by r.CreateDate desc");
                 logger.info("getRecipeRefundInfo hql={}",JSONUtils.toString(hql));
                 Query query = ss.createSQLQuery(hql.toString()).addEntity(RecipeRefundDTO.class);
@@ -4442,20 +4450,24 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                     query.setParameter("startTime",startTime);
                     query.setParameter("endTime",endTime);
                 }
-                List<RecipeRefundDTO> list = query.list();
-                Query queryCount = ss.createSQLQuery(hqlCount.toString());
-                queryCount.setParameter("doctorId", doctorId);
-                if (startTime != null && endTime != null) {
-                    queryCount.setParameter("startTime",startTime);
-                    queryCount.setParameter("endTime",endTime);
-                }
-                long total = Long.parseLong(String.valueOf((queryCount.uniqueResult())));
-                //BigInteger count = (BigInteger) query.uniqueResult();
-                setResult(new QueryResult<>(total, 0, 0, list));
+                query.setFirstResult(start);
+                query.setMaxResults(limit);
+                setResult(query.list());
             }
         };
         HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
+    }
+
+    private StringBuilder generateRecipeRefundParameter(StringBuilder hql,Date startTime, Date endTime){
+        String str = " from cdr_recipe r left join cdr_recipeorder o on r.orderCode = o.orderCode " +
+                "left join cdr_recipe_refund cr on r.recipeID = cr.busId " +
+                " where r.doctor =:doctorId and o.payFlag = 3 and cr.node = -1 ";
+        hql.append(str);
+        if (startTime != null && endTime != null) {
+            hql.append("and r.CreateDate between :startTime and :endTime");
+        }
+        return hql;
     }
 }
 

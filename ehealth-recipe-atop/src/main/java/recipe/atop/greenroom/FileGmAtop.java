@@ -61,7 +61,7 @@ public class FileGmAtop extends OutputSupportMVCController {
     }
 
     /**
-     * 导入结果查看
+     * 导入结果查看--列表
      * @param importDrugRecord
      * @return
      */
@@ -71,7 +71,7 @@ public class FileGmAtop extends OutputSupportMVCController {
     }
 
     /**
-     * 错误原因查看
+     * 错误原因查看--详情
      * @param importDrugRecord
      * @return
      */

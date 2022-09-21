@@ -1,13 +1,16 @@
 package recipe.vo.greenroom;
 
 import ctd.schema.annotation.ItemProperty;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import recipe.vo.PageVO;
 
 import java.io.Serializable;
 import java.util.Date;
 
-@Data
-public class RecipeRefundInfoReqVO implements Serializable {
+@Getter
+@Setter
+public class RecipeRefundInfoReqVO extends PageVO implements Serializable {
     private static final long serialVersionUID = 7465817826997583598L;
 
     @ItemProperty(alias = "医生id")

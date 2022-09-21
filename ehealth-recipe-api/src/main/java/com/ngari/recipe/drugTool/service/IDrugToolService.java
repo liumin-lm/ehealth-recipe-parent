@@ -10,6 +10,7 @@ import java.util.Map;
  */
 public interface IDrugToolService {
 
+    @Deprecated
     @RpcService(timeout = 6000)
     Map<String, Object> readDrugExcel(byte[] buf, String originalFilename, int organId, String operator);
 

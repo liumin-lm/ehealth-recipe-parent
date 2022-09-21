@@ -41,6 +41,7 @@ import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
+import easypay.entity.vo.param.bus.MedicalPreSettleQueryReq;
 import easypay.entity.vo.param.bus.SelfPreSettleQueryReq;
 import eh.entity.bus.pay.BusTypeEnum;
 import eh.utils.BeanCopyUtils;
@@ -860,6 +861,38 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
         }
         return selfPreSettleQueryReq;
     }
+    public MedicalPreSettleQueryReq medicalPreSettleQueryInfo(Integer recipeId) {
+        logger.info("medicalPreSettleQueryInfo recipeId={}", recipeId);
+        MedicalPreSettleQueryReq medicalPreSettleQueryReq = new MedicalPreSettleQueryReq();
+        Recipe recipe = recipeDAO.get(recipeId);
+        if (Objects.isNull(recipe)) {
+            throw new DAOException("未获取到处方信息！");
+        }
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+        if (Objects.isNull(recipeExtend)) {
+            throw new DAOException("未获取到处方扩展信息！");
+        }
+        try {
+            medicalPreSettleQueryReq.setOrganId(recipe.getClinicOrgan());
+            medicalPreSettleQueryReq.setMrn(recipeExtend.getMedicalRecordNumber());
+            medicalPreSettleQueryReq.setRegisterNo(recipeExtend.getRegisterID());
+            medicalPreSettleQueryReq.setPatId(recipe.getPatientID());
+            if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
+                RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+                if (Objects.isNull(recipeOrder)) {
+                    throw new DAOException("未获取到处方订单信息！");
+                }
+                medicalPreSettleQueryReq.setHisSettlementNo(recipeOrder.getHisSettlementNo());
+                medicalPreSettleQueryReq.setTotalAmount(recipeOrder.getTotalFee());
+                String recipeIdList = recipeOrder.getRecipeIdList();
+                String recipeNos = recipeIdList.replace(",", "|");
+                medicalPreSettleQueryReq.setRecipeNos(recipeNos);
+            }
+        } catch (Exception e) {
+            logger.error("medicalPreSettleQueryInfo error", e);
+        }
+        return medicalPreSettleQueryReq;
+    }
 
     @Override
     public ThirdOrderPreSettleRes thirdOrderPreSettle(ThirdOrderPreSettleReq thirdOrderPreSettleReq) {
@@ -1440,7 +1473,6 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
     @Override
     public Integer getRecipeRefundCount(RecipeRefundInfoReqVO recipeRefundCountVO) {
         logger.info("RecipeOrderBusinessService getRecipeRefundCount recipeRefundCountVO={}",JSONUtils.toString(recipeRefundCountVO));
-        QueryResult<RecipeRefundDTO> recipeRefundInfo = recipeDAO.getRecipeRefundInfo(recipeRefundCountVO);
-         return (int) recipeRefundInfo.getTotal();
+        return recipeDAO.getRecipeRefundCount(recipeRefundCountVO.getDoctorId(),recipeRefundCountVO.getStartTime(),recipeRefundCountVO.getEndTime());
     }
 }
