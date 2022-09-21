@@ -48,6 +48,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
+import recipe.aop.LogRecord;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bussutil.RecipeUtil;
 import recipe.caNew.pdf.CreatePdfFactory;
@@ -914,13 +915,16 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
     }
 
     private void fastRecipeOtherCa(Recipe recipe) {
+        LOGGER.info("fastRecipeOtherCa param:{}",recipe.getRecipeId());
         CaSealRequestTO requestSealTO = createPdfFactory.queryPdfByte(recipe.getRecipeId(),true);
         RecipeServiceEsignExt.updateInitRecipePDF(true, recipe, requestSealTO.getPdfBase64Str());
         caManager.oldCommonCASign(requestSealTO, recipe);
     }
 
     @Override
+    @LogRecord
     public Integer esignRecipeCa(Integer recipeId) {
+        LOGGER.info("esignRecipeCa param:{}",recipeId);
         try {
             Recipe recipe = recipeManager.getRecipeById(recipeId);
             LOGGER.info("esignRecipeCa recipe:{}", JSON.toJSONString(recipe));

@@ -6011,7 +6011,9 @@ public class RecipeService extends RecipeBaseService {
             LOGGER.info(JSONUtils.toString(takeMedicineByToHosList));
         } else if ("9".equals(type)) {
 //            consultClient.getRecipePaymentFee();
-        } else {
+        }else if ("10".equals(type)) {
+            caManager.obtainFastRecipeCaParam(recipe);
+        }else {
             Object isDefaultGiveModeToHos = configService.getConfiguration(recipe.getClinicOrgan(), "isDefaultGiveModeToHos");
             LOGGER.info("setGiveMode isDefaultGiveModeToHos：{} ", isDefaultGiveModeToHos);
             if ((boolean) isDefaultGiveModeToHos == true) {

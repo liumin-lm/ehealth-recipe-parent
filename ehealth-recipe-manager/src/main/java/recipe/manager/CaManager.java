@@ -13,6 +13,7 @@ import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
 import ctd.util.FileAuth;
 import ctd.util.JSONUtils;
+import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -472,13 +473,14 @@ public class CaManager extends BaseManager {
      * @param recipe
      * @return
      */
+    @LogRecord
     public String obtainFastRecipeCaParam(Recipe recipe) {
         String fastRecipeParameter=recipeParameterDao.getByName("fastRecipeParameter");
         List<Map<String,String>> fastRecipeParameterList = JSONUtils.parse(fastRecipeParameter, ArrayList.class);
         String ca= CaConstant.ESIGN;
         if(!CollectionUtils.isEmpty(fastRecipeParameterList)){
             for(Map<String,String> map:fastRecipeParameterList){
-                if (recipe.getClinicOrgan().equals(map.get("organId"))){
+                if (String.valueOf(recipe.getClinicOrgan()).equals(map.get("organId"))){
                     ca=map.get("ca");
                     return ca;
                 }
@@ -487,4 +489,5 @@ public class CaManager extends BaseManager {
         }
         return ca;
     }
+
 }
