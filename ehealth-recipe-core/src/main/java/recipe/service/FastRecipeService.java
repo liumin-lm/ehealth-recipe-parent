@@ -20,12 +20,14 @@ import ctd.util.event.GlobalEventExecFactory;
 import eh.cdr.api.vo.MedicalDetailBean;
 import eh.utils.ValidateUtil;
 import org.apache.commons.collections.CollectionUtils;
+import org.checkerframework.checker.units.qual.A;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.business.BaseService;
 import recipe.client.DocIndexClient;
 import recipe.client.OperationClient;
+import recipe.constant.CaConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.core.api.IFastRecipeBusinessService;
 import recipe.core.api.patient.IPatientBusinessService;
@@ -33,6 +35,7 @@ import recipe.dao.*;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.BussSourceTypeEnum;
 import recipe.hisservice.RecipeToHisCallbackService;
+import recipe.manager.CaManager;
 import recipe.vo.doctor.RecipeInfoVO;
 
 import java.math.BigDecimal;
@@ -79,6 +82,7 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
     @Autowired
     private OperationClient operationClient;
 
+
     @Override
     public List<Integer> fastRecipeSaveRecipeList(List<RecipeInfoVO> recipeInfoVOList) {
         List<FutureTask<Integer>> futureTasks = new LinkedList<>();
@@ -93,7 +97,7 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
         singleExecutor.execute(() -> {
             if (CollectionUtils.isNotEmpty(resultList)) {
                 for (Integer recipeId : resultList) {
-                    recipePatientService.esignRecipeCa(recipeId);
+                    recipePatientService.fastRecipeCa(recipeId);
                     try {
                         Thread.sleep(500);
                     } catch (InterruptedException e) {

@@ -12,6 +12,7 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
 import ctd.util.FileAuth;
+import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,13 +22,18 @@ import recipe.client.CaClient;
 import recipe.client.DoctorClient;
 import recipe.client.RecipeAuditClient;
 import recipe.constant.CARecipeTypeConstant;
+import recipe.constant.CaConstant;
+import recipe.dao.RecipeParameterDao;
 import recipe.dao.sign.SignDoctorRecipeInfoDAO;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.util.ByteUtils;
 import recipe.util.RedisClient;
 import recipe.util.ValidateUtil;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * CA
@@ -74,6 +80,8 @@ public class CaManager extends BaseManager {
     private RedisClient redisClient;
     @Autowired
     private CaClient caClient;
+    @Autowired
+    private RecipeParameterDao recipeParameterDao;
 
     /**
      * 设置CA密码
@@ -457,5 +465,26 @@ public class CaManager extends BaseManager {
         } else {
             return null;
         }
+    }
+
+    /**
+     * 获取快捷狗咬ca方式
+     * @param recipe
+     * @return
+     */
+    public String obtainFastRecipeCaParam(Recipe recipe) {
+        String fastRecipeParameter=recipeParameterDao.getByName("fastRecipeParameter");
+        List<Map<String,String>> fastRecipeParameterList = JSONUtils.parse(fastRecipeParameter, ArrayList.class);
+        String ca= CaConstant.ESIGN;
+        if(!CollectionUtils.isEmpty(fastRecipeParameterList)){
+            for(Map<String,String> map:fastRecipeParameterList){
+                if (recipe.getClinicOrgan().equals(map.get("organId"))){
+                    ca=map.get("ca");
+                    return ca;
+                }
+            }
+
+        }
+        return ca;
     }
 }
