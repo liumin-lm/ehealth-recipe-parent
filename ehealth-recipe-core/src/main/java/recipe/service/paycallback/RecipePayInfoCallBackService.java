@@ -309,6 +309,13 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
                     attr.put("cashAmount", ConversionUtils.convert(ysbody.get("yfje"), Double.class));
                 }
                 try {
+                    if (ysbody.get("yhje") != null) {
+                        attr.put("couponFee", new BigDecimal(ysbody.get("yhje")));
+                    }
+                }catch (Exception e){
+                    logger.error("payCallBackParamAndUpdate couponFee error", e);
+                }
+                try {
                     //计算预结算返回的总金额与平台的总金额是否一致，如果不一致，则更新
                     if (null != zje && null != order.getTotalFee() && order.getTotalFee().doubleValue() != zje) {
                         logger.info("卫宁返回预结算金额与订单平台金额不一致,zje:{},totalFee:{},expressFeePayWay:{},expressFee：{}", zje, order.getTotalFee(), order.getExpressFeePayWay(), order.getExpressFee());
