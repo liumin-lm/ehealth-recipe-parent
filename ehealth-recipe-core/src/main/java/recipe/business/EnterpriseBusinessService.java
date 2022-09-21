@@ -573,6 +573,13 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
         return collect;
     }
 
+    /**
+     * P1-27531-108310- 【实施/上海】【上海市第七人民医院】【B】【BUG】互联网医院中草药处方无法选择在可配范围内的快递地址
+     * 上面需求在findEnterpriseAddressProvinceV2中已开发
+     *
+     * @param enterpriseId
+     * @return
+     */
     @Override
     public List<EnterpriseAddressAndPrice> findEnterpriseAddressProvince(Integer enterpriseId) {
         List<EnterpriseAddress> enterpriseAddresses = enterpriseAddressDAO.findByEnterPriseId(enterpriseId);
@@ -589,6 +596,36 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
         return list;
     }
 
+    //@Override
+    //public List<EnterpriseAddressAndPrice> findEnterpriseAddressProvinceV2(Integer enterpriseId) {
+    //    List<EnterpriseAddress> enterpriseAddresses = enterpriseAddressDAO.findByEnterPriseId(enterpriseId);
+    //    if (CollectionUtils.isEmpty(enterpriseAddresses)) {
+    //        return Lists.newArrayList();
+    //    }
+    //
+    //    //每个省配置的街道数量map
+    //    Map<String, Long> map = enterpriseAddresses.stream().peek(e -> e.setAddress(e.getAddress().substring(0, 2)))
+    //            .collect(Collectors.groupingBy(EnterpriseAddress::getAddress, Collectors.counting()));
+    //    logger.info("findEnterpriseAddressProvince map={}", JSON.toJSONString(map));
+    //
+    //    List<EnterpriseAddressAndPrice> list = enterpriseAddresses.stream().map(enterpriseAddress -> {
+    //        EnterpriseAddressAndPrice enterpriseAddressAndPrice = new EnterpriseAddressAndPrice();
+    //        enterpriseAddressAndPrice.setEnterpriseId(enterpriseAddress.getEnterpriseId());
+    //        enterpriseAddressAndPrice.setAddress(enterpriseAddress.getAddress().substring(0, 2));
+    //        return enterpriseAddressAndPrice;
+    //    }).filter(distinctByKey(e -> e.getAddress())).collect(Collectors.toList());
+    //
+    //    //设置ConfigFlag字段，若enterpriseAddress配置数量 >= 基础服务下街道数量，显示添加全部地区
+    //    list.forEach(x -> {
+    //        Long count = addrAreaService.getCountAreaLikeCode(x.getAddress());
+    //        if (Objects.nonNull(count) && count <= map.get(x.getAddress())) {
+    //            x.setConfigFlag(1);
+    //        } else {
+    //            x.setConfigFlag(2);
+    //        }
+    //    });
+    //    return list;
+    //}
 
     @Override
     public EnterpriseResultBean renewDrugInfo(List<EnterpriseDrugVO> enterpriseDrugVOList) {

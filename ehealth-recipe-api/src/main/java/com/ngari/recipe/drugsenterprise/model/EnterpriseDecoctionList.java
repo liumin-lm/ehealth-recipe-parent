@@ -21,6 +21,6 @@ public class EnterpriseDecoctionList implements Serializable {
     @ItemProperty(alias = "煎法名称")
     private String decoctionName;
 
-    @ItemProperty(alias = "是否已配置 1 已配置")
+    @ItemProperty(alias = "是否已配置 0：未配置, 1：部分地区已配置, 2：全部地区已配置")
     private Integer status;
 }

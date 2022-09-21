@@ -22,7 +22,7 @@ public class PageVO {
      */
     private Integer start;
     /**
-     * 分页条数
+     * 分页条数 如：10 一页十条
      */
     private Integer limit;
 

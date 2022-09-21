@@ -4380,7 +4380,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
             hql.append(" and r.process_state in(:processState)");
         }
         if (StringUtils.isNotEmpty(startTime) && StringUtils.isNotEmpty(endTime)) {
-            hql.append(" and r.createDate between FROM_UNIXTIME(:startTime, '%Y-%m-%d %H:%i:%S') and FROM_UNIXTIME(:endTime, '%Y-%m-%d %H:%i:%S') ");
+            hql.append(" and r.createDate between :startTime and :endTime ");
         }
         hql.append(" order by r.createDate desc ");
         return hql.toString();
