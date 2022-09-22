@@ -120,25 +120,15 @@ public class OrganDrugToolService implements IOrganDrugToolService {
 
             try {
                 excelUtil.load( new ByteArrayInputStream(fileDownloadService.downloadAsByte(fileId))).parse();
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (InvalidFormatException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
-
-
-//        Integer total = sheet.getLastRowNum();
-//        if (total == null || total <= 0) {
-//            result.put("code", 609);
-//            result.put("msg", "data is required");
-//            return result;
-//        }
-            //TODO 条数对不上 why?
-            //TODO 状态更新 what?
+            //导入记录更新
             importDrugRecord.setFailNum(total.get()<1?0:total.get()-1 - importDrugRecord.getAddNum() - importDrugRecord.getUpdateNum() - importDrugRecord.getBankNumber());
             if(importDrugRecord.getFailNum()>0){
                 importDrugRecord.setStatus(3);
             }else{
+                importDrugRecord.setFailNum(0);
                 importDrugRecord.setStatus(1);
             }
             importDrugRecordDAO.update(importDrugRecord);
@@ -231,8 +221,8 @@ public class OrganDrugToolService implements IOrganDrugToolService {
      */
     private void failProcess(ImportDrugRecord importDrugRecord, AtomicReference<Integer> rowIndex, StringBuilder validMsg) {
         ImportDrugRecordMsg importDrugRecordMsg=new ImportDrugRecordMsg();
-        rowIndex.getAndSet(rowIndex.get()+1);
-        importDrugRecordMsg.setErrLocaction("第" + rowIndex + "行");
+        Integer errorLocaction=rowIndex.get()+1;
+        importDrugRecordMsg.setErrLocaction("第" + errorLocaction + "行");
         importDrugRecordMsg.setErrMsg(validMsg.substring(0, validMsg.length() - 1) );
         importDrugRecordMsg.setImportDrugRecordId(importDrugRecord.getRecordId());
         importDrugRecordMsgDAO.save(importDrugRecordMsg);
