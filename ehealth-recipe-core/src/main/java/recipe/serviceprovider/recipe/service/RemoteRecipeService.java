@@ -2197,7 +2197,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         Integer recipeId = recipe.getRecipeId();
         //说明处方签名失败
         if (!Integer.valueOf(200).equals(resultVo.getCode())) {
-            CaBusinessService.updateSignFailState(recipeId, resultVo.getMsg(), RecipeStatusEnum.RECIPE_STATUS_SIGN_ERROR_CODE_DOC, true);
+            CaBusinessService.updateSignFailState(recipe, resultVo.getMsg(), RecipeStatusEnum.RECIPE_STATUS_SIGN_ERROR_CODE_DOC, true);
             return;
         }
         /**设置处方的状态************/
@@ -2219,7 +2219,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         Integer recipeId = recipe.getRecipeId();
         //说明处方药师签名失败
         if (!Integer.valueOf(200).equals(resultVo.getCode())) {
-            CaBusinessService.updateSignFailState(recipeId, resultVo.getMsg(), RecipeStatusEnum.RECIPE_STATUS_SIGN_ERROR_CODE_PHA, false);
+            CaBusinessService.updateSignFailState(recipe, resultVo.getMsg(), RecipeStatusEnum.RECIPE_STATUS_SIGN_ERROR_CODE_PHA, false);
             return;
         }
         //说明处方药师签名成功，记录日志，走签名成功逻辑
