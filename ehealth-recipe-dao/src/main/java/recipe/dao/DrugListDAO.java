@@ -1093,5 +1093,7 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
     @DAOMethod(sql = " from DrugList where drugName=:drugName and saleName=:saleName  and drugType=:drugType  and producer=:producer  and drugSpec=:drugSpec and status = 1",limit = 0)
     public abstract List<DrugList> findRepeatDrugListNoOrgan(@DAOParam("drugName") String drugName,@DAOParam("saleName") String saleName,@DAOParam("drugType") Integer drugType, @DAOParam("producer") String producer, @DAOParam("drugSpec") String drugSpec);
 
+    @DAOMethod(sql = " from DrugList where drugCode=:drugCode")
+    public abstract List<DrugList> findByDrugCode(@DAOParam("drugCode") String drugCode);
 
 }

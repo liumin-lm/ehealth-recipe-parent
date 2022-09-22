@@ -9,7 +9,6 @@ import com.ngari.recipe.entity.Dispensatory;
 import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.DrugSources;
 import com.ngari.recipe.entity.OrganDrugList;
-import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.dictionary.DictionaryItem;
 import ctd.persistence.DAOFactory;
 import ctd.util.annotation.RpcBean;
@@ -123,5 +122,12 @@ public class DrugListOPService implements IDrugListService {
             }).collect(Collectors.toList());
         }
         return drugListBeans;
+    }
+
+    @Override
+    public List<DrugListBean> findByDrugCode(String drugCode) {
+        DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
+        List<DrugList> list = drugListDAO.findByDrugCode(drugCode);
+        return ObjectCopyUtils.convert(list, DrugListBean.class);
     }
 }

@@ -30,4 +30,7 @@ public interface IDrugListService {
      */
     @RpcService
     List<DrugListBean> findByDrugIds(List<Integer> drugIds);
+
+    @RpcService(mvcDisabled = true)
+    List<DrugListBean> findByDrugCode(String drugCode);
 }
