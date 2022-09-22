@@ -260,9 +260,9 @@ public class RecipeRefundService extends RecipeBaseService {
             }
 
             if (refundRequestBean.getRefundFlag()) {
-                if (Integer.valueOf(1).equals(recipeOrder.getDispensingFlag())) {
-                    throw new DAOException(ErrorCode.SERVICE_ERROR, "订单已发药, 请先确认退药处理(编辑订单信息-已退药), 再提交退费审核通过");
-                }
+//                if (Integer.valueOf(1).equals(recipeOrder.getDispensingFlag())) {
+//                    throw new DAOException(ErrorCode.SERVICE_ERROR, "订单已发药, 请先确认退药处理(编辑订单信息-已退药), 再提交退费审核通过");
+//                }
                 //退费申请记录保存
                 RecipeRefund recipeRefund = new RecipeRefund();
                 recipeRefund.setTradeNo(recipeOrder.getTradeNo());

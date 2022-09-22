@@ -18,10 +18,13 @@ public class PageVO {
     private Integer total;
     /**
      * 页数
+     * 从1开始
      */
     private Integer start;
     /**
-     * 分页条数
+     * 分页条数 如：10 一页十条
      */
     private Integer limit;
+
+
 }

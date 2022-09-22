@@ -43,6 +43,8 @@ import recipe.drugsenterprise.bean.JztRecipeDTO;
 import recipe.drugsenterprise.bean.JztTokenRequest;
 import recipe.drugsenterprise.bean.JztTokenResponse;
 import recipe.service.common.RecipeCacheService;
+import recipe.third.IFileDownloadService;
+import recipe.util.Base64;
 import recipe.util.DateConversion;
 
 import javax.annotation.Nullable;
@@ -345,6 +347,17 @@ public class JztdyfRemoteService extends AccessDrugEnterpriseService {
         jztRecipe.setDistributorName("");
         jztRecipe.setPharmacyCode("");
         jztRecipe.setPharmacyName("");
+        //设置base64位图片
+        String ossId = dbRecipe.getSignImg();
+        if (StringUtils.isNotEmpty(ossId)) {
+            try {
+                IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
+                String imgStr = "data:image/jpeg;base64," + fileDownloadService.downloadImg(ossId);
+                jztRecipe.setSignImg(imgStr);
+            } catch (Exception e) {
+                LOGGER.error("setJztRecipeInfo setSignImg error", e);
+            }
+        }
     }
 
     /**

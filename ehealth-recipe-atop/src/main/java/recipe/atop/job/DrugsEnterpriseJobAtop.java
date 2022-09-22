@@ -1,13 +1,10 @@
 package recipe.atop.job;
 
-import com.ngari.recipe.drugsenterprise.model.EnterpriseDecoctionList;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
-import recipe.core.api.IDrugsEnterpriseBusinessService;
-
-import java.util.List;
+import recipe.core.api.IEnterpriseBusinessService;
 
 /**
  * @description：药企定时任务相关
@@ -18,7 +15,7 @@ import java.util.List;
 public class DrugsEnterpriseJobAtop extends BaseAtop {
 
     @Autowired
-    private IDrugsEnterpriseBusinessService enterpriseBusinessService;
+    private IEnterpriseBusinessService enterpriseBusinessService;
     /**
      * 药企推送失败 的处方重新推送定时任务
      */

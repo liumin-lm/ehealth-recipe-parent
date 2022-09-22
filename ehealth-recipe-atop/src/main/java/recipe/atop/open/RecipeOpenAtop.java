@@ -2,23 +2,24 @@ package recipe.atop.open;
 
 import com.alibaba.fastjson.JSONArray;
 import com.ngari.common.mode.HisResponseTO;
-import com.ngari.recipe.vo.FastRecipeReq;
-import com.ngari.recipe.entity.FastRecipe;
-import com.ngari.recipe.entity.FastRecipeDetail;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.Symptom;
+import com.ngari.patient.dto.DoctorDTO;
+import com.ngari.platform.recipe.mode.QueryRecipeInfoHisDTO;
+import com.ngari.recipe.dto.PatientDTO;
+import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.model.SymptomDTO;
 import com.ngari.recipe.vo.FastRecipeDetailVO;
+import com.ngari.recipe.vo.FastRecipeReq;
 import com.ngari.recipe.vo.FastRecipeVO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import eh.utils.BeanCopyUtils;
+import eh.utils.ValidateUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.aop.LogRecord;
@@ -34,14 +35,17 @@ import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.SignEnum;
 import recipe.util.ObjectCopyUtils;
+import recipe.vo.PageGenericsVO;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.patient.PatientOptionalDrugVo;
+import recipe.vo.second.AutomatonResultVO;
+import recipe.vo.second.AutomatonVO;
 import recipe.vo.second.RecipePayHISCallbackReq;
 import recipe.vo.second.RevisitRecipeTraceVo;
 
 import javax.annotation.Resource;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 处方服务入口类
@@ -217,6 +221,13 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
     }
 
     @Override
+    public List<QueryRecipeInfoHisDTO> findRecipeByIds(List<Integer> recipeIds) {
+        validateAtop(recipeIds);
+        return recipeBusinessService.findRecipeByIds(recipeIds);
+    }
+
+
+    @Override
     public SymptomDTO symptomId(Integer id) {
         validateAtop(id);
         Symptom symptom = recipeBusinessService.symptomId(id);
@@ -290,7 +301,7 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
     @Override
     @LogRecord
     public List<RecipeBean> findRecipeByMpiidAndrecipeStatus(String mpiid, List<Integer> recipeStatus,Integer terminalType,Integer organId) {
-        return com.ngari.patient.utils.ObjectCopyUtils.convert(recipeBusinessService.findRecipeByMpiidAndrecipeStatus(mpiid,recipeStatus,terminalType,organId), RecipeBean.class);
+        return com.ngari.patient.utils.ObjectCopyUtils.convert(recipeBusinessService.findRecipeByMpiidAndrecipeStatus(mpiid, recipeStatus, terminalType, organId), RecipeBean.class);
     }
 
     @Override
@@ -300,4 +311,57 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
         return hisResponseTO;
     }
 
+    @Override
+    public PageGenericsVO<AutomatonResultVO> automatonList(AutomatonVO automatonVO) {
+        validateAtop(automatonVO, automatonVO.getTerminalType(), automatonVO.getStartTime(),
+                automatonVO.getEndTime(), automatonVO.getStart(), automatonVO.getLimit());
+        //出参
+        int start = automatonVO.getStart();
+        PageGenericsVO<AutomatonResultVO> result = new PageGenericsVO<>();
+        result.setStart(start);
+        result.setLimit(automatonVO.getLimit());
+        result.setDataList(Collections.emptyList());
+        //查询对象
+        Recipe recipe = new Recipe();
+        recipe.setRecipeId(automatonVO.getRecipeId());
+        recipe.setClinicOrgan(automatonVO.getOrganId());
+        recipe.setPayFlag(automatonVO.getPayFlag());
+        recipe.setMedicalFlag(automatonVO.getMedicalFlag());
+        //总条数
+        Integer count = recipeBusinessService.automatonCount(automatonVO, recipe);
+        result.setTotal(count);
+        if (ValidateUtil.nullOrZeroInteger(count)) {
+            return result;
+        }
+        //列表数据
+        automatonVO.setStart((automatonVO.getStart() - 1) * automatonVO.getLimit());
+        List<AutomatonResultVO> list = recipeBusinessService.automatonList(automatonVO, recipe);
+        if (CollectionUtils.isEmpty(list)) {
+            return result;
+        }
+        //返回列表数据组织
+        Set<Integer> enterpriseIds = new HashSet<>();
+        Set<Integer> doctorIds = new HashSet<>();
+        List<String> mpiIdList = list.stream().map(a -> {
+            enterpriseIds.add(a.getEnterpriseId());
+            doctorIds.add(a.getDoctor());
+            return a.getMpiid();
+        }).distinct().collect(Collectors.toList());
+        //药企
+        Map<Integer, DrugsEnterprise> drugsEnterpriseMap = enterpriseBusinessService.findDrugsEnterpriseByIds(new ArrayList<>(enterpriseIds));
+        //医生
+        Map<Integer, DoctorDTO> doctorMap = organBusinessService.findByDoctorIds(new ArrayList<>(doctorIds));
+        //患者
+        Map<String, PatientDTO> patientMap = recipePatientService.findPatientByMpiIds(mpiIdList);
+        list.forEach(a -> {
+            DrugsEnterprise drugsEnterprise = drugsEnterpriseMap.get(a.getEnterpriseId());
+            a.setEnterpriseName(null == drugsEnterprise ? null : drugsEnterprise.getName());
+            DoctorDTO doctor = doctorMap.get(a.getDoctor());
+            a.setDoctorMobile(null == doctor ? null : doctor.getMobile());
+            PatientDTO patient = patientMap.get(a.getMpiid());
+            a.setPatientMobile(null == patient ? null : patient.getMobile());
+        });
+        result.setDataList(list);
+        return result;
+    }
 }

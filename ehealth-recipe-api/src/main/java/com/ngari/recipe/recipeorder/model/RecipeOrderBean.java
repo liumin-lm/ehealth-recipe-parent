@@ -386,6 +386,17 @@ public class RecipeOrderBean implements Serializable {
     @Dictionary(id = "eh.recipe.orderLogisticsState")
     private Integer logisticsState;
 
+    @ItemProperty(alias = "发药标示：0:无需发药，1：已发药，2:已退药")
+    private Integer dispensingFlag;
+
+    public Integer getDispensingFlag() {
+        return dispensingFlag;
+    }
+
+    public void setDispensingFlag(Integer dispensingFlag) {
+        this.dispensingFlag = dispensingFlag;
+    }
+
     public Integer getLogisticsState() {
         return logisticsState;
     }

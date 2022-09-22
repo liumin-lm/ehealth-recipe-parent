@@ -13,7 +13,6 @@ import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.*;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
-import ctd.util.annotation.RpcService;
 import eh.utils.BeanCopyUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.BeanUtils;
@@ -23,6 +22,7 @@ import recipe.atop.BaseAtop;
 import recipe.core.api.patient.IRecipeOrderBusinessService;
 import recipe.util.ObjectCopyUtils;
 import recipe.vo.greenroom.ImperfectInfoVO;
+import recipe.vo.greenroom.RecipeRefundInfoReqVO;
 import recipe.vo.second.CabinetVO;
 import recipe.vo.second.RecipeOrderVO;
 import recipe.vo.second.RecipeVo;
@@ -194,5 +194,18 @@ public class RecipeOrderOpenAtop extends BaseAtop implements IRecipeOrderAtopSer
     public List<ImperfectInfoVO> batchGetImperfectFlag(List<com.ngari.recipe.recipe.model.RecipeBean> recipeBeans) {
         return recipeOrderService.batchGetImperfectFlag(recipeBeans);
     }
+
+    @Override
+    public ImperfectInfoVO getImperfectInfo(com.ngari.recipe.recipe.model.RecipeBean recipeBean) {
+        validateAtop(recipeBean.getRecipeCode(),recipeBean.getClinicOrgan(),recipeBean.getMpiid());
+        return recipeOrderService.getImperfectInfo(recipeBean);
+    }
+
+    @Override
+    public Integer getRecipeRefundCount(RecipeRefundInfoReqVO recipeRefundCountVO) {
+        validateAtop(recipeRefundCountVO,recipeRefundCountVO.getDoctorId(),recipeRefundCountVO.getStartTime(),recipeRefundCountVO.getEndTime());
+        return recipeOrderService.getRecipeRefundCount(recipeRefundCountVO);
+    }
+
 
 }

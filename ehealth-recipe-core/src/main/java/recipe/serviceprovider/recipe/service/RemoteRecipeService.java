@@ -64,7 +64,6 @@ import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.RevisitBean;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.service.IRevisitExService;
-import com.ngari.revisit.process.service.IRecipeOnLineRevisitService;
 import ctd.account.Client;
 import ctd.account.UserRoleToken;
 import ctd.controller.exception.ControllerException;
@@ -93,6 +92,7 @@ import recipe.aop.LogRecord;
 import recipe.audit.auditmode.AuditModeContext;
 import recipe.audit.service.OperationPlatformRecipeService;
 import recipe.bean.DrugEnterpriseResult;
+import recipe.business.CaBusinessService;
 import recipe.bussutil.RecipeUtil;
 import recipe.caNew.AbstractCaProcessType;
 import recipe.caNew.pdf.CreatePdfFactory;
@@ -111,6 +111,7 @@ import recipe.enumerate.status.*;
 import recipe.enumerate.type.BussSourceTypeEnum;
 import recipe.enumerate.type.PayFlagEnum;
 import recipe.enumerate.type.RecipeRefundConfigEnum;
+import recipe.enumerate.type.SignImageTypeEnum;
 import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
@@ -207,6 +208,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     private CaManager caManager;
     @Autowired
     private SmsClient smsClient;
+    @Autowired
+    private CaBusinessService CaBusinessService;
+
 
     @RpcService
     @Override
@@ -959,6 +963,16 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     }
 
     @Override
+    public List<RecipeDetailBean> findRecipeDetailsByRecipeDetailIds(List<Integer> recipeDetailIds) {
+        if(recipeDetailIds==null || recipeDetailIds.size()==0){
+            return Lists.newArrayList();
+        }
+        RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+        List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeDetailIds(recipeDetailIds);
+        return ObjectCopyUtils.convert(recipedetails, RecipeDetailBean.class);
+    }
+
+    @Override
     public List<Integer> findDrugIdByRecipeId(Integer recipeId) {
         RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         List<Integer> recipedetails = recipeDetailDAO.findDrugIdByRecipeId(recipeId);
@@ -1692,11 +1706,6 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
     @Override
     public CaSignResultBean commonCASignAndSealOrganId(CaSealRequestTO requestSealTO, RecipeBean recipe, Integer organId, String userAccount, String caPassword) {
-//        CommonCAFactory commonCAFactory = ApplicationUtils.getRecipeService(CommonCAFactory.class);
-//        CAInterface caInterface = commonCAFactory.useCAFunction(organId);
-//        Recipe recipe1 = ObjectCopyUtils.convert(recipe, Recipe.class);
-//        CaSignResultVo resultVo = caInterface.commonCASignAndSeal(requestSealTO, recipe1, organId, userAccount, caPassword);
-//
         ca.service.ICaRemoteService iCaRemoteService = AppDomainContext.getBean("ca.iCaRemoteService", ca.service.ICaRemoteService.class);
         ca.vo.model.RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, ca.vo.model.RecipeBean.class);
         ca.vo.CaSignResultVo resultVo = iCaRemoteService.commonCASignAndSealForRecipe(requestSealTO, recipeBean, organId, userAccount, caPassword);
@@ -1716,11 +1725,6 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
      */
     @Override
     public CaSignResultBean commonSealOrganId(CaSealRequestTO requestSealTO, RecipeBean recipe, Integer organId, String userAccount, String caPassword) {
-//        CommonCAFactory commonCAFactory = ApplicationUtils.getRecipeService(CommonCAFactory.class);
-//        CAInterface caInterface = commonCAFactory.useCAFunction(organId);
-//        Recipe recipe1 = ObjectCopyUtils.convert(recipe, Recipe.class);
-//        CaSignResultVo resultVo = caInterface.commonSeal(requestSealTO, recipe1, organId, userAccount, caPassword);
-
         ca.service.ICaRemoteService iCaRemoteService = AppDomainContext.getBean("ca.iCaRemoteService", ca.service.ICaRemoteService.class);
         ca.vo.model.RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, ca.vo.model.RecipeBean.class);
         ca.vo.CaSignResultVo resultVo = iCaRemoteService.commonCASignAndSealForRecipe(requestSealTO, recipeBean, organId, userAccount, caPassword);
@@ -2134,55 +2138,45 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             return;
         }
         CaSignResultVo resultVo = makeCaSignResultVoFromCABean(caSignResultVo);
+        resultVo.setPdfBase64(caSignResultVo.getPdfBase64());
         Integer recipeId = resultVo.getRecipeId();
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        if (Integer.valueOf(1).equals(recipe.getFastRecipeFlag())) {
+            //便捷够药特殊处理
+            CaCallBackToDoctorConvenientDrug(recipe, resultVo);
+            return;
+        }
         Integer caType = caManager.caProcessType(recipe);
         if (null == caType) {
             return;
         }
         RecipeDetailDAO recipeDetailDAO = getDAO(RecipeDetailDAO.class);
         List<Recipedetail> details = recipeDetailDAO.findByRecipeId(recipeId);
-        try {
-            if (Integer.valueOf(200).equals(resultVo.getCode())) {
-                RecipeServiceEsignExt.saveSignRecipePDFCA(null, recipeId, null, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), true, null);
-                if (!CA_NEW_TYPE.equals(caType)) {
-                    //老流程保存sign，新流程已经移动至CA保存 /保存签名值、时间戳、电子签章文件
-                    caManager.oldCaCallBack(recipe, details, resultVo, true, resultVo.getPdfBase64());
-                }
-            } else {
-                smsClient.pushMsgData2OnsExtendValue(recipe.getRecipeId(), recipe.getDoctor());
+        if (Integer.valueOf(200).equals(resultVo.getCode())) {
+            RecipeServiceEsignExt.saveSignRecipePDFCA(null, recipeId, null, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), true, null);
+            if (!CA_NEW_TYPE.equals(caType)) {
+                //老流程保存sign，新流程已经移动至CA保存 /保存签名值、时间戳、电子签章文件
+                caManager.oldCaCallBack(recipe, details, resultVo, true, resultVo.getPdfBase64());
             }
-        } catch (Exception e) {
-            LOGGER.error("retryCaDoctorCallBackToRecipe 标准化CA签章报错 recipeId={} ,doctor={} ,e==============", recipeId, recipe.getDoctor(), e);
+        } else {
+            smsClient.pushMsgData2OnsExtendValue(recipe.getRecipeId(), recipe.getDoctor());
         }
-
         // 上海胸科 调用到这里 首先判断当前ca是否是有结束结果的
         if (Integer.valueOf(-1).equals(resultVo.getResultCode())) {
             LOGGER.info("当期处方{}医生ca签名异步调用接口返回：未触发处方业务结果", recipeId);
             return;
         }
-
+        //说明处方签名失败
         if (!Integer.valueOf(200).equals(resultVo.getCode())) {
-            try {
-                //说明处方签名失败
-                RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "说明处方签名失败:" + resultVo.getMsg());
-                RecipeExtend recipeExtend = new RecipeExtend();
-                recipeExtend.setRecipeId(recipeId);
-                recipeExtend.setSignFailReason(resultVo.getMsg());
-                recipeExtendDAO.updateNonNullFieldByPrimaryKey(recipeExtend);
-                stateManager.updateStatus(recipeId, RecipeStatusEnum.RECIPE_STATUS_SIGN_ERROR_CODE_DOC, SignEnum.SIGN_STATE_AUDIT);
-                stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_SUBMIT, RecipeStateEnum.NONE);
-                //CA异步回调的接口 发送环信消息
-                if (Integer.valueOf(2).equals(recipe.getBussSource())) {
-                    IRecipeOnLineRevisitService recipeOnLineRevisitService = RevisitAPI.getService(IRecipeOnLineRevisitService.class);
-                    recipeOnLineRevisitService.sendRecipeDefeat(recipe.getRecipeId(), recipe.getClinicId());
-                }
-            } catch (Exception e) {
-                LOGGER.error("retryCaDoctorCallBackToRecipe 说明处方签名失败异常  ", e);
-            }
+            RecipeExtend recipeExtend = new RecipeExtend();
+            recipeExtend.setRecipeId(recipeId);
+            recipeExtend.setSignFailReason(resultVo.getMsg());
+            recipeExtendDAO.updateNonNullFieldByPrimaryKey(recipeExtend);
+            stateManager.updateStatus(recipeId, RecipeStatusEnum.RECIPE_STATUS_SIGN_ERROR_CODE_DOC, SignEnum.SIGN_STATE_AUDIT);
+            stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_SUBMIT, RecipeStateEnum.SUB_SUBMIT_DOC_SIGN_FAIL);
+            revisitClient.sendRecipeDefeat(recipe);
             return;
         }
-
         /**设置处方的状态************/
         RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "当前签名处方签名成功");
         stateManager.updateStatus(recipeId, RecipeStatusEnum.RECIPE_STATUS_SIGN_SUCCESS_CODE_DOC, SignEnum.SIGN_STATE_ORDER);
@@ -2193,11 +2187,68 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         AbstractCaProcessType.getCaProcessFactory(recipeBean.getClinicOrgan()).signCAAfterRecipeCallBackFunction(recipeBean, detailBeanList);
     }
 
+    /**
+     * ca 回调-医生 便捷够药
+     *
+     * @param recipe
+     * @param resultVo
+     */
+    private void CaCallBackToDoctorConvenientDrug(Recipe recipe, CaSignResultVo resultVo) {
+        Integer recipeId = recipe.getRecipeId();
+        //说明处方签名失败
+        if (!Integer.valueOf(200).equals(resultVo.getCode())) {
+            CaBusinessService.updateSignFailState(recipeId, resultVo.getMsg(), RecipeStatusEnum.RECIPE_STATUS_SIGN_ERROR_CODE_DOC, true);
+            return;
+        }
+        /**设置处方的状态************/
+        RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "当前签名处方签名成功");
+        stateManager.updateStatus(recipeId, RecipeStatusEnum.RECIPE_STATUS_SIGN_SUCCESS_CODE_DOC, SignEnum.SIGN_STATE_ORDER);
+        stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_SUBMIT, RecipeStateEnum.NONE);
+        createPdfFactory.updateDoctorNamePdf(recipe, resultVo.getPdfBase64());
+        //掉用药师签名
+
+    }
+
+    /**
+     * ca 回调-药师 便捷够药
+     *
+     * @param recipe
+     * @param resultVo
+     */
+    private void CaCallBackToCheckerConvenientDrug(Recipe recipe, CaSignResultVo resultVo) {
+        Integer recipeId = recipe.getRecipeId();
+        //说明处方药师签名失败
+        if (!Integer.valueOf(200).equals(resultVo.getCode())) {
+            CaBusinessService.updateSignFailState(recipeId, resultVo.getMsg(), RecipeStatusEnum.RECIPE_STATUS_SIGN_ERROR_CODE_PHA, false);
+            return;
+        }
+        //说明处方药师签名成功，记录日志，走签名成功逻辑
+        stateManager.updateCheckerSignState(recipeId, SignEnum.SIGN_STATE_ORDER);
+        stateManager.updateStatus(recipeId, RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS, null);
+        stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_ORDER, RecipeStateEnum.SUB_ORDER_READY_SUBMIT_ORDER);
+        this.pharmacyToRecipePDF(recipeId);
+        createPdfFactory.updatePdfToImg(recipeId, SignImageTypeEnum.SIGN_IMAGE_TYPE_CHEMIST.getType());
+        //给患者发消息
+        SmsInfoBean smsInfoBean = new SmsInfoBean();
+        smsInfoBean.setBusType("FastRecipeApplySuccess");
+        smsInfoBean.setSmsType("FastRecipeApplySuccess");
+        smsInfoBean.setBusId(recipe.getRecipeId());
+        smsInfoBean.setOrganId(recipe.getClinicOrgan());
+        smsClient.pushMsgData2OnsExtendValue(smsInfoBean);
+    }
+
+
     @RpcService
     @Override
     public void retryCaPharmacistCallBackToRecipe(CaSignResultUpgradeBean resultVo) {
         LOGGER.info("当前药师ca异步接口返回：{}", JSONUtils.toString(resultVo));
         CaSignResultVo caSignResultVo = makeCaSignResultVoFromCABean(resultVo);
+        Recipe recipe = recipeDAO.getByRecipeId(caSignResultVo.getRecipeId());
+        if (Integer.valueOf(1).equals(recipe.getFastRecipeFlag())) {
+            //便捷够药特殊处理
+            CaCallBackToCheckerConvenientDrug(recipe, caSignResultVo);
+            return;
+        }
         RecipeService service = ApplicationUtils.getRecipeService(RecipeService.class);
         service.retryCaPharmacistCallBackToRecipe(caSignResultVo);
     }

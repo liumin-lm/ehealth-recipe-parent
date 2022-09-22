@@ -103,6 +103,16 @@ public class RecipeAndOrderDetailBeanNoDs implements Serializable {
     private String gender;
     private String sexName;
 
+
+    @ItemProperty(alias = "物流公司")
+    private Integer logisticsCompany;
+
+    private String logisticsCompanyName;
+
+    @ItemProperty(alias = "快递单号")
+    private String trackingNumber;
+
+
     @Temporal(TemporalType.DATE)
     @JsonFormat(
             pattern = "yyyy-MM-dd",

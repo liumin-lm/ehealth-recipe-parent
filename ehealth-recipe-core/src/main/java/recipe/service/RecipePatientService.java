@@ -9,6 +9,7 @@ import com.google.common.collect.Maps;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.base.PatientBaseInfo;
+import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.his.patient.mode.HisCardVO;
 import com.ngari.his.patient.mode.PatientQueryRequestTO;
 import com.ngari.his.recipe.mode.ChronicDiseaseListReqTO;
@@ -47,6 +48,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
+import recipe.aop.LogRecord;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bussutil.RecipeUtil;
 import recipe.caNew.pdf.CreatePdfFactory;
@@ -73,6 +75,7 @@ import javax.annotation.Nullable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 /**
@@ -122,6 +125,8 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
     private RecipeOrderDAO recipeOrderDAO;
     @Autowired
     private StateManager stateManager;
+    @Autowired
+    private CaManager caManager;
 
     /**
      * 根据取药方式过滤药企
@@ -787,16 +792,24 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
 
     /**
      * 根据mpiId获取患者信息
+     *
      * @param mpiId 患者唯一号
      * @return 患者信息
      */
     @Override
-    public PatientDTO getPatientDTOByMpiID(String mpiId){
+    public PatientDTO getPatientDTOByMpiID(String mpiId) {
         return patientClient.getPatientBeanByMpiId(mpiId);
     }
 
+    @Override
+    public Map<String, com.ngari.recipe.dto.PatientDTO> findPatientByMpiIds(List<String> mpiIds) {
+        return patientClient.findPatientMap(mpiIds);
+    }
+
+
     /**
      * 获取患者医保信息
+     *
      * @param patientInfoVO 患者信息
      * @return 医保类型相关
      */
@@ -837,9 +850,18 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         RecipeUtil.setDefaultData(recipe);
         recipe.setFastRecipeFlag(1);
         recipe.setAuditState(RecipeAuditStateEnum.PASS.getType());
-        recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType());
+        String ca=caManager.obtainFastRecipeCaParam(recipe);
+        if(!CaConstant.ESIGN.equals(ca)){
+            recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_SIGN_ING_CODE_DOC.getType());
+        }else{
+            recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType());
+        }
         recipe = recipeManager.saveRecipe(recipe);
-        stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_ORDER, RecipeStateEnum.SUB_ORDER_READY_SUBMIT_ORDER);
+        if(!CaConstant.ESIGN.equals(ca)){
+            stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_ORDER, RecipeStateEnum.SUB_ORDER_READY_SUBMIT_ORDER);
+        }else{
+            stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_SUBMIT, RecipeStateEnum.SUB_SUBMIT_DOC_SIGN_ING);
+        }
         //保存处方扩展
         if (null != recipeInfoVO.getRecipeExtendBean()) {
             RecipeExtend recipeExtend = ObjectCopyUtils.convert(recipeInfoVO.getRecipeExtendBean(), RecipeExtend.class);
@@ -880,7 +902,29 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
     }
 
     @Override
+    public void fastRecipeCa(Integer recipeId) {
+        Recipe recipe = recipeManager.getRecipeById(recipeId);
+        LOGGER.info("esignRecipeCa recipe:{}", JSON.toJSONString(recipe));
+        String ca=caManager.obtainFastRecipeCaParam(recipe);
+        if(!CaConstant.ESIGN.equals(ca)){
+             fastRecipeOtherCa(recipe);
+        }else{
+             esignRecipeCa(recipeId);
+        }
+
+    }
+
+    private void fastRecipeOtherCa(Recipe recipe) {
+        LOGGER.info("fastRecipeOtherCa param:{}",recipe.getRecipeId());
+        CaSealRequestTO requestSealTO = createPdfFactory.queryPdfByte(recipe.getRecipeId(),true);
+        RecipeServiceEsignExt.updateInitRecipePDF(true, recipe, requestSealTO.getPdfBase64Str());
+        caManager.oldCommonCASign(requestSealTO, recipe);
+    }
+
+    @Override
+    @LogRecord
     public Integer esignRecipeCa(Integer recipeId) {
+        LOGGER.info("esignRecipeCa param:{}",recipeId);
         try {
             Recipe recipe = recipeManager.getRecipeById(recipeId);
             LOGGER.info("esignRecipeCa recipe:{}", JSON.toJSONString(recipe));
@@ -893,6 +937,8 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         }
         return null;
     }
+
+
 
     /**
      * 处方开成功回写复诊更改处方id

@@ -3,7 +3,6 @@ package recipe.core.api.patient;
 
 import com.ngari.common.dto.CheckRequestCommonOrderPageDTO;
 import com.ngari.common.dto.SyncOrderVO;
-import com.ngari.platform.recipe.mode.RecipeBean;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.RecipeOrder;
@@ -12,9 +11,11 @@ import com.ngari.recipe.vo.PreOrderInfoReqVO;
 import com.ngari.recipe.vo.ShoppingCartReqVO;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
 import ctd.util.annotation.RpcService;
+import easypay.entity.vo.param.bus.MedicalPreSettleQueryReq;
 import easypay.entity.vo.param.bus.SelfPreSettleQueryReq;
 import recipe.vo.ResultBean;
 import recipe.vo.greenroom.ImperfectInfoVO;
+import recipe.vo.greenroom.RecipeRefundInfoReqVO;
 import recipe.vo.second.CabinetVO;
 import recipe.vo.second.CheckOrderAddressVo;
 import recipe.vo.second.enterpriseOrder.DownOrderRequestVO;
@@ -100,7 +101,6 @@ public interface IRecipeOrderBusinessService {
      * @param status   状态
      * @return 处方
      */
-    @RpcService(mvcDisabled = true)
     RecipeResultBean cancelOrderByRecipeId(Integer recipeId, Integer status);
 
     /**
@@ -158,7 +158,6 @@ public interface IRecipeOrderBusinessService {
      * @param cabinetVO
      * @return
      */
-    @RpcService
     CabinetVO validateCabinetRecipeStatus(CabinetVO cabinetVO);
 
     /**
@@ -166,13 +165,11 @@ public interface IRecipeOrderBusinessService {
      * @param cabinetVO
      * @return
      */
-    @RpcService
     void putInCabinetNotice(CabinetVO cabinetVO);
 
     /**
      * 补打发票-运营平台药品订单
      */
-    @RpcService
     Boolean makeUpInvoice(String orderCode);
 
     /**
@@ -181,6 +178,14 @@ public interface IRecipeOrderBusinessService {
      * @return
      */
     SelfPreSettleQueryReq selfPreSettleQueryInfo(Integer busId);
+
+    /**
+     * 提供给支付调用医保预结算接口
+     * @param busId
+     * @return
+     */
+    MedicalPreSettleQueryReq medicalPreSettleQueryInfo(Integer busId);
+
 
     /**
      * 第三方获取订单预算信息
@@ -192,8 +197,7 @@ public interface IRecipeOrderBusinessService {
 
     /**
      * 获取未完善或完善标识
-     * @param organId
-     * @param recipeCode
+     * @param recipeBean
      * @return
      */
     Integer getImperfectFlag(com.ngari.recipe.recipe.model.RecipeBean recipeBean);
@@ -233,4 +237,8 @@ public interface IRecipeOrderBusinessService {
     List<ImperfectInfoVO> batchGetImperfectFlag(List<com.ngari.recipe.recipe.model.RecipeBean> recipeBeans);
 
     String batchCheckSendAddressForOrder(List<CheckOrderAddressVo> checkOrderAddressVoList);
+
+    ImperfectInfoVO getImperfectInfo(RecipeBean recipeBean);
+
+    Integer getRecipeRefundCount(RecipeRefundInfoReqVO recipeRefundCountVO);
 }

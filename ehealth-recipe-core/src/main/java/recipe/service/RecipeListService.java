@@ -544,7 +544,9 @@ public class RecipeListService extends RecipeBaseService {
      * @return
      */
     @RpcService
+    @LogRecord
     public List<Map<String, Object>> findHistoryRecipeList(Integer consultId, Integer organId, Integer doctorId, String mpiId) {
+        long startTime = System.currentTimeMillis();
         LOGGER.info("findHistoryRecipeList consultId={}, organId={},doctorId={},mpiId={}", consultId, organId, doctorId, mpiId);
         ICurrentUserInfoService currentUserInfoService = AppDomainContext.getBean("eh.remoteCurrentUserInfoService", ICurrentUserInfoService.class);
         Map<String, Object> upderLineRecipesByHis = new ConcurrentHashMap<>();
@@ -560,13 +562,13 @@ public class RecipeListService extends RecipeBaseService {
             List<Integer> organIds = currentUserInfoService.getCurrentOrganIds();
             LOGGER.info("findHistoryRecipeList organId:{},mpiId:{}, organIds:{}", organId, mpiId, JSONUtils.toString(organIds));
             hisTask = GlobalEventExecFactory.instance().getExecutor().submit(() -> {
-                return recipeService.getAllHosRecipeList(consultId, organIds, mpiId, 180);
+                return recipeService.getAllHosRecipeList(consultId, organIds, mpiId, 180,organId);
             });
         }
         //从Recipe表获取线上、线下处方
         List<Map<String, Object>> onLineAndUnderLineRecipesByRecipe = new ArrayList<>();
         try {
-            onLineAndUnderLineRecipesByRecipe = findRecipeListByDoctorAndPatient(doctorId, mpiId, 0, 10000);
+            onLineAndUnderLineRecipesByRecipe = findRecipeListByDoctorAndPatientV2(doctorId, mpiId, 0, 10000,organId);
             LOGGER.info("findHistoryRecipeList 从recipe表获取处方信息success:{}", onLineAndUnderLineRecipesByRecipe);
         } catch (Exception e) {
             LOGGER.info("findHistoryRecipeList 从recipe表获取处方信息error:{}", e);
@@ -582,13 +584,15 @@ public class RecipeListService extends RecipeBaseService {
 
         //过滤重复数据并重新排序
         try {
-            List<Map<String, Object>> res = dealRepeatDataAndSort(onLineAndUnderLineRecipesByRecipe, upderLineRecipesByHis);
+            List<Map<String, Object>> res = dealRepeatDataAndSort(onLineAndUnderLineRecipesByRecipe, upderLineRecipesByHis,organId);
             //返回结果集
             LOGGER.info("findHistoryRecipeList res:{}", JSONUtils.toString(res));
             return res;
         } catch (Exception e) {
             LOGGER.error("findHistoryRecipeList dealRepeatDataAndSort", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }finally {
+            LOGGER.info("method-{} ,organId--{} ,耗时:{}ms ",  Thread.currentThread().getStackTrace()[1].getMethodName(),organId, System.currentTimeMillis() - startTime);
         }
     }
 
@@ -633,7 +637,7 @@ public class RecipeListService extends RecipeBaseService {
 
         //过滤重复数据并重新排序
         try {
-            List<Map<String, Object>> res = dealRepeatDataAndSort(onLineAndUnderLineRecipesByRecipe, upderLineRecipesByHis);
+            List<Map<String, Object>> res = dealRepeatDataAndSort(onLineAndUnderLineRecipesByRecipe, upderLineRecipesByHis, organId);
             //返回结果集
             LOGGER.info("findHistoryRecipeList res:{}", JSONUtils.toString(res));
             return res;
@@ -656,11 +660,13 @@ public class RecipeListService extends RecipeBaseService {
      *
      * @param onLineAndUnderLineRecipesByRecipe
      * @param upderLineRecipesByHis
+     * @param organId
      * @return
      */
-    private List<Map<String, Object>> dealRepeatDataAndSort(List<Map<String, Object>> onLineAndUnderLineRecipesByRecipe, Map<String, Object> upderLineRecipesByHis) {
+    @LogRecord
+    private List<Map<String, Object>> dealRepeatDataAndSort(List<Map<String, Object>> onLineAndUnderLineRecipesByRecipe, Map<String, Object> upderLineRecipesByHis, Integer organId) {
         LOGGER.info("dealRepeatDataAndSort参数onLineAndUnderLineRecipesByRecipe:{},upderLineRecipesByHis:{}", JSONUtils.toString(onLineAndUnderLineRecipesByRecipe), JSONUtils.toString(upderLineRecipesByHis));
-        Long beginTime = new Date().getTime();
+        long startTime = System.currentTimeMillis();
         List<Map<String, Object>> res = new ArrayList<>();
         //过滤重复数据
         List<HisRecipeBean> hisRecipes = (List<HisRecipeBean>) upderLineRecipesByHis.get("hisRecipe");
@@ -702,8 +708,7 @@ public class RecipeListService extends RecipeBaseService {
             Date date2 = ((RecipeBean) o2.get("recipe")).getCreateDate() == null ? new Date() : ((RecipeBean) o2.get("recipe")).getCreateDate();
             return date2.compareTo(date1);
         });
-        Long totalConsumedTime = new Date().getTime() - beginTime;
-        LOGGER.info("dealRepeatDataAndSort cost:{}", totalConsumedTime);
+        LOGGER.info("method-{} ,organId--{} ,耗时:{}ms ",  Thread.currentThread().getStackTrace()[1].getMethodName(),organId, System.currentTimeMillis() - startTime);
         return res;
     }
 
@@ -741,7 +746,6 @@ public class RecipeListService extends RecipeBaseService {
      * @return
      */
     @RpcService
-    @Deprecated
     public List<Map<String, Object>> findRecipeListByDoctorAndPatient(Integer doctorId, String mpiId, int start, int limit) {
         //checkUserHasPermissionByDoctorId(doctorId);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
@@ -752,7 +756,24 @@ public class RecipeListService extends RecipeBaseService {
         LOGGER.info("findRecipeListByDoctorAndPatient mpiId:{} ,recipes:{} ", mpiId, JSONUtils.toString(recipes));
         PatientVO patient = RecipeServiceSub.convertSensitivePatientForRAP(patientService.get(mpiId));
         LOGGER.info("findRecipeListByDoctorAndPatient mpiId:{} ,patient:{} ", mpiId, JSONUtils.toString(patient));
-        return instanceRecipesAndPatientNew(recipes, patient);
+        List<Map<String, Object>> res= instanceRecipesAndPatientNew(recipes, patient);
+        return res;
+    }
+
+    /**
+     *
+     * @param doctorId
+     * @param mpiId
+     * @param start
+     * @param limit
+     * @param organId
+     * @return
+     */
+    public List<Map<String, Object>> findRecipeListByDoctorAndPatientV2(Integer doctorId, String mpiId, int start, int limit, Integer organId) {
+        long startTime = System.currentTimeMillis();
+        List<Map<String, Object>> res=findRecipeListByDoctorAndPatient(doctorId, mpiId, start, limit);
+        LOGGER.info("method-{} ,organId--{} ,耗时:{}ms ",  Thread.currentThread().getStackTrace()[1].getMethodName(),organId, System.currentTimeMillis() - startTime);
+        return res;
     }
 
 
@@ -786,7 +807,7 @@ public class RecipeListService extends RecipeBaseService {
      */
     public List<Map<String, Object>> instanceRecipesAndPatientNew(List<Recipe> recipes, PatientVO patient) {
         LOGGER.info("instanceRecipesAndPatient recipes:{} ,patient:{} ", JSONUtils.toString(recipes), JSONUtils.toString(patient));
-        Long beginTime = new Date().getTime();
+        long startTime = System.currentTimeMillis();
         List<Map<String, Object>> list = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(recipes)) {
             RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
@@ -874,8 +895,7 @@ public class RecipeListService extends RecipeBaseService {
 
         }
         LOGGER.info("instanceRecipesAndPatient response recipes:{} ,patient:{} ,list:{}", JSONUtils.toString(recipes), JSONUtils.toString(patient), JSONUtils.toString(list));
-        Long totalConsumedTime = new Date().getTime() - beginTime;
-        LOGGER.info("instanceRecipesAndPatient cost:{}", totalConsumedTime);
+        LOGGER.info("method-{} ,organId--{} ,耗时:{}ms ",  Thread.currentThread().getStackTrace()[1].getMethodName(),null, System.currentTimeMillis() - startTime);
         return list;
     }
 

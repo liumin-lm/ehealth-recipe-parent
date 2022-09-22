@@ -1,6 +1,7 @@
 package recipe.api.open;
 
 import com.ngari.common.mode.HisResponseTO;
+import com.ngari.platform.recipe.mode.QueryRecipeInfoHisDTO;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
 import com.ngari.recipe.recipe.model.RecipeBean;
@@ -8,8 +9,11 @@ import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.model.SymptomDTO;
 import com.ngari.recipe.vo.FastRecipeVO;
 import ctd.util.annotation.RpcService;
+import recipe.vo.PageGenericsVO;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.patient.PatientOptionalDrugVo;
+import recipe.vo.second.AutomatonResultVO;
+import recipe.vo.second.AutomatonVO;
 import recipe.vo.second.RecipePayHISCallbackReq;
 import recipe.vo.second.RevisitRecipeTraceVo;
 
@@ -244,5 +248,22 @@ public interface IRecipeAtopService {
     @RpcService
     FastRecipeVO getFastRecipeById(Integer id);
 
+    /**
+     * 根据处方id获取处方详情
+     *
+     * @param recipeIds
+     * @return
+     */
+    @RpcService
+    List<QueryRecipeInfoHisDTO> findRecipeByIds(List<Integer> recipeIds);
+
+    /**
+     * 自助机查询接口
+     *
+     * @param automatonVO
+     * @return
+     */
+    @RpcService
+    PageGenericsVO<AutomatonResultVO> automatonList(AutomatonVO automatonVO);
 
 }

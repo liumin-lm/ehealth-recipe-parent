@@ -48,6 +48,7 @@ import recipe.util.LocalStringUtil;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static ctd.persistence.DAOFactory.getDAO;
 
@@ -319,6 +320,14 @@ public class LogisticsOnlineOrderService implements IAfterPayBussService{
                 if (consultExDTO != null) {
                     logisticsOrder.setOutpatientNumber(consultExDTO.getRegisterNo());
                 }
+            }
+            // 患者姓名
+            logisticsOrder.setPatientName(recipe.getPatientName());
+            // 病历号
+            RecipeExtendDAO recipeExtendDAO = getDAO(RecipeExtendDAO.class);
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+            if (Objects.nonNull(recipeExtend)) {
+                logisticsOrder.setCaseNo(recipeExtend.getMedicalRecordNumber());
             }
         } catch (Exception e) {
             LOGGER.error("基础服务物流下单非必填信息获取异常：", e);

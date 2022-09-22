@@ -1,6 +1,5 @@
 package recipe.business;
 
-import com.alibaba.fastjson.JSON;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.QueryHisRecipResTO;
@@ -37,7 +36,6 @@ import org.springframework.util.ObjectUtils;
 import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.client.OfflineRecipeClient;
-import recipe.common.CommonConstant;
 import recipe.constant.ErrorCode;
 import recipe.core.api.patient.IOfflineRecipeBusinessService;
 import recipe.dao.RecipeDAO;
@@ -342,14 +340,10 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
             logger.info("RecipeBusinessService pushRecipe end recipeId:{}", recipeId);
             return result;
         } catch (Exception e) {
-            logger.error("RecipeBusinessService pushRecipe error", e);
+            logger.error("RecipeBusinessService pushRecipe error,sysType={},recipeId:{}", sysType, recipeId, e);
             RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "当前处方推送his失败:" + e.getMessage());
-            logger.info("recipeId:{},recipe.getClinicOrgan():{} sysType:{} :{} :{}",recipe.getRecipeId(),String.valueOf(recipe.getClinicOrgan()),sysType,"1000899".equals(String.valueOf(recipe.getClinicOrgan())),CommonConstant.RECIPE_PATIENT_TYPE.equals(sysType));
-            if ("1000899".equals(String.valueOf(recipe.getClinicOrgan())) && CommonConstant.RECIPE_PATIENT_TYPE.equals(sysType)) {
-                throw new DAOException(ErrorCode.SERVICE_ERROR, "您的处方存在库存不足的药品，请尝试其他购药方式或耐心等待");
-            } else {
-                throw new DAOException(ErrorCode.SERVICE_ERROR, "当前处方推送his失败");
-            }
+            String msg = configurationClient.getValueCatch(recipe.getClinicOrgan(), "pushHisRecipeResultMsg", "当前处方推送his失败");
+            throw new DAOException(ErrorCode.SERVICE_ERROR, msg);
         }
     }
 

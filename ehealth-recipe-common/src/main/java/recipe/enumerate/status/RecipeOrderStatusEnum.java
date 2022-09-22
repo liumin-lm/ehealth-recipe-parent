@@ -5,9 +5,11 @@ import java.util.List;
 
 /**
  * 订单状态枚举
+ * 新： OrderStateEnum
  *
  * @author fuzi
  */
+@Deprecated
 public enum RecipeOrderStatusEnum {
     NONE(-9, "未知", ""),
     ORDER_STATUS_READY_PAY(1, "待支付", ""),

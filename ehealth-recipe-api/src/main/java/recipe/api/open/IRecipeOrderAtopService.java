@@ -8,6 +8,7 @@ import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.recipe.model.*;
 import ctd.util.annotation.RpcService;
 import recipe.vo.greenroom.ImperfectInfoVO;
+import recipe.vo.greenroom.RecipeRefundInfoReqVO;
 import recipe.vo.second.CabinetVO;
 import recipe.vo.second.RecipeOrderVO;
 import recipe.vo.second.enterpriseOrder.DownOrderRequestVO;
@@ -124,8 +125,7 @@ public interface IRecipeOrderAtopService {
 
     /**
      * 获取未完善或完善标识
-     * @param organId
-     * @param recipeCode
+     * @param recipeBean
      * @return
      */
     @RpcService
@@ -139,4 +139,20 @@ public interface IRecipeOrderAtopService {
     @RpcService
     List<ImperfectInfoVO> batchGetImperfectFlag(List<com.ngari.recipe.recipe.model.RecipeBean> recipeBeans);
 
+    /**
+     * 获取未完善或完善标识、his处方付费序号合集
+     * @param recipeBean
+     * @return
+     */
+    @RpcService
+    ImperfectInfoVO getImperfectInfo(com.ngari.recipe.recipe.model.RecipeBean recipeBean);
+
+    /**
+     * 医生端-我的数据查询退费量
+     *
+     * @param recipeRefundCountVO
+     * @return
+     */
+    @RpcService
+    Integer getRecipeRefundCount(RecipeRefundInfoReqVO recipeRefundCountVO);
 }

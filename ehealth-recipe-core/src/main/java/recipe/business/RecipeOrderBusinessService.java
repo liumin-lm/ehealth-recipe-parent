@@ -21,7 +21,6 @@ import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.platform.recipe.mode.InvoiceInfoResTO;
-import com.ngari.platform.recipe.mode.RecipeBean;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
@@ -42,6 +41,7 @@ import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
+import easypay.entity.vo.param.bus.MedicalPreSettleQueryReq;
 import easypay.entity.vo.param.bus.SelfPreSettleQueryReq;
 import eh.entity.bus.pay.BusTypeEnum;
 import eh.utils.BeanCopyUtils;
@@ -59,11 +59,13 @@ import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.*;
 import recipe.constant.ErrorCode;
 import recipe.constant.RecipeBussConstant;
-import recipe.core.api.IDrugsEnterpriseBusinessService;
+import recipe.core.api.IEnterpriseBusinessService;
 import recipe.core.api.patient.IRecipeOrderBusinessService;
 import recipe.dao.*;
-import recipe.drugsenterprise.CommonRemoteService;
 import recipe.enumerate.status.*;
+import recipe.enumerate.status.GiveModeEnum;
+import recipe.enumerate.status.PayModeEnum;
+import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.type.GiveModeTextEnum;
 import recipe.enumerate.type.NeedSendTypeEnum;
 import recipe.factory.status.givemodefactory.GiveModeProxy;
@@ -77,12 +79,11 @@ import recipe.service.RecipeLogService;
 import recipe.service.RecipeOrderService;
 import recipe.third.IFileDownloadService;
 import recipe.util.*;
-import recipe.util.LocalStringUtil;
-import recipe.util.ObjectCopyUtils;
 import recipe.vo.ResultBean;
 import recipe.vo.base.BaseRecipeDetailVO;
 import recipe.vo.greenroom.ImperfectInfoVO;
 import recipe.vo.greenroom.InvoiceRecordVO;
+import recipe.vo.greenroom.RecipeRefundInfoReqVO;
 import recipe.vo.second.CabinetVO;
 import recipe.vo.second.CheckOrderAddressVo;
 import recipe.vo.second.enterpriseOrder.*;
@@ -147,7 +148,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
     @Autowired
     private PurchaseService purchaseService;
     @Autowired
-    private IDrugsEnterpriseBusinessService enterpriseBusinessService;
+    private IEnterpriseBusinessService enterpriseBusinessService;
     @Autowired
     private OrderFeeManager orderFeeManager;
     @Autowired
@@ -393,6 +394,12 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
             receiverInfo.setDistrict(district);
             receiverInfo.setStreetCode(recipeOrder.getStreetAddress());
             receiverInfo.setStreet(street);
+            receiverInfo.setTrackingNumber(recipeOrder.getTrackingNumber());
+            if (!ValidateUtil.integerIsEmpty(recipeOrder.getLogisticsCompany())) {
+                receiverInfo.setLogisticsCompany(recipeOrder.getLogisticsCompany());
+                String company = DictionaryUtil.getDictionary("eh.infra.dictionary.LogisticsCode", recipeOrder.getLogisticsCompany());
+                receiverInfo.setLogisticsCompanyName(company);
+            }
             receiverInfo.setAddress(recipeOrder.getAddress4());
             if (StringUtils.isNotEmpty(recipeOrder.getAddress1())) {
                 receiverInfo.setProvinceCode(StringUtils.isNotEmpty(recipeOrder.getAddress1()) ? recipeOrder.getAddress1() + "0000" : "");
@@ -853,6 +860,38 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
             logger.error("selfPreSettleQueryInfo busId={} error", busId, e);
         }
         return selfPreSettleQueryReq;
+    }
+    public MedicalPreSettleQueryReq medicalPreSettleQueryInfo(Integer recipeId) {
+        logger.info("medicalPreSettleQueryInfo recipeId={}", recipeId);
+        MedicalPreSettleQueryReq medicalPreSettleQueryReq = new MedicalPreSettleQueryReq();
+        Recipe recipe = recipeDAO.get(recipeId);
+        if (Objects.isNull(recipe)) {
+            throw new DAOException("未获取到处方信息！");
+        }
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+        if (Objects.isNull(recipeExtend)) {
+            throw new DAOException("未获取到处方扩展信息！");
+        }
+        try {
+            medicalPreSettleQueryReq.setOrganId(recipe.getClinicOrgan());
+            medicalPreSettleQueryReq.setMrn(recipeExtend.getMedicalRecordNumber());
+            medicalPreSettleQueryReq.setRegisterNo(recipeExtend.getRegisterID());
+            medicalPreSettleQueryReq.setPatId(recipe.getPatientID());
+            if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
+                RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+                if (Objects.isNull(recipeOrder)) {
+                    throw new DAOException("未获取到处方订单信息！");
+                }
+                medicalPreSettleQueryReq.setHisSettlementNo(recipeOrder.getHisSettlementNo());
+                medicalPreSettleQueryReq.setTotalAmount(recipeOrder.getTotalFee());
+                String recipeIdList = recipeOrder.getRecipeIdList();
+                String recipeNos = recipeIdList.replace(",", "|");
+                medicalPreSettleQueryReq.setRecipeNos(recipeNos);
+            }
+        } catch (Exception e) {
+            logger.error("medicalPreSettleQueryInfo error", e);
+        }
+        return medicalPreSettleQueryReq;
     }
 
     @Override
@@ -1360,6 +1399,10 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                 imperfectInfoVO.setOrganId(recipeBeforeOrder.getOrganId());
                 imperfectInfoVO.setRecipeCode(recipeBeforeOrder.getRecipeCode());
                 imperfectInfoVO.setImperfectFlag(recipeBeforeOrder.getIsReady());
+                RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeBeforeOrder.getRecipeId());
+                if(recipeExtend != null){
+                    imperfectInfoVO.setRecipeCostNumber(recipeExtend.getRecipeCostNumber());
+                }
                 imperfectInfoVOS.add(imperfectInfoVO);
             });
         }
@@ -1371,6 +1414,13 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
             imperfectInfoVO.setOrganId(collectMap.get(a));
             imperfectInfoVO.setRecipeCode(a);
             imperfectInfoVO.setImperfectFlag(0);
+            Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(a, collectMap.get(a));
+            if(recipe != null){
+                RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+                if(recipeExtend != null){
+                    imperfectInfoVO.setRecipeCostNumber(recipeExtend.getRecipeCostNumber());
+                }
+            }
             imperfectInfoVOS.add(imperfectInfoVO);
         });
         logger.info("batchGetImperfectFlag imperfectInfoVOS={}",JSONUtils.toString(imperfectInfoVOS));
@@ -1401,5 +1451,28 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
         }else {
             return msg + "不支持本收获地址";
         }
+    }
+
+    @Override
+    public ImperfectInfoVO getImperfectInfo(RecipeBean recipeBean) {
+        logger.info("RecipeOrderBusinessService getImperfectInfo recipeBean={}",JSONUtils.toString(recipeBean));
+        ImperfectInfoVO imperfectInfoVO = new ImperfectInfoVO();
+        Integer imperfectFlag = getImperfectFlag(recipeBean);
+        imperfectInfoVO.setImperfectFlag(imperfectFlag);
+        Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeBean.getRecipeCode(), recipeBean.getClinicOrgan());
+        if(recipe != null){
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+            if(recipeExtend != null){
+                imperfectInfoVO.setRecipeCostNumber(recipeExtend.getRecipeCostNumber());
+            }
+        }
+        logger.info("RecipeOrderBusinessService getImperfectInfo ImperfectInfoVO={}",JSONUtils.toString(imperfectInfoVO));
+        return imperfectInfoVO;
+    }
+
+    @Override
+    public Integer getRecipeRefundCount(RecipeRefundInfoReqVO recipeRefundCountVO) {
+        logger.info("RecipeOrderBusinessService getRecipeRefundCount recipeRefundCountVO={}",JSONUtils.toString(recipeRefundCountVO));
+        return recipeDAO.getRecipeRefundCount(recipeRefundCountVO.getDoctorId(),recipeRefundCountVO.getStartTime(),recipeRefundCountVO.getEndTime());
     }
 }

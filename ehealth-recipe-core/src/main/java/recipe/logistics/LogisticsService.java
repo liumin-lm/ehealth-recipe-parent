@@ -32,6 +32,7 @@ import recipe.dao.RecipeParameterDao;
 import recipe.drugsenterprise.bean.EsbWebService;
 import recipe.util.AppSiganatureUtils;
 import recipe.util.DictionaryUtil;
+import recipe.util.JsonToXmlUtil;
 
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLEventWriter;
@@ -41,6 +42,7 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.*;
 
@@ -188,7 +190,7 @@ public class LogisticsService {
      * @throws UnsupportedEncodingException ,Exception
      */
     @SuppressWarnings("unused")
-    private String encrypt(String content, String keyValue, String charset) throws UnsupportedEncodingException, Exception {
+    private String encrypt(String content, String keyValue, String charset) throws Exception {
         if (keyValue != null) {
             return base64(MD5(content + keyValue, charset), charset);
         }
@@ -223,7 +225,7 @@ public class LogisticsService {
             conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
             conn.connect();
             // 获取URLConnection对象对应的输出流
-            out = new OutputStreamWriter(conn.getOutputStream(), "UTF-8");
+            out = new OutputStreamWriter(conn.getOutputStream(), StandardCharsets.UTF_8);
             // 发送请求参数
             if (params != null) {
                 StringBuilder param = new StringBuilder();
@@ -243,7 +245,7 @@ public class LogisticsService {
             out.flush();
             // 定义BufferedReader输入流来读取URL的响应
             in = new BufferedReader(
-                    new InputStreamReader(conn.getInputStream(), "UTF-8"));
+                    new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8));
             String line;
             while ((line = in.readLine()) != null) {
                 result.append(line);
@@ -333,7 +335,7 @@ public class LogisticsService {
         String check_phoneNo = "";
         //取手机号后四位
         if (StringUtils.isNotEmpty(phone) && phone.length() > 4) {
-            check_phoneNo = phone.substring(phone.length() - 4, phone.length());
+            check_phoneNo = phone.substring(phone.length() - 4);
         }
         String client_url = "logistics_sf_client_url";
         String client_code = "logistics_sf_client_code";
@@ -345,7 +347,7 @@ public class LogisticsService {
         String myReqXML = reqXml.replace("NAGRI-HEALTH", clientCode);
         LOGGER.info("LogisticsService.getSfOrderTracesByJson:http请求物流信息入参:url={}-{}！", reqURL, myReqXML);
         CallExpressServiceTools client = CallExpressServiceTools.getInstance();
-        String respXml = client.callSfExpressServiceByCSIM(reqURL, myReqXML, clientCode, checkword);
+        String respXml = CallExpressServiceTools.callSfExpressServiceByCSIM(reqURL, myReqXML, clientCode, checkword);
         LOGGER.info("LogisticsService.getSfOrderTracesByJson:http请求物流信息出参:url={}-{}！", reqURL, respXml);
         if (respXml != null) {
             JSONObject respObj = JSON.parseObject(xml2json(respXml));
@@ -387,18 +389,12 @@ public class LogisticsService {
 
     public static boolean checkJsonObj(String json) {
         Object obj = JSON.parse(json);
-        if (obj instanceof JSONObject) {
-            return true;
-        }
-        return false;
+        return obj instanceof JSONObject;
     }
 
     public static boolean checkJsonArray(String json) {
         Object obj = JSON.parse(json);
-        if (obj instanceof JSONArray) {
-            return true;
-        }
-        return false;
+        return obj instanceof JSONArray;
 
     }
 
@@ -502,7 +498,7 @@ public class LogisticsService {
             params.put("prescripNo",prescripNo);
             params.put("hospitalName",hospitalName);
             params.put("prescribeDate","");
-            String request = jsonToXml(params);
+            String request = JsonToXmlUtil.jsonToXml(params);
             EsbWebService xkyyHelper = new EsbWebService();
             Map<String, String> param=new HashMap<String, String>();
             String url = recipeParameterDao.getByName("logistics_shxk_url");
@@ -581,14 +577,4 @@ public class LogisticsService {
 
     }
 
-    private String jsonToXml(Map<String, Object> params){
-        StringBuilder result = new StringBuilder("<root><body><params>");
-        if (params != null) {
-            for (Map.Entry<String, Object> entry : params.entrySet()) {
-                result.append("<").append(entry.getKey()).append(">").append(entry.getValue()).append("</").append(entry.getKey()).append(">");
-            }
-        }
-        result.append("</params></body></root>");
-        return result.toString();
-    }
 }

@@ -70,6 +70,9 @@ public class RecipeOrderDetailExportBean implements Serializable {
     @ItemProperty(alias = "运费")
     private BigDecimal expressFee;
 
+    @ItemProperty(alias = "优惠金额")
+    private BigDecimal couponFee;
+
     @ItemProperty(alias = "代煎费")
     private BigDecimal decoctionFee;
 

@@ -37,6 +37,7 @@ import recipe.drugsenterprise.bean.EsbWebService;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeOrderService;
 import recipe.util.DateConversion;
+import recipe.util.JsonToXmlUtil;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -339,7 +340,7 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
                 params.put("sku", saleDrugList.getOrganDrugCode());
                 params.put("pageNo","1");
                 params.put("pageSize","100");
-                String parames = jsonToXml(params);
+                String parames = JsonToXmlUtil.jsonToXml(params);
                 LOGGER.info("scanStock parames:{}.", parames);
                 EsbWebService xkyyHelper = new EsbWebService();
                 Map<String, String> param=new HashMap<String, String>();
@@ -415,17 +416,6 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
         LOGGER.info(msg);
         result.setCode(DrugEnterpriseResult.FAIL);
         return result;
-    }
-
-    private String jsonToXml(Map<String, Object> params){
-        StringBuilder result = new StringBuilder("<root><body><params>");
-        if (params != null) {
-            for (Map.Entry<String, Object> entry : params.entrySet()) {
-                result.append("<").append(entry.getKey()).append(">").append(entry.getValue()).append("</").append(entry.getKey()).append(">");
-            }
-        }
-        result.append("</params></body></root>");
-        return result.toString();
     }
 
 }

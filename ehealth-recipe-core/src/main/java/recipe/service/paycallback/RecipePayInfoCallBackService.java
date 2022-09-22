@@ -48,6 +48,7 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * created by shiyuping on 2021/1/25
@@ -286,6 +287,18 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
             if (ysbody != null) {
                 //总金额
                 Double zje = attr.get("zje") != null ? ConversionUtils.convert(attr.get("zje"), Double.class) : ConversionUtils.convert(ysbody.get("zje"), Double.class);
+                //舍入金额
+                Double abandonAmount = ysbody.get("srje") != null ? ConversionUtils.convert(ysbody.get("srje"), Double.class) : 0.0;
+                logger.info("收银台返回的总金额:{},舍入金额:{}", zje, abandonAmount);
+                //计算舍入金额
+                try {
+                    if (Objects.nonNull(zje) && Objects.nonNull(abandonAmount) && abandonAmount < 0.0) {
+                        attr.put("abandon_amount", new BigDecimal(abandonAmount));
+                        zje = zje + abandonAmount;
+                    }
+                } catch (Exception e) {
+                    logger.error("payCallBackParamAndUpdate 舍入金额计算错误 error", e);
+                }
                 attr.put("preSettleTotalAmount", zje);
 
                 //医保支付金额
@@ -294,6 +307,13 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
                 //替换预结算返回的自费金额
                 if (ysbody.get("yfje") != null) {
                     attr.put("cashAmount", ConversionUtils.convert(ysbody.get("yfje"), Double.class));
+                }
+                try {
+                    if (ysbody.get("yhje") != null) {
+                        attr.put("couponFee", new BigDecimal(ysbody.get("yhje")));
+                    }
+                }catch (Exception e){
+                    logger.error("payCallBackParamAndUpdate couponFee error", e);
                 }
                 try {
                     //计算预结算返回的总金额与平台的总金额是否一致，如果不一致，则更新
