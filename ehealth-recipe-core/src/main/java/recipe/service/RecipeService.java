@@ -3174,7 +3174,9 @@ public class RecipeService extends RecipeBaseService {
                 orderService.updateHisRecieStatus(recipeList);
                 RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipeIds, 1));
                 // 删除预下单信息
-                recipeBeforeOrderDAO.updateDeleteFlagByRecipeId(recipeIds);
+                if(CollectionUtils.isNotEmpty(recipeIds)) {
+                    recipeBeforeOrderDAO.updateDeleteFlagByRecipeId(recipeIds);
+                }
             }
         } catch (Exception e) {
             LOGGER.error("doRecipeCancelByInvalidTime error", e);

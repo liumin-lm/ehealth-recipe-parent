@@ -403,7 +403,9 @@ public class HisRecipeManager extends BaseManager {
         recipeExtendDAO.deleteByRecipeIds(recipeIds);
         recipeDetailDAO.deleteByRecipeIds(recipeIds);
         recipeDAO.deleteByRecipeIds(recipeIds);
-        recipeBeforeOrderDAO.updateDeleteFlagByRecipeId(recipeIds);
+        if (CollectionUtils.isNotEmpty(recipeIds)) {
+            recipeBeforeOrderDAO.updateDeleteFlagByRecipeId(recipeIds);
+        }
         //日志记录
         Map<Integer, Recipe> recipeMap = recipeList.stream().collect(Collectors.toMap(Recipe::getRecipeId, Function.identity(), (key1, key2) -> key2));
         recipeIds.forEach(a -> {
