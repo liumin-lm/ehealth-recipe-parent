@@ -209,6 +209,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     private CaBusinessService CaBusinessService;
     @Autowired
     private RecipeAuditClient recipeAuditClient;
+    @Autowired
+    private IConfigurationClient configurationClient;
+
 
     @RpcService
     @Override
@@ -2224,6 +2227,22 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         stateManager.updateStatus(recipeId, RecipeStatusEnum.RECIPE_STATUS_SIGN_SUCCESS_CODE_DOC, SignEnum.SIGN_STATE_ORDER);
         stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_SUBMIT, RecipeStateEnum.NONE);
         createPdfFactory.updateDoctorNamePdf(recipe, resultVo.getPdfBase64());
+
+        String fastRecipeChecker = configurationClient.getValueCatch(recipe.getClinicOrgan(), "fastRecipeChecker", "");
+        if (StringUtils.isEmpty(fastRecipeChecker)) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "没有指定审方药师");
+        } else {
+            Integer checker = Integer.parseInt(fastRecipeChecker);
+            DoctorDTO doctorDTO = doctorClient.getDoctor(checker);
+            recipe.setChecker(checker);
+            recipe.setCheckerText(doctorDTO.getName());
+            recipe.setCheckDate(new Date());
+            recipe.setCheckDateYs(new Date());
+            recipe.setCheckOrgan(doctorDTO.getOrgan());
+            recipe.setCheckFlag(1);
+            recipeDAO.update(recipe);
+        }
+
         //掉用药师签名
         recipeAuditClient.generateCheckRecipePdf(recipe);
     }
