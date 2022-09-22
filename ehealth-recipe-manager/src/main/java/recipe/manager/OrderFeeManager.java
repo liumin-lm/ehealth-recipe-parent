@@ -497,7 +497,7 @@ public class OrderFeeManager extends BaseManager {
             return;
         }
         order.setCouponName(coupon.getCouponName());
-        order.setCouponFee(coupon.getDiscountAmount());
+        order.setCouponFee(coupon.getDiscount());
         order.setCouponDesc(coupon.getCouponDesc());
         order.setActualPrice(order.getTotalFee().subtract(order.getCouponFee()).doubleValue());
 
