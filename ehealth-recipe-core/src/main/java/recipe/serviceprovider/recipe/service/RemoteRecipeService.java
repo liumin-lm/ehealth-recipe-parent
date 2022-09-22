@@ -96,10 +96,7 @@ import recipe.business.CaBusinessService;
 import recipe.bussutil.RecipeUtil;
 import recipe.caNew.AbstractCaProcessType;
 import recipe.caNew.pdf.CreatePdfFactory;
-import recipe.client.DoctorClient;
-import recipe.client.PatientClient;
-import recipe.client.RevisitClient;
-import recipe.client.SmsClient;
+import recipe.client.*;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.dao.sign.SignDoctorRecipeInfoDAO;
@@ -210,10 +207,12 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     private SmsClient smsClient;
     @Autowired
     private CaBusinessService CaBusinessService;
-
+    @Autowired
+    private RecipeAuditClient recipeAuditClient;
 
     @RpcService
     @Override
+
     public void sendSuccess(RecipeBussReqTO request) {
         LOGGER.info("RemoteRecipeService sendSuccess request ： {} ", JSON.toJSONString(request));
         if (null != request.getData()) {
@@ -2143,7 +2142,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         if (Integer.valueOf(1).equals(recipe.getFastRecipeFlag())) {
             //便捷够药特殊处理
-            CaCallBackToDoctorConvenientDrug(recipe, resultVo);
+            this.CaCallBackToDoctorConvenientDrug(recipe, resultVo);
             return;
         }
         Integer caType = caManager.caProcessType(recipe);
@@ -2187,6 +2186,22 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         AbstractCaProcessType.getCaProcessFactory(recipeBean.getClinicOrgan()).signCAAfterRecipeCallBackFunction(recipeBean, detailBeanList);
     }
 
+    @RpcService
+    @Override
+    public void retryCaPharmacistCallBackToRecipe(CaSignResultUpgradeBean resultVo) {
+        LOGGER.info("当前药师ca异步接口返回：{}", JSONUtils.toString(resultVo));
+        CaSignResultVo caSignResultVo = makeCaSignResultVoFromCABean(resultVo);
+        Recipe recipe = recipeDAO.getByRecipeId(caSignResultVo.getRecipeId());
+        if (Integer.valueOf(1).equals(recipe.getFastRecipeFlag())) {
+            //便捷够药特殊处理
+            this.CaCallBackToCheckerConvenientDrug(recipe, caSignResultVo);
+            return;
+        }
+        RecipeService service = ApplicationUtils.getRecipeService(RecipeService.class);
+        service.retryCaPharmacistCallBackToRecipe(caSignResultVo);
+    }
+
+
     /**
      * ca 回调-医生 便捷够药
      *
@@ -2196,7 +2211,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     private void CaCallBackToDoctorConvenientDrug(Recipe recipe, CaSignResultVo resultVo) {
         Integer recipeId = recipe.getRecipeId();
         //说明处方签名失败
-        if (!Integer.valueOf(200).equals(resultVo.getCode())) {
+        if (null == recipe.getChecker() || !Integer.valueOf(200).equals(resultVo.getCode())) {
             CaBusinessService.updateSignFailState(recipe, resultVo.getMsg(), RecipeStatusEnum.RECIPE_STATUS_SIGN_ERROR_CODE_DOC, true);
             return;
         }
@@ -2206,7 +2221,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_SUBMIT, RecipeStateEnum.NONE);
         createPdfFactory.updateDoctorNamePdf(recipe, resultVo.getPdfBase64());
         //掉用药师签名
-
+        recipeAuditClient.generateCheckRecipePdf(recipe);
     }
 
     /**
@@ -2237,21 +2252,6 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         smsClient.pushMsgData2OnsExtendValue(smsInfoBean);
     }
 
-
-    @RpcService
-    @Override
-    public void retryCaPharmacistCallBackToRecipe(CaSignResultUpgradeBean resultVo) {
-        LOGGER.info("当前药师ca异步接口返回：{}", JSONUtils.toString(resultVo));
-        CaSignResultVo caSignResultVo = makeCaSignResultVoFromCABean(resultVo);
-        Recipe recipe = recipeDAO.getByRecipeId(caSignResultVo.getRecipeId());
-        if (Integer.valueOf(1).equals(recipe.getFastRecipeFlag())) {
-            //便捷够药特殊处理
-            CaCallBackToCheckerConvenientDrug(recipe, caSignResultVo);
-            return;
-        }
-        RecipeService service = ApplicationUtils.getRecipeService(RecipeService.class);
-        service.retryCaPharmacistCallBackToRecipe(caSignResultVo);
-    }
 
     @Override
     public List<RecipeBean> findRecipeListByStatusAndSignDate(int status, String startTime, String endTime) {

@@ -190,7 +190,7 @@ public class RecipePreserveService {
         for (int i = 0; i < futureTasks.size(); i++) {
             Map<String, Object> map = new ConcurrentHashMap<>();
             try {
-                map = futureTasks.get(i).get(4000, TimeUnit.MILLISECONDS);
+                map = futureTasks.get(i).get(9900, TimeUnit.MILLISECONDS);
                 LOGGER.info("getAllHosRecipeList 从his获取已缴费处方信息:{}", JSONUtils.toString(map));
                 if(i==0){
                     patientVO=(PatientVO) map.get("patient");

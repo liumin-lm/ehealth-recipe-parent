@@ -5,6 +5,8 @@ import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.FileToken;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
@@ -22,6 +24,8 @@ import static javax.persistence.GenerationType.IDENTITY;
 @Schema
 @Table(name = "base_importdrug_record")
 @Access(AccessType.PROPERTY)
+@DynamicUpdate
+@DynamicInsert
 public class ImportDrugRecord implements java.io.Serializable {
     public static final long serialVersionUID = -3983203173007645688L;
 

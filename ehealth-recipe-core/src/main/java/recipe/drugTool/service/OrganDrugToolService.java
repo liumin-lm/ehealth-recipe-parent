@@ -112,7 +112,7 @@ public class OrganDrugToolService implements IOrganDrugToolService {
                 if (validMsg.length() > 1) {
                     failProcess(importDrugRecord,rowIndex,validMsg);
                 } else {
-                    successProcess(importDrugRecord,drug,operator);
+                    successProcess(importDrugRecord,rowIndex,drug,operator);
                 }
                 rowIndex.getAndSet(rowIndex.get() + 1);
                 total.getAndSet(total.get() + 1);
@@ -135,11 +135,13 @@ public class OrganDrugToolService implements IOrganDrugToolService {
 //        }
             //TODO 条数对不上 why?
             //TODO 状态更新 what?
-            importDrugRecord.setFailNum(total.get() - importDrugRecord.getAddNum() - importDrugRecord.getUpdateNum() - importDrugRecord.getBankNumber());
+            importDrugRecord.setFailNum(total.get()<1?0:total.get()-1 - importDrugRecord.getAddNum() - importDrugRecord.getUpdateNum() - importDrugRecord.getBankNumber());
             if(importDrugRecord.getFailNum()>0){
                 importDrugRecord.setStatus(3);
+            }else{
+                importDrugRecord.setStatus(1);
             }
-            importDrugRecordDAO.save(importDrugRecord);
+            importDrugRecordDAO.update(importDrugRecord);
             LOGGER.info(operator + "结束 readDrugExcel 方法" + System.currentTimeMillis() + "当前进程=" + Thread.currentThread().getName());
         });
         LOGGER.info("result={}",JSONUtils.toString(result));
@@ -179,10 +181,12 @@ public class OrganDrugToolService implements IOrganDrugToolService {
     /**
      * 成功处理
      * @param importDrugRecord
+     * @param rowIndex
      * @param drug
      * @param operator
      */
-    private void successProcess(ImportDrugRecord importDrugRecord, DrugListMatch drug, String operator) {
+    private void successProcess(ImportDrugRecord importDrugRecord, AtomicReference<Integer> rowIndex, DrugListMatch drug, String operator) {
+        if(new Integer("0").equals(rowIndex.get()) || drug==null ||StringUtils.isEmpty(drug.getOrganDrugCode()))return;
         try {
             drugToolService.AutoMatch(drug);
             boolean isUpdateSuccess=drugListMatchDAO.updateDrugListMatch(drug);
@@ -227,7 +231,8 @@ public class OrganDrugToolService implements IOrganDrugToolService {
      */
     private void failProcess(ImportDrugRecord importDrugRecord, AtomicReference<Integer> rowIndex, StringBuilder validMsg) {
         ImportDrugRecordMsg importDrugRecordMsg=new ImportDrugRecordMsg();
-        importDrugRecordMsg.setErrLocaction("第" + rowIndex.get()+1 + "行");
+        rowIndex.getAndSet(rowIndex.get()+1);
+        importDrugRecordMsg.setErrLocaction("第" + rowIndex + "行");
         importDrugRecordMsg.setErrMsg(validMsg.substring(0, validMsg.length() - 1) );
         importDrugRecordMsg.setImportDrugRecordId(importDrugRecord.getRecordId());
         importDrugRecordMsgDAO.save(importDrugRecordMsg);
@@ -266,13 +271,13 @@ public class OrganDrugToolService implements IOrganDrugToolService {
             ,ImportDrugRecord importDrugRecord,DrugListMatch drug,StringBuilder validMsg ){
         Integer organId=importDrugRecord.getOrganId();
         String operator=importDrugRecord.getImportOperator();
-//        drug = new DrugListMatch();
 
         //循环获得每个行
         boolean flag = false;
         if(null != cells){
             for(String cell : cells){
-                if (cell != null) {
+                if (!StringUtils.isEmpty(cell) ) {
+                    //有数据
                     flag = true;
                     break;
                 }
@@ -793,8 +798,8 @@ public class OrganDrugToolService implements IOrganDrugToolService {
                     drug.setSmallestSaleMultiple(Integer.parseInt(getStrFromCell(cells.get(39)).trim()));
                 }
             } catch (Exception e) {
-                LOGGER.error("SmallestSaleMultiple ," + e.getMessage(), e);
-                validMsg.append("SmallestSaleMultiple").append(";");
+                LOGGER.error("最小销售倍数有误 ," + e.getMessage(), e);
+                validMsg.append("最小销售倍数有误").append(";");
             }
 
             try {

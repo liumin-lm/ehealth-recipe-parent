@@ -97,39 +97,44 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
     }
 
     @Override
-    public HisResponseTO doCancelRecipeForEnterprise(Recipe recipe){
+    public HisResponseTO doCancelRecipeForEnterprise(Recipe fromRecipe){
+        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(fromRecipe.getOrderCode());
+        List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
+        List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIdList);
         HisResponseTO res = new HisResponseTO();
-        //平台流程，对接上药
-        RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
-        EsbWebService esbWebService = new EsbWebService();
-        Map<String, Object> params = new HashMap<>();
-        params.put("prescripNo", recipe.getRecipeCode());
-        params.put("prescribeDate", DateConversion.formatDate(recipe.getSignDate()));
-        String request = JsonToXmlUtil.jsonToXml(params);
-        Map<String, String> param = new HashMap<>();
-        String url = recipeParameterDao.getByName("logistics_shxk_url");
-        param.put("url", url);
-        esbWebService.initConfig(param);
-        try {
-            String webServiceResult = esbWebService.HXCFZT(request, "prsRefund");
-            LOGGER.info("getDrugInventory webServiceResult:{}. ", webServiceResult);
-            Map maps = (Map) JSON.parse(webServiceResult);
+        recipeList.forEach(recipe->{
+            //平台流程，对接上药
+            RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
+            EsbWebService esbWebService = new EsbWebService();
+            Map<String, Object> params = new HashMap<>();
+            params.put("prescripNo", recipe.getRecipeCode());
+            params.put("prescribeDate", DateConversion.formatDate(recipe.getSignDate()));
+            String request = JsonToXmlUtil.jsonToXml(params);
+            Map<String, String> param = new HashMap<>();
+            String url = recipeParameterDao.getByName("logistics_shxk_url");
+            param.put("url", url);
+            esbWebService.initConfig(param);
+            try {
+                String webServiceResult = esbWebService.HXCFZT(request, "prsRefund");
+                LOGGER.info("getDrugInventory webServiceResult:{}. ", webServiceResult);
+                Map maps = (Map) JSON.parse(webServiceResult);
 
-            if (Objects.nonNull(maps)) {
-                Boolean success = (Boolean) maps.get("success");
-                String code = (String) maps.get("code");
-                if (success && "0".equals(code)) {
-                    res.setSuccess();
+                if (Objects.nonNull(maps)) {
+                    Boolean success = (Boolean) maps.get("success");
+                    String code = (String) maps.get("code");
+                    if (success && "0".equals(code)) {
+                        res.setSuccess();
+                    }
+                } else {
+                    res.setMsgCode("0");
+                    res.setMsg("调用撤销接口异常，无法撤销，请稍后重试");
                 }
-            } else {
+            } catch (Exception e) {
+                LOGGER.error("doCancelRecipeForEnterprise 平台流程 error", e);
                 res.setMsgCode("0");
                 res.setMsg("调用撤销接口异常，无法撤销，请稍后重试");
             }
-        } catch (Exception e) {
-            LOGGER.error("doCancelRecipeForEnterprise 平台流程 error", e);
-            res.setMsgCode("0");
-            res.setMsg("调用撤销接口异常，无法撤销，请稍后重试");
-        }
+        });
         return res;
     }
 
