@@ -120,25 +120,15 @@ public class OrganDrugToolService implements IOrganDrugToolService {
 
             try {
                 excelUtil.load( new ByteArrayInputStream(fileDownloadService.downloadAsByte(fileId))).parse();
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (InvalidFormatException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
 
-
-//        Integer total = sheet.getLastRowNum();
-//        if (total == null || total <= 0) {
-//            result.put("code", 609);
-//            result.put("msg", "data is required");
-//            return result;
-//        }
-            //TODO 条数对不上 why?
-            //TODO 状态更新 what?
             importDrugRecord.setFailNum(total.get()<1?0:total.get()-1 - importDrugRecord.getAddNum() - importDrugRecord.getUpdateNum() - importDrugRecord.getBankNumber());
             if(importDrugRecord.getFailNum()>0){
                 importDrugRecord.setStatus(3);
             }else{
+                importDrugRecord.setFailNum(0);
                 importDrugRecord.setStatus(1);
             }
             importDrugRecordDAO.update(importDrugRecord);
