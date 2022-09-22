@@ -532,7 +532,9 @@ public class PurchaseService {
             IPurchaseService purchaseService = getService(giveMode);
             result = purchaseService.order(recipeList, extInfo);
             // 生成订单后删除预下单信息
-            recipeBeforeOrderDAO.updateDeleteFlagByRecipeId(recipeIds);
+            if(CollectionUtils.isNotEmpty(recipeIds)) {
+                recipeBeforeOrderDAO.updateDeleteFlagByRecipeId(recipeIds);
+            }
         } catch (Exception e) {
             LOG.error("order error", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());

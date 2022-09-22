@@ -2975,8 +2975,10 @@ public class RecipeServiceSub {
             ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussCancelEvent(recipeId, BussTypeConstant.RECIPE));
         }
         // 删除预下单信息
-        RecipeBeforeOrderDAO recipeBeforeOrderDAO = DAOFactory.getDAO(RecipeBeforeOrderDAO.class);
-        recipeBeforeOrderDAO.updateDeleteFlagByRecipeId(Lists.newArrayList(recipeId));
+        if (Objects.nonNull(recipeId)) {
+            RecipeBeforeOrderDAO recipeBeforeOrderDAO = DAOFactory.getDAO(RecipeBeforeOrderDAO.class);
+            recipeBeforeOrderDAO.updateDeleteFlagByRecipeId(Lists.newArrayList(recipeId));
+        }
         //推送处方到监管平台
         RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(Collections.singletonList(recipe.getRecipeId()), 1));
         message = StringUtils.isNotEmpty(message) ? message : "";
