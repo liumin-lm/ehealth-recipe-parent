@@ -248,15 +248,21 @@ public class RecipeAuditClient extends BaseClient {
 
     /**
      * 处方审核结果通知（HIS）
+     *
      * @param recipeBean
      * @param checkResult
      */
     @LogRecord
-    public void recipeAuditNotice(RecipeBean recipeBean, Integer checkResult){
+    public void recipeAuditNotice(RecipeBean recipeBean, Integer checkResult) {
         try {
             recipeAuditService.recipeAuditNotice(recipeBean, checkResult);
         } catch (Exception e) {
             logger.error("RecipeAuditClient recipeAuditNotice error recipeId:{}, e", recipeBean.getRecipeId(), e);
         }
+    }
+
+    @LogRecord
+    public void generateCheckRecipePdf(Recipe recipe) {
+        recipeCheckService.generateCheckRecipePdf(recipe.getChecker(), ObjectCopyUtils.convert(recipe, RecipeBean.class));
     }
 }

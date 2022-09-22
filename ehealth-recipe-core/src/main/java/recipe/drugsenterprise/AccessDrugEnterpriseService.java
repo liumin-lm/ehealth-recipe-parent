@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.google.common.collect.Maps;
 import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.base.push.service.ISmsPushService;
+import com.ngari.common.mode.HisResponseTO;
 import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
 import com.ngari.recipe.dto.DrugInfoDTO;
 import com.ngari.recipe.dto.DrugStockAmountDTO;
@@ -399,6 +400,11 @@ public abstract class AccessDrugEnterpriseService {
         LOGGER.info("当前公用药企逻辑-确认订单前校验订单信息推送配送信息：dbRecipe：{}，extInfo:{},payResult:{}",
                 recipeId, JSONUtils.toString(extInfo), JSONUtils.toString(payResult));
         return payResult;
+    }
+
+    public HisResponseTO doCancelRecipeForEnterprise(Recipe recipe){
+        LOGGER.info("药企退费通知 recipe:{}", recipe.getRecipeId());
+        return null;
     }
 
     /**

@@ -13,6 +13,7 @@ import com.ngari.recipe.dto.ConsultDTO;
 import com.ngari.recipe.dto.WriteDrugRecipeBean;
 import com.ngari.recipe.dto.WriteDrugRecipeDTO;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.revisit.common.model.RevisitBussNoticeDTO;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import ctd.dictionary.DictionaryController;
@@ -216,6 +217,14 @@ public class RevisitManager extends BaseManager {
      */
     public void updateRecipeIdByConsultId(Integer recipeId, Integer clinicId) {
         revisitClient.updateRecipeIdByConsultId(recipeId, clinicId);
+    }
+
+    public void failedToPrescribeFastDrug(Recipe recipe) {
+        if (!Integer.valueOf(2).equals(recipe.getBussSource())) {
+            return;
+        }
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+        revisitClient.failedToPrescribeFastDrug(recipe, recipeExtend);
     }
 
     /**

@@ -6,7 +6,9 @@ import com.ngari.his.recipe.mode.WriteDrugRecipeTO;
 import com.ngari.his.visit.mode.WriteDrugRecipeReqTO;
 import com.ngari.his.visit.service.IVisitService;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.revisit.RevisitBean;
+import com.ngari.revisit.common.model.DrugFaileToRevisitDTO;
 import com.ngari.revisit.common.model.RevisitBussNoticeDTO;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.request.ValidRevisitRequest;
@@ -189,5 +191,12 @@ public class RevisitClient extends BaseClient {
             return;
         }
         recipeOnLineRevisitService.sendRecipeDefeat(recipe.getRecipeId(), recipe.getClinicId());
+    }
+
+    public void failedToPrescribeFastDrug(Recipe recipe, RecipeExtend recipeExtend) {
+        DrugFaileToRevisitDTO daileToRevisitDTO = new DrugFaileToRevisitDTO();
+        daileToRevisitDTO.setConsultId(recipe.getClinicId());
+        daileToRevisitDTO.setRegisterNo(recipeExtend.getRegisterID());
+        revisitService.failedToPrescribeFastDrug(daileToRevisitDTO);
     }
 }
