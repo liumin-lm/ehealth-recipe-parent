@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.client.DoctorClient;
 import recipe.client.IConfigurationClient;
 import recipe.manager.OrganManager;
+import recipe.manager.RevisitManager;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -25,6 +26,8 @@ public class BaseService {
     protected IConfigurationClient configurationClient;
     @Autowired
     protected DoctorClient doctorClient;
+    @Autowired
+    protected RevisitManager revisitManager;
 
     protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 

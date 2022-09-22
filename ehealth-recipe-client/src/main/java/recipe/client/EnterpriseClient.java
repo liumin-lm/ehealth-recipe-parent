@@ -29,10 +29,7 @@ import recipe.third.IFileDownloadService;
 import recipe.util.ByteUtils;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 药企对接处理类
@@ -272,5 +269,20 @@ public class EnterpriseClient extends BaseClient {
             logger.error("EnterpriseClient getFTYSendTime hisResponse", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
+    }
+
+    public HisResponseTO doCancelRecipeForEnterprise(HospitalReqTo req) {
+        HisResponseTO res = null;
+        //对接his流程
+        try {
+            logger.info("doCancelRecipeForEnterprise req={}", JSONUtils.toString(req));
+            res = recipeEnterpriseService.cancelRecipe(req);
+            logger.info("doCancelRecipeForEnterprise res={}", JSONUtils.toString(res));
+        } catch (Exception e) {
+            logger.error("doCancelRecipeForEnterprise error", req.getRecipeId(), e);
+            res.setMsgCode("0");
+            res.setMsg("调用撤销接口异常，无法撤销，请稍后重试");
+        }
+        return res;
     }
 }

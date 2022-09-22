@@ -84,23 +84,25 @@ public class CaBusinessService extends BaseService implements ICaBusinessService
     /**
      * ca签名失败修改状态
      *
-     * @param recipeId
+     * @param recipe
      * @param msg
      */
-    public void updateSignFailState(Integer recipeId, String msg, RecipeStatusEnum status, boolean isDoctor) {
+    public void updateSignFailState(Recipe recipe, String msg, RecipeStatusEnum status, boolean isDoctor) {
+        Integer recipeId = recipe.getRecipeId();
         logger.info("CaBusinessService updateSignFailState recipeId={},msg={},status={},isDoctor={}", recipeId, msg, status, isDoctor);
-        stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_AUDIT_NOT_PASS);
         if (isDoctor) {
+            stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_DOCTOR);
             RecipeExtend recipeExtend = new RecipeExtend();
             recipeExtend.setRecipeId(recipeId);
             recipeExtend.setSignFailReason(msg);
             recipeExtendDAO.updateNonNullFieldByPrimaryKey(recipeExtend);
             stateManager.updateStatus(recipeId, status, SignEnum.SIGN_STATE_AUDIT);
         } else {
+            stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_AUDIT_NOT_PASS);
             stateManager.updateStatus(recipeId, status, null);
             stateManager.updateCheckerSignState(recipeId, SignEnum.SIGN_STATE_AUDIT);
         }
-        // revisitClient.sendRecipeDefeat(recipe);
+        revisitManager.failedToPrescribeFastDrug(recipe);
     }
 
 }
