@@ -84,6 +84,7 @@ import recipe.audit.auditmode.AuditModeContext;
 import recipe.bean.CheckYsInfoBean;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.RecipeInvalidDTO;
+import recipe.business.CaBusinessService;
 import recipe.bussutil.RecipeValidateUtil;
 import recipe.caNew.AbstractCaProcessType;
 import recipe.caNew.CaAfterProcessType;
@@ -3174,7 +3175,9 @@ public class RecipeService extends RecipeBaseService {
                 orderService.updateHisRecieStatus(recipeList);
                 RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipeIds, 1));
                 // 删除预下单信息
-                recipeBeforeOrderDAO.updateDeleteFlagByRecipeId(recipeIds);
+                if(CollectionUtils.isNotEmpty(recipeIds)) {
+                    recipeBeforeOrderDAO.updateDeleteFlagByRecipeId(recipeIds);
+                }
             }
         } catch (Exception e) {
             LOGGER.error("doRecipeCancelByInvalidTime error", e);
@@ -5489,7 +5492,7 @@ public class RecipeService extends RecipeBaseService {
 
 
     /**
-     * 定时任务:定时取消处方的
+     * 定时任务:定时取消处方的(便捷购药除外)
      */
     @RpcService
     public void cancelSignRecipeTask() {
@@ -5743,6 +5746,34 @@ public class RecipeService extends RecipeBaseService {
             }
         }
 
+    }
+
+    /**
+     * 定时任务:定时取消处方的(购药除外)
+     */
+    @RpcService
+    public void cancelSignRecipeForFastRecipe() {
+        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
+        CaBusinessService caBusinessService = ApplicationUtils.getRecipeService(CaBusinessService.class);
+        //设置查询时间段
+        String endDt = DateConversion.getDateFormatter(DateConversion.getDateTimeDaysAgo(Integer.parseInt(cacheService.getParam(ParameterConstant.KEY_RECIPE_VALIDDATE_DAYS, RECIPE_EXPIRED_DAYS.toString()))), DateConversion.DEFAULT_DATE_TIME);
+        String startDt = DateConversion.getDateFormatter(DateConversion.getDateTimeDaysAgo(Integer.parseInt(cacheService.getParam(ParameterConstant.KEY_RECIPE_CANCEL_DAYS, RECIPE_EXPIRED_SEARCH_DAYS.toString()))), DateConversion.DEFAULT_DATE_TIME);
+
+        //筛选便捷购药处方状态是签名中和签名失败的
+        List<Recipe> recipeList = recipeDAO.getFastRecipeListForSignFail(startDt, endDt);
+        //这里要取消处方的首先判断处方的状态是
+        //取消处方的步骤：1.判断处方
+        LOGGER.info("cancelSignRecipeForFastRecipe 取消的ca签名处方列表{}", JSONUtils.toString(recipeList));
+        if (CollectionUtils.isNotEmpty(recipeList)) {
+            for (Recipe recipe : recipeList) {
+                if (recipe.getStatus().equals(RecipeStatusEnum.RECIPE_STATUS_SIGN_ERROR_CODE_DOC.getType()) ||
+                        recipe.getStatus().equals(RecipeStatusEnum.RECIPE_STATUS_SIGN_ING_CODE_DOC.getType())) {
+                    caBusinessService.updateSignFailState(recipe, "", RecipeStatusEnum.RECIPE_STATUS_DELETE, true);
+                } else {
+                    caBusinessService.updateSignFailState(recipe, "", RecipeStatusEnum.RECIPE_STATUS_DELETE, false);
+                }
+            }
+        }
     }
 
     @RpcService

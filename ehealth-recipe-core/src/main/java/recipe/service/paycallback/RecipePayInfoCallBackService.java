@@ -292,7 +292,7 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
                 logger.info("收银台返回的总金额:{},舍入金额:{}", zje, abandonAmount);
                 //计算舍入金额
                 try {
-                    if (Objects.nonNull(zje) && Objects.nonNull(abandonAmount) && abandonAmount < 0.0) {
+                    if (Objects.nonNull(zje) && Objects.nonNull(abandonAmount) && abandonAmount <= 0.0) {
                         attr.put("abandon_amount", new BigDecimal(abandonAmount));
                         zje = zje + abandonAmount;
                     }
@@ -310,7 +310,7 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
                 }
                 try {
                     if (ysbody.get("yhje") != null) {
-                        attr.put("couponFee", new BigDecimal(ysbody.get("yhje")));
+                        attr.put("couponFee", ConversionUtils.convert(ysbody.get("yfje"), Double.class));
                     }
                 }catch (Exception e){
                     logger.error("payCallBackParamAndUpdate couponFee error", e);
