@@ -221,8 +221,8 @@ public class OrganDrugToolService implements IOrganDrugToolService {
      */
     private void failProcess(ImportDrugRecord importDrugRecord, AtomicReference<Integer> rowIndex, StringBuilder validMsg) {
         ImportDrugRecordMsg importDrugRecordMsg=new ImportDrugRecordMsg();
-        rowIndex.getAndSet(rowIndex.get()+1);
-        importDrugRecordMsg.setErrLocaction("第" + rowIndex + "行");
+        Integer errorLocaction=rowIndex.get()+1;
+        importDrugRecordMsg.setErrLocaction("第" + errorLocaction + "行");
         importDrugRecordMsg.setErrMsg(validMsg.substring(0, validMsg.length() - 1) );
         importDrugRecordMsg.setImportDrugRecordId(importDrugRecord.getRecordId());
         importDrugRecordMsgDAO.save(importDrugRecordMsg);
