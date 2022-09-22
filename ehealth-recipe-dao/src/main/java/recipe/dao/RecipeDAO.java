@@ -3583,10 +3583,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                StringBuilder sql = new StringBuilder("select * from cdr_recipe where status in (30, 26) and signDate between '" + startDt + "' and '" + endDt + "' ");
+                StringBuilder sql = new StringBuilder("select * from cdr_recipe where status in (30, 26) and (fast_recipe_flag is null or fast_recipe_flag !=1) and signDate between '" + startDt + "' and '" + endDt + "' ");
                 sql.append("UNION ALL ");
                 //date 20200922 添加药师CA未签名过期
-                sql.append("select * from cdr_recipe where status in (31, 27 , 32) and reviewType = 1  and signDate between '" + startDt + "' and '" + endDt + "' ");
+                sql.append("select * from cdr_recipe where status in (31, 27, 32) and (fast_recipe_flag is null or fast_recipe_flag !=1) and reviewType = 1 and signDate between '" + startDt + "' and '" + endDt + "' ");
                 Query q = ss.createSQLQuery(sql.toString()).addEntity(Recipe.class);
                 setResult(q.list());
             }
@@ -4468,6 +4468,19 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
             hql.append("and r.CreateDate between :startTime and :endTime");
         }
         return hql;
+    }
+
+    public List<Recipe> getFastRecipeListForSignFail(String startDt, String endDt) {
+        HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder sql = new StringBuilder("select * from cdr_recipe where status in (30, 26, 31, 27, 32) and fast_recipe_flag = 1 and signDate between '" + startDt + "' and '" + endDt + "' ");
+                Query q = ss.createSQLQuery(sql.toString()).addEntity(Recipe.class);
+                setResult(q.list());
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
     }
 }
 
