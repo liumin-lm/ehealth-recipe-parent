@@ -253,6 +253,8 @@ public class RecipeService extends RecipeBaseService {
     private OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO;
     @Autowired
     private OrganConfigService organConfigService;
+    @Autowired
+    CaBusinessService caBusinessService;
 
     /**
      * 药师审核不通过
@@ -5754,7 +5756,6 @@ public class RecipeService extends RecipeBaseService {
     @RpcService
     public void cancelSignRecipeForFastRecipe() {
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
-        CaBusinessService caBusinessService = ApplicationUtils.getRecipeService(CaBusinessService.class);
         //设置查询时间段
         String endDt = DateConversion.getDateFormatter(DateConversion.getDateTimeDaysAgo(Integer.parseInt(cacheService.getParam(ParameterConstant.KEY_RECIPE_VALIDDATE_DAYS, RECIPE_EXPIRED_DAYS.toString()))), DateConversion.DEFAULT_DATE_TIME);
         String startDt = DateConversion.getDateFormatter(DateConversion.getDateTimeDaysAgo(Integer.parseInt(cacheService.getParam(ParameterConstant.KEY_RECIPE_CANCEL_DAYS, RECIPE_EXPIRED_SEARCH_DAYS.toString()))), DateConversion.DEFAULT_DATE_TIME);
