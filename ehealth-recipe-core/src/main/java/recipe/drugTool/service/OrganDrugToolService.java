@@ -139,7 +139,7 @@ public class OrganDrugToolService implements IOrganDrugToolService {
             if(importDrugRecord.getFailNum()>0){
                 importDrugRecord.setStatus(3);
             }
-            importDrugRecordDAO.save(importDrugRecord);
+            importDrugRecordDAO.update(importDrugRecord);
             LOGGER.info(operator + "结束 readDrugExcel 方法" + System.currentTimeMillis() + "当前进程=" + Thread.currentThread().getName());
         });
         LOGGER.info("result={}",JSONUtils.toString(result));
@@ -793,8 +793,8 @@ public class OrganDrugToolService implements IOrganDrugToolService {
                     drug.setSmallestSaleMultiple(Integer.parseInt(getStrFromCell(cells.get(39)).trim()));
                 }
             } catch (Exception e) {
-                LOGGER.error("SmallestSaleMultiple ," + e.getMessage(), e);
-                validMsg.append("SmallestSaleMultiple").append(";");
+                LOGGER.error("最小销售倍数有误 ," + e.getMessage(), e);
+                validMsg.append("最小销售倍数有误").append(";");
             }
 
             try {
