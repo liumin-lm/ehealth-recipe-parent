@@ -123,7 +123,7 @@ public class OrganDrugToolService implements IOrganDrugToolService {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-
+            //导入记录更新
             importDrugRecord.setFailNum(total.get()<1?0:total.get()-1 - importDrugRecord.getAddNum() - importDrugRecord.getUpdateNum() - importDrugRecord.getBankNumber());
             if(importDrugRecord.getFailNum()>0){
                 importDrugRecord.setStatus(3);

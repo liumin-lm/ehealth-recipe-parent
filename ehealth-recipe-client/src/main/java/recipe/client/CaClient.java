@@ -16,6 +16,7 @@ import ctd.persistence.exception.DAOException;
 import eh.utils.params.ParamUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.aop.LogRecord;
 import recipe.constant.ErrorCode;
 import recipe.util.ByteUtils;
 import sun.misc.BASE64Decoder;
@@ -86,6 +87,7 @@ public class CaClient extends BaseClient {
      * @param idNumber
      * @param caPassword
      */
+    @LogRecord
     public void oldCommonCASign(CaSealRequestTO requestSeal, Recipe recipe, String idNumber, String caPassword) {
         try {
             //签名时的密码从redis中获取

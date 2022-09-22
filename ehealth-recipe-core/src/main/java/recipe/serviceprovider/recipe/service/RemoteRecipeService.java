@@ -2209,8 +2209,11 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
      * @param resultVo
      */
     private void CaCallBackToDoctorConvenientDrug(Recipe recipe, CaSignResultVo resultVo) {
-        LOGGER.info("RemoteRecipeService CaCallBackToDoctorConvenientDrug recipe：{}", JSONUtils.toString(recipe));
+        LOGGER.info("RemoteRecipeService CaCallBackToDoctorConvenientDrug resultVo：{}，recipe：{}", JSONUtils.toString(resultVo), JSONUtils.toString(recipe));
         Integer recipeId = recipe.getRecipeId();
+        if (Integer.valueOf(-1).equals(resultVo.getResultCode())) {
+            return;
+        }
         //说明处方签名失败
         if (null == recipe.getChecker() || !Integer.valueOf(200).equals(resultVo.getCode())) {
             CaBusinessService.updateSignFailState(recipe, resultVo.getMsg(), RecipeStatusEnum.RECIPE_STATUS_SIGN_ERROR_CODE_DOC, true);
@@ -2232,7 +2235,10 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
      * @param resultVo
      */
     private void CaCallBackToCheckerConvenientDrug(Recipe recipe, CaSignResultVo resultVo) {
-        LOGGER.info("RemoteRecipeService CaCallBackToCheckerConvenientDrug recipe：{}", JSONUtils.toString(recipe));
+        LOGGER.info("RemoteRecipeService CaCallBackToCheckerConvenientDrug resultVo：{}，recipe：{}", JSONUtils.toString(resultVo), JSONUtils.toString(recipe));
+        if (Integer.valueOf(-1).equals(resultVo.getResultCode())) {
+            return;
+        }
         Integer recipeId = recipe.getRecipeId();
         //说明处方药师签名失败
         if (!Integer.valueOf(200).equals(resultVo.getCode())) {
