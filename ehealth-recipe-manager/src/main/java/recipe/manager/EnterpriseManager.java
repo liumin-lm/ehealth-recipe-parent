@@ -7,6 +7,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.organ.model.OrganBean;
 import com.ngari.base.push.service.ISmsPushService;
+import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.TakeMedicineByToHos;
 import com.ngari.infra.logistics.mode.WriteBackLogisticsOrderDto;
 import com.ngari.infra.logistics.service.ILogisticsOrderService;
@@ -724,6 +725,21 @@ public class EnterpriseManager extends BaseManager {
         } catch (Exception e) {
             logger.error("pushEnterpriseRefundPhone recipeId:{}, error", recipe.getRecipeId(), e);
         }
+    }
+
+    @LogRecord
+    public HisResponseTO doCancelRecipeForEnterprise(Recipe recipe) {
+        HospitalReqTo req = new HospitalReqTo();
+        req.setOrganId(recipe.getClinicOrgan());
+        req.setPrescriptionNo(String.valueOf(recipe.getRecipeId()));
+        req.setRecipeId(recipe.getRecipeId());
+        req.setRecipeCode(recipe.getRecipeCode());
+        req.setOrgCode(patientClient.getMinkeOrganCodeByOrganId(recipe.getClinicOrgan()));
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipe.getEnterpriseId());
+        if (Objects.nonNull(drugsEnterprise)) {
+            req.setDrugsEnterpriseBean(ObjectCopyUtils.convert(drugsEnterprise, DrugsEnterpriseBean.class));
+        }
+        return enterpriseClient.doCancelRecipeForEnterprise(req);
     }
 
     /**

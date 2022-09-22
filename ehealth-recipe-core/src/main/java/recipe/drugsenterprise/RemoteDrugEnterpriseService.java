@@ -195,6 +195,21 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
         return result;
     }
 
+    @Override
+    public HisResponseTO doCancelRecipeForEnterprise(Recipe recipe){
+        DrugEnterpriseResult result = getServiceByRecipeId(recipe.getRecipeId());
+        DrugsEnterprise enterprise = result.getDrugsEnterprise();
+        if (enterprise != null && new Integer(1).equals(enterprise.getOperationType())) {
+            //通过前置机对接
+            return enterpriseManager.doCancelRecipeForEnterprise(recipe);
+        } else {
+            if (DrugEnterpriseResult.SUCCESS.equals(result.getCode()) && null != result.getAccessDrugEnterpriseService()) {
+                return result.getAccessDrugEnterpriseService().doCancelRecipeForEnterprise(recipe);
+            }
+        }
+        return null;
+    }
+
     public Boolean pushDrugDispenser(Integer recipeId) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);

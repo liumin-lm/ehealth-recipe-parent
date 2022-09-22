@@ -17,10 +17,12 @@ import org.apache.commons.lang3.time.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import recipe.ApplicationUtils;
 import recipe.aop.LogRecord;
 import recipe.client.PatientClient;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.RecipeParameterDao;
+import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.drugsenterprise.bean.EsbWebService;
 import recipe.service.RecipeServiceSub;
 import recipe.util.DateConversion;
@@ -74,69 +76,13 @@ public class RecipeCancelService {
 
     public HisResponseTO doCancelRecipeForEnterprise(Recipe recipe) {
         HisResponseTO res = new HisResponseTO();
-        if (Objects.isNull(recipe)) {
+        if (Objects.isNull(recipe) || Objects.isNull(recipe.getEnterpriseId())) {
             res.setMsgCode("0");
             res.setMsg("调用撤销接口异常，无法撤销，请稍后重试");
             return res;
         }
-        DrugsEnterprise drugsEnterprise = null;
-        if (ValidateUtil.notNullAndZeroInteger(recipe.getEnterpriseId())) {
-            drugsEnterprise = drugsEnterpriseDAO.getById(recipe.getEnterpriseId());
-        }
-        if (Objects.nonNull(drugsEnterprise) && new Integer(0).equals(drugsEnterprise.getOperationType())) {
-            //平台流程，对接上药
-            RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
-            EsbWebService esbWebService = new EsbWebService();
-            Map<String, Object> params = new HashMap<>();
-            params.put("prescripNo", recipe.getRecipeCode());
-            params.put("prescribeDate", DateConversion.formatDate(recipe.getSignDate()));
-            String request = JsonToXmlUtil.jsonToXml(params);
-            Map<String, String> param = new HashMap<>();
-            String url = recipeParameterDao.getByName("logistics_shxk_url");
-            param.put("url", url);
-            esbWebService.initConfig(param);
-            try {
-                String webServiceResult = esbWebService.HXCFZT(request, "prsRefund");
-                LOGGER.info("getDrugInventory webServiceResult:{}. ", webServiceResult);
-                Map maps = (Map) JSON.parse(webServiceResult);
-
-                if (Objects.nonNull(maps)) {
-                    Boolean success = (Boolean) maps.get("success");
-                    String code = (String) maps.get("code");
-                    if (success && "0".equals(code)) {
-                        res.setSuccess();
-                    }
-                } else {
-                    res.setMsgCode("0");
-                    res.setMsg("调用撤销接口异常，无法撤销，请稍后重试");
-                }
-            } catch (Exception e) {
-                LOGGER.error("doCancelRecipeForEnterprise 平台流程 error", e);
-                res.setMsgCode("0");
-                res.setMsg("调用撤销接口异常，无法撤销，请稍后重试");
-            }
-        } else {
-            //对接his流程
-            try {
-                HospitalReqTo req = new HospitalReqTo();
-                req.setOrganId(recipe.getClinicOrgan());
-                req.setPrescriptionNo(String.valueOf(recipe.getRecipeId()));
-                req.setRecipeId(recipe.getRecipeId());
-                req.setRecipeCode(recipe.getRecipeCode());
-                req.setOrgCode(patientClient.getMinkeOrganCodeByOrganId(recipe.getClinicOrgan()));
-                if (Objects.nonNull(drugsEnterprise)) {
-                    req.setDrugsEnterpriseBean(ObjectCopyUtils.convert(drugsEnterprise, DrugsEnterpriseBean.class));
-                }
-
-                LOGGER.info("doCancelRecipeForEnterprise recipeId={} req={}", recipe.getRecipeId(), JSONUtils.toString(req));
-                res = recipeEnterpriseService.cancelRecipe(req);
-                LOGGER.info("doCancelRecipeForEnterprise recipeId={} res={}", recipe.getRecipeId(), JSONUtils.toString(res));
-            } catch (Exception e) {
-                LOGGER.error("doCancelRecipeForEnterprise error recipeId={}", recipe.getRecipeId(), e);
-                res.setMsgCode("0");
-                res.setMsg("调用撤销接口异常，无法撤销，请稍后重试");
-            }
-        }
-        return res;
+        RemoteDrugEnterpriseService remoteDrugEnterpriseService =
+                ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+        return remoteDrugEnterpriseService.doCancelRecipeForEnterprise(recipe);
     }
 }
