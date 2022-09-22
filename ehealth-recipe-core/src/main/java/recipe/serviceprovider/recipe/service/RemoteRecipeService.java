@@ -2210,12 +2210,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
      */
     private void CaCallBackToDoctorConvenientDrug(Recipe recipe, CaSignResultVo resultVo) {
         Integer recipeId = recipe.getRecipeId();
-        if (null == recipe.getChecker()) {
-            CaBusinessService.updateSignFailState(recipe, resultVo.getMsg(), RecipeStatusEnum.RECIPE_STATUS_SIGN_ERROR_CODE_DOC, true);
-            return;
-        }
         //说明处方签名失败
-        if (!Integer.valueOf(200).equals(resultVo.getCode())) {
+        if (null == recipe.getChecker() || !Integer.valueOf(200).equals(resultVo.getCode())) {
             CaBusinessService.updateSignFailState(recipe, resultVo.getMsg(), RecipeStatusEnum.RECIPE_STATUS_SIGN_ERROR_CODE_DOC, true);
             return;
         }
