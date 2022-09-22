@@ -112,7 +112,7 @@ public class OrganDrugToolService implements IOrganDrugToolService {
                 if (validMsg.length() > 1) {
                     failProcess(importDrugRecord,rowIndex,validMsg);
                 } else {
-                    successProcess(importDrugRecord,drug,operator);
+                    successProcess(importDrugRecord,rowIndex,drug,operator);
                 }
                 rowIndex.getAndSet(rowIndex.get() + 1);
                 total.getAndSet(total.get() + 1);
@@ -179,10 +179,12 @@ public class OrganDrugToolService implements IOrganDrugToolService {
     /**
      * 成功处理
      * @param importDrugRecord
+     * @param rowIndex
      * @param drug
      * @param operator
      */
-    private void successProcess(ImportDrugRecord importDrugRecord, DrugListMatch drug, String operator) {
+    private void successProcess(ImportDrugRecord importDrugRecord, AtomicReference<Integer> rowIndex, DrugListMatch drug, String operator) {
+        if(new Integer("0").equals(rowIndex.get()) || drug==null ||StringUtils.isEmpty(drug.getOrganDrugCode()))return;
         try {
             drugToolService.AutoMatch(drug);
             boolean isUpdateSuccess=drugListMatchDAO.updateDrugListMatch(drug);
@@ -267,13 +269,13 @@ public class OrganDrugToolService implements IOrganDrugToolService {
             ,ImportDrugRecord importDrugRecord,DrugListMatch drug,StringBuilder validMsg ){
         Integer organId=importDrugRecord.getOrganId();
         String operator=importDrugRecord.getImportOperator();
-//        drug = new DrugListMatch();
 
         //循环获得每个行
         boolean flag = false;
         if(null != cells){
             for(String cell : cells){
-                if (cell != null) {
+                if (!StringUtils.isEmpty(cell) ) {
+                    //有数据
                     flag = true;
                     break;
                 }
