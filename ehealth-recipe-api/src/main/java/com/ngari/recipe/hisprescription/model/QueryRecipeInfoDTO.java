@@ -170,6 +170,12 @@ public class QueryRecipeInfoDTO implements Serializable {
     )
     private Integer certificateType;
 
+    @ItemProperty(alias = "有效天数")
+    private Integer valueDays;
+
+    @ItemProperty(alias = "外带处方标志 1:外带药处方")
+    private Integer takeMedicine;
+
     public Map<String, Object> getMedicalInfoBean() {
         return medicalInfoBean;
     }
@@ -644,5 +650,21 @@ public class QueryRecipeInfoDTO implements Serializable {
 
     public void setCertificateType(Integer certificateType) {
         this.certificateType = certificateType;
+    }
+
+    public Integer getValueDays() {
+        return valueDays;
+    }
+
+    public void setValueDays(Integer valueDays) {
+        this.valueDays = valueDays;
+    }
+
+    public Integer getTakeMedicine() {
+        return takeMedicine;
+    }
+
+    public void setTakeMedicine(Integer takeMedicine) {
+        this.takeMedicine = takeMedicine;
     }
 }

@@ -94,6 +94,9 @@ public class QueryRecipeService implements IQueryRecipeService {
     @Autowired
     private DepartManager departManager;
 
+    @Autowired
+    private DrugEntrustDAO drugEntrustDAO;
+
     /**
      * 用于sendRecipeToHIS 推送处方mq后 查询接口
      *
@@ -275,6 +278,10 @@ public class QueryRecipeService implements IQueryRecipeService {
                     recipeDTO.setRegisterId(consultExDTO.getRegisterNo());
                 }
             }
+            //外带处方标志 1:外带药处方
+            recipeDTO.setTakeMedicine(recipe.getTakeMedicine());
+            //有效天数
+            recipeDTO.setValueDays(recipe.getValueDays());
             //签名日期
             recipeDTO.setDatein(recipe.getSignDate());
             //是否支付
@@ -480,6 +487,15 @@ public class QueryRecipeService implements IQueryRecipeService {
                 }
                 //剂量单位
                 orderItem.setDrunit(detail.getUseDoseUnit());
+                //嘱托
+                if (StringUtils.isNotEmpty(detail.getDrugEntrustCode())) {
+                    DrugEntrust drugEntrust = drugEntrustDAO.getByOrganIdAndDrugEntrustCode(clinicOrgan, detail.getDrugEntrustCode());
+                    if (Objects.nonNull(drugEntrust)) {
+                        orderItem.setDrugEntrustText(drugEntrust.getDrugEntrustName());
+                    }
+                }
+                //类型
+                orderItem.setType(detail.getType());
 
                 OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(clinicOrgan, detail.getOrganDrugCode(), detail.getDrugId());
                 if (null != organDrugList) {
