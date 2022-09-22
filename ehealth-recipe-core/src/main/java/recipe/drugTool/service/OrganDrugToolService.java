@@ -138,6 +138,8 @@ public class OrganDrugToolService implements IOrganDrugToolService {
             importDrugRecord.setFailNum(total.get()<1?0:total.get()-1 - importDrugRecord.getAddNum() - importDrugRecord.getUpdateNum() - importDrugRecord.getBankNumber());
             if(importDrugRecord.getFailNum()>0){
                 importDrugRecord.setStatus(3);
+            }else{
+                importDrugRecord.setStatus(1);
             }
             importDrugRecordDAO.update(importDrugRecord);
             LOGGER.info(operator + "结束 readDrugExcel 方法" + System.currentTimeMillis() + "当前进程=" + Thread.currentThread().getName());

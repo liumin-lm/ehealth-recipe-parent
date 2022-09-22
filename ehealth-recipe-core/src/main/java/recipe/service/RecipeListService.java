@@ -575,7 +575,7 @@ public class RecipeListService extends RecipeBaseService {
         }
 
         try {
-            upderLineRecipesByHis = hisTask.get(5000, TimeUnit.MILLISECONDS);
+            upderLineRecipesByHis = hisTask.get(10000, TimeUnit.MILLISECONDS);
             LOGGER.info("findHistoryRecipeList 从his获取已缴费处方信息:{}", JSONUtils.toString(upderLineRecipesByHis));
         } catch (Exception e) {
             e.printStackTrace();
