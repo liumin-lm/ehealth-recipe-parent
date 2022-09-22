@@ -2209,6 +2209,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
      * @param resultVo
      */
     private void CaCallBackToDoctorConvenientDrug(Recipe recipe, CaSignResultVo resultVo) {
+        LOGGER.info("RemoteRecipeService CaCallBackToDoctorConvenientDrug recipe：{}", JSONUtils.toString(recipe));
         Integer recipeId = recipe.getRecipeId();
         //说明处方签名失败
         if (null == recipe.getChecker() || !Integer.valueOf(200).equals(resultVo.getCode())) {
@@ -2231,6 +2232,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
      * @param resultVo
      */
     private void CaCallBackToCheckerConvenientDrug(Recipe recipe, CaSignResultVo resultVo) {
+        LOGGER.info("RemoteRecipeService CaCallBackToCheckerConvenientDrug recipe：{}", JSONUtils.toString(recipe));
         Integer recipeId = recipe.getRecipeId();
         //说明处方药师签名失败
         if (!Integer.valueOf(200).equals(resultVo.getCode())) {
