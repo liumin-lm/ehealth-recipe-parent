@@ -13,7 +13,6 @@ import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
 import ctd.util.FileAuth;
 import ctd.util.JSONUtils;
-import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,9 +31,9 @@ import recipe.util.RedisClient;
 import recipe.util.ValidateUtil;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * CA
@@ -475,13 +474,13 @@ public class CaManager extends BaseManager {
      */
     @LogRecord
     public String obtainFastRecipeCaParam(Recipe recipe) {
-        String fastRecipeParameter=recipeParameterDao.getByName("fastRecipeParameter");
-        List<Map<String,String>> fastRecipeParameterList = JSONUtils.parse(fastRecipeParameter, ArrayList.class);
-        String ca= CaConstant.ESIGN;
-        if(!CollectionUtils.isEmpty(fastRecipeParameterList)){
-            for(Map<String,String> map:fastRecipeParameterList){
-                if (String.valueOf(recipe.getClinicOrgan()).equals(map.get("organId"))){
-                    ca=map.get("ca");
+        String fastRecipeParameter = recipeParameterDao.getByName("fastRecipeParameter");
+        List<Map<String, String>> fastRecipeParameterList = JSONUtils.parse(fastRecipeParameter, ArrayList.class);
+        String ca = CaConstant.ESIGN;
+        if (!CollectionUtils.isEmpty(fastRecipeParameterList)) {
+            for (Map<String, String> map : fastRecipeParameterList) {
+                if (String.valueOf(recipe.getClinicOrgan()).equals(map.get("organId"))) {
+                    ca = map.get("ca");
                     return ca;
                 }
             }
@@ -490,4 +489,23 @@ public class CaManager extends BaseManager {
         return ca;
     }
 
+    /**
+     * 便捷够药-药师签名
+     *
+     * @param recipe
+     */
+    public void caSignChecker(Recipe recipe) {
+        String fastRecipeChecker = configurationClient.getValueCatch(recipe.getClinicOrgan(), "fastRecipeChecker", "");
+        Integer checker = Integer.parseInt(fastRecipeChecker);
+        DoctorDTO doctorDTO = doctorClient.getDoctor(checker);
+        recipe.setChecker(checker);
+        recipe.setCheckerText(doctorDTO.getName());
+        recipe.setCheckDate(new Date());
+        recipe.setCheckDateYs(new Date());
+        recipe.setCheckOrgan(doctorDTO.getOrgan());
+        recipe.setCheckFlag(1);
+        recipeDAO.update(recipe);
+        //掉用药师签名
+        recipeAuditClient.caSignChecker(recipe);
+    }
 }
