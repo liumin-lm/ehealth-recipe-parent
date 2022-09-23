@@ -735,7 +735,7 @@ public class EnterpriseManager extends BaseManager {
         req.setRecipeId(recipe.getRecipeId());
         req.setRecipeCode(recipe.getRecipeCode());
         req.setOrgCode(patientClient.getMinkeOrganCodeByOrganId(recipe.getClinicOrgan()));
-        req.setOrderCode(recipe.getOrderCode());
+//        req.setOrderCode(recipe.getOrderCode());
         DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipe.getEnterpriseId());
         if (Objects.nonNull(drugsEnterprise)) {
             req.setDrugsEnterpriseBean(ObjectCopyUtils.convert(drugsEnterprise, DrugsEnterpriseBean.class));
