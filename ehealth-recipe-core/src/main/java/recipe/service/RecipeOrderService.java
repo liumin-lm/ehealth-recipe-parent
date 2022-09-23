@@ -1549,7 +1549,7 @@ public class RecipeOrderService extends RecipeBaseService {
 
                     for (Recipe recipe : recipes) {
                         if (recipe != null) {
-                            recipeDAO.updateOrderCodeToNullByOrderCodeAndClearChoose(order.getOrderCode(), recipe, 1);
+                            recipeDAO.updateOrderCodeToNullByOrderCodeAndClearChoose(order.getOrderCode(), recipe, 1,canCancelOrderCode);
                             String decoctionDeploy = ((String[]) configService.getConfiguration(recipe.getClinicOrgan(), "decoctionDeploy"))[0];
                             if ("2".equals(decoctionDeploy)) {
                                 RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
@@ -1581,7 +1581,7 @@ public class RecipeOrderService extends RecipeBaseService {
                         for (Recipe recipe : recipes) {
                             //未支付定时取消的处方单orderCode不设置成空
                             if (RecipeStatusConstant.NO_PAY != recipe.getStatus()) {
-                                recipeDAO.updateOrderCodeToNullByOrderCodeAndClearChoose(order.getOrderCode(), recipe, 1);
+                                recipeDAO.updateOrderCodeToNullByOrderCodeAndClearChoose(order.getOrderCode(), recipe, 1,canCancelOrderCode);
                             }
                         }
                         //date 20200330

@@ -754,7 +754,7 @@ public class HisRecipeManager extends BaseManager {
                             //合并处方订单取消
                             List<Recipe> mergrRecipes = recipeDAO.findByRecipeIds(recipeIdList);
                             mergrRecipes.forEach(mergeRecipe -> {
-                                recipeDAO.updateOrderCodeToNullByOrderCodeAndClearChoose(order.getOrderCode(), mergeRecipe, 1);
+                                recipeDAO.updateOrderCodeToNullByOrderCodeAndClearChoose(order.getOrderCode(), mergeRecipe, 1,true);
                             });
 
                             //修改订单状态
