@@ -934,4 +934,18 @@ public class RecipeManager extends BaseManager {
     }
 
 
+    public List<RecipeRefundDTO> getRecipeRefundInfo(Integer doctorId,Date startTime,Date endTime,Integer start,Integer limit) {
+        List<RecipeRefundDTO> recipeRefundInfo = recipeDAO.getRecipeRefundInfo(doctorId,startTime,endTime,start,limit);
+        recipeRefundInfo.forEach(recipeRefundDTO -> {
+            List<RecipeRefund> recipeRefunds = recipeRefundDAO.findRecipeRefundByRecipeIdAndNode(recipeRefundDTO.getRecipeId(), -1);
+            if(recipeRefunds.size()>0){
+                recipeRefundDTO.setReason(recipeRefunds.get(0).getReason());
+            }
+            else {
+                recipeRefundDTO.setReason("医生撤销或系统原因");
+            }
+        });
+        logger.info("RecipeManager getRecipeRefundInfo recipeRefundInfo={}",JSONUtils.toString(recipeRefundInfo));
+        return recipeRefundInfo;
+    }
 }

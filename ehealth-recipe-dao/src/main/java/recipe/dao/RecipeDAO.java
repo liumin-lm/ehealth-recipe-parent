@@ -4440,7 +4440,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         HibernateStatelessResultAction<List<RecipeRefundDTO>> action = new AbstractHibernateStatelessResultAction<List<RecipeRefundDTO>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                StringBuilder str = new StringBuilder("select r.recipeID,r.patientName,r.RecipeType,r.CreateDate,cr.Reason");
+                StringBuilder str = new StringBuilder("select r.recipeID,r.patientName,r.RecipeType,r.CreateDate,o.cancelReason as reason");
                 StringBuilder hql = generateRecipeRefundParameter(str, startTime, endTime);
                 hql.append(" order by r.CreateDate desc");
                 logger.info("getRecipeRefundInfo hql={}",JSONUtils.toString(hql));
@@ -4461,8 +4461,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
 
     private StringBuilder generateRecipeRefundParameter(StringBuilder hql,Date startTime, Date endTime){
         String str = " from cdr_recipe r left join cdr_recipeorder o on r.orderCode = o.orderCode " +
-                "left join cdr_recipe_refund cr on r.recipeID = cr.busId " +
-                " where r.doctor =:doctorId and o.payFlag = 3 and cr.node = -1 ";
+                " where r.doctor =:doctorId and o.payFlag = 3 ";
         hql.append(str);
         if (startTime != null && endTime != null) {
             hql.append("and r.CreateDate between :startTime and :endTime");

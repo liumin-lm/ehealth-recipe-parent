@@ -65,6 +65,8 @@ public class BaseManager {
     DrugDecoctionWayDao drugDecoctionWayDao;
     @Autowired
     protected DrugListDAO drugListDAO;
+    @Autowired
+    protected RecipeRefundDAO recipeRefundDAO;
 
     /**
      * 获取处方相关信息

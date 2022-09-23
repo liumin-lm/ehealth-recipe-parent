@@ -2955,7 +2955,7 @@ public class RecipeServiceSub {
             if (!recipe.canMedicalPay()) {
                 change.put("chooseFlag", 1);
             }
-            orderService.cancelOrder(order, OrderStatusConstant.CANCEL_MANUAL, true);
+            orderService.cancelOrder(order, OrderStatusConstant.CANCEL_MANUAL, false);
             stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION, OrderStateEnum.SUB_CANCELLATION_DOCTOR_REPEAL);
         }
         //撤销处方

@@ -1160,10 +1160,8 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     @Override
     public List<RecipeRefundDTO> getRecipeRefundInfo(RecipeRefundInfoReqVO recipeRefundInfoReqVO) {
         logger.info("RecipeBusinessService getRecipeRefundInfo recipeRefundInfoReqVO={}",JSONUtils.toString(recipeRefundInfoReqVO));
-        List<RecipeRefundDTO> recipeRefundInfo = recipeDAO.getRecipeRefundInfo(recipeRefundInfoReqVO.getDoctorId(),recipeRefundInfoReqVO.getStartTime(),recipeRefundInfoReqVO.getEndTime(),
+        return recipeManager.getRecipeRefundInfo(recipeRefundInfoReqVO.getDoctorId(),recipeRefundInfoReqVO.getStartTime(),recipeRefundInfoReqVO.getEndTime(),
                 recipeRefundInfoReqVO.getStart(),recipeRefundInfoReqVO.getLimit());
-        logger.info("RecipeBusinessService getRecipeRefundInfo recipeRefundInfo={}",JSONUtils.toString(recipeRefundInfo));
-        return recipeRefundInfo;
     }
 }
 
