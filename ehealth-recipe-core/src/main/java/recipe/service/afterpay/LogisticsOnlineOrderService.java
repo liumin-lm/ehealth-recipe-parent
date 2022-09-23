@@ -1,5 +1,6 @@
 package recipe.service.afterpay;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
@@ -321,13 +322,18 @@ public class LogisticsOnlineOrderService implements IAfterPayBussService{
                     logisticsOrder.setOutpatientNumber(consultExDTO.getRegisterNo());
                 }
             }
-            // 患者姓名
-            logisticsOrder.setPatientName(recipe.getPatientName());
-            // 病历号
-            RecipeExtendDAO recipeExtendDAO = getDAO(RecipeExtendDAO.class);
-            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-            if (Objects.nonNull(recipeExtend)) {
-                logisticsOrder.setCaseNo(recipeExtend.getMedicalRecordNumber());
+
+            // 高州市人民医院个性化： 传病历号
+            String organStr = recipeParameterDao.getByName("gzLogisticsOrderOrganId");
+            if (StringUtils.isNotEmpty(organStr)) {
+                List<Integer> organIds = JSON.parseArray(organStr, Integer.class);
+                if (CollectionUtils.isNotEmpty(organIds) && organIds.contains(recipe.getClinicOrgan())) {
+                    RecipeExtendDAO recipeExtendDAO = getDAO(RecipeExtendDAO.class);
+                    RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+                    if (Objects.nonNull(recipeExtend)) {
+                        logisticsOrder.setCaseNo(recipeExtend.getMedicalRecordNumber());
+                    }
+                }
             }
         } catch (Exception e) {
             LOGGER.error("基础服务物流下单非必填信息获取异常：", e);
