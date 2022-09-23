@@ -261,8 +261,14 @@ public class RecipeAuditClient extends BaseClient {
         }
     }
 
+
+    /**
+     * 药师签名接口
+     *
+     * @param recipe
+     */
     @LogRecord
-    public void generateCheckRecipePdf(Recipe recipe) {
+    public void caSignChecker(Recipe recipe) {
         recipeCheckService.generateCheckRecipePdf(recipe.getChecker(), ObjectCopyUtils.convert(recipe, RecipeBean.class));
     }
 }
