@@ -1,7 +1,6 @@
 package recipe.atop.patient;
 
 import com.alibaba.fastjson.JSON;
-import com.ngari.recipe.dto.RecipeDTO;
 import com.ngari.recipe.dto.RecipeFeeDTO;
 import com.ngari.recipe.dto.ShoppingCartDetailDTO;
 import com.ngari.recipe.dto.SkipThirdDTO;
@@ -208,12 +207,9 @@ public class RecipeOrderPatientAtop extends BaseAtop {
         }
 
         //推送his
-        try {
-            recipeIds.forEach(recipeId -> offlineToOnlineService.pushRecipe(recipeId, CommonConstant.RECIPE_CANCEL_TYPE,
-                    CommonConstant.RECIPE_PATIENT_TYPE, null, null, null));
-        } catch (Exception e) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "当前处方撤销失败");
-        }
+        recipeIds.forEach(recipeId -> offlineToOnlineService.pushRecipe(recipeId, CommonConstant.RECIPE_CANCEL_TYPE,
+                CommonConstant.RECIPE_PATIENT_TYPE, null, null, null));
+
     }
 
     @RpcService
