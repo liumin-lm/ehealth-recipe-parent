@@ -266,6 +266,11 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "是否自动审核 1自动审核，0/null药师审核")
     private Integer autoCheck;
 
+    @ItemProperty(alias = "费用项目")
+    private String costItemCode;
+    @ItemProperty(alias = "费用项目类型 1 代煎费  2 中医辨证论证费")
+    private String costItemType;
+
     @Column(name = "terminal_id")
     public String getTerminalId() {
         return terminalId;
@@ -1042,5 +1047,23 @@ public class RecipeExtend implements Serializable {
 
     public void setAutoCheck(Integer autoCheck) {
         this.autoCheck = autoCheck;
+    }
+
+    @Column(name = "cost_item_code")
+    public String getCostItemCode() {
+        return costItemCode;
+    }
+
+    public void setCostItemCode(String costItemCode) {
+        this.costItemCode = costItemCode;
+    }
+
+    @Column(name = "cost_item_type")
+    public String getCostItemType() {
+        return costItemType;
+    }
+
+    public void setCostItemType(String costItemType) {
+        this.costItemType = costItemType;
     }
 }
