@@ -4856,7 +4856,7 @@ public class RecipeService extends RecipeBaseService {
         String[] drugsEnterpriseIdsDbArr = drugsEnterpriseIdsDb.split(",");
         // 数组转集合
         List<String> drugsEnterpriseIdsDbList = new ArrayList<String>(Arrays.asList(drugsEnterpriseIdsDbArr));
-        if (drugsEnterpriseIdsDbList.indexOf(String.valueOf(drugEnterpriseId)) == -1) {
+        if (!drugsEnterpriseIdsDbList.contains(String.valueOf(drugEnterpriseId))) {
             // 添加指定药企 ID
             drugsEnterpriseIdsDbList.add(drugEnterpriseId.toString());
             // 把剩下的药企 ID 再拼接起来
