@@ -1,6 +1,7 @@
 package recipe.atop.doctor;
 
 import com.ngari.recipe.dto.RecipeRefundDTO;
+import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import eh.utils.ValidateUtil;
@@ -34,6 +35,7 @@ public class FindRecipeDoctorAtop extends BaseAtop {
      */
     @RpcService
     public PageGenericsVO<RecipeRefundDTO> getRecipeRefundInfo(RecipeRefundInfoReqVO recipeRefundInfoReqVO) {
+        logger.info("FindRecipeDoctorAtop getRecipeRefundInfo recipeRefundInfoReqVO={}", JSONUtils.toString(recipeRefundInfoReqVO));
         validateAtop(recipeRefundInfoReqVO,recipeRefundInfoReqVO.getDoctorId(),recipeRefundInfoReqVO.getStartTime(),
                 recipeRefundInfoReqVO.getEndTime(),recipeRefundInfoReqVO.getStart(),recipeRefundInfoReqVO.getLimit());
         PageGenericsVO<RecipeRefundDTO> result = new PageGenericsVO<>();
