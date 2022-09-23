@@ -87,6 +87,15 @@ public class OrderItemDTO implements Serializable {
     @ItemProperty(alias = "自费标识 0 否 1 是")
     private Integer selfPayFlag;
 
+    @ItemProperty(alias = "药品嘱托编码")
+    private String drugEntrustCode;
+
+    @ItemProperty(alias = "药品嘱托")
+    private String drugEntrustText;
+
+    @ItemProperty(alias = "类型：1:药品，2:诊疗项目，3 保密药品")
+    private Integer type;
+
     public Integer getDrugId() {
         return drugId;
     }
@@ -337,5 +346,29 @@ public class OrderItemDTO implements Serializable {
 
     public void setSelfPayFlag(Integer selfPayFlag) {
         this.selfPayFlag = selfPayFlag;
+    }
+
+    public String getDrugEntrustCode() {
+        return drugEntrustCode;
+    }
+
+    public void setDrugEntrustCode(String drugEntrustCode) {
+        this.drugEntrustCode = drugEntrustCode;
+    }
+
+    public String getDrugEntrustText() {
+        return drugEntrustText;
+    }
+
+    public void setDrugEntrustText(String drugEntrustText) {
+        this.drugEntrustText = drugEntrustText;
+    }
+
+    public Integer getType() {
+        return type;
+    }
+
+    public void setType(Integer type) {
+        this.type = type;
     }
 }

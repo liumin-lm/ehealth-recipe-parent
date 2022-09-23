@@ -68,6 +68,7 @@ import recipe.hisservice.RecipeToHisService;
 import recipe.manager.*;
 import recipe.service.common.RecipeCacheService;
 import recipe.util.RedisClient;
+import recipe.vo.doctor.ConfigOptionsVO;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.patient.ReadyRecipeVO;
 
@@ -853,9 +854,11 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         String ca=caManager.obtainFastRecipeCaParam(recipe);
         if(!CaConstant.ESIGN.equals(ca)){
             recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_SIGN_ING_CODE_DOC.getType());
+            recipe.setChecker(null);
         }else{
             recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType());
         }
+
         recipe = recipeManager.saveRecipe(recipe);
         if(!CaConstant.ESIGN.equals(ca)){
             stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_ORDER, RecipeStateEnum.SUB_ORDER_READY_SUBMIT_ORDER);
@@ -1045,10 +1048,12 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
                 throw new DAOException(ErrorCode.SERVICE_ERROR, "药品" + recipeDetailBean.getDrugName() + "目录缺失无法开具");
             }
         });
+        String ca=caManager.obtainFastRecipeCaParam(recipe.util.ObjectCopyUtils.convert(recipeInfoVO, Recipe.class));
         String fastRecipeChecker = configurationClient.getValueCatch(recipeInfoVO.getRecipeBean().getClinicOrgan(), "fastRecipeChecker", "");
         if (StringUtils.isEmpty(fastRecipeChecker)) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "没有指定审方药师");
-        } else {
+        }
+        if(CaConstant.ESIGN.equals(ca)){
             Integer checker = Integer.parseInt(fastRecipeChecker);
             DoctorDTO doctorDTO = doctorClient.getDoctor(checker);
             recipeInfoVO.getRecipeBean().setChecker(checker);
@@ -1057,6 +1062,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
             recipeInfoVO.getRecipeBean().setCheckDateYs(new Date());
             recipeInfoVO.getRecipeBean().setCheckOrgan(doctorDTO.getOrgan());
             recipeInfoVO.getRecipeBean().setCheckFlag(1);
+
         }
     }
 }
