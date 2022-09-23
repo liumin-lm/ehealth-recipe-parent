@@ -310,7 +310,7 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
                 }
                 try {
                     if (ysbody.get("yhje") != null) {
-                        attr.put("couponFee", ConversionUtils.convert(ysbody.get("yfje"), Double.class));
+                        attr.put("couponFee", ConversionUtils.convert(ysbody.get("yhje"), Double.class));
                     }
                 }catch (Exception e){
                     logger.error("payCallBackParamAndUpdate couponFee error", e);
