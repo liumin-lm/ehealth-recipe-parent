@@ -4726,29 +4726,38 @@ public class RecipeService extends RecipeBaseService {
             organDrug.setUseDoseSmallestUnit(drug.getUseDoseSmallestUnit());
         }
         if (!ObjectUtils.isEmpty(drug.getDrugsEnterpriseCode())) {
-            String pharmacyCode = drug.getDrugsEnterpriseCode();
+            String drugsEnterpriseCodeHis = drug.getDrugsEnterpriseCode();
 
-            String[] split = pharmacyCode.split(",");
+            String[] drugsEnterpriseCodeHisArr = drugsEnterpriseCodeHis.split(",");
             StringBuilder ss = new StringBuilder();
-            String drugsEnterpriseIds = organDrug.getDrugsEnterpriseIds();
-            for (int i = 0; i < split.length; i++) {
+            String drugsEnterpriseIdsDb = organDrug.getDrugsEnterpriseIds();
+            for (int i = 0; i < drugsEnterpriseCodeHisArr.length; i++) {
                 DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-                DrugsEnterprise byEnterpriseCode = drugsEnterpriseDAO.getByEnterpriseCode(split[i], organId);
-                if (ObjectUtils.isEmpty(byEnterpriseCode)) {
-                    throw new DAOException(DAOException.VALUE_NEEDED, "平台根据药企编码" + split[i] + " 未找到药企");
+                DrugsEnterprise drugsEnterpriseDb = drugsEnterpriseDAO.getByEnterpriseCode(drugsEnterpriseCodeHisArr[i], organId);
+                if (ObjectUtils.isEmpty(drugsEnterpriseDb)) {
+                    throw new DAOException(DAOException.VALUE_NEEDED, "平台根据药企编码" + drugsEnterpriseCodeHisArr[i] + " 未找到药企");
                 } else {
-                    if (ObjectUtils.isEmpty(drugsEnterpriseIds)) {
-                        if (i != split.length - 1) {
-                            ss.append(byEnterpriseCode.getId().toString() + ",");
+                    if (ObjectUtils.isEmpty(drugsEnterpriseIdsDb)) {
+                        //数据库没值
+                        if (i != drugsEnterpriseCodeHisArr.length - 1) {
+                            ss.append(drugsEnterpriseDb.getId().toString() + ",");
                         } else {
-                            ss.append(byEnterpriseCode.getId().toString());
+                            ss.append(drugsEnterpriseDb.getId().toString());
                         }
                     } else {
-                        drugsEnterpriseIds = addOne(drugsEnterpriseIds, byEnterpriseCode.getId());
+                        drugsEnterpriseIdsDb = addOne(drugsEnterpriseIdsDb, drugsEnterpriseDb.getId());
                     }
                 }
             }
-            organDrug.setDrugsEnterpriseIds(drugsEnterpriseIds);
+            if(!StringUtils.isEmpty(ss)){
+                organDrug.setDrugsEnterpriseIds(ss.toString());
+            }else{
+                if(null!=drugsEnterpriseIdsDb){
+                    organDrug.setDrugsEnterpriseIds(drugsEnterpriseIdsDb);
+                }
+
+            }
+
         }
         //使用状态 0 无效 1 有效
         if (!ObjectUtils.isEmpty(drug.getStatus())) {
@@ -4834,25 +4843,26 @@ public class RecipeService extends RecipeBaseService {
 
 
     /**
-     * 添加指定药企 药企字符串中  此药企ID
-     *
-     * @param pharmacyIds
-     * @param pharmacyId
+     * 如果存在就返回原药企串，不存在就添加一个
+     * @param
+     * @param
      * @return
      */
-    public static String addOne(String pharmacyIds, Integer pharmacyId) {
+    public static String addOne(String drugsEnterpriseIdsDb, Integer drugEnterpriseId) {
         // 返回结果
         String result = "";
         // 判断是否存在。如果存在，移除指定药房 ID；如果不存在，则直接返回空
         // 拆分成数组
-        String[] userIdArray = pharmacyIds.split(",");
+        String[] drugsEnterpriseIdsDbArr = drugsEnterpriseIdsDb.split(",");
         // 数组转集合
-        List<String> userIdList = new ArrayList<String>(Arrays.asList(userIdArray));
-        if (userIdList.indexOf(pharmacyId) == -1) {
+        List<String> drugsEnterpriseIdsDbList = new ArrayList<String>(Arrays.asList(drugsEnterpriseIdsDbArr));
+        if (drugsEnterpriseIdsDbList.indexOf(String.valueOf(drugEnterpriseId)) == -1) {
             // 添加指定药企 ID
-            userIdList.add(pharmacyId.toString());
+            drugsEnterpriseIdsDbList.add(drugEnterpriseId.toString());
             // 把剩下的药企 ID 再拼接起来
-            result = com.aliyun.openservices.shade.org.apache.commons.lang3.StringUtils.join(userIdList, ",");
+            result = com.aliyun.openservices.shade.org.apache.commons.lang3.StringUtils.join(drugsEnterpriseIdsDbList, ",");
+        }else{
+            result=drugsEnterpriseIdsDb;
         }
         // 返回
         return result;
