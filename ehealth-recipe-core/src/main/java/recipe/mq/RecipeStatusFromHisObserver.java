@@ -62,6 +62,8 @@ public class RecipeStatusFromHisObserver implements Observer<NoticeNgariRecipeIn
         hospitalStatusUpdateDTO.setUpdateRecipeCodeFlag(notice.getUpdateRecipeCodeFlag());
         String recipeStatus = notice.getRecipeStatus();
         Map<String, String> otherInfo = Maps.newHashMap();
+        String costItemCode = notice.getCostItemCode();
+        String costItemType = notice.getCostItemType();
         boolean pass = true;
         //处方状态 1 处方保存 2 处方收费 3 处方发药 4处方退费 5处方退药 6处方拒绝接收 7已申请配送 8已配送
         switch (recipeStatus) {
@@ -164,6 +166,7 @@ public class RecipeStatusFromHisObserver implements Observer<NoticeNgariRecipeIn
             PrescribeService prescribeService = ApplicationUtils.getRecipeService(
                     PrescribeService.class, "remotePrescribeService");
             HosRecipeResult result = prescribeService.updateRecipeStatus(hospitalStatusUpdateDTO, otherInfo);
+
             LOGGER.info("tag={}, result={}", MqConstant.HIS_CDRINFO_TAG_TO_PLATFORM, JSONUtils.toString(result));
         }
         try {
@@ -176,6 +179,12 @@ public class RecipeStatusFromHisObserver implements Observer<NoticeNgariRecipeIn
             EmrRecipeManager emrRecipeManager = AppContextHolder.getBean("emrRecipeManager", EmrRecipeManager.class);
             //将药品信息加入病历中
             emrRecipeManager.upDocIndex(recipeExtend.getRecipeId(), recipeExtend.getDocIndexId());
+            if (StringUtils.isNotEmpty(costItemCode)) {
+                recipeExtend.setCostItemCode(costItemCode);
+                recipeExtend.setCostItemType(costItemType);
+                recipeExtend.setRecipeCostNumber(costItemCode);
+                recipeExtendDAO.updateNonNullFieldByPrimaryKey(recipeExtend);
+            }
         } catch (Exception e) {
             LOGGER.error("修改电子病例使用状态失败 ", e);
         }
