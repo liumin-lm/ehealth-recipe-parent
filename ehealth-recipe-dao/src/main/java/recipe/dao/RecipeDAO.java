@@ -300,22 +300,26 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      *
      * @param orderCode
      */
-    public void updateOrderCodeToNullByOrderCodeAndClearChoose(String orderCode, Recipe recipe, int flag) {
+    public void updateOrderCodeToNullByOrderCodeAndClearChoose(String orderCode, Recipe recipe, int flag,boolean canCancelOrderCode) {
         HibernateStatelessResultAction<Boolean> action = new AbstractHibernateStatelessResultAction<Boolean>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder("update Recipe set ");
-                //非北京互联网模式设置为null
-                if (!new Integer(2).equals(recipe.getRecipeSource())) {
-                    hql.append(" giveMode = null, ");
-                }
+
                 //药师
                 if (flag == 2) {
                     hql.append(" status = 8, ");
                 } else {
                     hql.append(" status = 2, ");
                 }
-                hql.append(" orderCode=null ,chooseFlag=0 where orderCode=:orderCode");
+                if(canCancelOrderCode){
+                    //非北京互联网模式设置为null
+                    if (!new Integer(2).equals(recipe.getRecipeSource())) {
+                        hql.append(" giveMode = null, ");
+                    }
+                    hql.append(" orderCode=null ,");
+                }
+                hql.append(" chooseFlag=0 where orderCode=:orderCode");
                 Query q = ss.createQuery(hql.toString());
 
                 q.setParameter("orderCode", orderCode);
@@ -4440,7 +4444,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         HibernateStatelessResultAction<List<RecipeRefundDTO>> action = new AbstractHibernateStatelessResultAction<List<RecipeRefundDTO>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                StringBuilder str = new StringBuilder("select r.recipeID,r.patientName,r.RecipeType,r.CreateDate,cr.Reason");
+                StringBuilder str = new StringBuilder("select r.recipeID,r.patientName,r.RecipeType,r.CreateDate,o.cancelReason as reason");
                 StringBuilder hql = generateRecipeRefundParameter(str, startTime, endTime);
                 hql.append(" order by r.CreateDate desc");
                 logger.info("getRecipeRefundInfo hql={}",JSONUtils.toString(hql));
@@ -4461,8 +4465,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
 
     private StringBuilder generateRecipeRefundParameter(StringBuilder hql,Date startTime, Date endTime){
         String str = " from cdr_recipe r left join cdr_recipeorder o on r.orderCode = o.orderCode " +
-                "left join cdr_recipe_refund cr on r.recipeID = cr.busId " +
-                " where r.doctor =:doctorId and o.payFlag = 3 and cr.node = -1 ";
+                " where r.doctor =:doctorId and o.payFlag = 3 ";
         hql.append(str);
         if (startTime != null && endTime != null) {
             hql.append("and r.CreateDate between :startTime and :endTime");
