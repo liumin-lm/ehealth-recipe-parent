@@ -2438,10 +2438,16 @@ public class RecipeOrderService extends RecipeBaseService {
     private void useCoupon(Recipe nowRecipe, Integer payMode) {
         RecipeOrderDAO recipeOrderDAO = getDAO(RecipeOrderDAO.class);
         RecipeOrder order = recipeOrderDAO.getByOrderCode(nowRecipe.getOrderCode());
-        if (RecipeBussConstant.PAYMODE_ONLINE.equals(order.getPayMode()) && isUsefulCoupon(order.getCouponId())) {
-            ICouponBaseService couponService = AppContextHolder.getBean("voucher.couponBaseService", ICouponBaseService.class);
-            couponService.useCouponById(order.getCouponId());
+        try {
+            if (RecipeBussConstant.PAYMODE_ONLINE.equals(order.getPayMode()) && isUsefulCoupon(order.getCouponId())) {
+                ICouponBaseService couponService = AppContextHolder.getBean("voucher.couponBaseService", ICouponBaseService.class);
+                couponService.useCouponById(order.getCouponId());
+            }
+        } catch (Exception e) {
+            LOGGER.info("useCoupon 使用优惠券失败 nowRecipeId:{}.", JSONUtils.toString(nowRecipe.getRecipeId()));
+            RecipeLogService.saveRecipeLog(nowRecipe.getRecipeId(),nowRecipe.getStatus(),nowRecipe.getStatus(),"使用优惠券失败,优惠券id=" + order.getCouponId());
         }
+
     }
 
     //药店有库存或者无库存备货给患者推送消息
