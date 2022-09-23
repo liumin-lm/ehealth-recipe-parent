@@ -44,11 +44,12 @@ public class SmsClient extends BaseClient {
 
     /**
      * 推送消息
+     *
      * @param recipe
      * @param busType
      * @param smsMap
      */
-    public void pushSmsInfo(Recipe recipe, String busType, Map<String, Object> smsMap){
+    public void pushSmsInfo(Recipe recipe, String busType, Map<String, Object> smsMap) {
         SmsInfoBean smsInfo = new SmsInfoBean();
         smsInfo.setBusType(busType);
         smsInfo.setSmsType(busType);
@@ -57,5 +58,19 @@ public class SmsClient extends BaseClient {
         smsInfo.setExtendValue(JSONUtils.toString(smsMap));
         logger.info("SmsClient smsInfo:{}", JSON.toJSONString(smsInfo));
         smsPushService.pushMsgData2OnsExtendValue(smsInfo);
+    }
+
+    /**
+     * 便捷够药给患者发送消息
+     *
+     * @param recipe
+     */
+    public void patientConvenientDrug(Recipe recipe) {
+        SmsInfoBean smsInfoBean = new SmsInfoBean();
+        smsInfoBean.setBusType("FastRecipeApplySuccess");
+        smsInfoBean.setSmsType("FastRecipeApplySuccess");
+        smsInfoBean.setBusId(recipe.getRecipeId());
+        smsInfoBean.setOrganId(recipe.getClinicOrgan());
+        this.pushMsgData2OnsExtendValue(smsInfoBean);
     }
 }
