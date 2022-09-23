@@ -2253,13 +2253,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_ORDER, RecipeStateEnum.SUB_ORDER_READY_SUBMIT_ORDER);
         this.pharmacyToRecipePDF(recipeId);
         createPdfFactory.updatePdfToImg(recipeId, SignImageTypeEnum.SIGN_IMAGE_TYPE_CHEMIST.getType());
-        //给患者发消息
-        SmsInfoBean smsInfoBean = new SmsInfoBean();
-        smsInfoBean.setBusType("FastRecipeApplySuccess");
-        smsInfoBean.setSmsType("FastRecipeApplySuccess");
-        smsInfoBean.setBusId(recipe.getRecipeId());
-        smsInfoBean.setOrganId(recipe.getClinicOrgan());
-        smsClient.pushMsgData2OnsExtendValue(smsInfoBean);
+        smsClient.patientConvenientDrug(recipe);
     }
 
 
