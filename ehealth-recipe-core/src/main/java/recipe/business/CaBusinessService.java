@@ -3,6 +3,7 @@ package recipe.business;
 import com.google.common.collect.ImmutableMap;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.aop.LogRecord;
@@ -92,11 +93,13 @@ public class CaBusinessService extends BaseService implements ICaBusinessService
         logger.info("CaBusinessService updateSignFailState recipeId={},msg={},status={},isDoctor={}", recipeId, msg, status, isDoctor);
         if (isDoctor) {
             stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_DOCTOR);
-            RecipeExtend recipeExtend = new RecipeExtend();
-            recipeExtend.setRecipeId(recipeId);
-            recipeExtend.setSignFailReason(msg);
-            recipeExtendDAO.updateNonNullFieldByPrimaryKey(recipeExtend);
             stateManager.updateStatus(recipeId, status, SignEnum.SIGN_STATE_AUDIT);
+            if (StringUtils.isNotEmpty(msg)) {
+                RecipeExtend recipeExtend = new RecipeExtend();
+                recipeExtend.setRecipeId(recipeId);
+                recipeExtend.setSignFailReason(msg);
+                recipeExtendDAO.updateNonNullFieldByPrimaryKey(recipeExtend);
+            }
         } else {
             stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_AUDIT_NOT_PASS);
             stateManager.updateStatus(recipeId, status, null);
