@@ -115,6 +115,7 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
             param.put("url", url);
             esbWebService.initConfig(param);
             try {
+                LOGGER.info("getDrugInventory request:{}", request);
                 String webServiceResult = esbWebService.HXCFZT(request, "prsRefund");
                 LOGGER.info("getDrugInventory webServiceResult:{}. ", webServiceResult);
                 Map maps = (Map) JSON.parse(webServiceResult);
