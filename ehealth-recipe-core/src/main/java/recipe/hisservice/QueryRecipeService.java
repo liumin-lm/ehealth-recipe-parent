@@ -97,6 +97,9 @@ public class QueryRecipeService implements IQueryRecipeService {
     @Autowired
     private DrugEntrustDAO drugEntrustDAO;
 
+    @Autowired
+    private DrugDecoctionWayDao drugDecoctionWayDao;
+
     /**
      * 用于sendRecipeToHIS 推送处方mq后 查询接口
      *
@@ -224,6 +227,12 @@ public class QueryRecipeService implements IQueryRecipeService {
                 EmrDetailDTO emrDetail = docIndexClient.getEmrDetails(recipeExtend.getDocIndexId());
                 recipeDTO.setCardType(recipeExtend.getCardType());
                 recipeDTO.setCardNo(recipeExtend.getCardNo());
+                if (Objects.nonNull(recipeExtend.getDecoctionId())) {
+                    DecoctionWay decoctionWay = drugDecoctionWayDao.get(Integer.parseInt(recipeExtend.getDecoctionId()));
+                    if (Objects.nonNull(decoctionWay)) {
+                        recipeExtend.setDecoctionPrice(decoctionWay.getDecoctionPrice());
+                    }
+                }
                 recipeDTO.setRecipeExtendBean(ObjectCopyUtils.convert(recipeExtend, RecipeExtendBean.class));
                 if (StringUtils.isNotEmpty(emrDetail.getMainDieaseDescribe())) {
                     //主诉
@@ -489,6 +498,7 @@ public class QueryRecipeService implements IQueryRecipeService {
                 orderItem.setDrunit(detail.getUseDoseUnit());
                 //嘱托
                 if (StringUtils.isNotEmpty(detail.getDrugEntrustCode())) {
+                    orderItem.setDrugEntrustCode(detail.getDrugEntrustCode());
                     DrugEntrust drugEntrust = drugEntrustDAO.getByOrganIdAndDrugEntrustCode(clinicOrgan, detail.getDrugEntrustCode());
                     if (Objects.nonNull(drugEntrust)) {
                         orderItem.setDrugEntrustText(drugEntrust.getDrugEntrustName());

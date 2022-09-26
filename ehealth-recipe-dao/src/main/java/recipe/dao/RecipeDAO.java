@@ -45,7 +45,6 @@ import recipe.dao.bean.RecipeRollingInfo;
 import recipe.dao.comment.ExtendDao;
 import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
-import recipe.vo.greenroom.RecipeRefundInfoReqVO;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -4362,16 +4361,16 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
 
     private String createHqlBySearch(Recipe recipe, Integer terminalType, List<String> terminalIds, List<Integer> processState, String startTime, String endTime) {
         StringBuilder hql = new StringBuilder("from cdr_recipe r INNER JOIN cdr_recipe_ext re ON r.RecipeID = re.recipeId  WHERE 1=1 ");
-        if (ValidateUtil.notNullAndZeroInteger(recipe.getClinicOrgan())) {
+        if (null != recipe.getClinicOrgan()) {
             hql.append(" and r.ClinicOrgan = :clinicOrgan");
         }
         if (ValidateUtil.notNullAndZeroInteger(recipe.getRecipeId())) {
             hql.append(" and r.RecipeID = :recipeId");
         }
-        if (ValidateUtil.notNullAndZeroInteger(recipe.getPayFlag())) {
+        if (null != recipe.getPayFlag()) {
             hql.append(" and r.PayFlag = :payFlag");
         }
-        if (ValidateUtil.notNullAndZeroInteger(recipe.getMedicalFlag())) {
+        if (null != recipe.getMedicalFlag()) {
             hql.append(" and r.medical_flag = :medicalFlag");
         }
         if (ValidateUtil.notNullAndZeroInteger(terminalType)) {
@@ -4391,16 +4390,16 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     }
 
     private void createQueryBySearch(Query query, Recipe recipe, Integer terminalType, List<String> terminalIds, List<Integer> processState, String startTime, String endTime) {
-        if (ValidateUtil.notNullAndZeroInteger(recipe.getClinicOrgan())) {
+        if (null != recipe.getClinicOrgan()) {
             query.setParameter("clinicOrgan", recipe.getClinicOrgan());
         }
         if (ValidateUtil.notNullAndZeroInteger(recipe.getRecipeId())) {
             query.setParameter("recipeId", recipe.getRecipeId());
         }
-        if (ValidateUtil.notNullAndZeroInteger(recipe.getPayFlag())) {
+        if (null != recipe.getPayFlag()) {
             query.setParameter("payFlag", recipe.getPayFlag());
         }
-        if (ValidateUtil.notNullAndZeroInteger(recipe.getMedicalFlag())) {
+        if (null != recipe.getMedicalFlag()) {
             query.setParameter("medicalFlag", recipe.getMedicalFlag());
         }
         if (ValidateUtil.notNullAndZeroInteger(terminalType)) {
