@@ -897,9 +897,9 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
         if (preSettleService != null){
             Map<String, Object> map = preSettleService.recipePreSettle(recipes.get(0).getRecipeId(), param);
             logger.info("ThirdOrderPreSettle recipePreSettle map={}", JSONUtils.toString(map));
-            thirdOrderPreSettleRes.setPreSettleTotalAmount(map.get("preSettleTotalAmount").toString());
+            thirdOrderPreSettleRes.setPreSettleTotalAmount(map.get("totalAmount").toString());
             thirdOrderPreSettleRes.setCashAmount(map.get("cashAmount").toString());
-            thirdOrderPreSettleRes.setFundAmount(map.get("hisSettlementNo").toString());
+            thirdOrderPreSettleRes.setFundAmount(map.get("fundAmount").toString());
         }
         return thirdOrderPreSettleRes;
     }
