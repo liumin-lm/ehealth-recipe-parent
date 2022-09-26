@@ -4367,10 +4367,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         if (ValidateUtil.notNullAndZeroInteger(recipe.getRecipeId())) {
             hql.append(" and r.RecipeID = :recipeId");
         }
-        if (ValidateUtil.notNullAndZeroInteger(recipe.getPayFlag())) {
+        if (null != recipe.getPayFlag()) {
             hql.append(" and r.PayFlag = :payFlag");
         }
-        if (ValidateUtil.notNullAndZeroInteger(recipe.getMedicalFlag())) {
+        if (null != recipe.getMedicalFlag()) {
             hql.append(" and r.medical_flag = :medicalFlag");
         }
         if (ValidateUtil.notNullAndZeroInteger(terminalType)) {
@@ -4396,10 +4396,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         if (ValidateUtil.notNullAndZeroInteger(recipe.getRecipeId())) {
             query.setParameter("recipeId", recipe.getRecipeId());
         }
-        if (ValidateUtil.notNullAndZeroInteger(recipe.getPayFlag())) {
+        if (null != recipe.getPayFlag()) {
             query.setParameter("payFlag", recipe.getPayFlag());
         }
-        if (ValidateUtil.notNullAndZeroInteger(recipe.getMedicalFlag())) {
+        if (null != recipe.getMedicalFlag()) {
             query.setParameter("medicalFlag", recipe.getMedicalFlag());
         }
         if (ValidateUtil.notNullAndZeroInteger(terminalType)) {
