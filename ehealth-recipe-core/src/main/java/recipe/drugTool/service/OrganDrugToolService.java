@@ -350,10 +350,13 @@ public class OrganDrugToolService implements IOrganDrugToolService {
                 validMsg.append("药品名有误").append(";");
             }
             try {
+                if (StringUtils.isEmpty(getStrFromCell(cells.get(5)))) {
+                    validMsg.append("【商品名】未填写").append(";");
+                }
                 drug.setSaleName(getStrFromCell(cells.get(5)));
             } catch (Exception e) {
-                LOGGER.error("药品商品名有误 ," + e.getMessage(), e);
-                validMsg.append("药品商品名有误").append(";");
+                LOGGER.error("商品名有误 ," + e.getMessage(), e);
+                validMsg.append("商品名有误").append(";");
             }
 
             try {
