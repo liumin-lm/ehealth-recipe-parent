@@ -228,7 +228,7 @@ public class QueryRecipeService implements IQueryRecipeService {
                 recipeDTO.setCardType(recipeExtend.getCardType());
                 recipeDTO.setCardNo(recipeExtend.getCardNo());
                 if (Objects.nonNull(recipeExtend.getDecoctionId())) {
-                    DecoctionWay decoctionWay = drugDecoctionWayDao.get(recipeExtend.getDecoctionId());
+                    DecoctionWay decoctionWay = drugDecoctionWayDao.get(Integer.parseInt(recipeExtend.getDecoctionId()));
                     if (Objects.nonNull(decoctionWay)) {
                         recipeExtend.setDecoctionPrice(decoctionWay.getDecoctionPrice());
                     }
