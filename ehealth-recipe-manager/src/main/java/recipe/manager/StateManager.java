@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import recipe.aop.LogRecord;
 import recipe.client.CouponClient;
 import recipe.enumerate.status.*;
+import recipe.enumerate.type.PayFlagEnum;
 
 /**
  * 状态处理通用类：处方状态 ，订单状态，审方状态
@@ -46,7 +47,7 @@ public class StateManager extends BaseManager {
             case PROCESS_STATE_CANCELLATION:
                 result = this.defaultOrder(recipeOrder, processState, subState);
                 // 如果有优惠券需要解锁优惠券
-                if (null != recipeOrder.getCouponId() && recipeOrder.getCouponId() > 0) {
+                if (null != recipeOrder.getCouponId() && recipeOrder.getCouponId() > 0 && PayFlagEnum.NOPAY.getType().equals(recipeOrder.getPayFlag())) {
                     couponClient.unlockCouponById(recipeOrder.getCouponId());
                 }
                 break;
