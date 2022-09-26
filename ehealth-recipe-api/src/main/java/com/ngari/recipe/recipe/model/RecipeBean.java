@@ -451,6 +451,9 @@ public class RecipeBean implements Serializable {
     @ItemProperty(alias = "临时处方单标记")
     private String recipeTempMark;
 
+    @ItemProperty(alias = "线下常用方/协定方编码")
+    private String commonRecipeCode;
+
     public Integer getCheckerSignState() {
         return checkerSignState;
     }
@@ -1647,5 +1650,13 @@ public class RecipeBean implements Serializable {
 
     public void setRecipeTempMark(String recipeTempMark) {
         this.recipeTempMark = recipeTempMark;
+    }
+
+    public String getCommonRecipeCode() {
+        return commonRecipeCode;
+    }
+
+    public void setCommonRecipeCode(String commonRecipeCode) {
+        this.commonRecipeCode = commonRecipeCode;
     }
 }

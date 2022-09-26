@@ -291,6 +291,9 @@ public class QueryRecipeService implements IQueryRecipeService {
             recipeDTO.setTakeMedicine(recipe.getTakeMedicine());
             //有效天数
             recipeDTO.setValueDays(recipe.getValueDays());
+            if (StringUtils.isNotEmpty(recipe.getCommonRecipeCode())) {
+                recipeDTO.setCommonRecipeCode(recipe.getCommonRecipeCode());
+            }
             //签名日期
             recipeDTO.setDatein(recipe.getSignDate());
             //是否支付

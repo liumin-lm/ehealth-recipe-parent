@@ -176,6 +176,9 @@ public class QueryRecipeInfoDTO implements Serializable {
     @ItemProperty(alias = "外带处方标志 1:外带药处方")
     private Integer takeMedicine;
 
+    @ItemProperty(alias = "线下常用方/协定方编码")
+    private String commonRecipeCode;
+
     public Map<String, Object> getMedicalInfoBean() {
         return medicalInfoBean;
     }
@@ -666,5 +669,13 @@ public class QueryRecipeInfoDTO implements Serializable {
 
     public void setTakeMedicine(Integer takeMedicine) {
         this.takeMedicine = takeMedicine;
+    }
+
+    public String getCommonRecipeCode() {
+        return commonRecipeCode;
+    }
+
+    public void setCommonRecipeCode(String commonRecipeCode) {
+        this.commonRecipeCode = commonRecipeCode;
     }
 }

@@ -429,6 +429,9 @@ public class HisRequestInit {
             requestTO.setDeptCode(departmentDTO.getCode());
             requestTO.setDeptName(departmentDTO.getName());
         }
+        if (StringUtils.isNotEmpty(recipe.getCommonRecipeCode())) {
+            requestTO.setCommonRecipeCode(recipe.getCommonRecipeCode());
+        }
         //医生名字
         requestTO.setDoctorName(recipe.getDoctorName());
         //设置医生工号

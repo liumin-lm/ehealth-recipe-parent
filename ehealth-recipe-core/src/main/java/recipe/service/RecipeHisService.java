@@ -1369,6 +1369,7 @@ public class RecipeHisService extends RecipeBaseService {
         hisCheckRecipeReqTO.setPlatRecipeID(recipeBean.getRecipeId());
         hisCheckRecipeReqTO.setIsLongRecipe(recipeBean.getRecipeExtend().getIsLongRecipe());
         hisCheckRecipeReqTO.setPatientId(recipeBean.getPatientID());
+        hisCheckRecipeReqTO.setCommonRecipeCode(recipeBean.getCommonRecipeCode());
         IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
         //患者信息
         PatientBean patientBean = iPatientService.get(recipeBean.getMpiid());
