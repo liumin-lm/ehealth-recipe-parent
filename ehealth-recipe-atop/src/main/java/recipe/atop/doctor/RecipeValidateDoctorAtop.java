@@ -59,6 +59,9 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
         String pharmacyCode = validateDetailVO.getRecipeDetails().stream().filter(validateDetail -> StringUtils.isNotEmpty(validateDetail.getPharmacyCode()))
                 .findFirst().map(RecipeDetailBean::getPharmacyCode).orElse(null);
         validateDetailVO.setPharmacyCode(pharmacyCode);
+        Integer pharmacyId = validateDetailVO.getRecipeDetails().stream().filter(validateDetail -> !ValidateUtil.integerIsEmpty(validateDetail.getPharmacyId()))
+                .findFirst().map(RecipeDetailBean::getPharmacyId).orElse(null);
+        validateDetailVO.setPharmacyId(pharmacyId);
         validateDetailVO.getRecipeDetails().forEach(a -> {
             a.setPharmacyId(null);
             a.setPharmacyName(null);
