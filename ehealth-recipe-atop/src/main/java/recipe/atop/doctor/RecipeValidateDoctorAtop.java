@@ -9,6 +9,7 @@ import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
@@ -45,7 +46,6 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
      */
     private static final String IS_LONG_RECIPE_FALSE = "0";
 
-
     /**
      * 校验线上线下 药品数据 用于续方需求
      *
@@ -56,17 +56,14 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
     public ValidateDetailVO validateDetailV1(ValidateDetailVO validateDetailVO) {
         validateAtop(validateDetailVO.getOrganId(), validateDetailVO.getRecipeType(), validateDetailVO.getRecipeExtendBean(), validateDetailVO.getRecipeDetails());
         validateDetailVO.setLongRecipe(!IS_LONG_RECIPE_FALSE.equals(validateDetailVO.getRecipeExtendBean().getIsLongRecipe()));
-        List<RecipeDetailBean> detailList = validateDetailVO.getRecipeDetails().stream().filter(validateDetail->!ValidateUtil.integerIsEmpty(validateDetail.getPharmacyId())).collect(Collectors.toList());
-        Integer pharmacyId = null;
-        if (CollectionUtils.isNotEmpty(detailList)) {
-            pharmacyId = detailList.get(0).getPharmacyId();
-        }
+        String pharmacyCode = validateDetailVO.getRecipeDetails().stream().filter(validateDetail -> StringUtils.isNotEmpty(validateDetail.getPharmacyCode()))
+                .findFirst().map(RecipeDetailBean::getPharmacyCode).orElse(null);
+        validateDetailVO.setPharmacyCode(pharmacyCode);
         validateDetailVO.getRecipeDetails().forEach(a -> {
             a.setPharmacyId(null);
             a.setPharmacyName(null);
             a.setPharmacyCode(null);
         });
-        validateDetailVO.setPharmacyId(pharmacyId);
         return recipeDetailService.continueRecipeValidateDrug(validateDetailVO);
     }
 

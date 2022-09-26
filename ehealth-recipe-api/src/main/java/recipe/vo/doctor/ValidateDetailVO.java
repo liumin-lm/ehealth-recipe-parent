@@ -53,7 +53,7 @@ public class ValidateDetailVO {
      */
     private String dbType;
     /**
-     * 药房ID
+     * 药房code
      */
-    private Integer pharmacyId;
+    private String pharmacyCode;
 }

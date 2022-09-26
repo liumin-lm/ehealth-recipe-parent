@@ -8,7 +8,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.dao.PharmacyTcmDAO;
-import recipe.dao.RecipeParameterDao;
 import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.util.ByteUtils;
 import recipe.util.ValidateUtil;
@@ -25,8 +24,6 @@ import java.util.stream.Collectors;
 public class PharmacyManager extends BaseManager {
     @Autowired
     private PharmacyTcmDAO pharmacyTcmDAO;
-    @Autowired
-    private RecipeParameterDao recipeParameterDao;
 
     /**
      * 校验药品药房是否变动
@@ -147,21 +144,29 @@ public class PharmacyManager extends BaseManager {
      *
      * @param organId           机构id
      * @param organDrugCodeList 机构药品code
-     * @return
+     * @param pharmacyCode      前端指定药房
+     * @return 药房对象
      */
-    public PharmacyTcm organDrugPharmacyId(Integer organId, Integer recipeType, List<String> organDrugCodeList, Integer pharmacy) {
+    public PharmacyTcm organDrugPharmacyId(Integer organId, Integer recipeType, List<String> organDrugCodeList, String pharmacyCode) {
         //判断机构药房
         List<PharmacyTcm> pharmacys = pharmacyTcmDAO.findByOrganId(organId);
-        logger.info("PharmacyManager organDrugPharmacyId pharmacys:{}", JSON.toJSONString(pharmacys));
+        logger.info("PharmacyManager organDrugPharmacyId pharmacys:{}，pharmacy:{}", JSON.toJSONString(pharmacys), pharmacyCode);
         if (CollectionUtils.isEmpty(pharmacys)) {
             return null;
         }
         //判断机构药房-药房支持的处方类型
         String recipeTypeText = RecipeTypeEnum.getRecipeType(recipeType);
         List<PharmacyTcm> pharmacyTypes = pharmacys.stream().filter(a -> Arrays.asList(a.getPharmacyCategray().split(ByteUtils.COMMA)).contains(recipeTypeText)).collect(Collectors.toList());
-        logger.info("PharmacyManager organDrugPharmacyId pharmacyTypes = {},recipeTypeText={}", JSON.toJSONString(pharmacyTypes), recipeTypeText);
         if (CollectionUtils.isEmpty(pharmacyTypes)) {
             return null;
+        }
+        Map<Integer, PharmacyTcm> pharmacyIdMap = pharmacyTypes.stream().collect(Collectors.toMap(PharmacyTcm::getPharmacyId, a -> a, (k1, k2) -> k1));
+        //返回指定药房
+        if (StringUtils.isNotEmpty(pharmacyCode)) {
+            Integer pharmacy = pharmacyTypes.stream().filter(a -> a.getPharmacyCode().equals(pharmacyCode)).findFirst().map(PharmacyTcm::getPharmacyId).orElse(null);
+            if (null != pharmacyIdMap.get(pharmacy)) {
+                return pharmacyIdMap.get(pharmacy);
+            }
         }
         //获取机构药品药房
         List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugCodes(organId, organDrugCodeList);
@@ -173,8 +178,6 @@ public class PharmacyManager extends BaseManager {
         List<String> pharmacyIds = pharmacyList.stream().map(a -> Arrays.asList(a.split(ByteUtils.COMMA))).flatMap(Collection::stream).collect(Collectors.toList());
         Map<String, List<String>> pharmacyMap = pharmacyIds.stream().collect(Collectors.groupingBy(String::valueOf));
         logger.info("PharmacyManager organDrugPharmacyId pharmacyMap:{}", JSON.toJSONString(pharmacyMap));
-        Map<Integer, PharmacyTcm> pharmacyIdMap = pharmacyTypes.stream().collect(Collectors.toMap(PharmacyTcm::getPharmacyId, a -> a, (k1, k2) -> k1));
-        logger.info("PharmacyManager organDrugPharmacyId pharmacyIdMap:{}", JSON.toJSONString(pharmacyIdMap));
         int i = 0;
         int pharmacyId = 0;
         for (String key : pharmacyMap.keySet()) {
@@ -183,13 +186,13 @@ public class PharmacyManager extends BaseManager {
             }
             if (pharmacyMap.get(key).size() > i) {
                 i = pharmacyMap.get(key).size();
-                pharmacyId = Integer.valueOf(key);
+                pharmacyId = Integer.parseInt(key);
             }
         }
+
         if (0 == pharmacyId) {
             return new PharmacyTcm();
         }
-        logger.info("PharmacyManager organDrugPharmacyId pharmacyId:{}", pharmacyId);
         return pharmacyIdMap.get(pharmacyId);
     }
 }
