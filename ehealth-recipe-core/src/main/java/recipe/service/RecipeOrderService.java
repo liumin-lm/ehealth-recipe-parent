@@ -1512,8 +1512,10 @@ public class RecipeOrderService extends RecipeBaseService {
                 //解锁优惠券
                 if (isUsefulCoupon(order.getCouponId())) {
                     try {
-                        couponService.unlockCoupon(order.getCouponId());
-                        orderAttrMap.put("couponId", null);
+                        if(PayFlagEnum.NOPAY.getType().equals(order.getPayFlag())) {
+                            couponService.unlockCoupon(order.getCouponId());
+                        }
+//                        orderAttrMap.put("couponId", null);
                     } catch (Exception e) {
                         LOGGER.error("cancelOrder unlock coupon error. couponId={}, error={}", order.getCouponId(), e.getMessage(), e);
                     }
