@@ -144,10 +144,11 @@ public class PharmacyManager extends BaseManager {
      *
      * @param organId           机构id
      * @param organDrugCodeList 机构药品code
-     * @param pharmacyCode      前端指定药房
+     * @param pharmacyCode      前端指定药房code
+     * @param pharmacy          前端指定药房id
      * @return 药房对象
      */
-    public PharmacyTcm organDrugPharmacyId(Integer organId, Integer recipeType, List<String> organDrugCodeList, String pharmacyCode) {
+    public PharmacyTcm organDrugPharmacyId(Integer organId, Integer recipeType, List<String> organDrugCodeList, String pharmacyCode, Integer pharmacy) {
         //判断机构药房
         List<PharmacyTcm> pharmacys = pharmacyTcmDAO.findByOrganId(organId);
         logger.info("PharmacyManager organDrugPharmacyId pharmacys:{}，pharmacy:{}", JSON.toJSONString(pharmacys), pharmacyCode);
@@ -163,10 +164,13 @@ public class PharmacyManager extends BaseManager {
         Map<Integer, PharmacyTcm> pharmacyIdMap = pharmacyTypes.stream().collect(Collectors.toMap(PharmacyTcm::getPharmacyId, a -> a, (k1, k2) -> k1));
         //返回指定药房
         if (StringUtils.isNotEmpty(pharmacyCode)) {
-            Integer pharmacy = pharmacyTypes.stream().filter(a -> a.getPharmacyCode().equals(pharmacyCode)).findFirst().map(PharmacyTcm::getPharmacyId).orElse(null);
-            if (null != pharmacyIdMap.get(pharmacy)) {
-                return pharmacyIdMap.get(pharmacy);
+            Integer pharmacyId = pharmacyTypes.stream().filter(a -> a.getPharmacyCode().equals(pharmacyCode)).findFirst().map(PharmacyTcm::getPharmacyId).orElse(null);
+            if (null != pharmacyIdMap.get(pharmacyId)) {
+                return pharmacyIdMap.get(pharmacyId);
             }
+        }
+        if (null != pharmacyIdMap.get(pharmacy)) {
+            return pharmacyIdMap.get(pharmacy);
         }
         //获取机构药品药房
         List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugCodes(organId, organDrugCodeList);
