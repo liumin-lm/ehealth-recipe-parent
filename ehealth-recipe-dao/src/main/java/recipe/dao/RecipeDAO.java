@@ -45,7 +45,6 @@ import recipe.dao.bean.RecipeRollingInfo;
 import recipe.dao.comment.ExtendDao;
 import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
-import recipe.vo.greenroom.RecipeRefundInfoReqVO;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -4362,7 +4361,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
 
     private String createHqlBySearch(Recipe recipe, Integer terminalType, List<String> terminalIds, List<Integer> processState, String startTime, String endTime) {
         StringBuilder hql = new StringBuilder("from cdr_recipe r INNER JOIN cdr_recipe_ext re ON r.RecipeID = re.recipeId  WHERE 1=1 ");
-        if (ValidateUtil.notNullAndZeroInteger(recipe.getClinicOrgan())) {
+        if (null != recipe.getClinicOrgan()) {
             hql.append(" and r.ClinicOrgan = :clinicOrgan");
         }
         if (ValidateUtil.notNullAndZeroInteger(recipe.getRecipeId())) {
@@ -4391,7 +4390,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     }
 
     private void createQueryBySearch(Query query, Recipe recipe, Integer terminalType, List<String> terminalIds, List<Integer> processState, String startTime, String endTime) {
-        if (ValidateUtil.notNullAndZeroInteger(recipe.getClinicOrgan())) {
+        if (null != recipe.getClinicOrgan()) {
             query.setParameter("clinicOrgan", recipe.getClinicOrgan());
         }
         if (ValidateUtil.notNullAndZeroInteger(recipe.getRecipeId())) {
