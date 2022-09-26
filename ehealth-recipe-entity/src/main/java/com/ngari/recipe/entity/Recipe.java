@@ -347,6 +347,9 @@ public class Recipe implements Serializable {
     @ItemProperty(alias = "0：默认(未签名)，1：签名中，2：签名失败，3：签名成功")
     private Integer checkerSignState;
 
+    @ItemProperty(alias = "线下常用方/协定方编码")
+    private String commonRecipeCode;
+
     @Column(name = "doctor_sign_state")
     public Integer getDoctorSignState() {
         return doctorSignState;
@@ -1262,6 +1265,15 @@ public class Recipe implements Serializable {
 
     public void setOfflineRecipeName(String offlineRecipeName) {
         this.offlineRecipeName = offlineRecipeName;
+    }
+
+    @Column(name = "common_recipe_code")
+    public String getCommonRecipeCode() {
+        return commonRecipeCode;
+    }
+
+    public void setCommonRecipeCode(String commonRecipeCode) {
+        this.commonRecipeCode = commonRecipeCode;
     }
 
     public Recipe(Integer recipeId, String supplementaryMemo) {
