@@ -56,4 +56,5 @@ public class ValidateDetailVO {
      * 药房code
      */
     private String pharmacyCode;
+    private Integer pharmacyId;
 }
