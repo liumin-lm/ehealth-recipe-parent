@@ -922,7 +922,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
             throw new DAOException(609,"不是线上支付订单");
         }
         Integer depId = recipeOrder.getEnterpriseId();
-        Integer orderType = recipeOrder.getOrderType() == null ? 0 : recipeOrder.getOrderType();
+//        Integer orderType = recipeOrder.getOrderType() == null ? 0 : recipeOrder.getOrderType();
         String insuredArea = extend.getInsuredArea();
         Map<String, Object> param = com.google.common.collect.Maps.newHashMap();
         param.put("depId", depId);
@@ -931,12 +931,14 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
         param.put("payMode", recipeOrder.getPayMode());
         param.put("recipeIds", recipes.get(0).getRecipeId());
         //获取对应预结算服务
-        IRecipePreSettleService preSettleService = PreSettleFactory.getPreSettleService(recipes.get(0).getClinicOrgan(),orderType);
+        // 提供给金投的接口,预算写死走杭州互联网
+        IRecipePreSettleService preSettleService = PreSettleFactory.getPreSettleService(recipes.get(0).getClinicOrgan(),2);
         if (preSettleService != null){
             Map<String, Object> map = preSettleService.recipePreSettle(recipes.get(0).getRecipeId(), param);
-            thirdOrderPreSettleRes.setPreSettleTotalAmount(map.get("preSettleTotalAmount").toString());
+            logger.info("ThirdOrderPreSettle recipePreSettle map={}", JSONUtils.toString(map));
+            thirdOrderPreSettleRes.setPreSettleTotalAmount(map.get("totalAmount").toString());
             thirdOrderPreSettleRes.setCashAmount(map.get("cashAmount").toString());
-            thirdOrderPreSettleRes.setFundAmount(map.get("hisSettlementNo").toString());
+            thirdOrderPreSettleRes.setFundAmount(map.get("fundAmount").toString());
         }
         return thirdOrderPreSettleRes;
     }
