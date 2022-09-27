@@ -501,6 +501,8 @@ public class OrderFeeManager extends BaseManager {
         order.setCouponDesc(coupon.getCouponDesc());
         order.setActualPrice(order.getTotalFee().subtract(order.getCouponFee()).doubleValue());
 
+        // 锁定优惠券
+        couponClient.lockCouponByBus(couponCalcReq);
     }
 
     /**
