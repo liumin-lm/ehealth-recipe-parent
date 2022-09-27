@@ -533,6 +533,7 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
         recipeOrder.setStatus(RecipeOrderStatusEnum.ORDER_STATUS_DONE.getType());
         recipeOrderDAO.updateNonNullFieldByPrimaryKey(recipeOrder);
         syncFinishOrderHandle(recipeIdList, recipeOrder, isSendFlag);
+        stateManager.updateOrderState(recipeOrder.getOrderId(), OrderStateEnum.PROCESS_STATE_DISPENSING, OrderStateEnum.SUB_DONE_SEND);
         return EnterpriseResultBean.getSuccess("成功");
     }
 
@@ -860,6 +861,7 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
         List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIdList);
         RecipeBusiThreadPool.execute(() -> {
             recipeList.forEach(recipe -> {
+                stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_DONE, RecipeStateEnum.SUB_DONE_SEND);
                 //HIS消息发送
                 hisService.recipeFinish(recipe.getRecipeId());
                 //更新pdf
