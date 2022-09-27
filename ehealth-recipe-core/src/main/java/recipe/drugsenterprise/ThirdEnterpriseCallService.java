@@ -1301,6 +1301,8 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             throw new DAOException(ErrorCode.SERVICE_SUCCEED, "DrugsEnterprise is null");
         }
         DrugsEnterpriseDTO drugsEnterpriseDTO = new DrugsEnterpriseDTO();
+        drugsEnterprise.setUserId("");
+        drugsEnterprise.setPassword("");
         BeanUtils.copy(drugsEnterprise, drugsEnterpriseDTO);
 
         List<OrganLogisticsManageDto> organLogisticsManageDtos=iOrganLogisticsManageService.getRecipeLogisticsManageByOrganId(id,0);
