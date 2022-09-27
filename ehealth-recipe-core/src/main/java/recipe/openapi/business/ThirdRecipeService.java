@@ -97,11 +97,17 @@ public class ThirdRecipeService {
                 List<PatientTabStatusRecipeDTO> patientTabStatusRecipeDTOS = patientTabStatusMergeRecipeDTO.getRecipe();
                 for (PatientTabStatusRecipeDTO patientTabStatusRecipeDTO : patientTabStatusRecipeDTOS) {
                     RecipeAndRecipeDetailsBean recipeAndRecipeDetailsBean = new RecipeAndRecipeDetailsBean();
+                    Recipe recipe = recipeDAO.getByRecipeId(patientTabStatusRecipeDTO.getRecipeId());
+                    if(Objects.nonNull(recipe.getTotalMoney())) {
+                        recipeAndRecipeDetailsBean.setTotalMoney(recipe.getTotalMoney().doubleValue());
+                    }
                     if (StringUtils.isNotEmpty(patientTabStatusRecipeDTO.getOrderCode())) {
                         RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(patientTabStatusRecipeDTO.getOrderCode());
                         recipeAndRecipeDetailsBean.setOrderId(recipeOrder.getOrderId());
+                        if(Objects.nonNull(recipeOrder.getTotalFee())) {
+                            recipeAndRecipeDetailsBean.setTotalMoney(recipeOrder.getTotalFee().doubleValue());
+                        }
                     }
-                    Recipe recipe = recipeDAO.getByRecipeId(patientTabStatusRecipeDTO.getRecipeId());
                     LOGGER.info("findRecipesForPatientAndTabStatus recipe:{}", JSON.toJSONString(recipe));
                     if (null != recipe.getInvalidTime()) {
                         recipeAndRecipeDetailsBean.setRecipeSurplusHours(DateConversion.getDateFormatter(recipe.getInvalidTime(), DateConversion.DEFAULT_DATE_TIME));
