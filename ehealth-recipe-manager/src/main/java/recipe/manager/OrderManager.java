@@ -369,9 +369,9 @@ public class OrderManager extends BaseManager {
      * @param orderCodes
      * @return
      */
-    public List<RecipeOrder> getRecipeOrderList(Set<String> orderCodes) {
+    public List<RecipeOrder> findEffectiveOrderByOrderCode(Set<String> orderCodes) {
         if (CollectionUtils.isNotEmpty(orderCodes)) {
-            return recipeOrderDAO.findByOrderCode(orderCodes);
+            return recipeOrderDAO.findEffectiveOrderByOrderCode(orderCodes);
         }
         return new ArrayList<>();
     }

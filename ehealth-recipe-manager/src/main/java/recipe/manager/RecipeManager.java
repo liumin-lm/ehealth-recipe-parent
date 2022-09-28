@@ -600,7 +600,8 @@ public class RecipeManager extends BaseManager {
     public void setRecipeInfoFromRevisit(Recipe recipe, RecipeExtend recipeExtend) {
         if (null != recipe.getClinicId()) {
             if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipe.getBussSource())) {
-                RevisitExDTO revisitExDTO = revisitClient.getByClinicId(recipe.getClinicId());
+                RevisitExDTO revisitExDTO = revisitClient.retryGetByClinicId(recipe.getClinicId());
+                logger.info("setRecipeInfoFromRevisit revisitExDTO:{}", JSON.toJSONString(revisitExDTO));
                 if (null != revisitExDTO) {
                     recipeExtend.setRegisterID(revisitExDTO.getRegisterNo());
                     recipeExtend.setCardType(revisitExDTO.getCardType());

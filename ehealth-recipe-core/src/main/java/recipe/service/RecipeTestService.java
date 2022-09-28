@@ -16,6 +16,7 @@ import com.ngari.platform.recipe.mode.PushRecipeAndOrder;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
 import com.ngari.recipe.entity.*;
+import com.ngari.revisit.common.model.RevisitExDTO;
 import ctd.account.session.ClientSession;
 import ctd.net.broadcast.MQHelper;
 import ctd.persistence.DAOFactory;
@@ -41,6 +42,7 @@ import recipe.ApplicationUtils;
 import recipe.aop.LogRecord;
 import recipe.business.StockBusinessService;
 import recipe.caNew.pdf.CreatePdfFactory;
+import recipe.client.RevisitClient;
 import recipe.common.OnsConfig;
 import recipe.core.api.IDrugBusinessService;
 import recipe.dao.*;
@@ -48,6 +50,7 @@ import recipe.drugTool.service.DrugToolService;
 import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.manager.EnterpriseManager;
+import recipe.manager.OrderManager;
 import recipe.manager.StateManager;
 import recipe.service.afterpay.LogisticsOnlineOrderService;
 import recipe.service.recipecancel.RecipeCancelService;
@@ -90,6 +93,10 @@ public class RecipeTestService {
     private StockBusinessService stockBusinessService;
     @Autowired
     private DrugToolService drugToolService;
+    @Autowired
+    private OrderManager orderManager;
+    @Autowired
+    private RevisitClient revisitClient;
 
 
 
@@ -623,5 +630,17 @@ public class RecipeTestService {
         RegulationOutpatientPayReq request=service.getRegulationOutpatientPayReq(recipe.getPayFlag(),refundNo,
                 recipeIds,order,recipe);
         return request;
+    }
+
+    @RpcService
+    public List<RecipeOrder> findEffectiveOrderByOrderCode(String orderCode){
+        Set<String> orderSet = new HashSet<>();
+        orderSet.add(orderCode);
+        return orderManager.findEffectiveOrderByOrderCode(orderSet);
+    }
+
+    @RpcService
+    public RevisitExDTO retryGetByClinicId(Integer clinicId){
+        return revisitClient.retryGetByClinicId(clinicId);
     }
 }
