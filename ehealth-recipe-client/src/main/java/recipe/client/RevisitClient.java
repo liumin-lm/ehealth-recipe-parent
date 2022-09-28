@@ -113,8 +113,8 @@ public class RevisitClient extends BaseClient {
                 .withWaitStrategy(WaitStrategies.fixedWait(300, TimeUnit.MILLISECONDS))
                 .build();
         try {
-            logger.info("retryGetByClinicId clinicId:{}", clinicId);
-            retry.call(() -> revisitExService.getByConsultId(clinicId));
+            logger.info("retryGetByClinicId clinicId1:{}", clinicId);
+            retry.call(() -> {logger.info("retryGetByClinicId clinicId:{}", clinicId);return revisitExService.getByConsultId(clinicId);});
         } catch (Exception e) {
             return revisitExService.getByConsultId(clinicId);
         }
