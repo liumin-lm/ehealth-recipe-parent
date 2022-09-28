@@ -309,7 +309,7 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
                 recipes.forEach(recipe1 -> {
                     recipeDAO.updateRecipeInfoByRecipeId(recipe1.getRecipeId(), RecipeStatusConstant.REVOKE, ImmutableMap.of("payFlag", 3));
                     StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
-                    stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_REFUND);
+                    stateManager.updateRecipeState(recipe1.getRecipeId(), RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_REFUND);
                     LOGGER.info("退款完成修改处方状态：{}", recipe1.getRecipeId());
                 });
                 //订单状态修改

@@ -861,14 +861,25 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
         }
         return selfPreSettleQueryReq;
     }
-    public MedicalPreSettleQueryReq medicalPreSettleQueryInfo(Integer recipeId) {
-        logger.info("medicalPreSettleQueryInfo recipeId={}", recipeId);
+
+    @Override
+    public MedicalPreSettleQueryReq medicalPreSettleQueryInfo(Integer busId) {
+        logger.info("medicalPreSettleQueryInfo busId={}", busId);
+        RecipeOrder recipeOrder = recipeOrderDAO.get(busId);
+        if (null == recipeOrder) {
+            throw new DAOException("订单信息不存在");
+        }
+        List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
+        List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIdList);
+        if (CollectionUtils.isEmpty(recipeIdList)) {
+            throw new DAOException("处方信息不存在");
+        }
+        Recipe recipe = recipeList.get(0);
         MedicalPreSettleQueryReq medicalPreSettleQueryReq = new MedicalPreSettleQueryReq();
-        Recipe recipe = recipeDAO.get(recipeId);
         if (Objects.isNull(recipe)) {
             throw new DAOException("未获取到处方信息！");
         }
-        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
         if (Objects.isNull(recipeExtend)) {
             throw new DAOException("未获取到处方扩展信息！");
         }
@@ -878,22 +889,21 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
             medicalPreSettleQueryReq.setRegisterNo(recipeExtend.getRegisterID());
             medicalPreSettleQueryReq.setPatId(recipe.getPatientID());
             if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
-                RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
                 if (Objects.isNull(recipeOrder)) {
                     throw new DAOException("未获取到处方订单信息！");
                 }
                 medicalPreSettleQueryReq.setHisSettlementNo(recipeOrder.getHisSettlementNo());
                 medicalPreSettleQueryReq.setTotalAmount(recipeOrder.getTotalFee());
-                String recipeIdList = recipeOrder.getRecipeIdList();
-                String recipeNos = recipeIdList.replace(",", "|");
-                medicalPreSettleQueryReq.setRecipeNos(recipeNos);
+
+                List<String> recipeCodeS = recipeList.stream().map(Recipe::getRecipeCode).collect(Collectors.toList());
+                String join = Joiner.on(",").join(recipeCodeS);
+                medicalPreSettleQueryReq.setRecipeNos(join);
             }
         } catch (Exception e) {
             logger.error("medicalPreSettleQueryInfo error", e);
         }
         return medicalPreSettleQueryReq;
     }
-
     @Override
     public ThirdOrderPreSettleRes thirdOrderPreSettle(ThirdOrderPreSettleReq thirdOrderPreSettleReq) {
         ThirdOrderPreSettleRes thirdOrderPreSettleRes = new ThirdOrderPreSettleRes();

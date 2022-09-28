@@ -28,6 +28,7 @@ import recipe.business.BaseService;
 import recipe.client.DocIndexClient;
 import recipe.client.OperationClient;
 import recipe.constant.CaConstant;
+import recipe.constant.ErrorCode;
 import recipe.constant.RecipeBussConstant;
 import recipe.core.api.IFastRecipeBusinessService;
 import recipe.core.api.patient.IPatientBusinessService;

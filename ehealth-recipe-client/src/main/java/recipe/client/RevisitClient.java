@@ -1,6 +1,10 @@
 package recipe.client;
 
 import com.alibaba.fastjson.JSON;
+import com.github.rholder.retry.Retryer;
+import com.github.rholder.retry.RetryerBuilder;
+import com.github.rholder.retry.StopStrategies;
+import com.github.rholder.retry.WaitStrategies;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.WriteDrugRecipeTO;
 import com.ngari.his.visit.mode.WriteDrugRecipeReqTO;
@@ -19,11 +23,13 @@ import com.ngari.revisit.dto.response.RevisitBeanVO;
 import com.ngari.revisit.process.service.IRecipeOnLineRevisitService;
 import com.ngari.revisit.traces.service.IRevisitTracesSortService;
 import ctd.util.JSONUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.util.ValidateUtil;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 复诊相关服务
@@ -86,6 +92,33 @@ public class RevisitClient extends BaseClient {
         RevisitExDTO consultExDTO = revisitExService.getByConsultId(clinicId);
         logger.info("RevisitClient getByClinicId res consultExDTO:{} ", JSONUtils.toString(consultExDTO));
         return consultExDTO;
+    }
+
+    /**
+     * 重试获取复诊
+     * @param clinicId
+     * @return
+     */
+    public RevisitExDTO retryGetByClinicId(Integer clinicId) {
+        if (ValidateUtil.integerIsEmpty(clinicId)) {
+            return null;
+        }
+        Retryer<RevisitExDTO> retry = RetryerBuilder.<RevisitExDTO>newBuilder()
+                //抛出指定异常重试
+                .retryIfExceptionOfType(Exception.class)
+                .retryIfResult(e -> StringUtils.isEmpty(e.getPatId()))
+                //停止重试策略
+                .withStopStrategy(StopStrategies.stopAfterAttempt(3))
+                //每次等待重试时间间隔
+                .withWaitStrategy(WaitStrategies.fixedWait(300, TimeUnit.MILLISECONDS))
+                .build();
+        try {
+            logger.info("retryGetByClinicId clinicId1:{}", clinicId);
+            retry.call(() -> {logger.info("retryGetByClinicId clinicId:{}", clinicId);return revisitExService.getByConsultId(clinicId);});
+        } catch (Exception e) {
+            return revisitExService.getByConsultId(clinicId);
+        }
+        return revisitExService.getByConsultId(clinicId);
     }
 
     /**

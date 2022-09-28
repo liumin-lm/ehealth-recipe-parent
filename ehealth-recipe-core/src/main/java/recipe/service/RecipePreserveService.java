@@ -207,7 +207,7 @@ public class RecipePreserveService {
         upderLineRecipesByHis.put("hisRecipe",hisRecipes);
         upderLineRecipesByHis.put("patient",patientVO);
         LOGGER.info("getAllHosRecipeList response:{}",JSONUtils.toString(upderLineRecipesByHis));
-        LOGGER.info("method-{} ,organId--{} ,耗时:{}ms ",  Thread.currentThread().getStackTrace()[1].getMethodName(),organId, System.currentTimeMillis() - startTime);
+        LOGGER.info("method-{} ,organId--{} ,耗时:{}ms ，条数:{}",  Thread.currentThread().getStackTrace()[1].getMethodName(),organId, System.currentTimeMillis() - startTime,CollectionUtils.isEmpty(hisRecipes)?0:hisRecipes.size());
         return upderLineRecipesByHis;
     }
 
@@ -367,7 +367,7 @@ public class RecipePreserveService {
         }
         result.put("hisRecipe",recipes);
         result.put("patient",convertSensitivePatientForRAP(patientDTO));
-        LOGGER.info("method-{} ,organId--{} ,耗时:{}ms ",  Thread.currentThread().getStackTrace()[1].getMethodName(),organId, System.currentTimeMillis() - startTime);
+        LOGGER.info("method-{} ,organId--{} ,耗时:{}ms ，条数:{}",  Thread.currentThread().getStackTrace()[1].getMethodName(),organId, System.currentTimeMillis() - startTime,CollectionUtils.isEmpty(recipes)?0:recipes.size());
         return result;
     }
 
