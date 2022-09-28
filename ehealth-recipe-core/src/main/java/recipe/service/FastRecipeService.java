@@ -28,6 +28,7 @@ import recipe.business.BaseService;
 import recipe.client.DocIndexClient;
 import recipe.client.OperationClient;
 import recipe.constant.CaConstant;
+import recipe.constant.ErrorCode;
 import recipe.constant.RecipeBussConstant;
 import recipe.core.api.IFastRecipeBusinessService;
 import recipe.core.api.patient.IPatientBusinessService;
@@ -164,8 +165,8 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
             return recipeId;
         } catch (Exception e) {
             logger.error("fastRecipeSaveRecipe error", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
-        return null;
     }
 
 
