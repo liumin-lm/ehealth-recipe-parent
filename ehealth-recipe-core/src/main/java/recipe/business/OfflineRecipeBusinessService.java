@@ -341,6 +341,10 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
             return result;
         } catch (Exception e) {
             logger.error("RecipeBusinessService pushRecipe error,sysType={},recipeId:{}", sysType, recipeId, e);
+            //处方写入his失败
+            recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_HIS_FAIL.getType());
+            recipeManager.saveRecipe(recipe);
+            stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_WRITE_HIS_NOT_ORDER);
             RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "当前处方推送his失败:" + e.getMessage());
             String msg = configurationClient.getValueCatch(recipe.getClinicOrgan(), "pushHisRecipeResultMsg", "当前处方推送his失败");
             throw new DAOException(ErrorCode.SERVICE_ERROR, msg);
