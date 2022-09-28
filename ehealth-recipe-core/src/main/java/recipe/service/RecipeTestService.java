@@ -48,6 +48,7 @@ import recipe.drugTool.service.DrugToolService;
 import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.manager.EnterpriseManager;
+import recipe.manager.OrderManager;
 import recipe.manager.StateManager;
 import recipe.service.afterpay.LogisticsOnlineOrderService;
 import recipe.service.recipecancel.RecipeCancelService;
@@ -90,6 +91,8 @@ public class RecipeTestService {
     private StockBusinessService stockBusinessService;
     @Autowired
     private DrugToolService drugToolService;
+    @Autowired
+    private OrderManager orderManager;
 
 
 
@@ -623,5 +626,12 @@ public class RecipeTestService {
         RegulationOutpatientPayReq request=service.getRegulationOutpatientPayReq(recipe.getPayFlag(),refundNo,
                 recipeIds,order,recipe);
         return request;
+    }
+
+    @RpcService
+    public List<RecipeOrder> findEffectiveOrderByOrderCode(String orderCode){
+        Set<String> orderSet = new HashSet<>();
+        orderSet.add(orderCode);
+        return orderManager.findEffectiveOrderByOrderCode(orderSet);
     }
 }

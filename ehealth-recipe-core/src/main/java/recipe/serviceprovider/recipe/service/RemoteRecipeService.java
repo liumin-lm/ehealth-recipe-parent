@@ -2753,7 +2753,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         //查询线上有订单的处方
         Set<String> orderCodeList = writeRecipeList.stream().filter(recipe -> StringUtils.isNotEmpty(recipe.getOrderCode()))
                 .map(Recipe::getOrderCode).collect(Collectors.toSet());
-        List<RecipeOrder> recipeOrders = orderManager.getRecipeOrderList(orderCodeList);
+        List<RecipeOrder> recipeOrders = orderManager.findEffectiveOrderByOrderCode(orderCodeList);
         LOGGER.info("RemoteRecipeService getOnlineEffectiveRecipeFlag recipeOrders:{}", JSON.toJSONString(recipeOrders));
         //没有查到处方单
         if (CollectionUtils.isEmpty(writeRecipeList)) {
