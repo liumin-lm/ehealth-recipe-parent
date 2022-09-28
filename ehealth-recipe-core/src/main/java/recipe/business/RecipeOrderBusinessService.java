@@ -894,8 +894,10 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                 }
                 medicalPreSettleQueryReq.setHisSettlementNo(recipeOrder.getHisSettlementNo());
                 medicalPreSettleQueryReq.setTotalAmount(recipeOrder.getTotalFee());
-                String recipeNos = recipeOrder.getRecipeIdList().replace(",", "|");
-                medicalPreSettleQueryReq.setRecipeNos(recipeNos);
+
+                List<String> recipeCodeS = recipeList.stream().map(Recipe::getRecipeCode).collect(Collectors.toList());
+                String join = Joiner.on(",").join(recipeCodeS);
+                medicalPreSettleQueryReq.setRecipeNos(join);
             }
         } catch (Exception e) {
             logger.error("medicalPreSettleQueryInfo error", e);
