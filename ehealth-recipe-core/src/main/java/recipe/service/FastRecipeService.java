@@ -165,8 +165,8 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
             return recipeId;
         } catch (Exception e) {
             logger.error("fastRecipeSaveRecipe error", e);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
+        return null;
     }
 
 
