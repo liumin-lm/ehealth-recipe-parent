@@ -890,8 +890,16 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         //保存审方信息
         recipeManager.saveRecipeCheck(recipe);
         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), RecipeStatusEnum.RECIPE_STATUS_READY_CHECK_YS.getType(), RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType(), "药师审核通过，等待患者处理");
-        //将处方写入HIS
-        offlineRecipeBusinessService.pushRecipe(recipe.getRecipeId(), CommonConstant.RECIPE_PUSH_TYPE, CommonConstant.RECIPE_PATIENT_TYPE, null, null, null);
+        try {
+            //将处方写入HIS
+            offlineRecipeBusinessService.pushRecipe(recipe.getRecipeId(), CommonConstant.RECIPE_PUSH_TYPE, CommonConstant.RECIPE_PATIENT_TYPE, null, null, null);
+        } catch (Exception e) {
+            LOGGER.error("RecipePatientService pushRecipe error,recipeId:{}", recipe.getRecipeId(), e);
+            //处方写入his失败
+            recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_HIS_FAIL.getType());
+            recipeManager.saveRecipe(recipe);
+            stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_WRITE_HIS_NOT_ORDER);
+        }
         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType(), RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType(), "处方写入HIS成功");
         try {
             //设置处方的失效时间
