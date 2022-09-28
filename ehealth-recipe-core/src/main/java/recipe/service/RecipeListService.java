@@ -583,8 +583,9 @@ public class RecipeListService extends RecipeBaseService {
         }
 
         //过滤重复数据并重新排序
+        List<Map<String, Object>> res=null;
         try {
-            List<Map<String, Object>> res = dealRepeatDataAndSort(onLineAndUnderLineRecipesByRecipe, upderLineRecipesByHis,organId);
+            res = dealRepeatDataAndSort(onLineAndUnderLineRecipesByRecipe, upderLineRecipesByHis,organId);
             //返回结果集
             LOGGER.info("findHistoryRecipeList res:{}", JSONUtils.toString(res));
             return res;
@@ -592,7 +593,7 @@ public class RecipeListService extends RecipeBaseService {
             LOGGER.error("findHistoryRecipeList dealRepeatDataAndSort", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }finally {
-            LOGGER.info("method-{} ,organId--{} ,耗时:{}ms ",  Thread.currentThread().getStackTrace()[1].getMethodName(),organId, System.currentTimeMillis() - startTime);
+            LOGGER.info("method-{} ,organId--{} ,耗时:{}ms ，条数:{}",  Thread.currentThread().getStackTrace()[1].getMethodName(),organId, System.currentTimeMillis() - startTime,CollectionUtils.isEmpty(res)?0:res.size());
         }
     }
 
@@ -708,7 +709,7 @@ public class RecipeListService extends RecipeBaseService {
             Date date2 = ((RecipeBean) o2.get("recipe")).getCreateDate() == null ? new Date() : ((RecipeBean) o2.get("recipe")).getCreateDate();
             return date2.compareTo(date1);
         });
-        LOGGER.info("method-{} ,organId--{} ,耗时:{}ms ",  Thread.currentThread().getStackTrace()[1].getMethodName(),organId, System.currentTimeMillis() - startTime);
+        LOGGER.info("method-{} ,organId--{} ,耗时:{}ms ，条数:{}",  Thread.currentThread().getStackTrace()[1].getMethodName(),organId, System.currentTimeMillis() - startTime,CollectionUtils.isEmpty(res)?0:res.size());
         return res;
     }
 
@@ -772,7 +773,7 @@ public class RecipeListService extends RecipeBaseService {
     public List<Map<String, Object>> findRecipeListByDoctorAndPatientV2(Integer doctorId, String mpiId, int start, int limit, Integer organId) {
         long startTime = System.currentTimeMillis();
         List<Map<String, Object>> res=findRecipeListByDoctorAndPatient(doctorId, mpiId, start, limit);
-        LOGGER.info("method-{} ,organId--{} ,耗时:{}ms ",  Thread.currentThread().getStackTrace()[1].getMethodName(),organId, System.currentTimeMillis() - startTime);
+        LOGGER.info("method-{} ,organId--{} ,耗时:{}ms ，条数:{}",  Thread.currentThread().getStackTrace()[1].getMethodName(),organId, System.currentTimeMillis() - startTime,CollectionUtils.isEmpty(res)?0:res.size());
         return res;
     }
 
@@ -895,7 +896,7 @@ public class RecipeListService extends RecipeBaseService {
 
         }
         LOGGER.info("instanceRecipesAndPatient response recipes:{} ,patient:{} ,list:{}", JSONUtils.toString(recipes), JSONUtils.toString(patient), JSONUtils.toString(list));
-        LOGGER.info("method-{} ,organId--{} ,耗时:{}ms ",  Thread.currentThread().getStackTrace()[1].getMethodName(),null, System.currentTimeMillis() - startTime);
+        LOGGER.info("method-{} ,organId--{} ,耗时:{}ms ，条数:{}",  Thread.currentThread().getStackTrace()[1].getMethodName(),null, System.currentTimeMillis() - startTime,CollectionUtils.isEmpty(list)?0:list.size());
         return list;
     }
 
