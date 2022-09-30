@@ -24,6 +24,7 @@ public class DoctorAtop extends BaseAtop {
      * 保存医生 默认数据
      * @param  list 默认数据
      */
+    @RpcService
     public boolean saveBatchDoctorDefault(List<DoctorDefaultVO> list) {
         list.forEach(a->iDoctorBusinessService.saveDoctorDefault(a));
         return true;
