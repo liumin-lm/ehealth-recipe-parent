@@ -37,7 +37,7 @@ public class DoctorAtop extends BaseAtop {
      */
     @RpcService
     public List<DoctorDefaultVO> doctorDefaultList(DoctorDefaultVO doctorDefault){
-        validateAtop(doctorDefault, doctorDefault.getOrganId(),doctorDefault.getDoctorId(),doctorDefault.getCategory());
+        validateAtop(doctorDefault, doctorDefault.getOrganId(), doctorDefault.getDoctorId());
         List<DoctorDefault> result = iDoctorBusinessService.doctorDefaultList(doctorDefault);
         return ObjectCopyUtils.convert(result, DoctorDefaultVO.class);
     }
