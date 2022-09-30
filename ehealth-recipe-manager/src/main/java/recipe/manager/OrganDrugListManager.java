@@ -77,32 +77,47 @@ public class OrganDrugListManager extends BaseManager {
      * @return
      */
     public EnterpriseStock organStock(Recipe recipe, List<Recipedetail> detailList) {
-        // 到院取药是否采用药企管理模式
-        Boolean drugToHosByEnterprise = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "drugToHosByEnterprise", false);
-        if(drugToHosByEnterprise){
-            logger.info("OrganDrugListManager.organStock drugToHosByEnterprise={}", drugToHosByEnterprise);
+        EnterpriseStock enterpriseStock = this.organ(recipe.getClinicOrgan());
+        if (null == enterpriseStock) {
             return null;
         }
-        List<GiveModeButtonDTO> giveModeButtonBeans = operationClient.getOrganGiveModeMap(recipe.getClinicOrgan());
-        //无到院取药
-        GiveModeButtonDTO showButton = RecipeSupportGiveModeEnum.getGiveMode(giveModeButtonBeans, RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getText());
-        if (null == showButton) {
-            return null;
-        }
-        //返回出参
-        OrganDTO organDTO = organClient.organDTO(recipe.getClinicOrgan());
-        EnterpriseStock enterpriseStock = new EnterpriseStock();
-        showButton.setType(RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getType());
-        enterpriseStock.setGiveModeButton(Collections.singletonList(showButton));
-        enterpriseStock.setDeliveryName(organDTO.getName() + "门诊药房");
-        enterpriseStock.setDeliveryCode(recipe.getClinicOrgan().toString());
-        enterpriseStock.setAppointEnterpriseType(AppointEnterpriseTypeEnum.ORGAN_APPOINT.getType());
         //校验医院库存
         DrugStockAmountDTO scanResult = this.scanDrugStockByRecipeId(recipe, detailList);
         enterpriseStock.setDrugInfoList(scanResult.getDrugInfoList());
         enterpriseStock.setDrugName(scanResult.getNotDrugNames());
         enterpriseStock.setStock(scanResult.isResult());
         logger.info("OrganDrugListManager.organStock enterpriseStock={}", JSON.toJSONString(enterpriseStock));
+        return enterpriseStock;
+    }
+
+    /**
+     * 获取机构库存校验对象
+     *
+     * @param organId
+     * @return
+     */
+    public EnterpriseStock organ(Integer organId) {
+        // 到院取药是否采用药企管理模式
+        Boolean drugToHosByEnterprise = configurationClient.getValueBooleanCatch(organId, "drugToHosByEnterprise", false);
+        if (drugToHosByEnterprise) {
+            logger.info("OrganDrugListManager.organ drugToHosByEnterprise={}", drugToHosByEnterprise);
+            return null;
+        }
+        List<GiveModeButtonDTO> giveModeButtonBeans = operationClient.getOrganGiveModeMap(organId);
+        //无到院取药
+        GiveModeButtonDTO showButton = RecipeSupportGiveModeEnum.getGiveMode(giveModeButtonBeans, RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getText());
+        if (null == showButton) {
+            return null;
+        }
+        //返回出参
+        OrganDTO organDTO = organClient.organDTO(organId);
+        EnterpriseStock enterpriseStock = new EnterpriseStock();
+        showButton.setType(RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getType());
+        enterpriseStock.setGiveModeButton(Collections.singletonList(showButton));
+        enterpriseStock.setDeliveryName(organDTO.getName() + "门诊药房");
+        enterpriseStock.setDeliveryCode(organId.toString());
+        enterpriseStock.setAppointEnterpriseType(AppointEnterpriseTypeEnum.ORGAN_APPOINT.getType());
+        logger.info("OrganDrugListManager organ enterpriseStock={}", JSON.toJSONString(enterpriseStock));
         return enterpriseStock;
     }
 

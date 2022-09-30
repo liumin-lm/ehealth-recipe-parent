@@ -17,7 +17,6 @@ import recipe.client.IConfigurationClient;
 import recipe.client.OperationClient;
 import recipe.constant.ErrorCode;
 import recipe.core.api.IStockBusinessService;
-import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
@@ -64,8 +63,6 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
     private RecipeDetailDAO recipeDetailDAO;
     @Resource
     private OrganDrugListDAO organDrugListDAO;
-    @Resource
-    private DrugsEnterpriseDAO drugsEnterpriseDAO;
 
 
     @Override

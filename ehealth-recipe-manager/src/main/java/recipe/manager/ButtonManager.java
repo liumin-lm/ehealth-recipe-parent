@@ -202,7 +202,7 @@ public class ButtonManager extends BaseManager {
      * @param decoctionId 煎法id
      * @return 符合流转关系的药企
      */
-    private List<DrugsEnterprise> organAndEnterprise(Integer organId, Integer recipeType, String decoctionId) {
+    public List<DrugsEnterprise> organAndEnterprise(Integer organId, Integer recipeType, String decoctionId) {
         //获取需要查询库存的药企对象
         List<DrugsEnterprise> enterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(organId, 1);
         logger.info("ButtonManager organAndEnterprise organId:{},enterprises:{}", organId, JSON.toJSONString(enterprises));

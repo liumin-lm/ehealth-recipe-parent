@@ -26,7 +26,7 @@ public class DoctorDefaultVO implements Serializable {
      * 0 默认
      * 类型：
      * category =1 时type： 1西药 2中成药 3中药 4膏方
-     * category =2 时type： 1药企 2机构
+     * category =2 时type： 1机构 2药企
      */
     private Integer type;
     /**
