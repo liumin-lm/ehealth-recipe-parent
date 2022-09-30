@@ -196,6 +196,7 @@ public class DrugEnterprisePatientAtop extends BaseAtop {
      * @param organId 机构id
      * @return deliveryCode + deliveryName list返回前端
      */
+    @RpcService
     public List<EnterpriseStockVO> enterprisesList(Integer organId) {
         List<EnterpriseStock> list = enterpriseBusinessService.enterprisesList(organId);
         return ObjectCopyUtils.convert(list, EnterpriseStockVO.class);
