@@ -2,7 +2,6 @@ package recipe.atop.doctor;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
-import com.google.common.collect.Lists;
 import com.ngari.recipe.drug.model.CommonDrugListDTO;
 import com.ngari.recipe.drug.model.DispensatoryDTO;
 import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
@@ -63,20 +62,8 @@ public class DrugDoctorAtop extends BaseAtop {
      */
     @RpcService
     @Deprecated
-    public List<DrugForGiveModeListVO>  drugForGiveMode(DrugQueryVO drugQueryVO) {
-        validateAtop(drugQueryVO, drugQueryVO.getRecipeDetails(), drugQueryVO.getOrganId());
-        List<DrugForGiveModeVO> list = iStockBusinessService.drugForGiveMode(drugQueryVO);
-        Map<String, List<DrugForGiveModeVO>> returnMap = list.stream().collect(Collectors.groupingBy(DrugForGiveModeVO::getGiveModeKey));
-        Set<String> strings = returnMap.keySet();
-        List<DrugForGiveModeListVO> result = Lists.newArrayList();
-        strings.forEach(key -> {
-            DrugForGiveModeListVO drugForGiveModeListVO = new DrugForGiveModeListVO();
-            drugForGiveModeListVO.setSupportKey(key);
-            drugForGiveModeListVO.setSupportKeyText(returnMap.get(key).get(0).getGiveModeKeyText());
-            drugForGiveModeListVO.setDrugForGiveModeVOS(returnMap.get(key));
-            result.add(drugForGiveModeListVO);
-        });
-        return result;
+    public List<DrugForGiveModeListVO> drugForGiveMode(DrugQueryVO drugQueryVO) {
+        return this.giveModeDrugStockList(drugQueryVO);
     }
 
     /**
@@ -87,7 +74,6 @@ public class DrugDoctorAtop extends BaseAtop {
      */
     @RpcService
     public List<DrugForGiveModeListVO> giveModeDrugStockList(DrugQueryVO drugQueryVO) {
-        logger.info("DrugDoctorAtop giveModeDrugStockList drugQueryVO={}", JSON.toJSONString(drugQueryVO));
         RecipeDTO recipeDTO = this.recipeDTO(drugQueryVO);
         //机构够药方式配置
         List<GiveModeButtonDTO> organGiveModeList = organBusinessService.organGiveMode(drugQueryVO.getOrganId());
@@ -151,7 +137,7 @@ public class DrugDoctorAtop extends BaseAtop {
             recipedetail.setUseTotalDose(1D);
             detailList.add(recipedetail);
         });
-        return iStockBusinessService.stockList(drugQueryVO.getOrganId(), drugQueryVO.getRecipeType(), drugQueryVO.getDecoctionId(), detailList);
+        return iStockBusinessService.stockList(drugQueryVO, detailList);
     }
 
     /**

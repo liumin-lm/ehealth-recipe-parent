@@ -7,7 +7,6 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
 import recipe.vo.doctor.DrugEnterpriseStockVO;
 import recipe.vo.doctor.DrugForGiveModeListVO;
-import recipe.vo.doctor.DrugForGiveModeVO;
 import recipe.vo.doctor.DrugQueryVO;
 
 import java.util.List;
@@ -22,11 +21,11 @@ public interface IStockBusinessService {
     /**
      * 医生端查询 药品列表-查库存
      *
-     * @param organId       机构id
+     * @param drugQueryVO   入参字段
      * @param recipeDetails 处方明细
      * @return
      */
-    List<DrugEnterpriseStockVO> stockList(Integer organId, Integer recipeType, String decoctionId, List<Recipedetail> recipeDetails);
+    List<DrugEnterpriseStockVO> stockList(DrugQueryVO drugQueryVO, List<Recipedetail> recipeDetails);
 
     /**
      * 医生指定药企列表-查库存
@@ -65,16 +64,6 @@ public interface IStockBusinessService {
      * @return 药品信息 一定存在于出参
      */
     EnterpriseStock enterpriseStockCheckV1(RecipeDTO recipeDTO, Integer id, Integer type);
-
-    /**
-     * 医生端 查询购药方式下有库存的药品
-     * todo 新 drugForGiveModeV1
-     *
-     * @param drugQueryVO
-     * @return
-     */
-    @Deprecated
-    List<DrugForGiveModeVO> drugForGiveMode(DrugQueryVO drugQueryVO);
 
     /**
      * 医生端 查询购药方式下有库存的药品

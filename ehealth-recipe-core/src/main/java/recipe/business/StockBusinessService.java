@@ -2,31 +2,25 @@ package recipe.business;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
-import com.google.common.collect.Lists;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import ctd.persistence.exception.DAOException;
-import ctd.util.BeanUtils;
 import ctd.util.event.GlobalEventExecFactory;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.client.DrugStockClient;
-import recipe.client.IConfigurationClient;
 import recipe.client.OperationClient;
 import recipe.constant.ErrorCode;
 import recipe.core.api.IStockBusinessService;
-import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.drugsenterprise.AccessDrugEnterpriseService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.enumerate.status.GiveModeEnum;
 import recipe.enumerate.type.RecipeSupportGiveModeEnum;
-import recipe.manager.ButtonManager;
 import recipe.manager.EnterpriseManager;
-import recipe.manager.OrganDrugListManager;
 import recipe.manager.RecipeManager;
 import recipe.util.MapValueUtil;
 import recipe.util.ObjectCopyUtils;
@@ -46,32 +40,23 @@ import java.util.stream.Collectors;
 @Service
 public class StockBusinessService extends BaseService implements IStockBusinessService {
     @Autowired
-    private ButtonManager buttonManager;
-    @Autowired
     private EnterpriseManager enterpriseManager;
-    @Autowired
-    private OrganDrugListManager organDrugListManager;
     @Autowired
     private RecipeManager recipeManager;
     @Autowired
     private OperationClient operationClient;
     @Resource
-    private IConfigurationClient configurationClient;
-    @Resource
     private RecipeDAO recipeDAO;
     @Resource
     private RecipeDetailDAO recipeDetailDAO;
-    @Resource
-    private OrganDrugListDAO organDrugListDAO;
-
 
     @Override
-    public List<DrugEnterpriseStockVO> stockList(Integer organId, Integer recipeType, String decoctionId, List<Recipedetail> recipeDetails) {
+    public List<DrugEnterpriseStockVO> stockList(DrugQueryVO drugQueryVO, List<Recipedetail> recipeDetails) {
         //机构库存
-        EnterpriseStock organStock = organDrugListManager.organStock(organId, recipeDetails);
+        EnterpriseStock organStock = organDrugListManager.organStock(drugQueryVO.getOrganId(), drugQueryVO.getEnterpriseId(), drugQueryVO.getAppointEnterpriseType(), recipeDetails);
         //药企库存
-        List<EnterpriseStock> enterpriseList = buttonManager.enterpriseStockCheck(organId, recipeType, decoctionId,recipeDetails);
-        List<EnterpriseStock> enterpriseStock = this.enterpriseStockCheck(organId, enterpriseList, recipeDetails);
+        List<EnterpriseStock> enterpriseList = buttonManager.enterpriseStockCheck(drugQueryVO.getOrganId(), drugQueryVO.getRecipeType(), drugQueryVO.getDecoctionId(), recipeDetails);
+        List<EnterpriseStock> enterpriseStock = this.enterpriseStockCheck(drugQueryVO.getOrganId(), enterpriseList, drugQueryVO.getEnterpriseId(), recipeDetails);
         //处理库存数据结构 逆转为 药品-药企
         List<EnterpriseStockVO> enterpriseStockList = this.getEnterpriseStockVO(organStock, enterpriseStock);
         Map<Integer, List<EnterpriseStockVO>> enterpriseStockGroup = enterpriseStockList.stream().collect(Collectors.groupingBy(EnterpriseStockVO::getDrugId));
@@ -148,59 +133,13 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
     }
 
     @Override
-    public List<DrugForGiveModeVO> drugForGiveMode(DrugQueryVO drugQueryVO) {
-        logger.info("drugForGiveMode DrugQueryVO={}", JSONArray.toJSONString(drugQueryVO));
-        List<Recipedetail> recipeDetails = drugQueryVO.getRecipeDetails().stream().map(recipeDetailBean -> {
-            Recipedetail recipedetail = new Recipedetail();
-            recipeDetailBean.setPharmacyId(drugQueryVO.getPharmacyId());
-            BeanUtils.copy(recipeDetailBean, recipedetail);
-            return recipedetail;
-        }).collect(Collectors.toList());
-        //机构库存
-        EnterpriseStock organStock = organDrugListManager.organStock(drugQueryVO.getOrganId(), recipeDetails);
-        //药企库存
-        List<EnterpriseStock> enterpriseList = buttonManager.enterpriseStockCheck(drugQueryVO.getOrganId(), drugQueryVO.getRecipeType(), drugQueryVO.getDecoctionId(),recipeDetails);
-        List<EnterpriseStock> enterpriseStock = this.enterpriseStockCheck(drugQueryVO.getOrganId(), enterpriseList, recipeDetails);
-        enterpriseStock.add(organStock);
-        logger.info("drugForGiveMode enterpriseStock={}", JSONArray.toJSONString(enterpriseStock));
-        List<DrugForGiveModeVO> list = Lists.newArrayList();
-        for (EnterpriseStock stock : enterpriseStock) {
-            if (Objects.isNull(stock)) {
-                continue;
-            }
-            List<GiveModeButtonDTO> giveModeButton = stock.getGiveModeButton();
-            if (CollectionUtils.isEmpty(giveModeButton)) {
-                continue;
-            }
-            List<Integer> ids = stock.getDrugInfoList().stream().filter(DrugInfoDTO::getStock).map(DrugInfoDTO::getDrugId).collect(Collectors.toList());
-            if(CollectionUtils.isEmpty(ids)){
-                continue;
-            }
-            List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugIds(drugQueryVO.getOrganId(), ids);
-            List<String> drugName = organDrugLists.stream().map(OrganDrugList::getDrugName).collect(Collectors.toList());
-            giveModeButton.forEach(giveModeButtonDTO -> {
-                DrugForGiveModeVO drugForGiveModeVO = new DrugForGiveModeVO();
-                drugForGiveModeVO.setGiveModeKey(giveModeButtonDTO.getShowButtonKey());
-                drugForGiveModeVO.setGiveModeKeyText(giveModeButtonDTO.getShowButtonName());
-                if (!RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getText().equals(giveModeButtonDTO.getShowButtonKey())) {
-                    drugForGiveModeVO.setEnterpriseName(stock.getDrugsEnterprise().getName());
-                }
-                drugForGiveModeVO.setDrugsName(drugName);
-                list.add(drugForGiveModeVO);
-            });
-        }
-        logger.info("StockBusinessService drugForGiveMode result={}", JSONArray.toJSONString(list));
-        return list;
-    }
-
-    @Override
     public List<DrugForGiveModeListVO> drugForGiveModeV1(RecipeDTO recipeDTO) {
         Recipe recipe = recipeDTO.getRecipe();
         List<Recipedetail> recipeDetails = recipeDTO.getRecipeDetails();
         RecipeExtend recipeExtend = recipeDTO.getRecipeExtend();
         //药企库存
-        List<EnterpriseStock> enterpriseList = buttonManager.enterpriseStockCheck(recipe.getClinicOrgan(), recipe.getRecipeType(), recipeExtend.getDecoctionId(),recipeDetails);
-        List<EnterpriseStock> enterpriseStock = this.enterpriseStockCheck(recipe.getClinicOrgan(), enterpriseList, recipeDetails);
+        List<EnterpriseStock> enterpriseList = buttonManager.enterpriseStockCheck(recipe.getClinicOrgan(), recipe.getRecipeType(), recipeExtend.getDecoctionId(), recipeDetails);
+        List<EnterpriseStock> enterpriseStock = this.enterpriseStockCheck(recipe.getClinicOrgan(), enterpriseList, null, recipeDetails);
         Map<Integer, EnterpriseStock> enterpriseStockMap = enterpriseStock.stream().collect(Collectors.toMap(EnterpriseStock::getDrugsEnterpriseId, a -> a, (k1, k2) -> k1));
         //机构库存
         EnterpriseStock organStock = organDrugListManager.organStock(recipe, recipeDetails);
@@ -318,11 +257,18 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
      * 校验 药品库存 指定药企的库存数量
      *
      * @param organId        机构id
+     * @param organId        药企或机构id
      * @param recipeDetails  药品信息 drugId，code
      * @param enterpriseList 药企信息
      * @return 药品信息 一定存在于出参
      */
-    private List<EnterpriseStock> enterpriseStockCheck(Integer organId, List<EnterpriseStock> enterpriseList, List<Recipedetail> recipeDetails) {
+    private List<EnterpriseStock> enterpriseStockCheck(Integer organId, List<EnterpriseStock> enterpriseList, Integer id, List<Recipedetail> recipeDetails) {
+        if (!ValidateUtil.integerIsEmpty(id)) {
+            enterpriseList = enterpriseList.stream().filter(a -> a.getDrugsEnterpriseId().equals(id)).collect(Collectors.toList());
+            if (CollectionUtils.isEmpty(enterpriseList)) {
+                return enterpriseList;
+            }
+        }
         //校验药企库存
         List<FutureTask<EnterpriseStock>> futureTasks = new LinkedList<>();
         //根据药企配置查询 库存

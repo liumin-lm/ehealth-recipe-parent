@@ -43,11 +43,17 @@ public class OrganDrugListManager extends BaseManager {
     /**
      * 校验机构药品库存 用于 药品展示
      *
-     * @param organId
-     * @param detailList
+     * @param organId               机构id
+     * @param id                    药企或机构id
+     * @param appointEnterpriseType 0默认，1查询医院，2查询药企
+     * @param detailList            药品详情
      * @return
      */
-    public EnterpriseStock organStock(Integer organId, List<Recipedetail> detailList) {
+    public EnterpriseStock organStock(Integer organId, Integer id, Integer appointEnterpriseType, List<Recipedetail> detailList) {
+        if (Integer.valueOf(2).equals(appointEnterpriseType)) {
+            return null;
+        }
+        organId = null == id ? organId : id;
         Recipe recipe = new Recipe();
         recipe.setClinicOrgan(organId);
         return this.organStock(recipe, detailList);
