@@ -37,10 +37,11 @@ public class DoctorManager extends BaseManager{
      * @param doctorDefault
      */
     public void saveDoctorDefault(DoctorDefault doctorDefault) {
-        if(ValidateUtil.integerIsEmpty(doctorDefault.getId())){
-            doctorDefaultDAO.save(doctorDefault);
-        }else {
-            doctorDefaultDAO.updateNonNullFieldByPrimaryKey(doctorDefault);
+        DoctorDefault dbDefault = doctorDefaultDAO.getByOrganAndDoctorAndCategoryAndType(doctorDefault.getOrganId(), doctorDefault.getDoctorId(), doctorDefault.getCategory(), doctorDefault.getType());
+        if (null != dbDefault) {
+            dbDefault.setIdKey(doctorDefault.getIdKey());
+            doctorDefaultDAO.updateNonNullFieldByPrimaryKey(dbDefault);
         }
+        doctorDefaultDAO.save(doctorDefault);
     }
 }

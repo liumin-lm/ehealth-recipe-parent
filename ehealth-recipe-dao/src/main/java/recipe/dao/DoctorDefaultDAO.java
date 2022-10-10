@@ -42,6 +42,7 @@ public abstract class DoctorDefaultDAO extends HibernateSupportDelegateDAO<Docto
 
     /**
      * 获取医生-类别默认数据
+     *
      * @param organId
      * @param doctorId
      * @param category
@@ -49,5 +50,8 @@ public abstract class DoctorDefaultDAO extends HibernateSupportDelegateDAO<Docto
      */
     @DAOMethod(sql = "from DoctorDefault where organId=:organId and doctorId=:doctorId and category=:category and status = 0 order by id desc ")
     public abstract List<DoctorDefault> findByOrganAndDoctorAndCategory(@DAOParam("organId") Integer organId, @DAOParam("doctorId") Integer doctorId, @DAOParam("category") Integer category);
+
+    @DAOMethod(sql = "from DoctorDefault where organId=:organId and doctorId=:doctorId and category=:category and type=:type and status = 0 order by id desc ")
+    public abstract DoctorDefault getByOrganAndDoctorAndCategoryAndType(@DAOParam("organId") Integer organId, @DAOParam("doctorId") Integer doctorId, @DAOParam("category") Integer category, @DAOParam("type") Integer type);
 
 }
