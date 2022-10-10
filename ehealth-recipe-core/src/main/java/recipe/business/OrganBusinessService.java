@@ -2,7 +2,6 @@ package recipe.business;
 
 import com.alibaba.fastjson.JSON;
 import com.ngari.base.scratchable.model.ScratchableBean;
-import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.recipe.dto.GiveModeButtonDTO;
 import com.ngari.recipe.dto.OrganDTO;
 import com.ngari.recipe.entity.RecipeOrder;
@@ -23,7 +22,6 @@ import recipe.vo.second.OrganVO;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @Service
 public class OrganBusinessService extends BaseService implements IOrganBusinessService {
@@ -116,10 +114,4 @@ public class OrganBusinessService extends BaseService implements IOrganBusinessS
         }
         return recipeOrder.getSettleAmountState();
     }
-
-    @Override
-    public Map<Integer, DoctorDTO> findByDoctorIds(List<Integer> doctorIds) {
-        return doctorClient.findByDoctorIds(doctorIds);
-    }
-
 }

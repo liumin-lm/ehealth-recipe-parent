@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.constant.ErrorCode;
 import recipe.core.api.IEnterpriseBusinessService;
 import recipe.core.api.IOrganBusinessService;
+import recipe.core.api.doctor.IDoctorBusinessService;
 import recipe.core.api.patient.IPatientBusinessService;
 import recipe.util.ValidateUtil;
 
@@ -19,6 +20,8 @@ import recipe.util.ValidateUtil;
 public class BaseAtop {
     protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
+    @Autowired
+    protected IDoctorBusinessService iDoctorBusinessService;
     @Autowired
     protected IOrganBusinessService organBusinessService;
     @Autowired

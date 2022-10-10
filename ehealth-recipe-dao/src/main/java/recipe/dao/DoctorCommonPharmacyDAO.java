@@ -16,6 +16,7 @@ import java.util.List;
  * @author liumin
  */
 @RpcSupportDAO
+@Deprecated
 public abstract class DoctorCommonPharmacyDAO extends HibernateSupportDelegateDAO<DoctorCommonPharmacy> implements ExtendDao<DoctorCommonPharmacy> {
 
     private static Logger logger = Logger.getLogger(DoctorCommonPharmacyDAO.class);

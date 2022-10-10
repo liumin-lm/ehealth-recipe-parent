@@ -191,6 +191,7 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
      * @return
      */
     @RpcService
+    @Deprecated
     public DoctorCommonPharmacy findDoctorCommonPharmacyByOrganIdAndDoctorId(Integer organId,Integer doctorId ) {
         validateAtop(organId, doctorId);
         return recipeBusinessService.findDoctorCommonPharmacyByOrganIdAndDoctorId(organId,doctorId);
@@ -201,6 +202,7 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
      * @param doctorCommonPharmacy
      */
     @RpcService
+    @Deprecated
     public void saveDoctorCommonPharmacy(DoctorCommonPharmacy doctorCommonPharmacy) {
         validateAtop(doctorCommonPharmacy);
         recipeBusinessService.saveDoctorCommonPharmacy(doctorCommonPharmacy);
