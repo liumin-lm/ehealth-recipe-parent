@@ -52,7 +52,7 @@ public class OrganDrugList implements java.io.Serializable {
     @ItemProperty(alias = "包装数量（转化系数）")
     private Integer pack;
 
-    @ItemProperty(alias = "最小售卖单位")
+    @ItemProperty(alias = "最小售药单位")
     private String unit;
 
     @ItemProperty(alias = "最小售卖单位/单位HIS编码")
