@@ -44,6 +44,5 @@ public class DoctorManager extends BaseManager{
         }
         dbDefault.setIdKey(doctorDefault.getIdKey());
         doctorDefaultDAO.updateNonNullFieldByPrimaryKey(dbDefault);
-
     }
 }

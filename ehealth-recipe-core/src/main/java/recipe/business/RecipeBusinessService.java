@@ -1168,7 +1168,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
 
     @Override
     public List<DecoctionWayBean> findDecoctionWay(DecoctionWayBean decoctionWayBean) {
-        List<DecoctionWay> decoctionWayList = drugDecoctionWayDao.findAllDecoctionWayByOrganIdAndDrugFormType(decoctionWayBean.getOrganId(), decoctionWayBean.getDrugForm());
+        List<DecoctionWay> decoctionWayList = drugDecoctionWayDao.findAllDecoctionWayByOrganIdAndDrugFormType(decoctionWayBean.getOrganId(), "%" + decoctionWayBean.getDrugForm() + "%");
         return com.ngari.patient.utils.ObjectCopyUtils.convert(decoctionWayList, DecoctionWayBean.class);
     }
 }
