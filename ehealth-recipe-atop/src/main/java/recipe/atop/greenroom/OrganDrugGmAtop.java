@@ -23,7 +23,7 @@ public class OrganDrugGmAtop extends BaseAtop {
     private IDrugBusinessService iDrugBusinessService;
 
     /**
-     * 查询药品同步机构配置
+     * 查询药品同步机构配置,若没有则新增后返回给前端
      * @param organId
      * @return
      */
