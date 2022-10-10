@@ -8,13 +8,13 @@ import com.ngari.base.organ.model.OrganBean;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.his.recipe.mode.DrugTakeChangeReqTO;
 import com.ngari.his.recipe.mode.FTYSendTimeReqDTO;
-import com.ngari.patient.service.AddrAreaService;
 import com.ngari.platform.recipe.mode.DrugsEnterpriseBean;
 import com.ngari.platform.recipe.mode.MedicineStationDTO;
 import com.ngari.recipe.drugsenterprise.model.EnterpriseAddressAndPrice;
 import com.ngari.recipe.drugsenterprise.model.EnterpriseAddressDTO;
 import com.ngari.recipe.drugsenterprise.model.EnterpriseDecoctionAddressReq;
 import com.ngari.recipe.drugsenterprise.model.EnterpriseDecoctionList;
+import com.ngari.recipe.dto.EnterpriseStock;
 import com.ngari.recipe.dto.OrganDTO;
 import com.ngari.recipe.dto.PatientDTO;
 import com.ngari.recipe.entity.*;
@@ -49,6 +49,7 @@ import recipe.core.api.IEnterpriseBusinessService;
 import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.enumerate.status.*;
+import recipe.enumerate.type.AppointEnterpriseTypeEnum;
 import recipe.enumerate.type.PayFlagEnum;
 import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.hisservice.HisRequestInit;
@@ -124,8 +125,6 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
     private EnterpriseClient enterpriseClient;
     @Resource
     private StateManager stateManager;
-    @Autowired
-    private AddrAreaService addrAreaService;
 
 
     @Override
@@ -821,6 +820,28 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
         List<DrugsEnterprise> enterprises = drugsEnterpriseDAO.findByIdIn(ids);
         return Optional.ofNullable(enterprises).orElseGet(Collections::emptyList)
                 .stream().collect(Collectors.toMap(DrugsEnterprise::getId, a -> a, (k1, k2) -> k1));
+    }
+
+  
+    @Override
+    public List<EnterpriseStock> enterprisesList(Integer organId) {
+        List<EnterpriseStock> list = new ArrayList<>();
+        EnterpriseStock organ = organDrugListManager.organ(organId);
+        if (null != organ) {
+            list.add(organ);
+        }
+        List<DrugsEnterprise> enterprises = buttonManager.organAndEnterprise(organId, null, null);
+        if (CollectionUtils.isEmpty(enterprises)) {
+            return list;
+        }
+        enterprises.forEach(a -> {
+            EnterpriseStock enterpriseStock = new EnterpriseStock();
+            enterpriseStock.setDeliveryName(a.getName());
+            enterpriseStock.setDeliveryCode(a.getId().toString());
+            enterpriseStock.setAppointEnterpriseType(AppointEnterpriseTypeEnum.ENTERPRISE_APPOINT.getType());
+            list.add(enterpriseStock);
+        });
+        return list;
     }
 
     private Integer getEnterpriseSendFlag(DrugsEnterprise enterprise, CheckOrderAddressVo checkOrderAddressVo) {

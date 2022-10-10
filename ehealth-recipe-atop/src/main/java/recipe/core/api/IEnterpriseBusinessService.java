@@ -4,6 +4,7 @@ import com.ngari.recipe.drugsenterprise.model.EnterpriseAddressAndPrice;
 import com.ngari.recipe.drugsenterprise.model.EnterpriseAddressDTO;
 import com.ngari.recipe.drugsenterprise.model.EnterpriseDecoctionAddressReq;
 import com.ngari.recipe.drugsenterprise.model.EnterpriseDecoctionList;
+import com.ngari.recipe.dto.EnterpriseStock;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.EnterpriseDecoctionAddress;
 import com.ngari.recipe.entity.OrganAndDrugsepRelation;
@@ -290,4 +291,13 @@ public interface IEnterpriseBusinessService {
      * @return
      */
     Map<Integer, DrugsEnterprise> findDrugsEnterpriseByIds(List<Integer> ids);
+
+    /**
+     * 根据机构获取 配置下的药企+ 到院自取的机构 返回前端列表
+     *
+     * @param organId
+     * @return
+     */
+    List<EnterpriseStock> enterprisesList(Integer organId);
+
 }

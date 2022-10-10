@@ -350,7 +350,7 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
         //药企
         Map<Integer, DrugsEnterprise> drugsEnterpriseMap = enterpriseBusinessService.findDrugsEnterpriseByIds(new ArrayList<>(enterpriseIds));
         //医生
-        Map<Integer, DoctorDTO> doctorMap = organBusinessService.findByDoctorIds(new ArrayList<>(doctorIds));
+        Map<Integer, DoctorDTO> doctorMap = iDoctorBusinessService.findByDoctorIds(new ArrayList<>(doctorIds));
         //患者
         Map<String, PatientDTO> patientMap = recipePatientService.findPatientByMpiIds(mpiIdList);
         list.forEach(a -> {

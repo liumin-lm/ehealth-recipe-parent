@@ -22,6 +22,7 @@ import recipe.core.api.IEnterpriseBusinessService;
 import recipe.core.api.IStockBusinessService;
 import recipe.util.ObjectCopyUtils;
 import recipe.util.RecipeUtil;
+import recipe.vo.doctor.EnterpriseStockVO;
 import recipe.vo.doctor.ValidateDetailVO;
 import recipe.vo.greenroom.OrganDrugsSaleConfigVo;
 import recipe.vo.patient.CheckAddressReq;
@@ -178,15 +179,27 @@ public class DrugEnterprisePatientAtop extends BaseAtop {
         CheckAddressRes checkAddressRes = new CheckAddressRes();
         if(CollectionUtils.isNotEmpty(checkAddressResList)){
             List<CheckAddressRes> collect = checkAddressResList.stream().filter(a -> !a.getSendFlag()).collect(Collectors.toList());
-            if(CollectionUtils.isNotEmpty(collect)){
+            if (CollectionUtils.isNotEmpty(collect)) {
                 checkAddressRes.setSendFlag(false);
                 checkAddressRes.setAreaList(collect.get(0).getAreaList());
-            }else {
+            } else {
                 checkAddressRes.setSendFlag(true);
                 checkAddressRes.setAreaList(checkAddressResList.get(0).getAreaList());
             }
         }
         return checkAddressRes;
+    }
+
+    /**
+     * 根据机构获取 配置下的药企+ 到院自取的机构 返回前端列表
+     *
+     * @param organId 机构id
+     * @return deliveryCode + deliveryName list返回前端
+     */
+    @RpcService
+    public List<EnterpriseStockVO> enterprisesList(Integer organId) {
+        List<EnterpriseStock> list = enterpriseBusinessService.enterprisesList(organId);
+        return ObjectCopyUtils.convert(list, EnterpriseStockVO.class);
     }
 
 }

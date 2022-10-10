@@ -303,7 +303,7 @@ public class CreatePdfFactory {
         pdfEsign.setFileName("recipecheck" + recipe.getRecipeId() + ".pdf");
         // todo 这个是默认的值吗
         pdfEsign.setDoctorId(recipe.getChecker());
-        pdfEsign.setQrCodeSign(false);
+        pdfEsign.setQrCodeSign(true);
         try {
             // todo 这个是签名对象
             byte[] data = createPdfService.updateCheckNamePdfEsign(recipeId, pdfEsign);

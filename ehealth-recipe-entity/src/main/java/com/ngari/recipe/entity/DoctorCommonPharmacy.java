@@ -4,7 +4,6 @@ import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
 import javax.persistence.*;
-
 import java.util.Date;
 
 import static javax.persistence.GenerationType.IDENTITY;
@@ -17,6 +16,7 @@ import static javax.persistence.GenerationType.IDENTITY;
 @Schema
 @Table(name = "doctor_common_pharmacy")
 @Access(AccessType.PROPERTY)
+@Deprecated
 public  class DoctorCommonPharmacy implements java.io.Serializable{
 
     private static final long serialVersionUID = -7395577376998087750L;

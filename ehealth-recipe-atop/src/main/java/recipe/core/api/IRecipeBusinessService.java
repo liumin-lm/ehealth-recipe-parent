@@ -2,12 +2,10 @@ package recipe.core.api;
 
 import com.ngari.patient.dto.HealthCardDTO;
 import com.ngari.platform.recipe.mode.QueryRecipeInfoHisDTO;
-import com.ngari.recipe.dto.RecipeRefundDTO;
-import com.ngari.recipe.entity.DoctorCommonPharmacy;
-import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.OutPatientRecipeDTO;
 import com.ngari.recipe.dto.OutPatientRecordResDTO;
+import com.ngari.recipe.dto.RecipeRefundDTO;
 import com.ngari.recipe.entity.DoctorCommonPharmacy;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Symptom;
@@ -296,8 +294,10 @@ public interface IRecipeBusinessService {
      */
     void recipePayHISCallback(RecipePayHISCallbackReq recipePayHISCallbackReq);
 
+    @Deprecated
     DoctorCommonPharmacy findDoctorCommonPharmacyByOrganIdAndDoctorId(Integer organId, Integer doctorId);
 
+    @Deprecated
     void saveDoctorCommonPharmacy(DoctorCommonPharmacy doctorCommonPharmacy);
 
     /**

@@ -177,6 +177,9 @@ public abstract class HisRecipeDAO extends HibernateSupportDelegateDAO<HisRecipe
 
                 query.setParameter("organId", organId);
                 query.setParameter("mpiId", mpiId);
+
+                query.setMaxResults(limit);
+                query.setFirstResult(start);
                 JsonUtil.toString(query.list());
                 List<HisRecipeListBean> result = (List<HisRecipeListBean>) query.list();
                 setResult(result);

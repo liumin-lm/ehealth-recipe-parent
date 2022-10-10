@@ -723,7 +723,18 @@ public class BaseOfflineToOnlineService {
         recipe.setWriteHisState(WriteHisEnum.WRITE_HIS_STATE_ORDER.getType());
         recipe.setCheckerSignState(SignEnum.SIGN_STATE_ORDER.getType());
         recipe = recipeDAO.saveOrUpdate(recipe);
-        stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_ORDER, RecipeStateEnum.SUB_ORDER_READY_SUBMIT_ORDER);
+        if (HisRecipeConstant.HISRECIPESTATUS_ALREADYIDEAL.equals(hisRecipe.getStatus())) {
+            recipe.setPayFlag(1);
+            //已完成
+            stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_DONE, RecipeStateEnum.SUB_DONE_OFFLINE_ALREADY);
+        } else if (HisRecipeConstant.HISRECIPESTATUS_NOIDEAL.equals(hisRecipe.getStatus())) {
+            //待处理
+            stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_ORDER, RecipeStateEnum.SUB_ORDER_READY_SUBMIT_ORDER);
+        } else if (HisRecipeConstant.HISRECIPESTATUS_EXPIRED.equals(hisRecipe.getStatus())) {
+            recipe.setPayFlag(0);
+            //已失效
+            stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_TIMEOUT_NOT_ORDER);
+        }
         LOGGER.info("BaseOfflineToOnlineService saveRecipeFromHisRecipe res:{}", JSONUtils.toString(recipe));
         return recipe;
     }
