@@ -49,9 +49,9 @@ public class DecoctionWay implements Serializable {
     private String decoctionPingying;
 
     @ItemProperty(
-            alias = "剂型类型 1 配方颗粒 2 饮品"
+            alias = "剂型"
     )
-    private Integer drugFormType;
+    private String drugForm;
 
     @ItemProperty(
         alias = "煎法排序"
@@ -158,12 +158,12 @@ public class DecoctionWay implements Serializable {
         this.drugUseRate = drugUseRate;
     }
 
-    @Column(name = "drug_from_type")
-    public Integer getDrugFormType() {
-        return drugFormType;
+    @Column(name = "drug_form")
+    public String getDrugForm() {
+        return drugForm;
     }
 
-    public void setDrugFormType(Integer drugFormType) {
-        this.drugFormType = drugFormType;
+    public void setDrugForm(String drugForm) {
+        this.drugForm = drugForm;
     }
 }
