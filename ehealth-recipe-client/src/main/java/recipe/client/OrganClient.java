@@ -3,8 +3,10 @@ package recipe.client;
 import com.ngari.base.organconfig.model.OrganConfigBean;
 import com.ngari.base.organconfig.service.IOrganConfigService;
 import com.ngari.patient.dto.HealthCardDTO;
+import com.ngari.patient.dto.OrganConfigDTO;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.HealthCardService;
+import com.ngari.patient.service.OrganConfigService;
 import com.ngari.patient.service.OrganService;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
@@ -30,6 +32,8 @@ public class OrganClient extends BaseClient {
     private IOrganConfigService iOrganConfigService;
     @Autowired
     private HealthCardService healthCardService;
+    @Autowired
+    private OrganConfigService organConfigService;
     /**
      * 查询当前区域公众号下所有归属机构
      *
@@ -102,5 +106,23 @@ public class OrganClient extends BaseClient {
     @LogRecord
     public List<HealthCardDTO> findByCardOrganAndMpiId(String mpiId, Integer organId){
         return healthCardService.findByCardOrganAndMpiId(organId,mpiId);
+    }
+
+    /**
+     * 获取机构配置
+     * @param organId
+     * @return
+     */
+    public OrganConfigDTO getOrganConfigByOrganId(Integer organId){
+        return organConfigService.getByOrganId(organId);
+    }
+
+    /**
+     * 更新机构配置
+     * @param param
+     * @return
+     */
+    public OrganConfigDTO updateOrganConfig(OrganConfigDTO param) {
+        return organConfigService.update(param);
     }
 }

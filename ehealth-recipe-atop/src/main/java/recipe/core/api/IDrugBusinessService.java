@@ -12,6 +12,7 @@ import com.ngari.recipe.vo.DrugSaleStrategyVO;
 import com.ngari.recipe.vo.HospitalDrugListReqVO;
 import com.ngari.recipe.vo.HospitalDrugListVO;
 import com.ngari.recipe.vo.SearchDrugReqVO;
+import recipe.vo.greenroom.OrganConfigVO;
 import recipe.vo.patient.PatientContinueRecipeCheckDrugReq;
 import recipe.vo.patient.PatientContinueRecipeCheckDrugRes;
 
@@ -210,4 +211,8 @@ public interface IDrugBusinessService {
      * @param organId
      */
     void organDrugList2Es(Integer organId);
+
+    OrganConfigVO getConfigByOrganId(Integer organId);
+
+    OrganConfigVO updateOrganConfig(OrganConfigVO organConfigVO);
 }
