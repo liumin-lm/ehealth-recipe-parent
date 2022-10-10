@@ -746,23 +746,28 @@ public class OrganDrugToolService implements IOrganDrugToolService {
                 if (!StringUtils.isEmpty(getStrFromCell(cells.get(37)))) {
                     String strFromCell = getStrFromCell(cells.get(37));
                     StringBuilder ss = new StringBuilder();
-                    String[] split = strFromCell.split(",");
-                    for (int i = 0; i < split.length; i++) {
-                        String applyBusiness = "";
-                        if ("药品处方".equals(split[i])) {
-                            applyBusiness = "1";
-                        } else if ("诊疗处方".equals(split[i])) {
-                            applyBusiness = "2";
-                        } else {
-                            break;
+                    //对中文逗号进行校验
+                    if(!strFromCell.contains("，")){
+                        String[] split = strFromCell.split(",");
+                        for (int i = 0; i < split.length; i++) {
+                            String applyBusiness = "";
+                            if ("药品处方".equals(split[i])) {
+                                applyBusiness = "1";
+                            } else if ("诊疗处方".equals(split[i])) {
+                                applyBusiness = "2";
+                            } else {
+                                break;
+                            }
+                            if (i != split.length - 1) {
+                                ss.append(applyBusiness + ",");
+                            } else {
+                                ss.append(applyBusiness);
+                            }
                         }
-                        if (i != split.length - 1) {
-                            ss.append(applyBusiness + ",");
-                        } else {
-                            ss.append(applyBusiness);
-                        }
+                        drug.setApplyBusiness(ss.toString());
+                    }else{
+                        validMsg.append("适用业务有误").append(";");
                     }
-                    drug.setApplyBusiness(ss.toString());
                 } else {
                     validMsg.append("【适用业务】未填写").append(";");
                 }
