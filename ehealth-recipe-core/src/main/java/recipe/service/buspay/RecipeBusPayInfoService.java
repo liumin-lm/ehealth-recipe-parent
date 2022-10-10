@@ -37,6 +37,7 @@ import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.service.IRevisitExService;
+import ctd.account.UserRoleToken;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.Base64;
@@ -175,6 +176,12 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
             if (StringUtils.isNotEmpty(recipeIds)) {
                 List<String> recipeIdString = Splitter.on(",").splitToList(recipeIds);
                 List<Integer> recipeIdLists = recipeIdString.stream().map(Integer::valueOf).collect(Collectors.toList());
+
+                //越权校验
+                for (Integer permissionRecipeId:recipeIdLists) {
+                    checkUserHasPermission(permissionRecipeId);
+                }
+
                 busId = recipeIdLists.get(0);
                 order1 = recipeOrderService.getOrderByRecipeId(busId);
                 if (null == order1) {
@@ -193,6 +200,8 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
         } else {
             //提交订单后的调用获取订单信息
             order1 = recipeOrderService.get(busId);
+            //越权判断
+            checkUserHasPermission(order1);
         }
         log.info("obtainConfirmOrder order1:{}", JSONUtils.toString(order1));
         order = ObjectCopyUtils.convert(order1, ObtainConfirmOrderObjectResNoDS.class);
@@ -983,6 +992,35 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
             String ybrc = JSONUtils.toString(res);
             log.info("zhengzhouMedicalSet ybrc={}", ybrc);
             wnExtBusCdrRecipe.setYbrc(res.getYbrc());
+        }
+    }
+
+    private void checkUserHasPermission(Integer recipeId){
+        PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        UserRoleToken urt = UserRoleToken.getCurrent();
+        String methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
+        if (recipe != null){
+            if ((urt.isPatient() && patientService.isPatientBelongUser(recipe.getMpiid()))||(urt.isDoctor() && urt.isSelfDoctor(recipe.getDoctor()))) {
+                return;
+            }else{
+                log.error("当前用户没有权限调用recipeId[{}],methodName[{}]", recipeId ,methodName);
+                throw new DAOException("当前登录用户没有权限");
+            }
+        }
+    }
+
+    private void checkUserHasPermission(RecipeOrderBean recipeOrder){
+        PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
+        UserRoleToken urt = UserRoleToken.getCurrent();
+        String methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
+        if (recipeOrder != null){
+            if ((urt.isPatient() && patientService.isPatientBelongUser(recipeOrder.getMpiId()))) {
+                return;
+            }else{
+                log.error("当前用户没有权限调用orderId[{}],methodName[{}]", recipeOrder.getOrderId() ,methodName);
+                throw new DAOException("当前登录用户没有权限");
+            }
         }
     }
 
