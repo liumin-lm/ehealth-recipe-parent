@@ -1371,7 +1371,10 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             return list;
         }
         Map<Integer, List<Recipedetail>> detailMap = details.stream().collect(Collectors.groupingBy(Recipedetail::getRecipeId));
-        list.forEach(a -> a.setRecipeDetailBeanList(ObjectCopyUtils.convert(detailMap.get(a.getRecipeId()), RecipeDetailBean.class)));
+        list.forEach(a -> {
+            a.setSubStateText(RecipeStateEnum.getRecipeStateEnum(a.getSubState()).getName());
+            a.setRecipeDetailBeanList(ObjectCopyUtils.convert(detailMap.get(a.getRecipeId()), RecipeDetailBean.class));
+        });
         return list;
     }
 

@@ -1043,6 +1043,9 @@ public class RecipeListService extends RecipeBaseService {
                 map.put("diseaseName", recipe.getOrganDiseaseName());
                 map.put("signTime", DateConversion.getDateFormatter(recipe.getSignDate(), "MM月dd日 HH:mm"));
                 map.put("doctorName", recipe.getDoctorName());
+                map.put("subState", recipe.getSubState());
+                map.put("subStateText", RecipeStateEnum.getRecipeStateEnum(recipe.getSubState()).getName());
+                map.put("processState", recipe.getProcessState());
                 recipedetails = detailDAO.findByRecipeId(recipe.getRecipeId());
 
                 Map<String, String> drugInfo;
