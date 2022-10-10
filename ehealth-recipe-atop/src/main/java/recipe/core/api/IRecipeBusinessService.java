@@ -2,6 +2,7 @@ package recipe.core.api;
 
 import com.ngari.patient.dto.HealthCardDTO;
 import com.ngari.platform.recipe.mode.QueryRecipeInfoHisDTO;
+import com.ngari.recipe.drug.model.DecoctionWayBean;
 import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.OutPatientRecipeDTO;
 import com.ngari.recipe.dto.OutPatientRecordResDTO;
@@ -340,4 +341,11 @@ public interface IRecipeBusinessService {
     List<QueryRecipeInfoHisDTO> findRecipeByIds(List<Integer> recipeIds);
 
     List<RecipeRefundDTO> getRecipeRefundInfo(RecipeRefundInfoReqVO recipeRefundInfoReqVO);
+
+    /**
+     * 查询煎法信息
+     * @param decoctionWayBean
+     * @return
+     */
+    List<DecoctionWayBean> findDecoctionWay(DecoctionWayBean decoctionWayBean);
 }

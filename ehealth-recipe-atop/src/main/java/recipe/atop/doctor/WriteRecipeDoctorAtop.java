@@ -2,6 +2,7 @@ package recipe.atop.doctor;
 
 import com.ngari.patient.dto.HealthCardDTO;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.recipe.drug.model.DecoctionWayBean;
 import com.ngari.recipe.dto.OutPatientRecordResDTO;
 import com.ngari.recipe.dto.WriteDrugRecipeDTO;
 import com.ngari.recipe.entity.DoctorCommonPharmacy;
@@ -182,6 +183,17 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
     public List<RequirementsForTakingVO> getRequirementsForTakingByDecoctionId(Integer organId, Integer decoctionId) {
         validateAtop(organId);
         return recipeBusinessService.findRequirementsForTakingByDecoctionId(organId, decoctionId);
+    }
+
+    /**
+     * 查询煎法列表
+     * @param decoctionWayBean
+     * @return
+     */
+    @RpcService
+    public List<DecoctionWayBean> findDecoctionWay(DecoctionWayBean decoctionWayBean) {
+        validateAtop(decoctionWayBean.getOrganId());
+        return recipeBusinessService.findDecoctionWay(decoctionWayBean);
     }
 
     /**

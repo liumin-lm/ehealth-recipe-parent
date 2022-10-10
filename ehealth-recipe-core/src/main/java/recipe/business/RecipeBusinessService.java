@@ -15,6 +15,7 @@ import com.ngari.patient.dto.*;
 import com.ngari.patient.service.IUsePathwaysService;
 import com.ngari.patient.service.IUsingRateService;
 import com.ngari.platform.recipe.mode.QueryRecipeInfoHisDTO;
+import com.ngari.recipe.drug.model.DecoctionWayBean;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
@@ -155,7 +156,8 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     private DrugsEnterpriseDAO drugsEnterpriseDAO;
     @Autowired
     private RecipeAuditClient recipeAuditClient;
-
+    @Autowired
+    private DrugDecoctionWayDao drugDecoctionWayDao;
 
 
     /**
@@ -1162,6 +1164,12 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         logger.info("RecipeBusinessService getRecipeRefundInfo recipeRefundInfoReqVO={}",JSONUtils.toString(recipeRefundInfoReqVO));
         return recipeManager.getRecipeRefundInfo(recipeRefundInfoReqVO.getDoctorId(),recipeRefundInfoReqVO.getStartTime(),recipeRefundInfoReqVO.getEndTime(),
                 recipeRefundInfoReqVO.getStart(),recipeRefundInfoReqVO.getLimit());
+    }
+
+    @Override
+    public List<DecoctionWayBean> findDecoctionWay(DecoctionWayBean decoctionWayBean) {
+        List<DecoctionWay> decoctionWayList = drugDecoctionWayDao.findAllDecoctionWayByOrganIdAndDrugFormType(decoctionWayBean.getOrganId(), decoctionWayBean.getDrugFormType());
+        return com.ngari.patient.utils.ObjectCopyUtils.convert(decoctionWayList, DecoctionWayBean.class);
     }
 }
 
