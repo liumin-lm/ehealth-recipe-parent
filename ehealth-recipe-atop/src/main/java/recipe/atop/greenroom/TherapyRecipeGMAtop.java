@@ -41,6 +41,11 @@ public class TherapyRecipeGMAtop extends BaseAtop {
     public QueryResult<RecipeTherapyOpVO> findTherapyByInfo(RecipeTherapyOpQueryVO recipeTherapyOpQueryVO) {
         logger.info("TherapyRecipeGMAtop findTherapyByInfo recipeTherapyOpQueryVO={}", JSONUtils.toString(recipeTherapyOpQueryVO));
         validateAtop(recipeTherapyOpQueryVO);
+        //越权校验
+        if (recipeTherapyOpQueryVO.getOrganId() != null) {
+            isAuthorisedOrgan(recipeTherapyOpQueryVO.getOrganId());
+        }
+
         try {
             RecipeTherapyOpQueryDTO recipeTherapyOpQueryDTO = ObjectCopyUtils.convert(recipeTherapyOpQueryVO, RecipeTherapyOpQueryDTO.class);
             QueryResult<RecipeTherapyOpDTO> queryResult = therapyRecipeBusinessService.findTherapyByInfo(recipeTherapyOpQueryDTO);
