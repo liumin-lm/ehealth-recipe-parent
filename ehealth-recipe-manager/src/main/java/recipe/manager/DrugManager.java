@@ -607,7 +607,6 @@ public class DrugManager extends BaseManager {
      * @return
      */
     @LogRecord
-    @Autowired
     public List<OrganDrugListSyncField> addOrganDrugListSyncFieldForOrgan(Integer organId) {
         List<OrganDrugListSyncField> organDrugListSyncFieldList=new ArrayList<>();
         LinkedHashMap<String,DrugSyncFieldDTO> fieldMap=initSyncFieldMapForOrgan();

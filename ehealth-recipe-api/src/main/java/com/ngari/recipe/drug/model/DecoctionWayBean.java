@@ -41,6 +41,12 @@ public class DecoctionWayBean implements Serializable {
     )
     private Double decoctionPrice;
 
+
+    @ItemProperty(
+            alias = "剂型"
+    )
+    private String drugForm;
+
     @ItemProperty(
         alias = "煎法拼音"
     )
@@ -144,5 +150,13 @@ public class DecoctionWayBean implements Serializable {
 
     public void setDrugUseRate(String drugUseRate) {
         this.drugUseRate = drugUseRate;
+    }
+
+    public String getDrugForm() {
+        return drugForm;
+    }
+
+    public void setDrugForm(String drugForm) {
+        this.drugForm = drugForm;
     }
 }

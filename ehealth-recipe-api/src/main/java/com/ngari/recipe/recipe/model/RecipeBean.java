@@ -454,6 +454,10 @@ public class RecipeBean implements Serializable {
     @ItemProperty(alias = "线下常用方/协定方编码")
     private String commonRecipeCode;
 
+    @ItemProperty(alias = "处方剂型类型 1 颗粒方 2 饮用方")
+    @Dictionary(id = "eh.cdr.dictionary.RecipeDrugFrom")
+    private Integer recipeDrugFrom;
+
     public Integer getCheckerSignState() {
         return checkerSignState;
     }
@@ -1658,5 +1662,13 @@ public class RecipeBean implements Serializable {
 
     public void setCommonRecipeCode(String commonRecipeCode) {
         this.commonRecipeCode = commonRecipeCode;
+    }
+
+    public Integer getRecipeDrugFrom() {
+        return recipeDrugFrom;
+    }
+
+    public void setRecipeDrugFrom(Integer recipeDrugFrom) {
+        this.recipeDrugFrom = recipeDrugFrom;
     }
 }
