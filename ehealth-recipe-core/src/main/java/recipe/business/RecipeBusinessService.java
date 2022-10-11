@@ -983,6 +983,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         return CollectionUtils.isEmpty(doctorCommonPharmacies)?null:doctorCommonPharmacies.get(0);
     }
 
+
     @Override
     public void saveDoctorCommonPharmacy(DoctorCommonPharmacy doctorCommonPharmacy) {
         List<DoctorCommonPharmacy> doctorCommonPharmacies=doctorCommonPharmacyDao.findByOrganIdAndDoctorId(doctorCommonPharmacy.getOrganId(),doctorCommonPharmacy.getDoctorId());
@@ -1168,7 +1169,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
 
     @Override
     public List<DecoctionWayBean> findDecoctionWay(DecoctionWayBean decoctionWayBean) {
-        List<DecoctionWay> decoctionWayList = drugDecoctionWayDao.findAllDecoctionWayByOrganIdAndDrugFormType(decoctionWayBean.getOrganId(), decoctionWayBean.getDrugForm());
+        List<DecoctionWay> decoctionWayList = drugDecoctionWayDao.findAllDecoctionWayByOrganIdAndDrugFormType(decoctionWayBean.getOrganId(), "%" + decoctionWayBean.getDrugForm() + "%");
         return com.ngari.patient.utils.ObjectCopyUtils.convert(decoctionWayList, DecoctionWayBean.class);
     }
 }

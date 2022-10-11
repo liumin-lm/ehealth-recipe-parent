@@ -35,7 +35,7 @@ public abstract class DoctorCommonPharmacyDAO extends HibernateSupportDelegateDA
     @DAOMethod(sql = "from DoctorCommonPharmacy where organId=:organId and doctorId=:doctorId order by updateTime desc " ,limit =0)
     public abstract List<DoctorCommonPharmacy> findByOrganIdAndDoctorId(@DAOParam("organId") Integer organId, @DAOParam("doctorId") Integer doctorId);
 
-    @DAOMethod(sql = "from DoctorCommonPharmacy where organId=:organId " ,limit =0)
+    @DAOMethod(sql = "from DoctorCommonPharmacy where 1=1", limit = 0)
     public abstract List<DoctorCommonPharmacy> findByOrganIdAndDoctorId2(@DAOParam("organId")  Integer organId);
 
 

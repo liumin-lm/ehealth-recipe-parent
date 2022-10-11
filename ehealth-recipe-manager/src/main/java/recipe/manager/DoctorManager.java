@@ -37,10 +37,22 @@ public class DoctorManager extends BaseManager{
      * @param doctorDefault
      */
     public void saveDoctorDefault(DoctorDefault doctorDefault) {
+        if (Integer.valueOf(2).equals(doctorDefault.getCategory())) {
+            DoctorDefault dbDefault = doctorDefaultDAO.getByOrganAndDoctorAndCategory(doctorDefault.getOrganId(), doctorDefault.getDoctorId(), doctorDefault.getCategory());
+            if (null != dbDefault) {
+                dbDefault.setIdKey(doctorDefault.getIdKey());
+                dbDefault.setType(doctorDefault.getType());
+                doctorDefaultDAO.updateNonNullFieldByPrimaryKey(dbDefault);
+            } else {
+                doctorDefaultDAO.save(doctorDefault);
+            }
+            return;
+        }
         DoctorDefault dbDefault = doctorDefaultDAO.getByOrganAndDoctorAndCategoryAndType(doctorDefault.getOrganId(), doctorDefault.getDoctorId(), doctorDefault.getCategory(), doctorDefault.getType());
         if (null != dbDefault) {
             dbDefault.setIdKey(doctorDefault.getIdKey());
             doctorDefaultDAO.updateNonNullFieldByPrimaryKey(dbDefault);
+            return;
         }
         doctorDefaultDAO.save(doctorDefault);
     }

@@ -2,6 +2,7 @@ package recipe.service;
 
 import com.google.common.collect.Lists;
 import com.ngari.opbase.base.service.IBusActionLogService;
+import com.ngari.opbase.util.OpSecurityUtil;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganService;
@@ -12,6 +13,7 @@ import com.ngari.recipe.drug.model.SaleDrugListDTO;
 import com.ngari.recipe.drug.service.ISaleDrugListService;
 import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.DrugsEnterprise;
+import com.ngari.recipe.entity.OrganAndDrugsepRelation;
 import com.ngari.recipe.entity.SaleDrugList;
 import ctd.account.UserRoleToken;
 import ctd.persistence.DAOFactory;
@@ -29,6 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 import recipe.aop.LogRecord;
 import recipe.constant.ErrorCode;
+import recipe.core.api.IEnterpriseBusinessService;
 import recipe.dao.DrugListDAO;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.OrganAndDrugsepRelationDAO;
@@ -39,6 +42,7 @@ import recipe.serviceprovider.drug.service.RemoteDrugService;
 
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author houxr
@@ -53,6 +57,8 @@ public class SaleDrugListService implements ISaleDrugListService {
 //    @Autowired
 //    private SaleDrugListManager saleDrugListManager;
 
+    @Autowired
+    private IEnterpriseBusinessService enterpriseBusinessService;
 
     private void validateSaleDrugList(SaleDrugList saleDrugList) {
         if (null == saleDrugList) {
@@ -259,9 +265,24 @@ public class SaleDrugListService implements ISaleDrugListService {
                                                                                         final String drugClass,
                                                                                         final String keyword, final Integer status, final Integer type,
                                                                                         final String producer, final int start, final int limit) {
+        //这里的organid是药企id
         if (organId == null) {
             return null;
         }
+
+        //越权判断
+        UserRoleToken urt = UserRoleToken.getCurrent();
+        String mu = urt.getManageUnit();
+        if (!"eh".equals(mu)) {
+            List<OrganAndDrugsepRelation> relastionList=enterpriseBusinessService.findOrganAndDrugsepRelationBean(organId);
+            List<Integer> organIdList= relastionList.stream().map(OrganAndDrugsepRelation::getOrganId)
+                    .collect(Collectors.toList());
+            if(organIdList==null || organIdList.isEmpty()){
+                throw new DAOException(DAOException.ACCESS_DENIED, "权限验证失败");
+            }
+            OpSecurityUtil.isAuthorisedOrgans(organIdList);
+        }
+
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         QueryResult result = saleDrugListDAO.querySaleDrugListByOrganIdAndKeyword(startTime, endTime, organId, drugClass, keyword, status, type, producer, start, limit);
         result.setItems(covertData(result.getItems()));
