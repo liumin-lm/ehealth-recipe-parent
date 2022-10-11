@@ -1166,11 +1166,5 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         return recipeManager.getRecipeRefundInfo(recipeRefundInfoReqVO.getDoctorId(),recipeRefundInfoReqVO.getStartTime(),recipeRefundInfoReqVO.getEndTime(),
                 recipeRefundInfoReqVO.getStart(),recipeRefundInfoReqVO.getLimit());
     }
-
-    @Override
-    public List<DecoctionWayBean> findDecoctionWay(DecoctionWayBean decoctionWayBean) {
-        List<DecoctionWay> decoctionWayList = drugDecoctionWayDao.findAllDecoctionWayByOrganIdAndDrugFormType(decoctionWayBean.getOrganId(), "%" + decoctionWayBean.getDrugForm() + "%");
-        return com.ngari.patient.utils.ObjectCopyUtils.convert(decoctionWayList, DecoctionWayBean.class);
-    }
 }
 

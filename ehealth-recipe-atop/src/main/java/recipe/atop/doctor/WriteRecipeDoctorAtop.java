@@ -186,17 +186,6 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
     }
 
     /**
-     * 查询煎法列表
-     * @param decoctionWayBean
-     * @return
-     */
-    @RpcService
-    public List<DecoctionWayBean> findDecoctionWay(DecoctionWayBean decoctionWayBean) {
-        validateAtop(decoctionWayBean.getOrganId());
-        return recipeBusinessService.findDecoctionWay(decoctionWayBean);
-    }
-
-    /**
      * 查询医生选择的常用默认药房
      *
      * @param organId
@@ -217,6 +206,6 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
     @Deprecated
     public void saveDoctorCommonPharmacy(DoctorCommonPharmacy doctorCommonPharmacy) {
         validateAtop(doctorCommonPharmacy);
-        recipeBusinessService.saveDoctorCommonPharmacy(doctorCommonPharmacy);
+      //  recipeBusinessService.saveDoctorCommonPharmacy(doctorCommonPharmacy);
     }
 }

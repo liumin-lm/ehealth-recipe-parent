@@ -102,8 +102,4 @@ public abstract class DrugDecoctionWayDao extends HibernateSupportDelegateDAO<De
     @DAOMethod(sql = "select count(*) from DecoctionWay where organId=:organId")
     public abstract Long getCountOfOrgan(@DAOParam("organId") Integer organId);
 
-    @DAOMethod(sql = "from DecoctionWay where organId =:organId and drugForm like :drugForm order by sort", limit = 0)
-    public abstract List<DecoctionWay> findAllDecoctionWayByOrganIdAndDrugFormType(@DAOParam("organId") Integer organId,
-                                                                                   @DAOParam("drugForm") String drugForm);
-
 }

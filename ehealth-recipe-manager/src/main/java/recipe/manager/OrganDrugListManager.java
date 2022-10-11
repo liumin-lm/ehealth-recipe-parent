@@ -53,7 +53,7 @@ public class OrganDrugListManager extends BaseManager {
         if (Integer.valueOf(2).equals(appointEnterpriseType)) {
             return null;
         }
-        organId = null == id ? organId : id;
+        organId = ValidateUtil.integerIsEmpty(id) ? organId : id;
         Recipe recipe = new Recipe();
         recipe.setClinicOrgan(organId);
         return this.organStock(recipe, detailList);

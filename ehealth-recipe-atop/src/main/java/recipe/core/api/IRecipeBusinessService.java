@@ -342,10 +342,4 @@ public interface IRecipeBusinessService {
 
     List<RecipeRefundDTO> getRecipeRefundInfo(RecipeRefundInfoReqVO recipeRefundInfoReqVO);
 
-    /**
-     * 查询煎法信息
-     * @param decoctionWayBean
-     * @return
-     */
-    List<DecoctionWayBean> findDecoctionWay(DecoctionWayBean decoctionWayBean);
 }
