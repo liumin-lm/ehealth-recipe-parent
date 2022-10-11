@@ -15,7 +15,6 @@ import com.ngari.patient.dto.*;
 import com.ngari.patient.service.IUsePathwaysService;
 import com.ngari.patient.service.IUsingRateService;
 import com.ngari.platform.recipe.mode.QueryRecipeInfoHisDTO;
-import com.ngari.recipe.drug.model.DecoctionWayBean;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
@@ -552,6 +551,11 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         RecipeListService recipeListService = ApplicationUtils.getRecipeService(RecipeListService.class);
         List<Map<String, Object>> map = recipeListService.findRecipesForRecipeList(recipeList, null);
         return map.stream().map(a -> (RecipeBean) a.get("recipe")).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Recipe> recipeAllByClinicId(Integer clinicId, Integer bussSource) {
+        return recipeDAO.findRecipeAllByBussSourceAndClinicId(bussSource, clinicId);
     }
 
     @Override

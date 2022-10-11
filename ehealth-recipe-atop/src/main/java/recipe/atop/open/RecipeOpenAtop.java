@@ -256,6 +256,13 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
     }
 
     @Override
+    public List<RecipeBean> recipeAllByClinicId(Integer clinicId, Integer bussSource) {
+        List<Recipe> list = recipeBusinessService.recipeAllByClinicId(clinicId, bussSource);
+        return ObjectCopyUtils.convert(list, RecipeBean.class);
+    }
+
+
+    @Override
     public List<RecipeDetailBean> findRecipeDetailByRecipeId(Integer recipeId) {
         validateAtop(recipeId);
         return recipeBusinessService.findRecipeDetailByRecipeId(recipeId);

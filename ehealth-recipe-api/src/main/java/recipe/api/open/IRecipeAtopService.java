@@ -185,6 +185,17 @@ public interface IRecipeAtopService {
     List<RecipeBean> recipeListByClinicId(Integer clinicId, Integer bussSource);
 
     /**
+     * 根据 二方id 查询处方列表全部数据
+     *
+     * @param clinicId
+     * @param bussSource
+     * @return
+     */
+
+    @RpcService(mvcDisabled = true)
+    List<RecipeBean> recipeAllByClinicId(Integer clinicId, Integer bussSource);
+
+    /**
      * 通过处方ID获取处方明细
      *
      * @param recipeId

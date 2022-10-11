@@ -2,7 +2,6 @@ package recipe.core.api;
 
 import com.ngari.patient.dto.HealthCardDTO;
 import com.ngari.platform.recipe.mode.QueryRecipeInfoHisDTO;
-import com.ngari.recipe.drug.model.DecoctionWayBean;
 import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.OutPatientRecipeDTO;
 import com.ngari.recipe.dto.OutPatientRecordResDTO;
@@ -225,6 +224,15 @@ public interface IRecipeBusinessService {
      * @return
      */
     List<RecipeBean> recipeListByClinicId(Integer clinicId, Integer bussSource);
+
+    /**
+     * 根据 二方id 查询处方列表全部数据
+     *
+     * @param clinicId   二方业务id
+     * @param bussSource 开处方来源 1问诊 2复诊(在线续方) 3网络门诊
+     * @return
+     */
+    List<Recipe> recipeAllByClinicId(Integer clinicId, Integer bussSource);
 
     /**
      * 通过处方ID获取处方明细
