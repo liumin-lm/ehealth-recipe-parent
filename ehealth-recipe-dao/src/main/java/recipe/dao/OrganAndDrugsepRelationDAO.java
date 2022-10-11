@@ -120,6 +120,10 @@ public abstract class OrganAndDrugsepRelationDAO extends HibernateSupportDelegat
     @DAOMethod(sql = "from OrganAndDrugsepRelation where  drugsEnterpriseId=:entId and organId in (:organIds)")
     public abstract List<OrganAndDrugsepRelation> findByEntIdAndOrganIds(@DAOParam("entId")Integer enterpriseId, @DAOParam("organIds")List<Integer> organIds);
 
+    @DAOMethod(sql = "from OrganAndDrugsepRelation where  organId in (:organIds)",limit=0)
+    public abstract List<OrganAndDrugsepRelation> findByOrganIds( @DAOParam("organIds")List<Integer> organIds);
+
+
     @DAOMethod(sql = "from OrganAndDrugsepRelation where organId = :organId")
     public abstract List<OrganAndDrugsepRelation> findByOrganId(@DAOParam("organId")Integer organId);
 }
