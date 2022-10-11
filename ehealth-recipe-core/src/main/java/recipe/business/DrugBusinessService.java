@@ -1,6 +1,13 @@
 package recipe.business;
 
+import com.google.common.collect.Lists;
+import com.ngari.WxServiceAPI;
+import com.ngari.intface.WxConfigService;
+import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.OrganConfigDTO;
+import com.ngari.patient.dto.OrganDTO;
+import com.ngari.patient.service.BasicAPI;
+import com.ngari.patient.service.OrganService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.HospitalDrugListDTO;
 import com.ngari.platform.recipe.mode.HospitalDrugListReqDTO;
@@ -13,15 +20,29 @@ import com.ngari.recipe.vo.DrugSaleStrategyVO;
 import com.ngari.recipe.vo.HospitalDrugListReqVO;
 import com.ngari.recipe.vo.HospitalDrugListVO;
 import com.ngari.recipe.vo.SearchDrugReqVO;
+import ctd.controller.exception.ControllerException;
+import ctd.dictionary.DictionaryController;
+import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
+import ctd.schema.annotation.ItemProperty;
+import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
+import ctd.util.annotation.RpcService;
+import ctd.util.converter.ConversionUtils;
+import eh.base.constant.ErrorCode;
+import eh.entity.base.ClientConfig;
+import eh.entity.base.HisServiceConfig;
+import eh.entity.base.Organ;
 import eh.entity.base.OrganConfig;
+import eh.entity.wx.WXConfig;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 import recipe.aop.LogRecord;
+import recipe.bean.cqjgptbussdata.Drug;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.client.DrugClient;
@@ -43,6 +64,8 @@ import recipe.vo.patient.PatientContinueRecipeCheckDrugRes;
 import recipe.vo.patient.PatientOptionalDrugVo;
 
 import javax.annotation.Resource;
+import java.lang.reflect.Field;
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -451,6 +474,61 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
         return organConfigVO;
     }
 
+//    @Override
+//    public void setDrugOrganConfig(Integer organId, String key, String value) {
+////        UserPermissionService userPermissionService = AppContextHolder.getBean("opbase.userPermissionService",UserPermissionService.class);
+////        Boolean havePermission = userPermissionService.havePermissionNode(PropertyOrganService.ORGAN_PROPERTY_PID);
+////        if (!havePermission){
+////            throw new DAOException("无权限操作");
+////        }
+//        setOrganConfig(organId, key, value);
+//    }
+
+//    /**
+//     * 设置机构Config
+//     *
+//     * @param organId
+//     * @param key
+//     * @param value
+//     */
+//    @RpcService
+//    public void setOrganConfig(Integer organId, String key, String value) {
+//        Organ organ = ObjectCopyUtils.convert(organClient.organDTO(organId),Organ.class);
+//        if (organ == null) {
+//            throw new DAOException(DAOException.ENTITIY_NOT_FOUND, "机构不存在");
+//        }
+//        switch (key) {
+//            case "OrganConfig.enableDrugSync":
+//                setConfig(organId, "enableDrugSync", Boolean.valueOf(value));
+//                drugManager.logChangeConfig(OrganConfig.class, organ, "药品目录是否支持接口同步", Boolean.valueOf(value));
+//                break;
+//            case "OrganConfig.enableDrugSyncArtificial":
+//                setConfig(organId, "enableDrugSyncArtificial", Boolean.valueOf(value));
+//                drugManager.logChangeConfig(OrganConfig.class, organ, "药品目录同步是否需要人工审核", Boolean.valueOf(value));
+//                break;
+//            case "OrganConfig.drugFromList":
+//                setConfig(organId, "drugFromList", value);
+//                drugManager.logChangeConfig(OrganConfig.class, organ, "手动同步剂型list暂存", value);
+//                break;
+//
+//        }
+//    }
+//
+//    protected void setConfig(Integer organId, String key, Object value) {
+//        OrganConfigVO config =getConfigByOrganId(organId);
+//        switch (key) {
+//            case "enableDrugSync":
+//                config.setEnableDrugSync((Boolean) value);
+//                break;
+//            case "enableDrugSyncArtificial":
+//                config.setEnableDrugSyncArtificial((Boolean) value);
+//                break;
+//            case "drugFromList":
+//                config.setDrugFromList((String)value);
+//                break;
+//        }
+//        drugOrganConfigDao.update(ObjectCopyUtils.convert(config, DrugOrganConfig.class));
+//    }
 
     private void getCheckText(PatientContinueRecipeCheckDrugRes patientContinueRecipeCheckDrugRes, List<String> drugName) {
         patientContinueRecipeCheckDrugRes.setCheckFlag(YesOrNoEnum.YES.getType());

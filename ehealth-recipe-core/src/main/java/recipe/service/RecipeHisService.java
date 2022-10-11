@@ -139,6 +139,8 @@ public class RecipeHisService extends RecipeBaseService {
     private StateManager stateManager;
     @Autowired
     private RecipeOrderDAO orderDAO;
+    @Autowired
+    private DrugOrganConfigDAO drugOrganConfigDao;
 
     /**
      * 发送处方
@@ -862,8 +864,9 @@ public class RecipeHisService extends RecipeBaseService {
                     if (CollectionUtils.isEmpty(drugInfoTOs)) {
                         LOGGER.warn("queryDrugInfo 药品code集合{}未查询到医院药品数据", drugCodes);
                         backList = new ArrayList<>();
-                        com.ngari.patient.service.OrganConfigService organConfigService = AppContextHolder.getBean("basic.organConfigService", com.ngari.patient.service.OrganConfigService.class);
-                        OrganConfigDTO byOrganId1 = organConfigService.getByOrganId(organId);
+//                        com.ngari.patient.service.OrganConfigService organConfigService = AppContextHolder.getBean("basic.organConfigService", com.ngari.patient.service.OrganConfigService.class);
+//                        OrganConfigDTO byOrganId1 = organConfigService.getByOrganId(organId);
+                        DrugOrganConfig byOrganId1=drugOrganConfigDao.getByOrganId(organId);
                         Boolean delete = byOrganId1.getEnableDrugDelete();
                         if (!ObjectUtils.isEmpty(delete)) {
                             if (delete) {
