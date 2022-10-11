@@ -2254,6 +2254,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         this.pharmacyToRecipePDF(recipeId);
         createPdfFactory.updatePdfToImg(recipeId, SignImageTypeEnum.SIGN_IMAGE_TYPE_CHEMIST.getType());
         smsClient.patientConvenientDrug(recipe);
+        revisitClient.successToPrescribeFastDrug(recipe);
     }
 
 
