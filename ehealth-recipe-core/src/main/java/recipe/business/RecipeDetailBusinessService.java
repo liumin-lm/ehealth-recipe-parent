@@ -66,8 +66,6 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
     private RecipeManager recipeManager;
     @Autowired
     private OrderManager orderManager;
-    @Autowired
-    private RecipeParameterDao parameterDao;
 
     @Override
     public ValidateDetailVO continueRecipeValidateDrug(ValidateDetailVO validateDetailVO) {
@@ -205,23 +203,8 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
 
     @Override
     public RecipeSkipVO getRecipeSkipUrl(Integer organId, String recipeCode) {
-        RecipeSkipVO recipeSkipVO = new RecipeSkipVO();
-        recipeSkipVO.setShowFlag(false);
-        recipeSkipVO.setClickFlag(false);
-        try {
-            String recipeSkipOrgan = parameterDao.getByName("recipeSkipOrgan");
-            if (LocalStringUtil.hasOrgan(organId.toString(), recipeSkipOrgan)) {
-                //包含机构
-                String recipeSkipUrl = parameterDao.getByName("recipeSkipUrl");
-                String recipeClickFlag = parameterDao.getByName("recipeSkipClickFlag");
-                recipeSkipVO.setShowFlag(true);
-                recipeSkipVO.setSkipUrl(recipeSkipUrl + recipeCode);
-                recipeSkipVO.setClickFlag(StringUtils.isEmpty(recipeClickFlag)?false:Boolean.valueOf(recipeClickFlag));
-            }
-        } catch (Exception e) {
-            logger.error("getRecipeSkipUrl error", e);
-        }
-        return recipeSkipVO;
+        logger.info("RecipeDetailBusinessService getRecipeSkipUrl organId={},recipeCode={}",organId,recipeCode);
+        return ObjectCopyUtils.convert(recipeManager.getRecipeSkipUrl(organId,recipeCode),RecipeSkipVO.class);
     }
 
     @Override
