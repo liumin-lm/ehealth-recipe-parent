@@ -39,6 +39,7 @@ import recipe.enumerate.status.WriteHisEnum;
 import recipe.enumerate.type.AppointEnterpriseTypeEnum;
 import recipe.enumerate.type.RecipeShowQrConfigEnum;
 import recipe.util.DictionaryUtil;
+import recipe.util.LocalStringUtil;
 import recipe.util.ObjectCopyUtils;
 import recipe.util.ValidateUtil;
 
@@ -948,5 +949,41 @@ public class RecipeManager extends BaseManager {
         });
         logger.info("RecipeManager getRecipeRefundInfo recipeRefundInfo={}",JSONUtils.toString(recipeRefundInfo));
         return recipeRefundInfo;
+    }
+
+    public RecipeSkipDTO getRecipeSkipUrl(Integer organId, String recipeCode) {
+        RecipeSkipDTO recipeSkipDTO = new RecipeSkipDTO();
+        recipeSkipDTO.setShowFlag(false);
+        recipeSkipDTO.setClickFlag(false);
+        try {
+            String recipeSkipOrgan = parameterDao.getByName("recipeSkipOrgan");
+            if (LocalStringUtil.hasOrgan(organId.toString(), recipeSkipOrgan)) {
+                //包含机构
+                String recipeSkipUrl = parameterDao.getByName("recipeSkipUrl");
+                String recipeClickFlag = parameterDao.getByName("recipeSkipClickFlag");
+                Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrganWithAll(recipeCode, organId);
+                if(Objects.nonNull(recipe)){
+                    RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+                    if(Objects.isNull(recipeExtend)){
+                        return recipeSkipDTO;
+                    }
+                    //门诊处方直接展示按钮,线上处方，并且状态为待发药，配送中，待取药，已完成才展示按钮
+                    if(new Integer(1).equals(recipeExtend.getRecipeBusinessType()) || (!new Integer(1).equals(recipeExtend.getRecipeBusinessType())
+                            && recipe.getStatus().equals(RecipeStateEnum.PROCESS_STATE_DISPENSING.getType())
+                            || recipe.getStatus().equals(RecipeStateEnum.PROCESS_STATE_DISTRIBUTION.getType())
+                            || recipe.getStatus().equals(RecipeStateEnum.PROCESS_STATE_MEDICINE.getType())
+                            || recipe.getStatus().equals(RecipeStateEnum.PROCESS_STATE_DONE.getType()))){
+                        recipeSkipDTO.setShowFlag(true);
+                    }
+                    recipeSkipDTO.setSkipUrl(recipeSkipUrl + recipeExtend.getChargeId());
+                }
+                recipeSkipDTO.setClickFlag(StringUtils.isEmpty(recipeClickFlag)?false:Boolean.valueOf(recipeClickFlag));
+            }
+        } catch (Exception e) {
+            logger.error("getRecipeSkipUrl error", e);
+        }
+        logger.info("RecipeManager getRecipeSkipUrl recipeSkipDTO={}",JSONUtils.toString(recipeSkipDTO));
+        return recipeSkipDTO;
+
     }
 }
