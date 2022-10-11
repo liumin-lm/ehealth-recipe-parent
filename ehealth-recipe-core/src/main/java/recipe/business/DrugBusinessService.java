@@ -446,7 +446,8 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
         if (ObjectUtils.isEmpty(drugOrganConfig)){
             drugOrganConfig=new DrugOrganConfig();
             drugOrganConfig.setOrganId(organId);
-            drugOrganConfig=drugOrganConfigDao.save(drugOrganConfig);
+            drugOrganConfigDao.save(drugOrganConfig);
+            drugOrganConfig=drugOrganConfigDao.getByOrganId(organId);
         }
         BeanUtils.copyProperties(drugOrganConfig, organConfigVO);
         //同步字段设置
