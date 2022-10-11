@@ -95,6 +95,7 @@ public class DrugClient extends BaseClient {
         drugVO.setSaleName(drugInfo.getDrugName());
         drugVO.setPharmacyId(drugInfo.getPharmacyId());
         drugVO.setApplyBusiness(drugInfo.getApplyBusiness());
+        drugVO.setDrugForm(drugInfo.getDrugForm());
         drugVO.setStart(start);
         drugVO.setLimit(limit);
         logger.info("DrugClient searchOrganDrugEs drugVO={}", JSON.toJSONString(drugVO));

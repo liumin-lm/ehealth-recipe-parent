@@ -1012,15 +1012,12 @@ public class RecipeListService extends RecipeBaseService {
      * @return
      */
     @RpcService
-    public Map<String, Object> findAllRecipesForPatientForYang(String mpiId, Integer organId,List<Integer> statusList, int start, int limit) {
+    public Map<String, Object> findAllRecipesForPatientForYang(String mpiId, Integer organId, int start, int limit) {
         LOGGER.info("findAllRecipesForPatient mpiId =" + mpiId);
         Map<String, Object> result = Maps.newHashMap();
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
-        if (CollectionUtils.isEmpty(statusList)) {
-            statusList = Lists.newArrayList(2, 3, 4, 5, 6, 7, 8, 9);
-        }
-        QueryResult<Recipe> resultList = recipeDAO.findRecipeListByMpiIDForYang(mpiId, organId, statusList,start, limit);
+        QueryResult<Recipe> resultList = recipeDAO.findRecipeListByMpiIDForYang(mpiId, organId, start, limit);
         List<Recipe> list = resultList.getItems();
         if (CollectionUtils.isEmpty(list)) {
             return result;

@@ -11,7 +11,8 @@ import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.model.RecipeExtendBean;
-import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
+import com.ngari.recipe.recipeorder.model.RecipeOrderVoNoDS;
+import com.ngari.recipe.vo.PatientBeanNoDS;
 import ctd.account.UserRoleToken;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
@@ -181,7 +182,7 @@ public class OrderFeeService implements IRecipeOrderRefundService {
         if (null == recipeOrder) {
             return recipeOrderRefundDetailVO;
         }
-        RecipeOrderBean recipeOrderBean = ObjectCopyUtils.convert(recipeOrder, RecipeOrderBean.class);
+        RecipeOrderVoNoDS recipeOrderBean = ObjectCopyUtils.convert(recipeOrder, RecipeOrderVoNoDS.class);
         recipeOrderRefundDetailVO.setRecipeOrderBean(recipeOrderBean);
         OrderRefundInfoVO orderRefundInfoVO = new OrderRefundInfoVO();
         if (null != recipeOrderBean.getEnterpriseId()) {
@@ -190,7 +191,14 @@ public class OrderFeeService implements IRecipeOrderRefundService {
             recipeOrderRefundDetailVO.setDrugsEnterpriseBean(drugsEnterpriseBean);
         }
         PatientDTO patientDTO = patientClient.getPatientDTO(recipeOrder.getMpiId());
-        recipeOrderRefundDetailVO.setPatientDTO(ObjectCopyUtils.convert(patientDTO, com.ngari.patient.dto.PatientDTO.class));
+        PatientBeanNoDS patientBeanNoDS=ObjectCopyUtils.convert(patientDTO, PatientBeanNoDS.class);
+        patientBeanNoDS.setCertificate(null);
+        patientBeanNoDS.setIdcard(null);
+        patientBeanNoDS.setIdcard2(null);
+        patientBeanNoDS.setGuardianCertificate(null);
+        patientBeanNoDS.setAddress(null);
+        recipeOrderRefundDetailVO.setPatientDTO(patientBeanNoDS);
+
         List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
         List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIdList);
         orderRefundInfoVO.setAuditNodeType(orderFeeManager.getRecipeRefundNode(recipeIdList.get(0), recipeOrder.getOrganId()));

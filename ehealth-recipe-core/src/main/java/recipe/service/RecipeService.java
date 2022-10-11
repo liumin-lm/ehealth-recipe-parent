@@ -285,6 +285,9 @@ public class RecipeService extends RecipeBaseService {
      */
     public static final Integer RECIPE_EXPIRED_SEARCH_DAYS = 13;
 
+    @Autowired
+    private DrugOrganConfigDAO drugOrganConfigDao;
+
 
     @RpcService
     public RecipeBean getByRecipeId(int recipeId) {
@@ -1918,9 +1921,10 @@ public class RecipeService extends RecipeBaseService {
             hisResponseTO.setMsg("推送数据为空!");
             return hisResponseTO;
         }
-        com.ngari.patient.service.OrganConfigService organConfigService =
-                AppContextHolder.getBean("basic.organConfigService", com.ngari.patient.service.OrganConfigService.class);
-        OrganConfigDTO byOrganId1 = organConfigService.getByOrganId(organId);
+//        com.ngari.patient.service.OrganConfigService organConfigService =
+//                AppContextHolder.getBean("basic.organConfigService", com.ngari.patient.service.OrganConfigService.class);
+//        OrganConfigDTO byOrganId1 = organConfigService.getByOrganId(organId);
+        DrugOrganConfig byOrganId1=drugOrganConfigDao.getByOrganId(organId);
         if (ObjectUtils.isEmpty(byOrganId1)) {
             throw new DAOException(DAOException.VALUE_NEEDED, "未找到机构配置!");
         }
@@ -1955,8 +1959,8 @@ public class RecipeService extends RecipeBaseService {
         }
         List<String> drugForms = Lists.newArrayList();
         if (dataRange == 2) {
-            OrganConfigDTO byOrganId = organConfigService.getByOrganId(organId);
-            String drugFromList = byOrganId.getDrugFromList();
+//            OrganConfigDTO byOrganId = organConfigService.getByOrganId(organId);9999
+            String drugFromList = byOrganId1.getDrugFromList();
             if (!ObjectUtils.isEmpty(drugFromList)) {
                 String[] split = drugFromList.split(",");
                 for (String s : split) {
@@ -2288,9 +2292,12 @@ public class RecipeService extends RecipeBaseService {
             }
         }
         UserRoleToken urt = UserRoleToken.getCurrent();
-        com.ngari.patient.service.OrganConfigService organConfigService =
-                AppContextHolder.getBean("basic.organConfigService", com.ngari.patient.service.OrganConfigService.class);
-        OrganConfigDTO byOrganId1 = organConfigService.getByOrganId(organId);
+//        com.ngari.patient.service.OrganConfigService organConfigService =
+//                AppContextHolder.getBean("basic.organConfigService", com.ngari.patient.service.OrganConfigService.class);
+//        OrganConfigDTO byOrganId1 = organConfigService.getByOrganId(organId);
+
+        DrugOrganConfig byOrganId1=drugOrganConfigDao.getByOrganId(organId);
+
         if (ObjectUtils.isEmpty(byOrganId1)) {
             throw new DAOException(DAOException.VALUE_NEEDED, "未找到机构配置!");
         }
@@ -2330,8 +2337,8 @@ public class RecipeService extends RecipeBaseService {
         }
         drugForms = Lists.newArrayList();
         if (dataRange != 1) {
-            OrganConfigDTO byOrganId = organConfigService.getByOrganId(organId);
-            String drugFromList = byOrganId.getDrugFromList();
+//            OrganConfigDTO byOrganId = organConfigService.getByOrganId(organId);
+            String drugFromList = byOrganId1.getDrugFromList();
             if (!ObjectUtils.isEmpty(drugFromList)) {
                 String[] split = drugFromList.split(",");
                 for (String s : split) {
@@ -2364,7 +2371,8 @@ public class RecipeService extends RecipeBaseService {
         map.put("Exception", 0);
         redisClient.del(KEY_THE_DRUG_SYNC + organId.toString());
         redisClient.set(KEY_THE_DRUG_SYNC + organId.toString(), map);
-        OrganConfigDTO byOrganId1 = organConfigService.getByOrganId(organId);
+//        OrganConfigDTO byOrganId1 = organConfigService.getByOrganId(organId);
+        DrugOrganConfig byOrganId1=drugOrganConfigDao.getByOrganId(organId);
         //List<OrganDrugInfoTO> finalData = data;
         RecipeBusiThreadPool.execute(new Runnable() {
             @Override
@@ -2551,8 +2559,8 @@ public class RecipeService extends RecipeBaseService {
      */
     @RpcService(timeout = 6000000)
     public void drugInfoSynMovementDTask() throws ParseException {
-        com.ngari.patient.service.OrganConfigService organConfigService =
-                AppContextHolder.getBean("basic.organConfigService", com.ngari.patient.service.OrganConfigService.class);
+//        com.ngari.patient.service.OrganConfigService organConfigService =
+//                AppContextHolder.getBean("basic.organConfigService", com.ngari.patient.service.OrganConfigService.class);
         LocalTime localTime = LocalTime.now();
         LocalTime localTime1 = localTime.minusMinutes(1);
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
@@ -2560,7 +2568,7 @@ public class RecipeService extends RecipeBaseService {
         String format1 = localTime1.format(dateTimeFormatter);
         Time etime = Time.valueOf(format);
         Time stime = Time.valueOf(format1);
-        List<Integer> organIds = organConfigService.findOrganIdByEnableDrugSyncAndTime(stime, etime);
+        List<Integer> organIds = drugOrganConfigDao.findOrganIdByEnableDrugSyncAndTime(stime, etime);
         if (!ObjectUtils.isEmpty(organIds)) {
             for (Integer organId : organIds) {
                 try {
@@ -2594,9 +2602,10 @@ public class RecipeService extends RecipeBaseService {
                 throw new DAOException(DAOException.VALUE_NEEDED, "药品数据正在同步中，请耐心等待...");
             }
         }
-        com.ngari.patient.service.OrganConfigService organConfigService =
-                AppContextHolder.getBean("basic.organConfigService", com.ngari.patient.service.OrganConfigService.class);
-        OrganConfigDTO byOrganId1 = organConfigService.getByOrganId(organId);
+//        com.ngari.patient.service.OrganConfigService organConfigService =
+//                AppContextHolder.getBean("basic.organConfigService", com.ngari.patient.service.OrganConfigService.class);
+//        OrganConfigDTO byOrganId1 = organConfigService.getByOrganId(organId);
+        DrugOrganConfig byOrganId1=drugOrganConfigDao.getByOrganId(organId);
         if (ObjectUtils.isEmpty(byOrganId1)) {
             throw new DAOException(DAOException.VALUE_NEEDED, "未找到机构配置!");
         }
@@ -2633,8 +2642,8 @@ public class RecipeService extends RecipeBaseService {
         }
         drugForms = Lists.newArrayList();
         if (dataRange != 1) {
-            OrganConfigDTO byOrganId = organConfigService.getByOrganId(organId);
-            String drugFromList = byOrganId.getDrugFromList();
+//            OrganConfigDTO byOrganId = organConfigService.getByOrganId(organId);
+            String drugFromList = byOrganId1.getDrugFromList();
             if (!ObjectUtils.isEmpty(drugFromList)) {
                 String[] split = drugFromList.split(",");
                 for (String s : split) {
@@ -2660,7 +2669,8 @@ public class RecipeService extends RecipeBaseService {
         SimpleDateFormat myFmt2 = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         Map<String, Object> map = Maps.newHashMap();
         //List<OrganDrugInfoTO> finalData = data;
-        OrganConfigDTO byOrganId1 = organConfigService.getByOrganId(organId);
+//        OrganConfigDTO byOrganId1 = organConfigService.getByOrganId(organId);
+        DrugOrganConfig byOrganId1=drugOrganConfigDao.getByOrganId(organId);
         IRecipeHisService recipeHisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         OrganDrugInfoResponseTO responseTO = new OrganDrugInfoResponseTO();
         OrganDrugInfoRequestTO request = new OrganDrugInfoRequestTO();
@@ -2834,8 +2844,7 @@ public class RecipeService extends RecipeBaseService {
         List<Integer> organIds = new ArrayList<>();
         if (null == organId) {
             //查询 base_organconfig 表配置需要同步的机构
-            //todo--这个配置要优化到运营平台机构配置中
-            organIds = iOrganConfigService.findEnableDrugSync();
+            organIds = drugOrganConfigDao.findEnableDrugSync();
         } else {
             organIds.add(organId);
         }

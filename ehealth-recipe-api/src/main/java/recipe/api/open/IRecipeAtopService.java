@@ -12,10 +12,7 @@ import ctd.util.annotation.RpcService;
 import recipe.vo.PageGenericsVO;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.patient.PatientOptionalDrugVo;
-import recipe.vo.second.AutomatonResultVO;
-import recipe.vo.second.AutomatonVO;
-import recipe.vo.second.RecipePayHISCallbackReq;
-import recipe.vo.second.RevisitRecipeTraceVo;
+import recipe.vo.second.*;
 
 import java.util.Date;
 import java.util.List;
@@ -185,6 +182,17 @@ public interface IRecipeAtopService {
     List<RecipeBean> recipeListByClinicId(Integer clinicId, Integer bussSource);
 
     /**
+     * 根据 二方id 查询处方列表全部数据
+     *
+     * @param clinicId
+     * @param bussSource
+     * @return
+     */
+
+    @RpcService(mvcDisabled = true)
+    List<RecipeBean> recipeAllByClinicId(Integer clinicId, Integer bussSource);
+
+    /**
      * 通过处方ID获取处方明细
      *
      * @param recipeId
@@ -265,5 +273,14 @@ public interface IRecipeAtopService {
      */
     @RpcService
     PageGenericsVO<AutomatonResultVO> automatonList(AutomatonVO automatonVO);
+
+    /**
+     * 自助机处方接口
+     *
+     * @param selfServiceMachineReqVO
+     * @return
+     */
+    @RpcService
+    PageGenericsVO<List<SelfServiceMachineResVo>> findRecipeToZiZhuJi(SelfServiceMachineReqVO selfServiceMachineReqVO);
 
 }

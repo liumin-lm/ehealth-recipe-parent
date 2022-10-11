@@ -155,4 +155,14 @@ public interface IRecipeOrderAtopService {
      */
     @RpcService
     Integer getRecipeRefundCount(RecipeRefundInfoReqVO recipeRefundCountVO);
+
+    /**
+     * 根据 二方id 查询订单列表
+     *
+     * @param clinicId   二方业务id
+     * @param bussSource 开处方来源 1问诊 2复诊(在线续方) 3网络门诊
+     * @return
+     */
+    @RpcService(mvcDisabled = true)
+    List<RecipeOrderVO> orderListByClinicId(Integer clinicId, Integer bussSource);
 }

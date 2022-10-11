@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.dao.comment.ExtendDao;
 
+import java.sql.Time;
 import java.util.List;
 
 /**
@@ -33,7 +34,24 @@ public abstract class DrugOrganConfigDAO extends HibernateSupportDelegateDAO<Dru
         return updateNonNullFieldByPrimaryKey(obj, "id");
     }
 
+//    @Override
+//    public boolean updateNonNullFieldByOrganid(DrugOrganConfig obj) {
+//        return updateNonNullFieldByPrimaryKey(obj, "organId");
+//    }
+
     @DAOMethod
     public abstract DrugOrganConfig getByOrganId(Integer organId);
+
+    /**
+     * 根据定时时间范围 查找 同步开关开启的 配置机构ID集合（药品同步调用）
+     * @param startTime
+     * @param endTime
+     * @return
+     */
+    @DAOMethod(sql="select organId  from OrganConfig where enableDrugSync=1 and dockingMode=1 and regularTime >=:startTime and  regularTime <=:endTime ",limit = 0)
+    public abstract List<Integer> findOrganIdByEnableDrugSyncAndTime(@DAOParam("startTime") Time startTime , @DAOParam("endTime") Time endTime  );
+
+    @DAOMethod(sql="select organId from OrganConfig where enable_drug_sync=1" ,limit=0)
+    public abstract List<Integer> findEnableDrugSync();
 
 }

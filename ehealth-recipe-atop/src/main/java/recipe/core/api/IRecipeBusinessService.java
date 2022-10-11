@@ -2,7 +2,6 @@ package recipe.core.api;
 
 import com.ngari.patient.dto.HealthCardDTO;
 import com.ngari.platform.recipe.mode.QueryRecipeInfoHisDTO;
-import com.ngari.recipe.drug.model.DecoctionWayBean;
 import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.OutPatientRecipeDTO;
 import com.ngari.recipe.dto.OutPatientRecordResDTO;
@@ -17,15 +16,13 @@ import com.ngari.recipe.vo.*;
 import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.SignEnum;
+import recipe.vo.PageGenericsVO;
 import recipe.vo.doctor.PatientOptionalDrugVO;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.greenroom.DrugUsageLabelResp;
 import recipe.vo.greenroom.RecipeRefundInfoReqVO;
 import recipe.vo.patient.PatientOptionalDrugVo;
-import recipe.vo.second.AutomatonResultVO;
-import recipe.vo.second.AutomatonVO;
-import recipe.vo.second.MedicalDetailVO;
-import recipe.vo.second.RecipePayHISCallbackReq;
+import recipe.vo.second.*;
 
 import java.util.Date;
 import java.util.List;
@@ -228,6 +225,15 @@ public interface IRecipeBusinessService {
     List<RecipeBean> recipeListByClinicId(Integer clinicId, Integer bussSource);
 
     /**
+     * 根据 二方id 查询处方列表全部数据
+     *
+     * @param clinicId   二方业务id
+     * @param bussSource 开处方来源 1问诊 2复诊(在线续方) 3网络门诊
+     * @return
+     */
+    List<Recipe> recipeAllByClinicId(Integer clinicId, Integer bussSource);
+
+    /**
      * 通过处方ID获取处方明细
      *
      * @param recipeId
@@ -357,4 +363,5 @@ public interface IRecipeBusinessService {
      */
     MedicationSyncConfig getMedicationSyncConfig(Integer organId,Integer datatype);
 
+    PageGenericsVO<List<SelfServiceMachineResVo>> findRecipeToZiZhuJi(SelfServiceMachineReqVO selfServiceMachineReqVO);
 }

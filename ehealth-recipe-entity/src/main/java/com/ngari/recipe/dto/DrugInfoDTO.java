@@ -58,4 +58,9 @@ public class DrugInfoDTO {
      * 药物使用总数量
      */
     private Double useTotalDose;
+
+    /**
+     * 剂型
+     */
+    private String drugForm;
 }

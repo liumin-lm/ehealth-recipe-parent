@@ -1,5 +1,6 @@
 package com.ngari.recipe.vo;
 
+import ctd.schema.annotation.ItemProperty;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -34,6 +35,11 @@ public class SearchDrugReqVO implements Serializable {
      * 药品适用业务 历史数据默认 1    1-药品处方 2-诊疗处方  保存方式类似  1,2
      */
     private String applyBusiness;
+
+    /**
+     * 处方剂型类型 1 饮片方 2 颗粒方
+     */
+    private Integer recipeDrugForm;
 
     /**
      * 起始条数

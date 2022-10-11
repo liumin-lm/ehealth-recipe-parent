@@ -29,7 +29,9 @@ import recipe.vo.second.RecipeVo;
 import recipe.vo.second.enterpriseOrder.DownOrderRequestVO;
 import recipe.vo.second.enterpriseOrder.EnterpriseDownDataVO;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -197,15 +199,20 @@ public class RecipeOrderOpenAtop extends BaseAtop implements IRecipeOrderAtopSer
 
     @Override
     public ImperfectInfoVO getImperfectInfo(com.ngari.recipe.recipe.model.RecipeBean recipeBean) {
-        validateAtop(recipeBean.getRecipeCode(),recipeBean.getClinicOrgan(),recipeBean.getMpiid());
+        validateAtop(recipeBean.getRecipeCode(), recipeBean.getClinicOrgan(), recipeBean.getMpiid());
         return recipeOrderService.getImperfectInfo(recipeBean);
     }
 
     @Override
     public Integer getRecipeRefundCount(RecipeRefundInfoReqVO recipeRefundCountVO) {
-        validateAtop(recipeRefundCountVO,recipeRefundCountVO.getDoctorId(),recipeRefundCountVO.getStartTime(),recipeRefundCountVO.getEndTime());
+        validateAtop(recipeRefundCountVO, recipeRefundCountVO.getDoctorId(), recipeRefundCountVO.getStartTime(), recipeRefundCountVO.getEndTime());
         return recipeOrderService.getRecipeRefundCount(recipeRefundCountVO);
     }
 
+    @Override
+    public List<RecipeOrderVO> orderListByClinicId(Integer clinicId, Integer bussSource) {
+        List<RecipeOrder> list = recipeOrderService.orderListByClinicId(clinicId, bussSource);
+        return ObjectCopyUtils.convert(list, RecipeOrderVO.class);
+    }
 
 }

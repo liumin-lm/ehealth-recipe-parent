@@ -28,6 +28,7 @@ import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.enumerate.status.RecipeStateEnum;
+import recipe.manager.RecipeManager;
 import recipe.service.common.RecipeCacheService;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
@@ -365,6 +366,15 @@ public class RecipeMsgService {
                     if (!Objects.isNull(recipeExtend) && StringUtils.isNotEmpty(recipeExtend.getPharmNo())) {
                         extendValue.put("pharmNo", organDTO.getName() + recipeExtend.getPharmNo() + "取药窗口");
                     }
+
+                    if(!StringUtils.isEmpty(recipe.getOrderCode())){
+                        RecipeOrderDAO recipeOrderDAO=DAOFactory.getDAO(RecipeOrderDAO.class);
+                        RecipeOrder recipeOrder=recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+
+                        RecipeManager recipeManager = AppContextHolder.getBean("recipeManager", RecipeManager.class);
+                        extendValue.put("qrName", recipeManager.getToHosProof(recipe, recipeExtend, recipeOrder));
+                    }
+
                     break;
                 default:
 

@@ -185,6 +185,11 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
         validateAtop(organEnterpriseRelationVo.getType(), organEnterpriseRelationVo.getStart(), organEnterpriseRelationVo.getLimit());
         organEnterpriseRelationVo.setStart((organEnterpriseRelationVo.getStart() - 1) * organEnterpriseRelationVo.getLimit());
         Integer organId = organEnterpriseRelationVo.getOrganId();
+        //越权校验
+        if(organId !=null){
+            isAuthorisedOrgan(organEnterpriseRelationVo.getOrganId());
+        }
+
         QueryResult<DrugsEnterprise> queryResult = enterpriseBusinessService.drugsEnterpriseLimit(organEnterpriseRelationVo);
         if (null == queryResult || ValidateUtil.longIsEmpty(queryResult.getTotal())) {
             organEnterpriseRelationVo.setTotal(0);

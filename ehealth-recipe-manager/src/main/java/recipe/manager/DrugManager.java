@@ -6,13 +6,21 @@ import com.google.common.collect.Lists;
 import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.dto.UsingRateDTO;
 import com.ngari.opbase.base.service.IBusActionLogService;
+import com.ngari.patient.dto.DoctorDTO;
+import com.ngari.patient.dto.OrganConfigDTO;
+import com.ngari.patient.service.BasicAPI;
+import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import ctd.account.UserRoleToken;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
+import ctd.schema.annotation.ItemProperty;
 import ctd.spring.AppDomainContext;
+import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
+import eh.entity.base.Organ;
+import eh.entity.base.OrganConfig;
 import eh.entity.base.UsePathways;
 import eh.entity.base.UsingRate;
 import es.api.DrugSearchService;
@@ -27,11 +35,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import recipe.aop.LogRecord;
+import recipe.client.BusinessLogClient;
 import recipe.constant.RecipeBussConstant;
 import recipe.dao.*;
 import recipe.util.LocalStringUtil;
 import recipe.util.ValidateUtil;
 
+import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -62,6 +72,10 @@ public class DrugManager extends BaseManager {
     private DrugSaleStrategyDAO drugSaleStrategyDAO;
     @Autowired
     private OrganDrugListSyncFieldDAO organDrugListSyncFieldDAO;
+    @Autowired
+    private DrugOrganConfigDAO drugOrganConfigDAO;
+    @Autowired
+    private BusinessLogClient businessLogClient;
     private String YES="1";
     private String NO ="0";
 
@@ -723,4 +737,15 @@ public class DrugManager extends BaseManager {
         logger.info("initTypeList:{}",JSONUtils.toString(typeList));
         return typeList;
     }
+
+//    protected void logChangeConfig(Class<?> bizClass, Organ organ, String optionName, Object value) {
+//        if (value instanceof Boolean) {
+//            value = ((boolean) value) ? "打开" : "关闭";
+//        } else {
+//            value = "改为: " + value;
+//        }
+//        businessLogClient.recordBusinessLog("修改机构设置", organ.getOrganId().toString(), bizClass.getName(),
+//                String.format("[%2$s](%1$s)的'%3$s'选项被%4$s", organ.getOrganId(), organ.getName(), optionName, value), organ.getName());
+//    }
+
 }

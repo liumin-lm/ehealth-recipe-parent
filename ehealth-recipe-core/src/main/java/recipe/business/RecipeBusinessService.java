@@ -3,6 +3,7 @@ package recipe.business;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.follow.utils.ObjectCopyUtil;
@@ -24,6 +25,10 @@ import com.ngari.recipe.recipe.constant.RecipecCheckStatusConstant;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.vo.*;
 import coupon.api.service.ICouponBaseService;
+import ctd.dictionary.Dictionary;
+import ctd.dictionary.DictionaryController;
+import ctd.persistence.DAOFactory;
+import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
 import ctd.util.AppContextHolder;
@@ -64,6 +69,7 @@ import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.serviceprovider.recipelog.service.RemoteRecipeLogService;
 import recipe.serviceprovider.recipeorder.service.RemoteRecipeOrderService;
 import recipe.util.*;
+import recipe.vo.PageGenericsVO;
 import recipe.vo.doctor.PatientOptionalDrugVO;
 import recipe.vo.doctor.PharmacyTcmVO;
 import recipe.vo.doctor.RecipeInfoVO;
@@ -551,6 +557,11 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         RecipeListService recipeListService = ApplicationUtils.getRecipeService(RecipeListService.class);
         List<Map<String, Object>> map = recipeListService.findRecipesForRecipeList(recipeList, null);
         return map.stream().map(a -> (RecipeBean) a.get("recipe")).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Recipe> recipeAllByClinicId(Integer clinicId, Integer bussSource) {
+        return recipeDAO.findRecipeAllByBussSourceAndClinicId(bussSource, clinicId);
     }
 
     @Override
@@ -1164,6 +1175,110 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         logger.info("RecipeBusinessService getRecipeRefundInfo recipeRefundInfoReqVO={}",JSONUtils.toString(recipeRefundInfoReqVO));
         return recipeManager.getRecipeRefundInfo(recipeRefundInfoReqVO.getDoctorId(),recipeRefundInfoReqVO.getStartTime(),recipeRefundInfoReqVO.getEndTime(),
                 recipeRefundInfoReqVO.getStart(),recipeRefundInfoReqVO.getLimit());
+    }
+
+    @Override
+    public PageGenericsVO<List<SelfServiceMachineResVo>> findRecipeToZiZhuJi(SelfServiceMachineReqVO selfServiceMachineReqVO) {
+        logger.info("findRecipeToZiZhuJi mpiId =" + selfServiceMachineReqVO.getMpiId());
+        PageGenericsVO<List<SelfServiceMachineResVo>> pageGenericsVO = new PageGenericsVO<>();
+        List<Integer> statusList = selfServiceMachineReqVO.getStatusList();
+        if (CollectionUtils.isEmpty(statusList)) {
+            statusList = Lists.newArrayList(2, 3, 4, 5, 6, 7, 8, 9);
+        }
+        QueryResult<Recipe> resultList = recipeDAO.findRecipeToZiZhuJi(selfServiceMachineReqVO.getMpiId(), statusList,selfServiceMachineReqVO.getStart(), selfServiceMachineReqVO.getLimit());
+        List<Recipe> list = resultList.getItems();
+        if (CollectionUtils.isEmpty(list)) {
+            return pageGenericsVO;
+        }
+        pageGenericsVO.setTotal(Integer.valueOf(Long.toString(resultList.getTotal())));
+        pageGenericsVO.setLimit(Integer.valueOf(Long.toString(resultList.getLimit())));
+        pageGenericsVO.setStart(Integer.valueOf(Long.toString(resultList.getStart())));
+
+
+        List<Recipedetail> recipedetails;
+        List<SelfServiceMachineResVo> serviceMachineResVoList = new ArrayList<>();
+        try {
+            ctd.dictionary.Dictionary usingRateDic = DictionaryController.instance().get("eh.cdr.dictionary.UsingRate");
+            ctd.dictionary.Dictionary usePathwaysDic = DictionaryController.instance().get("eh.cdr.dictionary.UsePathways");
+            Dictionary departDic = DictionaryController.instance().get("eh.base.dictionary.Depart");
+            for (Recipe recipe : list) {
+                String organText = DictionaryController.instance().get("eh.base.dictionary.Organ").getText(recipe.getClinicOrgan());
+                RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+                EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
+                SelfServiceMachineResVo selfServiceMachineResVo = new SelfServiceMachineResVo();
+                selfServiceMachineResVo.setRecipeId(recipe.getRecipeId());
+                selfServiceMachineResVo.setPatientName(recipe.getPatientName());
+                selfServiceMachineResVo.setDoctorName(recipe.getDoctorName());
+                selfServiceMachineResVo.setDoctorDepart(organText + departDic.getText(recipe.getDepart()));
+                selfServiceMachineResVo.setDiseaseName(recipe.getOrganDiseaseName());
+                selfServiceMachineResVo.setSignTime(DateConversion.getDateFormatter(recipe.getSignDate(), "MM月dd日 HH:mm"));
+                selfServiceMachineResVo.setSubState(recipe.getSubState());
+                selfServiceMachineResVo.setStatusText(RecipeStateEnum.getRecipeStateEnum(recipe.getSubState()).getName());
+                selfServiceMachineResVo.setProcessState(recipe.getProcessState());
+
+                recipedetails = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
+
+
+                List<DrugInfoResVo> drugInfoList = Lists.newArrayList();
+                String useDose;
+                String usingRateText;
+                String usePathwaysText;
+                for (Recipedetail detail : recipedetails) {
+                    DrugInfoResVo drugInfo = new DrugInfoResVo();
+                    if (StringUtils.isNotEmpty(detail.getUseDoseStr())) {
+                        useDose = detail.getUseDoseStr();
+                    } else {
+                        useDose = detail.getUseDose() == null ? null : String.valueOf(detail.getUseDose());
+                    }
+                    drugInfo.setDrugName(detail.getDrugName());
+                    //开药总量+药品单位
+                    String dSpec = "*" + detail.getUseTotalDose().intValue() + detail.getDrugUnit();
+                    drugInfo.setDrugTotal(dSpec);
+                    usingRateText = StringUtils.isNotEmpty(detail.getUsingRateTextFromHis()) ? detail.getUsingRateTextFromHis() : usingRateDic.getText(detail.getUsingRate());
+                    usePathwaysText = StringUtils.isNotEmpty(detail.getUsePathwaysTextFromHis()) ? detail.getUsePathwaysTextFromHis() : usePathwaysDic.getText(detail.getUsePathways());
+                    String useWay = "用法：每次" + useDose + detail.getUseDoseUnit() + "/" + usingRateText + "/" + usePathwaysText + detail.getUseDays() + "天";
+                    drugInfo.setUseWay(useWay);
+                    drugInfoList.add(drugInfo);
+                }
+                selfServiceMachineResVo.setRp(drugInfoList);
+                selfServiceMachineResVo.setMemo(recipe.getMemo());
+
+
+                switch (recipe.getStatus()) {
+                    case RecipeStatusConstant.CHECK_PASS:
+                        if (!Objects.isNull(recipeExtend) && StringUtils.isNotEmpty(recipeExtend.getPharmNo())) {
+                            selfServiceMachineResVo.setStatusText("药师审核处方通过，请去医院取药窗口取药:[" + recipeExtend.getPharmNo() + "]");
+                        } else {
+                            selfServiceMachineResVo.setStatusText( "药师审核处方通过，请去医院取药窗口取药");
+                        }
+                        break;
+                    case RecipeStatusConstant.NO_OPERATOR:
+                        selfServiceMachineResVo.setStatusText( "已取消(超过三天未取药)");
+                        break;
+                    case RecipeStatusConstant.REVOKE:
+                        selfServiceMachineResVo.setStatusText( "由于医生已撤销，该处方单已失效，请联系医生.");
+                        break;
+                    case RecipeStatusConstant.FINISH:
+                        selfServiceMachineResVo.setStatusText( "已完成");
+                        break;
+                    case RecipeStatusConstant.READY_CHECK_YS:
+                        selfServiceMachineResVo.setStatusText( "等待药师审核处方");
+                        break;
+                    case RecipeStatusConstant.CHECK_NOT_PASS_YS:
+                        selfServiceMachineResVo.setStatusText( "药师审核处方不通过，请联系开方医生");
+                        break;
+                    default:
+                        selfServiceMachineResVo.setStatusText( DictionaryController.instance().get("eh.cdr.dictionary.RecipeStatus").getText(recipe.getStatus()));
+                        break;
+                }
+                serviceMachineResVoList.add(selfServiceMachineResVo);
+            }
+            pageGenericsVO.setData(serviceMachineResVoList);
+        } catch (Exception e) {
+            logger.error("findRecipeToZiZhuJi error" + e.getMessage(), e);
+        }
+
+        return pageGenericsVO;
     }
 
     @Override
