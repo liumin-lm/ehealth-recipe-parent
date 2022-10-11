@@ -59,25 +59,25 @@ public class DocIndexClient extends BaseClient {
      * @return
      */
     public MedicalDetailBean getEmrMedicalDetail(Integer docIndexId) {
-        if (ValidateUtil.integerIsEmpty(docIndexId)) {
+        MedicalInfoBean medicalInfoBean = getEmrMedicalInfoBean(docIndexId);
+        if (null == medicalInfoBean) {
             return null;
         }
-        MedicalInfoBean medicalInfoBean = docIndexService.getMedicalInfoByDocIndexIdV2(docIndexId);
-        logger.info("DocIndexClient getEmrDetails docIndexId={},  medicalInfoBean:{}", docIndexId, JSONUtils.toString(medicalInfoBean));
-        if (null != medicalInfoBean) {
-            return medicalInfoBean.getMedicalDetailBean();
-        }
-        return null;
+        return medicalInfoBean.getMedicalDetailBean();
     }
 
     /**
-     * 获取电子病历 明细字段
+     * 获取电子病历 明细字段 增加病例号
      *
      * @param docIndexId
      * @return
      */
-    public EmrDetailDTO getEmrDetails(Integer docIndexId) {
-        MedicalDetailBean medicalDetailBean = getEmrMedicalDetail(docIndexId);
+    public EmrDetailDTO getEmrDetailsV1(Integer docIndexId) {
+        MedicalInfoBean medicalInfoBean = getEmrMedicalInfoBean(docIndexId);
+        if (null == medicalInfoBean) {
+            return new EmrDetailDTO();
+        }
+        MedicalDetailBean medicalDetailBean = medicalInfoBean.getMedicalDetailBean();
         if (null == medicalDetailBean) {
             return new EmrDetailDTO();
         }
@@ -86,8 +86,23 @@ public class DocIndexClient extends BaseClient {
             return new EmrDetailDTO();
         }
         EmrDetailDTO emrDetail = getMedicalInfo(detailList);
+        DocIndexBean docIndexBean = medicalInfoBean.getDocIndexBean();
+        if (null != docIndexBean) {
+            emrDetail.setHisEmrId(docIndexBean.getHisEmrId());
+        }
         logger.info("DocIndexClient getEmrDetails docIndexId={},  emrDetail:{}", docIndexId, JSON.toJSONString(emrDetail));
         return emrDetail;
+    }
+
+
+    /**
+     * 获取电子病历 明细字段
+     *
+     * @param docIndexId
+     * @return
+     */
+    public EmrDetailDTO getEmrDetails(Integer docIndexId) {
+        return getEmrDetailsV1(docIndexId);
     }
 
 
@@ -314,6 +329,15 @@ public class DocIndexClient extends BaseClient {
         iPatientService.saveRecipeDocIndex(docIndex, "3", 3);
     }
 
+
+    private MedicalInfoBean getEmrMedicalInfoBean(Integer docIndexId) {
+        if (ValidateUtil.integerIsEmpty(docIndexId)) {
+            return null;
+        }
+        MedicalInfoBean medicalInfoBean = docIndexService.getMedicalInfoByDocIndexIdV2(docIndexId);
+        logger.info("DocIndexClient getEmrDetails docIndexId={},  medicalInfoBean:{}", docIndexId, JSONUtils.toString(medicalInfoBean));
+        return medicalInfoBean;
+    }
 
     /**
      * 组织电子病历明细数据 用于调用保存接口 主要为了兼容老版本
