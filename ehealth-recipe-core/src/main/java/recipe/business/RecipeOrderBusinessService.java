@@ -62,7 +62,6 @@ import recipe.constant.RecipeBussConstant;
 import recipe.core.api.IEnterpriseBusinessService;
 import recipe.core.api.patient.IRecipeOrderBusinessService;
 import recipe.dao.*;
-import recipe.enumerate.status.*;
 import recipe.enumerate.status.GiveModeEnum;
 import recipe.enumerate.status.PayModeEnum;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
@@ -1478,13 +1477,18 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                 imperfectInfoVO.setRecipeCostNumber(recipeExtend.getRecipeCostNumber());
             }
         }
-        logger.info("RecipeOrderBusinessService getImperfectInfo ImperfectInfoVO={}",JSONUtils.toString(imperfectInfoVO));
+        logger.info("RecipeOrderBusinessService getImperfectInfo ImperfectInfoVO={}", JSONUtils.toString(imperfectInfoVO));
         return imperfectInfoVO;
     }
 
     @Override
     public Integer getRecipeRefundCount(RecipeRefundInfoReqVO recipeRefundCountVO) {
-        logger.info("RecipeOrderBusinessService getRecipeRefundCount recipeRefundCountVO={}",JSONUtils.toString(recipeRefundCountVO));
-        return recipeDAO.getRecipeRefundCount(recipeRefundCountVO.getDoctorId(),recipeRefundCountVO.getStartTime(),recipeRefundCountVO.getEndTime());
+        logger.info("RecipeOrderBusinessService getRecipeRefundCount recipeRefundCountVO={}", JSONUtils.toString(recipeRefundCountVO));
+        return recipeDAO.getRecipeRefundCount(recipeRefundCountVO.getDoctorId(), recipeRefundCountVO.getStartTime(), recipeRefundCountVO.getEndTime());
+    }
+
+    @Override
+    public List<RecipeOrder> orderListByClinicId(Integer clinicId, Integer bussSource) {
+        return orderManager.orderListByClinicId(clinicId, bussSource);
     }
 }

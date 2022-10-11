@@ -161,15 +161,6 @@ public class OrderManager extends BaseManager {
                 organLogisticsManageDto = organLogisticsManageDtos.get(0);
             }
             ControlLogisticsOrderDto controlLogisticsOrderDto = new ControlLogisticsOrderDto();
-            //TODO lium物流下单
-            //String organList = recipeParameterDao.getByName("zhHospitalOrganList");
-            /*if (null != enterprise.getOrganId() && StringUtils.isNotEmpty(organList) && LocalStringUtil.hasOrgan(enterprise.getOrganId().toString(), organList)) {
-                // 取药企对应的机构ID
-                controlLogisticsOrderDto.setOrganId(enterprise.getOrganId());
-            } else {
-                // 机构id
-                controlLogisticsOrderDto.setOrganId(recipe.getClinicOrgan());
-            }*/
             controlLogisticsOrderDto.setType(0);
             controlLogisticsOrderDto.setOrganId(enterprise.getId());
             // 寄件人姓名
@@ -598,6 +589,18 @@ public class OrderManager extends BaseManager {
         });
     }
 
+    public List<RecipeOrder> orderListByClinicId(Integer clinicId, Integer bussSource) {
+        List<Recipe> recipeList = recipeDAO.findRecipeAllByBussSourceAndClinicId(bussSource, clinicId);
+        if (CollectionUtils.isEmpty(recipeList)) {
+            return null;
+        }
+        List<String> orderCodeList = recipeList.stream().map(Recipe::getOrderCode).filter(StringUtils::isNotEmpty).distinct().collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(orderCodeList)) {
+            return null;
+        }
+        return recipeOrderDAO.findByOrderCode(orderCodeList);
+    }
+
     /**
      * 处理患者信息
      *
@@ -973,7 +976,6 @@ public class OrderManager extends BaseManager {
         recipeBeforeOrder.setDeleteFlag(0);
         recipeBeforeOrder.setCreateTime(new Date());
         recipeBeforeOrder.setUpdateTime(new Date());
-        //recipeBeforeOrder.setPayWay(shoppingCartReqDTO.getPayWay());
         recipeBeforeOrder.setOperMpiId(shoppingCartReqDTO.getOperMpiId());
         if (shoppingCartReqDTO.getGiveMode() != null) {
             switch (shoppingCartReqDTO.getGiveMode()) {
@@ -989,4 +991,5 @@ public class OrderManager extends BaseManager {
         logger.info("saveRecipeBeforeOrderInfo recipeBeforeOrder={}", JSONUtils.toString(recipeBeforeOrder));
         recipeBeforeOrderDAO.save(recipeBeforeOrder);
     }
+
 }
