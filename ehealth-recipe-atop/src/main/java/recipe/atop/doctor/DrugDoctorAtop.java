@@ -25,6 +25,7 @@ import recipe.core.api.IConfigStatusBusinessService;
 import recipe.core.api.IDrugBusinessService;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.core.api.IStockBusinessService;
+import recipe.enumerate.type.RecipeDrugFormTypeEnum;
 import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.util.ByteUtils;
 import recipe.util.ObjectCopyUtils;
@@ -239,6 +240,7 @@ public class DrugDoctorAtop extends BaseAtop {
         drugInfoDTO.setDrugType(searchDrugReq.getDrugType());
         drugInfoDTO.setApplyBusiness(searchDrugReq.getApplyBusiness());
         drugInfoDTO.setPharmacyId(searchDrugReq.getPharmacyId());
+        drugInfoDTO.setDrugForm(RecipeDrugFormTypeEnum.getDrugForm(searchDrugReq.getRecipeDrugForm()));
         List<SearchDrugDetailDTO> drugWithEsByPatient = drugBusinessService.searchOrganDrugEs(drugInfoDTO, searchDrugReq.getStart(), searchDrugReq.getLimit());
         List<Integer> drugIds = drugWithEsByPatient.stream().map(SearchDrugDetailDTO::getDrugId).distinct().collect(Collectors.toList());
         List<DrugList> drugs = drugBusinessService.drugList(drugIds);

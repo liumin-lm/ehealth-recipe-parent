@@ -351,8 +351,8 @@ public class Recipe implements Serializable {
     private String commonRecipeCode;
 
     @ItemProperty(alias = "处方剂型类型 1 饮片方 2 颗粒方")
-    @Dictionary(id = "eh.cdr.dictionary.RecipeDrugFrom")
-    private Integer recipeDrugFrom;
+    @Dictionary(id = "eh.cdr.dictionary.RecipeDrugForm")
+    private Integer recipeDrugForm;
 
     @Column(name = "doctor_sign_state")
     public Integer getDoctorSignState() {
@@ -1276,13 +1276,13 @@ public class Recipe implements Serializable {
         return commonRecipeCode;
     }
 
-    @Column(name = "recipe_drug_from")
-    public Integer getRecipeDrugFrom() {
-        return recipeDrugFrom;
+    @Column(name = "recipe_drug_form")
+    public Integer getRecipeDrugForm() {
+        return recipeDrugForm;
     }
 
-    public void setRecipeDrugFrom(Integer recipeDrugFrom) {
-        this.recipeDrugFrom = recipeDrugFrom;
+    public void setRecipeDrugForm(Integer recipeDrugForm) {
+        this.recipeDrugForm = recipeDrugForm;
     }
 
     public void setCommonRecipeCode(String commonRecipeCode) {
