@@ -1345,6 +1345,11 @@ public class RecipeHisService extends RecipeBaseService {
 
     @RpcService
     public boolean hisRecipeCheck(Map<String, Object> rMap, RecipeBean recipeBean) {
+        LOGGER.info("RecipeHisService hisRecipeCheck recipeBean1 = {}", JSONObject.toJSONString(recipeBean));
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipe = recipeDAO.getByRecipeId(recipeBean.getRecipeId());
+        recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
+        LOGGER.info("RecipeHisService hisRecipeCheck recipeBean2 = {}", JSONObject.toJSONString(recipeBean));
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         List<Recipedetail> details = detailDAO.findByRecipeId(recipeBean.getRecipeId());
 
