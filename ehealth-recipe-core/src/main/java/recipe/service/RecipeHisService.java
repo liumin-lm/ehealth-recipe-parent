@@ -1344,11 +1344,12 @@ public class RecipeHisService extends RecipeBaseService {
     }
 
     @RpcService
-    public boolean hisRecipeCheck(Map<String, Object> rMap, RecipeBean recipeBean) {
-        LOGGER.info("RecipeHisService hisRecipeCheck recipeBean1 = {}", JSONObject.toJSONString(recipeBean));
+    public boolean hisRecipeCheck(Map<String, Object> rMap, RecipeBean recipeBean1) {
+        LOGGER.info("RecipeHisService hisRecipeCheck recipeBean1 = {}", JSONObject.toJSONString(recipeBean1));
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        Recipe recipe = recipeDAO.getByRecipeId(recipeBean.getRecipeId());
-        recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
+        Recipe recipe = recipeDAO.getByRecipeId(recipeBean1.getRecipeId());
+        RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
+        recipeBean.setRecipeExtend(recipeBean1.getRecipeExtend());
         LOGGER.info("RecipeHisService hisRecipeCheck recipeBean2 = {}", JSONObject.toJSONString(recipeBean));
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         List<Recipedetail> details = detailDAO.findByRecipeId(recipeBean.getRecipeId());
@@ -1396,7 +1397,6 @@ public class RecipeHisService extends RecipeBaseService {
         if (recipeBean.getDoctor() != null) {
             String jobNumber = iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipeBean.getDoctor(), recipeBean.getClinicOrgan(), recipeBean.getDepart());
             hisCheckRecipeReqTO.setDoctorID(jobNumber);
-            DoctorService doctorService = ApplicationUtils.getBasicService(DoctorService.class);
             hisCheckRecipeReqTO.setDoctorName(recipeBean.getDoctorName());
         }
         //处方数量
@@ -1503,7 +1503,6 @@ public class RecipeHisService extends RecipeBaseService {
                 diseaseInfos.add(diseaseInfo);
             }
             hisCheckRecipeReqTO.setDiseaseInfo(diseaseInfos);
-
         }
 
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeBean.getRecipeId());
@@ -1535,8 +1534,6 @@ public class RecipeHisService extends RecipeBaseService {
                 rMap.put("errorFlag", true);
                 rMap.put("errorMsg", map.get("resultMark"));
             } else {
-                RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
-
                 OrganAndDrugsepRelationDAO relationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
                 List<DrugsEnterprise> enterprises = relationDAO.findDrugsEnterpriseByOrganIdAndStatus(recipeBean.getClinicOrgan(), 1);
                 AccessDrugEnterpriseService remoteService = null;
@@ -1547,10 +1544,7 @@ public class RecipeHisService extends RecipeBaseService {
                     remoteService = getBean("commonRemoteService", CommonRemoteService.class);
                 }
                 remoteService.checkRecipeGiveDeliveryMsg(recipeBean, map);
-
                 return "1".equals(map.get("checkResult"));
-
-
             }
         } else {
             rMap.put("signResult", false);
