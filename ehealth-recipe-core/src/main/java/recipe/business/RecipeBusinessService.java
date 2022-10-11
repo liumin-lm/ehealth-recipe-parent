@@ -983,6 +983,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         return CollectionUtils.isEmpty(doctorCommonPharmacies)?null:doctorCommonPharmacies.get(0);
     }
 
+
     @Override
     public void saveDoctorCommonPharmacy(DoctorCommonPharmacy doctorCommonPharmacy) {
         List<DoctorCommonPharmacy> doctorCommonPharmacies=doctorCommonPharmacyDao.findByOrganIdAndDoctorId(doctorCommonPharmacy.getOrganId(),doctorCommonPharmacy.getDoctorId());
