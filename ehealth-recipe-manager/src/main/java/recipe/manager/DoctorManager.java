@@ -38,10 +38,11 @@ public class DoctorManager extends BaseManager{
      */
     public void saveDoctorDefault(DoctorDefault doctorDefault) {
         DoctorDefault dbDefault = doctorDefaultDAO.getByOrganAndDoctorAndCategoryAndType(doctorDefault.getOrganId(), doctorDefault.getDoctorId(), doctorDefault.getCategory(), doctorDefault.getType());
-        if (null != dbDefault) {
-            dbDefault.setIdKey(doctorDefault.getIdKey());
-            doctorDefaultDAO.updateNonNullFieldByPrimaryKey(dbDefault);
+        if (null == dbDefault) {
+            doctorDefaultDAO.save(doctorDefault);
+            return;
         }
-        doctorDefaultDAO.save(doctorDefault);
+        dbDefault.setIdKey(doctorDefault.getIdKey());
+        doctorDefaultDAO.updateNonNullFieldByPrimaryKey(dbDefault);
     }
 }

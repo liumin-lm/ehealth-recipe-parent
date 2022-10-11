@@ -607,7 +607,6 @@ public class DrugManager extends BaseManager {
      * @return
      */
     @LogRecord
-    @Autowired
     public List<OrganDrugListSyncField> addOrganDrugListSyncFieldForOrgan(Integer organId) {
         List<OrganDrugListSyncField> organDrugListSyncFieldList=new ArrayList<>();
         LinkedHashMap<String,DrugSyncFieldDTO> fieldMap=initSyncFieldMapForOrgan();
@@ -635,6 +634,7 @@ public class DrugManager extends BaseManager {
     }
 
     /**
+     * 通过OrganId(),FieldCode(),Type()查询，存在update 不存在add
      *
      * @param organDrugListSyncField
      * @return
@@ -651,26 +651,33 @@ public class DrugManager extends BaseManager {
         List<OrganDrugListSyncField> organDrugListSyncFieldDbs = organDrugListSyncFieldDAO.findByOrganIdAndFieldCodeAndType(organDrugListSyncField.getOrganId(),organDrugListSyncField.getFieldCode(),organDrugListSyncField.getType());
         logger.info("addOrUpdateOrganDrugListSyncField organDrugListSyncFieldDbs:{}",JSONUtils.toString(organDrugListSyncFieldDbs));
         OrganDrugListSyncField organDrugListSyncFieldDb=null;
-        if(CollectionUtils.isEmpty(organDrugListSyncFieldDbs)){
+        if(CollectionUtils.isNotEmpty(organDrugListSyncFieldDbs)){
             organDrugListSyncFieldDb=organDrugListSyncFieldDbs.get(0);
             logger.info("addOrUpdateOrganDrugListSyncField saleDrugListSyncFieldDb:{}",JSONUtils.toString(organDrugListSyncFieldDbs));
         }
+        organDrugListSyncField.init(organDrugListSyncField);
         if (ObjectUtils.isEmpty(organDrugListSyncFieldDb)){
-            organDrugListSyncField.init(organDrugListSyncField);
             OrganDrugListSyncField save = organDrugListSyncFieldDAO.save(organDrugListSyncField);
             if (!ObjectUtils.isEmpty(urt)){
-                busActionLogService.recordBusinessLogRpcNew("机构配置管理", "", "OrganDrugListSyncField", "【" + urt.getUserName() + "】新增机构药品同步字段配置【" + JSONUtils.toString(save)
-                        +"】", drugsEnterpriseDAO.getById(organDrugListSyncField.getOrganId()).getName());
+                try {
+                    busActionLogService.recordBusinessLogRpcNew("机构配置管理", "", "OrganDrugListSyncField", "【" + urt.getUserName() + "】新增机构药品同步字段配置【" + JSONUtils.toString(save)
+                            +"】", organClient.organDTO(organDrugListSyncField.getOrganId()).getName());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
             logger.info("addOrUpdateOrganDrugListSyncField save:{}",JSONUtils.toString(save));
             return save;
         }else {
-            organDrugListSyncField.init(organDrugListSyncField);
             organDrugListSyncField.setId(organDrugListSyncFieldDb.getId());
             OrganDrugListSyncField update = organDrugListSyncFieldDAO.update(organDrugListSyncField);
             if (!ObjectUtils.isEmpty(urt)){
-                busActionLogService.recordBusinessLogRpcNew("药企配置管理", "", "SaleDrugListSyncField", "【" + urt.getUserName() + "】更新机构药品同步字段配置【"+JSONUtils.toString(organDrugListSyncField)+"】-》【" + JSONUtils.toString(update)
-                        +"】", drugsEnterpriseDAO.getById(organDrugListSyncField.getOrganId()).getName());
+                try {
+                    busActionLogService.recordBusinessLogRpcNew("机构配置管理", "", "OrganDrugListSyncField", "【" + urt.getUserName() + "】更新机构药品同步字段配置【"+JSONUtils.toString(organDrugListSyncField)+"】-》【" + JSONUtils.toString(update)
+                            +"】", organClient.organDTO(organDrugListSyncField.getOrganId()).getName());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
             logger.info("addOrUpdateOrganDrugListSyncField update:{}",JSONUtils.toString(update));
             return update;
@@ -687,14 +694,14 @@ public class DrugManager extends BaseManager {
         fieldMap.put("price",new DrugSyncFieldDTO("院内检索码","retrievalCode",YES,NO,YES,YES));
         fieldMap.put("drugType",new DrugSyncFieldDTO("药品类型","drugType",YES,NO,YES,YES));
 
-        fieldMap.put("drugSpec",new DrugSyncFieldDTO("规格/单位","drugSpec",YES,NO,YES,YES));
-        fieldMap.put("price",new DrugSyncFieldDTO("单价","price",YES,NO,YES,YES));
+        fieldMap.put("drugSpec",new DrugSyncFieldDTO("药品规格","drugSpec",YES,NO,YES,YES));
+        fieldMap.put("price",new DrugSyncFieldDTO("价格","price",YES,NO,YES,YES));
         fieldMap.put("applyBusiness",new DrugSyncFieldDTO("适用业务","applyBusiness",YES,NO,YES,YES));
 //        fieldMap.put("status","状态");
 
+        fieldMap.put("unit",new DrugSyncFieldDTO("最小售药单位","unit",YES,NO,YES,YES));//？？
         fieldMap.put("pack",new DrugSyncFieldDTO("包装数量（转化系数）","pack",YES,NO,YES,YES));
         fieldMap.put("useDose",new DrugSyncFieldDTO("单次剂量（规格单位）","useDose",YES,NO,YES,YES));
-        fieldMap.put("unit",new DrugSyncFieldDTO("药品包装单位","unit",YES,NO,YES,YES));//最小规格包装单位
         fieldMap.put("producer",new DrugSyncFieldDTO("生产厂家","retrievalCode",YES,NO,YES,YES));
 
         fieldMap.put("pharmacy",new DrugSyncFieldDTO("药房","pharmacy",YES,YES,YES,YES));//对应编码与名称吗
