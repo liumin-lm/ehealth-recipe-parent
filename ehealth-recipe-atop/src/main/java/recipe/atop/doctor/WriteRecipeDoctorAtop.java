@@ -217,6 +217,6 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
     @Deprecated
     public void saveDoctorCommonPharmacy(DoctorCommonPharmacy doctorCommonPharmacy) {
         validateAtop(doctorCommonPharmacy);
-        recipeBusinessService.saveDoctorCommonPharmacy(doctorCommonPharmacy);
+      //  recipeBusinessService.saveDoctorCommonPharmacy(doctorCommonPharmacy);
     }
 }
