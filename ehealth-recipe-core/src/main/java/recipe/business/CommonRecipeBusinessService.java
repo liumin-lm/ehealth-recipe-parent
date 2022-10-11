@@ -62,7 +62,7 @@ public class CommonRecipeBusinessService extends BaseService implements ICommonR
         //常用方参数校验
         CommonRecipe commonRecipe = ObjectCopyUtils.convert(common.getCommonRecipeDTO(), CommonRecipe.class);
         List<CommonRecipeDrug> drugList = ObjectCopyUtils.convert(common.getCommonRecipeDrugList(), CommonRecipeDrug.class);
-        validateParam(commonRecipe, drugList);
+        validateParam(commonRecipe, drugList, common.getCommonRecipeDTO().getRecipeDrugForm());
         try {
             CommonRecipeExt commonRecipeExt = ObjectCopyUtils.convert(common.getCommonRecipeExt(), CommonRecipeExt.class);
             commonRecipeManager.saveCommonRecipe(commonRecipe, commonRecipeExt, drugList);
@@ -319,7 +319,7 @@ public class CommonRecipeBusinessService extends BaseService implements ICommonR
      * @param commonRecipe 常用方头
      * @param drugList     常用方药品
      */
-    private void validateParam(CommonRecipe commonRecipe, List<CommonRecipeDrug> drugList) {
+    private void validateParam(CommonRecipe commonRecipe, List<CommonRecipeDrug> drugList, Integer recipeDrugForm) {
         // 常用方名称校验
         Integer commonRecipeNameSize = commonRecipeManager.getByDoctorIdAndName(commonRecipe.getDoctorId(), commonRecipe.getCommonRecipeName(), commonRecipe.getCommonRecipeId());
         if (commonRecipeNameSize > 0) {
@@ -339,7 +339,7 @@ public class CommonRecipeBusinessService extends BaseService implements ICommonR
             }
             //校验比对药品
             ValidateOrganDrugDTO validateOrganDrugDTO = new ValidateOrganDrugDTO(a.getOrganDrugCode(), null, a.getDrugId());
-            OrganDrugList organDrug = OrganDrugListManager.validateOrganDrug(validateOrganDrugDTO, organDrugGroup);
+            OrganDrugList organDrug = organDrugListManager.validateOrganDrug(validateOrganDrugDTO, organDrugGroup, recipeDrugForm);
             if (null == organDrug) {
                 throw new DAOException(ErrorCode.SERVICE_ERROR, "机构药品错误");
             }
@@ -420,7 +420,7 @@ public class CommonRecipeBusinessService extends BaseService implements ICommonR
                                                         Map<String, UsePathways> usePathwaysCodeMap, Map<String, DrugEntrust> drugEntrustNameMap) {
         //校验比对药品
         ValidateOrganDrugDTO validateOrganDrugDTO = new ValidateOrganDrugDTO(drug.getOrganDrugCode(), null, null);
-        OrganDrugList organDrug = OrganDrugListManager.validateOrganDrug(validateOrganDrugDTO, organDrugGroup);
+        OrganDrugList organDrug = organDrugListManager.validateOrganDrug(validateOrganDrugDTO, organDrugGroup, drug.getRecipeDrugForm());
         if (null == organDrug) {
             LOGGER.warn("CommonRecipeService offlineCommonRecipeDrug organDrug OrganDrugCode ：{}", drug.getOrganDrugCode());
             return null;

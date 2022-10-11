@@ -94,7 +94,7 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
         validateDetailVO.getRecipeDetails().forEach(a -> {
             a.setDrugDisplaySplicedName(a.getDrugName());
             //校验机构药品
-            OrganDrugList organDrug = recipeDetailValidateTool.validateOrganDrug(a, organDrugGroup);
+            OrganDrugList organDrug = recipeDetailValidateTool.validateOrganDrug(a, organDrugGroup, validateDetailVO.getRecipeDrugForm());
             if (null == organDrug || RecipeDetailValidateTool.VALIDATE_STATUS_FAILURE.equals(a.getValidateStatus())) {
                 String text = null != organDrug && Integer.valueOf(1).equals(organDrug.getUnavailable()) ? "该药品已设置为无法在线开具" : "机构药品不存在";
                 a.setValidateStatusText(text);
