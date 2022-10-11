@@ -12,10 +12,7 @@ import ctd.util.annotation.RpcService;
 import recipe.vo.PageGenericsVO;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.patient.PatientOptionalDrugVo;
-import recipe.vo.second.AutomatonResultVO;
-import recipe.vo.second.AutomatonVO;
-import recipe.vo.second.RecipePayHISCallbackReq;
-import recipe.vo.second.RevisitRecipeTraceVo;
+import recipe.vo.second.*;
 
 import java.util.Date;
 import java.util.List;
@@ -276,5 +273,14 @@ public interface IRecipeAtopService {
      */
     @RpcService
     PageGenericsVO<AutomatonResultVO> automatonList(AutomatonVO automatonVO);
+
+    /**
+     * 自助机处方接口
+     *
+     * @param selfServiceMachineReqVO
+     * @return
+     */
+    @RpcService
+    PageGenericsVO<List<SelfServiceMachineResVo>> findRecipeToZiZhuJi(SelfServiceMachineReqVO selfServiceMachineReqVO);
 
 }

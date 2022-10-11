@@ -38,10 +38,7 @@ import recipe.util.ObjectCopyUtils;
 import recipe.vo.PageGenericsVO;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.patient.PatientOptionalDrugVo;
-import recipe.vo.second.AutomatonResultVO;
-import recipe.vo.second.AutomatonVO;
-import recipe.vo.second.RecipePayHISCallbackReq;
-import recipe.vo.second.RevisitRecipeTraceVo;
+import recipe.vo.second.*;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -370,5 +367,10 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
         });
         result.setDataList(list);
         return result;
+    }
+
+    @Override
+    public PageGenericsVO<List<SelfServiceMachineResVo>> findRecipeToZiZhuJi(SelfServiceMachineReqVO selfServiceMachineReqVO) {
+        return recipeBusinessService.findRecipeToZiZhuJi(selfServiceMachineReqVO);
     }
 }

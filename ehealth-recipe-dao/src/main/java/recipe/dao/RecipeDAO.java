@@ -2329,7 +2329,37 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      * @param limit
      * @return
      */
-    public QueryResult<Recipe> findRecipeListByMpiIDForYang(final String mpiId, final Integer organId, List<Integer> statusList, final int start, final int limit) {
+    public QueryResult<Recipe> findRecipeListByMpiIDForYang(final String mpiId, final Integer organId, final int start, final int limit) {
+        HibernateStatelessResultAction<QueryResult<Recipe>> action = new AbstractHibernateStatelessResultAction<QueryResult<Recipe>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                String hql = "from Recipe where requestMpiId=:mpiid  and status in (2,3,4,5,6,7,8,9,12,13,14,15,40,41,42) order by createDate desc";
+                Query query = ss.createQuery(hql);
+                query.setParameter("mpiid", mpiId);
+                query.setFirstResult(start);
+                query.setMaxResults(limit);
+
+                Query countQuery = ss.createQuery("select count(*) " + hql);
+                countQuery.setParameter("mpiid", mpiId);
+                Long total = (Long) countQuery.uniqueResult();
+                List<Recipe> lists = query.list();
+                setResult(new QueryResult<Recipe>(total, query.getFirstResult(), query.getMaxResults(), lists));
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+    /**
+     *
+     * 自助机查询处方信息 使用新状态
+     *
+     * @param mpiId
+     * @param organId
+     * @param start
+     * @param limit
+     * @return
+     */
+    public QueryResult<Recipe> findRecipeToZiZhuJi(final String mpiId, final List<Integer> statusList, final int start, final int limit) {
         HibernateStatelessResultAction<QueryResult<Recipe>> action = new AbstractHibernateStatelessResultAction<QueryResult<Recipe>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {

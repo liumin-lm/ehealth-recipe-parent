@@ -15,15 +15,13 @@ import com.ngari.recipe.vo.*;
 import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.SignEnum;
+import recipe.vo.PageGenericsVO;
 import recipe.vo.doctor.PatientOptionalDrugVO;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.greenroom.DrugUsageLabelResp;
 import recipe.vo.greenroom.RecipeRefundInfoReqVO;
 import recipe.vo.patient.PatientOptionalDrugVo;
-import recipe.vo.second.AutomatonResultVO;
-import recipe.vo.second.AutomatonVO;
-import recipe.vo.second.MedicalDetailVO;
-import recipe.vo.second.RecipePayHISCallbackReq;
+import recipe.vo.second.*;
 
 import java.util.Date;
 import java.util.List;
@@ -350,4 +348,5 @@ public interface IRecipeBusinessService {
 
     List<RecipeRefundDTO> getRecipeRefundInfo(RecipeRefundInfoReqVO recipeRefundInfoReqVO);
 
+    PageGenericsVO<List<SelfServiceMachineResVo>> findRecipeToZiZhuJi(SelfServiceMachineReqVO selfServiceMachineReqVO);
 }
