@@ -17,6 +17,7 @@ import ctd.util.JSONUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.ApplicationUtils;
 import recipe.constant.RecipeBussConstant;
@@ -27,6 +28,7 @@ import recipe.enumerate.status.YesOrNoEnum;
 import recipe.enumerate.type.ForceCashTypeEnum;
 import recipe.hisservice.RecipeToHisService;
 import recipe.manager.RecipeDetailManager;
+import recipe.manager.RecipeManager;
 import recipe.purchase.PurchaseEnum;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeOrderService;
@@ -43,6 +45,9 @@ import java.util.*;
 @Service
 public class CashPreSettleService implements IRecipePreSettleService {
     private static final Logger LOGGER = LoggerFactory.getLogger(CashPreSettleService.class);
+
+    @Autowired
+    private RecipeManager recipeManager;
 
     @Override
     public Map<String, Object> recipePreSettle(Integer recipeId, Map<String, Object> extInfo) {
@@ -148,35 +153,7 @@ public class CashPreSettleService implements IRecipePreSettleService {
                     result.put("cashAmount", cashAmount);
                     //把hisId保存到处方扩展表
                     try {
-                        List<String> recipeCodeList = JSONUtils.parse(recipeCodeS, List.class);
-                        Integer organId = recipe.getClinicOrgan();
-                        Map<String, Integer> dataMap = new HashMap<>();
-                        for(String recipeCode : recipeCodeList){
-                            Recipe recipes = recipeDAO.getByRecipeCodeAndClinicOrganWithAll(recipeCode, organId);
-                            if(Objects.isNull(recipes)){
-                                continue;
-                            }
-                            //recipeCode会有用逗号分隔的情况
-                            String[] recipeCodeSplit = recipeCode.split(",");
-                            for(String str : recipeCodeSplit){
-                                dataMap.put(str,recipes.getRecipeId());
-                            }
-                        }
-                        Map<String, String> codeMap = hisResult.getData().getCodeMap();
-                        for(String key : dataMap.keySet()){
-                            String hisId = null;
-                            if(Objects.nonNull(codeMap)){
-                                hisId = codeMap.get(key);
-                            }
-                            if(StringUtils.isEmpty(hisId)){
-                                continue;
-                            }
-                            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(dataMap.get(key));
-                            if (Objects.nonNull(recipeExtend)){
-                                recipeExtend.setChargeId(hisId);
-                                recipeExtendDAO.updateNonNullFieldByPrimaryKey(recipeExtend);
-                            }
-                        }
+                        recipeManager.saveRecipeExtendChargeId(recipeCodeS,recipe.getClinicOrgan(),hisResult.getData().getCodeMap());
                     }catch (Exception e){
                         LOGGER.error("CashPreSettleService saveRecipeExtendChargeId error", e);
                     }

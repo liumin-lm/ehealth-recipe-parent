@@ -27,6 +27,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.ApplicationUtils;
 import recipe.dao.*;
@@ -34,6 +35,7 @@ import recipe.enumerate.status.YesOrNoEnum;
 import recipe.enumerate.type.ForceCashTypeEnum;
 import recipe.hisservice.RecipeToHisService;
 import recipe.manager.RecipeDetailManager;
+import recipe.manager.RecipeManager;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeOrderService;
 import recipe.util.MapValueUtil;
@@ -53,6 +55,9 @@ import java.util.stream.Collectors;
 @Service
 public class MedicalPreSettleService implements IRecipePreSettleService {
     private static final Logger LOGGER = LoggerFactory.getLogger(MedicalPreSettleService.class);
+
+    @Autowired
+    private RecipeManager recipeManager;
 
     @Override
     public Map<String, Object> recipePreSettle(Integer recipeId, Map<String, Object> extInfo) {
@@ -201,6 +206,12 @@ public class MedicalPreSettleService implements IRecipePreSettleService {
                     result.put("totalAmount", totalAmount);
                     result.put("fundAmount", fundAmount);
                     result.put("cashAmount", cashAmount);
+                    //把hisId保存到处方扩展表
+                    try {
+                        recipeManager.saveRecipeExtendChargeId(recipeCodeS,recipe.getClinicOrgan(),hisResult.getData().getCodeMap());
+                    }catch (Exception e){
+                        LOGGER.error("MedicalPreSettleService saveRecipeExtendChargeId error", e);
+                    }
                 }
                 result.put("code", "200");
                 //日志记录

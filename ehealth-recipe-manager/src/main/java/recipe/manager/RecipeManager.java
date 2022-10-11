@@ -986,4 +986,34 @@ public class RecipeManager extends BaseManager {
         return recipeSkipDTO;
 
     }
+
+    public void saveRecipeExtendChargeId(String recipeCodeS,Integer organId,Map<String, String> codeMap){
+        List<String> recipeCodeList = JSONUtils.parse(recipeCodeS, List.class);
+        Map<String, Integer> dataMap = new HashMap<>();
+        for(String recipeCode : recipeCodeList){
+            Recipe recipes = recipeDAO.getByRecipeCodeAndClinicOrganWithAll(recipeCode, organId);
+            if(Objects.isNull(recipes)){
+                continue;
+            }
+            //recipeCode会有用逗号分隔的情况
+            String[] recipeCodeSplit = recipeCode.split(",");
+            for(String str : recipeCodeSplit){
+                dataMap.put(str,recipes.getRecipeId());
+            }
+        }
+        for(String key : dataMap.keySet()){
+            String hisId = null;
+            if(Objects.nonNull(codeMap)){
+                hisId = codeMap.get(key);
+            }
+            if(StringUtils.isEmpty(hisId)){
+                continue;
+            }
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(dataMap.get(key));
+            if (Objects.nonNull(recipeExtend)){
+                recipeExtend.setChargeId(hisId);
+                recipeExtendDAO.updateNonNullFieldByPrimaryKey(recipeExtend);
+            }
+        }
+    }
 }
