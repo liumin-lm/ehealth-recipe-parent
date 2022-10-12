@@ -10,9 +10,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.util.ObjectUtils;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeExtendDAO;
+import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.manager.RevisitManager;
 
 import java.time.Instant;
@@ -41,13 +41,25 @@ public class DrugRemindRevisitService {
         //订单支付日期
         Date payTime = recipeOrder.getPayTime();
         List<Integer> recipeIds = recipes.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
+        List<Recipe> tcmRecipeList = recipes.stream().filter(recipe -> RecipeTypeEnum.RECIPETYPE_TCM.getType().equals(recipe.getRecipeType())).collect(Collectors.toList());
         List<RecipeExtend> recipeExtendList = recipeExtendDAO.queryRecipeExtendByRecipeIds(recipeIds);
         //获取长处方的处方单号
         List<Integer> longRecipeIds = recipeExtendList.stream().filter(recipeExtend -> "1".equals(recipeExtend.getIsLongRecipe())).map(RecipeExtend::getRecipeId).collect(Collectors.toList());
         //获取全部的处方明细
         List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeIds(recipeIds);
+        LOGGER.info("DrugRemindRevisitService drugRemind recipeDetailList:{}", JSON.toJSONString(recipeDetailList));
+        if (CollectionUtils.isNotEmpty(tcmRecipeList)) {
+            //中药处方 1帖=1天
+            for (Recipe tcmRecipe : tcmRecipeList) {
+                for (Recipedetail recipeDetail : recipeDetailList) {
+                    if (tcmRecipe.getRecipeId().equals(recipeDetail.getRecipeId())) {
+                        recipeDetail.setUseDays(tcmRecipe.getCopyNum());
+                    }
+                }
+            }
+            LOGGER.info("DrugRemindRevisitService drugRemind convert recipeDetailList:{}", JSON.toJSONString(recipeDetailList));
+        }
         Map<Integer, List<Recipedetail>> recipeDetailMap = recipeDetailList.stream().collect(Collectors.groupingBy(Recipedetail::getRecipeId));
-
         recipes.forEach(recipe -> {
             List<Recipedetail> recipeDetails = recipeDetailMap.get(recipe.getRecipeId());
             //筛选出用药天数最小的日期
