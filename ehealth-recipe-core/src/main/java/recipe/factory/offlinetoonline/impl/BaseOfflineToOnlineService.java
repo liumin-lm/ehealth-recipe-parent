@@ -569,7 +569,7 @@ public class BaseOfflineToOnlineService {
             // 线下转线上失效时间处理--仅平台线下转线上需处理（目前互联网环境没有线下转线上，不判断平台还是互联网）
             RecipeService.handleRecipeInvalidTime(recipe.getClinicOrgan(), recipe.getRecipeId(), recipe.getSignDate());
             saveRecipeExt(recipe, hisRecipe);
-            savaRecipeDetail(recipe.getRecipeId(), hisRecipe);
+            saveRecipeDetail(recipe.getRecipeId(), hisRecipe);
 
             // 购药按钮
             stockBusinessService.setSupportGiveMode(recipe);
@@ -745,14 +745,15 @@ public class BaseOfflineToOnlineService {
      * @param recipeId  处方号
      * @param hisRecipe 线下处方对象
      */
-    private void savaRecipeDetail(Integer recipeId, HisRecipe hisRecipe) {
-        LOGGER.info("BaseOfflineToOnlineService savaRecipeDetail param recipeId:{},hisRecipe:{}", recipeId, JSONUtils.toString(hisRecipe));
+    private void saveRecipeDetail(Integer recipeId, HisRecipe hisRecipe) {
+        LOGGER.info("BaseOfflineToOnlineService saveRecipeDetail param recipeId:{},hisRecipe:{}", recipeId, JSONUtils.toString(hisRecipe));
         List<HisRecipeDetail> hisRecipeDetails = hisRecipeDetailDAO.findByHisRecipeId(hisRecipe.getHisRecipeID());
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
-        List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipeId);
-        if (CollectionUtils.isNotEmpty(recipedetails)) {
+        List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipeId);
+        if (CollectionUtils.isNotEmpty(recipeDetails)) {
             return;
         }
+
         Integer targetedDrugType = 0;
         for (HisRecipeDetail hisRecipeDetail : hisRecipeDetails) {
             LOGGER.info("hisRecipe.getClinicOrgan(): " + hisRecipe.getClinicOrgan() + "");
