@@ -8,6 +8,9 @@ import com.ngari.base.organ.model.OrganBean;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.his.recipe.mode.DrugTakeChangeReqTO;
 import com.ngari.his.recipe.mode.FTYSendTimeReqDTO;
+import com.ngari.patient.service.AddrAreaService;
+import com.ngari.patient.service.AddressService;
+import com.ngari.patient.service.BasicAPI;
 import com.ngari.platform.recipe.mode.DrugsEnterpriseBean;
 import com.ngari.platform.recipe.mode.MedicineStationDTO;
 import com.ngari.recipe.drugsenterprise.model.EnterpriseAddressAndPrice;
@@ -631,6 +634,7 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
         }).filter(distinctByKey(e -> e.getAddress())).collect(Collectors.toList());
 
         //设置ConfigFlag字段，若enterpriseAddress配置数量 >= 基础服务下街道数量，显示添加全部地区
+        AddrAreaService addrAreaService = BasicAPI.getService(AddrAreaService.class);
         list.forEach(x -> {
             Long count = addrAreaService.getCountAreaLikeCode(x.getAddress());
             if (Objects.nonNull(count) && count <= map.get(x.getAddress())) {
@@ -837,7 +841,7 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
                 .stream().collect(Collectors.toMap(DrugsEnterprise::getId, a -> a, (k1, k2) -> k1));
     }
 
-  
+
     @Override
     public List<EnterpriseStock> enterprisesList(Integer organId) {
         List<EnterpriseStock> list = new ArrayList<>();
