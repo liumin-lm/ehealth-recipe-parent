@@ -57,6 +57,7 @@ import recipe.ApplicationUtils;
 import recipe.bean.RecipePayModeSupportBean;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.*;
+import recipe.common.CommonConstant;
 import recipe.constant.ErrorCode;
 import recipe.constant.RecipeBussConstant;
 import recipe.core.api.IEnterpriseBusinessService;
@@ -152,7 +153,13 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
     @Autowired
     private OrderFeeManager orderFeeManager;
     @Autowired
-    private StateManager stateManager;
+    private HisRecipeManager hisRecipeManager;
+    @Autowired
+    private RecipeTherapyManager recipeTherapyManager;
+    @Autowired
+    private OrganDrugListManager organDrugListManager;
+    @Autowired
+    private PharmacyManager pharmacyManager;
 
 
     @Override
@@ -1486,5 +1493,34 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
     public Integer getRecipeRefundCount(RecipeRefundInfoReqVO recipeRefundCountVO) {
         logger.info("RecipeOrderBusinessService getRecipeRefundCount recipeRefundCountVO={}",JSONUtils.toString(recipeRefundCountVO));
         return recipeDAO.getRecipeRefundCount(recipeRefundCountVO.getDoctorId(),recipeRefundCountVO.getStartTime(),recipeRefundCountVO.getEndTime());
+    }
+
+    @Override
+    public void submitRecipeHisV1(List<Integer> recipeIds) {
+        //推送his
+        recipeIds.forEach(recipeId -> {
+            logger.info("submitRecipeHisV1 pushRecipe recipeId={}", recipeId);
+            RecipeInfoDTO recipePdfDTO = recipeTherapyManager.getRecipeTherapyDTO(recipeId);
+            Recipe recipe = recipePdfDTO.getRecipe();
+            if (RecipeStatusEnum.RECIPE_STATUS_REVOKE.getType().equals(recipe.getStatus())) {
+                logger.info("RecipeBusinessService pushRecipe 当前处方已撤销");
+                return ;
+            }
+            if (new Integer(3).equals(recipe.getWriteHisState())) {
+                logger.info("RecipeBusinessService pushRecipe 当前处方已写入his");
+                return ;
+            }
+            //同时set最小售卖单位/单位HIS编码等
+            organDrugListManager.setDrugItemCode(recipe.getClinicOrgan(), recipePdfDTO.getRecipeDetails());
+            Map<Integer, PharmacyTcm> pharmacyIdMap = pharmacyManager.pharmacyIdMap(recipe.getClinicOrgan());
+            RecipeBeforeOrder orderByRecipeId = recipeBeforeOrderDAO.getRecipeBeforeOrderByRecipeId(recipeId);
+            try {
+                RecipeInfoDTO result = hisRecipeManager.pushRecipe(recipePdfDTO, CommonConstant.RECIPE_PUSH_TYPE, pharmacyIdMap, CommonConstant.RECIPE_PATIENT_TYPE, orderByRecipeId.getGiveModeKey());
+            } catch (Exception e) {
+                logger.error("submitRecipeHisV1 pushRecipe error,sysType={},recipeId:{}", CommonConstant.RECIPE_PATIENT_TYPE, recipeId, e);
+                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "当前处方推送his失败:" + e.getMessage());
+            }
+            createPdfFactory.updateCodePdfExecute(recipeId);
+        });
     }
 }

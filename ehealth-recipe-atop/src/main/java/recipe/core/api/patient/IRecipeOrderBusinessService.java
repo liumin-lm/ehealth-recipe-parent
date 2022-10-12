@@ -241,4 +241,10 @@ public interface IRecipeOrderBusinessService {
     ImperfectInfoVO getImperfectInfo(RecipeBean recipeBean);
 
     Integer getRecipeRefundCount(RecipeRefundInfoReqVO recipeRefundCountVO);
+
+    /**
+     * 门诊缴费合并支付患者端处方推送his
+     * @param recipeIds
+     */
+    void submitRecipeHisV1(List<Integer> recipeIds);
 }
