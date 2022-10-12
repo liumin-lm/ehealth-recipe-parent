@@ -1,5 +1,6 @@
 package recipe.atop.greenroom;
 
+import com.ngari.recipe.entity.MedicationSyncConfig;
 import com.ngari.recipe.recipe.model.RecipeOrderWaybillDTO;
 import com.ngari.recipe.vo.CodeEnum;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
@@ -108,4 +109,28 @@ public class RecipeGmAtop extends BaseAtop {
         validateAtop(orderCode);
         return recipeOrderService.makeUpInvoice(orderCode);
     }
+
+    /**
+     * 更新机构数据字典中用药频次、用药途径的同步配置
+     * @param medicationSyncConfig
+     * @return
+     */
+    @RpcService
+    public Boolean updateMedicationSyncConfig(MedicationSyncConfig medicationSyncConfig){
+        validateAtop(medicationSyncConfig);
+        return recipeBusinessService.updateMedicationSyncConfig(medicationSyncConfig);
+    }
+
+    /**
+     * 查询机构数据字典中用药频次、用药途径的同步配置
+     * @param organId,datatype
+     * @return
+     */
+    @RpcService
+    public MedicationSyncConfig getMedicationSyncConfig(Integer organId,Integer datatype){
+        validateAtop(organId,datatype);
+        return recipeBusinessService.getMedicationSyncConfig(organId,datatype);
+    }
+
+
 }

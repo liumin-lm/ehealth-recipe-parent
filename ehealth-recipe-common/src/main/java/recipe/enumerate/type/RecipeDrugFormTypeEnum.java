@@ -1,7 +1,5 @@
 package recipe.enumerate.type;
 
-import recipe.enumerate.status.RefundNodeStatusEnum;
-
 /**
  * 处方剂型类型 1 中药饮片 2 配方颗粒
  */

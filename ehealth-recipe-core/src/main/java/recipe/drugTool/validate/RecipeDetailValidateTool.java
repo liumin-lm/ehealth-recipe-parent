@@ -60,6 +60,8 @@ public class RecipeDetailValidateTool {
     private RevisitManager revisitManager;
     @Autowired
     private RecipeManager recipeManager;
+    @Autowired
+    private OrganDrugListManager organDrugListManager;
 
     /**
      * 患者选择煎法
@@ -87,9 +89,9 @@ public class RecipeDetailValidateTool {
      * @param organDrugGroup   机构药品组
      * @return
      */
-    public OrganDrugList validateOrganDrug(RecipeDetailBean recipeDetailBean, Map<String, List<OrganDrugList>> organDrugGroup) {
+    public OrganDrugList validateOrganDrug(RecipeDetailBean recipeDetailBean, Map<String, List<OrganDrugList>> organDrugGroup, Integer recipeDrugForm) {
         ValidateOrganDrugDTO validateOrganDrugDTO = new ValidateOrganDrugDTO(recipeDetailBean.getOrganDrugCode(), null, recipeDetailBean.getDrugId());
-        OrganDrugList organDrugList = OrganDrugListManager.validateOrganDrug(validateOrganDrugDTO, organDrugGroup);
+        OrganDrugList organDrugList = organDrugListManager.validateOrganDrug(validateOrganDrugDTO, organDrugGroup, recipeDrugForm);
         if (validateOrganDrugDTO.getValidateStatus()) {
             recipeDetailBean.setValidateStatus(VALIDATE_STATUS_YES);
         } else {

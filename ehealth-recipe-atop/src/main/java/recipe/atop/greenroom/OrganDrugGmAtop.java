@@ -2,6 +2,8 @@ package recipe.atop.greenroom;
 
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.recipe.entity.SaleDrugList;
+import ctd.persistence.exception.DAOException;
+import ctd.util.AppContextHolder;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +45,5 @@ public class OrganDrugGmAtop extends BaseAtop {
         validateAtop(organConfigVO.getOrganId());
         return iDrugBusinessService.updateOrganConfig(organConfigVO);
     }
-
 
 }

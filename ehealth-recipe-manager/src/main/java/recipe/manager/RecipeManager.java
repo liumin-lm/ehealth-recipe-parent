@@ -1016,4 +1016,20 @@ public class RecipeManager extends BaseManager {
             }
         }
     }
+
+    public Boolean updateMedicationSyncConfig(MedicationSyncConfig medicationSyncConfig) {
+        return medicationSyncConfigDAO.updateNonNullFieldByPrimaryKey(medicationSyncConfig);
+    }
+
+    public MedicationSyncConfig getMedicationSyncConfig(Integer organId,Integer dataType) {
+        MedicationSyncConfig medicationSyncConfig = medicationSyncConfigDAO.getMedicationSyncConfigByOrganIdAndDataType(organId, dataType);
+        if(Objects.isNull(medicationSyncConfig)){
+            medicationSyncConfig = new MedicationSyncConfig();
+            medicationSyncConfig.setOrganId(organId);
+            medicationSyncConfig.setDataType(dataType);
+            medicationSyncConfigDAO.save(medicationSyncConfig);
+            medicationSyncConfig = medicationSyncConfigDAO.getMedicationSyncConfigByOrganIdAndDataType(organId, dataType);
+        }
+        return medicationSyncConfig;
+    }
 }

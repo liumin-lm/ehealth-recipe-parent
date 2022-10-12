@@ -22,7 +22,9 @@ import com.ngari.revisit.common.service.IRevisitService;
 import com.ngari.revisit.dto.response.RevisitBeanVO;
 import com.ngari.revisit.process.service.IRecipeOnLineRevisitService;
 import com.ngari.revisit.traces.service.IRevisitTracesSortService;
+import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
+import ctd.util.annotation.RpcService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -239,3 +241,4 @@ public class RevisitClient extends BaseClient {
         revisitService.failedToPrescribeFastDrug(daileToRevisitDTO);
     }
 }
+

@@ -7,6 +7,7 @@ import com.ngari.recipe.dto.OutPatientRecipeDTO;
 import com.ngari.recipe.dto.OutPatientRecordResDTO;
 import com.ngari.recipe.dto.RecipeRefundDTO;
 import com.ngari.recipe.entity.DoctorCommonPharmacy;
+import com.ngari.recipe.entity.MedicationSyncConfig;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Symptom;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
@@ -347,6 +348,20 @@ public interface IRecipeBusinessService {
     List<QueryRecipeInfoHisDTO> findRecipeByIds(List<Integer> recipeIds);
 
     List<RecipeRefundDTO> getRecipeRefundInfo(RecipeRefundInfoReqVO recipeRefundInfoReqVO);
+
+    /**
+     * 更新机构数据字典中用药频次、用药途径的同步配置
+     * @param medicationSyncConfig
+     * @return
+     */
+    Boolean updateMedicationSyncConfig(MedicationSyncConfig medicationSyncConfig);
+
+    /**
+     * 查询机构数据字典中用药频次、用药途径的同步配置
+     * @param organId,datctype
+     * @return
+     */
+    MedicationSyncConfig getMedicationSyncConfig(Integer organId,Integer datatype);
 
     PageGenericsVO<List<SelfServiceMachineResVo>> findRecipeToZiZhuJi(SelfServiceMachineReqVO selfServiceMachineReqVO);
 }

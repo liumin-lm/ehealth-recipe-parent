@@ -10,7 +10,6 @@ import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.vo.PreOrderInfoReqVO;
 import com.ngari.recipe.vo.ShoppingCartReqVO;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
-import ctd.util.annotation.RpcService;
 import easypay.entity.vo.param.bus.MedicalPreSettleQueryReq;
 import easypay.entity.vo.param.bus.SelfPreSettleQueryReq;
 import recipe.vo.ResultBean;
@@ -247,4 +246,13 @@ public interface IRecipeOrderBusinessService {
      * @param recipeIds
      */
     void submitRecipeHisV1(List<Integer> recipeIds);
+
+    /**
+     * 根据 二方id 查询订单列表
+     *
+     * @param clinicId   二方业务id
+     * @param bussSource 开处方来源 1问诊 2复诊(在线续方) 3网络门诊
+     * @return
+     */
+    List<RecipeOrder> orderListByClinicId(Integer clinicId, Integer bussSource);
 }
