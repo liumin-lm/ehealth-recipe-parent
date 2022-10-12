@@ -139,4 +139,7 @@ public class RecipeBeforeOrderDTO implements Serializable {
 
     @ItemProperty(alias = "配送费付款方式ExpressFeePayMethodEnum")
     private Integer expressFeePayMethod;
+
+    @ItemProperty(alias = "是否已锁定  0 否，1 是")
+    private Integer isLock;
 }

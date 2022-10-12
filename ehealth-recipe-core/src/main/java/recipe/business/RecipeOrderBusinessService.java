@@ -63,10 +63,7 @@ import recipe.constant.RecipeBussConstant;
 import recipe.core.api.IEnterpriseBusinessService;
 import recipe.core.api.patient.IRecipeOrderBusinessService;
 import recipe.dao.*;
-import recipe.enumerate.status.GiveModeEnum;
-import recipe.enumerate.status.PayModeEnum;
-import recipe.enumerate.status.RecipeOrderStatusEnum;
-import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.status.*;
 import recipe.enumerate.type.GiveModeTextEnum;
 import recipe.enumerate.type.NeedSendTypeEnum;
 import recipe.factory.status.givemodefactory.GiveModeProxy;
@@ -160,6 +157,10 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
     private OrganDrugListManager organDrugListManager;
     @Autowired
     private PharmacyManager pharmacyManager;
+    @Autowired
+    private StateManager stateManager;
+    @Autowired
+    private BeforeOrderManager beforeOrderManager;
 
 
     @Override
@@ -1521,6 +1522,14 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
             RecipeBeforeOrder orderByRecipeId = recipeBeforeOrderDAO.getRecipeBeforeOrderByRecipeId(recipeId);
             try {
                 RecipeInfoDTO result = hisRecipeManager.pushRecipe(recipePdfDTO, CommonConstant.RECIPE_PUSH_TYPE, pharmacyIdMap, CommonConstant.RECIPE_PATIENT_TYPE, orderByRecipeId.getGiveModeKey());
+                logger.info("submitRecipeHisV1 pushRecipe result={}", ngari.openapi.util.JSONUtils.toString(result));
+                result.getRecipe().setBussSource(recipe.getBussSource());
+                result.getRecipe().setClinicId(recipe.getClinicId());
+                recipeManager.updatePushHisRecipe(result.getRecipe(), recipeId, CommonConstant.RECIPE_PUSH_TYPE);
+                recipeManager.updatePushHisRecipeExt(result.getRecipeExtend(), recipeId, CommonConstant.RECIPE_PUSH_TYPE);
+                stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_ORDER, RecipeStateEnum.SUB_ORDER_READY_SUBMIT_ORDER);
+                beforeOrderManager.updateRecipeHisStatus(recipe.getClinicOrgan(),recipeId,CommonConstant.RECIPE_PUSH_TYPE);
+                logger.info("submitRecipeHisV1 pushRecipe end recipeId:{}", recipeId);
             } catch (Exception e) {
                 logger.error("submitRecipeHisV1 pushRecipe error,sysType={},recipeId:{}", CommonConstant.RECIPE_PATIENT_TYPE, recipeId, e);
                 RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "当前处方推送his失败:" + e.getMessage());
