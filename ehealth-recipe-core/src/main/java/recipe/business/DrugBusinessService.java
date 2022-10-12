@@ -52,6 +52,7 @@ import recipe.constant.RecipeBussConstant;
 import recipe.core.api.IDrugBusinessService;
 import recipe.dao.*;
 import recipe.enumerate.status.YesOrNoEnum;
+import recipe.enumerate.type.RecipeDrugFormTypeEnum;
 import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.manager.DrugManager;
 import recipe.manager.HisRecipeManager;
@@ -265,7 +266,7 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
             }
         }
         //获取常用药记录
-        List<DrugCommon> drugCommonList = drugManager.commonDrugList(commonDrug.getOrganId(), commonDrug.getDoctor(), drugTypes);
+        List<DrugCommon> drugCommonList = drugManager.commonDrugList(commonDrug.getOrganId(), commonDrug.getDoctor(), drugTypes, RecipeDrugFormTypeEnum.getDrugForm(commonDrug.getRecipeDrugForm()));
         if (CollectionUtils.isEmpty(drugCommonList)) {
             return Collections.emptyList();
         }

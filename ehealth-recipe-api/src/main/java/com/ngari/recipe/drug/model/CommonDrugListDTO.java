@@ -27,6 +27,11 @@ public class CommonDrugListDTO implements java.io.Serializable {
      */
     private Integer pharmacyId;
 
+    /**
+     * 处方剂型类型 1 饮片方 2 颗粒方
+     */
+    private Integer recipeDrugForm;
+
     public CommonDrugListDTO() {
     }
     

@@ -4,7 +4,13 @@ import com.ngari.recipe.entity.DrugCommon;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;
 import ctd.persistence.support.hibernate.HibernateSupportDelegateDAO;
+import ctd.persistence.support.hibernate.template.AbstractHibernateStatelessResultAction;
+import ctd.persistence.support.hibernate.template.HibernateSessionTemplate;
+import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction;
 import ctd.util.annotation.RpcSupportDAO;
+import org.apache.commons.lang3.StringUtils;
+import org.hibernate.Query;
+import org.hibernate.StatelessSession;
 
 import java.util.List;
 
@@ -41,5 +47,29 @@ public abstract class DrugCommonDAO extends HibernateSupportDelegateDAO<DrugComm
                                                                   @DAOParam("doctorId") Integer doctorId,
                                                                   @DAOParam("organDrugCode") String organDrugCode);
 
+    public List<DrugCommon> findByOrganIdAndDoctorIdAndDrugForm(final Integer organId, final Integer doctorId, final String drugForm, final int start, final int limit){
+        HibernateStatelessResultAction<List<DrugCommon>> action = new AbstractHibernateStatelessResultAction<List<DrugCommon>>() {
+                @Override
+                public void execute(StatelessSession ss) throws Exception {
+                    StringBuilder hql = new StringBuilder("select a from DrugCommon a,OrganDrugList b where a.drugId = b.drugId and a.organDrugCode = b.organDrugCode and a.organId = " +
+                            " b.organId and a.organId=:organId and a.doctorId=:doctorId  and a.drugType = 3 ");
+                    if (StringUtils.isNotEmpty(drugForm)) {
+                        hql.append(" and b.drugForm=:drugForm ");
+                    }
+                    hql.append(" order by sort desc ");
+                    Query q = ss.createQuery(hql.toString());
+                    q.setParameter("organId", organId);
+                    q.setParameter("doctorId", doctorId);
+                    if (StringUtils.isNotEmpty(drugForm)) {
+                        q.setParameter("drugForm", drugForm);
+                    }
+                    q.setFirstResult(start);
+                    q.setMaxResults(limit);
+                    setResult(q.list());
+                }
+            };
 
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
 }
