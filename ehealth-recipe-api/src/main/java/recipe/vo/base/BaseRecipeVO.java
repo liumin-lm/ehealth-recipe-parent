@@ -121,4 +121,7 @@ public class BaseRecipeVO implements Serializable {
 
     @ItemProperty(alias = "病历号")
     private String medicalRecordNumber;
+
+    @ItemProperty(alias = "处方剂型类型 1 饮片方 2 颗粒方")
+    private Integer recipeDrugForm;
 }
