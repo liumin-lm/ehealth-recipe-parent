@@ -800,7 +800,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
 
     @Override
     public void pharmacyToRecipePDFAndCa(Integer recipeId, Integer checker) {
-        createPdfFactory.updateCheckNamePdfESign(recipeId);
+        createPdfFactory.updateCheckNamePdfESign(recipeId, checker);
     }
 
     @Override
