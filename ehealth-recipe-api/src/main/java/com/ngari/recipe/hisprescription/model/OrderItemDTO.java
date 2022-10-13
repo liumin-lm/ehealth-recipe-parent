@@ -96,12 +96,6 @@ public class OrderItemDTO implements Serializable {
     @ItemProperty(alias = "类型：1:药品，2:诊疗项目，3 保密药品")
     private Integer type;
 
-    @ItemProperty(alias = "中药禁忌类型(1:超量 2:十八反 3:其它)")
-    private Integer tcmContraindicationType;
-
-    @ItemProperty(alias = "中药禁忌原因")
-    private String tcmContraindicationCause;
-
     public Integer getDrugId() {
         return drugId;
     }
@@ -376,21 +370,5 @@ public class OrderItemDTO implements Serializable {
 
     public void setType(Integer type) {
         this.type = type;
-    }
-
-    public Integer getTcmContraindicationType() {
-        return tcmContraindicationType;
-    }
-
-    public void setTcmContraindicationType(Integer tcmContraindicationType) {
-        this.tcmContraindicationType = tcmContraindicationType;
-    }
-
-    public String getTcmContraindicationCause() {
-        return tcmContraindicationCause;
-    }
-
-    public void setTcmContraindicationCause(String tcmContraindicationCause) {
-        this.tcmContraindicationCause = tcmContraindicationCause;
     }
 }
