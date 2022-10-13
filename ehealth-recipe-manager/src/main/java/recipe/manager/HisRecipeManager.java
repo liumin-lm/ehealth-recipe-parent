@@ -14,6 +14,7 @@ import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.event.GlobalEventExecFactory;
+import eh.cdr.constant.RecipeConstant;
 import eh.entity.base.UsePathways;
 import eh.entity.base.UsingRate;
 import org.apache.commons.collections.CollectionUtils;
@@ -659,6 +660,42 @@ public class HisRecipeManager extends BaseManager {
         } else {
             return offlineRecipeClient.patientPushRecipe(pushType, recipePdfDTO, emrDetail, pharmacyIdMap, giveModeKey);
         }
+    }
+
+    public void validateDrugForm(List<HisRecipeDetail> hisRecipeDetails, Integer recipeType){
+        if (!RecipeConstant.RECIPETYPE_TCM.equals(recipeType)){
+            return;
+        }
+        Set<String> drugFormSet = hisRecipeDetails.stream().map(HisRecipeDetail::getDrugForm).collect(Collectors.toSet());
+        if (CollectionUtils.isEmpty(drugFormSet)) {
+            return;
+        }
+        if (drugFormSet.size() > 1) {
+            //说明
+        }
+    }
+
+    public static void main(String[] args) {
+        HisRecipeDetail hisRecipeDetail1 = new HisRecipeDetail();
+        hisRecipeDetail1.setDrugForm("");
+
+        HisRecipeDetail hisRecipeDetail2 = new HisRecipeDetail();
+        hisRecipeDetail2.setDrugForm("中药饮片");
+
+        HisRecipeDetail hisRecipeDetail3 = new HisRecipeDetail();
+        hisRecipeDetail3.setDrugForm("中药饮片");
+
+        HisRecipeDetail hisRecipeDetail4 = new HisRecipeDetail();
+
+        List<HisRecipeDetail> hisRecipeDetailList = new ArrayList<>();
+        hisRecipeDetailList.add(hisRecipeDetail1);
+        hisRecipeDetailList.add(hisRecipeDetail2);
+        hisRecipeDetailList.add(hisRecipeDetail3);
+        hisRecipeDetailList.add(hisRecipeDetail4);
+
+        Set<String> drugFormSet = hisRecipeDetailList.stream().filter(recipeDetail->StringUtils.isNotEmpty(recipeDetail.getDrugForm())).map(HisRecipeDetail::getDrugForm).collect(Collectors.toSet());
+
+        System.out.println(JSON.toJSONString(drugFormSet));
     }
 
 
