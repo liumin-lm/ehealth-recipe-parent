@@ -1,5 +1,7 @@
 package recipe.core.api;
 
+import com.ngari.common.mode.HisResponseTO;
+import com.ngari.his.recipe.mode.MedicationInfoResTO;
 import com.ngari.platform.recipe.mode.ListOrganDrugReq;
 import com.ngari.recipe.drug.model.CommonDrugListDTO;
 import com.ngari.recipe.drug.model.DispensatoryDTO;
@@ -215,4 +217,31 @@ public interface IDrugBusinessService {
     OrganConfigVO getConfigByOrganId(Integer organId);
 
     OrganConfigVO updateOrganConfig(OrganConfigVO organConfigVO);
+
+    /**
+     * 定时同步机构数据字典中用药频次、用药途径
+     */
+    void medicationInfoSyncTask();
+
+    /**
+     * 更新机构数据字典中用药频次、用药途径的同步配置
+     * @param medicationSyncConfig
+     * @return
+     */
+    Boolean updateMedicationSyncConfig(MedicationSyncConfig medicationSyncConfig);
+
+    /**
+     * 查询机构数据字典中用药频次、用药途径的同步配置
+     * @param organId,datctype
+     * @return
+     */
+    MedicationSyncConfig getMedicationSyncConfig(Integer organId,Integer datatype);
+
+    /**
+     * his调用，同步机构数据字典中用药频次、用药途径
+     * @param medicationInfoResTOList
+     * @return
+     */
+    HisResponseTO medicationInfoSyncTaskForHis(List<MedicationInfoResTO> medicationInfoResTOList);
+
 }

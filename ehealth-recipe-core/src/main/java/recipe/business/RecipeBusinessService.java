@@ -1281,18 +1281,6 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         return pageGenericsVO;
     }
 
-    @Override
-    public Boolean updateMedicationSyncConfig(MedicationSyncConfig medicationSyncConfig) {
-        logger.info("RecipeBusinessService updateMediationSyncConfig mediationSyncConfig={}",JSONUtils.toString(medicationSyncConfig));
-        return recipeManager.updateMedicationSyncConfig(medicationSyncConfig);
-    }
-
-    @Override
-    public MedicationSyncConfig getMedicationSyncConfig(Integer organId,Integer dataType) {
-        logger.info("RecipeBusinessService saveMediationSyncConfig organId={},dataType={}",organId,dataType);
-        return recipeManager.getMedicationSyncConfig(organId,dataType);
-    }
-
 
 }
 

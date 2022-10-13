@@ -9,6 +9,7 @@ import ctd.util.annotation.RpcService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
+import recipe.core.api.IDrugBusinessService;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.core.api.patient.IRecipeOrderBusinessService;
 import recipe.vo.ResultBean;
@@ -31,6 +32,9 @@ public class RecipeGmAtop extends BaseAtop {
 
     @Autowired
     private IRecipeOrderBusinessService recipeOrderService;
+
+    @Autowired
+    private IDrugBusinessService drugBusinessService;
 
 
     /**
@@ -118,7 +122,7 @@ public class RecipeGmAtop extends BaseAtop {
     @RpcService
     public Boolean updateMedicationSyncConfig(MedicationSyncConfig medicationSyncConfig){
         validateAtop(medicationSyncConfig);
-        return recipeBusinessService.updateMedicationSyncConfig(medicationSyncConfig);
+        return drugBusinessService.updateMedicationSyncConfig(medicationSyncConfig);
     }
 
     /**
@@ -129,8 +133,15 @@ public class RecipeGmAtop extends BaseAtop {
     @RpcService
     public MedicationSyncConfig getMedicationSyncConfig(Integer organId,Integer datatype){
         validateAtop(organId,datatype);
-        return recipeBusinessService.getMedicationSyncConfig(organId,datatype);
+        return drugBusinessService.getMedicationSyncConfig(organId,datatype);
     }
 
+    /**
+     * 定时同步机构数据字典中用药频次、用药途径
+     */
+    @RpcService
+    public void medicationInfoSyncTask(){
+        drugBusinessService.medicationInfoSyncTask();
+    }
 
 }
