@@ -1539,7 +1539,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                 recipeManager.updatePushHisRecipe(result.getRecipe(), recipeId, CommonConstant.RECIPE_PUSH_TYPE);
                 recipeManager.updatePushHisRecipeExt(result.getRecipeExtend(), recipeId, CommonConstant.RECIPE_PUSH_TYPE);
                 stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_ORDER, RecipeStateEnum.SUB_ORDER_READY_SUBMIT_ORDER);
-                beforeOrderManager.updateRecipeHisStatus(recipe.getClinicOrgan(),recipeId,CommonConstant.RECIPE_PUSH_TYPE);
+                beforeOrderManager.updateRecipeHisStatus(result.getRecipe(),recipe.getClinicOrgan(),recipeId,CommonConstant.RECIPE_PUSH_TYPE);
                 logger.info("submitRecipeHisV1 pushRecipe end recipeId:{}", recipeId);
             } catch (Exception e) {
                 logger.error("submitRecipeHisV1 pushRecipe error,sysType={},recipeId:{}", CommonConstant.RECIPE_PATIENT_TYPE, recipeId, e);

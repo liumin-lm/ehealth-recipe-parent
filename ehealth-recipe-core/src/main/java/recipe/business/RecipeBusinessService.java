@@ -1250,7 +1250,8 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         List<Recipe> recipes = recipeDAO.findByOrganIdAndMpiId(organId,mpiId);
         List<OutpatientPaymentRecipeDTO> outpatientPaymentRecipeDTOS = recipes.stream().map(recipe -> {
             OutpatientPaymentRecipeDTO dto = new OutpatientPaymentRecipeDTO();
-            dto.setHisConvertSource(1);
+            dto.setRecipeId(recipe.getRecipeId());
+            dto.setHisConvertSource(2);
             dto.setTotalFee(recipe.getTotalMoney());
             dto.setOrderDate(recipe.getSignDate());
             dto.setOrderID(recipe.getRecipeCode());

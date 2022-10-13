@@ -1,5 +1,6 @@
 package recipe.manager;
 
+import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeBeforeOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -27,7 +28,7 @@ public class BeforeOrderManager extends BaseManager {
      * @param recipeId
      * @param pushType
      */
-    public void updateRecipeHisStatus(Integer organId,Integer recipeId, Integer pushType) {
+    public void updateRecipeHisStatus(Recipe recipeResult,Integer organId, Integer recipeId, Integer pushType) {
         if (!CommonConstant.RECIPE_PUSH_TYPE.equals(pushType)) {
             return;
         }
@@ -40,6 +41,9 @@ public class BeforeOrderManager extends BaseManager {
             return;
         }
         recipeBeforeOrder.setIsLock(YesOrNoEnum.YES.getType());
+        if (Objects.nonNull(recipeResult)) {
+            recipeBeforeOrder.setRecipeCode(recipeResult.getRecipeCode());
+        }
         recipeBeforeOrderDAO.update(recipeBeforeOrder);
     }
 }
