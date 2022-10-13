@@ -782,7 +782,7 @@ public class DrugManager extends BaseManager {
         Time etime = Time.valueOf(format);
         Time stime = Time.valueOf(format1);
         //List<MedicationSyncConfig> medicationSyncConfigs = medicationSyncConfigDAO.findByEnableSyncAndTime(stime, etime);
-        List<MedicationSyncConfig> medicationSyncConfigs = medicationSyncConfigDAO.findByEnableSync();
+        List<MedicationSyncConfig> medicationSyncConfigs = medicationSyncConfigDAO.findByRegularTime();
         logger.info("medicationInfoSyncTask medicationSyncConfigs:{}",JSONUtils.toString(medicationSyncConfigs));
         if (!ObjectUtils.isEmpty(medicationSyncConfigs)) {
             for (MedicationSyncConfig medicationSyncConfig : medicationSyncConfigs) {
@@ -790,13 +790,16 @@ public class DrugManager extends BaseManager {
                     Boolean enableSync = medicationSyncConfig.getEnableSync();
                     Integer dockingMode = medicationSyncConfig.getDockingMode();
                     if (ObjectUtils.isEmpty(dockingMode)) {
-                        throw new DAOException(DAOException.VALUE_NEEDED, "未找到同步模式配置!");
+                        throw new DAOException(DAOException.VALUE_NEEDED,
+                                (new Integer(1).equals(medicationSyncConfig.getDataType()) ? "用药途径" : "用药频次")  + "未找到同步模式配置!");
                     }
                     if (dockingMode == 2) {
-                        throw new DAOException(DAOException.VALUE_NEEDED, "同步模式 为【主动推送】 调用无效!");
+                        throw new DAOException(DAOException.VALUE_NEEDED,
+                                (new Integer(1).equals(medicationSyncConfig.getDataType()) ? "用药途径" : "用药频次")  + "同步模式 为【主动推送】 调用无效!");
                     }
                     if (!enableSync) {
-                        throw new DAOException(DAOException.VALUE_NEEDED, "同步开关未开启");
+                        throw new DAOException(DAOException.VALUE_NEEDED,
+                                (new Integer(1).equals(medicationSyncConfig.getDataType()) ? "用药途径" : "用药频次")  +  "同步开关未开启");
                     }
                     return drugClient.medicationInfoSyncTask(medicationSyncConfig.getOrganId(), medicationSyncConfig.getDataType());
                 } catch (Exception e) {
