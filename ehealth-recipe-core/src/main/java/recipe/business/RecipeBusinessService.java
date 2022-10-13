@@ -1259,6 +1259,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             dto.setPatientId(recipe.getPatientID());
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
             dto.setSeries(recipeExtend.getRegisterID());
+            dto.setOnlineRecipe(1);
             return dto;
         }).collect(Collectors.toList());
         return outpatientPaymentRecipeDTOS;
