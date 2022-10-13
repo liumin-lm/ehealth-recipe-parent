@@ -10,6 +10,7 @@ import ctd.persistence.exception.DAOException;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.bussutil.RecipeUtil;
 import recipe.client.IConfigurationClient;
 import recipe.client.OperationClient;
 import recipe.client.OrganClient;
@@ -18,9 +19,12 @@ import recipe.dao.RecipeParameterDao;
 import recipe.enumerate.status.SettleAmountStateEnum;
 import recipe.manager.OrderManager;
 import recipe.util.ObjectCopyUtils;
+import recipe.util.ValidateUtil;
+import recipe.vo.doctor.ValidateDetailVO;
 import recipe.vo.second.OrganVO;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -113,5 +117,21 @@ public class OrganBusinessService extends BaseService implements IOrganBusinessS
             return SettleAmountStateEnum.SETTLE_SUCCESS.getType();
         }
         return recipeOrder.getSettleAmountState();
+    }
+
+
+    @Override
+    public void validateRecipeDrugForm(ValidateDetailVO validateDetailVO) {
+        if (!RecipeUtil.isTcmType(validateDetailVO.getRecipeType())) {
+            return;
+        }
+        //校验药品剂型
+        List<String> tcmRecipeDrugFormList = configurationClient.getValueListCatch(validateDetailVO.getOrganId(), "tcmRecipeDrugForm", Arrays.asList("1"));
+        if (ValidateUtil.integerIsEmpty(validateDetailVO.getRecipeDrugForm())) {
+            throw new DAOException("recipeDrugForm 无权限");
+        }
+        if (!tcmRecipeDrugFormList.contains(validateDetailVO.getRecipeDrugForm().toString())) {
+            throw new DAOException("recipeDrugForm 无权限");
+        }
     }
 }
