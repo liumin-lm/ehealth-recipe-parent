@@ -532,8 +532,6 @@ public class QueryRecipeService implements IQueryRecipeService {
                 }
                 //类型
                 orderItem.setType(detail.getType());
-                orderItem.setTcmContraindicationType(detail.getTcmContraindicationType());
-                orderItem.setTcmContraindicationCause(detail.getTcmContraindicationCause());
                 OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(clinicOrgan, detail.getOrganDrugCode(), detail.getDrugId());
                 if (null != organDrugList) {
                     //药品产地名称
