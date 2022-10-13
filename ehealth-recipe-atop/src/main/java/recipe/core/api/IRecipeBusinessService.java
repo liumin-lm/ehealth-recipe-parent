@@ -1,6 +1,7 @@
 package recipe.core.api;
 
 import com.ngari.patient.dto.HealthCardDTO;
+import com.ngari.platform.recipe.mode.OutpatientPaymentRecipeDTO;
 import com.ngari.platform.recipe.mode.QueryRecipeInfoHisDTO;
 import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.OutPatientRecipeDTO;
@@ -363,5 +364,18 @@ public interface IRecipeBusinessService {
      */
     MedicationSyncConfig getMedicationSyncConfig(Integer organId,Integer datatype);
 
+    /**
+     * 自助机查询处方信息
+     * @param selfServiceMachineReqVO
+     * @return
+     */
     PageGenericsVO<List<SelfServiceMachineResVo>> findRecipeToZiZhuJi(SelfServiceMachineReqVO selfServiceMachineReqVO);
+
+    /**
+     * 门诊缴费查询 待缴费且未上传his 处方信息
+     * @param organId
+     * @param mpiId
+     * @return
+     */
+    List<OutpatientPaymentRecipeDTO> findOutpatientPaymentRecipes(Integer organId, String mpiId);
 }

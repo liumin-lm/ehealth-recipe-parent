@@ -3,6 +3,7 @@ package recipe.atop.open;
 import com.alibaba.fastjson.JSONArray;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.patient.dto.DoctorDTO;
+import com.ngari.platform.recipe.mode.OutpatientPaymentRecipeDTO;
 import com.ngari.platform.recipe.mode.QueryRecipeInfoHisDTO;
 import com.ngari.recipe.dto.PatientDTO;
 import com.ngari.recipe.entity.*;
@@ -221,6 +222,12 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
     public List<QueryRecipeInfoHisDTO> findRecipeByIds(List<Integer> recipeIds) {
         validateAtop(recipeIds);
         return recipeBusinessService.findRecipeByIds(recipeIds);
+    }
+
+    @Override
+    public List<OutpatientPaymentRecipeDTO> findOutpatientPaymentRecipes(Integer organId, String mpiId) {
+        validateAtop(organId,mpiId);
+        return recipeBusinessService.findOutpatientPaymentRecipes(organId,mpiId);
     }
 
 

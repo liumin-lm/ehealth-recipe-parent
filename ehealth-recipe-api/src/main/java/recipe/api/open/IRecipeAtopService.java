@@ -1,6 +1,7 @@
 package recipe.api.open;
 
 import com.ngari.common.mode.HisResponseTO;
+import com.ngari.platform.recipe.mode.OutpatientPaymentRecipeDTO;
 import com.ngari.platform.recipe.mode.QueryRecipeInfoHisDTO;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
@@ -266,6 +267,15 @@ public interface IRecipeAtopService {
     List<QueryRecipeInfoHisDTO> findRecipeByIds(List<Integer> recipeIds);
 
     /**
+     * 门诊缴费查询 待缴费且未上传his 处方信息
+     * @param organId
+     * @param mpiId
+     * @return
+     */
+    @RpcService
+    List<OutpatientPaymentRecipeDTO> findOutpatientPaymentRecipes(Integer organId, String mpiId);
+
+    /**
      * 自助机查询接口
      *
      * @param automatonVO
@@ -280,7 +290,7 @@ public interface IRecipeAtopService {
      * @param selfServiceMachineReqVO
      * @return
      */
-    @RpcService
+    @RpcService(mvcDisabled = true)
     PageGenericsVO<List<SelfServiceMachineResVo>> findRecipeToZiZhuJi(SelfServiceMachineReqVO selfServiceMachineReqVO);
 
 }

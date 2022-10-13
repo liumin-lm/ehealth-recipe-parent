@@ -14,6 +14,7 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.dto.*;
 import com.ngari.patient.service.IUsePathwaysService;
 import com.ngari.patient.service.IUsingRateService;
+import com.ngari.platform.recipe.mode.OutpatientPaymentRecipeDTO;
 import com.ngari.platform.recipe.mode.QueryRecipeInfoHisDTO;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
@@ -1280,6 +1281,26 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     }
 
     @Override
+    public List<OutpatientPaymentRecipeDTO> findOutpatientPaymentRecipes(Integer organId, String mpiId) {
+        List<Recipe> recipes = recipeDAO.findByOrganIdAndMpiId(organId,mpiId);
+        List<OutpatientPaymentRecipeDTO> outpatientPaymentRecipeDTOS = recipes.stream().map(recipe -> {
+            OutpatientPaymentRecipeDTO dto = new OutpatientPaymentRecipeDTO();
+            dto.setHisConvertSource(1);
+            dto.setTotalFee(recipe.getTotalMoney());
+            dto.setOrderDate(recipe.getSignDate());
+            dto.setOrderID(recipe.getRecipeCode());
+            dto.setOrderType(dealRecipeType(recipe.getRecipeType()));
+            dto.setOrderTypeName(dealRecipeTypeName(recipe.getRecipeType()));
+            dto.setPatientId(recipe.getPatientID());
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+            dto.setSeries(recipeExtend.getRegisterID());
+            return dto;
+        }).collect(Collectors.toList());
+        return outpatientPaymentRecipeDTOS;
+    }
+
+
+    @Override
     public Boolean updateMedicationSyncConfig(MedicationSyncConfig medicationSyncConfig) {
         logger.info("RecipeBusinessService updateMediationSyncConfig mediationSyncConfig={}",JSONUtils.toString(medicationSyncConfig));
         return recipeManager.updateMedicationSyncConfig(medicationSyncConfig);
@@ -1289,6 +1310,21 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     public MedicationSyncConfig getMedicationSyncConfig(Integer organId,Integer dataType) {
         logger.info("RecipeBusinessService saveMediationSyncConfig organId={},dataType={}",organId,dataType);
         return recipeManager.getMedicationSyncConfig(organId,dataType);
+    }
+
+
+    private String dealRecipeTypeName(Integer recipeType) {
+        if(recipe.enumerate.type.RecipeTypeEnum.RECIPETYPE_TCM.getType().equals(recipeType)){
+            return "中药处方";
+        }
+        return "西药处方";
+    }
+
+    private Integer dealRecipeType(Integer recipeType) {
+        if(recipe.enumerate.type.RecipeTypeEnum.RECIPETYPE_TCM.getType().equals(recipeType)){
+            return 2;
+        }
+        return 1;
     }
 
 
