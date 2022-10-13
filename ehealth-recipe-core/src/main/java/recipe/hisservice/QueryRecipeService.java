@@ -224,17 +224,36 @@ public class QueryRecipeService implements IQueryRecipeService {
         Integer recipeId = recipe.getRecipeId();
         try {
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
-            if (null != recipeExtend) {
+            if (Objects.nonNull(recipeExtend)) {
+                RecipeExtendBean recipeExtendBean = ObjectCopyUtils.convert(recipeExtend, RecipeExtendBean.class);
                 EmrDetailDTO emrDetail = docIndexClient.getEmrDetails(recipeExtend.getDocIndexId());
                 recipeDTO.setCardType(recipeExtend.getCardType());
                 recipeDTO.setCardNo(recipeExtend.getCardNo());
                 if (Objects.nonNull(recipeExtend.getDecoctionId())) {
                     DecoctionWay decoctionWay = drugDecoctionWayDao.get(Integer.parseInt(recipeExtend.getDecoctionId()));
                     if (Objects.nonNull(decoctionWay)) {
-                        recipeExtend.setDecoctionPrice(decoctionWay.getDecoctionPrice());
+                        recipeExtendBean.setDecoctionPrice(decoctionWay.getDecoctionPrice());
+                        recipeExtendBean.setDecoctionCode(decoctionWay.getDecoctionCode());
+                        recipeExtendBean.setDecoctionText(decoctionWay.getDecoctionText());
                     }
                 }
-                recipeDTO.setRecipeExtendBean(ObjectCopyUtils.convert(recipeExtend, RecipeExtendBean.class));
+                if (Objects.nonNull(recipeExtend.getMakeMethodId())) {
+                    DrugMakingMethodDao drugMakingMethodDao = DAOFactory.getDAO(DrugMakingMethodDao.class);
+                    DrugMakingMethod drugMakingMethod = drugMakingMethodDao.get(recipeExtend.getMakeMethodId());
+                    if (Objects.nonNull(drugMakingMethod)) {
+                        recipeExtendBean.setMakeMethod(drugMakingMethod.getMethodCode());
+                        recipeExtendBean.setMakeMethodText(drugMakingMethod.getMethodText());
+                    }
+                }
+                if (Objects.nonNull(recipeExtend.getSymptomId())) {
+                    SymptomDAO symptomDAO = DAOFactory.getDAO(SymptomDAO.class);
+                    Symptom symptom = symptomDAO.get(recipeExtend.getSymptomId());
+                    if (Objects.nonNull(symptom)) {
+                        recipeExtendBean.setSymptomCode(symptom.getSymptomCode());
+                        recipeExtendBean.setSymptomName(symptom.getSymptomName());
+                    }
+                }
+                recipeDTO.setRecipeExtendBean(recipeExtendBean);
                 if (StringUtils.isNotEmpty(emrDetail.getMainDieaseDescribe())) {
                     //主诉
                     recipeDTO.setBRZS(emrDetail.getMainDieaseDescribe());
