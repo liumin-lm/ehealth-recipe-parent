@@ -637,10 +637,13 @@ public class RecipeHisService extends RecipeBaseService {
     public void recipeListQuery(List<String> recipeCodes, Integer organId) {
         if (isHisEnable(organId)) {
             RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
-            //RecipeListQueryReqTO request = new RecipeListQueryReqTO(recipeCodes, organId);
             List<RecipeListQueryReqTO> requestList = new ArrayList<>();
             for (String recipeCode : recipeCodes) {
                 Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeCode, organId);
+                if (RecipeStateEnum.PROCESS_STATE_CANCELLATION.getType().equals(recipe.getProcessState())) {
+                    LOGGER.info("recipeListQuery 当前处方已经在平台撤销 recipeId:{}", recipe.getRecipeId());
+                    continue;
+                }
                 RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
                 RecipeListQueryReqTO recipeListQueryReqTO = new RecipeListQueryReqTO();
                 PatientDTO patientDTO = patientService.getPatientBeanByMpiId(recipe.getMpiid());
