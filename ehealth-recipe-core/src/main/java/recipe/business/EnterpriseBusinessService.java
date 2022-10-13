@@ -303,6 +303,7 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
 
     @Override
     public List<EnterpriseDecoctionList> findEnterpriseDecoctionList(Integer enterpriseId, Integer organId) {
+        AddrAreaService addrAreaService = BasicAPI.getService(AddrAreaService.class);
         OrganAndDrugsepRelation relation = organAndDrugsepRelationDAO.getOrganAndDrugsepByOrganIdAndEntId(organId, enterpriseId);
         if (Objects.isNull(relation)) {
             return null;
@@ -324,6 +325,7 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
         // 获取机构下的所有煎法
         List<DecoctionWay> decoctionWayList = drugDecoctionWayDao.findByOrganId(organId);
         Map<Integer, List<EnterpriseDecoctionAddress>> finalCollect = collect;
+        Long allStreetCount = addrAreaService.getAllStreetCount();
         List<EnterpriseDecoctionList> enterpriseDecoctionLists = decoctionWayList.stream().map(decoctionWay -> {
             EnterpriseDecoctionList enterpriseDecoctionList = null;
             if ("-1".equals(enterpriseDecoctionIds) || list.contains(decoctionWay.getDecoctionId())) {
@@ -332,7 +334,12 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
                 enterpriseDecoctionList.setDecoctionName(decoctionWay.getDecoctionText());
                 int status = 0;
                 if (MapUtils.isNotEmpty(finalCollect) && CollectionUtils.isNotEmpty(finalCollect.get(decoctionWay.getDecoctionId()))) {
-                    status = 1;
+                    int count = finalCollect.get(decoctionWay.getDecoctionId()).size();
+                    if (count < allStreetCount) {
+                        status = 1;
+                    } else {
+                        status = 2;
+                    }
                 }
                 enterpriseDecoctionList.setStatus(status);
             }
