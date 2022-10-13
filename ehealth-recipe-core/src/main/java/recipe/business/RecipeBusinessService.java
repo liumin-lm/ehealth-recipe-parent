@@ -1180,11 +1180,11 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     public PageGenericsVO<List<SelfServiceMachineResVo>> findRecipeToZiZhuJi(SelfServiceMachineReqVO selfServiceMachineReqVO) {
         logger.info("findRecipeToZiZhuJi mpiId =" + selfServiceMachineReqVO.getMpiId());
         PageGenericsVO<List<SelfServiceMachineResVo>> pageGenericsVO = new PageGenericsVO<>();
-        List<Integer> statusList = selfServiceMachineReqVO.getStatusList();
-        if (CollectionUtils.isEmpty(statusList)) {
-            statusList = Lists.newArrayList(2, 3, 4, 5, 6, 7, 8, 9);
+        List<Integer> processStateList = selfServiceMachineReqVO.getStatusList();
+        if (CollectionUtils.isEmpty(processStateList)) {
+            processStateList = Lists.newArrayList(2, 3, 4, 5, 6, 7, 8, 9);
         }
-        QueryResult<Recipe> resultList = recipeDAO.findRecipeToZiZhuJi(selfServiceMachineReqVO.getMpiId(), statusList,selfServiceMachineReqVO.getStart(), selfServiceMachineReqVO.getLimit());
+        QueryResult<Recipe> resultList = recipeDAO.findRecipeToZiZhuJi(selfServiceMachineReqVO.getMpiId(), processStateList, selfServiceMachineReqVO.getStart(), selfServiceMachineReqVO.getLimit());
         List<Recipe> list = resultList.getItems();
         if (CollectionUtils.isEmpty(list)) {
             return pageGenericsVO;
@@ -1192,8 +1192,6 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         pageGenericsVO.setTotal(Integer.valueOf(Long.toString(resultList.getTotal())));
         pageGenericsVO.setLimit(Integer.valueOf(Long.toString(resultList.getLimit())));
         pageGenericsVO.setStart(Integer.valueOf(Long.toString(resultList.getStart())));
-
-
         List<Recipedetail> recipedetails;
         List<SelfServiceMachineResVo> serviceMachineResVoList = new ArrayList<>();
         try {
@@ -1214,10 +1212,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
                 selfServiceMachineResVo.setSubState(recipe.getSubState());
                 selfServiceMachineResVo.setSubStateText(RecipeStateEnum.getRecipeStateEnum(recipe.getSubState()).getName());
                 selfServiceMachineResVo.setProcessState(recipe.getProcessState());
-
                 recipedetails = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
-
-
                 List<DrugInfoResVo> drugInfoList = Lists.newArrayList();
                 String useDose;
                 String usingRateText;
@@ -1241,42 +1236,12 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
                 }
                 selfServiceMachineResVo.setRp(drugInfoList);
                 selfServiceMachineResVo.setMemo(recipe.getMemo());
-
-
-                switch (recipe.getStatus()) {
-                    case RecipeStatusConstant.CHECK_PASS:
-                        if (!Objects.isNull(recipeExtend) && StringUtils.isNotEmpty(recipeExtend.getPharmNo())) {
-                            selfServiceMachineResVo.setStatusText("药师审核处方通过，请去医院取药窗口取药:[" + recipeExtend.getPharmNo() + "]");
-                        } else {
-                            selfServiceMachineResVo.setStatusText( "药师审核处方通过，请去医院取药窗口取药");
-                        }
-                        break;
-                    case RecipeStatusConstant.NO_OPERATOR:
-                        selfServiceMachineResVo.setStatusText( "已取消(超过三天未取药)");
-                        break;
-                    case RecipeStatusConstant.REVOKE:
-                        selfServiceMachineResVo.setStatusText( "由于医生已撤销，该处方单已失效，请联系医生.");
-                        break;
-                    case RecipeStatusConstant.FINISH:
-                        selfServiceMachineResVo.setStatusText( "已完成");
-                        break;
-                    case RecipeStatusConstant.READY_CHECK_YS:
-                        selfServiceMachineResVo.setStatusText( "等待药师审核处方");
-                        break;
-                    case RecipeStatusConstant.CHECK_NOT_PASS_YS:
-                        selfServiceMachineResVo.setStatusText( "药师审核处方不通过，请联系开方医生");
-                        break;
-                    default:
-                        selfServiceMachineResVo.setStatusText( DictionaryController.instance().get("eh.cdr.dictionary.RecipeStatus").getText(recipe.getStatus()));
-                        break;
-                }
                 serviceMachineResVoList.add(selfServiceMachineResVo);
             }
             pageGenericsVO.setData(serviceMachineResVoList);
         } catch (Exception e) {
             logger.error("findRecipeToZiZhuJi error" + e.getMessage(), e);
         }
-
         return pageGenericsVO;
     }
 

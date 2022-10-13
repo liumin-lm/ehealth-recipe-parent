@@ -2349,30 +2349,29 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
+
     /**
-     *
      * 自助机查询处方信息 使用新状态
      *
      * @param mpiId
-     * @param organId
      * @param start
      * @param limit
      * @return
      */
-    public QueryResult<Recipe> findRecipeToZiZhuJi(final String mpiId, final List<Integer> statusList, final int start, final int limit) {
+    public QueryResult<Recipe> findRecipeToZiZhuJi(final String mpiId, final List<Integer> processStateList, final int start, final int limit) {
         HibernateStatelessResultAction<QueryResult<Recipe>> action = new AbstractHibernateStatelessResultAction<QueryResult<Recipe>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                String hql = "from Recipe where mpiid=:mpiid  and processState in (:statusList) order by createDate desc";
+                String hql = "from Recipe where mpiid=:mpiid  and processState in (:processStateList) order by createDate desc";
                 Query query = ss.createQuery(hql);
                 query.setParameter("mpiid", mpiId);
-                query.setParameterList("statusList", statusList);
+                query.setParameterList("processStateList", processStateList);
                 query.setFirstResult(start);
                 query.setMaxResults(limit);
 
                 Query countQuery = ss.createQuery("select count(*) " + hql);
                 countQuery.setParameter("mpiid", mpiId);
-                countQuery.setParameterList("statusList", statusList);
+                countQuery.setParameterList("processStateList", processStateList);
                 Long total = (Long) countQuery.uniqueResult();
                 List<Recipe> lists = query.list();
                 setResult(new QueryResult<Recipe>(total, query.getFirstResult(), query.getMaxResults(), lists));

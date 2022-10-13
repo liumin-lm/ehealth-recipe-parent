@@ -1,5 +1,7 @@
 package recipe.api.open;
 
+import com.ngari.common.mode.HisResponseTO;
+import com.ngari.his.recipe.mode.MedicationInfoResTO;
 import com.ngari.platform.recipe.mode.ListOrganDrugReq;
 import com.ngari.platform.recipe.mode.ListOrganDrugRes;
 import ctd.util.annotation.RpcService;
@@ -65,4 +67,14 @@ public interface IDrugAtopService {
      */
     @RpcService(mvcDisabled = true)
     List<RecipeRulesDrugCorrelationVO> findRulesByCorrelationDrugIdAndRuleId(Integer correlationDrugId, Integer ruleId);
+
+    /**
+     * his调用，同步机构数据字典中用药频次、用药途径
+     * @param medicationInfoResTOList
+     * @return
+     */
+    @RpcService
+    HisResponseTO medicationInfoSyncTaskForHis(List<MedicationInfoResTO> medicationInfoResTOList);
+
+
 }

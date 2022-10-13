@@ -28,6 +28,4 @@ public class SelfServiceMachineResVo implements Serializable {
     //药品信息
     private List<DrugInfoResVo> rp;
     private String memo;
-    private String statusText;
-
 }

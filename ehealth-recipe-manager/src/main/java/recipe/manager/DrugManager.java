@@ -5,6 +5,7 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.dto.UsingRateDTO;
+import com.ngari.his.recipe.mode.MedicationInfoResTO;
 import com.ngari.opbase.base.service.IBusActionLogService;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.OrganConfigDTO;
@@ -43,6 +44,9 @@ import recipe.util.ValidateUtil;
 
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
+import java.sql.Time;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -752,5 +756,55 @@ public class DrugManager extends BaseManager {
 //        businessLogClient.recordBusinessLog("修改机构设置", organ.getOrganId().toString(), bizClass.getName(),
 //                String.format("[%2$s](%1$s)的'%3$s'选项被%4$s", organ.getOrganId(), organ.getName(), optionName, value), organ.getName());
 //    }
+
+    public Boolean updateMedicationSyncConfig(MedicationSyncConfig medicationSyncConfig) {
+        return medicationSyncConfigDAO.updateNonNullFieldByPrimaryKey(medicationSyncConfig);
+    }
+
+    public MedicationSyncConfig getMedicationSyncConfig(Integer organId,Integer dataType) {
+        MedicationSyncConfig medicationSyncConfig = medicationSyncConfigDAO.getMedicationSyncConfigByOrganIdAndDataType(organId, dataType);
+        if(Objects.isNull(medicationSyncConfig)){
+            medicationSyncConfig = new MedicationSyncConfig();
+            medicationSyncConfig.setOrganId(organId);
+            medicationSyncConfig.setDataType(dataType);
+            medicationSyncConfigDAO.save(medicationSyncConfig);
+            medicationSyncConfig = medicationSyncConfigDAO.getMedicationSyncConfigByOrganIdAndDataType(organId, dataType);
+        }
+        return medicationSyncConfig;
+    }
+
+    public List<MedicationInfoResTO> medicationInfoSyncTask() {
+        LocalTime localTime = LocalTime.now();
+        LocalTime localTime1 = localTime.minusMinutes(1);
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
+        String format = localTime.format(dateTimeFormatter);
+        String format1 = localTime1.format(dateTimeFormatter);
+        Time etime = Time.valueOf(format);
+        Time stime = Time.valueOf(format1);
+        //List<MedicationSyncConfig> medicationSyncConfigs = medicationSyncConfigDAO.findByEnableSyncAndTime(stime, etime);
+        List<MedicationSyncConfig> medicationSyncConfigs = medicationSyncConfigDAO.findByEnableSync();
+        logger.info("medicationInfoSyncTask medicationSyncConfigs:{}",JSONUtils.toString(medicationSyncConfigs));
+        if (!ObjectUtils.isEmpty(medicationSyncConfigs)) {
+            for (MedicationSyncConfig medicationSyncConfig : medicationSyncConfigs) {
+                try {
+                    Boolean enableSync = medicationSyncConfig.getEnableSync();
+                    Integer dockingMode = medicationSyncConfig.getDockingMode();
+                    if (ObjectUtils.isEmpty(dockingMode)) {
+                        throw new DAOException(DAOException.VALUE_NEEDED, "未找到同步模式配置!");
+                    }
+                    if (dockingMode == 2) {
+                        throw new DAOException(DAOException.VALUE_NEEDED, "同步模式 为【主动推送】 调用无效!");
+                    }
+                    if (!enableSync) {
+                        throw new DAOException(DAOException.VALUE_NEEDED, "同步开关未开启");
+                    }
+                    return drugClient.medicationInfoSyncTask(medicationSyncConfig.getOrganId(), medicationSyncConfig.getDataType());
+                } catch (Exception e) {
+                    logger.error("medicationInfoSyncTask同步 organId=[{}],机构定时更新异常：exception=[{}].", medicationSyncConfig.getOrganId(), e);
+                }
+            }
+        }
+        return new ArrayList<>();
+    }
 
 }
