@@ -7,7 +7,9 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 线程池管理
@@ -44,11 +46,21 @@ public class RecipeBusiThreadPool {
         }
     }
 
+    public static <T> List<Future<T>> submitListReturn(List<Callable<T>> callableList, long timeout) throws Exception {
+        ThreadPoolTaskExecutor service = AppContextHolder.getBean("busTaskExecutor", ThreadPoolTaskExecutor.class);
+        if (null == service) {
+            return null;
+        }
+        printThreadPoolInfo(service);
+        return service.getThreadPoolExecutor().invokeAll(callableList, timeout, TimeUnit.MILLISECONDS);
+    }
+
     /**
      * 打印当前线程池工作状态
+     *
      * @param service
      */
-    private static void printThreadPoolInfo(ThreadPoolTaskExecutor service){
+    private static void printThreadPoolInfo(ThreadPoolTaskExecutor service) {
         try {
             if (null != service) {
                 ThreadPoolExecutor threadPoolExecutor = service.getThreadPoolExecutor();
