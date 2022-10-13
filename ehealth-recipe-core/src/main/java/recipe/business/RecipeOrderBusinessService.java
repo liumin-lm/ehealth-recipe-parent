@@ -1423,6 +1423,12 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                 if(recipeExtend != null){
                     imperfectInfoVO.setRecipeCostNumber(recipeExtend.getRecipeCostNumber());
                 }
+                Recipe recipe = recipeDAO.getByRecipeId(recipeBeforeOrder.getRecipeId());
+                if (!new Integer(3).equals(recipe.getWriteHisState())) {
+                    // 如果处方没写入his,视为未完善
+                    logger.info("RecipeOrderBusinessService batchGetImperfectFlag WriteHisState={}",recipe.getWriteHisState());
+                    imperfectInfoVO.setImperfectFlag(0);
+                }
                 imperfectInfoVOS.add(imperfectInfoVO);
             });
         }
@@ -1480,6 +1486,11 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
         Integer imperfectFlag = getImperfectFlag(recipeBean);
         imperfectInfoVO.setImperfectFlag(imperfectFlag);
         Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeBean.getRecipeCode(), recipeBean.getClinicOrgan());
+        if (!new Integer(3).equals(recipe.getWriteHisState())) {
+            // 如果处方没写入his,视为未完善
+            logger.info("RecipeOrderBusinessService getImperfectInfo WriteHisState={}",recipe.getWriteHisState());
+            imperfectInfoVO.setImperfectFlag(0);
+        }
         if(recipe != null){
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
             if(recipeExtend != null){
