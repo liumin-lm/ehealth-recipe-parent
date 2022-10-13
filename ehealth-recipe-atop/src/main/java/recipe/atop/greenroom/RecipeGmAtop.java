@@ -137,7 +137,7 @@ public class RecipeGmAtop extends BaseAtop {
     }
 
     /**
-     * 定时同步机构数据字典中用药频次、用药途径
+     * 定时同步机构数据字典中用药频次、用药途径（每分钟调用一次）
      */
     @RpcService
     public void medicationInfoSyncTask(){

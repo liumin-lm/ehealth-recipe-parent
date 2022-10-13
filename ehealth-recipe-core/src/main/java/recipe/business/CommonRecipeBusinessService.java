@@ -26,6 +26,8 @@ import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.client.DrugClient;
 import recipe.constant.ErrorCode;
 import recipe.core.api.doctor.ICommonRecipeBusinessService;
+import recipe.enumerate.type.RecipeDrugFormTypeEnum;
+import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.manager.*;
 import recipe.util.ByteUtils;
 import recipe.util.MapValueUtil;
@@ -199,6 +201,14 @@ public class CommonRecipeBusinessService extends BaseService implements ICommonR
                 a.setPharmacyName(pharmacyTcm.getPharmacyName());
             }
             commonDTO.setCommonRecipeDTO(ObjectCopyUtils.convert(a, CommonRecipeDTO.class));
+            if (RecipeTypeEnum.RECIPETYPE_TCM.getType().equals(commonDTO.getCommonRecipeDTO().getRecipeType())) {
+                List<String> commonRecipeDrugLists = commonDTO.getCommonRecipeDrugList().stream().filter(commonRecipeDrugDTO -> StringUtils.isNotEmpty(commonRecipeDrugDTO.getDrugForm())).map(CommonRecipeDrugDTO::getDrugForm).collect(Collectors.toList());
+                if (CollectionUtils.isEmpty(commonRecipeDrugLists)) {
+                    commonDTO.getCommonRecipeDTO().setRecipeDrugForm(RecipeDrugFormTypeEnum.TCM_DECOCTION_PIECES.getType());
+                } else {
+                    commonDTO.getCommonRecipeDTO().setRecipeDrugForm(RecipeDrugFormTypeEnum.getDrugFormType(commonRecipeDrugLists.get(0)));
+                }
+            }
             commonList.add(commonDTO);
         });
         return commonList;
