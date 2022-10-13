@@ -191,6 +191,17 @@ public class RecipeOrderPatientAtop extends BaseAtop {
     }
 
     /**
+     * 门诊缴费 合并支付处方患者端上传his
+     *
+     * @param recipeIds   处方
+     */
+    @RpcService
+    public void submitRecipeHisV1(List<Integer> recipeIds) {
+        validateAtop(recipeIds);
+        recipeOrderService.submitRecipeHisV1(recipeIds);
+    }
+
+    /**
      * 患者取消订单 根据配送方式上传处方给his 撤销处方
      *
      * @param recipeIds

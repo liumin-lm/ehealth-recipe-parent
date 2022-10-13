@@ -242,6 +242,12 @@ public interface IRecipeOrderBusinessService {
     Integer getRecipeRefundCount(RecipeRefundInfoReqVO recipeRefundCountVO);
 
     /**
+     * 门诊缴费合并支付患者端处方推送his
+     * @param recipeIds
+     */
+    void submitRecipeHisV1(List<Integer> recipeIds);
+
+    /**
      * 根据 二方id 查询订单列表
      *
      * @param clinicId   二方业务id

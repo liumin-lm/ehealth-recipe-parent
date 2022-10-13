@@ -129,6 +129,9 @@ public class RecipeBeforeOrder implements Serializable {
     @ItemProperty(alias = "处方费")
     private BigDecimal recipeFee;
 
+    @ItemProperty(alias = "是否已锁定  0 否，1 是")
+    private Integer isLock;
+
     @Id
     @GeneratedValue(strategy = IDENTITY)
     @Column(name = "id", unique = true, nullable = false)
@@ -455,4 +458,12 @@ public class RecipeBeforeOrder implements Serializable {
         this.completeAddress = completeAddress;
     }
 
+    @Column(name = "is_lock")
+    public Integer getIsLock() {
+        return isLock;
+    }
+
+    public void setIsLock(Integer isLock) {
+        this.isLock = isLock;
+    }
 }

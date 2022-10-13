@@ -1,16 +1,10 @@
 package recipe.business;
 
-import com.google.common.collect.Lists;
-import com.ngari.WxServiceAPI;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.MedicationInfoResTO;
-import com.ngari.intface.WxConfigService;
 import com.ngari.patient.dto.*;
-import com.ngari.patient.dto.OrganDTO;
-import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.IUsePathwaysService;
 import com.ngari.patient.service.IUsingRateService;
-import com.ngari.patient.service.OrganService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.HospitalDrugListDTO;
 import com.ngari.platform.recipe.mode.HospitalDrugListReqDTO;
@@ -23,21 +17,8 @@ import com.ngari.recipe.vo.DrugSaleStrategyVO;
 import com.ngari.recipe.vo.HospitalDrugListReqVO;
 import com.ngari.recipe.vo.HospitalDrugListVO;
 import com.ngari.recipe.vo.SearchDrugReqVO;
-import ctd.controller.exception.ControllerException;
-import ctd.dictionary.DictionaryController;
-import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
-import ctd.schema.annotation.ItemProperty;
-import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
-import ctd.util.annotation.RpcService;
-import ctd.util.converter.ConversionUtils;
-import eh.base.constant.ErrorCode;
-import eh.entity.base.ClientConfig;
-import eh.entity.base.HisServiceConfig;
-import eh.entity.base.Organ;
-import eh.entity.base.OrganConfig;
-import eh.entity.wx.WXConfig;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -45,7 +26,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import recipe.aop.LogRecord;
-import recipe.bean.cqjgptbussdata.Drug;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.client.DrugClient;
@@ -55,6 +35,7 @@ import recipe.constant.RecipeBussConstant;
 import recipe.core.api.IDrugBusinessService;
 import recipe.dao.*;
 import recipe.enumerate.status.YesOrNoEnum;
+import recipe.enumerate.type.RecipeDrugFormTypeEnum;
 import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.manager.DrugManager;
 import recipe.manager.HisRecipeManager;
@@ -67,8 +48,6 @@ import recipe.vo.patient.PatientContinueRecipeCheckDrugRes;
 import recipe.vo.patient.PatientOptionalDrugVo;
 
 import javax.annotation.Resource;
-import java.lang.reflect.Field;
-import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -274,7 +253,7 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
             }
         }
         //获取常用药记录
-        List<DrugCommon> drugCommonList = drugManager.commonDrugList(commonDrug.getOrganId(), commonDrug.getDoctor(), drugTypes);
+        List<DrugCommon> drugCommonList = drugManager.commonDrugList(commonDrug.getOrganId(), commonDrug.getDoctor(), drugTypes, RecipeDrugFormTypeEnum.getDrugForm(commonDrug.getRecipeDrugForm()));
         if (CollectionUtils.isEmpty(drugCommonList)) {
             return Collections.emptyList();
         }
@@ -455,7 +434,8 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
         if (ObjectUtils.isEmpty(drugOrganConfig)){
             drugOrganConfig=new DrugOrganConfig();
             drugOrganConfig.setOrganId(organId);
-            drugOrganConfig=drugOrganConfigDao.save(drugOrganConfig);
+            drugOrganConfigDao.save(drugOrganConfig);
+            drugOrganConfig=drugOrganConfigDao.getByOrganId(organId);
         }
         BeanUtils.copyProperties(drugOrganConfig, organConfigVO);
         //同步字段设置

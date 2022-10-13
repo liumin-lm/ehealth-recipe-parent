@@ -3,7 +3,6 @@ package recipe.business;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.follow.utils.ObjectCopyUtil;
@@ -27,7 +26,6 @@ import com.ngari.recipe.vo.*;
 import coupon.api.service.ICouponBaseService;
 import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
-import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
@@ -1213,7 +1211,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
                 selfServiceMachineResVo.setDiseaseName(recipe.getOrganDiseaseName());
                 selfServiceMachineResVo.setSignTime(DateConversion.getDateFormatter(recipe.getSignDate(), "MM月dd日 HH:mm"));
                 selfServiceMachineResVo.setSubState(recipe.getSubState());
-                selfServiceMachineResVo.setStatusText(RecipeStateEnum.getRecipeStateEnum(recipe.getSubState()).getName());
+                selfServiceMachineResVo.setSubStateText(RecipeStateEnum.getRecipeStateEnum(recipe.getSubState()).getName());
                 selfServiceMachineResVo.setProcessState(recipe.getProcessState());
 
                 recipedetails = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
