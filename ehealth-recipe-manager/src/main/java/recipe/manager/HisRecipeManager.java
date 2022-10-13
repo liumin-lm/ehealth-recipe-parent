@@ -667,18 +667,15 @@ public class HisRecipeManager extends BaseManager {
 
     /**
      * 线下处方中药药品剂型校验
-     * @param hisRecipeDetails  offline recipe detail data
+     * @param organDrugLists  organ drug list data
      * @param recipeType    recipe of type
-     * @param organId  organ of id
      * @return recipeDrugFormType
      */
-    public Integer validateDrugForm(List<HisRecipeDetail> hisRecipeDetails, Integer recipeType, Integer organId){
+    public Integer validateDrugForm(List<OrganDrugList> organDrugLists, Integer recipeType){
         if (!RecipeConstant.RECIPETYPE_TCM.equals(recipeType)){
             return null;
         }
-        List<String> organDrugCodeList = hisRecipeDetails.stream().map(HisRecipeDetail::getDrugCode).collect(Collectors.toList());
-        List<OrganDrugList> organDrugListList = organDrugListDAO.findByOrganIdAndDrugCodes(organId, organDrugCodeList);
-        Set<String> organDrugFormSet = organDrugListList.stream().filter(organDrugList -> StringUtils.isNotEmpty(organDrugList.getDrugForm())).map(OrganDrugList::getDrugForm).collect(Collectors.toSet());
+        Set<String> organDrugFormSet = organDrugLists.stream().filter(organDrugList -> StringUtils.isNotEmpty(organDrugList.getDrugForm())).map(OrganDrugList::getDrugForm).collect(Collectors.toSet());
         if (CollectionUtils.isEmpty(organDrugFormSet)) {
             return RecipeDrugFormTypeEnum.TCM_DECOCTION_PIECES.getType();
         }

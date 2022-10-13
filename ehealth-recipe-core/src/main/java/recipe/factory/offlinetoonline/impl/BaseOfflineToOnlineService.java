@@ -1,5 +1,6 @@
 package recipe.factory.offlinetoonline.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
@@ -59,6 +60,7 @@ import recipe.manager.*;
 import recipe.service.RecipeService;
 import recipe.util.RecipeUtil;
 import recipe.vo.patient.RecipeGiveModeButtonRes;
+import recipe.vo.second.enterpriseOrder.EnterpriseDrugVO;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -717,11 +719,6 @@ public class BaseOfflineToOnlineService {
         if (new Integer(3).equals(hisRecipe.getRecipeType())) {
             recipe.setCopyNum(StringUtils.isEmpty(hisRecipe.getTcmNum()) ? 1 : Integer.parseInt(hisRecipe.getTcmNum()));
         }
-        List<HisRecipeDetail> hisRecipeDetails = hisRecipeDetailDAO.findByHisRecipeId(hisRecipe.getHisRecipeID());
-        Integer recipeDrugFormType = hisRecipeManager.validateDrugForm(hisRecipeDetails, hisRecipe.getRecipeType(), hisRecipe.getClinicOrgan());
-        if (Objects.nonNull(recipeDrugFormType) && recipeDrugFormType > 0) {
-            recipe.setRecipeDrugForm(recipeDrugFormType);
-        }
         //中药医嘱跟着处方 西药医嘱跟着药品（见药品详情）
         recipe.setRecipeMemo(hisRecipe.getRecipeMemo());
         recipe.setFastRecipeFlag(0);
@@ -759,20 +756,24 @@ public class BaseOfflineToOnlineService {
         if (CollectionUtils.isNotEmpty(recipeDetails)) {
             return;
         }
-        Integer recipeDrugFormType = hisRecipeManager.validateDrugForm(hisRecipeDetails, hisRecipe.getRecipeType(), hisRecipe.getClinicOrgan());
+        Set<String> recipeCodes = new HashSet<>();
+        recipeCodes.add(hisRecipe.getRecipeCode());
+        List<String> drugCodeList = hisRecipeDetails.stream().filter(hisRecipeDetail -> StringUtils.isNotEmpty(hisRecipeDetail.getDrugCode())).map(HisRecipeDetail::getDrugCode).collect(Collectors.toList());
+        List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugCodes(hisRecipe.getClinicOrgan(), drugCodeList);
+        Integer recipeDrugFormType = hisRecipeManager.validateDrugForm(organDrugList, hisRecipe.getRecipeType());
         if (Objects.nonNull(recipeDrugFormType) && recipeDrugFormType == -1) {
+            LOGGER.info("中药处方中的药品剂型不一致:{}", hisRecipe.getRecipeCode());
+            hisRecipeManager.deleteSetRecipeCode(hisRecipe.getClinicOrgan(), recipeCodes);
             throw new DAOException(ErrorCode.SERVICE_ERROR, "中药处方中的药品剂型不一致");
         }
+        Map<String, List<OrganDrugList>> organDrugListMap = organDrugList.stream().collect(Collectors.groupingBy(OrganDrugList::getOrganDrugCode));
         Integer targetedDrugType = 0;
         for (HisRecipeDetail hisRecipeDetail : hisRecipeDetails) {
-            LOGGER.info("hisRecipe.getClinicOrgan(): " + hisRecipe.getClinicOrgan() + "");
-            LOGGER.info("Arrays.asList(hisRecipeDetail.getDrugCode()):" + hisRecipeDetail.getDrugCode());
-            List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugCodes(hisRecipe.getClinicOrgan(), Arrays.asList(hisRecipeDetail.getDrugCode()));
-            LOGGER.info("hisRecipe.organDrugLists:{}", JSONUtils.toString(organDrugLists));
+            LOGGER.info("hisRecipe saveRecipeDetail hisRecipeDetail:{} " , JSON.toJSONString(hisRecipeDetail));
+            List<OrganDrugList> organDrugLists = organDrugListMap.get(hisRecipeDetail.getDrugCode());
+            LOGGER.info("hisRecipe saveRecipeDetail organDrugLists:{}", JSONUtils.toString(organDrugLists));
             if (CollectionUtils.isEmpty(organDrugLists)) {
                 LOGGER.info("处方中的药品信息未维护到线上平台药品目录:{},{},{}", hisRecipe.getRecipeCode(), hisRecipeDetail.getDrugCode(), hisRecipe.getClinicOrgan());
-                Set<String> recipeCodes = new HashSet<>();
-                recipeCodes.add(hisRecipe.getRecipeCode());
                 hisRecipeManager.deleteSetRecipeCode(hisRecipe.getClinicOrgan(), recipeCodes);
                 throw new DAOException(ErrorCode.SERVICE_ERROR, "处方中的药品信息未维护到线上平台药品目录");
             }
@@ -893,6 +894,7 @@ public class BaseOfflineToOnlineService {
         Recipe recipeUpdate = new Recipe();
         recipeUpdate.setTargetedDrugType(targetedDrugType);
         recipeUpdate.setRecipeId(recipeId);
+        recipeUpdate.setRecipeDrugForm(recipeDrugFormType);
         recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
     }
 
