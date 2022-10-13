@@ -187,14 +187,15 @@ public class CommonRecipeBusinessService extends BaseService implements ICommonR
                     commonRecipeDrugList.add(commonRecipeDrugDTO);
                 });
                 commonDTO.setCommonRecipeDrugList(commonRecipeDrugList);
-                if (RecipeTypeEnum.RECIPETYPE_TCM.getType().equals(commonDTO.getCommonRecipeDTO().getRecipeType())) {
+                commonDTO.getCommonRecipeDTO().setRecipeDrugForm(RecipeDrugFormTypeEnum.TCM_DECOCTION_PIECES.getType());
+                /*if (RecipeTypeEnum.RECIPETYPE_TCM.getType().equals(commonDTO.getCommonRecipeDTO().getRecipeType())) {
                     List<String> commonRecipeDrugLists = commonRecipeDrugList.stream().filter(commonRecipeDrugDTO -> StringUtils.isNotEmpty(commonRecipeDrugDTO.getDrugForm())).map(CommonRecipeDrugDTO::getDrugForm).collect(Collectors.toList());
                     if (CollectionUtils.isEmpty(commonRecipeDrugLists)) {
                         commonDTO.getCommonRecipeDTO().setRecipeDrugForm(RecipeDrugFormTypeEnum.TCM_DECOCTION_PIECES.getType());
                     } else {
                         commonDTO.getCommonRecipeDTO().setRecipeDrugForm(RecipeDrugFormTypeEnum.getDrugFormType(commonRecipeDrugLists.get(0)));
                     }
-                }
+                }*/
             }
             //扩展信息
             CommonRecipeExt commonRecipeExt = commonRecipeExtMap.get(a.getCommonRecipeId());
