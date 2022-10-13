@@ -87,14 +87,14 @@ public class DrugOrganConfig implements Serializable {
     private String delDrugFromList;
 
     //作废
-    @ItemProperty(
-            alias = "药品同步 数据范围   1所有药品（无限制条件） 2  药品剂型  默认 2"
-    )
-    private Integer drugDataRange;
-
-    //作废
-    @ItemProperty(alias = "手动同步 剂型list暂存")
-    private String drugFromList;
+//    @ItemProperty(
+//            alias = "药品同步 数据范围   1所有药品（无限制条件） 2  药品剂型  默认 2"
+//    )
+//    private Integer drugDataRange;
+//
+//    //作废
+//    @ItemProperty(alias = "手动同步 剂型list暂存")
+//    private String drugFromList;
 
 
     @ItemProperty(alias = "创建时间")
@@ -103,16 +103,18 @@ public class DrugOrganConfig implements Serializable {
     @ItemProperty(alias = "更新时间")
     private Date updateTime;
 
-    @ItemProperty(alias = "药企药品目录同步字段")
-    private List<SaleDrugListSyncField> saleDrugListSyncFieldList;
+    @ItemProperty(alias = "药品目录同步字段")
+    private List<OrganDrugListSyncField> organDrugListSyncFieldList;
+
+
 
     @Transient
-    public List<SaleDrugListSyncField> getSaleDrugListSyncFieldList() {
-        return saleDrugListSyncFieldList;
+    public List<OrganDrugListSyncField> getOrganDrugListSyncFieldList() {
+        return organDrugListSyncFieldList;
     }
 
-    public void setSaleDrugListSyncFieldList(List<SaleDrugListSyncField> saleDrugListSyncFieldList) {
-        this.saleDrugListSyncFieldList = saleDrugListSyncFieldList;
+    public void setOrganDrugListSyncFieldList(List<OrganDrugListSyncField> organDrugListSyncFieldList) {
+        this.organDrugListSyncFieldList = organDrugListSyncFieldList;
     }
 
     @Id
@@ -308,23 +310,23 @@ public class DrugOrganConfig implements Serializable {
 
 
 
-    @Column(name = "drug_data_range")
-    public Integer getDrugDataRange() {
-        return drugDataRange;
-    }
-
-    public void setDrugDataRange(Integer drugDataRange) {
-        this.drugDataRange = drugDataRange;
-    }
-
-        @Column(name = "drugFromList")
-    public String getDrugFromList() {
-        return drugFromList;
-    }
-
-    public void setDrugFromList(String drugFromList) {
-        this.drugFromList = drugFromList;
-    }
+//    @Column(name = "drug_data_range")
+//    public Integer getDrugDataRange() {
+//        return drugDataRange;
+//    }
+//
+//    public void setDrugDataRange(Integer drugDataRange) {
+//        this.drugDataRange = drugDataRange;
+//    }
+//
+//        @Column(name = "drugFromList")
+//    public String getDrugFromList() {
+//        return drugFromList;
+//    }
+//
+//    public void setDrugFromList(String drugFromList) {
+//        this.drugFromList = drugFromList;
+//    }
 
 
 }

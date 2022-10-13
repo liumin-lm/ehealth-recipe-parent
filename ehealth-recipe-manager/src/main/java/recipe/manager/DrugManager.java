@@ -38,6 +38,7 @@ import org.springframework.util.ObjectUtils;
 import recipe.aop.LogRecord;
 import recipe.client.BusinessLogClient;
 import recipe.constant.RecipeBussConstant;
+import recipe.constant.SyncDrugConstant;
 import recipe.dao.*;
 import recipe.util.LocalStringUtil;
 import recipe.util.ValidateUtil;
@@ -82,6 +83,7 @@ public class DrugManager extends BaseManager {
     private BusinessLogClient businessLogClient;
     private String YES="1";
     private String NO ="0";
+
 
     /**
      * 更新drugList 到Es
@@ -711,29 +713,29 @@ public class DrugManager extends BaseManager {
     private LinkedHashMap<String,DrugSyncFieldDTO> initSyncFieldMapForOrgan(){
         LinkedHashMap<String,DrugSyncFieldDTO> fieldMap=new LinkedHashMap<>();
         //line 1
-        fieldMap.put("saleDrugCode",new DrugSyncFieldDTO("药品唯一索引","organDrugCode",YES,NO,YES,NO) );
-        fieldMap.put("drugName",new DrugSyncFieldDTO("药品名","drugName",YES,NO,YES,YES));
-        fieldMap.put("saleName",new DrugSyncFieldDTO("商品名","saleName",YES,NO,YES,YES));
-        fieldMap.put("price",new DrugSyncFieldDTO("院内检索码","retrievalCode",YES,NO,YES,YES));
-        fieldMap.put("drugType",new DrugSyncFieldDTO("药品类型","drugType",YES,NO,YES,YES));
+        fieldMap.put(SyncDrugConstant.organDrugCode,new DrugSyncFieldDTO("药品唯一索引","organDrugCode",YES,NO,YES,NO) );
+        fieldMap.put(SyncDrugConstant.drugName,new DrugSyncFieldDTO("药品名",SyncDrugConstant.drugName,YES,NO,YES,YES));
+        fieldMap.put(SyncDrugConstant.saleName,new DrugSyncFieldDTO("商品名",SyncDrugConstant.saleName,YES,NO,YES,YES));
+        fieldMap.put(SyncDrugConstant.retrievalCode,new DrugSyncFieldDTO("院内检索码",SyncDrugConstant.retrievalCode,YES,NO,YES,YES));
+//        fieldMap.put(SyncDrugConstant.drugType,new DrugSyncFieldDTO("药品类型",SyncDrugConstant.drugType,YES,NO,YES,YES));
 
-        fieldMap.put("drugSpec",new DrugSyncFieldDTO("药品规格","drugSpec",YES,NO,YES,YES));
-        fieldMap.put("price",new DrugSyncFieldDTO("价格","price",YES,NO,YES,YES));
-        fieldMap.put("applyBusiness",new DrugSyncFieldDTO("适用业务","applyBusiness",YES,NO,YES,YES));
+        fieldMap.put(SyncDrugConstant.drugSpec,new DrugSyncFieldDTO("药品规格",SyncDrugConstant.drugSpec,YES,NO,YES,YES));
+        fieldMap.put(SyncDrugConstant.salePrice,new DrugSyncFieldDTO("价格",SyncDrugConstant.salePrice,YES,NO,YES,YES));
+//        fieldMap.put(SyncDrugConstant.applyBusiness,new DrugSyncFieldDTO("适用业务",SyncDrugConstant.applyBusiness,YES,NO,YES,YES));
 //        fieldMap.put("status","状态");
 
-        fieldMap.put("unit",new DrugSyncFieldDTO("最小售药单位","unit",YES,NO,YES,YES));//？？
-        fieldMap.put("pack",new DrugSyncFieldDTO("包装数量（转化系数）","pack",YES,NO,YES,YES));
-        fieldMap.put("useDose",new DrugSyncFieldDTO("单次剂量（规格单位）","useDose",YES,NO,YES,YES));
-        fieldMap.put("producer",new DrugSyncFieldDTO("生产厂家","retrievalCode",YES,NO,YES,YES));
+        fieldMap.put(SyncDrugConstant.unit,new DrugSyncFieldDTO("最小售药单位",SyncDrugConstant.unit,YES,NO,YES,YES));//？？
+        fieldMap.put(SyncDrugConstant.pack,new DrugSyncFieldDTO("包装数量（转化系数）",SyncDrugConstant.pack,YES,NO,YES,YES));
+        fieldMap.put(SyncDrugConstant.useDose,new DrugSyncFieldDTO("单次剂量（规格单位）",SyncDrugConstant.useDose,YES,NO,YES,YES));
+        fieldMap.put(SyncDrugConstant.producer,new DrugSyncFieldDTO("生产厂家",SyncDrugConstant.retrievalCode,YES,NO,YES,YES));
 
-        fieldMap.put("pharmacy",new DrugSyncFieldDTO("药房","pharmacy",YES,YES,YES,YES));//对应编码与名称吗
-        fieldMap.put("drugForm",new DrugSyncFieldDTO("剂型","drugForm",YES,YES,YES,YES));
-        fieldMap.put("drugsEnterpriseIds",new DrugSyncFieldDTO("配送药企","drugsEnterpriseIds",YES,YES,YES,YES));
-        fieldMap.put("drugEntrust",new DrugSyncFieldDTO("药品嘱托","drugEntrust",YES,YES,YES,YES));
-        fieldMap.put("medicalInsuranceControl",new DrugSyncFieldDTO("医保控制","medicalInsuranceControl",YES,YES,YES,YES));
+        fieldMap.put(SyncDrugConstant.pharmacy,new DrugSyncFieldDTO("药房",SyncDrugConstant.pharmacy,YES,YES,YES,YES));//对应编码与名称吗
+        fieldMap.put(SyncDrugConstant.drugForm,new DrugSyncFieldDTO("剂型",SyncDrugConstant.drugForm,YES,YES,YES,YES));
+        fieldMap.put(SyncDrugConstant.drugsEnterpriseIds,new DrugSyncFieldDTO("配送药企",SyncDrugConstant.drugsEnterpriseIds,YES,YES,YES,YES));
+        fieldMap.put(SyncDrugConstant.drugEntrust,new DrugSyncFieldDTO("药品嘱托",SyncDrugConstant.drugEntrust,YES,YES,YES,YES));
+        fieldMap.put(SyncDrugConstant.medicalInsuranceControl,new DrugSyncFieldDTO("医保控制",SyncDrugConstant.medicalInsuranceControl,YES,YES,YES,YES));
 
-        fieldMap.put("indicationsDeclare",new DrugSyncFieldDTO("适应症说明","indicationsDeclare",YES,YES,YES,YES));
+        fieldMap.put(SyncDrugConstant.indicationsDeclare,new DrugSyncFieldDTO("适应症说明",SyncDrugConstant.indicationsDeclare,YES,YES,YES,YES));
 
         return fieldMap;
     }
@@ -741,7 +743,9 @@ public class DrugManager extends BaseManager {
     @LogRecord
     private List<String> initTypeList(){
         List<String> typeList=new ArrayList<>();
+        //新增
         typeList.add("1");
+        //更新
         typeList.add("2");
         logger.info("initTypeList:{}",JSONUtils.toString(typeList));
         return typeList;

@@ -429,6 +429,7 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
     }
 
     @Override
+    @LogRecord
     public OrganConfigVO getConfigByOrganId(Integer organId) {
         OrganConfigVO organConfigVO=new OrganConfigVO();
         DrugOrganConfig drugOrganConfig=drugOrganConfigDao.getByOrganId(organId);
