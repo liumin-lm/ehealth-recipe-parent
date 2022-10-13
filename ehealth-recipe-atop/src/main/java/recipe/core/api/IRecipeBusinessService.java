@@ -351,20 +351,6 @@ public interface IRecipeBusinessService {
     List<RecipeRefundDTO> getRecipeRefundInfo(RecipeRefundInfoReqVO recipeRefundInfoReqVO);
 
     /**
-     * 更新机构数据字典中用药频次、用药途径的同步配置
-     * @param medicationSyncConfig
-     * @return
-     */
-    Boolean updateMedicationSyncConfig(MedicationSyncConfig medicationSyncConfig);
-
-    /**
-     * 查询机构数据字典中用药频次、用药途径的同步配置
-     * @param organId,datctype
-     * @return
-     */
-    MedicationSyncConfig getMedicationSyncConfig(Integer organId,Integer datatype);
-
-    /**
      * 自助机查询处方信息
      * @param selfServiceMachineReqVO
      * @return

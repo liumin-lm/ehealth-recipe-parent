@@ -1264,20 +1264,6 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         return outpatientPaymentRecipeDTOS;
     }
 
-
-    @Override
-    public Boolean updateMedicationSyncConfig(MedicationSyncConfig medicationSyncConfig) {
-        logger.info("RecipeBusinessService updateMediationSyncConfig mediationSyncConfig={}",JSONUtils.toString(medicationSyncConfig));
-        return recipeManager.updateMedicationSyncConfig(medicationSyncConfig);
-    }
-
-    @Override
-    public MedicationSyncConfig getMedicationSyncConfig(Integer organId,Integer dataType) {
-        logger.info("RecipeBusinessService saveMediationSyncConfig organId={},dataType={}",organId,dataType);
-        return recipeManager.getMedicationSyncConfig(organId,dataType);
-    }
-
-
     private String dealRecipeTypeName(Integer recipeType) {
         if(recipe.enumerate.type.RecipeTypeEnum.RECIPETYPE_TCM.getType().equals(recipeType)){
             return "中药处方";
