@@ -1508,6 +1508,7 @@ public class RecipeServiceSub {
         r.setDoctorName(recipe.getDoctorName());
         r.setDepart(recipe.getDepart());
         r.setOfflineRecipeName(recipe.getOfflineRecipeName());
+        r.setRecipeDrugForm(recipe.getRecipeDrugForm());
         if (null != recipeExtend) {
             r.setRecipeExtend(ObjectCopyUtils.convert(recipeExtend, RecipeExtendBean.class));
         }
