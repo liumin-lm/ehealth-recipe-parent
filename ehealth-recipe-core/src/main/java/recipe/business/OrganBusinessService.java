@@ -17,6 +17,7 @@ import recipe.client.OrganClient;
 import recipe.core.api.IOrganBusinessService;
 import recipe.dao.RecipeParameterDao;
 import recipe.enumerate.status.SettleAmountStateEnum;
+import recipe.enumerate.type.RecipeDrugFormTypeEnum;
 import recipe.manager.OrderManager;
 import recipe.util.ObjectCopyUtils;
 import recipe.util.ValidateUtil;
@@ -125,13 +126,14 @@ public class OrganBusinessService extends BaseService implements IOrganBusinessS
         if (!RecipeUtil.isTcmType(validateDetailVO.getRecipeType())) {
             return;
         }
+        if (ValidateUtil.integerIsEmpty(validateDetailVO.getRecipeDrugForm())) {
+            return;
+        }
         //校验药品剂型
         List<String> tcmRecipeDrugFormList = configurationClient.getValueListCatch(validateDetailVO.getOrganId(), "tcmRecipeDrugForm", Arrays.asList("1"));
-        if (ValidateUtil.integerIsEmpty(validateDetailVO.getRecipeDrugForm())) {
-            throw new DAOException("recipeDrugForm 无权限");
-        }
         if (!tcmRecipeDrugFormList.contains(validateDetailVO.getRecipeDrugForm().toString())) {
-            throw new DAOException("recipeDrugForm 无权限");
+            String recipeDrugFormText = RecipeDrugFormTypeEnum.getDrugForm(validateDetailVO.getRecipeDrugForm());
+            throw new DAOException("您未开通" + recipeDrugFormText + "开具权限");
         }
     }
 }
