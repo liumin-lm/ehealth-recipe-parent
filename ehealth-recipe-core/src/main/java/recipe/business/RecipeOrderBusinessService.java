@@ -2,6 +2,7 @@ package recipe.business;
 
 import com.alibaba.fastjson.JSON;
 import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.common.dto.CheckRequestCommonOrderItemDTO;
 import com.ngari.common.dto.CheckRequestCommonOrderPageDTO;
@@ -1409,29 +1410,35 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
         logger.info("batchGetImperfectFlag recipeBeans={}",recipeBeans);
         List<ImperfectInfoVO> imperfectInfoVOS = new ArrayList<>();
         List<String> recipeCodes = recipeBeans.stream().map(com.ngari.recipe.recipe.model.RecipeBean::getRecipeCode).collect(Collectors.toList());
+        List<Integer> recipeIds = recipeBeans.stream().map(com.ngari.recipe.recipe.model.RecipeBean::getRecipeId).collect(Collectors.toList());
         Set<Integer> organIds = recipeBeans.stream().map(com.ngari.recipe.recipe.model.RecipeBean::getClinicOrgan).collect(Collectors.toSet());
         Set<String> operMpiIds = recipeBeans.stream().map(com.ngari.recipe.recipe.model.RecipeBean::getMpiid).collect(Collectors.toSet());
         List<RecipeBeforeOrder> recipeBeforeOrders = recipeBeforeOrderDAO.findByRecipeCodesAndOrganIds(recipeCodes,organIds,operMpiIds);
-        List<String> recipeCodeList = recipeBeforeOrders.stream().map(RecipeBeforeOrder::getRecipeCode).collect(Collectors.toList());
-        if(CollectionUtils.isNotEmpty(recipeBeforeOrders)){
-            recipeBeforeOrders.forEach(recipeBeforeOrder -> {
-                ImperfectInfoVO imperfectInfoVO = new ImperfectInfoVO();
-                imperfectInfoVO.setOrganId(recipeBeforeOrder.getOrganId());
-                imperfectInfoVO.setRecipeCode(recipeBeforeOrder.getRecipeCode());
-                imperfectInfoVO.setImperfectFlag(recipeBeforeOrder.getIsReady());
-                RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeBeforeOrder.getRecipeId());
-                if(recipeExtend != null){
-                    imperfectInfoVO.setRecipeCostNumber(recipeExtend.getRecipeCostNumber());
-                }
-                Recipe recipe = recipeDAO.getByRecipeId(recipeBeforeOrder.getRecipeId());
-                if (!new Integer(3).equals(recipe.getWriteHisState())) {
-                    // 如果处方没写入his,视为未完善
-                    logger.info("RecipeOrderBusinessService batchGetImperfectFlag WriteHisState={}",recipe.getWriteHisState());
-                    imperfectInfoVO.setImperfectFlag(0);
-                }
-                imperfectInfoVOS.add(imperfectInfoVO);
-            });
+        List<RecipeBeforeOrder> recipeBeforeOrderList = recipeBeforeOrderDAO.findByRecipeIds(recipeIds,operMpiIds);
+        recipeBeforeOrders.addAll(recipeBeforeOrderList);
+        if(CollectionUtils.isEmpty(recipeBeforeOrders)){
+            return Lists.newArrayList();
         }
+        List<String> recipeCodeList = recipeBeforeOrders.stream().map(RecipeBeforeOrder::getRecipeCode).collect(Collectors.toList());
+
+        recipeBeforeOrders.forEach(recipeBeforeOrder -> {
+            ImperfectInfoVO imperfectInfoVO = new ImperfectInfoVO();
+            imperfectInfoVO.setOrganId(recipeBeforeOrder.getOrganId());
+            imperfectInfoVO.setRecipeCode(recipeBeforeOrder.getRecipeCode());
+            imperfectInfoVO.setImperfectFlag(recipeBeforeOrder.getIsReady());
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeBeforeOrder.getRecipeId());
+            if (recipeExtend != null) {
+                imperfectInfoVO.setRecipeCostNumber(recipeExtend.getRecipeCostNumber());
+            }
+            Recipe recipe = recipeDAO.getByRecipeId(recipeBeforeOrder.getRecipeId());
+            if (!new Integer(3).equals(recipe.getWriteHisState())) {
+                // 如果处方没写入his,视为未完善
+                logger.info("RecipeOrderBusinessService batchGetImperfectFlag WriteHisState={}", recipe.getWriteHisState());
+                imperfectInfoVO.setImperfectFlag(0);
+            }
+            imperfectInfoVOS.add(imperfectInfoVO);
+        });
+
         //处理不存在预订单信息中的处方（例：线下处方）
         Map<String, Integer> collectMap = recipeBeans.stream().collect(Collectors.toMap(com.ngari.recipe.recipe.model.RecipeBean::getRecipeCode, com.ngari.recipe.recipe.model.RecipeBean::getClinicOrgan));
         List<String> recipeCodeLists = recipeCodes.stream().filter(a -> !recipeCodeList.contains(a)).collect(Collectors.toList());
@@ -1485,7 +1492,15 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
         ImperfectInfoVO imperfectInfoVO = new ImperfectInfoVO();
         Integer imperfectFlag = getImperfectFlag(recipeBean);
         imperfectInfoVO.setImperfectFlag(imperfectFlag);
-        Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeBean.getRecipeCode(), recipeBean.getClinicOrgan());
+        Recipe recipe = null;
+        if (Objects.nonNull(recipeBean.getRecipeId())) {
+            recipe = recipeDAO.getByRecipeId(recipeBean.getRecipeId());
+        } else {
+            recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeBean.getRecipeCode(), recipeBean.getClinicOrgan());
+        }
+        if(Objects.isNull(recipe)){
+            throw new DAOException("处方信息不存在");
+        }
         if (!new Integer(3).equals(recipe.getWriteHisState())) {
             // 如果处方没写入his,视为未完善
             logger.info("RecipeOrderBusinessService getImperfectInfo WriteHisState={}",recipe.getWriteHisState());
