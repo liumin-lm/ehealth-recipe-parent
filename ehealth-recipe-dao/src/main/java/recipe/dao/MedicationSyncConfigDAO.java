@@ -38,11 +38,11 @@ public abstract class MedicationSyncConfigDAO extends HibernateSupportDelegateDA
      * @param endTime
      * @return
      */
-    @DAOMethod(sql="from MedicationSyncConfig where enableSync=1 and dockingMode=1 and regularTime >=:startTime and  regularTime <=:endTime ",limit = 0)
-    public abstract List<MedicationSyncConfig> findByEnableSyncAndTime(@DAOParam("startTime") Time startTime , @DAOParam("endTime") Time endTime  );
+    @DAOMethod(sql="from MedicationSyncConfig where regularTime >=:startTime and  regularTime <=:endTime ",limit = 0)
+    public abstract List<MedicationSyncConfig> findByRegularTime(@DAOParam("startTime") Time startTime , @DAOParam("endTime") Time endTime  );
 
     @DAOMethod(sql="from MedicationSyncConfig where regularTime is not null ",limit = 0)
-    public abstract List<MedicationSyncConfig> findByRegularTime();
+    public abstract List<MedicationSyncConfig> findByTime();
 
     @DAOMethod
     public abstract List<MedicationSyncConfig> findByOrganId(Integer organId);

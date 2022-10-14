@@ -781,8 +781,8 @@ public class DrugManager extends BaseManager {
         String format1 = localTime1.format(dateTimeFormatter);
         Time etime = Time.valueOf(format);
         Time stime = Time.valueOf(format1);
-        //List<MedicationSyncConfig> medicationSyncConfigs = medicationSyncConfigDAO.findByEnableSyncAndTime(stime, etime);
-        List<MedicationSyncConfig> medicationSyncConfigs = medicationSyncConfigDAO.findByRegularTime();
+        List<MedicationSyncConfig> medicationSyncConfigs = medicationSyncConfigDAO.findByRegularTime(stime, etime);
+        //List<MedicationSyncConfig> medicationSyncConfigs = medicationSyncConfigDAO.findByRegularTime();
         logger.info("medicationInfoSyncTask medicationSyncConfigs:{}",JSONUtils.toString(medicationSyncConfigs));
         if (!ObjectUtils.isEmpty(medicationSyncConfigs)) {
             for (MedicationSyncConfig medicationSyncConfig : medicationSyncConfigs) {
