@@ -49,6 +49,7 @@ public class OffLineRecipeDoctorAtop extends BaseAtop {
      */
     @RpcService
     public HisRecipeBean getOffLineRecipeDetailsV1(RecipeBean recipe, List<RecipeDetailBean> recipeDetails) {
+        validateAtop(recipe, recipe.getClinicOrgan(), recipe.getRecipeCode());
         HisRecipeDTO hisRecipeDTO = offlineRecipeBusinessService.getOffLineRecipeDetailsV1(recipe.getClinicOrgan(), recipe.getRecipeCode());
         HisRecipeInfoDTO hisRecipeInfo = hisRecipeDTO.getHisRecipeInfo();
         HisRecipeBean recipeBean = ObjectCopyUtils.convert(hisRecipeInfo, HisRecipeBean.class);
