@@ -349,9 +349,12 @@ public class CommonRecipeBusinessService extends BaseService implements ICommonR
             }
             //校验比对药品
             ValidateOrganDrugDTO validateOrganDrugDTO = new ValidateOrganDrugDTO(a.getOrganDrugCode(), null, a.getDrugId());
-            OrganDrugList organDrug = organDrugListManager.validateOrganDrug(validateOrganDrugDTO, organDrugGroup, recipeDrugForm);
+            OrganDrugList organDrug = organDrugListManager.validateOrganDrug(validateOrganDrugDTO, organDrugGroup);
             if (null == organDrug) {
                 throw new DAOException(ErrorCode.SERVICE_ERROR, "机构药品错误");
+            }
+            if (RecipeUtil.isTcmType(commonRecipe.getRecipeType()) && !RecipeDrugFormTypeEnum.getDrugForm(recipeDrugForm).equals(organDrug.getDrugForm())) {
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "处方剂型错误");
             }
             //校验药品药房变动
             if (null != a.getPharmacyId() && StringUtils.isNotEmpty(organDrug.getPharmacy())
@@ -430,7 +433,7 @@ public class CommonRecipeBusinessService extends BaseService implements ICommonR
                                                         Map<String, UsePathways> usePathwaysCodeMap, Map<String, DrugEntrust> drugEntrustNameMap) {
         //校验比对药品
         ValidateOrganDrugDTO validateOrganDrugDTO = new ValidateOrganDrugDTO(drug.getOrganDrugCode(), null, null);
-        OrganDrugList organDrug = organDrugListManager.validateOrganDrug(validateOrganDrugDTO, organDrugGroup, drug.getRecipeDrugForm());
+        OrganDrugList organDrug = organDrugListManager.validateOrganDrug(validateOrganDrugDTO, organDrugGroup);
         if (null == organDrug) {
             LOGGER.warn("CommonRecipeService offlineCommonRecipeDrug organDrug OrganDrugCode ：{}", drug.getOrganDrugCode());
             return null;
