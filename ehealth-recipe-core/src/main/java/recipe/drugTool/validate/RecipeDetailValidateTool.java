@@ -407,7 +407,7 @@ public class RecipeDetailValidateTool {
             recipeDetail.setOrganUsingRate(null);
             us = true;
         } else {
-            recipeDetail.setUsingRate(usingRateDTO.getUsingRateKey());
+            recipeDetail.setUsingRate(usingRateDTO.getRelatedPlatformKey());
             recipeDetail.setUsingRateId(String.valueOf(usingRateDTO.getId()));
         }
         UsePathwaysDTO usePathwaysDTO = drugManager.usePathways(organId, recipeDetail.getOrganUsePathways(), recipeDetail.getDrugType());
@@ -418,7 +418,7 @@ public class RecipeDetailValidateTool {
             recipeDetail.setOrganUsePathways(null);
             us = true;
         } else {
-            recipeDetail.setUsePathways(usePathwaysDTO.getPathwaysKey());
+            recipeDetail.setUsePathways(usePathwaysDTO.getRelatedPlatformKey());
             recipeDetail.setUsePathwaysId(String.valueOf(usePathwaysDTO.getId()));
         }
         return us;

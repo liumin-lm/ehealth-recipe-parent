@@ -9,6 +9,7 @@ import com.ngari.recipe.commonrecipe.model.CommonRecipeDrugDTO;
 import com.ngari.recipe.dto.HisRecipeDTO;
 import com.ngari.recipe.dto.HisRecipeInfoDTO;
 import com.ngari.recipe.entity.CommonRecipe;
+import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.recipe.model.HisRecipeBean;
 import com.ngari.recipe.recipe.model.HisRecipeDetailBean;
 import com.ngari.recipe.recipe.model.RecipeBean;
@@ -19,13 +20,17 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
+import recipe.core.api.IDrugBusinessService;
 import recipe.core.api.doctor.ICommonRecipeBusinessService;
+import recipe.enumerate.type.RecipeDrugFormTypeEnum;
+import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.util.ValidateUtil;
 
 import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 常用方服务入口类
@@ -36,6 +41,8 @@ import java.util.List;
 public class CommonRecipeDoctorAtop extends BaseAtop {
     @Autowired
     private ICommonRecipeBusinessService commonRecipeService;
+    @Autowired
+    private IDrugBusinessService drugBusinessService;
 
     /**
      * 获取常用方列表
@@ -233,6 +240,16 @@ public class CommonRecipeDoctorAtop extends BaseAtop {
             detailBean.setUsePathways(a.getUsePathwaysCode());
             hisRecipeDetailBeans.add(detailBean);
         });
+        if (RecipeTypeEnum.RECIPETYPE_TCM.getType().equals(hisRecipeDTO.getHisRecipeInfo().getRecipeType())) {
+            List<String> drugCodeList = hisRecipeDetailBeans.stream().filter(hisRecipeDetailBean -> StringUtils.isNotEmpty(hisRecipeDetailBean.getDrugCode())).map(HisRecipeDetailBean::getDrugCode).collect(Collectors.toList());
+            List<OrganDrugList> organDrugLists = drugBusinessService.organDrugList(commonRecipe.getOrganId(), drugCodeList);
+            List<String> organDrugFormLists = organDrugLists.stream().filter(organDrugList -> StringUtils.isNotEmpty(organDrugList.getDrugForm())).map(OrganDrugList::getDrugForm).collect(Collectors.toList());
+            if (CollectionUtils.isEmpty(organDrugFormLists)) {
+                recipeBean.setRecipeDrugForm(RecipeDrugFormTypeEnum.TCM_DECOCTION_PIECES.getType());
+            } else {
+                recipeBean.setRecipeDrugForm(RecipeDrugFormTypeEnum.getDrugFormType(organDrugFormLists.get(0)));
+            }
+        }
         recipeBean.setDetailData(hisRecipeDetailBeans);
         return recipeBean;
     }
