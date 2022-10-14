@@ -9,7 +9,6 @@ import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.model.RecipeExtendBean;
-import com.ngari.recipe.recipe.model.RequirementsForTakingVO;
 import ctd.persistence.exception.DAOException;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -24,6 +23,7 @@ import recipe.constant.ErrorCode;
 import recipe.dao.DrugDecoctionWayDao;
 import recipe.dao.DrugMakingMethodDao;
 import recipe.dao.RequirementsForTakingDao;
+import recipe.enumerate.type.RecipeDrugFormTypeEnum;
 import recipe.manager.DrugManager;
 import recipe.manager.OrganDrugListManager;
 import recipe.manager.RecipeManager;
@@ -31,7 +31,6 @@ import recipe.manager.RevisitManager;
 import recipe.util.ObjectCopyUtils;
 import recipe.util.ValidateUtil;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -89,9 +88,9 @@ public class RecipeDetailValidateTool {
      * @param organDrugGroup   机构药品组
      * @return
      */
-    public OrganDrugList validateOrganDrug(RecipeDetailBean recipeDetailBean, Map<String, List<OrganDrugList>> organDrugGroup, Integer recipeDrugForm) {
+    public OrganDrugList validateOrganDrug(RecipeDetailBean recipeDetailBean, Map<String, List<OrganDrugList>> organDrugGroup) {
         ValidateOrganDrugDTO validateOrganDrugDTO = new ValidateOrganDrugDTO(recipeDetailBean.getOrganDrugCode(), null, recipeDetailBean.getDrugId());
-        OrganDrugList organDrugList = organDrugListManager.validateOrganDrug(validateOrganDrugDTO, organDrugGroup, recipeDrugForm);
+        OrganDrugList organDrugList = organDrugListManager.validateOrganDrug(validateOrganDrugDTO, organDrugGroup);
         if (validateOrganDrugDTO.getValidateStatus()) {
             recipeDetailBean.setValidateStatus(VALIDATE_STATUS_YES);
         } else {
@@ -408,7 +407,7 @@ public class RecipeDetailValidateTool {
             recipeDetail.setOrganUsingRate(null);
             us = true;
         } else {
-            recipeDetail.setUsingRate(usingRateDTO.getUsingRateKey());
+            recipeDetail.setUsingRate(usingRateDTO.getRelatedPlatformKey());
             recipeDetail.setUsingRateId(String.valueOf(usingRateDTO.getId()));
         }
         UsePathwaysDTO usePathwaysDTO = drugManager.usePathways(organId, recipeDetail.getOrganUsePathways(), recipeDetail.getDrugType());
@@ -419,7 +418,7 @@ public class RecipeDetailValidateTool {
             recipeDetail.setOrganUsePathways(null);
             us = true;
         } else {
-            recipeDetail.setUsePathways(usePathwaysDTO.getPathwaysKey());
+            recipeDetail.setUsePathways(usePathwaysDTO.getRelatedPlatformKey());
             recipeDetail.setUsePathwaysId(String.valueOf(usePathwaysDTO.getId()));
         }
         return us;
@@ -463,21 +462,44 @@ public class RecipeDetailValidateTool {
             return;
         }
         //拿到历史处方煎法
-        String writeRecipeSelectDecoctionId=recipeExtendBean.getDecoctionId();
+        String writeRecipeSelectDecoctionId = recipeExtendBean.getDecoctionId();
         //处方煎法煎法关联的服用要求（如果服用要求被删掉了，通过煎法匹配会查不出来==》不会包含当前服用要求=》清空 ）
-        List<RequirementsForTakingDTO> requirementsForTakingDTOList=recipeManager.findRequirementsForTakingByDecoctionId(organId,StringUtils.isEmpty(writeRecipeSelectDecoctionId)?null:Integer.parseInt(writeRecipeSelectDecoctionId));
+        List<RequirementsForTakingDTO> requirementsForTakingDTOList = recipeManager.findRequirementsForTakingByDecoctionId(organId, StringUtils.isEmpty(writeRecipeSelectDecoctionId) ? null : Integer.parseInt(writeRecipeSelectDecoctionId));
         //是否包含历史处方上的服用要求
-        if(CollectionUtils.isEmpty(requirementsForTakingDTOList)){
+        if (CollectionUtils.isEmpty(requirementsForTakingDTOList)) {
             requirementsForTaking(null, recipeExtendBean);
             return;
         }
-        for(RequirementsForTakingDTO requirementsForTakingDTO: requirementsForTakingDTOList){
-            if(StringUtils.isNotEmpty(requirementsForTakingDTO.getCode())&&requirementsForTakingDTO.getCode().equals(recipeExtendBean.getRequirementsForTakingCode())){
+        for (RequirementsForTakingDTO requirementsForTakingDTO : requirementsForTakingDTOList) {
+            if (StringUtils.isNotEmpty(requirementsForTakingDTO.getCode()) && requirementsForTakingDTO.getCode().equals(recipeExtendBean.getRequirementsForTakingCode())) {
                 //包含
-                requirementsForTaking(ObjectCopyUtils.convert(requirementsForTakingDTO,RequirementsForTaking.class), recipeExtendBean);
+                requirementsForTaking(ObjectCopyUtils.convert(requirementsForTakingDTO, RequirementsForTaking.class), recipeExtendBean);
                 return;
             }
         }
         requirementsForTaking(null, recipeExtendBean);
+    }
+
+    /**
+     * 判断中药处方剂型
+     *
+     * @param recipeType
+     * @param recipeDrugForm
+     * @param organDrug
+     * @param recipeExtendBean
+     * @return
+     */
+    public boolean validateDrugForm(Integer recipeType, Integer recipeDrugForm, OrganDrugList organDrug, RecipeDetailBean a, RecipeExtendBean recipeExtendBean) {
+        a.setDrugForm(organDrug.getDrugForm());
+        if (RecipeUtil.isTcmType(recipeType)) {
+            return false;
+        }
+        if (RecipeDrugFormTypeEnum.getDrugForm(recipeDrugForm).equals(organDrug.getDrugForm())) {
+            return false;
+        }
+        a.setDrugForm(null);
+        //设置剂型
+        decoctionWay(null, recipeExtendBean);
+        return true;
     }
 }

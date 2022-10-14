@@ -619,7 +619,7 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
             if(StringUtils.isEmpty(medicationInfoResTO.getMedicationCode())){
                 throw new DAOException(DAOException.VALUE_NEEDED,"用药途径编码不能为空!");
             }
-            UsePathwaysDTO usePathwaysDTO = usePathwaysService.findUsePathwaysByOrganAndKey(medicationInfoResTO.getOrganId(), medicationInfoResTO.getMedicationCode());
+            UsePathwaysDTO usePathwaysDTO = usePathwaysService.getUsePathwaysByOrganAndKeyAndCategory(medicationInfoResTO.getOrganId(), medicationInfoResTO.getMedicationCode(),medicationInfoResTO.getCategory());
             if(Objects.isNull(usePathwaysDTO)){
                 try {
                     //新增

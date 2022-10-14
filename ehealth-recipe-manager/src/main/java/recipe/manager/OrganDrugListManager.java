@@ -18,7 +18,6 @@ import recipe.client.IConfigurationClient;
 import recipe.client.OperationClient;
 import recipe.dao.PharmacyTcmDAO;
 import recipe.enumerate.type.AppointEnterpriseTypeEnum;
-import recipe.enumerate.type.RecipeDrugFormTypeEnum;
 import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.util.ByteUtils;
 import recipe.util.ValidateUtil;
@@ -248,7 +247,7 @@ public class OrganDrugListManager extends BaseManager {
      * @param organDrugGroup       机构药品组
      * @return 返回机构药品
      */
-    public OrganDrugList validateOrganDrug(ValidateOrganDrugDTO validateOrganDrugDTO, Map<String, List<OrganDrugList>> organDrugGroup, Integer recipeDrugForm) {
+    public OrganDrugList validateOrganDrug(ValidateOrganDrugDTO validateOrganDrugDTO, Map<String, List<OrganDrugList>> organDrugGroup) {
         validateOrganDrugDTO.setValidateStatus(true);
         //校验药品存在
         if (StringUtils.isEmpty(validateOrganDrugDTO.getOrganDrugCode())) {
@@ -279,16 +278,6 @@ public class OrganDrugListManager extends BaseManager {
         }
         if (Integer.valueOf(1).equals(organDrug.getUnavailable())) {
             validateOrganDrugDTO.setValidateStatus(false);
-        }
-        //校验药品剂型
-        List<String> tcmRecipeDrugFormList = configurationClient.getValueListCatch(organDrug.getOrganId(), "tcmRecipeDrugForm", Arrays.asList("1"));
-        if (!ValidateUtil.integerIsEmpty(recipeDrugForm)) {
-            if (!tcmRecipeDrugFormList.contains(recipeDrugForm.toString())) {
-                validateOrganDrugDTO.setValidateStatus(false);
-            }
-            if (!RecipeDrugFormTypeEnum.getDrugForm(recipeDrugForm).equals(organDrug.getDrugForm())) {
-                validateOrganDrugDTO.setValidateStatus(false);
-            }
         }
         return organDrug;
     }

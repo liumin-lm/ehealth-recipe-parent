@@ -80,5 +80,4 @@ public interface IOrganBusinessService {
      * @return
      */
     Integer getOrderPayFlag(Integer orderId);
-
 }
