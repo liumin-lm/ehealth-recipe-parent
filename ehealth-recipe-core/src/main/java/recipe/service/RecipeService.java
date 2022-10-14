@@ -156,7 +156,7 @@ public class RecipeService extends RecipeBaseService {
 
     private static List<String> beforeCAList = Arrays.asList("gdsign", "gdsign|2", "jiangsuCA", "beijingCA", "bjYwxCA");
 
-    public static final String KEY_THE_DRUG_SYNC = "THE_DRUG_SYNC";
+
 
     private static final Integer CA_OLD_TYPE = new Integer(0);
 
@@ -2104,7 +2104,7 @@ public class RecipeService extends RecipeBaseService {
      */
     @RpcService
     public Map<String, Object> getOrganDrugSyncData(Integer organId) throws ParseException {
-        return (Map<String, Object>) redisClient.get(KEY_THE_DRUG_SYNC + organId.toString());
+        return (Map<String, Object>) redisClient.get(SyncDrugConstant.KEY_THE_DRUG_SYNC + organId.toString());
     }
 
 
@@ -2117,7 +2117,7 @@ public class RecipeService extends RecipeBaseService {
      */
     @RpcService
     public void deleteOrganDrugSyncData(Integer organId) {
-        redisClient.del(KEY_THE_DRUG_SYNC + organId.toString());
+        redisClient.del(SyncDrugConstant.KEY_THE_DRUG_SYNC + organId.toString());
     }
 
 
@@ -2131,7 +2131,7 @@ public class RecipeService extends RecipeBaseService {
     @RpcService
     public Long getTimeByOrganId(Integer organId) throws ParseException {
         long minutes = 0L;
-        Map<String, Object> hget = redisClient.get(KEY_THE_DRUG_SYNC + organId.toString());
+        Map<String, Object> hget = redisClient.get(SyncDrugConstant.KEY_THE_DRUG_SYNC + organId.toString());
         if (hget != null) {
             Integer status = (Integer) hget.get("Status");
             String date = (String) hget.get("Date");
@@ -2209,7 +2209,7 @@ public class RecipeService extends RecipeBaseService {
 
     /**
      * 平台手动同步机构药品
-     *
+     * 配置校验放到前端去做了
      * @param organId
      * @param drugForms
      * @return
@@ -2217,7 +2217,7 @@ public class RecipeService extends RecipeBaseService {
     @LogRecord
     @RpcService(timeout = 600000)
     public Map<String, Object> drugInfoSynMovement(Integer organId, List<String> drugForms) throws ParseException {
-        Map<String, Object> hget = redisClient.get(KEY_THE_DRUG_SYNC + organId.toString());
+        Map<String, Object> hget = redisClient.get(SyncDrugConstant.KEY_THE_DRUG_SYNC + organId.toString());
         if (hget != null) {
             Integer status = (Integer) hget.get("Status");
             String date = (String) hget.get("Date");
@@ -2292,8 +2292,8 @@ public class RecipeService extends RecipeBaseService {
         map.put("Date", myFmt2.format(new Date()));
         map.put("Status", 0);
         map.put("Exception", 0);
-        redisClient.del(KEY_THE_DRUG_SYNC + organId.toString());
-        redisClient.set(KEY_THE_DRUG_SYNC + organId.toString(), map);
+        redisClient.del(SyncDrugConstant.KEY_THE_DRUG_SYNC + organId.toString());
+        redisClient.set(SyncDrugConstant.KEY_THE_DRUG_SYNC + organId.toString(), map);
         RecipeBusiThreadPool.submit(()->{
             return drugInfoSynCore(organId, drugForms, drugMap, operator, sync, add, commit, delete,update);
         });
@@ -2353,7 +2353,7 @@ public class RecipeService extends RecipeBaseService {
      */
     @RpcService(timeout = 6000000)
     public Map<String, Object> drugInfoSynMovementD(Integer organId, List<String> drugForms) throws ParseException {
-        Map<String, Object> hget = redisClient.get(KEY_THE_DRUG_SYNC + organId.toString());
+        Map<String, Object> hget = redisClient.get(SyncDrugConstant.KEY_THE_DRUG_SYNC + organId.toString());
         if (hget != null) {
             Integer status = (Integer) hget.get("Status");
             String date = (String) hget.get("Date");
@@ -2460,8 +2460,8 @@ public class RecipeService extends RecipeBaseService {
             map.put("Status", 2);
             map.put("Exception", 0);
             map.put("hisException", "his查询药品数据为空!");
-            redisClient.del(KEY_THE_DRUG_SYNC + organId.toString());
-            redisClient.set(KEY_THE_DRUG_SYNC + organId.toString(), map);
+            redisClient.del(SyncDrugConstant.KEY_THE_DRUG_SYNC + organId.toString());
+            redisClient.set(SyncDrugConstant.KEY_THE_DRUG_SYNC + organId.toString(), map);
             return map;
         }
         //查询起始下标
@@ -2565,8 +2565,8 @@ public class RecipeService extends RecipeBaseService {
         if (!ObjectUtils.isEmpty(byOrganId)) {
             map.put("Exception", 1);
         }
-        redisClient.del(KEY_THE_DRUG_SYNC + organId.toString());
-        redisClient.set(KEY_THE_DRUG_SYNC + organId.toString(), map);
+        redisClient.del(SyncDrugConstant.KEY_THE_DRUG_SYNC + organId.toString());
+        redisClient.set(SyncDrugConstant.KEY_THE_DRUG_SYNC + organId.toString(), map);
         //drugInfoSynTaskExt(organId);
         long elapsedTime = System.currentTimeMillis() - start;
         LOGGER.info("RecipeBusiThreadPool drugInfoSynMovementExt ES-推送药品 执行时间:{}.", elapsedTime);
