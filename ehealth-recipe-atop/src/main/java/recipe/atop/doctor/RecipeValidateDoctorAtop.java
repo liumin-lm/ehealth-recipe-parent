@@ -55,7 +55,6 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
     @RpcService
     public ValidateDetailVO validateDetailV1(ValidateDetailVO validateDetailVO) {
         validateAtop(validateDetailVO.getOrganId(), validateDetailVO.getRecipeType(), validateDetailVO.getRecipeExtendBean(), validateDetailVO.getRecipeDetails());
-        //校验处方剂型
         validateDetailVO.setLongRecipe(!IS_LONG_RECIPE_FALSE.equals(validateDetailVO.getRecipeExtendBean().getIsLongRecipe()));
         String pharmacyCode = validateDetailVO.getRecipeDetails().stream().filter(validateDetail -> StringUtils.isNotEmpty(validateDetail.getPharmacyCode()))
                 .findFirst().map(RecipeDetailBean::getPharmacyCode).orElse(null);

@@ -2,6 +2,7 @@ package recipe.atop.open;
 
 import com.alibaba.fastjson.JSONArray;
 import com.ngari.common.mode.HisResponseTO;
+import com.ngari.his.recipe.mode.RecipeInfoTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.platform.recipe.mode.OutpatientPaymentRecipeDTO;
 import com.ngari.platform.recipe.mode.QueryRecipeInfoHisDTO;
@@ -379,5 +380,10 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
     @Override
     public PageGenericsVO<List<SelfServiceMachineResVo>> findRecipeToZiZhuJi(SelfServiceMachineReqVO selfServiceMachineReqVO) {
         return recipeBusinessService.findRecipeToZiZhuJi(selfServiceMachineReqVO);
+    }
+
+    @Override
+    public List<RecipeInfoTO> patientOfflineRecipe(Integer organId, String patientId, Date startTime, Date endTime) {
+        return offlineToOnlineService.patientOfflineRecipe(organId, patientId, startTime, endTime);
     }
 }
