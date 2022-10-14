@@ -814,4 +814,57 @@ public class DrugManager extends BaseManager {
         return new ArrayList<>();
     }
 
+    /**
+     * 根据同步数据范围判断能否同步数据
+     * @param syncDataRange 新增 药品同步 数据范围   1药品类型 2  药品剂型  默认1
+     * @param syncDrugType
+     * @param
+     * @param
+     * @return
+     */
+    @LogRecord
+    public boolean isAllowDealBySyncDataRange(String organDrugCode, Integer syncDataRange, String syncDrugType, String drugFormList, Integer drugType, String drugForm) {
+        //新增药品 勾选的药品类型是否包括当前药品类型 包括新增，不包括不新增
+        //更新字段 字段没被勾选上不更新，其余情况全部更新
+        boolean isAllow=false;
+        if (syncDataRange==null||syncDataRange == 1) {
+            //同步数据范围 药品类型
+            if (ObjectUtils.isEmpty(syncDrugType)) {
+                throw new DAOException(DAOException.VALUE_NEEDED, "未找到该药企[同步药品类型]配置数据!");
+            }else{
+                LOGGER.info("isAllowDealBySyncDataRange 此条药品不允许同步 原因是未找到该药企[同步药品类型]配置数据:{}",organDrugCode);
+            }
+            String[] syncDrugTypeStr = syncDrugType.split(",");
+            List<String> syncDrugTypeList = new ArrayList<String>(Arrays.asList(syncDrugTypeStr));
+            //1西药 2中成药 3中药
+            if (syncDrugTypeList.indexOf("1") != -1&&drugType == 1
+                    ||syncDrugTypeList.indexOf("2") != -1 && drugType == 2
+                    ||syncDrugTypeList.indexOf("3") != -1 && drugType == 3) {
+                isAllow=true;
+            }else{
+                LOGGER.info("isAllowDealBySyncDataRange 此条药品不允许同步 原因是当前药品药品类型没在配置范围内:{}",organDrugCode);
+            }
+        }else{
+            //同步数据范围 药品剂型
+            List drugForms = Lists.newArrayList();
+            if (!ObjectUtils.isEmpty(drugFormList)) {
+                String[] split = drugFormList.split(",");
+                for (String s : split) {
+                    drugForms.add(s);
+                }
+            }
+            if (drugForms != null && drugForms.size() > 0) {
+                int i = drugForms.indexOf(drugForm);
+                if (-1 != i) {
+                    isAllow=true;
+                }else{
+                    LOGGER.info("isAllowDealBySyncDataRange 此条药品不允许同步 原因是当前药品剂型没在配置范围内:{}",organDrugCode);
+                }
+            }
+
+        }
+
+        return isAllow;
+    }
+
 }
