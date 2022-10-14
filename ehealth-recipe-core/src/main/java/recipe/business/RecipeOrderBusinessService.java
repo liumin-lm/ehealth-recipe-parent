@@ -1544,6 +1544,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
             } catch (Exception e) {
                 logger.error("submitRecipeHisV1 pushRecipe error,sysType={},recipeId:{}", CommonConstant.RECIPE_PATIENT_TYPE, recipeId, e);
                 RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "当前处方推送his失败:" + e.getMessage());
+                throw new DAOException(609,"锁定失败请重新锁定");
             }
             createPdfFactory.updateCodePdfExecute(recipeId);
         });
