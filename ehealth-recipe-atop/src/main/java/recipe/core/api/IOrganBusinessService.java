@@ -2,7 +2,6 @@ package recipe.core.api;
 
 import com.ngari.recipe.dto.GiveModeButtonDTO;
 import com.ngari.recipe.recipe.model.GiveModeButtonBean;
-import recipe.vo.doctor.ValidateDetailVO;
 import recipe.vo.second.OrganVO;
 
 import java.util.List;
@@ -81,11 +80,4 @@ public interface IOrganBusinessService {
      * @return
      */
     Integer getOrderPayFlag(Integer orderId);
-
-    /**
-     * 校验中药处方剂型
-     *
-     * @param validateDetailVO
-     */
-    void validateRecipeDrugForm(ValidateDetailVO validateDetailVO);
 }

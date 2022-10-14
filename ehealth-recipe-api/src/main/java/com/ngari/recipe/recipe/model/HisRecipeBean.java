@@ -41,6 +41,8 @@ public class HisRecipeBean implements Serializable {
     private Integer offlineRecipeType;
     @ItemProperty(alias = "线下处方名称")
     private String offlineRecipeName;
+    @ItemProperty(alias = "处方剂型 1 饮片方 2 颗粒方")
+    private Integer recipeDrugForm;
 
     public Date getCreateDate() {
         return createDate;
@@ -208,5 +210,13 @@ public class HisRecipeBean implements Serializable {
 
     public void setOfflineRecipeName(String offlineRecipeName) {
         this.offlineRecipeName = offlineRecipeName;
+    }
+
+    public Integer getRecipeDrugForm() {
+        return recipeDrugForm;
+    }
+
+    public void setRecipeDrugForm(Integer recipeDrugForm) {
+        this.recipeDrugForm = recipeDrugForm;
     }
 }
