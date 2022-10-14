@@ -363,15 +363,13 @@ public class RecipePreserveService {
             }
             if (RecipeTypeEnum.RECIPETYPE_TCM.getType().equals(recipeType)) {
                 List<String> drugCodeList = hisRecipeDetailBeans.stream().filter(hisRecipeDetailBean -> StringUtils.isNotEmpty(hisRecipeDetailBean.getDrugCode())).map(HisRecipeDetailBean::getDrugCode).collect(Collectors.toList());
-                LOGGER.info("getHosRecipeList drugCodeList:{}", JSON.toJSONString(drugCodeList));
                 List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugCodes(organId, drugCodeList);
-                LOGGER.info("getHosRecipeList organDrugLists:{}", JSON.toJSONString(organDrugLists));
                 List<String> drugFormList  = organDrugLists.stream().filter(organDrugList -> StringUtils.isNotEmpty(organDrugList.getDrugForm())).map(OrganDrugList::getDrugForm).collect(Collectors.toList());
                 LOGGER.info("getHosRecipeList drugFormList:{}", JSON.toJSONString(drugFormList));
                 if (CollectionUtils.isEmpty(drugFormList)) {
                     recipeBean.setRecipeDrugForm(RecipeDrugFormTypeEnum.TCM_DECOCTION_PIECES.getType());
                 } else {
-                    recipeBean.setRecipeDrugForm(RecipeDrugFormTypeEnum.getDrugFormType(drugCodeList.get(0)));
+                    recipeBean.setRecipeDrugForm(RecipeDrugFormTypeEnum.getDrugFormType(drugFormList.get(0)));
                 }
             }
             recipeBean.setDetailData(hisRecipeDetailBeans);
