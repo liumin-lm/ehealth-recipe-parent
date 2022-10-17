@@ -35,6 +35,8 @@ import recipe.core.api.patient.IPatientBusinessService;
 import recipe.dao.*;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.BussSourceTypeEnum;
+import recipe.enumerate.type.RecipeDrugFormTypeEnum;
+import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.manager.CaManager;
 import recipe.vo.doctor.RecipeInfoVO;
@@ -237,6 +239,13 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
         List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipeId);
         if (CollectionUtils.isNotEmpty(recipeDetailList)) {
             for (Recipedetail recipedetail : recipeDetailList) {
+                if (RecipeTypeEnum.RECIPETYPE_TCM.getType().equals(recipe.getRecipeType())) {
+                    if (Objects.isNull(recipe.getRecipeDrugForm()) || RecipeDrugFormTypeEnum.TCM_DECOCTION_PIECES.getType().equals(recipe.getRecipeDrugForm())) {
+                        recipedetail.setDrugForm(RecipeDrugFormTypeEnum.getDrugForm(RecipeDrugFormTypeEnum.TCM_DECOCTION_PIECES.getType()));
+                    } else {
+                        recipedetail.setDrugForm(RecipeDrugFormTypeEnum.getDrugForm(RecipeDrugFormTypeEnum.TCM_FORMULA_PIECES.getType()));
+                    }
+                }
                 FastRecipeDetail fastRecipeDetail = BeanUtils.map(recipedetail, FastRecipeDetail.class);
                 fastRecipeDetail.setFastRecipeId(fastRecipeResult.getId());
                 fastRecipeDetailDAO.save(fastRecipeDetail);
