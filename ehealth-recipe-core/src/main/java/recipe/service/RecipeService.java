@@ -4379,7 +4379,7 @@ public class RecipeService extends RecipeBaseService {
         }
         List<OrganDrugListSyncField> organDrugListSyncFields= new ArrayList<>();
         Map<String, OrganDrugListSyncField> organDrugListSyncFieldMap=new HashMap<>();
-        organDrugListSyncFields=organDrugListSyncFieldDAO.findByOrganIdAndType(organId,SyncDrugConstant.ADD);
+        organDrugListSyncFields=organDrugListSyncFieldDAO.findByOrganIdAndType(organId,SyncDrugConstant.UPDATE);
         organDrugListSyncFieldMap =organDrugListSyncFields.stream().collect(Collectors.toMap(OrganDrugListSyncField::getFieldCode, Function.identity()));
 
         //是否抗肿瘤药物,及抗肿瘤药物等级
