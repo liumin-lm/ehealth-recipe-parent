@@ -403,15 +403,20 @@ public class EnterpriseManager extends BaseManager {
         if (CollectionUtils.isEmpty(drugsEnterpriseList)) {
             return result;
         }
-        for (DrugsEnterprise drugsEnterprise : drugsEnterpriseList) {
-            try {
-                //todo 只用最后一个返回？
-                if (1 == drugsEnterprise.getOperationType() && ENTERPRISE_BAN_QUE.equals(drugsEnterprise.getAccount())) {
-                    result = pushRecipeInfoForThird(recipe, drugsEnterprise, node, encData);
-                }
-            } catch (Exception e) {
-                logger.error("EnterpriseManager pushRecipeForThird error ", e);
+        //是否存在扁鹊药企
+        List<DrugsEnterprise> bqDrugEnterpriseList = drugsEnterpriseList.stream().filter(drugsEnterprise -> ENTERPRISE_BAN_QUE.equals(drugsEnterprise.getAccount())).collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(bqDrugEnterpriseList)) {
+            result = pushRecipeInfoForThird(recipe, bqDrugEnterpriseList.get(0), node, encData);
+            logger.info("EnterpriseManager pushRecipeForThird result:{}", JSONUtils.toString(result));
+            return result;
+        }
+        try {
+            Boolean uploadBqPlatformFlag = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "uploadBqPlatformFlag", false);
+            if (uploadBqPlatformFlag) {
+                result = pushRecipeInfoForThird(recipe, new DrugsEnterprise(), node, encData);
             }
+        } catch (Exception e) {
+            logger.error("EnterpriseManager pushRecipeForThird error", e);
         }
         logger.info("EnterpriseManager pushRecipeForThird result:{}", JSONUtils.toString(result));
         return result;

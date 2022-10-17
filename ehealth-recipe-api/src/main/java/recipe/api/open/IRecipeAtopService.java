@@ -1,6 +1,7 @@
 package recipe.api.open;
 
 import com.ngari.common.mode.HisResponseTO;
+import com.ngari.his.recipe.mode.RecipeInfoTO;
 import com.ngari.platform.recipe.mode.OutpatientPaymentRecipeDTO;
 import com.ngari.platform.recipe.mode.QueryRecipeInfoHisDTO;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
@@ -293,4 +294,14 @@ public interface IRecipeAtopService {
     @RpcService(mvcDisabled = true)
     PageGenericsVO<List<SelfServiceMachineResVo>> findRecipeToZiZhuJi(SelfServiceMachineReqVO selfServiceMachineReqVO);
 
+    /**
+     * 根据患者id获取下线处方列表
+     *
+     * @param patientId
+     * @param startTime
+     * @param endTime
+     * @return
+     */
+    @RpcService(mvcDisabled = true)
+    List<RecipeInfoTO> patientOfflineRecipe(Integer organId, String patientId, Date startTime, Date endTime);
 }

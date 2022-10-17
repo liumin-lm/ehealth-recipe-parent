@@ -420,6 +420,22 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
     }
 
     /**
+     * 运营平台-查询药企名
+     * @param drugsEnterpriseId
+     * @return
+     */
+    @RpcService
+    public DrugsEnterpriseBeanNoDS getEnterpriseSimpleInfoByIdForOp(Integer drugsEnterpriseId){
+        DrugsEnterpriseBeanNoDS enterprise=new DrugsEnterpriseBeanNoDS();
+        DrugsEnterpriseBean bean = getDrugsEnterpriseById(drugsEnterpriseId);
+        if(bean!=null){
+            enterprise.setName(bean.getName());
+        }
+
+        return enterprise;
+    }
+
+    /**
      * 运营平台-查询药企详情
      * @param drugsEnterpriseId
      * @return
@@ -435,9 +451,10 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
                 List<OrganAndDrugsepRelation> relastionList=enterpriseBusinessService.findOrganAndDrugsepRelationBean(drugsEnterpriseId);
                 List<Integer> organIdList= relastionList.stream().map(OrganAndDrugsepRelation::getOrganId)
                         .collect(Collectors.toList());
-                if(organIdList==null || organIdList.isEmpty()){
-                    throw new DAOException(DAOException.ACCESS_DENIED, "权限验证失败");
+                if(organIdList==null ){
+                    organIdList=Lists.newArrayList();
                 }
+                organIdList.add(bean.getOrganId());
                 OpSecurityUtil.isAuthorisedOrgans(organIdList);
             }
         }

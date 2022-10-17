@@ -109,18 +109,8 @@ public class OfflineRecipeClient extends BaseClient {
         OfflineCommonRecipeRequestTO request = new OfflineCommonRecipeRequestTO();
         request.setOrganId(organId);
         request.setCommonRecipeCode(commonRecipeCode);
-        try {
-            HisResponseTO<RecipeInfoTO> hisResponse = recipeHisService.offlineCommonV1(request);
-            RecipeInfoTO recipeInfoTO = getResponse(hisResponse);
-            HisRecipeDTO hisRecipeDTO = new HisRecipeDTO();
-            hisRecipeDTO.setHisRecipeInfo(ObjectCopyUtils.convert(recipeInfoTO, HisRecipeInfoDTO.class));
-            hisRecipeDTO.setHisRecipeDetail(ObjectCopyUtils.convert(recipeInfoTO.getDetailData(), HisRecipeDetailDTO.class));
-            hisRecipeDTO.setHisRecipeExtDTO(ObjectCopyUtils.convert(recipeInfoTO.getRecipeExtendBean(), HisRecipeExtDTO.class));
-            return hisRecipeDTO;
-        } catch (Exception e) {
-            logger.error("OfflineRecipeClient offlineCommonV1 hisResponse", e);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
-        }
+        HisResponseTO<RecipeInfoTO> hisResponse = recipeHisService.offlineCommonV1(request);
+        return this.recipeDetail(hisResponse);
     }
 
 
@@ -540,6 +530,57 @@ public class OfflineRecipeClient extends BaseClient {
         }
     }
 
+    /**
+     * 根据患者id获取下线处方列表
+     *
+     * @param patientId
+     * @param startTime
+     * @param endTime
+     * @return
+     */
+    public List<RecipeInfoTO> patientOfflineRecipe(Integer organId, String patientId, Date startTime, Date endTime) {
+        logger.info("OfflineRecipeClient patientOfflineRecipe organId={} patientId:{},startTime={},endTime={}", organId, patientId, startTime, endTime);
+        QueryRecipeRequestTO request = new QueryRecipeRequestTO();
+        request.setOrgan(organId);
+        request.setPatientId(patientId);
+        request.setStartDate(startTime);
+        request.setEndDate(endTime);
+        HisResponseTO<List<RecipeInfoTO>> hisResponse = recipeHisService.patientOfflineRecipe(request);
+        try {
+            return getResponse(hisResponse);
+        } catch (Exception e) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
+    }
+
+    /**
+     * 根据处方code获取线下处方详情
+     *
+     * @param organId    机构id
+     * @param recipeCode 处方code
+     */
+    public HisRecipeDTO getOffLineRecipeDetailsV1(Integer organId, String recipeCode) {
+        logger.info("OfflineRecipeClient getOffLineRecipeDetailsV1 organId:{},recipeCode:{}", organId, recipeCode);
+        QueryRecipeRequestTO request = new QueryRecipeRequestTO();
+        request.setOrgan(organId);
+        request.setRecipeCode(recipeCode);
+        HisResponseTO<RecipeInfoTO> hisResponse = recipeHisService.getOffLineRecipeDetailsV1(request);
+        return this.recipeDetail(hisResponse);
+    }
+
+    private HisRecipeDTO recipeDetail(HisResponseTO<RecipeInfoTO> hisResponse) {
+        try {
+            RecipeInfoTO recipeInfoTO = getResponse(hisResponse);
+            HisRecipeDTO hisRecipeDTO = new HisRecipeDTO();
+            hisRecipeDTO.setHisRecipeInfo(ObjectCopyUtils.convert(recipeInfoTO, HisRecipeInfoDTO.class));
+            hisRecipeDTO.setHisRecipeDetail(ObjectCopyUtils.convert(recipeInfoTO.getDetailData(), HisRecipeDetailDTO.class));
+            hisRecipeDTO.setHisRecipeExtDTO(ObjectCopyUtils.convert(recipeInfoTO.getRecipeExtendBean(), HisRecipeExtDTO.class));
+            return hisRecipeDTO;
+        } catch (Exception e) {
+            logger.error("OfflineRecipeClient recipeDetail hisResponse", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
+    }
 
     private RecipeInfoDTO recipeInfoDTO(HisResponseTO<com.ngari.platform.recipe.mode.RecipeDTO> hisResponse, RecipeTherapy recipeTherapy) throws Exception {
         com.ngari.platform.recipe.mode.RecipeDTO hisResponseData = getResponse(hisResponse);
@@ -731,6 +772,5 @@ public class OfflineRecipeClient extends BaseClient {
         recipeDTO.setRecipeOrderBean(recipeOrderBean);
         return recipeDTO;
     }
-
 
 }

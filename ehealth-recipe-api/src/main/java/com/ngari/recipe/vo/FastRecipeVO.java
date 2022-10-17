@@ -128,10 +128,17 @@ public class FastRecipeVO implements Serializable {
 
     @ItemProperty(alias = "中药嘱托")
     private String recipeMemo;
+
     @ItemProperty(alias = "服用要求")
     private String requirementsForTakingId;
+
     @ItemProperty(alias = "服用要求code")
     private String requirementsForTakingCode;
+
     @ItemProperty(alias = "服用要求text")
     private String requirementsForTakingText;
+
+    @ItemProperty(alias = "处方剂型类型 1 饮片方 2 颗粒方")
+    @Dictionary(id = "eh.cdr.dictionary.RecipeDrugForm")
+    private Integer recipeDrugForm;
 }

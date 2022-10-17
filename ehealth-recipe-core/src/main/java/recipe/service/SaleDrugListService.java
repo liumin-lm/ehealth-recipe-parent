@@ -277,9 +277,10 @@ public class SaleDrugListService implements ISaleDrugListService {
             List<OrganAndDrugsepRelation> relastionList=enterpriseBusinessService.findOrganAndDrugsepRelationBean(organId);
             List<Integer> organIdList= relastionList.stream().map(OrganAndDrugsepRelation::getOrganId)
                     .collect(Collectors.toList());
-            if(organIdList==null || organIdList.isEmpty()){
-                throw new DAOException(DAOException.ACCESS_DENIED, "权限验证失败");
+            if(organIdList==null ){
+                organIdList=Lists.newArrayList();
             }
+            organIdList.add(organId);
             OpSecurityUtil.isAuthorisedOrgans(organIdList);
         }
 

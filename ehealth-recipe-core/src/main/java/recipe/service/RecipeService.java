@@ -156,7 +156,7 @@ public class RecipeService extends RecipeBaseService {
 
     private static List<String> beforeCAList = Arrays.asList("gdsign", "gdsign|2", "jiangsuCA", "beijingCA", "bjYwxCA");
 
-    public static final String KEY_THE_DRUG_SYNC = "THE_DRUG_SYNC";
+
 
     private static final Integer CA_OLD_TYPE = new Integer(0);
 
@@ -2011,7 +2011,7 @@ public class RecipeService extends RecipeBaseService {
                     }
                     try {
                         if (deletes) {
-                            boolean isAllow=isAllowDealBySyncDataRange(organDrug.getOrganDrugCode(),byOrganId1.getDelDrugDataRange(),byOrganId1.getDelSyncDrugType(),byOrganId1.getDelDrugFromList(),organDrug.getDrugType(),organDrug.getDrugform());
+                            boolean isAllow=drugManager.isAllowDealBySyncDataRange(organDrug.getOrganDrugCode(),byOrganId1.getDelDrugDataRange(),byOrganId1.getDelSyncDrugType(),byOrganId1.getDelDrugFromList(),organDrug.getDrugType(),organDrug.getDrugform());
                             if(isAllow){
                                 organDrugListService.updateOrganDrugListStatusByIdSync(organId, delete.getOrganDrugId());
                                 DataSyncDTO dataSyncDTO = convertDataSyn(organDrug, organId, 4, null, 3, null);
@@ -2036,7 +2036,7 @@ public class RecipeService extends RecipeBaseService {
                         LOGGER.info("syncOrganDrug机构药品数据推送 新增" + organDrug.getDrugName() + " organId=[{}] drug=[{}]", organId, JSONUtils.toString(organDrug));
                         try {
                             if (add) {
-                                boolean isAllow=isAllowDealBySyncDataRange(organDrug.getOrganDrugCode(),byOrganId1.getAddDrugDataRange(),byOrganId1.getAddSyncDrugType(),byOrganId1.getAddDrugFromList(),organDrug.getDrugType(),organDrug.getDrugform());
+                                boolean isAllow=drugManager.isAllowDealBySyncDataRange(organDrug.getOrganDrugCode(),byOrganId1.getAddDrugDataRange(),byOrganId1.getAddSyncDrugType(),byOrganId1.getAddDrugFromList(),organDrug.getDrugType(),organDrug.getDrugform());
                                 if(isAllow){
                                     addHisDrug(organDrug, organId, "推送");
                                     if (commit != null&&!commit) {
@@ -2060,7 +2060,7 @@ public class RecipeService extends RecipeBaseService {
                     } else {
                         LOGGER.info("syncOrganDrug机构药品数据推送 更新" + organDrug.getDrugName() + " organId=[{}] drug=[{}]", organId, JSONUtils.toString(organDrug));
                         try {
-                            boolean isAllow=isAllowDealBySyncDataRange(organDrug.getOrganDrugCode(),byOrganId1.getUpdateDrugDataRange(),byOrganId1.getUpdateSyncDrugType(),byOrganId1.getUpdateDrugFromList(),organDrug.getDrugType(),organDrug.getDrugform());
+                            boolean isAllow=drugManager.isAllowDealBySyncDataRange(organDrug.getOrganDrugCode(),byOrganId1.getUpdateDrugDataRange(),byOrganId1.getUpdateSyncDrugType(),byOrganId1.getUpdateDrugFromList(),organDrug.getDrugType(),organDrug.getDrugform());
                             if(isAllow){
                                 updateHisOrganDrug(organDrug, organDrugList, organId);
                                 DataSyncDTO dataSyncDTO = convertDataSyn(organDrug, organId, 2, null, 2, null);
@@ -2104,7 +2104,7 @@ public class RecipeService extends RecipeBaseService {
      */
     @RpcService
     public Map<String, Object> getOrganDrugSyncData(Integer organId) throws ParseException {
-        return (Map<String, Object>) redisClient.get(KEY_THE_DRUG_SYNC + organId.toString());
+        return (Map<String, Object>) redisClient.get(SyncDrugConstant.KEY_THE_DRUG_SYNC + organId.toString());
     }
 
 
@@ -2117,7 +2117,7 @@ public class RecipeService extends RecipeBaseService {
      */
     @RpcService
     public void deleteOrganDrugSyncData(Integer organId) {
-        redisClient.del(KEY_THE_DRUG_SYNC + organId.toString());
+        redisClient.del(SyncDrugConstant.KEY_THE_DRUG_SYNC + organId.toString());
     }
 
 
@@ -2131,7 +2131,7 @@ public class RecipeService extends RecipeBaseService {
     @RpcService
     public Long getTimeByOrganId(Integer organId) throws ParseException {
         long minutes = 0L;
-        Map<String, Object> hget = redisClient.get(KEY_THE_DRUG_SYNC + organId.toString());
+        Map<String, Object> hget = redisClient.get(SyncDrugConstant.KEY_THE_DRUG_SYNC + organId.toString());
         if (hget != null) {
             Integer status = (Integer) hget.get("Status");
             String date = (String) hget.get("Date");
@@ -2209,7 +2209,7 @@ public class RecipeService extends RecipeBaseService {
 
     /**
      * 平台手动同步机构药品
-     *
+     * 配置校验放到前端去做了
      * @param organId
      * @param drugForms
      * @return
@@ -2217,7 +2217,7 @@ public class RecipeService extends RecipeBaseService {
     @LogRecord
     @RpcService(timeout = 600000)
     public Map<String, Object> drugInfoSynMovement(Integer organId, List<String> drugForms) throws ParseException {
-        Map<String, Object> hget = redisClient.get(KEY_THE_DRUG_SYNC + organId.toString());
+        Map<String, Object> hget = redisClient.get(SyncDrugConstant.KEY_THE_DRUG_SYNC + organId.toString());
         if (hget != null) {
             Integer status = (Integer) hget.get("Status");
             String date = (String) hget.get("Date");
@@ -2244,7 +2244,7 @@ public class RecipeService extends RecipeBaseService {
         if (ObjectUtils.isEmpty(dockingMode)) {
             throw new DAOException(DAOException.VALUE_NEEDED, "未找到同步模式配置!");
         }
-        //前端去做 后期把这个校验全部去掉吧
+        //前端去做
 //        if (ObjectUtils.isEmpty(addDrugDataRange)) {
 //            throw new DAOException(DAOException.VALUE_NEEDED, "未找到药品同步 数据范围 配置!");
 //        }
@@ -2292,8 +2292,8 @@ public class RecipeService extends RecipeBaseService {
         map.put("Date", myFmt2.format(new Date()));
         map.put("Status", 0);
         map.put("Exception", 0);
-        redisClient.del(KEY_THE_DRUG_SYNC + organId.toString());
-        redisClient.set(KEY_THE_DRUG_SYNC + organId.toString(), map);
+        redisClient.del(SyncDrugConstant.KEY_THE_DRUG_SYNC + organId.toString());
+        redisClient.set(SyncDrugConstant.KEY_THE_DRUG_SYNC + organId.toString(), map);
         RecipeBusiThreadPool.submit(()->{
             return drugInfoSynCore(organId, drugForms, drugMap, operator, sync, add, commit, delete,update);
         });
@@ -2353,7 +2353,7 @@ public class RecipeService extends RecipeBaseService {
      */
     @RpcService(timeout = 6000000)
     public Map<String, Object> drugInfoSynMovementD(Integer organId, List<String> drugForms) throws ParseException {
-        Map<String, Object> hget = redisClient.get(KEY_THE_DRUG_SYNC + organId.toString());
+        Map<String, Object> hget = redisClient.get(SyncDrugConstant.KEY_THE_DRUG_SYNC + organId.toString());
         if (hget != null) {
             Integer status = (Integer) hget.get("Status");
             String date = (String) hget.get("Date");
@@ -2435,8 +2435,9 @@ public class RecipeService extends RecipeBaseService {
         OrganDrugInfoResponseTO responseTO = new OrganDrugInfoResponseTO();
         try {
             OrganDrugInfoRequestTO request=obtainQueryOrganDrugInfoParam(byOrganId1);
-            responseTO = recipeHisService.queryOrganDrugInfo(request);
             LOGGER.info("drugInfoSynMovement request={}", JSONUtils.toString(request));
+            responseTO = recipeHisService.queryOrganDrugInfo(request);
+
         } catch (Exception e) {
             LOGGER.error("drugInfoSynMovement error{} ", e);
         }
@@ -2445,7 +2446,7 @@ public class RecipeService extends RecipeBaseService {
             data = responseTO.getData();
             try {
                 if (CollectionUtils.isNotEmpty(data)) {
-                    List<List<OrganDrugInfoTO>> partition = Lists.partition(data, 4000);
+                    List<List<OrganDrugInfoTO>> partition = Lists.partition(data, 1000);
                     for (int i = 0; i < partition.size(); i++) {
                         LOGGER.info("drugInfoSynMovement" + organId + "data-" + i + "={}", JSONUtils.toString(partition.get(i)));
                     }
@@ -2460,8 +2461,8 @@ public class RecipeService extends RecipeBaseService {
             map.put("Status", 2);
             map.put("Exception", 0);
             map.put("hisException", "his查询药品数据为空!");
-            redisClient.del(KEY_THE_DRUG_SYNC + organId.toString());
-            redisClient.set(KEY_THE_DRUG_SYNC + organId.toString(), map);
+            redisClient.del(SyncDrugConstant.KEY_THE_DRUG_SYNC + organId.toString());
+            redisClient.set(SyncDrugConstant.KEY_THE_DRUG_SYNC + organId.toString(), map);
             return map;
         }
         //查询起始下标
@@ -2486,7 +2487,7 @@ public class RecipeService extends RecipeBaseService {
                                 startIndex++;
                                 continue;
                             }
-                            boolean isAllow=isAllowDealBySyncDataRange(drug.getOrganDrugCode(),byOrganId1.getAddDrugDataRange(),byOrganId1.getAddSyncDrugType(),byOrganId1.getAddDrugFromList(),drug.getDrugType(),drug.getDrugform());
+                            boolean isAllow=drugManager.isAllowDealBySyncDataRange(drug.getOrganDrugCode(),byOrganId1.getAddDrugDataRange(),byOrganId1.getAddSyncDrugType(),byOrganId1.getAddDrugFromList(),drug.getDrugType(),drug.getDrugform());
                             if(isAllow){
                                 List<DrugListMatch> dataByOrganDrugCode = drugListMatchDAO.findDataByOrganDrugCode(drug.getOrganDrugCode(), organId);
                                 if (dataByOrganDrugCode != null && dataByOrganDrugCode.size() > 0) {
@@ -2500,7 +2501,7 @@ public class RecipeService extends RecipeBaseService {
                             startIndex++;
                             continue;
                         } else if (null != organDrug && update) {
-                            boolean isAllow=isAllowDealBySyncDataRange(organDrug.getOrganDrugCode(),byOrganId1.getUpdateDrugDataRange(),byOrganId1.getUpdateSyncDrugType(),byOrganId1.getUpdateDrugFromList(),drug.getDrugType(),drug.getDrugform());
+                            boolean isAllow=drugManager.isAllowDealBySyncDataRange(organDrug.getOrganDrugCode(),byOrganId1.getUpdateDrugDataRange(),byOrganId1.getUpdateSyncDrugType(),byOrganId1.getUpdateDrugFromList(),drug.getDrugType(),drug.getDrugform());
                             if(isAllow){
                                 updateList.add(drug);
                             }
@@ -2534,7 +2535,7 @@ public class RecipeService extends RecipeBaseService {
                         List<OrganDrugList> details = organDrugListDAO.findOrganDrugByOrganId(organId);
                         if (!ObjectUtils.isEmpty(details)) {
                             for (OrganDrugList detail : details) {
-                                boolean isAllow=isAllowDealBySyncDataRange(detail.getOrganDrugCode(),byOrganId1.getDelDrugDataRange(),byOrganId1.getDelSyncDrugType(),byOrganId1.getDelDrugFromList(),drugListDAO.get(detail.getDrugId()).getDrugType(),detail.getDrugForm());
+                                boolean isAllow=drugManager.isAllowDealBySyncDataRange(detail.getOrganDrugCode(),byOrganId1.getDelDrugDataRange(),byOrganId1.getDelSyncDrugType(),byOrganId1.getDelDrugFromList(),drugListDAO.get(detail.getDrugId()).getDrugType(),detail.getDrugForm());
                                 if(isAllow) {
                                     OrganDrugInfoTO organDrugInfoTO = collect.get(detail.getOrganDrugCode());
                                     if (ObjectUtils.isEmpty(organDrugInfoTO)) {
@@ -2565,66 +2566,15 @@ public class RecipeService extends RecipeBaseService {
         if (!ObjectUtils.isEmpty(byOrganId)) {
             map.put("Exception", 1);
         }
-        redisClient.del(KEY_THE_DRUG_SYNC + organId.toString());
-        redisClient.set(KEY_THE_DRUG_SYNC + organId.toString(), map);
+        redisClient.del(SyncDrugConstant.KEY_THE_DRUG_SYNC + organId.toString());
+        redisClient.set(SyncDrugConstant.KEY_THE_DRUG_SYNC + organId.toString(), map);
         //drugInfoSynTaskExt(organId);
         long elapsedTime = System.currentTimeMillis() - start;
         LOGGER.info("RecipeBusiThreadPool drugInfoSynMovementExt ES-推送药品 执行时间:{}.", elapsedTime);
         return map;
     }
 
-    /**
-     * 根据同步数据范围判断能否同步数据
-     * @param syncDataRange 新增 药品同步 数据范围   1药品类型 2  药品剂型  默认1
-     * @param syncDrugType
-     * @param
-     * @param
-     * @return
-     */
-    @LogRecord
-    private boolean isAllowDealBySyncDataRange(String organDrugCode,Integer syncDataRange, String syncDrugType, String drugFormList, Integer drugType,String drugForm) {
-        //新增药品 勾选的药品类型是否包括当前药品类型 包括新增，不包括不新增
-        //更新字段 字段没被勾选上不更新，其余情况全部更新
-        boolean isAllow=false;
-        if (syncDataRange==null||syncDataRange == 1) {
-            //同步数据范围 药品类型
-            if (ObjectUtils.isEmpty(syncDrugType)) {
-                throw new DAOException(DAOException.VALUE_NEEDED, "未找到该药企[同步药品类型]配置数据!");
-            }else{
-                LOGGER.info("isAllowDealBySyncDataRange 此条药品不允许同步 原因是未找到该药企[同步药品类型]配置数据:{}",organDrugCode);
-            }
-            String[] syncDrugTypeStr = syncDrugType.split(",");
-            List<String> syncDrugTypeList = new ArrayList<String>(Arrays.asList(syncDrugTypeStr));
-            //1西药 2中成药 3中药
-            if (syncDrugTypeList.indexOf("1") != -1&&drugType == 1
-                    ||syncDrugTypeList.indexOf("2") != -1 && drugType == 2
-                    ||syncDrugTypeList.indexOf("3") != -1 && drugType == 3) {
-                isAllow=true;
-            }else{
-                LOGGER.info("isAllowDealBySyncDataRange 此条药品不允许同步 原因是当前药品药品类型没在配置范围内:{}",organDrugCode);
-            }
-        }else{
-            //同步数据范围 药品剂型
-            List drugForms = Lists.newArrayList();
-            if (!ObjectUtils.isEmpty(drugFormList)) {
-                String[] split = drugFormList.split(",");
-                for (String s : split) {
-                    drugForms.add(s);
-                }
-            }
-            if (drugForms != null && drugForms.size() > 0) {
-                int i = drugForms.indexOf(drugForm);
-                if (-1 != i) {
-                    isAllow=true;
-                }else{
-                    LOGGER.info("isAllowDealBySyncDataRange 此条药品不允许同步 原因是当前药品剂型没在配置范围内:{}",organDrugCode);
-                }
-            }
 
-        }
-
-        return isAllow;
-    }
 
     /**
      * 定时任务:同步HIS医院药品信息 每天凌晨1点同步

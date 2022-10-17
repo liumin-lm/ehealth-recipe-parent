@@ -1,6 +1,8 @@
 package recipe.core.api.patient;
 
 import com.ngari.common.mode.HisResponseTO;
+import com.ngari.his.recipe.mode.RecipeInfoTO;
+import com.ngari.recipe.dto.HisRecipeDTO;
 import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailResVO;
@@ -10,6 +12,7 @@ import com.ngari.recipe.recipe.model.MergeRecipeVO;
 import com.ngari.recipe.vo.OffLineRecipeDetailVO;
 import recipe.vo.patient.RecipeGiveModeButtonRes;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -85,4 +88,22 @@ public interface IOfflineRecipeBusinessService {
      * @return
      */
     HisResponseTO abolishOffLineRecipe(Integer organId, List<String> recipeCode);
+
+    /**
+     * 根据患者id获取下线处方列表
+     *
+     * @param patientId
+     * @param startTime
+     * @param endTime
+     * @return
+     */
+    List<RecipeInfoTO> patientOfflineRecipe(Integer organId, String patientId, Date startTime, Date endTime);
+
+    /**
+     * 根据处方code获取线下处方详情
+     *
+     * @param organId    机构id
+     * @param recipeCode 处方code
+     */
+    HisRecipeDTO getOffLineRecipeDetailsV1(Integer organId, String recipeCode);
 }

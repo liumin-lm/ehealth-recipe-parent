@@ -7,9 +7,20 @@ package recipe.constant;
  * Date: 2012-10-13 11:16.
  */
 public class SyncDrugConstant {
+    /**
+     * 操作类型
+     */
     public static final String ADD = "1";
     public static final String UPDATE = "2";
 
+    /**
+     * redis key
+     */
+    public static final String KEY_THE_DRUG_SYNC = "THE_DRUG_SYNC";
+
+    /**
+     * 药品同步字段
+     */
     public static final String organDrugCode = "organDrugCode";
     public static final String drugName = "drugName";
     public static final String saleName = "saleName";
@@ -34,7 +45,9 @@ public class SyncDrugConstant {
     public static final String indicationsDeclare = "indicationsDeclare";
 
 
-
+    /**
+     * other
+     */
 
 
 }
