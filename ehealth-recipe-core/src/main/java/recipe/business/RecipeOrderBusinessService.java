@@ -1434,6 +1434,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
             imperfectInfoVO.setOrganId(recipeBeforeOrder.getOrganId());
             imperfectInfoVO.setRecipeCode(recipeBeforeOrder.getRecipeCode());
             imperfectInfoVO.setImperfectFlag(recipeBeforeOrder.getIsReady());
+            imperfectInfoVO.setRecipeId(recipeBeforeOrder.getRecipeId());
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeBeforeOrder.getRecipeId());
             if (recipeExtend != null) {
                 imperfectInfoVO.setRecipeCostNumber(recipeExtend.getRecipeCostNumber());

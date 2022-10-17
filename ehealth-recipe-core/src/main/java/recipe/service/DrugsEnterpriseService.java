@@ -420,6 +420,22 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
     }
 
     /**
+     * 运营平台-查询药企名
+     * @param drugsEnterpriseId
+     * @return
+     */
+    @RpcService
+    public DrugsEnterpriseBeanNoDS getEnterpriseSimpleInfoByIdForOp(Integer drugsEnterpriseId){
+        DrugsEnterpriseBeanNoDS enterprise=new DrugsEnterpriseBeanNoDS();
+        DrugsEnterpriseBean bean = getDrugsEnterpriseById(drugsEnterpriseId);
+        if(bean!=null){
+            enterprise.setName(bean.getName());
+        }
+
+        return enterprise;
+    }
+
+    /**
      * 运营平台-查询药企详情
      * @param drugsEnterpriseId
      * @return
