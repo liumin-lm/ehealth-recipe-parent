@@ -530,7 +530,7 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
     }
 
     @Override
-    public void medicationInfoSyncTask() {
+    public List<String> medicationInfoSyncTask() {
         List<MedicationInfoResTO> medicationInfoResTOList = drugManager.medicationInfoSyncTask();
         logger.info("RecipeBusinessService medicationInfoSyncTask medicationInfoResTOList={}",JSONUtils.toString(medicationInfoResTOList));
         List<String> errorMsg = Lists.newArrayList();
@@ -541,6 +541,7 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
             }
         }
         logger.info("DrugBusinessService processingUsingRateParameters errorMsg={}",JSONUtils.toString(errorMsg));
+        return errorMsg;
     }
 
 
@@ -616,16 +617,17 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
         List<String> msg = Lists.newArrayList();
         //用药途径
         if(new Integer(1).equals(medicationInfoResTO.getDataType())){
-            if(StringUtils.isEmpty(medicationInfoResTO.getMedicationCode())){
-                throw new DAOException(DAOException.VALUE_NEEDED,"用药途径编码不能为空!");
-            }
             UsePathwaysDTO usePathwaysDTO = usePathwaysService.getUsePathwaysByOrganAndKeyAndCategory(medicationInfoResTO.getOrganId(), medicationInfoResTO.getMedicationCode(),medicationInfoResTO.getCategory());
             if(Objects.isNull(usePathwaysDTO)){
                 try {
                     //新增
                     usePathwaysDTO = new UsePathwaysDTO();
                     usePathwaysDTO.setOrganId(medicationInfoResTO.getOrganId());
-                    usePathwaysDTO.setPathwaysKey(medicationInfoResTO.getMedicationCode());
+                    if(StringUtils.isEmpty(medicationInfoResTO.getMedicationCode())){
+                        throw new DAOException(DAOException.VALUE_NEEDED,"用药途径编码不能为空!");
+                    }else{
+                        usePathwaysDTO.setPathwaysKey(medicationInfoResTO.getMedicationCode());
+                    }
                     if(StringUtils.isNotEmpty(medicationInfoResTO.getMedicationText())){
                         usePathwaysDTO.setText(medicationInfoResTO.getMedicationText());
                     }else {
@@ -633,10 +635,14 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
                     }
                     usePathwaysDTO.setEnglishNames(medicationInfoResTO.getEnglishNames());
                     usePathwaysDTO.setPinYin(medicationInfoResTO.getPinYin());
-                    if(StringUtils.isNotEmpty(medicationInfoResTO.getCategory())){
-                        usePathwaysDTO.setCategory(medicationInfoResTO.getCategory());
-                    }else {
-                        usePathwaysDTO.setCategory("1,2,3,4");
+                    String category = medicationInfoResTO.getCategory();
+                    if(StringUtils.isNotEmpty(category)){
+                        if(category.contains("，")){
+                            throw new DAOException(DAOException.VALUE_NEEDED,"处方类型字段内容格式不正确!");
+                        }
+                        usePathwaysDTO.setCategory(category);
+                    }else{
+                        throw new DAOException(DAOException.VALUE_NEEDED,"处方类型字段不能为空!");
                     }
                     if(medicationInfoResTO.getSort() != null){
                         usePathwaysDTO.setSort(medicationInfoResTO.getSort());
@@ -687,16 +693,18 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
         }
         //用药频次
         else{
-            if(StringUtils.isEmpty(medicationInfoResTO.getMedicationCode())){
-                throw new DAOException(DAOException.VALUE_NEEDED,"用药频次编码不能为空!");
-            }
+
             UsingRateDTO usingRateDTO = usingRateService.findUsingRateDTOByOrganAndKey(medicationInfoResTO.getOrganId(), medicationInfoResTO.getMedicationCode());
             if(Objects.isNull(usingRateDTO)){
                 try{
                     //新增
                     usingRateDTO = new UsingRateDTO();
                     usingRateDTO.setOrganId(medicationInfoResTO.getOrganId());
-                    usingRateDTO.setUsingRateKey(medicationInfoResTO.getMedicationCode());
+                    if(StringUtils.isEmpty(medicationInfoResTO.getMedicationCode())){
+                        throw new DAOException(DAOException.VALUE_NEEDED,"用药频次编码不能为空!");
+                    }else{
+                        usingRateDTO.setUsingRateKey(medicationInfoResTO.getMedicationCode());
+                    }
                     if(StringUtils.isNotEmpty(medicationInfoResTO.getMedicationText())){
                         usingRateDTO.setText(medicationInfoResTO.getMedicationText());
                     }else {
@@ -704,10 +712,14 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
                     }
                     usingRateDTO.setEnglishNames(medicationInfoResTO.getEnglishNames());
                     usingRateDTO.setPinYin(medicationInfoResTO.getPinYin());
-                    if(StringUtils.isNotEmpty(medicationInfoResTO.getCategory())){
-                        usingRateDTO.setCategory(medicationInfoResTO.getCategory());
-                    }else {
-                        usingRateDTO.setCategory("1,2,3,4");
+                    String category = medicationInfoResTO.getCategory();
+                    if(StringUtils.isNotEmpty(category)){
+                        if(category.contains("，")){
+                            throw new DAOException(DAOException.VALUE_NEEDED,"处方类型字段内容格式不正确!");
+                        }
+                        usingRateDTO.setCategory(category);
+                    }else{
+                        throw new DAOException(DAOException.VALUE_NEEDED,"处方类型字段不能为空!");
                     }
                     if(medicationInfoResTO.getSort() != null){
                         usingRateDTO.setSort(medicationInfoResTO.getSort());

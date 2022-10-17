@@ -221,7 +221,7 @@ public interface IDrugBusinessService {
     /**
      * 定时同步机构数据字典中用药频次、用药途径
      */
-    void medicationInfoSyncTask();
+    List<String> medicationInfoSyncTask();
 
     /**
      * 更新机构数据字典中用药频次、用药途径的同步配置
