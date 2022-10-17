@@ -629,6 +629,7 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
         AddrAreaService addrAreaService = BasicAPI.getService(AddrAreaService.class);
         list.forEach(x -> {
             Long count = addrAreaService.getCountAreaLikeCode(x.getAddress());
+            logger.info("findEnterpriseAddressProvince count1 = {}, count2 = {}", count, map.get(x.getAddress()));
             if (Objects.nonNull(count) && count <= map.get(x.getAddress())) {
                 x.setConfigFlag(1);
             } else {
