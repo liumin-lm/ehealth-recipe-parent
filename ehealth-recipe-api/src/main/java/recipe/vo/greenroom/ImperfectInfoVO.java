@@ -15,6 +15,9 @@ public class ImperfectInfoVO implements Serializable {
     @ItemProperty(alias = "his处方号")
     private String recipeCode;
 
+    @ItemProperty(alias = "his处方号")
+    private Integer recipeId;
+
     @ItemProperty(alias = "完善标识 0 未完善 1完善")
     private Integer imperfectFlag;
 

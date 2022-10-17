@@ -1417,7 +1417,15 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
         List<RecipeBeforeOrder> recipeBeforeOrderList = recipeBeforeOrderDAO.findByRecipeIds(recipeIds,operMpiIds);
         recipeBeforeOrders.addAll(recipeBeforeOrderList);
         if(CollectionUtils.isEmpty(recipeBeforeOrders)){
-            return Lists.newArrayList();
+            List<ImperfectInfoVO> collect = recipeBeans.stream().map(recipeBean -> {
+                ImperfectInfoVO imperfectInfoVO = new ImperfectInfoVO();
+                imperfectInfoVO.setOrganId(recipeBean.getClinicOrgan());
+                imperfectInfoVO.setRecipeCode(recipeBean.getRecipeCode());
+                imperfectInfoVO.setImperfectFlag(0);
+                imperfectInfoVO.setRecipeId(recipeBean.getRecipeId());
+                return imperfectInfoVO;
+            }).collect(Collectors.toList());
+            return collect;
         }
         List<String> recipeCodeList = recipeBeforeOrders.stream().map(RecipeBeforeOrder::getRecipeCode).collect(Collectors.toList());
 
