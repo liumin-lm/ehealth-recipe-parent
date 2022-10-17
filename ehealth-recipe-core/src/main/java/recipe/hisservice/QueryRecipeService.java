@@ -224,17 +224,36 @@ public class QueryRecipeService implements IQueryRecipeService {
         Integer recipeId = recipe.getRecipeId();
         try {
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
-            if (null != recipeExtend) {
+            if (Objects.nonNull(recipeExtend)) {
+                RecipeExtendBean recipeExtendBean = ObjectCopyUtils.convert(recipeExtend, RecipeExtendBean.class);
                 EmrDetailDTO emrDetail = docIndexClient.getEmrDetails(recipeExtend.getDocIndexId());
                 recipeDTO.setCardType(recipeExtend.getCardType());
                 recipeDTO.setCardNo(recipeExtend.getCardNo());
-                if (Objects.nonNull(recipeExtend.getDecoctionId())) {
+                if (StringUtils.isNotEmpty(recipeExtend.getDecoctionId())) {
                     DecoctionWay decoctionWay = drugDecoctionWayDao.get(Integer.parseInt(recipeExtend.getDecoctionId()));
                     if (Objects.nonNull(decoctionWay)) {
-                        recipeExtend.setDecoctionPrice(decoctionWay.getDecoctionPrice());
+                        recipeExtendBean.setDecoctionPrice(decoctionWay.getDecoctionPrice());
+                        recipeExtendBean.setDecoctionCode(decoctionWay.getDecoctionCode());
+                        recipeExtendBean.setDecoctionText(decoctionWay.getDecoctionText());
                     }
                 }
-                recipeDTO.setRecipeExtendBean(ObjectCopyUtils.convert(recipeExtend, RecipeExtendBean.class));
+                if (StringUtils.isNotEmpty(recipeExtend.getMakeMethodId())) {
+                    DrugMakingMethodDao drugMakingMethodDao = DAOFactory.getDAO(DrugMakingMethodDao.class);
+                    DrugMakingMethod drugMakingMethod = drugMakingMethodDao.get(Integer.parseInt(recipeExtend.getMakeMethodId()));
+                    if (Objects.nonNull(drugMakingMethod)) {
+                        recipeExtendBean.setMakeMethod(drugMakingMethod.getMethodCode());
+                        recipeExtendBean.setMakeMethodText(drugMakingMethod.getMethodText());
+                    }
+                }
+                if (StringUtils.isNotEmpty(recipeExtend.getSymptomId())) {
+                    SymptomDAO symptomDAO = DAOFactory.getDAO(SymptomDAO.class);
+                    Symptom symptom = symptomDAO.get(Integer.parseInt(recipeExtend.getSymptomId()));
+                    if (Objects.nonNull(symptom)) {
+                        recipeExtendBean.setSymptomCode(symptom.getSymptomCode());
+                        recipeExtendBean.setSymptomName(symptom.getSymptomName());
+                    }
+                }
+                recipeDTO.setRecipeExtendBean(recipeExtendBean);
                 if (StringUtils.isNotEmpty(emrDetail.getMainDieaseDescribe())) {
                     //主诉
                     recipeDTO.setBRZS(emrDetail.getMainDieaseDescribe());
@@ -257,6 +276,7 @@ public class QueryRecipeService implements IQueryRecipeService {
                 }
                 recipeDTO.setSymptomValue(ObjectCopyUtils.convert(emrDetail.getSymptomValue(), EmrDetailValueVO.class));
                 recipeDTO.setDiseaseValue(ObjectCopyUtils.convert(emrDetail.getDiseaseValue(), EmrDetailValueVO.class));
+                
                 Map<String, Object> medicalInfoBean = docIndexService.getMedicalInfoByDocIndexId(recipeExtend.getDocIndexId());
                 recipeDTO.setMedicalInfoBean(medicalInfoBean);
                 //终端是否为自助机
@@ -512,7 +532,6 @@ public class QueryRecipeService implements IQueryRecipeService {
                 }
                 //类型
                 orderItem.setType(detail.getType());
-
                 OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(clinicOrgan, detail.getOrganDrugCode(), detail.getDrugId());
                 if (null != organDrugList) {
                     //药品产地名称
