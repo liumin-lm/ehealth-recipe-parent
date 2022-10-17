@@ -697,7 +697,7 @@ public class HisRecipeManager extends BaseManager {
         if (null == recipeExtend) {
             return null;
         }
-        return docIndexClient.getEmrDetails(recipeExtend.getDocIndexId());
+        return docIndexClient.getEmrDetailsV1(recipeExtend.getDocIndexId());
     }
 
     /**

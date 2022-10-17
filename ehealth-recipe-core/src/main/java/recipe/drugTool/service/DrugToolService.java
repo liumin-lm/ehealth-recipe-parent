@@ -81,7 +81,6 @@ import recipe.util.DrugMatchUtil;
 import recipe.util.LocalStringUtil;
 import recipe.util.Md5Utils;
 import recipe.util.RedisClient;
-import recipe.vo.greenroom.ImportDrugRecordVO;
 
 import javax.annotation.Resource;
 import java.io.ByteArrayInputStream;
@@ -1647,7 +1646,7 @@ public class DrugToolService implements IDrugToolService {
                         organDrugList.setSmallestSaleMultiple(drugListMatch.getSmallestSaleMultiple());
                         organDrugList.setAntiTumorDrugFlag(drugListMatch.getAntiTumorDrugFlag());
                         organDrugList.setAntiTumorDrugLevel(drugListMatch.getAntiTumorDrugLevel());
-                        organDrugList.setUnavailable(drugListMatch.getUnavailable());
+//                        organDrugList.setUnavailable(drugListMatch.getUnavailable());
                         //updateFlag为1时更新药品信息，否则不更新
                         //防止既更新又新增的时候把更新的数据又保存一编
                         boolean handleFlag = false; //数据操作标识

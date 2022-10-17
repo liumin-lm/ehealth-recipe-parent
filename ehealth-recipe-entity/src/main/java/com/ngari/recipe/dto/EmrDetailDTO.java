@@ -49,5 +49,6 @@ public class EmrDetailDTO {
     private String symptomName;
 
     private List<EmrDetailValueDTO> symptomValue;
-
+    @ItemProperty(alias = "电子病例his病例号")
+    private String hisEmrId;
 }

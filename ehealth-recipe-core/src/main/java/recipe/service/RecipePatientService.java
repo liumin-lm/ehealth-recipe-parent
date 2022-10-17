@@ -940,7 +940,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
             Recipe recipe = recipeManager.getRecipeById(recipeId);
             LOGGER.info("esignRecipeCa recipe:{}", JSON.toJSONString(recipe));
             createPdfFactory.queryPdfOssId(recipe);
-            createPdfFactory.updateCheckNamePdfESign(recipeId);
+            createPdfFactory.updateCheckNamePdfESign(recipeId, null);
             //药师审核通过后，重新根据药师的pdf生成签名图片
             createPdfFactory.updatePdfToImg(recipe.getRecipeId(), SignImageTypeEnum.SIGN_IMAGE_TYPE_CHEMIST.getType());
         } catch (Exception e) {

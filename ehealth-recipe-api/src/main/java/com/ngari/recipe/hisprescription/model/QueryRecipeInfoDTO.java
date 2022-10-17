@@ -1,6 +1,7 @@
 package com.ngari.recipe.hisprescription.model;
 
 
+import com.ngari.platform.recipe.mode.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import ctd.schema.annotation.*;
 import recipe.vo.second.EmrDetailValueVO;
@@ -117,6 +118,10 @@ public class QueryRecipeInfoDTO implements Serializable {
     private Date checkDate;
     private RecipeExtendBean recipeExtendBean;
 
+    @ItemProperty(alias="中药贴数")
+    private Integer copyNum;
+    @ItemProperty(alias="处方信息")
+    private RecipeBean recipeBean;
 
     @ItemProperty(alias = "患者年龄")
     private Integer patinetAge;
@@ -677,5 +682,21 @@ public class QueryRecipeInfoDTO implements Serializable {
 
     public void setCommonRecipeCode(String commonRecipeCode) {
         this.commonRecipeCode = commonRecipeCode;
+    }
+
+    public Integer getCopyNum() {
+        return copyNum;
+    }
+
+    public void setCopyNum(Integer copyNum) {
+        this.copyNum = copyNum;
+    }
+
+    public RecipeBean getRecipeBean() {
+        return recipeBean;
+    }
+
+    public void setRecipeBean(RecipeBean recipeBean) {
+        this.recipeBean = recipeBean;
     }
 }

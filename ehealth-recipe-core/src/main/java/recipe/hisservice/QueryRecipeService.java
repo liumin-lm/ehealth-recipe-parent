@@ -17,6 +17,7 @@ import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.OrganDrugChangeBean;
 import com.ngari.platform.recipe.mode.QueryRecipeInfoHisDTO;
+import com.ngari.platform.recipe.mode.RecipeBean;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.dto.EmrDetailDTO;
@@ -287,6 +288,8 @@ public class QueryRecipeService implements IQueryRecipeService {
                     recipeDTO.setRegisterId(consultExDTO.getRegisterNo());
                 }
             }
+            recipeDTO.setCopyNum(recipe.getCopyNum());
+            recipeDTO.setRecipeBean(ObjectCopyUtils.convert(recipe, RecipeBean.class));
             //外带处方标志 1:外带药处方
             recipeDTO.setTakeMedicine(recipe.getTakeMedicine());
             //有效天数
