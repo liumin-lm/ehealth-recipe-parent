@@ -2448,7 +2448,7 @@ public class RecipeService extends RecipeBaseService {
                 if (CollectionUtils.isNotEmpty(data)) {
                     List<List<OrganDrugInfoTO>> partition = Lists.partition(data, 1000);
                     for (int i = 0; i < partition.size(); i++) {
-                        LOGGER.info("drugInfoSynMovement" + organId + "data-" + i + "={}", JSONUtils.toString(partition.get(i)));
+                        LOGGER.info("queryOrganDrugInfo response" + organId + "data-" + i + "={}", JSONUtils.toString(partition.get(i)));
                     }
                 }
             } catch (Exception e) {
