@@ -1499,7 +1499,8 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
             recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeBean.getRecipeCode(), recipeBean.getClinicOrgan());
         }
         if(Objects.isNull(recipe)){
-            throw new DAOException("处方信息不存在");
+            imperfectInfoVO.setImperfectFlag(0);
+            return imperfectInfoVO;
         }
         if (!new Integer(3).equals(recipe.getWriteHisState())) {
             // 如果处方没写入his,视为未完善
