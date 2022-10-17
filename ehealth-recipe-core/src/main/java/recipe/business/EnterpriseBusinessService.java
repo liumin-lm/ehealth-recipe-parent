@@ -214,21 +214,6 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
             }
             vo.setOrganId(null);
             drugsEnterpriseIds = drugsEnterpriseList.stream().map(DrugsEnterprise::getId).collect(Collectors.toList());
-        }else{
-            //增加权限范围
-            UserRoleToken ur = UserRoleToken.getCurrent();
-            String manageUnit = ur.getManageUnit();
-            // 机构管理员获取机构信息
-            if (!"eh".equals(manageUnit)) {
-                List<Integer> organIds = organClient.findOrganIdsByManageUnit(manageUnit);
-                logger.info("drugsEnterpriseLimit manageUnit={},organIds={}", JSONArray.toJSONString(organIds), JSONArray.toJSONString(manageUnit));
-                if (CollectionUtils.isNotEmpty(organIds)) {
-                    List<OrganAndDrugsepRelation> relastionList=organAndDrugsepRelationDAO.findByOrganIds(organIds);
-                    drugsEnterpriseIds= relastionList.stream().map(OrganAndDrugsepRelation::getDrugsEnterpriseId)
-                            .collect(Collectors.toList());
-                }
-            }
-
         }
         logger.info("DrugsEnterpriseBusinessService drugsEnterpriseLimit drugsEnterpriseIds:{}", JSON.toJSONString(drugsEnterpriseIds));
         return enterpriseManager.drugsEnterpriseLimit(vo.getName(), vo.getCreateType(), vo.getOrganId(), vo.getStart(), vo.getLimit(), drugsEnterpriseIds);
