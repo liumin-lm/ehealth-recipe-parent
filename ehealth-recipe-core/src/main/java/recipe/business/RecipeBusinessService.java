@@ -39,6 +39,8 @@ import eh.wxpay.constant.PayConstant;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateUtils;
+import org.apache.lucene.document.DateTools;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.ApplicationUtils;
@@ -78,6 +80,7 @@ import recipe.vo.patient.PatientOptionalDrugVo;
 import recipe.vo.second.*;
 
 import javax.annotation.Resource;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -1253,14 +1256,15 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             dto.setRecipeId(recipe.getRecipeId());
             dto.setHisConvertSource(2);
             dto.setTotalFee(recipe.getTotalMoney());
-            dto.setOrderDate(recipe.getSignDate());
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+            String signDateString = simpleDateFormat.format(recipe.getSignDate());
+            dto.setOrderDate(signDateString);
             dto.setOrderID(recipe.getRecipeCode());
             dto.setOrderType(dealRecipeType(recipe.getRecipeType()));
             dto.setOrderTypeName(dealRecipeTypeName(recipe.getRecipeType()));
             dto.setPatientId(recipe.getPatientID());
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
             dto.setSeries(recipeExtend.getRegisterID());
-            dto.setOnlineRecipe(1);
             return dto;
         }).collect(Collectors.toList());
         return outpatientPaymentRecipeDTOS;
