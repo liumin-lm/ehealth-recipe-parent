@@ -405,6 +405,8 @@ public class HisCallBackService {
                                 RecipeLogService.saveRecipeLog(recipeId, beforeStatus, RecipeStatusConstant.HAVE_PAY, logMemo);
                                 //消息推送
                                 RecipeMsgService.batchSendMsg(recipeId, msgStatus);
+                                //更新处方父子状态
+                                stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_DISPENSING, RecipeStateEnum.SUB_ORDER_DELIVERED_MEDICINE);
                             }
                         }
                     }
@@ -466,7 +468,8 @@ public class HisCallBackService {
                         finishForHis(recipe, attrMap, recipeDAO,byOrderCode);
                         continue;
                     }
-
+                    StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
+                    stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_DONE, RecipeStateEnum.SUB_DONE_SELF_TAKE);
                 }
             }
         }
