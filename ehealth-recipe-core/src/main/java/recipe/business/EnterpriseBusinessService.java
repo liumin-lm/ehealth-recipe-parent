@@ -631,7 +631,7 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
             Long countBasic = addrAreaService.getCountAreaLikeCode(x.getAddress()) + 1;
             Long countRecipe = map.get(x.getAddress());
             logger.info("findEnterpriseAddressProvince countBasic = {}, countRecipe = {}", countBasic, countRecipe);
-            if (countRecipe <= countBasic) {
+            if (countRecipe < countBasic) {
                 x.setConfigFlag(1);
             } else {
                 x.setConfigFlag(2);
