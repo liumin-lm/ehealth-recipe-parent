@@ -261,12 +261,12 @@ public class SaleDrugListService implements ISaleDrugListService {
      * @author houxr
      */
     @Override
-    public QueryResult<DrugListAndSaleDrugListDTO> querySaleDrugListByOrganIdAndKeyword(final Date startTime, final Date endTime, final Integer organId,
+    public QueryResult<DrugListAndSaleDrugListDTO> querySaleDrugListByOrganIdAndKeyword(final Date startTime, final Date endTime, final Integer enterpriseId,
                                                                                         final String drugClass,
                                                                                         final String keyword, final Integer status, final Integer type,
                                                                                         final String producer, final int start, final int limit) {
         //这里的organid是药企id
-        if (organId == null) {
+        if (enterpriseId == null) {
             return null;
         }
 
@@ -274,18 +274,24 @@ public class SaleDrugListService implements ISaleDrugListService {
         UserRoleToken urt = UserRoleToken.getCurrent();
         String mu = urt.getManageUnit();
         if (!"eh".equals(mu)) {
-            List<OrganAndDrugsepRelation> relastionList=enterpriseBusinessService.findOrganAndDrugsepRelationBean(organId);
+            List<OrganAndDrugsepRelation> relastionList=enterpriseBusinessService.findOrganAndDrugsepRelationBean(enterpriseId);
             List<Integer> organIdList= relastionList.stream().map(OrganAndDrugsepRelation::getOrganId)
                     .collect(Collectors.toList());
             if(organIdList==null ){
                 organIdList=Lists.newArrayList();
             }
-            organIdList.add(organId);
+
+            DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+            DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.get(enterpriseId);
+            if (drugsEnterprise != null) {
+                organIdList.add(drugsEnterprise.getOrganId());
+            }
+
             OpSecurityUtil.isAuthorisedOrgans(organIdList);
         }
 
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
-        QueryResult result = saleDrugListDAO.querySaleDrugListByOrganIdAndKeyword(startTime, endTime, organId, drugClass, keyword, status, type, producer, start, limit);
+        QueryResult result = saleDrugListDAO.querySaleDrugListByOrganIdAndKeyword(startTime, endTime, enterpriseId, drugClass, keyword, status, type, producer, start, limit);
         result.setItems(covertData(result.getItems()));
         logger.info("querySaleDrugListByOrganIdAndKeyword result={}", JSONUtils.toString(result));
         return result;

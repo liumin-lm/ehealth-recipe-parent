@@ -289,7 +289,7 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
      * @return
      * @author houxr
      */
-    public QueryResult<DrugListAndSaleDrugList> querySaleDrugListByOrganIdAndKeyword(final Date startTime, final Date endTime, final Integer organId,
+    public QueryResult<DrugListAndSaleDrugList> querySaleDrugListByOrganIdAndKeyword(final Date startTime, final Date endTime, final Integer enterpriseId,
                                                                                      final String drugClass,
                                                                                      final String keyword, final Integer status,
                                                                                      final Integer type, final String producer, final int start, final int limit) {
@@ -317,7 +317,7 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
                         }
 //                        List<Integer> listOrgan = new ArrayList<>();
                         DrugsEnterpriseDAO dao = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-                        DrugsEnterprise drugsEnterprise = dao.get(organId);
+                        DrugsEnterprise drugsEnterprise = dao.get(enterpriseId);
 //                        if (!ObjectUtils.isEmpty(drugsEnterprise.getOrganId())){
 //                            listOrgan.add(drugsEnterprise.getOrganId());
 ////                        hql.append(" and ( d.sourceOrgan is null or d.sourceOrgan in:organIds ) ");
@@ -377,7 +377,7 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
                         if (ObjectUtils.nullSafeEquals(status, 0)
                                 || ObjectUtils.nullSafeEquals(status, 1)
                                 || ObjectUtils.nullSafeEquals(status, 9)) {
-                            countQuery.setParameter("organId", organId);
+                            countQuery.setParameter("organId", enterpriseId);
                         }
                         if (drugId != null) {
                             countQuery.setParameter("drugId", drugId);
