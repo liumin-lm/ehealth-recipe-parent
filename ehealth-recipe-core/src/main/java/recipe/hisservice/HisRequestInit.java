@@ -313,6 +313,7 @@ public class HisRequestInit {
         requestTO.setIsPay((null != recipe.getPayFlag()) ? Integer.toString(recipe.getPayFlag()) : null);
         requestTO.setDeptID(Objects.nonNull(recipe.getDepart())?recipe.getDepart().toString():"");
         requestTO.setRecipeType((null != recipe.getRecipeType()) ? recipe.getRecipeType().toString() : null);
+        requestTO.setRecipeDrugForm(recipe.getRecipeDrugForm());
         //处方附带信息
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());

@@ -1,6 +1,8 @@
 package recipe.api.open;
 
 import com.ngari.common.mode.HisResponseTO;
+import com.ngari.his.recipe.mode.RecipeInfoTO;
+import com.ngari.platform.recipe.mode.OutpatientPaymentRecipeDTO;
 import com.ngari.platform.recipe.mode.QueryRecipeInfoHisDTO;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
@@ -12,10 +14,7 @@ import ctd.util.annotation.RpcService;
 import recipe.vo.PageGenericsVO;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.patient.PatientOptionalDrugVo;
-import recipe.vo.second.AutomatonResultVO;
-import recipe.vo.second.AutomatonVO;
-import recipe.vo.second.RecipePayHISCallbackReq;
-import recipe.vo.second.RevisitRecipeTraceVo;
+import recipe.vo.second.*;
 
 import java.util.Date;
 import java.util.List;
@@ -185,6 +184,17 @@ public interface IRecipeAtopService {
     List<RecipeBean> recipeListByClinicId(Integer clinicId, Integer bussSource);
 
     /**
+     * 根据 二方id 查询处方列表全部数据
+     *
+     * @param clinicId
+     * @param bussSource
+     * @return
+     */
+
+    @RpcService(mvcDisabled = true)
+    List<RecipeBean> recipeAllByClinicId(Integer clinicId, Integer bussSource);
+
+    /**
      * 通过处方ID获取处方明细
      *
      * @param recipeId
@@ -258,6 +268,15 @@ public interface IRecipeAtopService {
     List<QueryRecipeInfoHisDTO> findRecipeByIds(List<Integer> recipeIds);
 
     /**
+     * 门诊缴费查询 待缴费且未上传his 处方信息
+     * @param organId
+     * @param mpiId
+     * @return
+     */
+    @RpcService
+    List<OutpatientPaymentRecipeDTO> findOutpatientPaymentRecipes(Integer organId, String mpiId);
+
+    /**
      * 自助机查询接口
      *
      * @param automatonVO
@@ -266,4 +285,23 @@ public interface IRecipeAtopService {
     @RpcService
     PageGenericsVO<AutomatonResultVO> automatonList(AutomatonVO automatonVO);
 
+    /**
+     * 自助机处方接口
+     *
+     * @param selfServiceMachineReqVO
+     * @return
+     */
+    @RpcService(mvcDisabled = true)
+    PageGenericsVO<List<SelfServiceMachineResVo>> findRecipeToZiZhuJi(SelfServiceMachineReqVO selfServiceMachineReqVO);
+
+    /**
+     * 根据患者id获取下线处方列表
+     *
+     * @param patientId
+     * @param startTime
+     * @param endTime
+     * @return
+     */
+    @RpcService(mvcDisabled = true)
+    List<RecipeInfoTO> patientOfflineRecipe(Integer organId, String patientId, Date startTime, Date endTime);
 }

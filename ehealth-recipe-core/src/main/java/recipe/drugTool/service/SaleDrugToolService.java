@@ -820,6 +820,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
     @RpcService(timeout = 6000)
     @LogRecord
     public Map<String, Object> saleDrugInfoSynMovement(Integer drugsEnterpriseId) throws ParseException {
+
         if (ObjectUtils.isEmpty(drugsEnterpriseId)){
             throw new DAOException(DAOException.VALUE_NEEDED, "drugsenterpriseId is required!");
         }

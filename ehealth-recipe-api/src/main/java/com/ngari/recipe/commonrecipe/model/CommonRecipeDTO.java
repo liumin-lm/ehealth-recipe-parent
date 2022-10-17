@@ -83,4 +83,7 @@ public class CommonRecipeDTO implements Serializable {
 
     @ItemProperty(alias = "返回药品状态 0:正常，1已失效，2未完善")
     private Integer validateStatus;
+
+    @ItemProperty(alias = "处方剂型 1 饮片方 2 颗粒方")
+    private Integer recipeDrugForm;
 }

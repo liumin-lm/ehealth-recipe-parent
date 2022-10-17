@@ -1,5 +1,6 @@
 package recipe.service;
 
+import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.doctor.model.DoctorBean;
@@ -19,6 +20,7 @@ import com.ngari.platform.recipe.mode.NoticeNgariRecipeInfoReq;
 import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.DrugList;
+import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.recipe.model.HisRecipeBean;
 import com.ngari.recipe.recipe.model.HisRecipeDetailBean;
@@ -57,6 +59,8 @@ import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.bean.FindHistoryRecipeListBean;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
+import recipe.enumerate.type.RecipeDrugFormTypeEnum;
+import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.hisservice.RecipeToHisService;
 import recipe.mq.RecipeStatusFromHisObserver;
 import recipe.thread.PushRecipeToRegulationCallable;
@@ -73,6 +77,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static ctd.persistence.DAOFactory.getDAO;
 import static recipe.service.RecipeServiceSub.convertSensitivePatientForRAP;
@@ -92,6 +97,8 @@ public class RecipePreserveService {
     private RedisClient redisClient;
     @Autowired
     private AuditModeContext auditModeContext;
+    @Autowired
+    private OrganDrugListDAO organDrugListDAO;
 
     @RpcService
     public RecipeBean getByRecipeId(int recipeId) {
@@ -289,14 +296,10 @@ public class RecipePreserveService {
             LOGGER.warn("getHosRecipeList his error. ", e);
         }
         LOGGER.info("getHosRecipeList res={}", JSONUtils.toString(response));
-        if(null == response){
+        if(null == response || CollectionUtils.isEmpty(response.getData())){
             return result;
         }
         List<RecipeInfoTO> data = response.getData();
-        //转换平台字段
-        if (CollectionUtils.isEmpty(data)){
-            return result;
-        }
         List<HisRecipeBean> recipes = Lists.newArrayList();
         //默认西药
         Integer recipeType = 1;
@@ -317,8 +320,6 @@ public class RecipePreserveService {
                 recipeExtend.setMakeMethodText(recipeInfoTO.getRecipeExtendBean().getMakeMethodText());
                 recipeExtend.setIllnessType(recipeInfoTO.getRecipeExtendBean().getIllnessType());
                 recipeExtend.setIllnessName(recipeInfoTO.getRecipeExtendBean().getIllnessName());
-                //TODO everyTcmNumFre 线下处方
-//                recipeExtend.setEveryTcmNumFre(recipeInfoTO.getRecipeExtendBean().getEveryTcmNumFre());
                 recipeExtend.setRequirementsForTakingText(recipeInfoTO.getRecipeExtendBean().getRequirementsForTakingText());
                 recipeExtend.setRequirementsForTakingCode(recipeInfoTO.getRecipeExtendBean().getRequirementsForTakingCode());
                 recipeExtend.setMinor(recipeInfoTO.getRecipeExtendBean().getMinor());
@@ -359,6 +360,17 @@ public class RecipePreserveService {
                 detailBean.setDrugForm(recipeDetailTO.getDrugForm());
                 detailBean.setDrugDisplaySplicedName(DrugDisplayNameProducer.getDrugName(detailBean, configDrugNameMap, DrugNameDisplayUtil.getDrugNameConfigKey(recipeType)));
                 hisRecipeDetailBeans.add(detailBean);
+            }
+            if (RecipeTypeEnum.RECIPETYPE_TCM.getType().equals(recipeType)) {
+                List<String> drugCodeList = hisRecipeDetailBeans.stream().filter(hisRecipeDetailBean -> StringUtils.isNotEmpty(hisRecipeDetailBean.getDrugCode())).map(HisRecipeDetailBean::getDrugCode).collect(Collectors.toList());
+                List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugCodes(organId, drugCodeList);
+                List<String> drugFormList  = organDrugLists.stream().filter(organDrugList -> StringUtils.isNotEmpty(organDrugList.getDrugForm())).map(OrganDrugList::getDrugForm).collect(Collectors.toList());
+                LOGGER.info("getHosRecipeList drugFormList:{}", JSON.toJSONString(drugFormList));
+                if (CollectionUtils.isEmpty(drugFormList)) {
+                    recipeBean.setRecipeDrugForm(RecipeDrugFormTypeEnum.TCM_DECOCTION_PIECES.getType());
+                } else {
+                    recipeBean.setRecipeDrugForm(RecipeDrugFormTypeEnum.getDrugFormType(drugFormList.get(0)));
+                }
             }
             recipeBean.setDetailData(hisRecipeDetailBeans);
             recipeBean.setClinicOrgan(organId);

@@ -1,5 +1,7 @@
 package recipe.atop.open;
 
+import com.ngari.common.mode.HisResponseTO;
+import com.ngari.his.recipe.mode.MedicationInfoResTO;
 import com.ngari.platform.recipe.mode.ListOrganDrugReq;
 import com.ngari.platform.recipe.mode.ListOrganDrugRes;
 import com.ngari.recipe.entity.Dispensatory;
@@ -72,6 +74,11 @@ public class DrugOpenAtop extends BaseAtop implements IDrugAtopService {
     public List<RecipeRulesDrugCorrelationVO> findRulesByCorrelationDrugIdAndRuleId(Integer correlationDrugId, Integer ruleId) {
         List<RecipeRulesDrugCorrelation> recipeRulesDrugCorrelations = drugBusinessService.findRulesByCorrelationDrugIdAndRuleId(correlationDrugId, ruleId);
         return ObjectCopyUtils.convert(recipeRulesDrugCorrelations, RecipeRulesDrugCorrelationVO.class);
+    }
+
+    @Override
+    public HisResponseTO medicationInfoSyncTaskForHis(List<MedicationInfoResTO> medicationInfoResTOList) {
+        return drugBusinessService.medicationInfoSyncTaskForHis(medicationInfoResTOList);
     }
 
     /**

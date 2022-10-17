@@ -4,14 +4,12 @@ import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.QueryHisRecipResTO;
 import com.ngari.his.recipe.mode.RecipeDetailTO;
+import com.ngari.his.recipe.mode.RecipeInfoTO;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.DepartmentService;
 import com.ngari.patient.service.PatientService;
-import com.ngari.recipe.dto.ChargeItemDTO;
-import com.ngari.recipe.dto.OffLineRecipeDetailDTO;
-import com.ngari.recipe.dto.RecipeDetailDTO;
-import com.ngari.recipe.dto.RecipeInfoDTO;
+import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.HisRecipe;
 import com.ngari.recipe.entity.PharmacyTcm;
 import com.ngari.recipe.entity.Recipe;
@@ -42,7 +40,6 @@ import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.enumerate.status.OfflineToOnlineEnum;
 import recipe.enumerate.status.RecipeStateEnum;
-import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.factory.offlinetoonline.IOfflineToOnlineStrategy;
 import recipe.factory.offlinetoonline.OfflineToOnlineFactory;
 import recipe.manager.*;
@@ -51,10 +48,7 @@ import recipe.util.MapValueUtil;
 import recipe.vo.patient.RecipeGiveModeButtonRes;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 线下处方核心逻辑
@@ -322,7 +316,7 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
         ChargeItemDTO chargeItemDTO = new ChargeItemDTO(expressFeePayType, expressFee);
         recipePdfDTO.setChargeItemDTO(chargeItemDTO);
         Recipe recipe = recipePdfDTO.getRecipe();
-        if (RecipeStatusEnum.RECIPE_STATUS_REVOKE.getType().equals(recipe.getStatus())) {
+        if (RecipeStateEnum.PROCESS_STATE_CANCELLATION.getType().equals(recipe.getProcessState())) {
             logger.info("RecipeBusinessService pushRecipe 当前处方已撤销");
             return recipePdfDTO;
         }
@@ -366,5 +360,15 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
     @Override
     public HisResponseTO abolishOffLineRecipe(Integer organId, List<String> recipeCodes) {
         return hisRecipeManager.abolishOffLineRecipe(organId, recipeCodes);
+    }
+
+    @Override
+    public List<RecipeInfoTO> patientOfflineRecipe(Integer organId, String patientId, Date startTime, Date endTime) {
+        return offlineRecipeClient.patientOfflineRecipe(organId, patientId, startTime, endTime);
+    }
+
+    @Override
+    public HisRecipeDTO getOffLineRecipeDetailsV1(Integer organId, String recipeCode) {
+        return offlineRecipeClient.getOffLineRecipeDetailsV1(organId, recipeCode);
     }
 }

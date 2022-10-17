@@ -271,6 +271,18 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "费用项目类型 1 代煎费  2 中医辨证论证费")
     private String costItemType;
 
+    @ItemProperty(alias = "his的id")
+    private String chargeId;
+
+    @Column(name = "charge_id")
+    public String getChargeId() {
+        return chargeId;
+    }
+
+    public void setChargeId(String chargeId) {
+        this.chargeId = chargeId;
+    }
+
     @Column(name = "terminal_id")
     public String getTerminalId() {
         return terminalId;

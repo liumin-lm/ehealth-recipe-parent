@@ -2,7 +2,9 @@ package recipe.atop.open;
 
 import com.alibaba.fastjson.JSONArray;
 import com.ngari.common.mode.HisResponseTO;
+import com.ngari.his.recipe.mode.RecipeInfoTO;
 import com.ngari.patient.dto.DoctorDTO;
+import com.ngari.platform.recipe.mode.OutpatientPaymentRecipeDTO;
 import com.ngari.platform.recipe.mode.QueryRecipeInfoHisDTO;
 import com.ngari.recipe.dto.PatientDTO;
 import com.ngari.recipe.entity.*;
@@ -38,10 +40,7 @@ import recipe.util.ObjectCopyUtils;
 import recipe.vo.PageGenericsVO;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.patient.PatientOptionalDrugVo;
-import recipe.vo.second.AutomatonResultVO;
-import recipe.vo.second.AutomatonVO;
-import recipe.vo.second.RecipePayHISCallbackReq;
-import recipe.vo.second.RevisitRecipeTraceVo;
+import recipe.vo.second.*;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -226,6 +225,12 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
         return recipeBusinessService.findRecipeByIds(recipeIds);
     }
 
+    @Override
+    public List<OutpatientPaymentRecipeDTO> findOutpatientPaymentRecipes(Integer organId, String mpiId) {
+        validateAtop(organId,mpiId);
+        return recipeBusinessService.findOutpatientPaymentRecipes(organId,mpiId);
+    }
+
 
     @Override
     public SymptomDTO symptomId(Integer id) {
@@ -254,6 +259,13 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
     public List<RecipeBean> recipeListByClinicId(Integer clinicId, Integer bussSource) {
         return recipeBusinessService.recipeListByClinicId(clinicId, bussSource);
     }
+
+    @Override
+    public List<RecipeBean> recipeAllByClinicId(Integer clinicId, Integer bussSource) {
+        List<Recipe> list = recipeBusinessService.recipeAllByClinicId(clinicId, bussSource);
+        return ObjectCopyUtils.convert(list, RecipeBean.class);
+    }
+
 
     @Override
     public List<RecipeDetailBean> findRecipeDetailByRecipeId(Integer recipeId) {
@@ -350,7 +362,7 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
         //药企
         Map<Integer, DrugsEnterprise> drugsEnterpriseMap = enterpriseBusinessService.findDrugsEnterpriseByIds(new ArrayList<>(enterpriseIds));
         //医生
-        Map<Integer, DoctorDTO> doctorMap = organBusinessService.findByDoctorIds(new ArrayList<>(doctorIds));
+        Map<Integer, DoctorDTO> doctorMap = iDoctorBusinessService.findByDoctorIds(new ArrayList<>(doctorIds));
         //患者
         Map<String, PatientDTO> patientMap = recipePatientService.findPatientByMpiIds(mpiIdList);
         list.forEach(a -> {
@@ -363,5 +375,16 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
         });
         result.setDataList(list);
         return result;
+    }
+
+    @Override
+    public PageGenericsVO<List<SelfServiceMachineResVo>> findRecipeToZiZhuJi(SelfServiceMachineReqVO selfServiceMachineReqVO) {
+        return recipeBusinessService.findRecipeToZiZhuJi(selfServiceMachineReqVO);
+    }
+
+    @Override
+    public List<RecipeInfoTO> patientOfflineRecipe(Integer organId, String patientId, Date startTime, Date endTime) {
+        validateAtop(organId, patientId);
+        return offlineToOnlineService.patientOfflineRecipe(organId, patientId, startTime, endTime);
     }
 }

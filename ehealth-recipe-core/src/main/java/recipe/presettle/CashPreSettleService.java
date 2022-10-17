@@ -17,6 +17,7 @@ import ctd.util.JSONUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.ApplicationUtils;
 import recipe.constant.RecipeBussConstant;
@@ -27,15 +28,13 @@ import recipe.enumerate.status.YesOrNoEnum;
 import recipe.enumerate.type.ForceCashTypeEnum;
 import recipe.hisservice.RecipeToHisService;
 import recipe.manager.RecipeDetailManager;
+import recipe.manager.RecipeManager;
 import recipe.purchase.PurchaseEnum;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeOrderService;
 import recipe.util.MapValueUtil;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * created by shiyuping on 2020/11/27
@@ -46,6 +45,9 @@ import java.util.Objects;
 @Service
 public class CashPreSettleService implements IRecipePreSettleService {
     private static final Logger LOGGER = LoggerFactory.getLogger(CashPreSettleService.class);
+
+    @Autowired
+    private RecipeManager recipeManager;
 
     @Override
     public Map<String, Object> recipePreSettle(Integer recipeId, Map<String, Object> extInfo) {
@@ -149,6 +151,12 @@ public class CashPreSettleService implements IRecipePreSettleService {
                     recipeDetailManager.saveRecipePreSettleDrugFeeDTOS(hisResult.getData().getRecipePreSettleDrugFeeDTOS(), recipeIds);
                     result.put("totalAmount", totalAmount);
                     result.put("cashAmount", cashAmount);
+                    //把hisId保存到处方扩展表
+                    try {
+                        recipeManager.saveRecipeExtendChargeId(recipeCodeS,recipe.getClinicOrgan(),hisResult.getData().getCodeMap());
+                    }catch (Exception e){
+                        LOGGER.error("CashPreSettleService saveRecipeExtendChargeId error", e);
+                    }
                 }
                 result.put("code", "200");
                 //日志记录

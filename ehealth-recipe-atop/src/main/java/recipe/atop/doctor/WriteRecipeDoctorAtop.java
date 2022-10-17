@@ -2,6 +2,7 @@ package recipe.atop.doctor;
 
 import com.ngari.patient.dto.HealthCardDTO;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.recipe.drug.model.DecoctionWayBean;
 import com.ngari.recipe.dto.OutPatientRecordResDTO;
 import com.ngari.recipe.dto.WriteDrugRecipeDTO;
 import com.ngari.recipe.entity.DoctorCommonPharmacy;
@@ -191,6 +192,7 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
      * @return
      */
     @RpcService
+    @Deprecated
     public DoctorCommonPharmacy findDoctorCommonPharmacyByOrganIdAndDoctorId(Integer organId,Integer doctorId ) {
         validateAtop(organId, doctorId);
         return recipeBusinessService.findDoctorCommonPharmacyByOrganIdAndDoctorId(organId,doctorId);
@@ -201,8 +203,9 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
      * @param doctorCommonPharmacy
      */
     @RpcService
+    @Deprecated
     public void saveDoctorCommonPharmacy(DoctorCommonPharmacy doctorCommonPharmacy) {
         validateAtop(doctorCommonPharmacy);
-        recipeBusinessService.saveDoctorCommonPharmacy(doctorCommonPharmacy);
+      //  recipeBusinessService.saveDoctorCommonPharmacy(doctorCommonPharmacy);
     }
 }

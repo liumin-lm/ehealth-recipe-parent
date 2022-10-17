@@ -49,6 +49,7 @@ getPatientRecipeById 患者端处方详情
 机构药品目录药品上传监管平台：uploadDrugToRegulation
 批量同步机构药品到监管平台：uploadOrgansDrugToRegulation
 杭州互联网设置医保自费按钮操作 setConfirmOrderExtInfo
+复诊查询处方状态是否有效 judgeRecipeStatus
 ```
 ```
 关于机构药品目录同步流程及接口描述：

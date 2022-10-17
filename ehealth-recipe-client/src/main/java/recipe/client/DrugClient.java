@@ -6,6 +6,8 @@ import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.dto.UsingRateDTO;
 import com.ngari.bus.op.service.IUsePathwaysService;
 import com.ngari.common.mode.HisResponseTO;
+import com.ngari.his.recipe.MedicationInfoReqTO;
+import com.ngari.his.recipe.mode.MedicationInfoResTO;
 import com.ngari.patient.service.IUsingRateService;
 import com.ngari.platform.recipe.mode.HospitalDrugListDTO;
 import com.ngari.platform.recipe.mode.HospitalDrugListReqDTO;
@@ -95,6 +97,7 @@ public class DrugClient extends BaseClient {
         drugVO.setSaleName(drugInfo.getDrugName());
         drugVO.setPharmacyId(drugInfo.getPharmacyId());
         drugVO.setApplyBusiness(drugInfo.getApplyBusiness());
+        drugVO.setDrugForm(drugInfo.getDrugForm());
         drugVO.setStart(start);
         drugVO.setLimit(limit);
         logger.info("DrugClient searchOrganDrugEs drugVO={}", JSON.toJSONString(drugVO));
@@ -285,5 +288,18 @@ public class DrugClient extends BaseClient {
             return drugMakingMethod;
         }
         return code;
+    }
+
+    public List<MedicationInfoResTO> medicationInfoSyncTask(Integer organId,Integer dataType) {
+        try {
+            MedicationInfoReqTO medicationInfoReqTO = new MedicationInfoReqTO();
+            medicationInfoReqTO.setOrganId(organId);
+            medicationInfoReqTO.setDataType(dataType);
+            HisResponseTO<List<MedicationInfoResTO>> hisResponseTO = recipeHisService.queryMedicationInfo(medicationInfoReqTO);
+            return getResponse(hisResponseTO);
+        }catch (Exception e){
+            logger.error("DrugClient medicationInfoSyncTask hisResponse", e);
+        }
+        return new ArrayList<>();
     }
 }

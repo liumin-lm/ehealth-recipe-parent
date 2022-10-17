@@ -14,6 +14,7 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.dto.*;
 import com.ngari.patient.service.IUsePathwaysService;
 import com.ngari.patient.service.IUsingRateService;
+import com.ngari.platform.recipe.mode.OutpatientPaymentRecipeDTO;
 import com.ngari.platform.recipe.mode.QueryRecipeInfoHisDTO;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
@@ -24,6 +25,9 @@ import com.ngari.recipe.recipe.constant.RecipecCheckStatusConstant;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.vo.*;
 import coupon.api.service.ICouponBaseService;
+import ctd.dictionary.Dictionary;
+import ctd.dictionary.DictionaryController;
+import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
 import ctd.util.AppContextHolder;
@@ -64,6 +68,7 @@ import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.serviceprovider.recipelog.service.RemoteRecipeLogService;
 import recipe.serviceprovider.recipeorder.service.RemoteRecipeOrderService;
 import recipe.util.*;
+import recipe.vo.PageGenericsVO;
 import recipe.vo.doctor.PatientOptionalDrugVO;
 import recipe.vo.doctor.PharmacyTcmVO;
 import recipe.vo.doctor.RecipeInfoVO;
@@ -155,7 +160,8 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     private DrugsEnterpriseDAO drugsEnterpriseDAO;
     @Autowired
     private RecipeAuditClient recipeAuditClient;
-
+    @Autowired
+    private DrugDecoctionWayDao drugDecoctionWayDao;
 
 
     /**
@@ -550,6 +556,11 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         RecipeListService recipeListService = ApplicationUtils.getRecipeService(RecipeListService.class);
         List<Map<String, Object>> map = recipeListService.findRecipesForRecipeList(recipeList, null);
         return map.stream().map(a -> (RecipeBean) a.get("recipe")).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Recipe> recipeAllByClinicId(Integer clinicId, Integer bussSource) {
+        return recipeDAO.findRecipeAllByBussSourceAndClinicId(bussSource, clinicId);
     }
 
     @Override
@@ -981,6 +992,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         return CollectionUtils.isEmpty(doctorCommonPharmacies)?null:doctorCommonPharmacies.get(0);
     }
 
+
     @Override
     public void saveDoctorCommonPharmacy(DoctorCommonPharmacy doctorCommonPharmacy) {
         List<DoctorCommonPharmacy> doctorCommonPharmacies=doctorCommonPharmacyDao.findByOrganIdAndDoctorId(doctorCommonPharmacy.getOrganId(),doctorCommonPharmacy.getDoctorId());
@@ -1163,5 +1175,111 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         return recipeManager.getRecipeRefundInfo(recipeRefundInfoReqVO.getDoctorId(),recipeRefundInfoReqVO.getStartTime(),recipeRefundInfoReqVO.getEndTime(),
                 recipeRefundInfoReqVO.getStart(),recipeRefundInfoReqVO.getLimit());
     }
+
+    @Override
+    public PageGenericsVO<List<SelfServiceMachineResVo>> findRecipeToZiZhuJi(SelfServiceMachineReqVO selfServiceMachineReqVO) {
+        logger.info("findRecipeToZiZhuJi mpiId =" + selfServiceMachineReqVO.getMpiId());
+        PageGenericsVO<List<SelfServiceMachineResVo>> pageGenericsVO = new PageGenericsVO<>();
+        List<Integer> processStateList = selfServiceMachineReqVO.getStatusList();
+        if (CollectionUtils.isEmpty(processStateList)) {
+            processStateList = Lists.newArrayList(2, 3, 4, 5, 6, 7, 8, 9);
+        }
+        QueryResult<Recipe> resultList = recipeDAO.findRecipeToZiZhuJi(selfServiceMachineReqVO.getMpiId(), processStateList, selfServiceMachineReqVO.getStart(), selfServiceMachineReqVO.getLimit());
+        List<Recipe> list = resultList.getItems();
+        if (CollectionUtils.isEmpty(list)) {
+            return pageGenericsVO;
+        }
+        pageGenericsVO.setTotal(Integer.valueOf(Long.toString(resultList.getTotal())));
+        pageGenericsVO.setLimit(Integer.valueOf(Long.toString(resultList.getLimit())));
+        pageGenericsVO.setStart(Integer.valueOf(Long.toString(resultList.getStart())));
+        List<Recipedetail> recipedetails;
+        List<SelfServiceMachineResVo> serviceMachineResVoList = new ArrayList<>();
+        try {
+            ctd.dictionary.Dictionary usingRateDic = DictionaryController.instance().get("eh.cdr.dictionary.UsingRate");
+            ctd.dictionary.Dictionary usePathwaysDic = DictionaryController.instance().get("eh.cdr.dictionary.UsePathways");
+            Dictionary departDic = DictionaryController.instance().get("eh.base.dictionary.Depart");
+            for (Recipe recipe : list) {
+                String organText = DictionaryController.instance().get("eh.base.dictionary.Organ").getText(recipe.getClinicOrgan());
+                RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+                EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
+                SelfServiceMachineResVo selfServiceMachineResVo = new SelfServiceMachineResVo();
+                selfServiceMachineResVo.setRecipeId(recipe.getRecipeId());
+                selfServiceMachineResVo.setPatientName(recipe.getPatientName());
+                selfServiceMachineResVo.setDoctorName(recipe.getDoctorName());
+                selfServiceMachineResVo.setDoctorDepart(organText + departDic.getText(recipe.getDepart()));
+                selfServiceMachineResVo.setDiseaseName(recipe.getOrganDiseaseName());
+                selfServiceMachineResVo.setSignTime(DateConversion.getDateFormatter(recipe.getSignDate(), "MM月dd日 HH:mm"));
+                selfServiceMachineResVo.setSubState(recipe.getSubState());
+                selfServiceMachineResVo.setSubStateText(RecipeStateEnum.getRecipeStateEnum(recipe.getSubState()).getName());
+                selfServiceMachineResVo.setProcessState(recipe.getProcessState());
+                recipedetails = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
+                List<DrugInfoResVo> drugInfoList = Lists.newArrayList();
+                String useDose;
+                String usingRateText;
+                String usePathwaysText;
+                for (Recipedetail detail : recipedetails) {
+                    DrugInfoResVo drugInfo = new DrugInfoResVo();
+                    if (StringUtils.isNotEmpty(detail.getUseDoseStr())) {
+                        useDose = detail.getUseDoseStr();
+                    } else {
+                        useDose = detail.getUseDose() == null ? null : String.valueOf(detail.getUseDose());
+                    }
+                    drugInfo.setDrugName(detail.getDrugName());
+                    //开药总量+药品单位
+                    String dSpec = "*" + detail.getUseTotalDose().intValue() + detail.getDrugUnit();
+                    drugInfo.setDrugTotal(dSpec);
+                    usingRateText = StringUtils.isNotEmpty(detail.getUsingRateTextFromHis()) ? detail.getUsingRateTextFromHis() : usingRateDic.getText(detail.getUsingRate());
+                    usePathwaysText = StringUtils.isNotEmpty(detail.getUsePathwaysTextFromHis()) ? detail.getUsePathwaysTextFromHis() : usePathwaysDic.getText(detail.getUsePathways());
+                    String useWay = "用法：每次" + useDose + detail.getUseDoseUnit() + "/" + usingRateText + "/" + usePathwaysText + detail.getUseDays() + "天";
+                    drugInfo.setUseWay(useWay);
+                    drugInfoList.add(drugInfo);
+                }
+                selfServiceMachineResVo.setRp(drugInfoList);
+                selfServiceMachineResVo.setMemo(recipe.getMemo());
+                serviceMachineResVoList.add(selfServiceMachineResVo);
+            }
+            pageGenericsVO.setData(serviceMachineResVoList);
+        } catch (Exception e) {
+            logger.error("findRecipeToZiZhuJi error" + e.getMessage(), e);
+        }
+        return pageGenericsVO;
+    }
+
+    @Override
+    public List<OutpatientPaymentRecipeDTO> findOutpatientPaymentRecipes(Integer organId, String mpiId) {
+        List<Recipe> recipes = recipeDAO.findByOrganIdAndMpiId(organId,mpiId);
+        List<OutpatientPaymentRecipeDTO> outpatientPaymentRecipeDTOS = recipes.stream().map(recipe -> {
+            OutpatientPaymentRecipeDTO dto = new OutpatientPaymentRecipeDTO();
+            dto.setRecipeId(recipe.getRecipeId());
+            dto.setHisConvertSource(2);
+            dto.setTotalFee(recipe.getTotalMoney());
+            dto.setOrderDate(recipe.getSignDate());
+            dto.setOrderID(recipe.getRecipeCode());
+            dto.setOrderType(dealRecipeType(recipe.getRecipeType()));
+            dto.setOrderTypeName(dealRecipeTypeName(recipe.getRecipeType()));
+            dto.setPatientId(recipe.getPatientID());
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+            dto.setSeries(recipeExtend.getRegisterID());
+            dto.setOnlineRecipe(1);
+            return dto;
+        }).collect(Collectors.toList());
+        return outpatientPaymentRecipeDTOS;
+    }
+
+    private String dealRecipeTypeName(Integer recipeType) {
+        if(recipe.enumerate.type.RecipeTypeEnum.RECIPETYPE_TCM.getType().equals(recipeType)){
+            return "中药处方";
+        }
+        return "西药处方";
+    }
+
+    private Integer dealRecipeType(Integer recipeType) {
+        if(recipe.enumerate.type.RecipeTypeEnum.RECIPETYPE_TCM.getType().equals(recipeType)){
+            return 2;
+        }
+        return 1;
+    }
+
+
 }
 

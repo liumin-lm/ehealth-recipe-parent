@@ -9,12 +9,15 @@ import com.ngari.base.patient.model.PatientBean;
 import com.ngari.his.recipe.mode.DrugTakeChangeReqTO;
 import com.ngari.his.recipe.mode.FTYSendTimeReqDTO;
 import com.ngari.patient.service.AddrAreaService;
+import com.ngari.patient.service.AddressService;
+import com.ngari.patient.service.BasicAPI;
 import com.ngari.platform.recipe.mode.DrugsEnterpriseBean;
 import com.ngari.platform.recipe.mode.MedicineStationDTO;
 import com.ngari.recipe.drugsenterprise.model.EnterpriseAddressAndPrice;
 import com.ngari.recipe.drugsenterprise.model.EnterpriseAddressDTO;
 import com.ngari.recipe.drugsenterprise.model.EnterpriseDecoctionAddressReq;
 import com.ngari.recipe.drugsenterprise.model.EnterpriseDecoctionList;
+import com.ngari.recipe.dto.EnterpriseStock;
 import com.ngari.recipe.dto.OrganDTO;
 import com.ngari.recipe.dto.PatientDTO;
 import com.ngari.recipe.entity.*;
@@ -49,6 +52,7 @@ import recipe.core.api.IEnterpriseBusinessService;
 import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.enumerate.status.*;
+import recipe.enumerate.type.AppointEnterpriseTypeEnum;
 import recipe.enumerate.type.PayFlagEnum;
 import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.hisservice.HisRequestInit;
@@ -124,8 +128,6 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
     private EnterpriseClient enterpriseClient;
     @Resource
     private StateManager stateManager;
-    @Autowired
-    private AddrAreaService addrAreaService;
 
 
     @Override
@@ -212,6 +214,21 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
             }
             vo.setOrganId(null);
             drugsEnterpriseIds = drugsEnterpriseList.stream().map(DrugsEnterprise::getId).collect(Collectors.toList());
+        }else{
+            //增加权限范围
+            UserRoleToken ur = UserRoleToken.getCurrent();
+            String manageUnit = ur.getManageUnit();
+            // 机构管理员获取机构信息
+            if (!"eh".equals(manageUnit)) {
+                List<Integer> organIds = organClient.findOrganIdsByManageUnit(manageUnit);
+                logger.info("drugsEnterpriseLimit manageUnit={},organIds={}", JSONArray.toJSONString(organIds), JSONArray.toJSONString(manageUnit));
+                if (CollectionUtils.isNotEmpty(organIds)) {
+                    List<OrganAndDrugsepRelation> relastionList=organAndDrugsepRelationDAO.findByOrganIds(organIds);
+                    drugsEnterpriseIds= relastionList.stream().map(OrganAndDrugsepRelation::getDrugsEnterpriseId)
+                            .collect(Collectors.toList());
+                }
+            }
+
         }
         logger.info("DrugsEnterpriseBusinessService drugsEnterpriseLimit drugsEnterpriseIds:{}", JSON.toJSONString(drugsEnterpriseIds));
         return enterpriseManager.drugsEnterpriseLimit(vo.getName(), vo.getCreateType(), vo.getOrganId(), vo.getStart(), vo.getLimit(), drugsEnterpriseIds);
@@ -286,6 +303,7 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
 
     @Override
     public List<EnterpriseDecoctionList> findEnterpriseDecoctionList(Integer enterpriseId, Integer organId) {
+        AddrAreaService addrAreaService = BasicAPI.getService(AddrAreaService.class);
         OrganAndDrugsepRelation relation = organAndDrugsepRelationDAO.getOrganAndDrugsepByOrganIdAndEntId(organId, enterpriseId);
         if (Objects.isNull(relation)) {
             return null;
@@ -307,6 +325,7 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
         // 获取机构下的所有煎法
         List<DecoctionWay> decoctionWayList = drugDecoctionWayDao.findByOrganId(organId);
         Map<Integer, List<EnterpriseDecoctionAddress>> finalCollect = collect;
+        Long allStreetCount = addrAreaService.getAllStreetCount();
         List<EnterpriseDecoctionList> enterpriseDecoctionLists = decoctionWayList.stream().map(decoctionWay -> {
             EnterpriseDecoctionList enterpriseDecoctionList = null;
             if ("-1".equals(enterpriseDecoctionIds) || list.contains(decoctionWay.getDecoctionId())) {
@@ -315,7 +334,12 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
                 enterpriseDecoctionList.setDecoctionName(decoctionWay.getDecoctionText());
                 int status = 0;
                 if (MapUtils.isNotEmpty(finalCollect) && CollectionUtils.isNotEmpty(finalCollect.get(decoctionWay.getDecoctionId()))) {
-                    status = 1;
+                    int count = finalCollect.get(decoctionWay.getDecoctionId()).size();
+                    if (count < allStreetCount) {
+                        status = 1;
+                    } else {
+                        status = 2;
+                    }
                 }
                 enterpriseDecoctionList.setStatus(status);
             }
@@ -574,59 +598,60 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
         return collect;
     }
 
-    /**
-     * P1-27531-108310- 【实施/上海】【上海市第七人民医院】【B】【BUG】互联网医院中草药处方无法选择在可配范围内的快递地址
-     * 上面需求在findEnterpriseAddressProvinceV2中已开发
-     *
-     * @param enterpriseId
-     * @return
-     */
-    @Override
-    public List<EnterpriseAddressAndPrice> findEnterpriseAddressProvince(Integer enterpriseId) {
-        List<EnterpriseAddress> enterpriseAddresses = enterpriseAddressDAO.findByEnterPriseId(enterpriseId);
-        if (CollectionUtils.isEmpty(enterpriseAddresses)) {
-            return Lists.newArrayList();
-        }
-        logger.info("findEnterpriseAddressProvince enterpriseAddresses={}", JSON.toJSONString(enterpriseAddresses));
-        List<EnterpriseAddressAndPrice> list = enterpriseAddresses.stream().map(enterpriseAddress -> {
-            EnterpriseAddressAndPrice enterpriseAddressAndPrice = new EnterpriseAddressAndPrice();
-            enterpriseAddressAndPrice.setEnterpriseId(enterpriseAddress.getEnterpriseId());
-            enterpriseAddressAndPrice.setAddress(enterpriseAddress.getAddress().substring(0, 2));
-            return enterpriseAddressAndPrice;
-        }).filter(distinctByKey(e -> e.getAddress())).collect(Collectors.toList());
-        return list;
-    }
-
+    ///**
+    // * P1-27531-108310- 【实施/上海】【上海市第七人民医院】【B】【BUG】互联网医院中草药处方无法选择在可配范围内的快递地址
+    // * 上面需求在findEnterpriseAddressProvinceV2中已开发
+    // *
+    // * @param enterpriseId
+    // * @return
+    // */
     //@Override
-    //public List<EnterpriseAddressAndPrice> findEnterpriseAddressProvinceV2(Integer enterpriseId) {
+    //public List<EnterpriseAddressAndPrice> findEnterpriseAddressProvince(Integer enterpriseId) {
     //    List<EnterpriseAddress> enterpriseAddresses = enterpriseAddressDAO.findByEnterPriseId(enterpriseId);
     //    if (CollectionUtils.isEmpty(enterpriseAddresses)) {
     //        return Lists.newArrayList();
     //    }
-    //
-    //    //每个省配置的街道数量map
-    //    Map<String, Long> map = enterpriseAddresses.stream().peek(e -> e.setAddress(e.getAddress().substring(0, 2)))
-    //            .collect(Collectors.groupingBy(EnterpriseAddress::getAddress, Collectors.counting()));
-    //    logger.info("findEnterpriseAddressProvince map={}", JSON.toJSONString(map));
-    //
+    //    logger.info("findEnterpriseAddressProvince enterpriseAddresses={}", JSON.toJSONString(enterpriseAddresses));
     //    List<EnterpriseAddressAndPrice> list = enterpriseAddresses.stream().map(enterpriseAddress -> {
     //        EnterpriseAddressAndPrice enterpriseAddressAndPrice = new EnterpriseAddressAndPrice();
     //        enterpriseAddressAndPrice.setEnterpriseId(enterpriseAddress.getEnterpriseId());
     //        enterpriseAddressAndPrice.setAddress(enterpriseAddress.getAddress().substring(0, 2));
     //        return enterpriseAddressAndPrice;
     //    }).filter(distinctByKey(e -> e.getAddress())).collect(Collectors.toList());
-    //
-    //    //设置ConfigFlag字段，若enterpriseAddress配置数量 >= 基础服务下街道数量，显示添加全部地区
-    //    list.forEach(x -> {
-    //        Long count = addrAreaService.getCountAreaLikeCode(x.getAddress());
-    //        if (Objects.nonNull(count) && count <= map.get(x.getAddress())) {
-    //            x.setConfigFlag(1);
-    //        } else {
-    //            x.setConfigFlag(2);
-    //        }
-    //    });
     //    return list;
     //}
+
+    @Override
+    public List<EnterpriseAddressAndPrice> findEnterpriseAddressProvince(Integer enterpriseId) {
+        List<EnterpriseAddress> enterpriseAddresses = enterpriseAddressDAO.findByEnterPriseId(enterpriseId);
+        if (CollectionUtils.isEmpty(enterpriseAddresses)) {
+            return Lists.newArrayList();
+        }
+
+        //每个省配置的街道数量map
+        Map<String, Long> map = enterpriseAddresses.stream().peek(e -> e.setAddress(e.getAddress().substring(0, 2)))
+                .collect(Collectors.groupingBy(EnterpriseAddress::getAddress, Collectors.counting()));
+        logger.info("findEnterpriseAddressProvince map={}", JSON.toJSONString(map));
+
+        List<EnterpriseAddressAndPrice> list = enterpriseAddresses.stream().map(enterpriseAddress -> {
+            EnterpriseAddressAndPrice enterpriseAddressAndPrice = new EnterpriseAddressAndPrice();
+            enterpriseAddressAndPrice.setEnterpriseId(enterpriseAddress.getEnterpriseId());
+            enterpriseAddressAndPrice.setAddress(enterpriseAddress.getAddress().substring(0, 2));
+            return enterpriseAddressAndPrice;
+        }).filter(distinctByKey(e -> e.getAddress())).collect(Collectors.toList());
+
+        //设置ConfigFlag字段，若enterpriseAddress配置数量 >= 基础服务下街道数量，显示添加全部地区
+        AddrAreaService addrAreaService = BasicAPI.getService(AddrAreaService.class);
+        list.forEach(x -> {
+            Long count = addrAreaService.getCountAreaLikeCode(x.getAddress());
+            if (Objects.nonNull(count) && count <= map.get(x.getAddress())) {
+                x.setConfigFlag(1);
+            } else {
+                x.setConfigFlag(2);
+            }
+        });
+        return list;
+    }
 
     @Override
     public EnterpriseResultBean renewDrugInfo(List<EnterpriseDrugVO> enterpriseDrugVOList) {
@@ -821,6 +846,28 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
         List<DrugsEnterprise> enterprises = drugsEnterpriseDAO.findByIdIn(ids);
         return Optional.ofNullable(enterprises).orElseGet(Collections::emptyList)
                 .stream().collect(Collectors.toMap(DrugsEnterprise::getId, a -> a, (k1, k2) -> k1));
+    }
+
+
+    @Override
+    public List<EnterpriseStock> enterprisesList(Integer organId) {
+        List<EnterpriseStock> list = new ArrayList<>();
+        EnterpriseStock organ = organDrugListManager.organ(organId);
+        if (null != organ) {
+            list.add(organ);
+        }
+        List<DrugsEnterprise> enterprises = buttonManager.organAndEnterprise(organId, null, null);
+        if (CollectionUtils.isEmpty(enterprises)) {
+            return list;
+        }
+        enterprises.forEach(a -> {
+            EnterpriseStock enterpriseStock = new EnterpriseStock();
+            enterpriseStock.setDeliveryName(a.getName());
+            enterpriseStock.setDeliveryCode(a.getId().toString());
+            enterpriseStock.setAppointEnterpriseType(AppointEnterpriseTypeEnum.ENTERPRISE_APPOINT.getType());
+            list.add(enterpriseStock);
+        });
+        return list;
     }
 
     private Integer getEnterpriseSendFlag(DrugsEnterprise enterprise, CheckOrderAddressVo checkOrderAddressVo) {

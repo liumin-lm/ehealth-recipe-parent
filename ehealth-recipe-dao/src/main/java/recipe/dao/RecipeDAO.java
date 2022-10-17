@@ -2349,6 +2349,37 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         return action.getResult();
     }
 
+    /**
+     * 自助机查询处方信息 使用新状态
+     *
+     * @param mpiId
+     * @param start
+     * @param limit
+     * @return
+     */
+    public QueryResult<Recipe> findRecipeToZiZhuJi(final String mpiId, final List<Integer> processStateList, final int start, final int limit) {
+        HibernateStatelessResultAction<QueryResult<Recipe>> action = new AbstractHibernateStatelessResultAction<QueryResult<Recipe>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                String hql = "from Recipe where mpiid=:mpiid  and processState in (:processStateList) order by createDate desc";
+                Query query = ss.createQuery(hql);
+                query.setParameter("mpiid", mpiId);
+                query.setParameterList("processStateList", processStateList);
+                query.setFirstResult(start);
+                query.setMaxResults(limit);
+
+                Query countQuery = ss.createQuery("select count(*) " + hql);
+                countQuery.setParameter("mpiid", mpiId);
+                countQuery.setParameterList("processStateList", processStateList);
+                Long total = (Long) countQuery.uniqueResult();
+                List<Recipe> lists = query.list();
+                setResult(new QueryResult<Recipe>(total, query.getFirstResult(), query.getMaxResults(), lists));
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
     public List<Recipe> findRecipeListForDate(final List<Integer> organList, final String startDt, final String endDt) {
         HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
             @Override
@@ -3370,6 +3401,16 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      */
     @DAOMethod(sql = "from Recipe where bussSource=:bussSource and clinicId=:clinicId  and recipeSourceType != 3 ")
     public abstract List<Recipe> findRecipeByBussSourceAndClinicId(@DAOParam("bussSource") Integer bussSource, @DAOParam("clinicId") Integer clinicId);
+
+    /**
+     * 根据 二方id 查询处方列表全部数据
+     *
+     * @param clinicId   二方业务id
+     * @param bussSource 开处方来源 1问诊 2复诊(在线续方) 3网络门诊
+     * @return
+     */
+    @DAOMethod(sql = "from Recipe where bussSource=:bussSource and clinicId=:clinicId")
+    public abstract List<Recipe> findRecipeAllByBussSourceAndClinicId(@DAOParam("bussSource") Integer bussSource, @DAOParam("clinicId") Integer clinicId);
 
 
     @DAOMethod(sql = "from Recipe where recipeId=:recipeId  and bussSource =2")
@@ -4483,6 +4524,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
+
+    @DAOMethod(sql = "from Recipe where mpiid =:mpiId and clinicOrgan=:organId and writeHisState != 3 and processState=3 and recipeSourceType=1")
+    public abstract List<Recipe> findByOrganIdAndMpiId(@DAOParam("organId") Integer organId, @DAOParam("mpiId") String mpiId);
 }
 
 

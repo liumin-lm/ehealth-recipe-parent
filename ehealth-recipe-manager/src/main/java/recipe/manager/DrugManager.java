@@ -5,13 +5,23 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.dto.UsingRateDTO;
-import com.ngari.recipe.dto.DrugInfoDTO;
-import com.ngari.recipe.dto.ListOrganDrugReq;
-import com.ngari.recipe.dto.PatientDrugWithEsDTO;
-import com.ngari.recipe.dto.RecipeInfoDTO;
+import com.ngari.his.recipe.mode.MedicationInfoResTO;
+import com.ngari.opbase.base.service.IBusActionLogService;
+import com.ngari.patient.dto.DoctorDTO;
+import com.ngari.patient.dto.OrganConfigDTO;
+import com.ngari.patient.service.BasicAPI;
+import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
+import ctd.account.UserRoleToken;
 import ctd.persistence.DAOFactory;
+import ctd.persistence.exception.DAOException;
+import ctd.schema.annotation.ItemProperty;
+import ctd.spring.AppDomainContext;
+import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
+import eh.entity.base.Organ;
+import eh.entity.base.OrganConfig;
 import eh.entity.base.UsePathways;
 import eh.entity.base.UsingRate;
 import es.api.DrugSearchService;
@@ -24,13 +34,20 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 import recipe.aop.LogRecord;
+import recipe.client.BusinessLogClient;
 import recipe.constant.RecipeBussConstant;
+import recipe.constant.SyncDrugConstant;
 import recipe.dao.*;
 import recipe.util.LocalStringUtil;
 import recipe.util.ValidateUtil;
 
+import java.lang.reflect.Field;
 import java.math.BigDecimal;
+import java.sql.Time;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -58,6 +75,15 @@ public class DrugManager extends BaseManager {
     private DrugSearchService searchService;
     @Autowired
     private DrugSaleStrategyDAO drugSaleStrategyDAO;
+    @Autowired
+    private OrganDrugListSyncFieldDAO organDrugListSyncFieldDAO;
+    @Autowired
+    private DrugOrganConfigDAO drugOrganConfigDAO;
+    @Autowired
+    private BusinessLogClient businessLogClient;
+    private String YES="1";
+    private String NO ="0";
+
 
     /**
      * 更新drugList 到Es
@@ -518,8 +544,13 @@ public class DrugManager extends BaseManager {
         return organDrugListDAO.listOrganDrugByTime(listOrganDrugReq);
     }
 
-    public List<DrugCommon> commonDrugList(Integer organId, Integer doctorId, List<Integer> drugTypes) {
-        List<DrugCommon> drugCommonList = drugCommonDAO.findByOrganIdAndDoctorIdAndTypes(organId, doctorId, drugTypes, 0, 30);
+    public List<DrugCommon> commonDrugList(Integer organId, Integer doctorId, List<Integer> drugTypes, String drugForm) {
+        List<DrugCommon> drugCommonList;
+        if (drugTypes.contains(RecipeBussConstant.RECIPETYPE_TCM)) {
+            drugCommonList = drugCommonDAO.findByOrganIdAndDoctorIdAndDrugForm(organId, doctorId, drugForm, 0, 30);
+        }else {
+            drugCommonList = drugCommonDAO.findByOrganIdAndDoctorIdAndTypes(organId, doctorId, drugTypes, 0, 30);
+        }
         logger.info("DrugManager commonDrugList organId={},doctorId-{},drugTypes={}, list={}"
                 , organId, doctorId, JSON.toJSONString(drugTypes), JSON.toJSONString(drugCommonList));
         return drugCommonList;
@@ -593,6 +624,247 @@ public class DrugManager extends BaseManager {
         drugSaleStrategy.setStatus(1);
         drugSaleStrategy.setId(0);
         return drugSaleStrategy;
+    }
+
+    /**
+     * 添加机构药品同步字段
+     * @param organId
+     * @return
+     */
+    @LogRecord
+    public List<OrganDrugListSyncField> addOrganDrugListSyncFieldForOrgan(Integer organId) {
+        List<OrganDrugListSyncField> organDrugListSyncFieldList=new ArrayList<>();
+        LinkedHashMap<String,DrugSyncFieldDTO> fieldMap=initSyncFieldMapForOrgan();
+        Set set = fieldMap.keySet();
+        List<String> typeList=initTypeList();
+        for (Object key : set) {
+            DrugSyncFieldDTO drugSyncFieldDTO=fieldMap.get(key);
+            typeList.forEach(type->{
+                OrganDrugListSyncField organDrugListSyncField=new OrganDrugListSyncField();
+                organDrugListSyncField.setOrganId(organId);
+                organDrugListSyncField.setFieldCode(key+"");
+                organDrugListSyncField.setFieldName(drugSyncFieldDTO.getFieldName());
+                organDrugListSyncField.setType(type);
+                if("1".equals(type)){
+                    //新增
+                    organDrugListSyncField.setIsAllowEdit(drugSyncFieldDTO.getAddIsAllowEdit());
+                }else{
+                    organDrugListSyncField.setIsAllowEdit(drugSyncFieldDTO.getUpdateIsAllowEdit());
+                }
+                organDrugListSyncFieldList.add(addOrUpdateOrganDrugListSyncField(organDrugListSyncField));
+            });
+        }
+        return organDrugListSyncFieldList;
+
+    }
+
+    /**
+     * 通过OrganId(),FieldCode(),Type()查询，存在update 不存在add
+     *
+     * @param organDrugListSyncField
+     * @return
+     */
+    @LogRecord
+    public  OrganDrugListSyncField addOrUpdateOrganDrugListSyncField(OrganDrugListSyncField organDrugListSyncField) {
+        logger.info("addOrUpdateOrganDrugListSyncField:{}",JSONUtils.toString(organDrugListSyncField));
+        if (ObjectUtils.isEmpty(organDrugListSyncField.getOrganId())){
+            throw new DAOException(DAOException.VALUE_NEEDED, "机构 is required");
+        }
+
+        IBusActionLogService busActionLogService = AppDomainContext.getBean("opbase.busActionLogService", IBusActionLogService.class);
+        UserRoleToken urt = UserRoleToken.getCurrent();
+        List<OrganDrugListSyncField> organDrugListSyncFieldDbs = organDrugListSyncFieldDAO.findByOrganIdAndFieldCodeAndType(organDrugListSyncField.getOrganId(),organDrugListSyncField.getFieldCode(),organDrugListSyncField.getType());
+        logger.info("addOrUpdateOrganDrugListSyncField organDrugListSyncFieldDbs:{}",JSONUtils.toString(organDrugListSyncFieldDbs));
+        OrganDrugListSyncField organDrugListSyncFieldDb=null;
+        if(CollectionUtils.isNotEmpty(organDrugListSyncFieldDbs)){
+            organDrugListSyncFieldDb=organDrugListSyncFieldDbs.get(0);
+            logger.info("addOrUpdateOrganDrugListSyncField saleDrugListSyncFieldDb:{}",JSONUtils.toString(organDrugListSyncFieldDbs));
+        }
+        organDrugListSyncField.init(organDrugListSyncField);
+        if (ObjectUtils.isEmpty(organDrugListSyncFieldDb)){
+            OrganDrugListSyncField save = organDrugListSyncFieldDAO.save(organDrugListSyncField);
+            if (!ObjectUtils.isEmpty(urt)){
+                try {
+                    busActionLogService.recordBusinessLogRpcNew("机构配置管理", "", "OrganDrugListSyncField", "【" + urt.getUserName() + "】新增机构药品同步字段配置【" + JSONUtils.toString(save)
+                            +"】", organClient.organDTO(organDrugListSyncField.getOrganId()).getName());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            logger.info("addOrUpdateOrganDrugListSyncField save:{}",JSONUtils.toString(save));
+            return save;
+        }else {
+            organDrugListSyncField.setId(organDrugListSyncFieldDb.getId());
+            OrganDrugListSyncField update = organDrugListSyncFieldDAO.update(organDrugListSyncField);
+            if (!ObjectUtils.isEmpty(urt)){
+                try {
+                    busActionLogService.recordBusinessLogRpcNew("机构配置管理", "", "OrganDrugListSyncField", "【" + urt.getUserName() + "】更新机构药品同步字段配置【"+JSONUtils.toString(organDrugListSyncField)+"】-》【" + JSONUtils.toString(update)
+                            +"】", organClient.organDTO(organDrugListSyncField.getOrganId()).getName());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            logger.info("addOrUpdateOrganDrugListSyncField update:{}",JSONUtils.toString(update));
+            return update;
+        }
+    }
+
+    @LogRecord
+    private LinkedHashMap<String,DrugSyncFieldDTO> initSyncFieldMapForOrgan(){
+        LinkedHashMap<String,DrugSyncFieldDTO> fieldMap=new LinkedHashMap<>();
+        //line 1
+        fieldMap.put(SyncDrugConstant.organDrugCode,new DrugSyncFieldDTO("药品唯一索引","organDrugCode",YES,NO,YES,NO) );
+        fieldMap.put(SyncDrugConstant.drugName,new DrugSyncFieldDTO("药品名",SyncDrugConstant.drugName,YES,NO,YES,YES));
+        fieldMap.put(SyncDrugConstant.saleName,new DrugSyncFieldDTO("商品名",SyncDrugConstant.saleName,YES,NO,YES,YES));
+        fieldMap.put(SyncDrugConstant.retrievalCode,new DrugSyncFieldDTO("院内检索码",SyncDrugConstant.retrievalCode,YES,NO,YES,YES));
+//        fieldMap.put(SyncDrugConstant.drugType,new DrugSyncFieldDTO("药品类型",SyncDrugConstant.drugType,YES,NO,YES,YES));
+
+        fieldMap.put(SyncDrugConstant.drugSpec,new DrugSyncFieldDTO("药品规格",SyncDrugConstant.drugSpec,YES,NO,YES,YES));
+        fieldMap.put(SyncDrugConstant.salePrice,new DrugSyncFieldDTO("价格",SyncDrugConstant.salePrice,YES,NO,YES,YES));
+//        fieldMap.put(SyncDrugConstant.applyBusiness,new DrugSyncFieldDTO("适用业务",SyncDrugConstant.applyBusiness,YES,NO,YES,YES));
+//        fieldMap.put("status","状态");
+
+        fieldMap.put(SyncDrugConstant.unit,new DrugSyncFieldDTO("最小售药单位",SyncDrugConstant.unit,YES,NO,YES,YES));//？？
+        fieldMap.put(SyncDrugConstant.pack,new DrugSyncFieldDTO("包装数量（转化系数）",SyncDrugConstant.pack,YES,NO,YES,YES));
+        fieldMap.put(SyncDrugConstant.useDose,new DrugSyncFieldDTO("单次剂量（规格单位）",SyncDrugConstant.useDose,YES,NO,YES,YES));
+        fieldMap.put(SyncDrugConstant.producer,new DrugSyncFieldDTO("生产厂家",SyncDrugConstant.retrievalCode,YES,NO,YES,YES));
+
+        fieldMap.put(SyncDrugConstant.pharmacy,new DrugSyncFieldDTO("药房",SyncDrugConstant.pharmacy,YES,YES,YES,YES));//对应编码与名称吗
+        fieldMap.put(SyncDrugConstant.drugForm,new DrugSyncFieldDTO("剂型",SyncDrugConstant.drugForm,YES,YES,YES,YES));
+        fieldMap.put(SyncDrugConstant.drugsEnterpriseIds,new DrugSyncFieldDTO("配送药企",SyncDrugConstant.drugsEnterpriseIds,YES,YES,YES,YES));
+        fieldMap.put(SyncDrugConstant.drugEntrust,new DrugSyncFieldDTO("药品嘱托",SyncDrugConstant.drugEntrust,YES,YES,YES,YES));
+        fieldMap.put(SyncDrugConstant.medicalInsuranceControl,new DrugSyncFieldDTO("医保控制",SyncDrugConstant.medicalInsuranceControl,YES,YES,YES,YES));
+
+        fieldMap.put(SyncDrugConstant.indicationsDeclare,new DrugSyncFieldDTO("适应症说明",SyncDrugConstant.indicationsDeclare,YES,YES,YES,YES));
+
+        return fieldMap;
+    }
+
+    @LogRecord
+    private List<String> initTypeList(){
+        List<String> typeList=new ArrayList<>();
+        //新增
+        typeList.add("1");
+        //更新
+        typeList.add("2");
+        logger.info("initTypeList:{}",JSONUtils.toString(typeList));
+        return typeList;
+    }
+
+//    protected void logChangeConfig(Class<?> bizClass, Organ organ, String optionName, Object value) {
+//        if (value instanceof Boolean) {
+//            value = ((boolean) value) ? "打开" : "关闭";
+//        } else {
+//            value = "改为: " + value;
+//        }
+//        businessLogClient.recordBusinessLog("修改机构设置", organ.getOrganId().toString(), bizClass.getName(),
+//                String.format("[%2$s](%1$s)的'%3$s'选项被%4$s", organ.getOrganId(), organ.getName(), optionName, value), organ.getName());
+//    }
+
+    public Boolean updateMedicationSyncConfig(MedicationSyncConfig medicationSyncConfig) {
+        return medicationSyncConfigDAO.updateNonNullFieldByPrimaryKey(medicationSyncConfig);
+    }
+
+    public MedicationSyncConfig getMedicationSyncConfig(Integer organId,Integer dataType) {
+        MedicationSyncConfig medicationSyncConfig = medicationSyncConfigDAO.getMedicationSyncConfigByOrganIdAndDataType(organId, dataType);
+        if(Objects.isNull(medicationSyncConfig)){
+            medicationSyncConfig = new MedicationSyncConfig();
+            medicationSyncConfig.setOrganId(organId);
+            medicationSyncConfig.setDataType(dataType);
+            medicationSyncConfigDAO.save(medicationSyncConfig);
+            medicationSyncConfig = medicationSyncConfigDAO.getMedicationSyncConfigByOrganIdAndDataType(organId, dataType);
+        }
+        return medicationSyncConfig;
+    }
+
+    public List<MedicationInfoResTO> medicationInfoSyncTask() {
+        LocalTime localTime = LocalTime.now();
+        LocalTime localTime1 = localTime.minusMinutes(1);
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
+        String format = localTime.format(dateTimeFormatter);
+        String format1 = localTime1.format(dateTimeFormatter);
+        Time etime = Time.valueOf(format);
+        Time stime = Time.valueOf(format1);
+        List<MedicationSyncConfig> medicationSyncConfigs = medicationSyncConfigDAO.findByRegularTime(stime, etime);
+        //List<MedicationSyncConfig> medicationSyncConfigs = medicationSyncConfigDAO.findByRegularTime();
+        logger.info("medicationInfoSyncTask medicationSyncConfigs:{}",JSONUtils.toString(medicationSyncConfigs));
+        if (!ObjectUtils.isEmpty(medicationSyncConfigs)) {
+            for (MedicationSyncConfig medicationSyncConfig : medicationSyncConfigs) {
+                try {
+                    Boolean enableSync = medicationSyncConfig.getEnableSync();
+                    Integer dockingMode = medicationSyncConfig.getDockingMode();
+                    if (ObjectUtils.isEmpty(dockingMode)) {
+                        throw new DAOException(DAOException.VALUE_NEEDED,
+                                (new Integer(1).equals(medicationSyncConfig.getDataType()) ? "用药途径" : "用药频次")  + "未找到同步模式配置!");
+                    }
+                    if (dockingMode == 2) {
+                        throw new DAOException(DAOException.VALUE_NEEDED,
+                                (new Integer(1).equals(medicationSyncConfig.getDataType()) ? "用药途径" : "用药频次")  + "同步模式 为【主动推送】 调用无效!");
+                    }
+                    if (!enableSync) {
+                        throw new DAOException(DAOException.VALUE_NEEDED,
+                                (new Integer(1).equals(medicationSyncConfig.getDataType()) ? "用药途径" : "用药频次")  +  "同步开关未开启");
+                    }
+                    return drugClient.medicationInfoSyncTask(medicationSyncConfig.getOrganId(), medicationSyncConfig.getDataType());
+                } catch (Exception e) {
+                    logger.error("medicationInfoSyncTask同步 organId=[{}],机构定时更新异常：exception=[{}].", medicationSyncConfig.getOrganId(), e);
+                }
+            }
+        }
+        return new ArrayList<>();
+    }
+
+    /**
+     * 根据同步数据范围判断能否同步数据
+     * @param syncDataRange 新增 药品同步 数据范围   1药品类型 2  药品剂型  默认1
+     * @param syncDrugType
+     * @param
+     * @param
+     * @return
+     */
+    @LogRecord
+    public boolean isAllowDealBySyncDataRange(String organDrugCode, Integer syncDataRange, String syncDrugType, String drugFormList, Integer drugType, String drugForm) {
+        //新增药品 勾选的药品类型是否包括当前药品类型 包括新增，不包括不新增
+        //更新字段 字段没被勾选上不更新，其余情况全部更新
+        boolean isAllow=false;
+        if (syncDataRange==null||syncDataRange == 1) {
+            //同步数据范围 药品类型
+            if (ObjectUtils.isEmpty(syncDrugType)) {
+                throw new DAOException(DAOException.VALUE_NEEDED, "未找到该药企[同步药品类型]配置数据!");
+            }else{
+                LOGGER.info("isAllowDealBySyncDataRange 此条药品不允许同步 原因是未找到该药企[同步药品类型]配置数据:{}",organDrugCode);
+            }
+            String[] syncDrugTypeStr = syncDrugType.split(",");
+            List<String> syncDrugTypeList = new ArrayList<String>(Arrays.asList(syncDrugTypeStr));
+            //1西药 2中成药 3中药
+            if (syncDrugTypeList.indexOf("1") != -1&&drugType == 1
+                    ||syncDrugTypeList.indexOf("2") != -1 && drugType == 2
+                    ||syncDrugTypeList.indexOf("3") != -1 && drugType == 3) {
+                isAllow=true;
+            }else{
+                LOGGER.info("isAllowDealBySyncDataRange 此条药品不允许同步 原因是当前药品药品类型没在配置范围内:{}",organDrugCode);
+            }
+        }else{
+            //同步数据范围 药品剂型
+            List drugForms = Lists.newArrayList();
+            if (!ObjectUtils.isEmpty(drugFormList)) {
+                String[] split = drugFormList.split(",");
+                for (String s : split) {
+                    drugForms.add(s);
+                }
+            }
+            if (drugForms != null && drugForms.size() > 0) {
+                int i = drugForms.indexOf(drugForm);
+                if (-1 != i) {
+                    isAllow=true;
+                }else{
+                    LOGGER.info("isAllowDealBySyncDataRange 此条药品不允许同步 原因是当前药品剂型没在配置范围内:{}",organDrugCode);
+                }
+            }
+
+        }
+
+        return isAllow;
     }
 
 }

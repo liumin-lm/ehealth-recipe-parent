@@ -2,6 +2,7 @@ package recipe.business;
 
 import com.alibaba.fastjson.JSON;
 import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.common.dto.CheckRequestCommonOrderItemDTO;
 import com.ngari.common.dto.CheckRequestCommonOrderPageDTO;
@@ -57,15 +58,13 @@ import recipe.ApplicationUtils;
 import recipe.bean.RecipePayModeSupportBean;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.*;
+import recipe.common.CommonConstant;
 import recipe.constant.ErrorCode;
 import recipe.constant.RecipeBussConstant;
 import recipe.core.api.IEnterpriseBusinessService;
 import recipe.core.api.patient.IRecipeOrderBusinessService;
 import recipe.dao.*;
 import recipe.enumerate.status.*;
-import recipe.enumerate.status.GiveModeEnum;
-import recipe.enumerate.status.PayModeEnum;
-import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.type.GiveModeTextEnum;
 import recipe.enumerate.type.NeedSendTypeEnum;
 import recipe.factory.status.givemodefactory.GiveModeProxy;
@@ -152,7 +151,17 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
     @Autowired
     private OrderFeeManager orderFeeManager;
     @Autowired
+    private HisRecipeManager hisRecipeManager;
+    @Autowired
+    private RecipeTherapyManager recipeTherapyManager;
+    @Autowired
+    private OrganDrugListManager organDrugListManager;
+    @Autowired
+    private PharmacyManager pharmacyManager;
+    @Autowired
     private StateManager stateManager;
+    @Autowired
+    private BeforeOrderManager beforeOrderManager;
 
 
     @Override
@@ -1401,23 +1410,43 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
         logger.info("batchGetImperfectFlag recipeBeans={}",recipeBeans);
         List<ImperfectInfoVO> imperfectInfoVOS = new ArrayList<>();
         List<String> recipeCodes = recipeBeans.stream().map(com.ngari.recipe.recipe.model.RecipeBean::getRecipeCode).collect(Collectors.toList());
+        List<Integer> recipeIds = recipeBeans.stream().map(com.ngari.recipe.recipe.model.RecipeBean::getRecipeId).collect(Collectors.toList());
         Set<Integer> organIds = recipeBeans.stream().map(com.ngari.recipe.recipe.model.RecipeBean::getClinicOrgan).collect(Collectors.toSet());
         Set<String> operMpiIds = recipeBeans.stream().map(com.ngari.recipe.recipe.model.RecipeBean::getMpiid).collect(Collectors.toSet());
         List<RecipeBeforeOrder> recipeBeforeOrders = recipeBeforeOrderDAO.findByRecipeCodesAndOrganIds(recipeCodes,organIds,operMpiIds);
-        List<String> recipeCodeList = recipeBeforeOrders.stream().map(RecipeBeforeOrder::getRecipeCode).collect(Collectors.toList());
-        if(CollectionUtils.isNotEmpty(recipeBeforeOrders)){
-            recipeBeforeOrders.forEach(recipeBeforeOrder -> {
+        List<RecipeBeforeOrder> recipeBeforeOrderList = recipeBeforeOrderDAO.findByRecipeIds(recipeIds,operMpiIds);
+        recipeBeforeOrders.addAll(recipeBeforeOrderList);
+        if(CollectionUtils.isEmpty(recipeBeforeOrders)){
+            List<ImperfectInfoVO> collect = recipeBeans.stream().map(recipeBean -> {
                 ImperfectInfoVO imperfectInfoVO = new ImperfectInfoVO();
-                imperfectInfoVO.setOrganId(recipeBeforeOrder.getOrganId());
-                imperfectInfoVO.setRecipeCode(recipeBeforeOrder.getRecipeCode());
-                imperfectInfoVO.setImperfectFlag(recipeBeforeOrder.getIsReady());
-                RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeBeforeOrder.getRecipeId());
-                if(recipeExtend != null){
-                    imperfectInfoVO.setRecipeCostNumber(recipeExtend.getRecipeCostNumber());
-                }
-                imperfectInfoVOS.add(imperfectInfoVO);
-            });
+                imperfectInfoVO.setOrganId(recipeBean.getClinicOrgan());
+                imperfectInfoVO.setRecipeCode(recipeBean.getRecipeCode());
+                imperfectInfoVO.setImperfectFlag(0);
+                imperfectInfoVO.setRecipeId(recipeBean.getRecipeId());
+                return imperfectInfoVO;
+            }).collect(Collectors.toList());
+            return collect;
         }
+        List<String> recipeCodeList = recipeBeforeOrders.stream().map(RecipeBeforeOrder::getRecipeCode).collect(Collectors.toList());
+
+        recipeBeforeOrders.forEach(recipeBeforeOrder -> {
+            ImperfectInfoVO imperfectInfoVO = new ImperfectInfoVO();
+            imperfectInfoVO.setOrganId(recipeBeforeOrder.getOrganId());
+            imperfectInfoVO.setRecipeCode(recipeBeforeOrder.getRecipeCode());
+            imperfectInfoVO.setImperfectFlag(recipeBeforeOrder.getIsReady());
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeBeforeOrder.getRecipeId());
+            if (recipeExtend != null) {
+                imperfectInfoVO.setRecipeCostNumber(recipeExtend.getRecipeCostNumber());
+            }
+            Recipe recipe = recipeDAO.getByRecipeId(recipeBeforeOrder.getRecipeId());
+            if (!new Integer(3).equals(recipe.getWriteHisState())) {
+                // 如果处方没写入his,视为未完善
+                logger.info("RecipeOrderBusinessService batchGetImperfectFlag WriteHisState={}", recipe.getWriteHisState());
+                imperfectInfoVO.setImperfectFlag(0);
+            }
+            imperfectInfoVOS.add(imperfectInfoVO);
+        });
+
         //处理不存在预订单信息中的处方（例：线下处方）
         Map<String, Integer> collectMap = recipeBeans.stream().collect(Collectors.toMap(com.ngari.recipe.recipe.model.RecipeBean::getRecipeCode, com.ngari.recipe.recipe.model.RecipeBean::getClinicOrgan));
         List<String> recipeCodeLists = recipeCodes.stream().filter(a -> !recipeCodeList.contains(a)).collect(Collectors.toList());
@@ -1471,20 +1500,77 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
         ImperfectInfoVO imperfectInfoVO = new ImperfectInfoVO();
         Integer imperfectFlag = getImperfectFlag(recipeBean);
         imperfectInfoVO.setImperfectFlag(imperfectFlag);
-        Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeBean.getRecipeCode(), recipeBean.getClinicOrgan());
+        Recipe recipe = null;
+        if (Objects.nonNull(recipeBean.getRecipeId())) {
+            recipe = recipeDAO.getByRecipeId(recipeBean.getRecipeId());
+        } else {
+            recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeBean.getRecipeCode(), recipeBean.getClinicOrgan());
+        }
+        if(Objects.isNull(recipe)){
+            imperfectInfoVO.setImperfectFlag(0);
+            return imperfectInfoVO;
+        }
+        if (!new Integer(3).equals(recipe.getWriteHisState())) {
+            // 如果处方没写入his,视为未完善
+            logger.info("RecipeOrderBusinessService getImperfectInfo WriteHisState={}",recipe.getWriteHisState());
+            imperfectInfoVO.setImperfectFlag(0);
+        }
         if(recipe != null){
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
             if(recipeExtend != null){
                 imperfectInfoVO.setRecipeCostNumber(recipeExtend.getRecipeCostNumber());
             }
         }
-        logger.info("RecipeOrderBusinessService getImperfectInfo ImperfectInfoVO={}",JSONUtils.toString(imperfectInfoVO));
+        logger.info("RecipeOrderBusinessService getImperfectInfo ImperfectInfoVO={}", JSONUtils.toString(imperfectInfoVO));
         return imperfectInfoVO;
     }
 
     @Override
     public Integer getRecipeRefundCount(RecipeRefundInfoReqVO recipeRefundCountVO) {
-        logger.info("RecipeOrderBusinessService getRecipeRefundCount recipeRefundCountVO={}",JSONUtils.toString(recipeRefundCountVO));
-        return recipeDAO.getRecipeRefundCount(recipeRefundCountVO.getDoctorId(),recipeRefundCountVO.getStartTime(),recipeRefundCountVO.getEndTime());
+        logger.info("RecipeOrderBusinessService getRecipeRefundCount recipeRefundCountVO={}", JSONUtils.toString(recipeRefundCountVO));
+        return recipeDAO.getRecipeRefundCount(recipeRefundCountVO.getDoctorId(), recipeRefundCountVO.getStartTime(), recipeRefundCountVO.getEndTime());
+    }
+
+    @Override
+    public List<RecipeOrder> orderListByClinicId(Integer clinicId, Integer bussSource) {
+        return orderManager.orderListByClinicId(clinicId, bussSource);
+    }
+
+    @Override
+    public void submitRecipeHisV1(List<Integer> recipeIds) {
+        //推送his
+        recipeIds.forEach(recipeId -> {
+            logger.info("submitRecipeHisV1 pushRecipe recipeId={}", recipeId);
+            RecipeInfoDTO recipePdfDTO = recipeTherapyManager.getRecipeTherapyDTO(recipeId);
+            Recipe recipe = recipePdfDTO.getRecipe();
+            if (RecipeStatusEnum.RECIPE_STATUS_REVOKE.getType().equals(recipe.getStatus())) {
+                logger.info("RecipeBusinessService pushRecipe 当前处方已撤销");
+                return ;
+            }
+            if (new Integer(3).equals(recipe.getWriteHisState())) {
+                logger.info("RecipeBusinessService pushRecipe 当前处方已写入his");
+                return ;
+            }
+            //同时set最小售卖单位/单位HIS编码等
+            organDrugListManager.setDrugItemCode(recipe.getClinicOrgan(), recipePdfDTO.getRecipeDetails());
+            Map<Integer, PharmacyTcm> pharmacyIdMap = pharmacyManager.pharmacyIdMap(recipe.getClinicOrgan());
+            RecipeBeforeOrder orderByRecipeId = recipeBeforeOrderDAO.getRecipeBeforeOrderByRecipeId(recipeId);
+            try {
+                RecipeInfoDTO result = hisRecipeManager.pushRecipe(recipePdfDTO, CommonConstant.RECIPE_PUSH_TYPE, pharmacyIdMap, CommonConstant.RECIPE_PATIENT_TYPE, orderByRecipeId.getGiveModeKey());
+                logger.info("submitRecipeHisV1 pushRecipe result={}", ngari.openapi.util.JSONUtils.toString(result));
+                result.getRecipe().setBussSource(recipe.getBussSource());
+                result.getRecipe().setClinicId(recipe.getClinicId());
+                recipeManager.updatePushHisRecipe(result.getRecipe(), recipeId, CommonConstant.RECIPE_PUSH_TYPE);
+                recipeManager.updatePushHisRecipeExt(result.getRecipeExtend(), recipeId, CommonConstant.RECIPE_PUSH_TYPE);
+                stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_ORDER, RecipeStateEnum.SUB_ORDER_READY_SUBMIT_ORDER);
+                beforeOrderManager.updateRecipeHisStatus(result.getRecipe(),recipe.getClinicOrgan(),recipeId,CommonConstant.RECIPE_PUSH_TYPE);
+                logger.info("submitRecipeHisV1 pushRecipe end recipeId:{}", recipeId);
+            } catch (Exception e) {
+                logger.error("submitRecipeHisV1 pushRecipe error,sysType={},recipeId:{}", CommonConstant.RECIPE_PATIENT_TYPE, recipeId, e);
+                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "当前处方推送his失败:" + e.getMessage());
+                throw new DAOException(609,"锁定失败请重新锁定");
+            }
+            createPdfFactory.updateCodePdfExecute(recipeId);
+        });
     }
 }

@@ -139,6 +139,8 @@ public class RecipeHisService extends RecipeBaseService {
     private StateManager stateManager;
     @Autowired
     private RecipeOrderDAO orderDAO;
+    @Autowired
+    private DrugOrganConfigDAO drugOrganConfigDao;
 
     /**
      * 发送处方
@@ -635,10 +637,13 @@ public class RecipeHisService extends RecipeBaseService {
     public void recipeListQuery(List<String> recipeCodes, Integer organId) {
         if (isHisEnable(organId)) {
             RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
-            //RecipeListQueryReqTO request = new RecipeListQueryReqTO(recipeCodes, organId);
             List<RecipeListQueryReqTO> requestList = new ArrayList<>();
             for (String recipeCode : recipeCodes) {
                 Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeCode, organId);
+                if (RecipeStateEnum.PROCESS_STATE_CANCELLATION.getType().equals(recipe.getProcessState())) {
+                    LOGGER.info("recipeListQuery 当前处方已经在平台撤销 recipeId:{}", recipe.getRecipeId());
+                    continue;
+                }
                 RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
                 RecipeListQueryReqTO recipeListQueryReqTO = new RecipeListQueryReqTO();
                 PatientDTO patientDTO = patientService.getPatientBeanByMpiId(recipe.getMpiid());
@@ -862,8 +867,9 @@ public class RecipeHisService extends RecipeBaseService {
                     if (CollectionUtils.isEmpty(drugInfoTOs)) {
                         LOGGER.warn("queryDrugInfo 药品code集合{}未查询到医院药品数据", drugCodes);
                         backList = new ArrayList<>();
-                        com.ngari.patient.service.OrganConfigService organConfigService = AppContextHolder.getBean("basic.organConfigService", com.ngari.patient.service.OrganConfigService.class);
-                        OrganConfigDTO byOrganId1 = organConfigService.getByOrganId(organId);
+//                        com.ngari.patient.service.OrganConfigService organConfigService = AppContextHolder.getBean("basic.organConfigService", com.ngari.patient.service.OrganConfigService.class);
+//                        OrganConfigDTO byOrganId1 = organConfigService.getByOrganId(organId);
+                        DrugOrganConfig byOrganId1=drugOrganConfigDao.getByOrganId(organId);
                         Boolean delete = byOrganId1.getEnableDrugDelete();
                         if (!ObjectUtils.isEmpty(delete)) {
                             if (delete) {

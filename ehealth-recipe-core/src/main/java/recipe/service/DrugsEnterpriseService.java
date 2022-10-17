@@ -7,12 +7,14 @@ import com.ngari.infra.logistics.service.IOrganLogisticsManageService;
 import com.ngari.opbase.util.OpSecurityUtil;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.OrganService;
+import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.drugsenterprise.model.DrugEnterpriseLogisticsBean;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBeanNoDS;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseRes;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import ctd.account.UserRoleToken;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -33,6 +35,7 @@ import recipe.ApplicationUtils;
 import recipe.aop.LogRecord;
 import recipe.constant.DrugEnterpriseConstant;
 import recipe.constant.ErrorCode;
+import recipe.core.api.IEnterpriseBusinessService;
 import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.manager.ButtonManager;
@@ -41,6 +44,7 @@ import recipe.serviceprovider.BaseService;
 
 import javax.annotation.Resource;
 import java.util.*;
+import java.util.stream.Collectors;
 
 //import recipe.service.drugs.IDrugEnterpriseLogisticsService;
 
@@ -75,6 +79,9 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
     private DrugsEnterpriseConfigService drugsEnterpriseConfigService;
     @Autowired
     private IOrganLogisticsManageService iOrganLogisticsManageService;
+
+    @Autowired
+    private IEnterpriseBusinessService enterpriseBusinessService;
 
     /**
      * 有效药企查询 status为1
@@ -412,6 +419,11 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
         return drugsEnterpriseBean;
     }
 
+    /**
+     * 运营平台-查询药企详情
+     * @param drugsEnterpriseId
+     * @return
+     */
     @RpcService
     public DrugsEnterpriseBeanNoDS getDrugsEnterpriseByIdForOp(Integer drugsEnterpriseId) {
         DrugsEnterpriseBean bean = getDrugsEnterpriseById(drugsEnterpriseId);
@@ -419,7 +431,14 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
         String mu = urt.getManageUnit();
         if (bean != null) {
             if (!"eh".equals(mu) && null != bean.getOrganId()) {
-                OpSecurityUtil.isAuthorisedOrgan(bean.getOrganId());
+                //越权
+                List<OrganAndDrugsepRelation> relastionList=enterpriseBusinessService.findOrganAndDrugsepRelationBean(drugsEnterpriseId);
+                List<Integer> organIdList= relastionList.stream().map(OrganAndDrugsepRelation::getOrganId)
+                        .collect(Collectors.toList());
+                if(organIdList==null || organIdList.isEmpty()){
+                    throw new DAOException(DAOException.ACCESS_DENIED, "权限验证失败");
+                }
+                OpSecurityUtil.isAuthorisedOrgans(organIdList);
             }
         }
         return ObjectCopyUtils.convert(bean, DrugsEnterpriseBeanNoDS.class);
@@ -655,5 +674,19 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
             LOGGER.info("getTrackingNumber error msg:{}.", e.getMessage());
         }
         return "";
+    }
+
+    private void checkUserHasPermission(RecipeOrderBean recipeOrder){
+        PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
+        UserRoleToken urt = UserRoleToken.getCurrent();
+        String methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
+        if (recipeOrder != null){
+            if ((urt.isPatient() && patientService.isPatientBelongUser(recipeOrder.getMpiId()))) {
+                return;
+            }else{
+                LOGGER.error("当前用户没有权限调用orderId[{}],methodName[{}]", recipeOrder.getOrderId() ,methodName);
+                throw new DAOException("当前登录用户没有权限");
+            }
+        }
     }
 }

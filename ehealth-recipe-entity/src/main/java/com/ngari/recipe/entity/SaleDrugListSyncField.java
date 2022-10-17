@@ -134,26 +134,6 @@ public class SaleDrugListSyncField implements java.io.Serializable {
     public void setIsSync(String isSync) {
         this.isSync = isSync;
     }
-    //    @ItemProperty(alias = "药企药品编码 同药企药品目录organDrugCode organDrugCode命名不合适")
-//    private Integer saleDrugCode;
-//
-//    @ItemProperty(alias = "机构药品名称")
-//    private String drugName;
-//
-//    @ItemProperty(alias = "商品名称")
-//    private String saleName;
-//
-//    @ItemProperty(alias = "机构药品规格")
-//    private String drugSpec;
-//
-//    @ItemProperty(alias = "无税单价")
-//    private BigDecimal price;
-//
-//    @ItemProperty(alias = "使用状态")
-//    @Dictionary(id = "eh.base.dictionary.OrganDrugStatus")
-//    private Integer status;
-
-
 
 
 }

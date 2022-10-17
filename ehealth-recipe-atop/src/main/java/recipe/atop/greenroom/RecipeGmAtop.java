@@ -1,5 +1,6 @@
 package recipe.atop.greenroom;
 
+import com.ngari.recipe.entity.MedicationSyncConfig;
 import com.ngari.recipe.recipe.model.RecipeOrderWaybillDTO;
 import com.ngari.recipe.vo.CodeEnum;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
@@ -8,6 +9,7 @@ import ctd.util.annotation.RpcService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
+import recipe.core.api.IDrugBusinessService;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.core.api.patient.IRecipeOrderBusinessService;
 import recipe.vo.ResultBean;
@@ -30,6 +32,9 @@ public class RecipeGmAtop extends BaseAtop {
 
     @Autowired
     private IRecipeOrderBusinessService recipeOrderService;
+
+    @Autowired
+    private IDrugBusinessService drugBusinessService;
 
 
     /**
@@ -108,4 +113,35 @@ public class RecipeGmAtop extends BaseAtop {
         validateAtop(orderCode);
         return recipeOrderService.makeUpInvoice(orderCode);
     }
+
+    /**
+     * 更新机构数据字典中用药频次、用药途径的同步配置
+     * @param medicationSyncConfig
+     * @return
+     */
+    @RpcService
+    public Boolean updateMedicationSyncConfig(MedicationSyncConfig medicationSyncConfig){
+        validateAtop(medicationSyncConfig);
+        return drugBusinessService.updateMedicationSyncConfig(medicationSyncConfig);
+    }
+
+    /**
+     * 查询机构数据字典中用药频次、用药途径的同步配置
+     * @param organId,datatype
+     * @return
+     */
+    @RpcService
+    public MedicationSyncConfig getMedicationSyncConfig(Integer organId,Integer datatype){
+        validateAtop(organId,datatype);
+        return drugBusinessService.getMedicationSyncConfig(organId,datatype);
+    }
+
+    /**
+     * 定时同步机构数据字典中用药频次、用药途径（每分钟调用一次）
+     */
+    @RpcService
+    public void medicationInfoSyncTask(){
+        drugBusinessService.medicationInfoSyncTask();
+    }
+
 }

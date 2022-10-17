@@ -1,6 +1,7 @@
 package com.ngari.recipe.recipe.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
 import lombok.Data;
 import recipe.vo.greenroom.InvoiceRecordVO;
@@ -112,6 +113,8 @@ public class RecipeAndOrderDetailBeanNoDs implements Serializable {
     @ItemProperty(alias = "快递单号")
     private String trackingNumber;
 
+    @ItemProperty(alias = "处方剂型类型 1 饮片方 2 颗粒方")
+    private Integer recipeDrugForm;
 
     @Temporal(TemporalType.DATE)
     @JsonFormat(

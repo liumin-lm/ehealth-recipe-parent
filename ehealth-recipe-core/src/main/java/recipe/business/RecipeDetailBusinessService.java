@@ -16,11 +16,9 @@ import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.client.IConfigurationClient;
 import recipe.core.api.IRecipeDetailBusinessService;
 import recipe.dao.RecipeDetailDAO;
-import recipe.dao.RecipeParameterDao;
 import recipe.drugTool.validate.RecipeDetailValidateTool;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.manager.*;
-import recipe.util.LocalStringUtil;
 import recipe.util.MapValueUtil;
 import recipe.util.ObjectCopyUtils;
 import recipe.vo.ResultBean;
@@ -66,8 +64,6 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
     private RecipeManager recipeManager;
     @Autowired
     private OrderManager orderManager;
-    @Autowired
-    private RecipeParameterDao parameterDao;
 
     @Override
     public ValidateDetailVO continueRecipeValidateDrug(ValidateDetailVO validateDetailVO) {
@@ -100,6 +96,12 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
             if (null == organDrug || RecipeDetailValidateTool.VALIDATE_STATUS_FAILURE.equals(a.getValidateStatus())) {
                 String text = null != organDrug && Integer.valueOf(1).equals(organDrug.getUnavailable()) ? "该药品已设置为无法在线开具" : "机构药品不存在";
                 a.setValidateStatusText(text);
+                return;
+            }
+            boolean validateDrugForm = recipeDetailValidateTool.validateDrugForm(recipeType, validateDetailVO.getRecipeDrugForm(), organDrug, a, validateDetailVO.getRecipeExtendBean());
+            if (validateDrugForm) {
+                a.setValidateStatusText("处方剂型错误");
+                a.setValidateStatus(RecipeDetailValidateTool.VALIDATE_STATUS_FAILURE);
                 return;
             }
             //校验药品药房是否变动
@@ -205,23 +207,8 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
 
     @Override
     public RecipeSkipVO getRecipeSkipUrl(Integer organId, String recipeCode) {
-        RecipeSkipVO recipeSkipVO = new RecipeSkipVO();
-        recipeSkipVO.setShowFlag(false);
-        recipeSkipVO.setClickFlag(false);
-        try {
-            String recipeSkipOrgan = parameterDao.getByName("recipeSkipOrgan");
-            if (LocalStringUtil.hasOrgan(organId.toString(), recipeSkipOrgan)) {
-                //包含机构
-                String recipeSkipUrl = parameterDao.getByName("recipeSkipUrl");
-                String recipeClickFlag = parameterDao.getByName("recipeSkipClickFlag");
-                recipeSkipVO.setShowFlag(true);
-                recipeSkipVO.setSkipUrl(recipeSkipUrl + recipeCode);
-                recipeSkipVO.setClickFlag(StringUtils.isEmpty(recipeClickFlag)?false:Boolean.valueOf(recipeClickFlag));
-            }
-        } catch (Exception e) {
-            logger.error("getRecipeSkipUrl error", e);
-        }
-        return recipeSkipVO;
+        logger.info("RecipeDetailBusinessService getRecipeSkipUrl organId={},recipeCode={}",organId,recipeCode);
+        return ObjectCopyUtils.convert(recipeManager.getRecipeSkipUrl(organId,recipeCode),RecipeSkipVO.class);
     }
 
     @Override

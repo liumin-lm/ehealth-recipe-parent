@@ -14,6 +14,7 @@ import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.event.GlobalEventExecFactory;
+import eh.cdr.constant.RecipeConstant;
 import eh.entity.base.UsePathways;
 import eh.entity.base.UsingRate;
 import org.apache.commons.collections.CollectionUtils;
@@ -36,6 +37,7 @@ import recipe.enumerate.status.OrderStateEnum;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.PayFlagEnum;
+import recipe.enumerate.type.RecipeDrugFormTypeEnum;
 import recipe.util.JsonUtil;
 import recipe.util.MapValueUtil;
 
@@ -73,6 +75,8 @@ public class HisRecipeManager extends BaseManager {
     private PayClient payClient;
     @Autowired
     private RecipeBeforeOrderDAO recipeBeforeOrderDAO;
+    @Autowired
+    private OrganDrugListDAO organDrugListDAO;
 
     /**
      * 获取患者信息
@@ -661,6 +665,26 @@ public class HisRecipeManager extends BaseManager {
         }
     }
 
+    /**
+     * 线下处方中药药品剂型校验
+     * @param organDrugLists  organ drug list data
+     * @param recipeType    recipe of type
+     * @return recipeDrugFormType
+     */
+    public Integer validateDrugForm(List<OrganDrugList> organDrugLists, Integer recipeType){
+        if (!RecipeConstant.RECIPETYPE_TCM.equals(recipeType)){
+            return null;
+        }
+        Set<String> organDrugFormSet = organDrugLists.stream().filter(organDrugList -> StringUtils.isNotEmpty(organDrugList.getDrugForm())).map(OrganDrugList::getDrugForm).collect(Collectors.toSet());
+        if (CollectionUtils.isEmpty(organDrugFormSet)) {
+            return RecipeDrugFormTypeEnum.TCM_DECOCTION_PIECES.getType();
+        }
+        if (organDrugFormSet.size() > 1) {
+            //说明同一批药存在不同的剂型
+            return -1;
+        }
+        return RecipeDrugFormTypeEnum.getDrugFormType((String)organDrugFormSet.toArray()[0]);
+    }
 
     /**
      * 获取 电子病历信息诊断等

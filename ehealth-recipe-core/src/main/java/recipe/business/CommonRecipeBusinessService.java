@@ -26,6 +26,8 @@ import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.client.DrugClient;
 import recipe.constant.ErrorCode;
 import recipe.core.api.doctor.ICommonRecipeBusinessService;
+import recipe.enumerate.type.RecipeDrugFormTypeEnum;
+import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.manager.*;
 import recipe.util.ByteUtils;
 import recipe.util.MapValueUtil;
@@ -62,7 +64,7 @@ public class CommonRecipeBusinessService extends BaseService implements ICommonR
         //常用方参数校验
         CommonRecipe commonRecipe = ObjectCopyUtils.convert(common.getCommonRecipeDTO(), CommonRecipe.class);
         List<CommonRecipeDrug> drugList = ObjectCopyUtils.convert(common.getCommonRecipeDrugList(), CommonRecipeDrug.class);
-        validateParam(commonRecipe, drugList);
+        validateParam(commonRecipe, drugList, common.getCommonRecipeDTO().getRecipeDrugForm());
         try {
             CommonRecipeExt commonRecipeExt = ObjectCopyUtils.convert(common.getCommonRecipeExt(), CommonRecipeExt.class);
             commonRecipeManager.saveCommonRecipe(commonRecipe, commonRecipeExt, drugList);
@@ -199,6 +201,14 @@ public class CommonRecipeBusinessService extends BaseService implements ICommonR
                 a.setPharmacyName(pharmacyTcm.getPharmacyName());
             }
             commonDTO.setCommonRecipeDTO(ObjectCopyUtils.convert(a, CommonRecipeDTO.class));
+            if (RecipeTypeEnum.RECIPETYPE_TCM.getType().equals(commonDTO.getCommonRecipeDTO().getRecipeType())) {
+                List<String> commonRecipeDrugLists = commonDTO.getCommonRecipeDrugList().stream().filter(commonRecipeDrugDTO -> StringUtils.isNotEmpty(commonRecipeDrugDTO.getDrugForm())).map(CommonRecipeDrugDTO::getDrugForm).collect(Collectors.toList());
+                if (CollectionUtils.isEmpty(commonRecipeDrugLists)) {
+                    commonDTO.getCommonRecipeDTO().setRecipeDrugForm(RecipeDrugFormTypeEnum.TCM_DECOCTION_PIECES.getType());
+                } else {
+                    commonDTO.getCommonRecipeDTO().setRecipeDrugForm(RecipeDrugFormTypeEnum.getDrugFormType(commonRecipeDrugLists.get(0)));
+                }
+            }
             commonList.add(commonDTO);
         });
         return commonList;
@@ -319,7 +329,7 @@ public class CommonRecipeBusinessService extends BaseService implements ICommonR
      * @param commonRecipe 常用方头
      * @param drugList     常用方药品
      */
-    private void validateParam(CommonRecipe commonRecipe, List<CommonRecipeDrug> drugList) {
+    private void validateParam(CommonRecipe commonRecipe, List<CommonRecipeDrug> drugList, Integer recipeDrugForm) {
         // 常用方名称校验
         Integer commonRecipeNameSize = commonRecipeManager.getByDoctorIdAndName(commonRecipe.getDoctorId(), commonRecipe.getCommonRecipeName(), commonRecipe.getCommonRecipeId());
         if (commonRecipeNameSize > 0) {
@@ -339,9 +349,12 @@ public class CommonRecipeBusinessService extends BaseService implements ICommonR
             }
             //校验比对药品
             ValidateOrganDrugDTO validateOrganDrugDTO = new ValidateOrganDrugDTO(a.getOrganDrugCode(), null, a.getDrugId());
-            OrganDrugList organDrug = OrganDrugListManager.validateOrganDrug(validateOrganDrugDTO, organDrugGroup);
+            OrganDrugList organDrug = organDrugListManager.validateOrganDrug(validateOrganDrugDTO, organDrugGroup);
             if (null == organDrug) {
                 throw new DAOException(ErrorCode.SERVICE_ERROR, "机构药品错误");
+            }
+            if (RecipeUtil.isTcmType(commonRecipe.getRecipeType()) && !RecipeDrugFormTypeEnum.getDrugForm(recipeDrugForm).equals(organDrug.getDrugForm())) {
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "处方剂型错误");
             }
             //校验药品药房变动
             if (null != a.getPharmacyId() && StringUtils.isNotEmpty(organDrug.getPharmacy())
@@ -420,7 +433,7 @@ public class CommonRecipeBusinessService extends BaseService implements ICommonR
                                                         Map<String, UsePathways> usePathwaysCodeMap, Map<String, DrugEntrust> drugEntrustNameMap) {
         //校验比对药品
         ValidateOrganDrugDTO validateOrganDrugDTO = new ValidateOrganDrugDTO(drug.getOrganDrugCode(), null, null);
-        OrganDrugList organDrug = OrganDrugListManager.validateOrganDrug(validateOrganDrugDTO, organDrugGroup);
+        OrganDrugList organDrug = organDrugListManager.validateOrganDrug(validateOrganDrugDTO, organDrugGroup);
         if (null == organDrug) {
             LOGGER.warn("CommonRecipeService offlineCommonRecipeDrug organDrug OrganDrugCode ：{}", drug.getOrganDrugCode());
             return null;

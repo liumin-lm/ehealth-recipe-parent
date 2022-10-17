@@ -38,7 +38,6 @@ import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.basic.ds.PatientVO;
-import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.dto.AttachSealPicDTO;
 import com.ngari.recipe.dto.GiveModeButtonDTO;
 import com.ngari.recipe.dto.GiveModeShowButtonDTO;
@@ -486,11 +485,6 @@ public class RecipeServiceSub {
 
     private static void validateRecipeAndDetailData(Recipe recipe, List<Recipedetail> details) {
         RecipeValidateUtil.validateSaveRecipeData(recipe);
-//        if (null != details) {
-//            for (Recipedetail recipeDetail : details) {
-//                RecipeValidateUtil.validateRecipeDetailData(recipeDetail, recipe);
-//            }
-//        }
     }
 
 
@@ -742,27 +736,6 @@ public class RecipeServiceSub {
         recipe.setTotalMoney(totalMoney);
         recipe.setActualPrice(totalMoney);
         return true;
-    }
-
-    public static RecipeResultBean validateRecipeSendDrugMsg(RecipeBean recipe) {
-        RecipeResultBean resultBean = RecipeResultBean.getSuccess();
-        RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
-        List<Integer> drugIds = detailDAO.findDrugIdByRecipeId(recipe.getRecipeId());
-        try {
-            //date 20200921 修改【his管理的药企】不用校验配送药品，由预校验结果
-            if (new Integer(1).equals(RecipeServiceSub.getOrganEnterprisesDockType(recipe.getClinicOrgan()))) {
-                return resultBean;
-            } else {
-                //处方药品能否配送以及能否开具同一张处方上
-                canOpenRecipeDrugs(recipe.getClinicOrgan(), recipe.getRecipeId(), drugIds);
-            }
-        } catch (Exception e) {
-            LOGGER.error("canOpenRecipeDrugs error", e);
-            resultBean.setCode(RecipeResultBean.FAIL);
-            resultBean.setMsg(e.getMessage());
-            return resultBean;
-        }
-        return resultBean;
     }
 
     private static void canOpenRecipeDrugsAndDisease(Recipe recipe, List<Integer> drugIds) {
@@ -1535,6 +1508,7 @@ public class RecipeServiceSub {
         r.setDoctorName(recipe.getDoctorName());
         r.setDepart(recipe.getDepart());
         r.setOfflineRecipeName(recipe.getOfflineRecipeName());
+        r.setRecipeDrugForm(recipe.getRecipeDrugForm());
         if (null != recipeExtend) {
             r.setRecipeExtend(ObjectCopyUtils.convert(recipeExtend, RecipeExtendBean.class));
         }

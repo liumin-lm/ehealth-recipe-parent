@@ -67,7 +67,10 @@ public class BaseManager {
     protected DrugListDAO drugListDAO;
     @Autowired
     protected RecipeRefundDAO recipeRefundDAO;
-
+    @Autowired
+    protected RecipeParameterDao parameterDao;
+    @Autowired
+    protected MedicationSyncConfigDAO medicationSyncConfigDAO;
     /**
      * 获取处方相关信息
      *

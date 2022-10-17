@@ -2,8 +2,11 @@ package recipe.core.api.greenroom;
 
 
 import com.ngari.base.esign.model.CoOrdinateVO;
+import com.ngari.recipe.entity.DoctorCommonPharmacy;
 import com.ngari.recipe.vo.FastRecipeAndDetailResVO;
 import com.ngari.recipe.vo.FastRecipeReqVO;
+
+import java.util.List;
 
 /**
  * 用于postman 后门接口调用
@@ -43,4 +46,6 @@ public interface ITextService {
     void generateRecipePdf(Integer recipeId);
 
     void signFileByte(String organSealId);
+
+    List<DoctorCommonPharmacy> findDoctorCommonPharmacyByOrganIdAndDoctorId(Integer organId);
 }

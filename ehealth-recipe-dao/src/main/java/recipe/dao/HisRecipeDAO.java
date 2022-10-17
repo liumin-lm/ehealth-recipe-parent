@@ -146,7 +146,9 @@ public abstract class HisRecipeDAO extends HibernateSupportDelegateDAO<HisRecipe
                                 " FROM cdr_his_recipe h left join cdr_recipe r on  h.clinicOrgan=r.clinicOrgan and h.recipeCode=r.recipeCode " +
                                 " where h.status in (2,3) " +
                                 " and h.mpiId =:mpiId and h.clinicOrgan =:organId " +
-                                " ORDER BY h.createDate DESC;");
+                                " ORDER BY h.createDate DESC "
+                                +" limit "+start +" , "+limit +";"
+                );
                 Query query = ss.createSQLQuery(sqlNew.toString())
                         .addScalar("diseaseName", StandardBasicTypes.STRING)
                         .addScalar("hisRecipeID", StandardBasicTypes.INTEGER)
@@ -177,6 +179,9 @@ public abstract class HisRecipeDAO extends HibernateSupportDelegateDAO<HisRecipe
 
                 query.setParameter("organId", organId);
                 query.setParameter("mpiId", mpiId);
+
+//                query.setMaxResults(limit);
+//                query.setFirstResult(start);
                 JsonUtil.toString(query.list());
                 List<HisRecipeListBean> result = (List<HisRecipeListBean>) query.list();
                 setResult(result);
