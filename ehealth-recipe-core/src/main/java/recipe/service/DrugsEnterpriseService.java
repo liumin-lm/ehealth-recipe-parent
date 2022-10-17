@@ -451,9 +451,10 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
                 List<OrganAndDrugsepRelation> relastionList=enterpriseBusinessService.findOrganAndDrugsepRelationBean(drugsEnterpriseId);
                 List<Integer> organIdList= relastionList.stream().map(OrganAndDrugsepRelation::getOrganId)
                         .collect(Collectors.toList());
-                if(organIdList==null || organIdList.isEmpty()){
-                    throw new DAOException(DAOException.ACCESS_DENIED, "权限验证失败");
+                if(organIdList==null ){
+                    organIdList=Lists.newArrayList();
                 }
+                organIdList.add(bean.getOrganId());
                 OpSecurityUtil.isAuthorisedOrgans(organIdList);
             }
         }
