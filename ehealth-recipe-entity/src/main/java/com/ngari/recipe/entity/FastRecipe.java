@@ -1,5 +1,6 @@
 package com.ngari.recipe.entity;
 
+import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
@@ -130,6 +131,10 @@ public class FastRecipe {
     private String requirementsForTakingCode;
     @ItemProperty(alias = "服用要求text")
     private String requirementsForTakingText;
+
+    @ItemProperty(alias = "处方剂型类型 1 饮片方 2 颗粒方")
+    @Dictionary(id = "eh.cdr.dictionary.RecipeDrugForm")
+    private Integer recipeDrugForm;
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
@@ -474,4 +479,12 @@ public class FastRecipe {
         this.requirementsForTakingText = requirementsForTakingText;
     }
 
+    @Column(name = "recipe_drug_form")
+    public Integer getRecipeDrugForm() {
+        return recipeDrugForm;
+    }
+
+    public void setRecipeDrugForm(Integer recipeDrugForm) {
+        this.recipeDrugForm = recipeDrugForm;
+    }
 }
