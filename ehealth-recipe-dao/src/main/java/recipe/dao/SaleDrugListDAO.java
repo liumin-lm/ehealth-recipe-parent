@@ -404,7 +404,7 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
                         if (ObjectUtils.nullSafeEquals(status, 0)
                                 || ObjectUtils.nullSafeEquals(status, 1)
                                 || ObjectUtils.nullSafeEquals(status, 9)) {
-                            query.setParameter("organId", organId);
+                            query.setParameter("organId", enterpriseId);
                         }
                         if (drugId != null) {
                             query.setParameter("drugId", drugId);
@@ -427,7 +427,7 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
                         List<DrugListAndSaleDrugList> result = new ArrayList<DrugListAndSaleDrugList>();
                         if (!ObjectUtils.isEmpty(list)) {
                             for (DrugList drug : list) {
-                                SaleDrugList saleDrugList = getByDrugIdAndOrganId(drug.getDrugId(), organId);
+                                SaleDrugList saleDrugList = getByDrugIdAndOrganId(drug.getDrugId(), enterpriseId);
                                 DrugListAndSaleDrugList drugListAndSaleDrugList = new DrugListAndSaleDrugList(drug, saleDrugList);
                                 if (drugsEnterprise.getCreateType() == 0) {
                                     drugListAndSaleDrugList.setOrganId(drugsEnterprise.getOrganId());
