@@ -3,6 +3,7 @@ package recipe.service;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.opbase.base.service.IBusActionLogService;
+import com.ngari.opbase.util.OpSecurityUtil;
 import com.ngari.opbase.xls.mode.ImportExcelInfoDTO;
 import com.ngari.opbase.xls.service.IImportExcelInfoService;
 import com.ngari.patient.dto.OrganDTO;
@@ -221,6 +222,7 @@ public class SymptomService implements ISymptomService {
         if (ObjectUtils.isEmpty(organId)) {
             throw new DAOException(DAOException.VALUE_NEEDED, "organId is required");
         }
+        OpSecurityUtil.isAuthorisedOrgan(organId);
         IBusActionLogService busActionLogService = AppDomainContext.getBean("opbase.busActionLogService", IBusActionLogService.class);
         SymptomDAO symptomDAO = DAOFactory.getDAO(SymptomDAO.class);
         OrganService organService = BasicAPI.getService(OrganService.class);
@@ -246,6 +248,10 @@ public class SymptomService implements ISymptomService {
             throw new DAOException(DAOException.VALUE_NEEDED, "symptomId is required");
         }
         SymptomDAO symptomDAO = DAOFactory.getDAO(SymptomDAO.class);
+        Symptom symptom = symptomDAO.get(symptomId);
+        if (symptom != null){
+            OpSecurityUtil.isAuthorisedOrgan(symptom.getOrganId());
+        }
         symptomDAO.remove(symptomId);
     }
 
@@ -260,6 +266,7 @@ public class SymptomService implements ISymptomService {
         if (organId == null) {
             throw new DAOException(DAOException.VALUE_NEEDED, "organId is required");
         }
+        OpSecurityUtil.isAuthorisedOrgan(organId);
         OrganService bean = AppDomainContext.getBean("basic.organService", OrganService.class);
         UserRoleToken urt = UserRoleToken.getCurrent();
         OrganDTO byOrganId = bean.getByOrganId(organId);
@@ -315,6 +322,7 @@ public class SymptomService implements ISymptomService {
         if (null == organId) {
             return null;
         }
+        OpSecurityUtil.isAuthorisedOrgan(organId);
         SymptomDAO symptomDAO = DAOFactory.getDAO(SymptomDAO.class);
         QueryResult<SymptomDTO> symptomQueryResult = symptomDAO.queryTempByTimeAndName(organId, input, isRegulationSymptom, start, limit);
         logger.info("查询中医证候服务[querSymptomByOrganIdAndNameYypt]:" + JSONUtils.toString(symptomQueryResult.getItems()));

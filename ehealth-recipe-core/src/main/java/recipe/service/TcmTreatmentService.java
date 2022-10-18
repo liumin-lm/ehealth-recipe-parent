@@ -3,6 +3,7 @@ package recipe.service;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.opbase.base.service.IBusActionLogService;
+import com.ngari.opbase.util.OpSecurityUtil;
 import com.ngari.opbase.xls.mode.ImportExcelInfoDTO;
 import com.ngari.opbase.xls.service.IImportExcelInfoService;
 import com.ngari.patient.dto.OrganDTO;
@@ -235,6 +236,7 @@ public class TcmTreatmentService implements ITcmTreatmentService {
         if (ObjectUtils.isEmpty(organId)) {
             throw new DAOException(DAOException.VALUE_NEEDED, "organId is required");
         }
+        OpSecurityUtil.isAuthorisedOrgan(organId);
         IBusActionLogService busActionLogService = AppDomainContext.getBean("opbase.busActionLogService", IBusActionLogService.class);
         OrganService organService = BasicAPI.getService(OrganService.class);
         OrganDTO organDTO = organService.getByOrganId(organId);
@@ -257,6 +259,10 @@ public class TcmTreatmentService implements ITcmTreatmentService {
         if (tcmTreatmentId == null) {
             throw new DAOException(DAOException.VALUE_NEEDED, "tcmTreatmentId is required");
         }
+        TcmTreatment tcmTreatment = tcmTreatmentDAO.get(tcmTreatmentId);
+        if (tcmTreatment != null){
+            OpSecurityUtil.isAuthorisedOrgan(tcmTreatment.getOrganId());
+        }
         tcmTreatmentDAO.remove(tcmTreatmentId);
     }
 
@@ -271,6 +277,7 @@ public class TcmTreatmentService implements ITcmTreatmentService {
         if (organId == null) {
             throw new DAOException(DAOException.VALUE_NEEDED, "organId is required");
         }
+        OpSecurityUtil.isAuthorisedOrgan(organId);
         OrganService bean = AppDomainContext.getBean("basic.organService", OrganService.class);
         UserRoleToken urt = UserRoleToken.getCurrent();
         OrganDTO byOrganId = bean.getByOrganId(organId);
@@ -296,6 +303,7 @@ public class TcmTreatmentService implements ITcmTreatmentService {
         if (null == organId) {
             return null;
         }
+        OpSecurityUtil.isAuthorisedOrgan(organId);
         QueryResult<TcmTreatmentDTO> tcmTreatmentDTOQueryResult = tcmTreatmentDAO.queryTempByTimeAndName(organId, input, isRegulationSymptom, start, limit);
         logger.info("查询中医治法服务[querTcmTreatmentByOrganIdAndName]:" + JSONUtils.toString(tcmTreatmentDTOQueryResult.getItems()));
         return tcmTreatmentDTOQueryResult;
