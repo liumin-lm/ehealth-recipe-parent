@@ -67,6 +67,9 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
             a.setPharmacyName(null);
             a.setPharmacyCode(null);
         });
+        if (ValidateUtil.integerIsEmpty(validateDetailVO.getRecipeDrugForm())) {
+            validateDetailVO.setRecipeDrugForm(1);
+        }
         return recipeDetailService.continueRecipeValidateDrug(validateDetailVO);
     }
 
