@@ -320,6 +320,8 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
                 int status = 0;
                 if (MapUtils.isNotEmpty(finalCollect) && CollectionUtils.isNotEmpty(finalCollect.get(decoctionWay.getDecoctionId()))) {
                     int count = finalCollect.get(decoctionWay.getDecoctionId()).size();
+                    logger.info("findEnterpriseDecoctionList DecoctionId ={}, count={}, allStreetCount={}",
+                            decoctionWay.getDecoctionId(), count, allStreetCount);
                     if (count < allStreetCount) {
                         status = 1;
                     } else {
