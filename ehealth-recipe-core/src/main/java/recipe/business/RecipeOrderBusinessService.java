@@ -1185,6 +1185,11 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                     if(recipeBeforeOrder.getEnterpriseId() != null){
                         extInfo.put("depId",recipeBeforeOrder.getEnterpriseId().toString());
                     }
+                    //当购药方式为配送到家以及已经保存过地址时，需要把保存的addressId传去查地址是否配送
+                    if(recipeBeforeOrder.getAddressId() != null && recipeBeforeOrder.getGiveMode().equals(GiveModeTextEnum.getGiveMode("showSendToEnterprises"))
+                            || recipeBeforeOrder.getGiveMode().equals(GiveModeTextEnum.getGiveMode("showSendToHos"))){
+                        extInfo.put("addressId",recipeBeforeOrder.getAddressId().toString());
+                    }
                     recipeOrder.setOrganId(beforeOrder.getOrganId());
                     recipeOrder.setEnterpriseId(beforeOrder.getEnterpriseId());
                     Recipe recipe = recipeDAO.getByRecipeId(recipeBeforeOrder.getRecipeId());
