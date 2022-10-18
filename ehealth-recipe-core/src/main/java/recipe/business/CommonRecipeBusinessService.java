@@ -353,9 +353,6 @@ public class CommonRecipeBusinessService extends BaseService implements ICommonR
             if (null == organDrug) {
                 throw new DAOException(ErrorCode.SERVICE_ERROR, "机构药品错误");
             }
-            if (RecipeUtil.isTcmType(commonRecipe.getRecipeType()) && !RecipeDrugFormTypeEnum.getDrugForm(recipeDrugForm).equals(organDrug.getDrugForm())) {
-                throw new DAOException(ErrorCode.SERVICE_ERROR, "处方剂型错误");
-            }
             //校验药品药房变动
             if (null != a.getPharmacyId() && StringUtils.isNotEmpty(organDrug.getPharmacy())
                     && !Arrays.asList(organDrug.getPharmacy().split(ByteUtils.COMMA)).contains(String.valueOf(a.getPharmacyId()))) {
