@@ -969,10 +969,10 @@ public class RecipeManager extends BaseManager {
                     }
                     //门诊处方直接展示按钮,线上处方，并且状态为待发药，配送中，待取药，已完成才展示按钮
                     if(new Integer(1).equals(recipeExtend.getRecipeBusinessType()) || (!new Integer(1).equals(recipeExtend.getRecipeBusinessType())
-                            && recipe.getStatus().equals(RecipeStateEnum.PROCESS_STATE_DISPENSING.getType())
-                            || recipe.getStatus().equals(RecipeStateEnum.PROCESS_STATE_DISTRIBUTION.getType())
-                            || recipe.getStatus().equals(RecipeStateEnum.PROCESS_STATE_MEDICINE.getType())
-                            || recipe.getStatus().equals(RecipeStateEnum.PROCESS_STATE_DONE.getType()))){
+                            && recipe.getProcessState().equals(RecipeStateEnum.PROCESS_STATE_DISPENSING.getType())
+                            || recipe.getProcessState().equals(RecipeStateEnum.PROCESS_STATE_DISTRIBUTION.getType())
+                            || recipe.getProcessState().equals(RecipeStateEnum.PROCESS_STATE_MEDICINE.getType())
+                            || recipe.getProcessState().equals(RecipeStateEnum.PROCESS_STATE_DONE.getType()))){
                         recipeSkipDTO.setShowFlag(true);
                     }
                     recipeSkipDTO.setSkipUrl(recipeSkipUrl + recipeExtend.getChargeId());
