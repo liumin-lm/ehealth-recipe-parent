@@ -1,5 +1,7 @@
 package recipe.drugsenterprise;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableMap;
@@ -17,6 +19,8 @@ import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
+import ctd.util.annotation.RpcBean;
+import ctd.util.annotation.RpcService;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -30,14 +34,13 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
+import recipe.aop.LogRecord;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.DrugEnterpriseConstant;
-import recipe.dao.DrugListDAO;
-import recipe.dao.DrugsEnterpriseDAO;
-import recipe.dao.RecipeDAO;
-import recipe.dao.RecipeDetailDAO;
+import recipe.dao.*;
 import recipe.drugsenterprise.bean.JztDrugDTO;
 import recipe.drugsenterprise.bean.JztRecipeDTO;
 import recipe.drugsenterprise.bean.JztTokenRequest;
@@ -59,66 +62,58 @@ import java.util.UUID;
  * @author yinsheng
  * @date 2019\3\14 0014 11:15
  */
+@RpcBean(value = "jztdyfRemoteService", mvc_authentication = false)
 public class JztdyfRemoteService extends AccessDrugEnterpriseService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JztdyfRemoteService.class);
 
-    private String APP_ID;
     private String APP_KEY;
-    private String APP_SECRET;
+    private String SERVER_CODE;
+    private String SERVER_SECRET;
+
+    @Autowired
+    private DrugsEnterpriseDAO drugsEnterpriseDAO;
 
     public JztdyfRemoteService() {
-        RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
-        APP_ID = cacheService.getRecipeParam("jzt_appid", "");
-        APP_KEY = cacheService.getRecipeParam("jzt_appkey", "");
-        APP_SECRET = cacheService.getRecipeParam("jzt_appsecret", "");
+        RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
+        SERVER_CODE = recipeParameterDao.getByName("jzt_appid");
+        APP_KEY = recipeParameterDao.getByName("jzt_appkey");
+        SERVER_SECRET = recipeParameterDao.getByName("jzt_appsecret");
+    }
+
+    @RpcService
+    @LogRecord
+    public DrugsEnterprise test(Integer depId, List<Integer> recipeList){
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(depId);
+        pushRecipeInfo(recipeList, drugsEnterprise);
+        return drugsEnterprise;
     }
 
     @Override
     public void tokenUpdateImpl(DrugsEnterprise drugsEnterprise) {
-        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        String depName = drugsEnterprise.getName();
-        Integer depId = drugsEnterprise.getId();
-        // 创建默认的httpClient实例.
         CloseableHttpClient httpclient = HttpClients.createDefault();
+        HttpPost httpPost = new HttpPost(drugsEnterprise.getAuthenUrl());
+        String request = "{\"serverCode\":\""+SERVER_CODE+"\",\"serverSecret\":\""+SERVER_SECRET+"\"}";
+        StringEntity requestEntity = new StringEntity(request, ContentType.APPLICATION_JSON);
+        httpPost.setEntity(requestEntity);
+        httpPost.setHeader("APP-KEY", APP_KEY);
         try {
-            if (drugsEnterprise.getAuthenUrl().contains("https:")) {
-                HttpPost httpPost = new HttpPost(drugsEnterprise.getAuthenUrl());
-                JztTokenRequest request = new JztTokenRequest();
-                String timestamp = getTimestamp();
-                String nonce = getNonce();
-                //组装请求参数
-                String signature = getSignature(APP_KEY, nonce, timestamp, APP_SECRET);
-
-                request.setApp_id(APP_ID);
-                request.setApp_key(APP_KEY);
-                request.setNonce(nonce);
-                request.setSignature(signature);
-                request.setTimestamp(timestamp);
-
-                StringEntity requestEntity = new StringEntity(JSONUtils.toString(request), ContentType.APPLICATION_JSON);
-                httpPost.setEntity(requestEntity);
-
-                //获取响应消息
-                CloseableHttpResponse response = httpclient.execute(httpPost);
-                HttpEntity httpEntity = response.getEntity();
-                String responseStr = EntityUtils.toString(httpEntity);
-                LOGGER.info("[{}][{}]token更新返回:{}", depId, depName, responseStr);
-                JztTokenResponse jztResponse = JSONUtils.parse(responseStr, JztTokenResponse.class);
-                if (jztResponse.getCode() == 200 && jztResponse.isSuccess()) {
-                    //成功
-                    LOGGER.info("jztResponse:{}",jztResponse);
-                    drugsEnterpriseDAO.updateTokenById(depId, jztResponse.getData().getAccess_token());
-                } else {
-                    //失败
-                    LOGGER.info("[{}][{}]token更新失败:{}", depId, depName, jztResponse.getMsg());
-                }
-                //关闭 HttpEntity 输入流
-                EntityUtils.consume(httpEntity);
-                response.close();
+            //获取响应消息
+            CloseableHttpResponse response = httpclient.execute(httpPost);
+            HttpEntity httpEntity = response.getEntity();
+            String responseStr = EntityUtils.toString(httpEntity);
+            LOGGER.info("[{}][{}]token更新返回:{}", drugsEnterprise.getId(), drugsEnterprise.getName(), responseStr);
+            JSONObject jsonObject = JSON.parseObject(responseStr);
+            Map<String, Object> drugMap = jsonObject;
+            Integer code = (Integer) drugMap.get("code");
+            if (200 == code) {
+                Map<String, Object> data = (Map<String, Object>) drugMap.get("data");
+                String token = (String) data.get("token");
+                drugsEnterpriseDAO.updateTokenById(drugsEnterprise.getId(), token);
             }
-        } catch (Exception e) {
-            LOGGER.warn("[{}][{}]更新异常。", depId, depName, e);
+        } catch (IOException e) {
+            LOGGER.error("JztdyfRemoteService tokenUpdateImpl error", e);
         } finally {
             try {
                 httpclient.close();
@@ -140,12 +135,9 @@ public class JztdyfRemoteService extends AccessDrugEnterpriseService {
 
     @Override
     public DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, DrugsEnterprise enterprise) {
-        DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
-        if (StringUtils.isEmpty(enterprise.getBusinessUrl())) {
-           return getDrugEnterpriseResult(result,"药企处理业务URL为空");
-        }
+        DrugEnterpriseResult result = DrugEnterpriseResult.getFail();
         if (CollectionUtils.isEmpty(recipeIds)) {
-            return getDrugEnterpriseResult(result,"处方ID参数为空");
+            return getDrugEnterpriseResult(result,"没有获取到处方信息");
         }
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         //准备处方数据
@@ -163,13 +155,13 @@ public class JztdyfRemoteService extends AccessDrugEnterpriseService {
             }
             String organCode = organService.getOrganizeCodeByOrganId(dbRecipe.getClinicOrgan());
             if (StringUtils.isNotEmpty(organCode)) {
-                jztRecipe.setOrganId(organCode);
-                jztRecipe.setOrganName(dbRecipe.getOrganName());
+                jztRecipe.setOrganId("12420106441364790P");
+                jztRecipe.setOrganName("水果湖街社区卫生服务中心");
             } else {
                 LOGGER.warn("机构不存在,处方ID:{}.", dbRecipe.getRecipeId());
                 return getDrugEnterpriseResult(result, "机构不存在");
             }
-            jztRecipe.setClinicOrgan(converToString(dbRecipe.getClinicOrgan()));
+            jztRecipe.setClinicOrgan("1001780");
             setJztRecipeInfo(jztRecipe, dbRecipe);
             if (!setJztRecipePatientInfo(jztRecipe, dbRecipe.getMpiid())) return getDrugEnterpriseResult(result, "患者不存在");
             if (!setJztRecipeDoctorInfo(jztRecipe, dbRecipe)) return getDrugEnterpriseResult(result, "医生或主执业点不存在");
@@ -180,8 +172,8 @@ public class JztdyfRemoteService extends AccessDrugEnterpriseService {
             try{
                 HttpPost httpPost = new HttpPost(enterprise.getBusinessUrl());
                 //组装请求参数
-                httpPost.setHeader("app-key", APP_KEY);
-                httpPost.setHeader("access-token", enterprise.getToken());
+                httpPost.setHeader("APP-KEY", APP_KEY);
+                httpPost.setHeader("TOKEN", enterprise.getToken());
                 String requestStr = JSONUtils.toString(jztRecipe);
                 LOGGER.info("[{}][{}] pushRecipeInfo send :{}", depId, depName, requestStr);
                 StringEntity requestEntry = new StringEntity(requestStr, ContentType.APPLICATION_JSON);
@@ -215,7 +207,7 @@ public class JztdyfRemoteService extends AccessDrugEnterpriseService {
                 try {
                     httpClient.close();
                 } catch (IOException e) {
-                   //e.printStackTrace();
+                   LOGGER.error("pushRecipeInfo error ", e);
                 }
             }
         }
@@ -277,8 +269,8 @@ public class JztdyfRemoteService extends AccessDrugEnterpriseService {
             jztRecipe.setPatientTel(patient.getMobile());
             jztRecipe.setCertificateType(converToString(patient.getCertificateType()));
             jztRecipe.setCertificate(patient.getCertificate());
-            jztRecipe.setPatientNumber("");
             jztRecipe.setPatientAddress(converToString(patient.getAddress()));
+            jztRecipe.setPatientSex(patient.getPatientSex());
         }
         return true;
     }
@@ -297,8 +289,8 @@ public class JztdyfRemoteService extends AccessDrugEnterpriseService {
         if (!ObjectUtils.isEmpty(doctor)) {
             EmploymentDTO employment = employmentService.getPrimaryEmpByDoctorId(dbRecipe.getDoctor());
             if (null != employment) {
-                jztRecipe.setDoctorName(doctor.getName());
-                jztRecipe.setDoctorNumber(employment.getJobNumber());
+                jztRecipe.setDoctorName("张玲");
+                jztRecipe.setDoctorNumber("001003");
                 jztRecipe.setDepartId(converToString(employment.getDepartment()));
                 jztRecipe.setDepartName(converToString(employment.getDeptName()));
             } else {
@@ -332,7 +324,6 @@ public class JztdyfRemoteService extends AccessDrugEnterpriseService {
         jztRecipe.setExpressFee("");   //配送费
         jztRecipe.setOrderTotalFee(converToString(dbRecipe.getOrderAmount()));
         jztRecipe.setStatus(converToString(dbRecipe.getStatus()));
-//        jztRecipe.setPayMode(converToString(dbRecipe.getPayMode()));
         jztRecipe.setPayFlag(converToString(dbRecipe.getPayFlag()));
         jztRecipe.setGiveMode(converToString(dbRecipe.getGiveMode()));
         jztRecipe.setGiveUser(converToString(dbRecipe.getGiveUser()));
@@ -398,20 +389,17 @@ public class JztdyfRemoteService extends AccessDrugEnterpriseService {
                 jztDetail.setDrugCode(converToString(detail.getOrganDrugCode()));
                 jztDetail.setDrugName(converToString(detail.getDrugName()));
                 jztDetail.setSpecification(converToString(detail.getDrugSpec()));
-                jztDetail.setLicenseNumber(drugMap.get(drugId).getApprovalNumber());
                 jztDetail.setProducer(drugMap.get(drugId).getProducer());
                 jztDetail.setTotal(converToString(detail.getUseTotalDose()));
                 jztDetail.setUseDose(converToString(detail.getUseDose()));
+                jztDetail.setUseDoseUnit(converToString(detail.getUseDoseUnit()));
                 jztDetail.setDrugFee(detail.getSalePrice().toPlainString());
                 jztDetail.setDrugTotalFee(detail.getDrugCost().toPlainString());
-                jztDetail.setUesDays(converToString(detail.getUseDays()));
+                jztDetail.setUesDays(null!=detail.getUseDays()?detail.getUseDays().intValue():1);
                 jztDetail.setUsingRate(converToString(detail.getUsingRate()));
                 jztDetail.setUsePathways(converToString(detail.getUsePathways()));
                 jztDetail.setMemo(converToString(detail.getMemo()));
-                jztDetail.setStandardCode(converToString(drugMap.get(drugId).getStandardCode()));
                 jztDetail.setDrugForm(converToString(drugMap.get(drugId).getDrugForm()));
-                jztDetail.setPharmNo("");
-                jztDetail.setMedicalFee("");
                 jztDetailList.add(jztDetail);
             }
             jztRecipe.setDrugList(jztDetailList);

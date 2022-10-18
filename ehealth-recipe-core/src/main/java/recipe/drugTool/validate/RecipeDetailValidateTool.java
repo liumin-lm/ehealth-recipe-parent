@@ -491,7 +491,7 @@ public class RecipeDetailValidateTool {
      */
     public boolean validateDrugForm(Integer recipeType, Integer recipeDrugForm, OrganDrugList organDrug, RecipeDetailBean a, RecipeExtendBean recipeExtendBean) {
         a.setDrugForm(organDrug.getDrugForm());
-        if (RecipeUtil.isTcmType(recipeType)) {
+        if (!RecipeUtil.isTcmType(recipeType)) {
             return false;
         }
         if (RecipeDrugFormTypeEnum.getDrugForm(recipeDrugForm).equals(organDrug.getDrugForm())) {
