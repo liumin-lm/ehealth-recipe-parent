@@ -967,15 +967,18 @@ public class RecipeManager extends BaseManager {
                     if(Objects.isNull(recipeExtend)){
                         return recipeSkipDTO;
                     }
-                    //门诊处方直接展示按钮,线上处方，并且状态为待发药，配送中，待取药，已完成才展示按钮
-                    if(new Integer(1).equals(recipeExtend.getRecipeBusinessType()) || (!new Integer(1).equals(recipeExtend.getRecipeBusinessType())
-                            && recipe.getProcessState().equals(RecipeStateEnum.PROCESS_STATE_DISPENSING.getType())
+                    //线上处方，并且状态为待发药，配送中，待取药，已完成才展示按钮
+                    if(recipe.getProcessState().equals(RecipeStateEnum.PROCESS_STATE_DISPENSING.getType())
                             || recipe.getProcessState().equals(RecipeStateEnum.PROCESS_STATE_DISTRIBUTION.getType())
                             || recipe.getProcessState().equals(RecipeStateEnum.PROCESS_STATE_MEDICINE.getType())
-                            || recipe.getProcessState().equals(RecipeStateEnum.PROCESS_STATE_DONE.getType()))){
+                            || recipe.getProcessState().equals(RecipeStateEnum.PROCESS_STATE_DONE.getType())){
                         recipeSkipDTO.setShowFlag(true);
                     }
                     recipeSkipDTO.setSkipUrl(recipeSkipUrl + recipeExtend.getChargeId());
+                }else{
+                    //门诊处方直接展示按钮
+                    recipeSkipDTO.setShowFlag(true);
+                    recipeSkipDTO.setSkipUrl(recipeSkipUrl + recipeCode);
                 }
                 recipeSkipDTO.setClickFlag(StringUtils.isEmpty(recipeClickFlag)?false:Boolean.valueOf(recipeClickFlag));
             }
