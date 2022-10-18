@@ -830,10 +830,10 @@ public class DrugManager extends BaseManager {
         if (syncDataRange==null||syncDataRange == 1) {
             //同步数据范围 药品类型
             if (ObjectUtils.isEmpty(syncDrugType)) {
-                throw new DAOException(DAOException.VALUE_NEEDED, "未找到该药企[同步药品类型]配置数据!");
-            }else{
                 LOGGER.info("isAllowDealBySyncDataRange 此条药品不允许同步 原因是未找到该药企[同步药品类型]配置数据:{}",organDrugCode);
+                throw new DAOException(DAOException.VALUE_NEEDED, "未找到该药企[同步药品类型]配置数据!");
             }
+
             String[] syncDrugTypeStr = syncDrugType.split(",");
             List<String> syncDrugTypeList = new ArrayList<String>(Arrays.asList(syncDrugTypeStr));
             //1西药 2中成药 3中药

@@ -628,8 +628,10 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
         //设置ConfigFlag字段，若enterpriseAddress配置数量 >= 基础服务下街道数量，显示添加全部地区
         AddrAreaService addrAreaService = BasicAPI.getService(AddrAreaService.class);
         list.forEach(x -> {
-            Long count = addrAreaService.getCountAreaLikeCode(x.getAddress());
-            if (Objects.nonNull(count) && count <= map.get(x.getAddress())) {
+            Long countBasic = addrAreaService.getCountAreaLikeCode(x.getAddress()) + 1;
+            Long countRecipe = map.get(x.getAddress());
+            logger.info("findEnterpriseAddressProvince countBasic = {}, countRecipe = {}", countBasic, countRecipe);
+            if (countRecipe < countBasic) {
                 x.setConfigFlag(1);
             } else {
                 x.setConfigFlag(2);

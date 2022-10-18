@@ -75,7 +75,7 @@ public class DrugListMatch implements java.io.Serializable {
     @ItemProperty(alias = "状态 0未匹配 1已匹配 2已提交 3已标记 4匹配中")
     private Integer status;
 
-    @ItemProperty(alias = "适应症说明")
+    @ItemProperty(alias = "适应症说明 为什么下面还整了一个IndicationsDeclare 当老字段了 后面又整了个新的")
     private String indications;
 
     @ItemProperty(alias = "拼音码")

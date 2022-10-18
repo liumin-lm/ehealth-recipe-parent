@@ -2437,7 +2437,6 @@ public class RecipeService extends RecipeBaseService {
             OrganDrugInfoRequestTO request=obtainQueryOrganDrugInfoParam(byOrganId1);
             LOGGER.info("drugInfoSynMovement request={}", JSONUtils.toString(request));
             responseTO = recipeHisService.queryOrganDrugInfo(request);
-
         } catch (Exception e) {
             LOGGER.error("drugInfoSynMovement error{} ", e);
         }
@@ -2448,7 +2447,7 @@ public class RecipeService extends RecipeBaseService {
                 if (CollectionUtils.isNotEmpty(data)) {
                     List<List<OrganDrugInfoTO>> partition = Lists.partition(data, 1000);
                     for (int i = 0; i < partition.size(); i++) {
-                        LOGGER.info("drugInfoSynMovement" + organId + "data-" + i + "={}", JSONUtils.toString(partition.get(i)));
+                        LOGGER.info("queryOrganDrugInfo response" + organId + "data-" + i + "={}", JSONUtils.toString(partition.get(i)));
                     }
                 }
             } catch (Exception e) {
@@ -2475,6 +2474,7 @@ public class RecipeService extends RecipeBaseService {
         boolean finishFlag = true;
         long total = data.size();
         if (sync ) {
+            ////TODO 这个条件没啥用吧？？
             while (finishFlag) {
                 if (!CollectionUtils.isEmpty(data)) {
                     //循环机构药品 与平台机构药品对照 有则更新 无则新增到临时表
@@ -2496,17 +2496,17 @@ public class RecipeService extends RecipeBaseService {
                                     }
                                 }
                                 addList.add(drug);
+                                addNum++;
                             }
-                            addNum++;
                             startIndex++;
                             continue;
                         } else if (null != organDrug && update) {
                             boolean isAllow=drugManager.isAllowDealBySyncDataRange(organDrug.getOrganDrugCode(),byOrganId1.getUpdateDrugDataRange(),byOrganId1.getUpdateSyncDrugType(),byOrganId1.getUpdateDrugFromList(),drug.getDrugType(),drug.getDrugform());
                             if(isAllow){
                                 updateList.add(drug);
+                                updateNum++;
                             }
-                            LOGGER.info("定时drugInfoSynMovementupdateNum" + drug.getDrugName() + " organId=[{}] drug=[{}]", organId, JSONUtils.toString(drug));
-                            updateNum++;
+                            LOGGER.info("drugInfoSynMovementupdateNum" + drug.getDrugName() + " organId=[{}] drug=[{}]", organId, JSONUtils.toString(drug));
                             startIndex++;
                             continue;
                         }
@@ -2516,7 +2516,8 @@ public class RecipeService extends RecipeBaseService {
                     break;
                 }
                 if (startIndex >= total) {
-                    LOGGER.info("定时drugInfoSynMovement organId=[{}] 本次查询量：total=[{}] ,总更新量：update=[{}]，新增量：update=[{}]，药品信息更新结束.", organId, startIndex, updateNum, addNum);
+                    //这个打印条数仅供参考
+                    LOGGER.info("drugInfoSynMovement organId=[{}] 本次查询量：total=[{}] ,总更新量：update=[{}]，新增量：update=[{}]，药品信息更新结束.", organId, startIndex, updateNum, addNum);
                     finishFlag = false;
                 }
             }
@@ -2527,7 +2528,7 @@ public class RecipeService extends RecipeBaseService {
             drugListMatchDAO.deleteByOrganIdAndStatus(organId);
             addOrUpdateDrugInfoSynMovement(organId, addList, 1, operator, commit);
             addOrUpdateDrugInfoSynMovement(organId, updateList, 2, operator, commit);
-            //TODO ？？机构药品his没给就直接删掉 这先不动吧
+            //TODO ？？机构药品his没给就直接删掉 这先不动吧 当时约定的就这样吧
             if (!ObjectUtils.isEmpty(delete)) {
                 if (delete) {
                     if (!CollectionUtils.isEmpty(data)) {
@@ -2543,7 +2544,7 @@ public class RecipeService extends RecipeBaseService {
                                             organDrugListService.updateOrganDrugListStatusByIdSync(organId, detail.getOrganDrugId());
                                             deleteNum++;
                                         } catch (Exception e) {
-                                            LOGGER.info("定时drugInfoSynMovement机构药品数据同步 删除失败,{}", JSONUtils.toString(detail) + "Exception:{}" + e);
+                                            LOGGER.info("drugInfoSynMovement机构药品数据同步 删除失败,{}", JSONUtils.toString(detail) + "Exception:{}" + e);
                                             continue;
                                         }
                                     }
@@ -4227,7 +4228,7 @@ public class RecipeService extends RecipeBaseService {
                     DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
                     DrugsEnterprise byEnterpriseCode = drugsEnterpriseDAO.getByEnterpriseCode(split[i], organId);
                     if (ObjectUtils.isEmpty(byEnterpriseCode)) {
-                        throw new DAOException(DAOException.VALUE_NEEDED, "平台根据药企编码" + split[i] + " 未找到药企");
+                        throw new DAOException(DAOException.VALUE_NEEDED, "平台根据药房编码" + split[i] + " 未找到药企");
                     } else {
                         if (i != split.length - 1) {
                             ss.append(byEnterpriseCode.getId().toString() + ",");
@@ -4378,7 +4379,7 @@ public class RecipeService extends RecipeBaseService {
         }
         List<OrganDrugListSyncField> organDrugListSyncFields= new ArrayList<>();
         Map<String, OrganDrugListSyncField> organDrugListSyncFieldMap=new HashMap<>();
-        organDrugListSyncFields=organDrugListSyncFieldDAO.findByOrganIdAndType(organId,SyncDrugConstant.ADD);
+        organDrugListSyncFields=organDrugListSyncFieldDAO.findByOrganIdAndType(organId,SyncDrugConstant.UPDATE);
         organDrugListSyncFieldMap =organDrugListSyncFields.stream().collect(Collectors.toMap(OrganDrugListSyncField::getFieldCode, Function.identity()));
 
         //是否抗肿瘤药物,及抗肿瘤药物等级
