@@ -307,7 +307,8 @@ public class CreatePdfFactory {
         } else {
             pdfEsign.setDoctorId(recipe.getChecker());
         }
-        pdfEsign.setQrCodeSign(false);
+        //药师二维码
+        pdfEsign.setQrCodeSign(true);
         try {
             // todo 这个是签名对象
             byte[] data = createPdfService.updateCheckNamePdfEsign(recipeId, pdfEsign);
