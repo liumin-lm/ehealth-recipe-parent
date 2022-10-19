@@ -303,5 +303,5 @@ public interface IRecipeAtopService {
      * @return
      */
     @RpcService(mvcDisabled = true)
-    List<RecipeInfoTO> patientOfflineRecipe(Integer organId, String patientId, Date startTime, Date endTime);
+    List<RecipeInfoTO> patientOfflineRecipe(Integer organId, String patientId, String patientName, Date startTime, Date endTime);
 }
