@@ -248,7 +248,7 @@ public class RecipeDetailBean implements java.io.Serializable {
     private String superScalarName;
 
     /**
-     * 类型：1:药品，2:诊疗项目，3....
+     * 类型：1:药品，2:诊疗项目，3:保密方
      */
     private Integer type;
 
