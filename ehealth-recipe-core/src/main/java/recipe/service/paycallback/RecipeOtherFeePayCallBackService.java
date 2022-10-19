@@ -60,6 +60,10 @@ public class RecipeOtherFeePayCallBackService implements IRecipeOtherFeePayCallB
             logger.info("RecipeOtherFeePayCallBackService doHandleAfterPay busObject not exists, busId[{}]", busId);
             return false;
         }
+        // 更新最新的已支付状态
+        order.setOrderPayFlag(PayFlagEnum.PAYED.getType());
+        orderManager.updateNonNullFieldByPrimaryKey(order);
+
         RecipeOrderPayFlow recipeOrderPayFlow = recipeOrderPayFlowManager.getByOrderIdAndType(busId, PayFlowTypeEnum.RECIPE_AUDIT.getType());
         if (null == recipeOrderPayFlow) {
             recipeOrderPayFlow = new RecipeOrderPayFlow();
