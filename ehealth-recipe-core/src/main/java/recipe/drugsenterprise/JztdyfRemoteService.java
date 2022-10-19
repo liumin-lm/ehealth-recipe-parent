@@ -44,6 +44,7 @@ import recipe.drugsenterprise.bean.JztTokenRequest;
 import recipe.drugsenterprise.bean.JztTokenResponse;
 import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.enumerate.type.SettlementModeTypeEnum;
+import recipe.service.RecipeOrderService;
 import recipe.service.common.RecipeCacheService;
 import recipe.third.IFileDownloadService;
 import recipe.util.Base64;
@@ -142,6 +143,7 @@ public class JztdyfRemoteService extends AccessDrugEnterpriseService {
             return getDrugEnterpriseResult(result,"没有获取到处方信息");
         }
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
         //准备处方数据
         JztRecipeDTO jztRecipe = new JztRecipeDTO();
         Integer depId = enterprise.getId();
@@ -192,10 +194,12 @@ public class JztdyfRemoteService extends AccessDrugEnterpriseService {
                     result.setCode(DrugEnterpriseResult.SUCCESS);
                     //说明成功,更新处方标志
                     recipeDAO.updateRecipeInfoByRecipeId(dbRecipe.getRecipeId(), ImmutableMap.of("pushFlag", 1));
+                    orderService.updateOrderInfo(dbRecipe.getOrderCode(), ImmutableMap.of("pushFlag", 1), null);
                     LOGGER.info("[{}][{}] pushRecipeInfo {} success.", depId, depName, JSONUtils.toString(recipeIds));
                 } else {
                     //失败
                     result.setMsg(jztResponse.getMsg());
+                    orderService.updateOrderInfo(dbRecipe.getOrderCode(), ImmutableMap.of("pushFlag", -1), null);
                     LOGGER.warn("[{}][{}] pushRecipeInfo {} fail. msg={}", depId, depName,
                             JSONUtils.toString(recipeIds), jztResponse.getMsg());
                 }
