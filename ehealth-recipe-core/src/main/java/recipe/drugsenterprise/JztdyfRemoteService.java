@@ -86,6 +86,7 @@ public class JztdyfRemoteService extends AccessDrugEnterpriseService {
     public DrugsEnterprise test(Integer depId, List<Integer> recipeList){
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(depId);
+        tokenUpdateImpl(drugsEnterprise);
         pushRecipeInfo(recipeList, drugsEnterprise);
         return drugsEnterprise;
     }
