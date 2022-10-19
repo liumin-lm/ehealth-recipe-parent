@@ -97,7 +97,7 @@ public interface IOfflineRecipeBusinessService {
      * @param endTime
      * @return
      */
-    List<RecipeInfoTO> patientOfflineRecipe(Integer organId, String patientId, Date startTime, Date endTime);
+    List<RecipeInfoTO> patientOfflineRecipe(Integer organId, String patientId, String patientName, Date startTime, Date endTime);
 
     /**
      * 根据处方code获取线下处方详情

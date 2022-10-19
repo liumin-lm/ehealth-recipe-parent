@@ -363,8 +363,8 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
     }
 
     @Override
-    public List<RecipeInfoTO> patientOfflineRecipe(Integer organId, String patientId, Date startTime, Date endTime) {
-        return offlineRecipeClient.patientOfflineRecipe(organId, patientId, startTime, endTime);
+    public List<RecipeInfoTO> patientOfflineRecipe(Integer organId, String patientId, String patientName, Date startTime, Date endTime) {
+        return offlineRecipeClient.patientOfflineRecipe(organId, patientId, patientName, startTime, endTime);
     }
 
     @Override
