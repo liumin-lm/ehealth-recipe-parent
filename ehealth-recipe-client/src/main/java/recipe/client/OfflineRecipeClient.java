@@ -538,9 +538,13 @@ public class OfflineRecipeClient extends BaseClient {
      * @param endTime
      * @return
      */
-    public List<RecipeInfoTO> patientOfflineRecipe(Integer organId, String patientId, Date startTime, Date endTime) {
+    public List<RecipeInfoTO> patientOfflineRecipe(Integer organId, String patientId, String patientName, Date startTime, Date endTime) {
         logger.info("OfflineRecipeClient patientOfflineRecipe organId={} patientId:{},startTime={},endTime={}", organId, patientId, startTime, endTime);
         QueryRecipeRequestTO request = new QueryRecipeRequestTO();
+        PatientBaseInfo patientInfo = new PatientBaseInfo();
+        patientInfo.setPatientID(patientId);
+        patientInfo.setPatientName(patientName);
+        request.setPatientInfo(patientInfo);
         request.setOrgan(organId);
         request.setPatientId(patientId);
         request.setStartDate(startTime);

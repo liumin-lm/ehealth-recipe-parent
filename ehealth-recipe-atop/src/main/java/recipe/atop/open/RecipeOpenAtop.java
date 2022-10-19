@@ -383,8 +383,8 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
     }
 
     @Override
-    public List<RecipeInfoTO> patientOfflineRecipe(Integer organId, String patientId, Date startTime, Date endTime) {
+    public List<RecipeInfoTO> patientOfflineRecipe(Integer organId, String patientId, String patientName, Date startTime, Date endTime) {
         validateAtop(organId, patientId);
-        return offlineToOnlineService.patientOfflineRecipe(organId, patientId, startTime, endTime);
+        return offlineToOnlineService.patientOfflineRecipe(organId, patientId, patientName, startTime, endTime);
     }
 }
