@@ -536,7 +536,7 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
         List<String> errorMsg = Lists.newArrayList();
         if(medicationInfoResTOList.size() > 0){
             for(MedicationInfoResTO medicationInfoResTO : medicationInfoResTOList) {
-                List<String> msg = processingUsingRateParameters(medicationInfoResTO);
+                List<String> msg = processingMedicationParameters(medicationInfoResTO);
                 errorMsg.addAll(msg);
             }
         }
@@ -595,7 +595,7 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
                 }
                 List<MedicationInfoResTO> medicationInfoResTOS = medicationInfoResTOMap.get(dataType);
                 medicationInfoResTOS.forEach(MedicationInfoResTO -> {
-                    List<String> msg = processingUsingRateParameters(MedicationInfoResTO);
+                    List<String> msg = processingMedicationParameters(MedicationInfoResTO);
                     msgs.addAll(msg);
                 });
             }catch (Exception e){
@@ -613,7 +613,12 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
         return hisResponseTO;
     }
 
-    public List<String> processingUsingRateParameters(MedicationInfoResTO medicationInfoResTO){
+    /**
+     * 保存、更新、删除机构数据字典（用药频次、用药途径）
+     * @param medicationInfoResTO
+     * @return
+     */
+    public List<String> processingMedicationParameters(MedicationInfoResTO medicationInfoResTO){
         List<String> msg = Lists.newArrayList();
         //用药途径
         if(new Integer(1).equals(medicationInfoResTO.getDataType())){
@@ -693,7 +698,6 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
         }
         //用药频次
         else{
-
             UsingRateDTO usingRateDTO = usingRateService.findUsingRateDTOByOrganAndKey(medicationInfoResTO.getOrganId(), medicationInfoResTO.getMedicationCode());
             if(Objects.isNull(usingRateDTO)){
                 try{
@@ -732,7 +736,6 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
                 }catch (Exception e){
                     msg.add("organId：" + medicationInfoResTO.getOrganId() + "，" +"用药频次编码：" + medicationInfoResTO.getMedicationCode() + "，" + "新增失败:" + e.toString().split(":")[1]);
                 }
-
             }else{
                 //删除
                 if(new Integer(1).equals(medicationInfoResTO.getDeleteFlag())){
