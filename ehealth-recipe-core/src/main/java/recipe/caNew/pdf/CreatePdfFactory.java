@@ -40,6 +40,7 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import static recipe.util.DictionaryUtil.getDictionary;
 
@@ -286,7 +287,7 @@ public class CreatePdfFactory {
      *
      * @param recipeId
      */
-    public void updateCheckNamePdfESign(Integer recipeId) {
+    public void updateCheckNamePdfESign(Integer recipeId, Integer checker) {
         logger.info("CreatePdfFactory updateCheckNamePdfEsign recipeId:{}", recipeId);
         Recipe recipe = validate(recipeId);
         CreatePdfService createPdfService = createPdfService(recipe);
@@ -301,8 +302,11 @@ public class CreatePdfFactory {
         pdfEsign.setData(chemistSignFileByte);
         pdfEsign.setWidth(100f);
         pdfEsign.setFileName("recipecheck" + recipe.getRecipeId() + ".pdf");
-        // todo 这个是默认的值吗
-        pdfEsign.setDoctorId(recipe.getChecker());
+        if (Objects.nonNull(checker)) {
+            pdfEsign.setDoctorId(checker);
+        } else {
+            pdfEsign.setDoctorId(recipe.getChecker());
+        }
         //药师二维码
         pdfEsign.setQrCodeSign(true);
         try {
@@ -318,7 +322,7 @@ public class CreatePdfFactory {
             // todo 处方签名图片
             recipeUpdate.setChemistSignFile(fileId);
             recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
-            caManager.saveESignResult(recipe,false);
+            caManager.saveESignResult(recipe, false);
             logger.info("CreatePdfFactory updateCheckNamePdfEsign  recipeUpdate ={}", JSON.toJSONString(recipeUpdate));
         } catch (Exception e) {
             logger.error("CreatePdfFactory updateCheckNamePdfEsign  recipe: {}", recipe.getRecipeId(), e);

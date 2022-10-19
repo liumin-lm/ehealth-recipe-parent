@@ -240,5 +240,19 @@ public class RevisitClient extends BaseClient {
         logger.info("RevisitClient failedToPrescribeFastDrug daileToRevisitDTO={}", JSONUtils.toString(daileToRevisitDTO));
         revisitService.failedToPrescribeFastDrug(daileToRevisitDTO);
     }
+
+    /**
+     * 便捷够药成功-通知复诊
+     *
+     * @param recipe
+     */
+    public void successToPrescribeFastDrug(Recipe recipe) {
+        DrugFaileToRevisitDTO daileToRevisitDTO = new DrugFaileToRevisitDTO();
+        daileToRevisitDTO.setFailure(false);
+        daileToRevisitDTO.setConsultId(recipe.getClinicId());
+        logger.info("RevisitClient failedToPrescribeFastDrug daileToRevisitDTO={}", JSONUtils.toString(daileToRevisitDTO));
+        revisitService.failedToPrescribeFastDrug(daileToRevisitDTO);
+    }
+
 }
 

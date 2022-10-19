@@ -23,6 +23,7 @@ import eh.recipeaudit.model.recipe.RecipeDTO;
 import eh.recipeaudit.model.recipe.RecipeDetailDTO;
 import eh.recipeaudit.model.recipe.RecipeExtendDTO;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.aop.LogRecord;
@@ -102,6 +103,11 @@ public class RecipeAuditClient extends BaseClient {
         }
         for (AuditMedicinesBean auditMedicinesDTO : list) {
             List<AuditMedicineIssueBean> issueList = issues.stream().filter(a -> auditMedicinesDTO.getId().equals(a.getMedicineId())).collect(Collectors.toList());
+            issueList.forEach(x -> {
+                if (StringUtils.isBlank(x.getDetail())) {
+                    x.setDetail("");
+                }
+            });
             auditMedicinesDTO.setAuditMedicineIssues(issueList);
         }
         logger.info("RecipeAuditClient getAuditMedicineIssuesByRecipeId list:{}", JSON.toJSONString(list));

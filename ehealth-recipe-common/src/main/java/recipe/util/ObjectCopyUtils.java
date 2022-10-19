@@ -5,11 +5,12 @@ import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.BeanWrapper;
-import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.beans.BeansException;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 
 /**
@@ -76,7 +77,6 @@ public class ObjectCopyUtils {
 
     public static void copyProperties(Object dest, Object origin) {
         if (null == origin) {
-            dest = null;
             return;
         }
         try {
@@ -85,24 +85,4 @@ public class ObjectCopyUtils {
             logger.error("BeansException copyProperties error.", e);
         }
     }
-
-
-    public static String[] getNullPropertyNames(Object source) {
-        final BeanWrapper src = new BeanWrapperImpl(source);
-        java.beans.PropertyDescriptor[] pds = src.getPropertyDescriptors();
-
-        Set<String> emptyNames = new HashSet<String>();
-        for (java.beans.PropertyDescriptor pd : pds) {
-            Object srcValue = src.getPropertyValue(pd.getName());
-            if (srcValue == null) emptyNames.add(pd.getName());
-        }
-        String[] result = new String[emptyNames.size()];
-        return emptyNames.toArray(result);
-    }
-
-    public static void copyPropertiesIgnoreNull(Object src, Object target) {
-        BeanUtils.copyProperties(src, target, getNullPropertyNames(src));
-    }
-
-
 }
