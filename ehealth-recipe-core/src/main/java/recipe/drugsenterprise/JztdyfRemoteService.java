@@ -12,10 +12,7 @@ import com.ngari.patient.dto.EmploymentDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.*;
 import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
-import com.ngari.recipe.entity.DrugList;
-import com.ngari.recipe.entity.DrugsEnterprise;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
@@ -45,6 +42,7 @@ import recipe.drugsenterprise.bean.JztDrugDTO;
 import recipe.drugsenterprise.bean.JztRecipeDTO;
 import recipe.drugsenterprise.bean.JztTokenRequest;
 import recipe.drugsenterprise.bean.JztTokenResponse;
+import recipe.enumerate.type.SettlementModeTypeEnum;
 import recipe.service.common.RecipeCacheService;
 import recipe.third.IFileDownloadService;
 import recipe.util.Base64;
@@ -52,10 +50,12 @@ import recipe.util.DateConversion;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * 九州通药企
@@ -165,7 +165,7 @@ public class JztdyfRemoteService extends AccessDrugEnterpriseService {
             setJztRecipeInfo(jztRecipe, dbRecipe);
             if (!setJztRecipePatientInfo(jztRecipe, dbRecipe.getMpiid())) return getDrugEnterpriseResult(result, "患者不存在");
             if (!setJztRecipeDoctorInfo(jztRecipe, dbRecipe)) return getDrugEnterpriseResult(result, "医生或主执业点不存在");
-            if (!setJztRecipeDetailInfo(jztRecipe, dbRecipe.getRecipeId(), depId)) return getDrugEnterpriseResult(result, "处方详情不存在");
+            if (!setJztRecipeDetailInfo(jztRecipe, dbRecipe.getRecipeId(), enterprise)) return getDrugEnterpriseResult(result, "处方详情不存在");
 
             //推送给九州通
             CloseableHttpClient httpClient = HttpClients.createDefault();
@@ -358,43 +358,44 @@ public class JztdyfRemoteService extends AccessDrugEnterpriseService {
      * @param depId      depId
      * @return           是否设置成功
      */
-    private boolean setJztRecipeDetailInfo(JztRecipeDTO jztRecipe, Integer recipeId, Integer depId){
+    private boolean setJztRecipeDetailInfo(JztRecipeDTO jztRecipe, Integer recipeId, DrugsEnterprise enterprise){
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         List<Recipedetail> detailList = detailDAO.findByRecipeId(recipeId);
         if (CollectionUtils.isNotEmpty(detailList)) {
             List<JztDrugDTO> jztDetailList = new ArrayList<>(detailList.size());
-            List<Integer> drugIdList = Lists.newArrayList(Collections2.transform(detailList, new Function<Recipedetail, Integer>() {
-                @Nullable
-                @Override
-                public Integer apply(@Nullable Recipedetail input) {
-                    return input.getDrugId();
-                }
-            }));
+            List<Integer> drugIdList = detailList.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
 
             DrugListDAO drugDAO = DAOFactory.getDAO(DrugListDAO.class);
+            SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+            List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIds(enterprise.getId(), drugIdList);
+            Map<Integer, SaleDrugList> saleDrugListMap = saleDrugLists.stream().collect(Collectors.toMap(SaleDrugList::getDrugId, a -> a, (k1, k2) -> k1));
 
             List<DrugList> drugList = drugDAO.findByDrugIds(drugIdList);
 
-            Map<Integer, DrugList> drugMap = Maps.uniqueIndex(drugList, new Function<DrugList, Integer>() {
-                @Override
-                public Integer apply(DrugList input) {
-                    return input.getDrugId();
-                }
-            });
+            Map<Integer, DrugList> drugMap = drugList.stream().collect(Collectors.toMap(DrugList::getDrugId, a -> a, (k1, k2) -> k1));
             JztDrugDTO jztDetail;
             Integer drugId;
             for (Recipedetail detail : detailList) {
                 jztDetail = new JztDrugDTO();
                 drugId = detail.getDrugId();
-                jztDetail.setDrugCode(converToString(detail.getOrganDrugCode()));
+                jztDetail.setDrugCode(converToString(saleDrugListMap.get(detail.getDrugId()).getOrganDrugCode()));
                 jztDetail.setDrugName(converToString(detail.getDrugName()));
                 jztDetail.setSpecification(converToString(detail.getDrugSpec()));
                 jztDetail.setProducer(drugMap.get(drugId).getProducer());
                 jztDetail.setTotal(converToString(detail.getUseTotalDose()));
                 jztDetail.setUseDose(converToString(detail.getUseDose()));
                 jztDetail.setUseDoseUnit(converToString(detail.getUseDoseUnit()));
-                jztDetail.setDrugFee(detail.getSalePrice().toPlainString());
-                jztDetail.setDrugTotalFee(detail.getDrugCost().toPlainString());
+                if (SettlementModeTypeEnum.SETTLEMENT_MODE_HOS.getType().equals(enterprise.getSettlementMode())) {
+                    jztDetail.setDrugFee(detail.getSalePrice().toPlainString());
+                    jztDetail.setDrugTotalFee(detail.getDrugCost().toPlainString());
+                } else {
+                    BigDecimal price = saleDrugListMap.get(detail.getDrugId()).getPrice();
+                    jztDetail.setDrugFee(converToString(price));
+                    if (null != price) {
+                        BigDecimal multiply = price.multiply(new BigDecimal(detail.getUseTotalDose())).setScale(2, BigDecimal.ROUND_HALF_UP);
+                        jztDetail.setDrugTotalFee(converToString(multiply));
+                    }
+                }
                 jztDetail.setUesDays(null!=detail.getUseDays()?detail.getUseDays().intValue():1);
                 jztDetail.setUsingRate(converToString(detail.getUsingRate()));
                 jztDetail.setUsePathways(converToString(detail.getUsePathways()));
