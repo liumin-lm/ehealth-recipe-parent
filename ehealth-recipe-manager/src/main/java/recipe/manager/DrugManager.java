@@ -761,10 +761,20 @@ public class DrugManager extends BaseManager {
 //                String.format("[%2$s](%1$s)的'%3$s'选项被%4$s", organ.getOrganId(), organ.getName(), optionName, value), organ.getName());
 //    }
 
+    /**
+     * 更新机构数据字典中用药频次、用药途径的同步配置
+     * @param medicationSyncConfig
+     * @return
+     */
     public Boolean updateMedicationSyncConfig(MedicationSyncConfig medicationSyncConfig) {
         return medicationSyncConfigDAO.updateNonNullFieldByPrimaryKey(medicationSyncConfig);
     }
 
+    /**
+     * 查询机构数据字典中用药频次、用药途径的同步配置
+     * @param organId,datctype
+     * @return
+     */
     public MedicationSyncConfig getMedicationSyncConfig(Integer organId,Integer dataType) {
         MedicationSyncConfig medicationSyncConfig = medicationSyncConfigDAO.getMedicationSyncConfigByOrganIdAndDataType(organId, dataType);
         if(Objects.isNull(medicationSyncConfig)){
@@ -777,6 +787,9 @@ public class DrugManager extends BaseManager {
         return medicationSyncConfig;
     }
 
+    /**
+     * 定时同步机构数据字典中用药频次、用药途径
+     */
     public List<MedicationInfoResTO> medicationInfoSyncTask() {
         LocalTime localTime = LocalTime.now();
         LocalTime localTime1 = localTime.minusMinutes(1);
