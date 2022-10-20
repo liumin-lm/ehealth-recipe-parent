@@ -681,6 +681,9 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
                             usePathwaysDTO.setPinYin(medicationInfoResTO.getPinYin());
                         }
                         if(StringUtils.isNotEmpty(medicationInfoResTO.getCategory())){
+                            if(medicationInfoResTO.getCategory().contains("，")){
+                                throw new DAOException(DAOException.VALUE_NEEDED,"处方类型字段内容格式不正确!");
+                            }
                             usePathwaysDTO.setCategory(medicationInfoResTO.getCategory());
                         }
                         if(medicationInfoResTO.getSort() != null){
@@ -757,6 +760,9 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
                             usingRateDTO.setPinYin(medicationInfoResTO.getPinYin());
                         }
                         if(StringUtils.isNotEmpty(medicationInfoResTO.getCategory())){
+                            if(medicationInfoResTO.getCategory().contains("，")){
+                                throw new DAOException(DAOException.VALUE_NEEDED,"处方类型字段内容格式不正确!");
+                            }
                             usingRateDTO.setCategory(medicationInfoResTO.getCategory());
                         }
                         if(medicationInfoResTO.getSort() != null){
