@@ -134,8 +134,8 @@ public class PlatformCreatePdfServiceImpl extends BaseCreatePdf implements Creat
         } else if (StringUtils.isNotEmpty(recipe.getCheckerText())) {
             CoOrdinateVO coords = new CoOrdinateVO();
             coords.setValue(recipe.getCheckerText());
-            coords.setX(199);
-            coords.setY(82);
+            coords.setX(170);
+            coords.setY(76);
             return CreateRecipePdfUtil.generateCoOrdinatePdf(recipe.getSignFile(), coords);
         }
         return null;
@@ -143,8 +143,8 @@ public class PlatformCreatePdfServiceImpl extends BaseCreatePdf implements Creat
 
     @Override
     public byte[] updateCheckNamePdfEsign(Integer recipeId, SignRecipePdfVO pdfEsign) throws Exception {
-        pdfEsign.setPosX(240F);
-        pdfEsign.setPosY(80F);
+        pdfEsign.setPosX(250F);
+        pdfEsign.setPosY(50F);
         byte[] data = esignService.signForRecipe2(pdfEsign);
         logger.info("CustomCreatePdfServiceImpl updateCheckNamePdfEsign data:{}", data.length);
         return data;
