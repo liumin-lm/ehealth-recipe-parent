@@ -69,11 +69,8 @@ public class DoctorClient extends BaseClient {
             apothecaryDTO.setCheckApothecaryIdCard(doctorDTO.getIdNumber());
             apothecaryDTO.setCheckApothecaryName(doctorDTO.getName());
         } else {
-            //审核药师可能在平台没注册，审方结果返回时把审核药师姓名保存在cdr_recipecheck表
-            RecipeCheckBean recipeCheckBean = recipeAuditClient.getNowCheckResultByRecipeId(recipe.getRecipeId());
-            if(Objects.nonNull(recipeCheckBean)) {
-                apothecaryDTO.setCheckApothecaryName(recipeCheckBean.getCheckerName());
-            }
+            //审核药师可能在平台没注册，审方结果返回时把审核药师姓名保存在CheckerText字段里
+            apothecaryDTO.setCheckApothecaryName(recipe.getCheckerText());
         }
         logger.info("DoctorClient getApothecary apothecaryVO:{} ", JSONUtils.toString(apothecaryDTO));
         return apothecaryDTO;
