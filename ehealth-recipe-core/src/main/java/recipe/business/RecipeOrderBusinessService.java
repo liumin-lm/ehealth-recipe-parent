@@ -932,11 +932,13 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
             logger.info("ThirdOrderPreSettle order is null");
             throw new DAOException(609,"订单不存在");
         }
-        RecipeExtend extend = recipeExtendDAO.getByRecipeId(recipes.get(0).getRecipeId());
-        if (extend == null) {
+        List<RecipeExtend> recipeExtends = recipeExtendDAO.queryRecipeExtendByRecipeIds(thirdOrderPreSettleReq.getRecipeIds());
+        if (CollectionUtils.isEmpty(recipeExtends)) {
             logger.info("ThirdOrderPreSettle extend is null");
             throw new DAOException(609,"补充信息不存在");
         }
+        List<String> recipeCostNumber = recipeExtends.stream().map(RecipeExtend::getRecipeCostNumber).filter(Objects::nonNull).collect(Collectors.toList());
+        RecipeExtend extend = recipeExtends.get(0);
         if (!RecipeBussConstant.PAYMODE_ONLINE.equals(recipeOrder.getPayMode())) {
             logger.info("ThirdOrderPreSettle no support. recipeId={}", JSONUtils.toString(recipes.get(0).getRecipeId()));
             throw new DAOException(609,"不是线上支付订单");
@@ -950,6 +952,9 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
         param.put("recipeNoS", JSONUtils.toString(recipeNoS));
         param.put("payMode", recipeOrder.getPayMode());
         param.put("recipeIds", recipes.get(0).getRecipeId());
+        if(CollectionUtils.isNotEmpty(recipeCostNumber)) {
+            param.put("recipeCostNumber", JSONUtils.toString(recipeCostNumber));
+        }
         //获取对应预结算服务
         // 提供给金投的接口,预算写死走杭州互联网
         IRecipePreSettleService preSettleService = PreSettleFactory.getPreSettleService(recipes.get(0).getClinicOrgan(),2);
