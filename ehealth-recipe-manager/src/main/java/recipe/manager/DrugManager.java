@@ -798,9 +798,10 @@ public class DrugManager extends BaseManager {
         String format1 = localTime1.format(dateTimeFormatter);
         Time etime = Time.valueOf(format);
         Time stime = Time.valueOf(format1);
-        List<MedicationSyncConfig> medicationSyncConfigs = medicationSyncConfigDAO.findByRegularTime(stime, etime);
-        //List<MedicationSyncConfig> medicationSyncConfigs = medicationSyncConfigDAO.findByRegularTime();
+        //List<MedicationSyncConfig> medicationSyncConfigs = medicationSyncConfigDAO.findByRegularTime(stime, etime);
+        List<MedicationSyncConfig> medicationSyncConfigs = medicationSyncConfigDAO.findByTime();
         logger.info("medicationInfoSyncTask medicationSyncConfigs:{}",JSONUtils.toString(medicationSyncConfigs));
+        List<MedicationInfoResTO> medicationInfoResTOList = new ArrayList<>();
         if (!ObjectUtils.isEmpty(medicationSyncConfigs)) {
             for (MedicationSyncConfig medicationSyncConfig : medicationSyncConfigs) {
                 try {
@@ -818,13 +819,14 @@ public class DrugManager extends BaseManager {
                         throw new DAOException(DAOException.VALUE_NEEDED,
                                 (new Integer(1).equals(medicationSyncConfig.getDataType()) ? "用药途径" : "用药频次")  +  "同步开关未开启");
                     }
-                    return drugClient.medicationInfoSyncTask(medicationSyncConfig.getOrganId(), medicationSyncConfig.getDataType());
+                    List<MedicationInfoResTO> medicationInfoResTOS = drugClient.medicationInfoSyncTask(medicationSyncConfig.getOrganId(), medicationSyncConfig.getDataType());
+                    medicationInfoResTOList.addAll(medicationInfoResTOS);
                 } catch (Exception e) {
                     logger.error("medicationInfoSyncTask同步 organId=[{}],机构定时更新异常：exception=[{}].", medicationSyncConfig.getOrganId(), e);
                 }
             }
         }
-        return new ArrayList<>();
+        return medicationInfoResTOList;
     }
 
     /**
