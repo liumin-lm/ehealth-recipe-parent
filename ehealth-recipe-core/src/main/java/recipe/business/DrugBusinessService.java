@@ -622,7 +622,9 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
         List<String> msg = Lists.newArrayList();
         //用药途径
         if(new Integer(1).equals(medicationInfoResTO.getDataType())){
+            logger.info("DrugBusinessService processingMedicationParameters organId={},category={}",medicationInfoResTO.getMedicationCode(),medicationInfoResTO.getCategory());
             UsePathwaysDTO usePathwaysDTO = usePathwaysService.getUsePathwaysByOrganAndKeyAndCategory(medicationInfoResTO.getOrganId(), medicationInfoResTO.getMedicationCode(),medicationInfoResTO.getCategory());
+            logger.info("DrugBusinessService processingMedicationParameters usePathwaysDTO={}",JSONUtils.toString(usePathwaysDTO));
             if(Objects.isNull(usePathwaysDTO)){
                 try {
                     //新增
@@ -655,6 +657,7 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
                         usePathwaysDTO.setSort(1000);
                     }
                     usePathwaysDTO.setRelatedPlatformKey(medicationInfoResTO.getRelatedPlatformKey());
+                    logger.info("processingMedicationParameters saveOrganUsingRate usePathwaysDTO={}",JSONUtils.toString(usePathwaysDTO));
                     usePathwaysService.saveOrganUsePathways(usePathwaysDTO);
                 }catch (Exception e){
                     msg.add("organId：" + medicationInfoResTO.getOrganId() + "，" +"用药途径编码：" + medicationInfoResTO.getMedicationCode() + "，" + "新增失败:" + e.toString().split(":")[1]);
@@ -692,6 +695,7 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
                         if(StringUtils.isNotEmpty(medicationInfoResTO.getRelatedPlatformKey())){
                             usePathwaysDTO.setRelatedPlatformKey(medicationInfoResTO.getRelatedPlatformKey());
                         }
+                        logger.info("processingMedicationParameters updateUsePathwaysById usePathwaysDTO={}",JSONUtils.toString(usePathwaysDTO));
                         usePathwaysService.updateUsePathwaysById(usePathwaysDTO);
                     }catch (Exception e){
                         msg.add("organId：" + medicationInfoResTO.getOrganId() + "，" +"用药途径编码：" + medicationInfoResTO.getMedicationCode() + "，" + "更新失败:" + e.toString().split(":")[1]);
@@ -701,7 +705,9 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
         }
         //用药频次
         else{
+            logger.info("DrugBusinessService processingMedicationParameters organId={},medicationCode={}",medicationInfoResTO.getMedicationCode(),medicationInfoResTO.getMedicationCode());
             UsingRateDTO usingRateDTO = usingRateService.findUsingRateDTOByOrganAndKey(medicationInfoResTO.getOrganId(), medicationInfoResTO.getMedicationCode());
+            logger.info("DrugBusinessService processingMedicationParameters usingRateDTO={}",JSONUtils.toString(usingRateDTO));
             if(Objects.isNull(usingRateDTO)){
                 try{
                     //新增
@@ -735,6 +741,7 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
                     }
                     usingRateDTO.setUsingRateAlgorithm(medicationInfoResTO.getUsingRateAlgorithm());
                     usingRateDTO.setRelatedPlatformKey(medicationInfoResTO.getRelatedPlatformKey());
+                    logger.info("processingMedicationParameters saveOrganUsingRate usingRateDTO={}",JSONUtils.toString(usingRateDTO));
                     usingRateService.saveOrganUsingRate(usingRateDTO);
                 }catch (Exception e){
                     msg.add("organId：" + medicationInfoResTO.getOrganId() + "，" +"用药频次编码：" + medicationInfoResTO.getMedicationCode() + "，" + "新增失败:" + e.toString().split(":")[1]);
@@ -774,6 +781,7 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
                         if(StringUtils.isNotEmpty(medicationInfoResTO.getRelatedPlatformKey())){
                             usingRateDTO.setRelatedPlatformKey(medicationInfoResTO.getRelatedPlatformKey());
                         }
+                        logger.info("processingMedicationParameters updateUsingRateById usingRateDTO={}",JSONUtils.toString(usingRateDTO));
                         usingRateService.updateUsingRateById(usingRateDTO);
                     }catch (Exception e){
                         msg.add("organId：" + medicationInfoResTO.getOrganId() + "，" +"用药频次编码：" + medicationInfoResTO.getMedicationCode() + "，" + "更新失败:" + e.toString().split(":")[1]);
