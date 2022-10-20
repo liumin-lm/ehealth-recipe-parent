@@ -894,6 +894,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
         }
         try {
             medicalPreSettleQueryReq.setOrganId(recipe.getClinicOrgan());
+            medicalPreSettleQueryReq.setClinicNo(String.valueOf(recipe.getClinicId()));
             medicalPreSettleQueryReq.setMrn(recipeExtend.getMedicalRecordNumber());
             medicalPreSettleQueryReq.setRegisterNo(recipeExtend.getRegisterID());
             medicalPreSettleQueryReq.setPatId(recipe.getPatientID());
