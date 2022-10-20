@@ -622,7 +622,9 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
         List<String> msg = Lists.newArrayList();
         //用药途径
         if(new Integer(1).equals(medicationInfoResTO.getDataType())){
+            logger.info("DrugBusinessService processingMedicationParameters organId={},category={}",medicationInfoResTO.getMedicationCode(),medicationInfoResTO.getCategory());
             UsePathwaysDTO usePathwaysDTO = usePathwaysService.getUsePathwaysByOrganAndKeyAndCategory(medicationInfoResTO.getOrganId(), medicationInfoResTO.getMedicationCode(),medicationInfoResTO.getCategory());
+            logger.info("DrugBusinessService processingMedicationParameters usePathwaysDTO={}",JSONUtils.toString(usePathwaysDTO));
             if(Objects.isNull(usePathwaysDTO)){
                 try {
                     //新增
@@ -701,7 +703,9 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
         }
         //用药频次
         else{
+            logger.info("DrugBusinessService processingMedicationParameters organId={},medicationCode={}",medicationInfoResTO.getMedicationCode(),medicationInfoResTO.getMedicationCode());
             UsingRateDTO usingRateDTO = usingRateService.findUsingRateDTOByOrganAndKey(medicationInfoResTO.getOrganId(), medicationInfoResTO.getMedicationCode());
+            logger.info("DrugBusinessService processingMedicationParameters usingRateDTO={}",JSONUtils.toString(usingRateDTO));
             if(Objects.isNull(usingRateDTO)){
                 try{
                     //新增
