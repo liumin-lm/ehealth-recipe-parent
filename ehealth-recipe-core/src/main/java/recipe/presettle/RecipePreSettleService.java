@@ -6,9 +6,11 @@ import com.google.common.collect.Maps;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
+import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +25,8 @@ import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * created by shiyuping on 2020/9/22
@@ -77,6 +81,13 @@ public class RecipePreSettleService {
             result.put("msg", "查不到该处方订单");
             return result;
         }
+        List<RecipeExtend> recipeExtends = recipeExtendDAO.queryRecipeExtendByRecipeIds(recipeId);
+        if (CollectionUtils.isEmpty(recipeExtends)) {
+            result.put("msg", "查不到该处方扩展信息");
+            return result;
+        }
+        List<String> recipeCostNumber = recipeExtends.stream().map(RecipeExtend::getRecipeCostNumber).filter(Objects::nonNull).collect(Collectors.toList());
+
         RecipeExtend extend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
         if (extend == null) {
             result.put("msg", "查不到该处方扩展信息");
@@ -103,6 +114,9 @@ public class RecipePreSettleService {
         param.put("recipeNoS", JSONUtils.toString(recipeNoS));
         param.put("payMode", recipeOrder.getPayMode());
         param.put("recipeIds", recipeId);
+        if(CollectionUtils.isNotEmpty(recipeCostNumber)) {
+            param.put("recipeCostNumber", JSONUtils.toString(recipeCostNumber));
+        }
         //获取对应预结算服务
         IRecipePreSettleService preSettleService = PreSettleFactory.getPreSettleService(recipe.getClinicOrgan(),orderType);
         if (preSettleService != null){

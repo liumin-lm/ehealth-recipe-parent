@@ -85,6 +85,11 @@ public class CashPreSettleService implements IRecipePreSettleService {
             if (recipeCodeS != null) {
                 request.setHisRecipeNoS(JSONUtils.parse(recipeCodeS, ArrayList.class));
             }
+            String recipeCostNumber = MapValueUtil.getString(extInfo, "recipeCostNumber");
+            if (StringUtils.isNotEmpty(recipeCostNumber)) {
+                request.setRecipeCostNumber(JSONUtils.parse(recipeCostNumber, ArrayList.class));
+            }
+
             request.setClinicOrgan(recipe.getClinicOrgan());
             request.setRecipeId(String.valueOf(recipeId));
             request.setHisRecipeNo(recipe.getRecipeCode());

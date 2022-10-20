@@ -136,6 +136,10 @@ public class HZMedicalPreSettleService implements IRecipePreSettleService {
             request.setGuardianTel(patientBean.getLinkTel());
             request.setGuardianCertificate(patientBean.getGuardianCertificate());
 
+            String recipeCostNumber = MapValueUtil.getString(extInfo, "recipeCostNumber");
+            if (StringUtils.isNotEmpty(recipeCostNumber)) {
+                request.setRecipeCostNumber(JSONUtils.parse(recipeCostNumber, ArrayList.class));
+            }
             DrugsEnterpriseDAO drugEnterpriseDao = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
             Integer depId = MapValueUtil.getInteger(extInfo, "depId");
             //获取杭州市市民卡

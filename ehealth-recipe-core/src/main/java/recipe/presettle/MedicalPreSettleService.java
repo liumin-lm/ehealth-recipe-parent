@@ -137,6 +137,10 @@ public class MedicalPreSettleService implements IRecipePreSettleService {
             request.setGuardianName(patientBean.getGuardianName());
             request.setGuardianTel(patientBean.getLinkTel());
             request.setGuardianCertificate(patientBean.getGuardianCertificate());
+            String recipeCostNumber = MapValueUtil.getString(extInfo, "recipeCostNumber");
+            if (StringUtils.isNotEmpty(recipeCostNumber)) {
+                request.setRecipeCostNumber(JSONUtils.parse(recipeCostNumber, ArrayList.class));
+            }
 
             DrugsEnterpriseDAO drugEnterpriseDao = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
             Integer depId = MapValueUtil.getInteger(extInfo, "depId");
