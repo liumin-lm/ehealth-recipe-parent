@@ -622,66 +622,54 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
         List<String> msg = Lists.newArrayList();
         //用药途径
         if(new Integer(1).equals(medicationInfoResTO.getDataType())){
-            logger.info("DrugBusinessService processingMedicationParameters organId={},category={}",medicationInfoResTO.getMedicationCode(),medicationInfoResTO.getCategory());
-            UsePathwaysDTO usePathwaysDTO = usePathwaysService.getUsePathwaysByOrganAndKeyAndCategory(medicationInfoResTO.getOrganId(), medicationInfoResTO.getMedicationCode(),medicationInfoResTO.getCategory());
-            logger.info("DrugBusinessService processingMedicationParameters usePathwaysDTO={}",JSONUtils.toString(usePathwaysDTO));
-            if(Objects.isNull(usePathwaysDTO)){
+            //首先看是否是需要删除的数据
+            if(new Integer(1).equals(medicationInfoResTO.getDeleteFlag())) {
                 try {
-                    //新增
-                    usePathwaysDTO = new UsePathwaysDTO();
-                    usePathwaysDTO.setOrganId(medicationInfoResTO.getOrganId());
-                    if(StringUtils.isEmpty(medicationInfoResTO.getMedicationCode())){
-                        throw new DAOException(DAOException.VALUE_NEEDED,"用药途径编码不能为空!");
-                    }else{
-                        usePathwaysDTO.setPathwaysKey(medicationInfoResTO.getMedicationCode());
-                    }
-                    if(StringUtils.isNotEmpty(medicationInfoResTO.getMedicationText())){
-                        usePathwaysDTO.setText(medicationInfoResTO.getMedicationText());
-                    }else {
-                        throw new DAOException(DAOException.VALUE_NEEDED,"用药途径名称不能为空!");
-                    }
-                    usePathwaysDTO.setEnglishNames(medicationInfoResTO.getEnglishNames());
-                    usePathwaysDTO.setPinYin(medicationInfoResTO.getPinYin());
-                    String category = medicationInfoResTO.getCategory();
-                    if(StringUtils.isNotEmpty(category)){
-                        if(category.contains("，")){
-                            throw new DAOException(DAOException.VALUE_NEEDED,"处方类型字段内容格式不正确!");
-                        }
-                        usePathwaysDTO.setCategory(category);
-                    }else{
-                        throw new DAOException(DAOException.VALUE_NEEDED,"处方类型字段不能为空!");
-                    }
-                    if(medicationInfoResTO.getSort() != null){
-                        usePathwaysDTO.setSort(medicationInfoResTO.getSort());
-                    }else {
-                        usePathwaysDTO.setSort(1000);
-                    }
-                    usePathwaysDTO.setRelatedPlatformKey(medicationInfoResTO.getRelatedPlatformKey());
-                    logger.info("processingMedicationParameters saveOrganUsingRate usePathwaysDTO={}",JSONUtils.toString(usePathwaysDTO));
-                    usePathwaysService.saveOrganUsePathways(usePathwaysDTO);
+                    usePathwaysService.deleteUsePathwaysByKey(medicationInfoResTO.getMedicationCode(), medicationInfoResTO.getOrganId());
                 }catch (Exception e){
-                    msg.add("organId：" + medicationInfoResTO.getOrganId() + "，" +"用药途径编码：" + medicationInfoResTO.getMedicationCode() + "，" + "新增失败:" + e.toString().split(":")[1]);
+                    msg.add("organId：" + medicationInfoResTO.getOrganId() + "，" +"用药途径编码：" + medicationInfoResTO.getMedicationCode() + "，" + "删除失败:" + e.toString().split(":")[1]);
                 }
             }else{
-                //删除
-                if(new Integer(1).equals(medicationInfoResTO.getDeleteFlag())) {
+                logger.info("DrugBusinessService processingMedicationParameters organId={},category={}",medicationInfoResTO.getMedicationCode(),medicationInfoResTO.getCategory());
+                UsePathwaysDTO usePathwaysDTO = usePathwaysService.getUsePathwaysByOrganAndKeyAndCategory(medicationInfoResTO.getOrganId(), medicationInfoResTO.getMedicationCode(),medicationInfoResTO.getCategory());
+                logger.info("DrugBusinessService processingMedicationParameters usePathwaysDTO={}",JSONUtils.toString(usePathwaysDTO));
+                if(Objects.isNull(usePathwaysDTO)){
                     try {
-                        usePathwaysService.deleteUsePathwaysByKey(medicationInfoResTO.getMedicationCode(), medicationInfoResTO.getOrganId());
+                        //新增
+                        usePathwaysDTO = new UsePathwaysDTO();
+                        usePathwaysDTO.setOrganId(medicationInfoResTO.getOrganId());
+                        if(StringUtils.isEmpty(medicationInfoResTO.getMedicationCode())){
+                            throw new DAOException(DAOException.VALUE_NEEDED,"用药途径编码不能为空!");
+                        }else{
+                            usePathwaysDTO.setPathwaysKey(medicationInfoResTO.getMedicationCode());
+                        }
+                        if(StringUtils.isNotEmpty(medicationInfoResTO.getMedicationText())){
+                            usePathwaysDTO.setText(medicationInfoResTO.getMedicationText());
+                        }else {
+                            throw new DAOException(DAOException.VALUE_NEEDED,"用药途径名称不能为空!");
+                        }
+                        String category = medicationInfoResTO.getCategory();
+                        if(StringUtils.isNotEmpty(category)){
+                            if(category.contains("，")){
+                                throw new DAOException(DAOException.VALUE_NEEDED,"处方类型字段内容格式不正确!");
+                            }
+                            usePathwaysDTO.setCategory(category);
+                        }else{
+                            throw new DAOException(DAOException.VALUE_NEEDED,"处方类型字段不能为空!");
+                        }
+                        if(medicationInfoResTO.getSort() != null){
+                            usePathwaysDTO.setSort(medicationInfoResTO.getSort());
+                        }else {
+                            usePathwaysDTO.setSort(1000);
+                        }
                     }catch (Exception e){
-                        msg.add("organId：" + medicationInfoResTO.getOrganId() + "，" +"用药途径编码：" + medicationInfoResTO.getMedicationCode() + "，" + "删除失败:" + e.toString().split(":")[1]);
+                        msg.add("organId：" + medicationInfoResTO.getOrganId() + "，" +"用药途径编码：" + medicationInfoResTO.getMedicationCode() + "，" + "新增失败:" + e.toString().split(":")[1]);
                     }
-                }
-                else{
+                }else{
                     try{
                         //更新
                         if(StringUtils.isNotEmpty(medicationInfoResTO.getMedicationText())){
                             usePathwaysDTO.setText(medicationInfoResTO.getMedicationText());
-                        }
-                        if(StringUtils.isNotEmpty(medicationInfoResTO.getEnglishNames())){
-                            usePathwaysDTO.setEnglishNames(medicationInfoResTO.getEnglishNames());
-                        }
-                        if(StringUtils.isNotEmpty(medicationInfoResTO.getPinYin())){
-                            usePathwaysDTO.setPinYin(medicationInfoResTO.getPinYin());
                         }
                         if(StringUtils.isNotEmpty(medicationInfoResTO.getCategory())){
                             if(medicationInfoResTO.getCategory().contains("，")){
@@ -692,79 +680,76 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
                         if(medicationInfoResTO.getSort() != null){
                             usePathwaysDTO.setSort(medicationInfoResTO.getSort());
                         }
-                        if(StringUtils.isNotEmpty(medicationInfoResTO.getRelatedPlatformKey())){
-                            usePathwaysDTO.setRelatedPlatformKey(medicationInfoResTO.getRelatedPlatformKey());
-                        }
-                        logger.info("processingMedicationParameters updateUsePathwaysById usePathwaysDTO={}",JSONUtils.toString(usePathwaysDTO));
-                        usePathwaysService.updateUsePathwaysById(usePathwaysDTO);
                     }catch (Exception e){
                         msg.add("organId：" + medicationInfoResTO.getOrganId() + "，" +"用药途径编码：" + medicationInfoResTO.getMedicationCode() + "，" + "更新失败:" + e.toString().split(":")[1]);
                     }
+                }
+                usePathwaysDTO.setEnglishNames(medicationInfoResTO.getEnglishNames());
+                usePathwaysDTO.setPinYin(medicationInfoResTO.getPinYin());
+                usePathwaysDTO.setRelatedPlatformKey(medicationInfoResTO.getRelatedPlatformKey());
+                if(msg.size() > 0){
+                    return msg;
+                }
+                if(usePathwaysDTO.getId() != null){
+                    logger.info("processingMedicationParameters updateUsePathwaysById usePathwaysDTO={}",JSONUtils.toString(usePathwaysDTO));
+                    usePathwaysService.updateUsePathwaysById(usePathwaysDTO);
+                }
+                else{
+                    logger.info("processingMedicationParameters saveOrganUsingRate usePathwaysDTO={}",JSONUtils.toString(usePathwaysDTO));
+                    usePathwaysService.saveOrganUsePathways(usePathwaysDTO);
                 }
             }
         }
         //用药频次
         else{
-            logger.info("DrugBusinessService processingMedicationParameters organId={},medicationCode={}",medicationInfoResTO.getMedicationCode(),medicationInfoResTO.getMedicationCode());
-            UsingRateDTO usingRateDTO = usingRateService.findUsingRateDTOByOrganAndKey(medicationInfoResTO.getOrganId(), medicationInfoResTO.getMedicationCode());
-            logger.info("DrugBusinessService processingMedicationParameters usingRateDTO={}",JSONUtils.toString(usingRateDTO));
-            if(Objects.isNull(usingRateDTO)){
-                try{
-                    //新增
-                    usingRateDTO = new UsingRateDTO();
-                    usingRateDTO.setOrganId(medicationInfoResTO.getOrganId());
-                    if(StringUtils.isEmpty(medicationInfoResTO.getMedicationCode())){
-                        throw new DAOException(DAOException.VALUE_NEEDED,"用药频次编码不能为空!");
-                    }else{
-                        usingRateDTO.setUsingRateKey(medicationInfoResTO.getMedicationCode());
-                    }
-                    if(StringUtils.isNotEmpty(medicationInfoResTO.getMedicationText())){
-                        usingRateDTO.setText(medicationInfoResTO.getMedicationText());
-                    }else {
-                        throw new DAOException(DAOException.VALUE_NEEDED,"用药频次名称不能为空!");
-                    }
-                    usingRateDTO.setEnglishNames(medicationInfoResTO.getEnglishNames());
-                    usingRateDTO.setPinYin(medicationInfoResTO.getPinYin());
-                    String category = medicationInfoResTO.getCategory();
-                    if(StringUtils.isNotEmpty(category)){
-                        if(category.contains("，")){
-                            throw new DAOException(DAOException.VALUE_NEEDED,"处方类型字段内容格式不正确!");
-                        }
-                        usingRateDTO.setCategory(category);
-                    }else{
-                        throw new DAOException(DAOException.VALUE_NEEDED,"处方类型字段不能为空!");
-                    }
-                    if(medicationInfoResTO.getSort() != null){
-                        usingRateDTO.setSort(medicationInfoResTO.getSort());
-                    }else {
-                        usingRateDTO.setSort(1000);
-                    }
-                    usingRateDTO.setUsingRateAlgorithm(medicationInfoResTO.getUsingRateAlgorithm());
-                    usingRateDTO.setRelatedPlatformKey(medicationInfoResTO.getRelatedPlatformKey());
-                    logger.info("processingMedicationParameters saveOrganUsingRate usingRateDTO={}",JSONUtils.toString(usingRateDTO));
-                    usingRateService.saveOrganUsingRate(usingRateDTO);
+            //删除
+            if(new Integer(1).equals(medicationInfoResTO.getDeleteFlag())){
+                try {
+                    usingRateService.deleteUsingRateByKey(medicationInfoResTO.getMedicationCode(),medicationInfoResTO.getOrganId());
                 }catch (Exception e){
-                    msg.add("organId：" + medicationInfoResTO.getOrganId() + "，" +"用药频次编码：" + medicationInfoResTO.getMedicationCode() + "，" + "新增失败:" + e.toString().split(":")[1]);
+                    msg.add("organId：" + medicationInfoResTO.getOrganId() + "，" +"用药频次编码：" + medicationInfoResTO.getMedicationCode() + "，" + "删除失败:" + e.toString().split(":")[1]);
                 }
-            }else{
-                //删除
-                if(new Integer(1).equals(medicationInfoResTO.getDeleteFlag())){
-                    try {
-                        usingRateService.deleteUsingRateByKey(medicationInfoResTO.getMedicationCode(),medicationInfoResTO.getOrganId());
+            }else {
+                logger.info("DrugBusinessService processingMedicationParameters organId={},medicationCode={}",medicationInfoResTO.getMedicationCode(),medicationInfoResTO.getMedicationCode());
+                UsingRateDTO usingRateDTO = usingRateService.findUsingRateDTOByOrganAndKey(medicationInfoResTO.getOrganId(), medicationInfoResTO.getMedicationCode());
+                logger.info("DrugBusinessService processingMedicationParameters usingRateDTO={}",JSONUtils.toString(usingRateDTO));
+                if(Objects.isNull(usingRateDTO)){
+                    try{
+                        //新增
+                        usingRateDTO = new UsingRateDTO();
+                        usingRateDTO.setOrganId(medicationInfoResTO.getOrganId());
+                        if(StringUtils.isEmpty(medicationInfoResTO.getMedicationCode())){
+                            throw new DAOException(DAOException.VALUE_NEEDED,"用药频次编码不能为空!");
+                        }else{
+                            usingRateDTO.setUsingRateKey(medicationInfoResTO.getMedicationCode());
+                        }
+                        if(StringUtils.isNotEmpty(medicationInfoResTO.getMedicationText())){
+                            usingRateDTO.setText(medicationInfoResTO.getMedicationText());
+                        }else {
+                            throw new DAOException(DAOException.VALUE_NEEDED,"用药频次名称不能为空!");
+                        }
+                        String category = medicationInfoResTO.getCategory();
+                        if(StringUtils.isNotEmpty(category)){
+                            if(category.contains("，")){
+                                throw new DAOException(DAOException.VALUE_NEEDED,"处方类型字段内容格式不正确!");
+                            }
+                            usingRateDTO.setCategory(category);
+                        }else{
+                            throw new DAOException(DAOException.VALUE_NEEDED,"处方类型字段不能为空!");
+                        }
+                        if(medicationInfoResTO.getSort() != null){
+                            usingRateDTO.setSort(medicationInfoResTO.getSort());
+                        }else {
+                            usingRateDTO.setSort(1000);
+                        }
                     }catch (Exception e){
-                        msg.add("organId：" + medicationInfoResTO.getOrganId() + "，" +"用药频次编码：" + medicationInfoResTO.getMedicationCode() + "，" + "删除失败:" + e.toString().split(":")[1]);
+                        msg.add("organId：" + medicationInfoResTO.getOrganId() + "，" +"用药频次编码：" + medicationInfoResTO.getMedicationCode() + "，" + "新增失败:" + e.toString().split(":")[1]);
                     }
                 }else{
                     try{
                         //更新
                         if(StringUtils.isNotEmpty(medicationInfoResTO.getMedicationText())){
                             usingRateDTO.setText(medicationInfoResTO.getMedicationText());
-                        }
-                        if(StringUtils.isNotEmpty(medicationInfoResTO.getEnglishNames())){
-                            usingRateDTO.setEnglishNames(medicationInfoResTO.getEnglishNames());
-                        }
-                        if(StringUtils.isNotEmpty(medicationInfoResTO.getPinYin())){
-                            usingRateDTO.setPinYin(medicationInfoResTO.getPinYin());
                         }
                         if(StringUtils.isNotEmpty(medicationInfoResTO.getCategory())){
                             if(medicationInfoResTO.getCategory().contains("，")){
@@ -775,17 +760,24 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
                         if(medicationInfoResTO.getSort() != null){
                             usingRateDTO.setSort(medicationInfoResTO.getSort());
                         }
-                        if(medicationInfoResTO.getUsingRateAlgorithm() != null){
-                            usingRateDTO.setUsingRateAlgorithm(medicationInfoResTO.getUsingRateAlgorithm());
-                        }
-                        if(StringUtils.isNotEmpty(medicationInfoResTO.getRelatedPlatformKey())){
-                            usingRateDTO.setRelatedPlatformKey(medicationInfoResTO.getRelatedPlatformKey());
-                        }
-                        logger.info("processingMedicationParameters updateUsingRateById usingRateDTO={}",JSONUtils.toString(usingRateDTO));
-                        usingRateService.updateUsingRateById(usingRateDTO);
                     }catch (Exception e){
                         msg.add("organId：" + medicationInfoResTO.getOrganId() + "，" +"用药频次编码：" + medicationInfoResTO.getMedicationCode() + "，" + "更新失败:" + e.toString().split(":")[1]);
                     }
+                }
+                usingRateDTO.setEnglishNames(medicationInfoResTO.getEnglishNames());
+                usingRateDTO.setPinYin(medicationInfoResTO.getPinYin());
+                usingRateDTO.setUsingRateAlgorithm(medicationInfoResTO.getUsingRateAlgorithm());
+                usingRateDTO.setRelatedPlatformKey(medicationInfoResTO.getRelatedPlatformKey());
+                if(msg.size() > 0){
+                    return msg;
+                }
+                if(usingRateDTO.getId() != null){
+                    logger.info("processingMedicationParameters updateUsingRateById usingRateDTO={}",JSONUtils.toString(usingRateDTO));
+                    usingRateService.updateUsingRateById(usingRateDTO);
+                }
+                else {
+                    logger.info("processingMedicationParameters saveOrganUsingRate usingRateDTO={}",JSONUtils.toString(usingRateDTO));
+                    usingRateService.saveOrganUsingRate(usingRateDTO);
                 }
             }
         }

@@ -138,6 +138,8 @@ public class RecipeGmAtop extends BaseAtop {
 
     /**
      * 定时同步机构数据字典中用药频次、用药途径（每分钟调用一次）
+     * 用药途径：以编码加类型作为唯一标识
+     * 用药频次：以编码或名称作为唯一标识
      */
     @RpcService
     public List<String> medicationInfoSyncTask(){
