@@ -300,7 +300,7 @@ public class CreatePdfFactory {
 
         SignRecipePdfVO pdfEsign = new SignRecipePdfVO();
         pdfEsign.setData(chemistSignFileByte);
-        pdfEsign.setWidth(100f);
+        pdfEsign.setWidth(150f);
         pdfEsign.setFileName("recipecheck" + recipe.getRecipeId() + ".pdf");
         if (Objects.nonNull(checker)) {
             pdfEsign.setDoctorId(checker);
