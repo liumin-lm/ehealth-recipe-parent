@@ -657,6 +657,7 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
                         usePathwaysDTO.setSort(1000);
                     }
                     usePathwaysDTO.setRelatedPlatformKey(medicationInfoResTO.getRelatedPlatformKey());
+                    logger.info("processingMedicationParameters saveOrganUsingRate usePathwaysDTO={}",JSONUtils.toString(usePathwaysDTO));
                     usePathwaysService.saveOrganUsePathways(usePathwaysDTO);
                 }catch (Exception e){
                     msg.add("organId：" + medicationInfoResTO.getOrganId() + "，" +"用药途径编码：" + medicationInfoResTO.getMedicationCode() + "，" + "新增失败:" + e.toString().split(":")[1]);
@@ -739,6 +740,7 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
                     }
                     usingRateDTO.setUsingRateAlgorithm(medicationInfoResTO.getUsingRateAlgorithm());
                     usingRateDTO.setRelatedPlatformKey(medicationInfoResTO.getRelatedPlatformKey());
+                    logger.info("processingMedicationParameters saveOrganUsingRate usingRateDTO={}",JSONUtils.toString(usingRateDTO));
                     usingRateService.saveOrganUsingRate(usingRateDTO);
                 }catch (Exception e){
                     msg.add("organId：" + medicationInfoResTO.getOrganId() + "，" +"用药频次编码：" + medicationInfoResTO.getMedicationCode() + "，" + "新增失败:" + e.toString().split(":")[1]);
