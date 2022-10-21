@@ -143,7 +143,7 @@ public class PlatformCreatePdfServiceImpl extends BaseCreatePdf implements Creat
 
     @Override
     public byte[] updateCheckNamePdfEsign(Integer recipeId, SignRecipePdfVO pdfEsign) throws Exception {
-        pdfEsign.setPosX(200F);
+        pdfEsign.setPosX(220F);
         pdfEsign.setPosY(50F);
         byte[] data = esignService.signForRecipe2(pdfEsign);
         logger.info("CustomCreatePdfServiceImpl updateCheckNamePdfEsign data:{}", data.length);
