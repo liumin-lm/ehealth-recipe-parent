@@ -1418,7 +1418,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
 
     @Override
     public List<ImperfectInfoVO> batchGetImperfectFlag(List<com.ngari.recipe.recipe.model.RecipeBean> recipeBeans) {
-        logger.info("batchGetImperfectFlag recipeBeans={}",recipeBeans);
+        logger.info("batchGetImperfectFlag recipeBeans={}",JSONUtils.toString(recipeBeans));
         List<ImperfectInfoVO> imperfectInfoVOS = new ArrayList<>();
         List<String> recipeCodes = recipeBeans.stream().map(com.ngari.recipe.recipe.model.RecipeBean::getRecipeCode).collect(Collectors.toList());
         List<Integer> recipeIds = recipeBeans.stream().map(com.ngari.recipe.recipe.model.RecipeBean::getRecipeId).collect(Collectors.toList());
