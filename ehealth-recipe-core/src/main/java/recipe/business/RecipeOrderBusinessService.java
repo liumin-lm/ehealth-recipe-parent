@@ -2,7 +2,6 @@ package recipe.business;
 
 import com.alibaba.fastjson.JSON;
 import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
 import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.common.dto.CheckRequestCommonOrderItemDTO;
 import com.ngari.common.dto.CheckRequestCommonOrderPageDTO;
@@ -90,6 +89,7 @@ import recipe.vo.second.enterpriseOrder.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 /**
@@ -1418,7 +1418,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
 
     @Override
     public List<ImperfectInfoVO> batchGetImperfectFlag(List<com.ngari.recipe.recipe.model.RecipeBean> recipeBeans) {
-        logger.info("batchGetImperfectFlag recipeBeans={}",recipeBeans);
+        logger.info("batchGetImperfectFlag recipeBeans={}",JSONUtils.toString(recipeBeans));
         List<ImperfectInfoVO> imperfectInfoVOS = new ArrayList<>();
         List<String> recipeCodes = recipeBeans.stream().map(com.ngari.recipe.recipe.model.RecipeBean::getRecipeCode).collect(Collectors.toList());
         List<Integer> recipeIds = recipeBeans.stream().map(com.ngari.recipe.recipe.model.RecipeBean::getRecipeId).collect(Collectors.toList());
@@ -1550,6 +1550,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
 
     @Override
     public void submitRecipeHisV1(List<Integer> recipeIds) {
+        AtomicReference<Boolean> msgFlag = new AtomicReference<>(false);
         //推送his
         recipeIds.forEach(recipeId -> {
             logger.info("submitRecipeHisV1 pushRecipe recipeId={}", recipeId);
@@ -1580,9 +1581,12 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
             } catch (Exception e) {
                 logger.error("submitRecipeHisV1 pushRecipe error,sysType={},recipeId:{}", CommonConstant.RECIPE_PATIENT_TYPE, recipeId, e);
                 RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "当前处方推送his失败:" + e.getMessage());
-                throw new DAOException(609,"锁定失败请重新锁定");
+                msgFlag.set(true);
             }
             createPdfFactory.updateCodePdfExecute(recipeId);
         });
+        if (msgFlag.get()) {
+            throw new DAOException(609, "锁定失败请重新锁定");
+        }
     }
 }
