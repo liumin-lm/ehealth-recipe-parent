@@ -20,9 +20,8 @@ import recipe.constant.ReviewTypeConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
-import recipe.enumerate.status.OrderStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
-import recipe.manager.StateManager;
+import recipe.manager.EnterpriseManager;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeMsgService;
 import recipe.service.RecipeService;
@@ -128,11 +127,13 @@ public class AuditPostMode extends AbstractAuditMode {
             }
             //设置新的审方状态
             super.setAuditStateToPendingReview(dbRecipe,status);
-            StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
             if (RecipeStatusConstant.CHECK_PASS_YS == status) {
                 //说明是可进行医保支付的单子或者是中药或膏方处方
                 RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
                 remoteDrugEnterpriseService.pushSingleRecipeInfo(dbRecipe.getRecipeId());
+                EnterpriseManager enterpriseManager = AppContextHolder.getBean("enterpriseManager", EnterpriseManager.class);
+                //药师审方后推送给扁鹊流转平台
+                enterpriseManager.pushRecipeInfoToBq(dbRecipe, 0);
             }
         }
         individuationHandle(result, dbRecipe, status);

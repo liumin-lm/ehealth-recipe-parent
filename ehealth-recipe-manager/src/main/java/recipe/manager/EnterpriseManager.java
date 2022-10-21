@@ -6,7 +6,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.organ.model.OrganBean;
-import com.ngari.base.push.service.ISmsPushService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.TakeMedicineByToHos;
 import com.ngari.infra.logistics.mode.WriteBackLogisticsOrderDto;
@@ -410,16 +409,19 @@ public class EnterpriseManager extends BaseManager {
             logger.info("EnterpriseManager pushRecipeForThird result:{}", JSONUtils.toString(result));
             return result;
         }
+        logger.info("EnterpriseManager pushRecipeForThird result:{}", JSONUtils.toString(result));
+        return result;
+    }
+
+    public void pushRecipeInfoToBq(Recipe recipe, Integer node){
         try {
             Boolean uploadBqPlatformFlag = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "uploadBqPlatformFlag", false);
             if (uploadBqPlatformFlag) {
-                result = pushRecipeInfoForThird(recipe, null, node, encData);
+                pushRecipeInfoForThird(recipe, null, node, "");
             }
         } catch (Exception e) {
             logger.error("EnterpriseManager pushRecipeForThird error", e);
         }
-        logger.info("EnterpriseManager pushRecipeForThird result:{}", JSONUtils.toString(result));
-        return result;
     }
 
     /**
