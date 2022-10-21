@@ -42,10 +42,7 @@ import recipe.client.*;
 import recipe.constant.DrugEnterpriseConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.dao.*;
-import recipe.enumerate.status.GiveModeEnum;
-import recipe.enumerate.status.OrderStateEnum;
-import recipe.enumerate.status.RecipeOrderStatusEnum;
-import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.status.*;
 import recipe.enumerate.type.*;
 import recipe.util.*;
 
@@ -938,6 +935,11 @@ public class OrderManager extends BaseManager {
             //查询有效的预下单信息
             RecipeBeforeOrder recipeBeforeOrder = recipeBeforeOrderDAO.getRecipeBeforeOrderByRecipeId(recipeId);
             if (Objects.nonNull(recipeBeforeOrder)) {
+                if(YesOrNoEnum.YES.getType().equals(recipeBeforeOrder.getIsLock())){
+                    if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
+                        throw new DAOException(609, "该处方已经锁定购药方式，无法重新选择药企");
+                    }
+                }
                 //把原有的删除状态置为1，再新增一条数据
                 recipeBeforeOrder.setDeleteFlag(1);
                 recipeBeforeOrder.setUpdateTime(new Date());
