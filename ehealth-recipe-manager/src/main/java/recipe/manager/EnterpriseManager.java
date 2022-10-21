@@ -413,7 +413,7 @@ public class EnterpriseManager extends BaseManager {
         try {
             Boolean uploadBqPlatformFlag = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "uploadBqPlatformFlag", false);
             if (uploadBqPlatformFlag) {
-                result = pushRecipeInfoForThird(recipe, new DrugsEnterprise(), node, encData);
+                result = pushRecipeInfoForThird(recipe, null, node, encData);
             }
         } catch (Exception e) {
             logger.error("EnterpriseManager pushRecipeForThird error", e);
