@@ -8,6 +8,7 @@ import com.ngari.patient.service.EmploymentService;
 import com.ngari.recipe.dto.ApothecaryDTO;
 import com.ngari.recipe.entity.Recipe;
 import ctd.util.JSONUtils;
+import eh.recipeaudit.model.RecipeCheckBean;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,10 +16,7 @@ import recipe.util.ByteUtils;
 import recipe.util.RecipeUtil;
 import recipe.util.ValidateUtil;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -34,6 +32,8 @@ public class DoctorClient extends BaseClient {
     private DoctorExtendService doctorExtendService;
     @Autowired
     private EmploymentService iEmploymentService;
+    @Autowired
+    private RecipeAuditClient recipeAuditClient;
 
     /**
      * 获取平台药师信息 无选择发药药师 则获取默认发药药师
@@ -68,6 +68,9 @@ public class DoctorClient extends BaseClient {
             DoctorDTO doctorDTO = getDoctor(apothecaryId);
             apothecaryDTO.setCheckApothecaryIdCard(doctorDTO.getIdNumber());
             apothecaryDTO.setCheckApothecaryName(doctorDTO.getName());
+        } else {
+            //审核药师可能在平台没注册，审方结果返回时把审核药师姓名保存在CheckerText字段里
+            apothecaryDTO.setCheckApothecaryName(recipe.getCheckerText());
         }
         logger.info("DoctorClient getApothecary apothecaryVO:{} ", JSONUtils.toString(apothecaryDTO));
         return apothecaryDTO;
@@ -176,9 +179,6 @@ public class DoctorClient extends BaseClient {
             return null;
         }
         DoctorExtendDTO doctorExtend = doctorExtendService.getByDoctorId(doctorId);
-        if (doctorExtend == null) {
-            return null;
-        }
         return doctorExtend;
     }
 

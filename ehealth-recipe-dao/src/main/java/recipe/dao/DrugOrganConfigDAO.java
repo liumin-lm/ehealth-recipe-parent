@@ -48,10 +48,10 @@ public abstract class DrugOrganConfigDAO extends HibernateSupportDelegateDAO<Dru
      * @param endTime
      * @return
      */
-    @DAOMethod(sql="select organId  from OrganConfig where enableDrugSync=1 and dockingMode=1 and regularTime >=:startTime and  regularTime <=:endTime ",limit = 0)
+    @DAOMethod(sql="select organId  from DrugOrganConfig where enableDrugSync=1 and dockingMode=1 and regularTime >:startTime and  regularTime <=:endTime ",limit = 0)
     public abstract List<Integer> findOrganIdByEnableDrugSyncAndTime(@DAOParam("startTime") Time startTime , @DAOParam("endTime") Time endTime  );
 
-    @DAOMethod(sql="select organId from OrganConfig where enable_drug_sync=1" ,limit=0)
+    @DAOMethod(sql="select organId from DrugOrganConfig where enable_drug_sync=1" ,limit=0)
     public abstract List<Integer> findEnableDrugSync();
 
 }
