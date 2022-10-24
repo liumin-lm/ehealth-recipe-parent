@@ -434,7 +434,11 @@ public class PayModeToHos implements IPurchaseService {
             depDetailBean.setPharmacyName(takeMedicineByToHos.getPharmacyName());
             depDetailBean.setPharmacyCode(takeMedicineByToHos.getPharmacyCode());
             depDetailBean.setAddress(takeMedicineByToHos.getPharmacyAddress());
-            depDetailBean.setDistance(takeMedicineByToHos.getDistance());
+            if (Objects.isNull(takeMedicineByToHos.getDistance())) {
+                depDetailBean.setDistance(0.0);
+            } else {
+                depDetailBean.setDistance(takeMedicineByToHos.getDistance());
+            }
             depDetailBean.setRecipeFee(takeMedicineByToHos.getRecipeTotalPrice());
             depDetailBean.setPayMethod(takeMedicineByToHos.getPayWay().toString());
             if (MapUtils.isNotEmpty(saleMap) && CollectionUtils.isNotEmpty(saleMap.get(takeMedicineByToHos.getEnterpriseId()))) {
