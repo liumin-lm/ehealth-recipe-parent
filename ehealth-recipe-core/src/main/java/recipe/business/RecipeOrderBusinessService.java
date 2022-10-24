@@ -1206,6 +1206,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                         List<Integer> recipeIds = new ArrayList<>();
                         List<Recipe> recipeList = new ArrayList<>();
                         RecipeDTO recipeDTO = new RecipeDTO();
+                        recipeDTO.setIsLock(recipeBeforeOrder.getIsLock());
                         recipeList.add(recipe);
                         recipeIds.add(recipe.getRecipeId());
                         recipeDTO.setRecipe(recipe);
