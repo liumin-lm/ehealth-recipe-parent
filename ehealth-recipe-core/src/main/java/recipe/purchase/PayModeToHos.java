@@ -318,6 +318,7 @@ public class PayModeToHos implements IPurchaseService {
         RecipeResultBean resultBean = RecipeResultBean.getSuccess();
         DepListBean depListBean = new DepListBean();
         String sort = extInfo.get("sort");
+        final String range = MapValueUtil.getString(extInfo, "range");
         // 库存判断
         List<OrganAndDrugsepRelation> relation = organAndDrugsepRelationDAO.getRelationByOrganIdAndGiveMode(dbRecipe.getClinicOrgan(), RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getType());
         if (CollectionUtils.isEmpty(relation)) {
@@ -356,10 +357,10 @@ public class PayModeToHos implements IPurchaseService {
         result.addAll(depDetailBeans);
         if ("1".equals(sort)) {
             //价格优先
-            result = result.stream().sorted(Comparator.comparing(DepDetailBean::getRecipeFee)).collect(Collectors.toList());
+            result = result.stream().filter(depDetailBean -> depDetailBean.getDistance() <= Double.parseDouble(range)).sorted(Comparator.comparing(DepDetailBean::getRecipeFee)).collect(Collectors.toList());
         } else {
             //距离优先
-            result = result.stream().sorted(Comparator.comparing(DepDetailBean::getDistance)).collect(Collectors.toList());
+            result = result.stream().filter(depDetailBean -> depDetailBean.getDistance() <= Double.parseDouble(range)).sorted(Comparator.comparing(DepDetailBean::getDistance)).collect(Collectors.toList());
         }
         depListBean.setList(result);
         depListBean.setSigle(false);
