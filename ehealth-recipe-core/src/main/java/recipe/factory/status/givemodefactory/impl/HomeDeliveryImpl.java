@@ -127,8 +127,8 @@ public class HomeDeliveryImpl extends AbstractGiveMode {
             });
             //记录日志
             String company = DictionaryUtil.getDictionary("eh.infra.dictionary.LogisticsCode", orderStatus.getLogisticsCompany());
-            RecipeLogService.saveRecipeLog(orderStatus.getRecipeId(), orderStatus.getSourceRecipeOrderStatus()
-                    , orderStatus.getTargetRecipeOrderStatus(), "配送中,配送人：" + orderStatus.getSender() +
+            RecipeLogService.saveRecipeLog(orderStatus.getRecipeId(), recipe.getStatus()
+                    , RecipeStatusEnum.RECIPE_STATUS_IN_SEND.getType(), "配送中,配送人：" + orderStatus.getSender() +
                             ",快递公司：" + company + ",快递单号：" + orderStatus.getTrackingNumber());
         }
     }
