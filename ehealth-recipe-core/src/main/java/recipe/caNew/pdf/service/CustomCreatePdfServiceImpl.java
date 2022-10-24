@@ -180,7 +180,7 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
             return null;
         }
         pdfEsign.setPosX((float) ordinateVO.getX() + 20);
-        pdfEsign.setPosY((float) ordinateVO.getY());
+        pdfEsign.setPosY((float) ordinateVO.getY() - 20);
         byte[] data = esignService.signForRecipe2(pdfEsign);
         logger.info("CustomCreatePdfServiceImpl updateCheckNamePdfEsign data:{}", data.length);
         return data;

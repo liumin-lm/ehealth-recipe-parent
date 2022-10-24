@@ -8,7 +8,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.client.DocIndexClient;
 import recipe.constant.RecipeBussConstant;
-import recipe.constant.RecipeStatusConstant;
 import recipe.constant.ReviewTypeConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
@@ -16,7 +15,6 @@ import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.DocIndexShowEnum;
-import recipe.enumerate.type.SupportModeTypeEnum;
 import recipe.manager.EnterpriseManager;
 import recipe.manager.StateManager;
 import recipe.service.RecipeLogService;
@@ -50,8 +48,10 @@ public class AuditPreMode extends AbstractAuditMode {
         Integer recipeId = recipe.getRecipeId();
         String recipeMode = recipe.getRecipeMode();
         EnterpriseManager enterpriseManager = AppContextHolder.getBean("enterpriseManager", EnterpriseManager.class);
-        //药师审方后推送给前置机（扁鹊）
+        //药师审方后推送给前置机
         enterpriseManager.pushRecipeForThird(recipe, 0, "");
+        //药师审方后推送给扁鹊流转平台
+        enterpriseManager.pushRecipeInfoToBq(recipe, 0);
         //正常平台处方
         if (RecipeBussConstant.FROMFLAG_PLATFORM.equals(recipe.getFromflag())) {
             //审核通过只有互联网发
