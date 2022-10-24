@@ -2360,7 +2360,7 @@ public class RecipeService extends RecipeBaseService {
             String date = (String) hget.get("Date");
             long minutes = timeDifference(date);
             if (minutes < 10L) {
-                throw new DAOException(DAOException.VALUE_NEEDED, "距离上次手动同步未超过10分钟，请稍后再尝试数据同步!");
+                throw new DAOException(DAOException.VALUE_NEEDED, "距离上次同步未超过10分钟，请稍后再尝试数据同步!");
             }
             if (status == 0) {
                 throw new DAOException(DAOException.VALUE_NEEDED, "药品数据正在同步中，请耐心等待...");
@@ -4229,7 +4229,7 @@ public class RecipeService extends RecipeBaseService {
                     DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
                     DrugsEnterprise byEnterpriseCode = drugsEnterpriseDAO.getByEnterpriseCode(split[i], organId);
                     if (ObjectUtils.isEmpty(byEnterpriseCode)) {
-                        throw new DAOException(DAOException.VALUE_NEEDED, "平台根据药房编码" + split[i] + " 未找到药企");
+                        throw new DAOException(DAOException.VALUE_NEEDED, "平台根据药企编码" + split[i] + " 未找到药企");
                     } else {
                         if (i != split.length - 1) {
                             ss.append(byEnterpriseCode.getId().toString() + ",");
