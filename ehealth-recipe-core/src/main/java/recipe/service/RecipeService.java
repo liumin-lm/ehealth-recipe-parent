@@ -2014,14 +2014,10 @@ public class RecipeService extends RecipeBaseService {
                             boolean isAllow=drugManager.isAllowDealBySyncDataRange(organDrug.getOrganDrugCode(),byOrganId1.getDelDrugDataRange(),byOrganId1.getDelSyncDrugType(),byOrganId1.getDelDrugFromList(),organDrug.getDrugType(),organDrug.getDrugform());
                             if(isAllow){
                                 organDrugListService.updateOrganDrugListStatusByIdSync(organId, delete.getOrganDrugId());
-                                DataSyncDTO dataSyncDTO = convertDataSyn(organDrug, organId, 4, null, 3, null);
-                                List<DataSyncDTO> syncDTOList = Lists.newArrayList();
-                                syncDTOList.add(dataSyncDTO);
-                                dataSyncLogService.addDataSyncLog("1", syncDTOList);
                             }
                         }
                     } catch (Exception e) {
-                        DataSyncDTO dataSyncDTO = convertDataSyn(organDrug, organId, 3, e, 3, null);
+                        DataSyncDTO dataSyncDTO = convertDataSyn(organDrug, organId, 4, e, 3, null);
                         List<DataSyncDTO> syncDTOList = Lists.newArrayList();
                         syncDTOList.add(dataSyncDTO);
                         dataSyncLogService.addDataSyncLog("1", syncDTOList);
@@ -2545,6 +2541,10 @@ public class RecipeService extends RecipeBaseService {
                                             organDrugListService.updateOrganDrugListStatusByIdSync(organId, detail.getOrganDrugId());
                                             deleteNum++;
                                         } catch (Exception e) {
+                                            DataSyncDTO dataSyncDTO = convertDataSyn(ObjectCopyUtils.convert(detail, OrganDrugInfoTO.class), organId, 4, e, 3, null);
+                                            List<DataSyncDTO> syncDTOList = Lists.newArrayList();
+                                            syncDTOList.add(dataSyncDTO);
+                                            dataSyncLogService.addDataSyncLog("1", syncDTOList);
                                             LOGGER.info("drugInfoSynMovement机构药品数据同步 删除失败,{}", JSONUtils.toString(detail) + "Exception:{}" + e);
                                             continue;
                                         }

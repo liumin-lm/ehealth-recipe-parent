@@ -9,11 +9,14 @@ import com.ngari.base.serviceconfig.service.IHisServiceConfigService;
 import com.ngari.bus.op.service.IUsePathwaysService;
 import com.ngari.bus.op.service.IUsingRateService;
 import com.ngari.common.mode.HisResponseTO;
+import com.ngari.his.recipe.mode.OrganDrugInfoTO;
 import com.ngari.his.regulation.entity.RegulationDrugCategoryReq;
 import com.ngari.his.regulation.entity.RegulationNotifyDataReq;
 import com.ngari.his.regulation.service.IRegulationService;
 import com.ngari.jgpt.zjs.service.IMinkeOrganService;
 import com.ngari.opbase.base.service.IBusActionLogService;
+import com.ngari.opbase.log.mode.DataSyncDTO;
+import com.ngari.opbase.log.service.IDataSyncLogService;
 import com.ngari.opbase.util.OpSecurityUtil;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.ProvUploadOrganDTO;
@@ -50,6 +53,7 @@ import recipe.dao.*;
 import recipe.dao.bean.DrugListAndOrganDrugList;
 import recipe.drugTool.service.DrugToolService;
 import recipe.drugsenterprise.ByRemoteService;
+import recipe.thread.RecipeBusiThreadPool;
 
 import java.math.BigDecimal;
 import java.text.ParseException;
@@ -68,8 +72,11 @@ public class OrganDrugListService implements IOrganDrugListService {
     private static final Logger logger = LoggerFactory.getLogger(OrganDrugListService.class);
     @Autowired
     private OrganDrugListDAO organDrugListDAO;
-    /*@Autowired
-    private SaleDrugListManager saleDrugListManager;*/
+
+    private IDataSyncLogService dataSyncLogService = AppDomainContext.getBean("opbase.dataSyncLogService", IDataSyncLogService.class);
+
+    @Autowired
+    private RecipeService recipeService;
 
     /**
      * 把药品添加到对应医院
@@ -409,6 +416,22 @@ public class OrganDrugListService implements IOrganDrugListService {
             }
             OrganDrugList update = organDrugListDAO.update(organDrugList);
             logger.info("手动同步药品禁用药品 :" + update.getDrugName() + "organId=[{}] drug=[{}]", organId, JSONUtils.toString(update));
+            //同步药品到监管备案
+            RecipeBusiThreadPool.submit(() -> {
+                uploadDrugToRegulation(update);
+                return null;
+            });
+            logger.info("drugInfoSynMovement updateHisDrug" + update.getDrugName() + "organId=[{}] drug=[{}]", organId, JSONUtils.toString(update));
+            try {
+                organDrugSync(update);
+            } catch (Exception e) {
+                logger.info("机构药品手动同步修改同步对应药企" + e);
+
+            }
+            DataSyncDTO dataSyncDTO = recipeService.convertDataSyn(ObjectCopyUtils.convert(update, OrganDrugInfoTO.class), organId, 4, null, 3, null);
+            List<DataSyncDTO> syncDTOList = Lists.newArrayList();
+            syncDTOList.add(dataSyncDTO);
+            dataSyncLogService.addDataSyncLog("1", syncDTOList);
         } catch (Exception e) {
             logger.info("手动同步药品禁用药品[updateOrganDrugListStatusById]:" + e);
         }
