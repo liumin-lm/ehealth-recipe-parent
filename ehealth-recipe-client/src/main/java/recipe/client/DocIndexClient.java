@@ -330,6 +330,23 @@ public class DocIndexClient extends BaseClient {
     }
 
 
+    /**
+     * 更新电子病例 开方科室医生信息
+     *
+     * @param docIndexId
+     * @param departId
+     * @param doctorId
+     * @return
+     */
+    public Boolean updateDocIndexInfo(Integer docIndexId, Integer departId, Integer doctorId) {
+        RecipeContinuationDTO recipeContinuation = new RecipeContinuationDTO();
+        recipeContinuation.setDocindexId(docIndexId);
+        recipeContinuation.setDepartmentId(departId);
+        recipeContinuation.setDoctorId(doctorId);
+        docIndexService.updateDocIndexForRecipeContinuation(recipeContinuation);
+        return true;
+    }
+
     private MedicalInfoBean getEmrMedicalInfoBean(Integer docIndexId) {
         if (ValidateUtil.integerIsEmpty(docIndexId)) {
             return null;
@@ -551,4 +568,5 @@ public class DocIndexClient extends BaseClient {
             return clinicId;
         }
     }
+
 }

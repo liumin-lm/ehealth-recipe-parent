@@ -39,8 +39,6 @@ import eh.wxpay.constant.PayConstant;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.time.DateUtils;
-import org.apache.lucene.document.DateTools;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.ApplicationUtils;
@@ -423,6 +421,11 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         List<EmrConfigVO> detailList = com.ngari.patient.utils.ObjectCopyUtils.convert(medicalDetailBean.getDetailList(), EmrConfigVO.class);
         medicalDetailVO.setDetailList(detailList);
         return medicalDetailVO;
+    }
+
+    @Override
+    public Boolean updateDocIndexInfo(CaseHistoryVO caseHistoryVO) {
+        return emrRecipeManager.updateDocIndexInfo(caseHistoryVO.getDocIndexId(), caseHistoryVO.getDepartId(), caseHistoryVO.getDoctorId());
     }
 
 

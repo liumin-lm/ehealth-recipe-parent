@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.dto.RecipeDetailDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import com.ngari.recipe.vo.CaseHistoryVO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -22,6 +23,7 @@ import recipe.util.ValidateUtil;
 import recipe.vo.ResultBean;
 import recipe.vo.doctor.ConfigOptionsVO;
 import recipe.vo.doctor.ValidateDetailVO;
+import recipe.vo.second.MedicalDetailVO;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -253,6 +255,25 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
             result.addAll(recipeDetailLose);
         }
         return ObjectCopyUtils.convert(result, RecipeDetailBean.class);
+    }
+
+    /**
+     * 获取电子病历数据
+     *
+     * @param caseHistoryVO 电子病历查询对象
+     */
+    @RpcService
+    public MedicalDetailVO getDocIndexInfoV1(CaseHistoryVO caseHistoryVO) {
+        validateAtop(caseHistoryVO, caseHistoryVO.getActionType());
+        if (ValidateUtil.integerIsEmpty(caseHistoryVO.getClinicId())
+                && ValidateUtil.integerIsEmpty(caseHistoryVO.getRecipeId())
+                && ValidateUtil.integerIsEmpty(caseHistoryVO.getDocIndexId())) {
+            return new MedicalDetailVO();
+        }
+        MedicalDetailVO result = recipeBusinessService.getDocIndexInfo(caseHistoryVO);
+        caseHistoryVO.setDocIndexId(result.getDocIndexId());
+        recipeBusinessService.updateDocIndexInfo(caseHistoryVO);
+        return result;
     }
 
 }

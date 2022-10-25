@@ -174,6 +174,18 @@ public class EmrRecipeManager extends BaseManager {
     }
 
     /**
+     * 更新电子病例 开方科室医生信息
+     *
+     * @param docIndexId
+     * @param departId
+     * @param doctorId
+     * @return
+     */
+    public Boolean updateDocIndexInfo(Integer docIndexId, Integer departId, Integer doctorId) {
+        return docIndexClient.updateDocIndexInfo(docIndexId, departId, doctorId);
+    }
+
+    /**
      * todo 新方法 docIndexClient.getEmrDetails
      * 查询电子病例，主要用于兼容老数据结构
      *
@@ -340,4 +352,5 @@ public class EmrRecipeManager extends BaseManager {
         }
         stringBuilder.append(value).append(decollator);
     }
+
 }

@@ -34,4 +34,12 @@ public class CaseHistoryVO implements Serializable {
      * 开处方来源 1问诊 2复诊(在线续方) 3网络门诊 5门诊
      */
     private Integer bussSource;
+    /**
+     * 开方科室id
+     */
+    private Integer departId;
+    /**
+     * 开方医生id
+     */
+    private Integer doctorId;
 }
