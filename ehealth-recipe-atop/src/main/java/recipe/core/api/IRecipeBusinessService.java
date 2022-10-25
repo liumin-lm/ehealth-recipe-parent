@@ -8,7 +8,6 @@ import com.ngari.recipe.dto.OutPatientRecipeDTO;
 import com.ngari.recipe.dto.OutPatientRecordResDTO;
 import com.ngari.recipe.dto.RecipeRefundDTO;
 import com.ngari.recipe.entity.DoctorCommonPharmacy;
-import com.ngari.recipe.entity.MedicationSyncConfig;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Symptom;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
@@ -135,6 +134,14 @@ public interface IRecipeBusinessService {
      * @param caseHistoryVO 电子病历查询对象
      */
     MedicalDetailVO getDocIndexInfo(CaseHistoryVO caseHistoryVO);
+
+    /**
+     * 更新电子病例 开方科室医生信息
+     *
+     * @param caseHistoryVO
+     * @return
+     */
+    Boolean updateDocIndexInfo(CaseHistoryVO caseHistoryVO);
 
     /**
      * 医生二次确认药师审核结果-不通过
