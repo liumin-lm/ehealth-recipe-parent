@@ -448,19 +448,23 @@ public class RecipeServiceSub {
 
     private static void setRecipeDetailsInfo(RecipeBean recipeBean, Recipe recipe, List<Recipedetail> details) {
         //设置药品详情数据
-        boolean isSucc = setDetailsInfo(recipe, details);
-        if (!isSucc) {
+        boolean isSuccess = setDetailsInfo(recipe, details);
+        if (!isSuccess) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "药品详情数据有误");
         }
         recipeBean.setTotalMoney(recipe.getTotalMoney());
         recipeBean.setActualPrice(recipe.getActualPrice());
 
         //保存开处方时的单位剂量【规格单位】，单位【规格单位】，单位剂量【最小单位】，单位【最小单位】,以json对象的方式存储
-        LOGGER.info("setReciepeDetailsInfo recipedetails:{}", JSONUtils.toString(details));
+        LOGGER.info("setRecipeDetailsInfo recipeDetails:{}", JSONUtils.toString(details));
+        String recipeDrugForm = "";
         if (details != null && details.size() > 0) {
             for (Recipedetail detail : details) {
                 OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
                 OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(recipe.getClinicOrgan(), detail.getOrganDrugCode(), detail.getDrugId());
+                if (RecipeTypeEnum.RECIPETYPE_TCM.getType().equals(recipe.getRecipeType()) && StringUtils.isEmpty(recipeDrugForm)) {
+                    recipeDrugForm = organDrugList.getDrugForm();
+                }
                 String unitDoseForSpecificationUnit = "";
                 String unitForSpecificationUnit = "";
                 String unitDoseForSmallUnit = "";
@@ -476,17 +480,19 @@ public class RecipeServiceSub {
                 drugUnitdoseAndUnitMap.put("unitForSpecificationUnit", unitForSpecificationUnit);
                 drugUnitdoseAndUnitMap.put("unitDoseForSmallUnit", unitDoseForSmallUnit);
                 drugUnitdoseAndUnitMap.put("unitForSmallUnit", unitForSmallUnit);
-                LOGGER.info("setReciepeDetailsInfo drugUnitdoseAndUnitMap:{}", JSONUtils.writeValueAsString(drugUnitdoseAndUnitMap));
+                LOGGER.info("setRecipeDetailsInfo drugUnitDoseAndUnitMap:{}", JSONUtils.writeValueAsString(drugUnitdoseAndUnitMap));
                 detail.setDrugUnitdoseAndUnit(JSONUtils.toString(drugUnitdoseAndUnitMap));
             }
+            if (StringUtils.isNotEmpty(recipeDrugForm)) {
+                recipe.setRecipeDrugForm(RecipeDrugFormTypeEnum.getDrugFormType(recipeDrugForm));
+            }
         }
-        LOGGER.info("setReciepeDetailsInfo recipedetails:{}", JSONUtils.toString(details));
+        LOGGER.info("setRecipeDetailsInfo recipeDetails:{}", JSONUtils.toString(details));
     }
 
     private static void validateRecipeAndDetailData(Recipe recipe, List<Recipedetail> details) {
         RecipeValidateUtil.validateSaveRecipeData(recipe);
     }
-
 
     /**
      * 设置药品详情数据
