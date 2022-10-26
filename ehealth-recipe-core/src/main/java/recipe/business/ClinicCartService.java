@@ -3,6 +3,7 @@ package recipe.business;
 import com.ngari.recipe.entity.ClinicCart;
 import ctd.util.BeanUtils;
 import eh.utils.BeanCopyUtils;
+import eh.utils.ValidateUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -84,6 +85,9 @@ public class ClinicCartService implements IClinicCartBusinessService {
     @Override
     public Boolean updateClinicCartById(ClinicCartVO clinicCartVO) {
         ClinicCart clinicCart = clinicCartDAO.get(clinicCartVO.getId());
+        if (ValidateUtil.nullOrZeroInteger(clinicCartVO.getAmount())) {
+            return false;
+        }
         if (Objects.nonNull(clinicCart)) {
             clinicCart.setAmount(clinicCartVO.getAmount());
             clinicCartDAO.update(clinicCart);
