@@ -71,6 +71,8 @@ public class BaseManager {
     protected RecipeParameterDao parameterDao;
     @Autowired
     protected MedicationSyncConfigDAO medicationSyncConfigDAO;
+    @Autowired
+    protected RecipeBeforeOrderDAO recipeBeforeOrderDAO;
     /**
      * 获取处方相关信息
      *

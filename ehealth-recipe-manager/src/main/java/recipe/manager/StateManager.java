@@ -2,6 +2,7 @@ package recipe.manager;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
+import com.google.common.collect.Lists;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import ctd.persistence.exception.DAOException;
@@ -279,6 +280,12 @@ public class StateManager extends BaseManager {
         updateRecipe.setProcessState(processState.getType());
         updateRecipe.setSubState(subState.getType());
         recipeDAO.updateNonNullFieldByPrimaryKey(updateRecipe);
+        // 删除预下单信息
+        try {
+            recipeBeforeOrderDAO.updateDeleteFlagByRecipeId(Lists.newArrayList(recipe.getRecipeId()));
+        }catch (Exception e){
+            logger.error("删除预下单信息失败");
+        }
         return true;
     }
 
