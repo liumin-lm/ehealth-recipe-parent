@@ -977,7 +977,7 @@ public class RecipeManager extends BaseManager {
                         recipeSkipDTO.setShowFlag(true);
                     }
                     recipeSkipDTO.setSkipUrl(recipeSkipUrl + recipeExtend.getChargeId());
-                }else{
+                }else if(new Integer(2).equals(recipeType)){
                     //门诊处方直接展示按钮
                     recipeSkipDTO.setShowFlag(true);
                     recipeSkipDTO.setSkipUrl(recipeSkipUrl + recipeCode);
