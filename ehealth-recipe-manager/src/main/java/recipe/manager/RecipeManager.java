@@ -963,6 +963,7 @@ public class RecipeManager extends BaseManager {
                 String recipeClickFlag = parameterDao.getByName("recipeSkipClickFlag");
                 Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrganWithAll(recipeCode, organId);
                 if(Objects.nonNull(recipe)){
+                    logger.info("RecipeManager getRecipeSkipUrl recipe={}",JSONUtils.toString(recipe));
                     RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
                     if(Objects.isNull(recipeExtend)){
                         return recipeSkipDTO;
@@ -972,6 +973,7 @@ public class RecipeManager extends BaseManager {
                             || recipe.getProcessState().equals(RecipeStateEnum.PROCESS_STATE_DISTRIBUTION.getType())
                             || recipe.getProcessState().equals(RecipeStateEnum.PROCESS_STATE_MEDICINE.getType())
                             || recipe.getProcessState().equals(RecipeStateEnum.PROCESS_STATE_DONE.getType())){
+                        logger.info("RecipeManager getRecipeSkipUrl ProcessState={}",JSONUtils.toString(recipe.getProcessState()));
                         recipeSkipDTO.setShowFlag(true);
                     }
                     recipeSkipDTO.setSkipUrl(recipeSkipUrl + recipeExtend.getChargeId());
