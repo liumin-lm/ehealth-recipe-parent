@@ -430,7 +430,8 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                         for (SaleDrugList saleDrugList : byOrganIdAndDrugCode) {
                             boolean isAllow =isAllowDealBySyncDataRange(config.getDelSyncDataRange(),config.getDelSyncDrugType(),detail,drugsEnterpriseId);
                             if(isAllow){
-                                saleDrugListDAO.remove(saleDrugList);
+                                saleDrugList.setStatus(0);
+                                saleDrugListDAO.update(saleDrugList);
                                 LOGGER.info("syncOrganDrugDataToSaleDrugList 删除" + detail.getDrugName() + " 药企Id=[{}] 药企药品=[{}]  机构药品=[{}]", drugsEnterpriseId, JSONUtils.toString(saleDrugList),JSONUtils.toString(detail));
                             }
                         }
@@ -474,7 +475,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                                     }
                                     if (("status".equals(saleDrugListSyncField.getFieldCode()) && !"0".equals(saleDrugListSyncField.getIsSync()))
                                             || saleDrugListSyncFieldMap.get("status") == null) {
-                                        saleDrugList1.setStatus(detail.getStatus());
+                                        saleDrugList1.setStatus(detail.getStatus());//无效的药品不会变成有效的
                                     }
                                 };
                                 saleDrugList1.setDrugId(detail.getDrugId());

@@ -44,13 +44,14 @@ public class OffLineRecipeDoctorAtop extends BaseAtop {
      * 根据处方code 获取线下处方详情
      *
      * @param recipe        患者ID
+     * @param createDate    处方时间
      * @param recipeDetails 机构ID
      * @date
      */
     @RpcService
-    public HisRecipeBean getOffLineRecipeDetailsV1(RecipeBean recipe, List<RecipeDetailBean> recipeDetails) {
+    public HisRecipeBean getOffLineRecipeDetailsV1(RecipeBean recipe, String createDate, List<RecipeDetailBean> recipeDetails) {
         validateAtop(recipe, recipe.getClinicOrgan(), recipe.getRecipeCode());
-        HisRecipeDTO hisRecipeDTO = offlineRecipeBusinessService.getOffLineRecipeDetailsV1(recipe.getClinicOrgan(), recipe.getRecipeCode());
+        HisRecipeDTO hisRecipeDTO = offlineRecipeBusinessService.getOffLineRecipeDetailsV1(recipe.getClinicOrgan(), recipe.getRecipeCode(), createDate);
         HisRecipeInfoDTO hisRecipeInfo = hisRecipeDTO.getHisRecipeInfo();
         HisRecipeBean recipeBean = ObjectCopyUtils.convert(hisRecipeInfo, HisRecipeBean.class);
         recipeBean.setSignDate(hisRecipeInfo.getSignTime());

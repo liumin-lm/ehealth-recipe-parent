@@ -2014,14 +2014,10 @@ public class RecipeService extends RecipeBaseService {
                             boolean isAllow=drugManager.isAllowDealBySyncDataRange(organDrug.getOrganDrugCode(),byOrganId1.getDelDrugDataRange(),byOrganId1.getDelSyncDrugType(),byOrganId1.getDelDrugFromList(),organDrug.getDrugType(),organDrug.getDrugform());
                             if(isAllow){
                                 organDrugListService.updateOrganDrugListStatusByIdSync(organId, delete.getOrganDrugId());
-                                DataSyncDTO dataSyncDTO = convertDataSyn(organDrug, organId, 4, null, 3, null);
-                                List<DataSyncDTO> syncDTOList = Lists.newArrayList();
-                                syncDTOList.add(dataSyncDTO);
-                                dataSyncLogService.addDataSyncLog("1", syncDTOList);
                             }
                         }
                     } catch (Exception e) {
-                        DataSyncDTO dataSyncDTO = convertDataSyn(organDrug, organId, 3, e, 3, null);
+                        DataSyncDTO dataSyncDTO = convertDataSyn(organDrug, organId, 4, e, 3, null);
                         List<DataSyncDTO> syncDTOList = Lists.newArrayList();
                         syncDTOList.add(dataSyncDTO);
                         dataSyncLogService.addDataSyncLog("1", syncDTOList);
@@ -2360,7 +2356,7 @@ public class RecipeService extends RecipeBaseService {
             String date = (String) hget.get("Date");
             long minutes = timeDifference(date);
             if (minutes < 10L) {
-                throw new DAOException(DAOException.VALUE_NEEDED, "距离上次手动同步未超过10分钟，请稍后再尝试数据同步!");
+                throw new DAOException(DAOException.VALUE_NEEDED, "距离上次同步未超过10分钟，请稍后再尝试数据同步!");
             }
             if (status == 0) {
                 throw new DAOException(DAOException.VALUE_NEEDED, "药品数据正在同步中，请耐心等待...");
@@ -2545,6 +2541,10 @@ public class RecipeService extends RecipeBaseService {
                                             organDrugListService.updateOrganDrugListStatusByIdSync(organId, detail.getOrganDrugId());
                                             deleteNum++;
                                         } catch (Exception e) {
+                                            DataSyncDTO dataSyncDTO = convertDataSyn(ObjectCopyUtils.convert(detail, OrganDrugInfoTO.class), organId, 4, e, 3, null);
+                                            List<DataSyncDTO> syncDTOList = Lists.newArrayList();
+                                            syncDTOList.add(dataSyncDTO);
+                                            dataSyncLogService.addDataSyncLog("1", syncDTOList);
                                             LOGGER.info("drugInfoSynMovement机构药品数据同步 删除失败,{}", JSONUtils.toString(detail) + "Exception:{}" + e);
                                             continue;
                                         }
@@ -4229,7 +4229,7 @@ public class RecipeService extends RecipeBaseService {
                     DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
                     DrugsEnterprise byEnterpriseCode = drugsEnterpriseDAO.getByEnterpriseCode(split[i], organId);
                     if (ObjectUtils.isEmpty(byEnterpriseCode)) {
-                        throw new DAOException(DAOException.VALUE_NEEDED, "平台根据药房编码" + split[i] + " 未找到药企");
+                        throw new DAOException(DAOException.VALUE_NEEDED, "平台根据药企编码" + split[i] + " 未找到药企");
                     } else {
                         if (i != split.length - 1) {
                             ss.append(byEnterpriseCode.getId().toString() + ",");

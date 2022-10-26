@@ -148,6 +148,7 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
             recipeBean.setSupportMode(0);
             recipeBean.setGiveMode(2);
             recipeBean.setFastRecipeFlag(1);
+            recipeBean.setRecipeDrugForm(fastRecipe.getRecipeDrugForm());
             recipeBean.setBussSource(BussSourceTypeEnum.BUSSSOURCE_REVISIT.getType());
 
             recipeBean.setRecipeMemo(fastRecipe.getRecipeMemo());
