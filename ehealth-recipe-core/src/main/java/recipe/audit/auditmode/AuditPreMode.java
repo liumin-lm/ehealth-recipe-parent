@@ -47,22 +47,26 @@ public class AuditPreMode extends AbstractAuditMode {
         RecipeDetailDAO detailDAO = getDAO(RecipeDetailDAO.class);
         Integer recipeId = recipe.getRecipeId();
         String recipeMode = recipe.getRecipeMode();
-        EnterpriseManager enterpriseManager = AppContextHolder.getBean("enterpriseManager", EnterpriseManager.class);
-        //药师审方后推送给前置机
-        enterpriseManager.pushRecipeForThird(recipe, 0, "");
-        //药师审方后推送给扁鹊流转平台
-        enterpriseManager.pushRecipeInfoToBq(recipe, 0);
-        //正常平台处方
-        if (RecipeBussConstant.FROMFLAG_PLATFORM.equals(recipe.getFromflag())) {
-            //审核通过只有互联网发
-            if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipeMode)) {
-                RecipeServiceSub.sendRecipeTagToPatient(recipe, detailDAO.findByRecipeId(recipeId), null, true);
-                //向患者推送处方消息
-                RecipeMsgService.batchSendMsg(recipe, RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType());
-            } else {
-                //平台前置发送审核通过消息 /向患者推送处方消息 处方通知您有一张处方单需要处理，请及时查看。
-                RecipeMsgService.batchSendMsg(recipe, RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS_YS.getType());
+        try {
+            EnterpriseManager enterpriseManager = AppContextHolder.getBean("enterpriseManager", EnterpriseManager.class);
+            //药师审方后推送给前置机
+            enterpriseManager.pushRecipeForThird(recipe, 0, "");
+            //药师审方后推送给扁鹊流转平台
+            enterpriseManager.pushRecipeInfoToBq(recipe, 0);
+            //正常平台处方
+            if (RecipeBussConstant.FROMFLAG_PLATFORM.equals(recipe.getFromflag())) {
+                //审核通过只有互联网发
+                if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipeMode)) {
+                    RecipeServiceSub.sendRecipeTagToPatient(recipe, detailDAO.findByRecipeId(recipeId), null, true);
+                    //向患者推送处方消息
+                    RecipeMsgService.batchSendMsg(recipe, RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType());
+                } else {
+                    //平台前置发送审核通过消息 /向患者推送处方消息 处方通知您有一张处方单需要处理，请及时查看。
+                    RecipeMsgService.batchSendMsg(recipe, RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS_YS.getType());
+                }
             }
+        } catch (Exception e) {
+            LOGGER.error("afterCheckPassYs error", e);
         }
         StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
         stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_ORDER, RecipeStateEnum.SUB_ORDER_READY_SUBMIT_ORDER);
