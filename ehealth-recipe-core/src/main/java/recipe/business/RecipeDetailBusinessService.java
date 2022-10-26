@@ -206,9 +206,9 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
     }
 
     @Override
-    public RecipeSkipVO getRecipeSkipUrl(Integer organId, String recipeCode) {
-        logger.info("RecipeDetailBusinessService getRecipeSkipUrl organId={},recipeCode={}",organId,recipeCode);
-        return ObjectCopyUtils.convert(recipeManager.getRecipeSkipUrl(organId,recipeCode),RecipeSkipVO.class);
+    public RecipeSkipVO getRecipeSkipUrl(Integer organId, String recipeCode, Integer recipeType) {
+        logger.info("RecipeDetailBusinessService getRecipeSkipUrl organId={},recipeCode={},recipeType={}",organId,recipeCode,recipeType);
+        return ObjectCopyUtils.convert(recipeManager.getRecipeSkipUrl(organId,recipeCode,recipeType),RecipeSkipVO.class);
     }
 
     @Override

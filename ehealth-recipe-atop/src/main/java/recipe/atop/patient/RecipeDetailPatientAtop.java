@@ -1,6 +1,7 @@
 package recipe.atop.patient;
 
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import com.ngari.recipe.vo.RecipeSkipReqVO;
 import com.ngari.recipe.vo.RecipeSkipVO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
@@ -75,7 +76,17 @@ public class RecipeDetailPatientAtop extends BaseAtop {
      */
     @RpcService
     public RecipeSkipVO getRecipeSkipUrl(Integer organId, String recipeCode) {
-        return recipeDetailService.getRecipeSkipUrl(organId, recipeCode);
+        return recipeDetailService.getRecipeSkipUrl(organId, recipeCode,null);
+    }
+
+    /**
+     * 跳转到第三方
+     * @param recipeSkipReqVO
+     * @return
+     */
+    @RpcService
+    public RecipeSkipVO getRecipeSkipUrlV1(RecipeSkipReqVO recipeSkipReqVO) {
+        return recipeDetailService.getRecipeSkipUrl(recipeSkipReqVO.getOrganId(),recipeSkipReqVO.getRecipeCode(),recipeSkipReqVO.getRecipeType());
     }
 
     @RpcService

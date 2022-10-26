@@ -951,7 +951,7 @@ public class RecipeManager extends BaseManager {
         return recipeRefundInfo;
     }
 
-    public RecipeSkipDTO getRecipeSkipUrl(Integer organId, String recipeCode) {
+    public RecipeSkipDTO getRecipeSkipUrl(Integer organId, String recipeCode, Integer recipeType) {
         RecipeSkipDTO recipeSkipDTO = new RecipeSkipDTO();
         recipeSkipDTO.setShowFlag(false);
         recipeSkipDTO.setClickFlag(false);
@@ -962,7 +962,7 @@ public class RecipeManager extends BaseManager {
                 String recipeSkipUrl = parameterDao.getByName("recipeSkipUrl");
                 String recipeClickFlag = parameterDao.getByName("recipeSkipClickFlag");
                 Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrganWithAll(recipeCode, organId);
-                if(Objects.nonNull(recipe)){
+                if(Objects.nonNull(recipe) && new Integer(1).equals(recipeType)){
                     logger.info("RecipeManager getRecipeSkipUrl recipe={}",JSONUtils.toString(recipe));
                     RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
                     if(Objects.isNull(recipeExtend)){
@@ -977,7 +977,7 @@ public class RecipeManager extends BaseManager {
                         recipeSkipDTO.setShowFlag(true);
                     }
                     recipeSkipDTO.setSkipUrl(recipeSkipUrl + recipeExtend.getChargeId());
-                }else{
+                }else if(new Integer(2).equals(recipeType)){
                     //门诊处方直接展示按钮
                     recipeSkipDTO.setShowFlag(true);
                     recipeSkipDTO.setSkipUrl(recipeSkipUrl + recipeCode);
