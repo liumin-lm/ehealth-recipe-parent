@@ -1262,7 +1262,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
             String signDateString = simpleDateFormat.format(recipe.getSignDate());
             dto.setOrderDate(signDateString);
-            dto.setOrderID(recipe.getRecipeCode());
+//            dto.setOrderID(recipe.getRecipeCode());
             dto.setOrderType(dealRecipeType(recipe.getRecipeType()));
             dto.setOrderTypeName(dealRecipeTypeName(recipe.getRecipeType()));
             dto.setPatientId(recipe.getPatientID());
