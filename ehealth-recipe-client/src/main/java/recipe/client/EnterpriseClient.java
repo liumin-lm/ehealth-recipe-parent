@@ -130,7 +130,7 @@ public class EnterpriseClient extends BaseClient {
         SkipThirdDTO result = new SkipThirdDTO();
         if (null == responseTO || !responseTO.isSuccess()) {
             result.setCode(0);
-            result.setMsg(responseTO.getMsg());
+            result.setMsg("推送药企异常");
             return result;
         }
         if (null != responseTO.getExtend()) {
