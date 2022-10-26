@@ -73,7 +73,6 @@ import org.apache.commons.collections.MapUtils;
 import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.util.Args;
-import org.checkerframework.checker.units.qual.A;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -119,8 +118,6 @@ import recipe.service.common.RecipeSignService;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.thread.*;
 import recipe.util.*;
-import recipe.vo.greenroom.OrganConfigVO;
-import recipe.vo.greenroom.OrganDrugListSyncFieldVo;
 import recipe.vo.patient.RecipeGiveModeButtonRes;
 import video.ainemo.server.IVideoInfoService;
 
@@ -1004,6 +1001,7 @@ public class RecipeService extends RecipeBaseService {
             if (recipe.canMedicalPay()) {
                 //如果是可医保支付的单子，审核是在用户看到之前，所以审核通过之后变为待处理状态
                 recipeStatus = RecipeStatusConstant.CHECK_PASS;
+                stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_ORDER, RecipeStateEnum.SUB_ORDER_READY_SUBMIT_ORDER);
             }
         }
         recipeDAO.updateRecipeInfoByRecipeId(recipeId, recipeStatus, null);
