@@ -497,6 +497,15 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                         recipeFee = recipeFee.add(recipeDetail.getActualSalePrice().multiply(new BigDecimal(recipeDetail.getUseTotalDose())).setScale(4, BigDecimal.ROUND_HALF_UP)).setScale(2, BigDecimal.ROUND_HALF_UP);
                         baseRecipeDetailVO.setSalePrice(recipeDetail.getActualSalePrice());
                     }
+
+                    Map<String, OrganDrugList> organDrugMap = organDrugListManager.getOrganDrugByIdAndCode(recipe.getClinicOrgan(), Collections.singletonList(recipeDetail.getDrugId()));
+                    if (!organDrugMap.isEmpty()) {
+                        OrganDrugList organDrug = organDrugMap.get(recipeDetail.getDrugId() + recipeDetail.getOrganDrugCode());
+                        if (null != organDrug) {
+                            baseRecipeDetailVO.setDrugForm(organDrug.getDrugForm());
+                        }
+                    }
+
                     baseRecipeDetailVOList.add(baseRecipeDetailVO);
                 }
                 if (null == downRecipeVO.getRecipeFee()) {
