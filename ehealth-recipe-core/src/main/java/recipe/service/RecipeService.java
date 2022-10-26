@@ -1001,7 +1001,6 @@ public class RecipeService extends RecipeBaseService {
             if (recipe.canMedicalPay()) {
                 //如果是可医保支付的单子，审核是在用户看到之前，所以审核通过之后变为待处理状态
                 recipeStatus = RecipeStatusConstant.CHECK_PASS;
-                stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_ORDER, RecipeStateEnum.SUB_ORDER_READY_SUBMIT_ORDER);
             }
         }
         recipeDAO.updateRecipeInfoByRecipeId(recipeId, recipeStatus, null);
