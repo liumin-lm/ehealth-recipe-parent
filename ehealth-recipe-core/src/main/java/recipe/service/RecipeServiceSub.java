@@ -462,7 +462,7 @@ public class RecipeServiceSub {
             for (Recipedetail detail : details) {
                 OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
                 OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(recipe.getClinicOrgan(), detail.getOrganDrugCode(), detail.getDrugId());
-                if (RecipeTypeEnum.RECIPETYPE_TCM.getType().equals(recipe.getRecipeType()) && StringUtils.isEmpty(recipeDrugForm)) {
+                if (RecipeTypeEnum.RECIPETYPE_TCM.getType().equals(recipe.getRecipeType()) && Objects.nonNull(organDrugList) && StringUtils.isEmpty(recipeDrugForm)) {
                     recipeDrugForm = organDrugList.getDrugForm();
                 }
                 String unitDoseForSpecificationUnit = "";
