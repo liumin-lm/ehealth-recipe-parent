@@ -1368,6 +1368,7 @@ public class RecipeHisService extends RecipeBaseService {
             hisCheckRecipeReqTO.setRevisitId(recipeBean.getClinicId());
         }
         hisCheckRecipeReqTO.setCopyNum(recipe.getCopyNum());
+        hisCheckRecipeReqTO.setRecipeDrugForm(recipe.getRecipeDrugForm());
         hisCheckRecipeReqTO.setOrganID(organService.getOrganizeCodeByOrganId(recipeBean.getClinicOrgan()));
         if (recipeBean.getClinicId() != null) {
             IRevisitExService exService = RevisitAPI.getService(IRevisitExService.class);
