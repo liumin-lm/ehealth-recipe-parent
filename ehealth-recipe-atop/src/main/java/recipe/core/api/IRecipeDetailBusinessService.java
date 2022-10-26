@@ -3,6 +3,7 @@ package recipe.core.api;
 import com.ngari.recipe.dto.RecipeDetailDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import com.ngari.recipe.vo.RecipeSkipReqVO;
 import com.ngari.recipe.vo.RecipeSkipVO;
 import recipe.vo.ResultBean;
 import recipe.vo.doctor.ConfigOptionsVO;
@@ -60,9 +61,10 @@ public interface IRecipeDetailBusinessService {
      *
      * @param organId    机构ID
      * @param recipeCode his处方号
+     * @param recipeType 类型 1 线上处方 2 门诊处方
      * @return
      */
-    RecipeSkipVO getRecipeSkipUrl(Integer organId, String recipeCode);
+    RecipeSkipVO getRecipeSkipUrl(Integer organId, String recipeCode, Integer recipeType);
 
     /**
      * 校验his 药品规则，靶向药，大病医保，抗肿瘤药物等
