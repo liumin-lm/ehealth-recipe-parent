@@ -116,4 +116,7 @@ public class DownRecipeVO extends BaseRecipeVO implements Serializable {
         return invalidTime;
     }
 
+    @ItemProperty(alias = "处方剂型 1 饮片方 2 颗粒方")
+    private Integer recipeDrugForm;
+
 }
