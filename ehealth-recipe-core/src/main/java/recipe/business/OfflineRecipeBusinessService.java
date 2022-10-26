@@ -368,7 +368,7 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
     }
 
     @Override
-    public HisRecipeDTO getOffLineRecipeDetailsV1(Integer organId, String recipeCode) {
-        return offlineRecipeClient.getOffLineRecipeDetailsV1(organId, recipeCode);
+    public HisRecipeDTO getOffLineRecipeDetailsV1(Integer organId, String recipeCode, String createDate) {
+        return offlineRecipeClient.getOffLineRecipeDetailsV1(organId, recipeCode, createDate);
     }
 }

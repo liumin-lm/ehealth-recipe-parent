@@ -560,12 +560,14 @@ public class OfflineRecipeClient extends BaseClient {
     /**
      * 根据处方code获取线下处方详情
      *
+     * @param createDate 处方时间
      * @param organId    机构id
      * @param recipeCode 处方code
      */
-    public HisRecipeDTO getOffLineRecipeDetailsV1(Integer organId, String recipeCode) {
+    public HisRecipeDTO getOffLineRecipeDetailsV1(Integer organId, String recipeCode, String createDate) {
         logger.info("OfflineRecipeClient getOffLineRecipeDetailsV1 organId:{},recipeCode:{}", organId, recipeCode);
         QueryRecipeRequestTO request = new QueryRecipeRequestTO();
+        request.setCreateDate(createDate);
         request.setOrgan(organId);
         request.setRecipeCode(recipeCode);
         HisResponseTO<RecipeInfoTO> hisResponse = recipeHisService.getOffLineRecipeDetailsV1(request);

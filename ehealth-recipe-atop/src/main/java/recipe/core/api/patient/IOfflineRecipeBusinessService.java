@@ -102,8 +102,9 @@ public interface IOfflineRecipeBusinessService {
     /**
      * 根据处方code获取线下处方详情
      *
+     * @param createDate 处方时间
      * @param organId    机构id
      * @param recipeCode 处方code
      */
-    HisRecipeDTO getOffLineRecipeDetailsV1(Integer organId, String recipeCode);
+    HisRecipeDTO getOffLineRecipeDetailsV1(Integer organId, String recipeCode, String createDate);
 }
