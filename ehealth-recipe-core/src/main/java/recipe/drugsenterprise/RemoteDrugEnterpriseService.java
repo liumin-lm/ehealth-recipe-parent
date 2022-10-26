@@ -893,7 +893,11 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
                 List<com.ngari.recipe.drugsenterprise.model.DepDetailBean> collect = depDetailBeans.stream().map(depDetailBean -> {
                     com.ngari.recipe.drugsenterprise.model.DepDetailBean depDetailBean1 = BeanCopyUtils.copyProperties(depDetailBean, com.ngari.recipe.drugsenterprise.model.DepDetailBean::new);
                     if(Objects.nonNull(depDetailBean.getPosition())) {
-                        depDetailBean1.setPosition(BeanCopyUtils.copyProperties(depDetailBean.getPosition(), Position::new));
+                        com.ngari.his.recipe.mode.Position position = depDetailBean.getPosition();
+                        Position position1 = new Position();
+                        position1.setLongitude(Double.valueOf(position.getLongitude()));
+                        position1.setLatitude(Double.valueOf(position.getLatitude()));
+                        depDetailBean1.setPosition(position1);
                     }
                     return depDetailBean1;
                 }).collect(Collectors.toList());
