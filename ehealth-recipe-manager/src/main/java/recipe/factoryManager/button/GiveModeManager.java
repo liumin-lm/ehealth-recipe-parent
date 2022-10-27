@@ -234,13 +234,7 @@ public abstract class GiveModeManager implements IGiveModeBase {
             }
             if (strings.contains(String.valueOf(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getType()))) {
                 //绍兴市人民医院个性化处理，只有配置了白名单的就诊人才显示例外支付按钮
-                if(new Integer(1000243).equals(recipe.getClinicOrgan()) ||
-                        (new Integer(1007639).equals(recipe.getClinicOrgan())) ||
-                        (new Integer(1000829).equals(recipe.getClinicOrgan()))) {
-                    if(recipeManager.handleMedicalPaymentButton(recipe)){
-                        list.add(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText());
-                    }
-                } else {
+                if(recipeManager.handleMedicalPaymentButton(recipe)){
                     list.add(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText());
                 }
             }

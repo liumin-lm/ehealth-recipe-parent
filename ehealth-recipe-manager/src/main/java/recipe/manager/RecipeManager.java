@@ -41,6 +41,7 @@ import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.status.WriteHisEnum;
 import recipe.enumerate.type.AppointEnterpriseTypeEnum;
 import recipe.enumerate.type.RecipeShowQrConfigEnum;
+import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.util.DictionaryUtil;
 import recipe.util.LocalStringUtil;
 import recipe.util.ObjectCopyUtils;
@@ -1036,13 +1037,21 @@ public class RecipeManager extends BaseManager {
     public Boolean handleMedicalPaymentButton(Recipe recipe){
         RecipeParameterDao parameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
         String recipeIdCardWhiteList = parameterDao.getByName("recipe_idCard_whiteList");
-        if (StringUtils.isNotEmpty(recipeIdCardWhiteList)) {
+        String recipeIdCardWhiteListOrgan = parameterDao.getByName("recipe_idCard_whiteList_organ");
+        if(StringUtils.isEmpty(recipeIdCardWhiteListOrgan)){
+            return true;
+        }
+        List<String> organIdList = Arrays.asList(recipeIdCardWhiteListOrgan.split(","));
+        if(organIdList.contains(recipe.getClinicOrgan().toString())){
+            if(StringUtils.isEmpty(recipeIdCardWhiteList)){
+                return false;
+            }
             com.ngari.patient.dto.PatientDTO patient = patientService.get(recipe.getMpiid());
             if (Objects.nonNull(patient)) {
                 List<String> recipeIdCardWhiteLists = Arrays.asList(recipeIdCardWhiteList.split(","));
                 return recipeIdCardWhiteLists.contains(patient.getIdcard());
             }
         }
-        return false;
+        return true;
     }
 }
