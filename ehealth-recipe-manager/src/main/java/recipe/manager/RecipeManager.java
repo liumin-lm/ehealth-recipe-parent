@@ -7,6 +7,7 @@ import com.ngari.base.dto.UsingRateDTO;
 import com.ngari.consult.common.model.ConsultExDTO;
 import com.ngari.follow.utils.ObjectCopyUtil;
 import com.ngari.patient.dto.DoctorDTO;
+import com.ngari.patient.service.PatientService;
 import com.ngari.platform.recipe.mode.*;
 import com.ngari.recipe.dto.EmrDetailDTO;
 import com.ngari.recipe.dto.RecipeDTO;
@@ -14,6 +15,7 @@ import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import com.ngari.revisit.RevisitBean;
 import com.ngari.revisit.common.model.RevisitExDTO;
+import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.FileAuth;
 import ctd.util.JSONUtils;
@@ -31,6 +33,7 @@ import recipe.common.CommonConstant;
 import recipe.common.UrlConfig;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
+import recipe.dao.RecipeParameterDao;
 import recipe.dao.RequirementsForTakingDao;
 import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.enumerate.status.RecipeStateEnum;
@@ -76,6 +79,8 @@ public class RecipeManager extends BaseManager {
     private IRecipeCheckService iRecipeCheckService;
     @Autowired
     private RequirementsForTakingDao requirementsForTakingDao;
+    @Autowired
+    private PatientService patientService;
 
     /**
      * 保存处方信息
@@ -1020,5 +1025,24 @@ public class RecipeManager extends BaseManager {
                 recipeExtendDAO.updateNonNullFieldByPrimaryKey(recipeExtend);
             }
         }
+    }
+
+    /**
+     * 针对绍兴市人民医院做个性化处理
+     * 只有配置了白名单的就诊人才会显示例外支付按钮
+     * @param recipe
+     * @return
+     */
+    public Boolean handleMedicalPaymentButton(Recipe recipe){
+        RecipeParameterDao parameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
+        String recipeIdCardWhiteList = parameterDao.getByName("recipe_idCard_whiteList");
+        if (StringUtils.isNotEmpty(recipeIdCardWhiteList)) {
+            com.ngari.patient.dto.PatientDTO patient = patientService.get(recipe.getMpiid());
+            if (Objects.nonNull(patient)) {
+                List<String> recipeIdCardWhiteLists = Arrays.asList(recipeIdCardWhiteList.split(","));
+                return recipeIdCardWhiteLists.contains(patient.getIdcard());
+            }
+        }
+        return false;
     }
 }

@@ -5790,9 +5790,18 @@ public class RecipeService extends RecipeBaseService {
         // 例外支付单独处理 只要机构配置了例外支付,所有处方都支持
         List<GiveModeButtonDTO> giveModeButtonBeans = buttonsMap.get(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText());
         if (CollectionUtils.isNotEmpty(giveModeButtonBeans)) {
-            RecipeGiveModeButtonRes supportMedicalPaymentButton = new RecipeGiveModeButtonRes(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText(),
-                    giveModeButtonBeans.get(0).getShowButtonName(), recipeIds, true, giveModeButtonBeans.get(0).getButtonSkipType());
-            list.add(supportMedicalPaymentButton);
+            //绍兴市人民医院个性化处理，只有配置了白名单的就诊人才显示例外支付按钮
+            if(new Integer(1).equals(recipes.get(0).getClinicOrgan())){
+                if(recipeManager.handleMedicalPaymentButton(recipes.get(0))){
+                    RecipeGiveModeButtonRes supportMedicalPaymentButton = new RecipeGiveModeButtonRes(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText(),
+                            giveModeButtonBeans.get(0).getShowButtonName(), recipeIds, true, giveModeButtonBeans.get(0).getButtonSkipType());
+                    list.add(supportMedicalPaymentButton);
+                }
+            }else{
+                RecipeGiveModeButtonRes supportMedicalPaymentButton = new RecipeGiveModeButtonRes(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText(),
+                        giveModeButtonBeans.get(0).getShowButtonName(), recipeIds, true, giveModeButtonBeans.get(0).getButtonSkipType());
+                list.add(supportMedicalPaymentButton);
+            }
         }
         RecipeSupportGiveModeEnum[] values = RecipeSupportGiveModeEnum.values();
         for (RecipeSupportGiveModeEnum value : values) {

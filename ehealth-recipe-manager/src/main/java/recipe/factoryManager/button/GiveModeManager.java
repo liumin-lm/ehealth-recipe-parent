@@ -24,6 +24,7 @@ import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.RecipeDistributionFlagEnum;
 import recipe.enumerate.type.RecipeSupportGiveModeEnum;
+import recipe.manager.RecipeManager;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -44,6 +45,8 @@ public abstract class GiveModeManager implements IGiveModeBase {
     private RecipeOrderDAO recipeOrderDAO;
     @Autowired
     private OperationClient operationClient;
+    @Autowired
+    private RecipeManager recipeManager;
 
     @Override
     public void setSpecialItem(GiveModeShowButtonDTO giveModeShowButtonVO, Recipe recipe, RecipeExtend recipeExtend) {
@@ -230,7 +233,14 @@ public abstract class GiveModeManager implements IGiveModeBase {
                 list.add(RecipeSupportGiveModeEnum.DOWNLOAD_RECIPE.getText());
             }
             if (strings.contains(String.valueOf(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getType()))) {
-                list.add(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText());
+                //绍兴市人民医院个性化处理，只有配置了白名单的就诊人才显示例外支付按钮
+                if(new Integer(1).equals(recipe.getClinicOrgan())) {
+                    if(recipeManager.handleMedicalPaymentButton(recipe)){
+                        list.add(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText());
+                    }
+                } else {
+                    list.add(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText());
+                }
             }
         }
 
