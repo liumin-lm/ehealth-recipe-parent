@@ -1,5 +1,7 @@
 package recipe.factoryManager.button;
 
+import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.dto.GiveModeButtonDTO;
 import com.ngari.recipe.dto.GiveModeShowButtonDTO;
 import com.ngari.recipe.entity.DrugsEnterprise;
@@ -20,6 +22,7 @@ import recipe.constant.*;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.OrganAndDrugsepRelationDAO;
 import recipe.dao.RecipeOrderDAO;
+import recipe.dao.RecipeParameterDao;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.RecipeDistributionFlagEnum;
@@ -46,7 +49,7 @@ public abstract class GiveModeManager implements IGiveModeBase {
     @Autowired
     private OperationClient operationClient;
     @Autowired
-    private RecipeManager recipeManager;
+    private PatientService patientService;
 
     @Override
     public void setSpecialItem(GiveModeShowButtonDTO giveModeShowButtonVO, Recipe recipe, RecipeExtend recipeExtend) {
@@ -233,13 +236,14 @@ public abstract class GiveModeManager implements IGiveModeBase {
                 list.add(RecipeSupportGiveModeEnum.DOWNLOAD_RECIPE.getText());
             }
             if (strings.contains(String.valueOf(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getType()))) {
-                //绍兴市人民医院个性化处理，只有配置了白名单的就诊人才显示例外支付按钮
-                if(recipeManager.handleMedicalPaymentButton(recipe)){
-                    list.add(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText());
-                }
+                list.add(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText());
             }
         }
-
+        try {
+            list = handleMedicalPaymentButton(recipe,list);
+        }catch (Exception e){
+            LOGGER.error("afterSetting saveGiveModeDatas error", e);
+        }
         saveGiveModeDatas(giveModeButtonBeans, list);
         LOGGER.info("afterSetting saveGiveModeDatas recipeId={}  giveModeButtonBeans={}", recipe.getRecipeId(), JSONUtils.toString(giveModeButtonBeans));
 
@@ -262,6 +266,36 @@ public abstract class GiveModeManager implements IGiveModeBase {
                 });
             }
         }
+    }
+    /**
+     * 针对绍兴市人民医院做个性化处理
+     * 只有配置了白名单的就诊人才会显示例外支付按钮
+     * @param recipe
+     * @param list
+     * @return
+     */
+    public List<String> handleMedicalPaymentButton(Recipe recipe,List<String> list){
+        RecipeParameterDao parameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
+        String recipeIdCardWhiteListOrgan = parameterDao.getByName("recipe_idCard_whiteList_organ");
+        if(StringUtils.isNotEmpty(recipeIdCardWhiteListOrgan)){
+            List<String> organIdList = Arrays.asList(recipeIdCardWhiteListOrgan.split(","));
+            String recipeIdCardWhiteList = parameterDao.getByName("recipe_idCard_whiteList");
+            if(organIdList.contains(recipe.getClinicOrgan().toString())){
+                if(StringUtils.isEmpty(recipeIdCardWhiteList)){
+                    list = list.stream().filter(a -> !a.equals(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText())).collect(Collectors.toList());
+                }
+                List<String> recipeIdCardWhiteLists = Arrays.asList(recipeIdCardWhiteList.split(","));
+                PatientDTO patient = patientService.get(recipe.getMpiid());
+                if (Objects.nonNull(patient)) {
+                    if(recipeIdCardWhiteLists.contains(patient.getIdcard())){
+                        list = list.stream().filter(a -> a.equals(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText())).collect(Collectors.toList());
+                    }else{
+                        list = list.stream().filter(a -> !a.equals(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText())).collect(Collectors.toList());
+                    }
+                }
+            }
+        }
+        return list;
     }
 
     private Map<String, String> getRecordInfo(Recipe recipe) {

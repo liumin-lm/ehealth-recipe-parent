@@ -80,8 +80,6 @@ public class RecipeManager extends BaseManager {
     private IRecipeCheckService iRecipeCheckService;
     @Autowired
     private RequirementsForTakingDao requirementsForTakingDao;
-    @Autowired
-    private PatientService patientService;
 
     /**
      * 保存处方信息
@@ -1026,32 +1024,5 @@ public class RecipeManager extends BaseManager {
                 recipeExtendDAO.updateNonNullFieldByPrimaryKey(recipeExtend);
             }
         }
-    }
-
-    /**
-     * 针对绍兴市人民医院做个性化处理
-     * 只有配置了白名单的就诊人才会显示例外支付按钮
-     * @param recipe
-     * @return
-     */
-    public Boolean handleMedicalPaymentButton(Recipe recipe){
-        RecipeParameterDao parameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
-        String recipeIdCardWhiteList = parameterDao.getByName("recipe_idCard_whiteList");
-        String recipeIdCardWhiteListOrgan = parameterDao.getByName("recipe_idCard_whiteList_organ");
-        if(StringUtils.isEmpty(recipeIdCardWhiteListOrgan)){
-            return true;
-        }
-        List<String> organIdList = Arrays.asList(recipeIdCardWhiteListOrgan.split(","));
-        if(organIdList.contains(recipe.getClinicOrgan().toString())){
-            if(StringUtils.isEmpty(recipeIdCardWhiteList)){
-                return false;
-            }
-            com.ngari.patient.dto.PatientDTO patient = patientService.get(recipe.getMpiid());
-            if (Objects.nonNull(patient)) {
-                List<String> recipeIdCardWhiteLists = Arrays.asList(recipeIdCardWhiteList.split(","));
-                return recipeIdCardWhiteLists.contains(patient.getIdcard());
-            }
-        }
-        return true;
     }
 }
