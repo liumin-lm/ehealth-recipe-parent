@@ -92,13 +92,17 @@ public class OrderFeeManager extends BaseManager {
         // 中医辨证论治费
         BigDecimal tcmFee = null;
         //  其他费用
-        BigDecimal otherFee=null;
+        BigDecimal otherFee=order.getOtherFee();
+        BigDecimal otherTotalFee = BigDecimal.ZERO;
         // 计入订单价格的代煎费用
         BigDecimal decoctionFee = null;
         // 总代煎费用
         BigDecimal decoctionTotalFee = BigDecimal.ZERO;
         // 未计入订单的代煎费
         BigDecimal notContainDecoctionPrice = BigDecimal.ZERO;
+        if (Objects.nonNull(otherFee)) {
+            otherFee= BigDecimal.ZERO;
+        }
         if (CollectionUtils.isEmpty(recipeList)) {
             return;
         }
@@ -144,11 +148,11 @@ public class OrderFeeManager extends BaseManager {
                     tcmFee = hisRecipe.getTcmFee();
                 }
                 if (Objects.nonNull(hisRecipe.getOtherTotalFee())) {
-                    otherFee = hisRecipe.getOtherTotalFee();
-                    if(Objects.isNull(otherFee)){
-                        otherFee = BigDecimal.ZERO;
+                    otherTotalFee = hisRecipe.getOtherTotalFee();
+                    if(Objects.isNull(otherTotalFee)){
+                        otherTotalFee = BigDecimal.ZERO;
                     }
-                    otherFee=otherFee.add(order.getOtherFee());
+                    otherFee=otherFee.add(otherTotalFee);
                 }
                 //有代煎总额
                 if (Objects.nonNull(hisRecipe.getDecoctionFee())) {
