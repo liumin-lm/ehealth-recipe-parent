@@ -6,6 +6,8 @@ import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.dto.UsingRateDTO;
 import com.ngari.consult.common.model.ConsultExDTO;
 import com.ngari.follow.utils.ObjectCopyUtil;
+import com.ngari.his.visit.mode.NeedPaymentRecipeReqTo;
+import com.ngari.his.visit.mode.NeedPaymentRecipeResTo;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.service.PatientService;
 import com.ngari.platform.recipe.mode.*;
@@ -34,6 +36,7 @@ import recipe.common.UrlConfig;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeParameterDao;
+import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RequirementsForTakingDao;
 import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.enumerate.status.RecipeStateEnum;
@@ -41,6 +44,7 @@ import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.status.WriteHisEnum;
 import recipe.enumerate.type.AppointEnterpriseTypeEnum;
 import recipe.enumerate.type.RecipeShowQrConfigEnum;
+import recipe.util.*;
 import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.util.DictionaryUtil;
 import recipe.util.LocalStringUtil;
@@ -1023,6 +1027,35 @@ public class RecipeManager extends BaseManager {
                 recipeExtend.setChargeId(hisId);
                 recipeExtendDAO.updateNonNullFieldByPrimaryKey(recipeExtend);
             }
+        }
+    }
+
+    /**
+     * 获取收费项
+     * @param recipe 处方
+     */
+    public void queryChargeItemCode(Recipe recipe){
+        logger.info("RecipeManager queryChargeItemCode recipe:{}", JSON.toJSONString(recipe));
+        try {
+            Boolean windhpFlag = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "windhpFlag", false);
+            if (!windhpFlag) {
+                return;
+            }
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+            NeedPaymentRecipeReqTo needPayment = new NeedPaymentRecipeReqTo();
+            needPayment.setPatientID(recipe.getPatientID());
+            needPayment.setPatientName(recipe.getPatientName());
+            needPayment.setBeginTime(DateConversion.getDateTimeDaysAgo(3));
+            needPayment.setEndTime(new Date());
+            needPayment.setCisRecipeCostNumber(recipeExtend.getRecipeCostNumber());
+            NeedPaymentRecipeResTo paymentRecipeResTo = consultClient.getRecipePaymentFee(needPayment);
+            if (Objects.isNull(paymentRecipeResTo) || StringUtils.isEmpty(paymentRecipeResTo.getChargeItemCode())) {
+                return;
+            }
+            recipeExtend.setChargeItemCode(paymentRecipeResTo.getChargeItemCode());
+            recipeExtendDAO.updateNonNullFieldByPrimaryKey(recipeExtend);
+        } catch (Exception e) {
+            logger.error("RecipeManager queryChargeItemCode error", e);
         }
     }
 }

@@ -218,6 +218,9 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "his处方付费序号合集")
     private String recipeCostNumber;
 
+    @ItemProperty(alias = "收费项编码")
+    private String chargeItemCode;
+
     @ItemProperty(alias = "就诊人体重")
     private Double weight;
 
@@ -421,6 +424,15 @@ public class RecipeExtend implements Serializable {
 
     public void setRecipeCostNumber(String recipeCostNumber) {
         this.recipeCostNumber = recipeCostNumber;
+    }
+
+    @Column(name = "charge_item_code")
+    public String getChargeItemCode() {
+        return chargeItemCode;
+    }
+
+    public void setChargeItemCode(String chargeItemCode) {
+        this.chargeItemCode = chargeItemCode;
     }
 
     @Column(name = "superviseRecipecode")

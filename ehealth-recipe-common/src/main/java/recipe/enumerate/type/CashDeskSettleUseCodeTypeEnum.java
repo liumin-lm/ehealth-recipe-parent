@@ -2,15 +2,13 @@ package recipe.enumerate.type;
 
 /**
  * @author yinsheng
- * @date 2021\7\29 0029 19:29
+ * @date 2022\10\31 0029 19:29
  */
-public enum CheckPatientEnum {
-    CHECK_PATIENT_NORMAL(1, "正常"),
-    CHECK_PATIENT_PATIENT(2, "患者无效"),
-    CHECK_PATIENT_NOAUTH(3, "患者未实名认证"),
-    CHECK_PATIENT_CARDDEL(4, "卡删除");
+public enum CashDeskSettleUseCodeTypeEnum {
 
-    CheckPatientEnum(Integer type, String name){
+    HIS_RECIPE_CODE(1, "his处方编码"),
+    HIS_CASH_CODE(2, "his缴费编码");
+    CashDeskSettleUseCodeTypeEnum(Integer type, String name){
         this.type = type;
         this.name = name;
     }

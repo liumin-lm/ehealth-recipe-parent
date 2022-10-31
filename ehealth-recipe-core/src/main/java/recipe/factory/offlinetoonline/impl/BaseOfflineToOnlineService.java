@@ -1256,9 +1256,11 @@ public class BaseOfflineToOnlineService {
         //审核药师
         hisRecipe.setCheckerCode(queryHisRecipResTo.getCheckerCode());
         hisRecipe.setCheckerName(queryHisRecipResTo.getCheckerName());
+
         hisRecipe.setRecipeFlag(queryHisRecipResTo.getRecipeFlag());
         hisRecipe.setIllnessType(queryHisRecipResTo.getIllnessType());
         hisRecipe.setMedicalFlag(queryHisRecipResTo.getMedicalFlag());
+        hisRecipe.setOtherTotalFee(queryHisRecipResTo.getOtherTotalFee());
         LOGGER.info("BaseOfflineToOnlineService covertHisRecipeObject res hisRecipe:{}", JSONUtils.toString(hisRecipe));
         return hisRecipe;
     }

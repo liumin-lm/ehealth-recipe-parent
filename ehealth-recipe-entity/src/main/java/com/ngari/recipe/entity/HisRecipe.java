@@ -119,6 +119,8 @@ public class HisRecipe implements Serializable {
     @ItemProperty(alias = "是否缓存在平台")
     private Integer isCachePlatform;
 
+    @ItemProperty(alias = "其余费用")
+    private BigDecimal otherTotalFee;
     //中药
     @ItemProperty(alias = "中医辨证论治费")
     private BigDecimal tcmFee;
@@ -800,5 +802,14 @@ public class HisRecipe implements Serializable {
 
     public void setRecipeFlag(Integer recipeFlag) {
         this.recipeFlag = recipeFlag;
+    }
+
+    @Column(name = "other_total_fee")
+    public BigDecimal getOtherTotalFee() {
+        return otherTotalFee;
+    }
+
+    public void setOtherTotalFee(BigDecimal otherTotalFee) {
+        this.otherTotalFee = otherTotalFee;
     }
 }

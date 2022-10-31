@@ -3255,8 +3255,10 @@ public class RecipeService extends RecipeBaseService {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "clinicOrgan is required!");
         }
         boolean succFlag = false;
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         //date 20191022到院取药取配置项
-        boolean flag = RecipeServiceSub.getDrugToHos(recipeId, clinicOrgan);
+        boolean flag = RecipeServiceSub.getDrugToHos(recipe);
         //是否支持医院取药 true：支持
         if (flag) {
             String backInfo = searchRecipeStatusFromHis(recipeId, 1);
@@ -3286,8 +3288,10 @@ public class RecipeService extends RecipeBaseService {
             return selectDepId;
         }
         Integer backDepId = null;
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         //date 20191022 修改到院取药配置项
-        boolean flag = RecipeServiceSub.getDrugToHos(recipeId, clinicOrgan);
+        boolean flag = RecipeServiceSub.getDrugToHos(recipe);
         //是否支持医院取药 true：支持
         //该医院不对接HIS的话，则不需要进行该校验
         if (flag) {
