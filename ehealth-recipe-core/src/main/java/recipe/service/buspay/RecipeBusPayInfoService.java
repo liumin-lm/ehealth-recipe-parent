@@ -1,7 +1,6 @@
 package recipe.service.buspay;
 
 import com.alibaba.fastjson.JSONObject;
-import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Maps;
 import com.ngari.auth.api.service.IAuthExtraService;
@@ -11,17 +10,13 @@ import com.ngari.base.BaseAPI;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
-import com.ngari.common.mode.HisResponseTO;
 import com.ngari.consult.ConsultAPI;
 import com.ngari.consult.common.model.ConsultExDTO;
 import com.ngari.consult.common.service.IConsultExService;
-import com.ngari.his.recipe.mode.RecipeCashPreSettleInfo;
-import com.ngari.his.recipe.mode.RecipeCashPreSettleReqTO;
 import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
 import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.common.RecipeBussResTO;
-import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.drugsenterprise.service.IDrugsEnterpriseService;
 import com.ngari.recipe.entity.*;
@@ -32,7 +27,6 @@ import com.ngari.recipe.recipe.constant.RecipePayTipEnum;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import com.ngari.recipe.recipeorder.model.ObtainConfirmOrderObjectResNoDS;
-import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.common.model.RevisitExDTO;
@@ -44,16 +38,12 @@ import ctd.util.Base64;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
-import easypay.entity.vo.param.bus.MedicalPreSettleQueryReq;
-import easypay.entity.vo.param.bus.SelfPreSettleQueryReq;
-import eh.base.constant.ErrorCode;
 import eh.cdr.constant.OrderStatusConstant;
 import eh.entity.bus.Order;
 import eh.entity.bus.pay.BusTypeEnum;
 import eh.entity.bus.pay.ConfirmOrder;
 import eh.entity.bus.pay.SimpleBusObject;
 import eh.entity.mpi.Patient;
-import eh.utils.BeanCopyUtils;
 import eh.utils.MapValueUtil;
 import eh.wxpay.constant.PayConstant;
 import org.apache.commons.collections.CollectionUtils;
@@ -68,28 +58,23 @@ import recipe.aop.LogRecord;
 import recipe.client.DepartClient;
 import recipe.client.IConfigurationClient;
 import recipe.client.RevisitClient;
-import recipe.constant.RecipeBussConstant;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.enumerate.status.GiveModeEnum;
+import recipe.enumerate.type.CashDeskSettleUseCodeTypeEnum;
 import recipe.enumerate.type.ForceCashTypeEnum;
 import recipe.enumerate.type.MedicalTypeEnum;
-import recipe.hisservice.RecipeToHisService;
 import recipe.manager.ButtonManager;
 import recipe.manager.DepartManager;
 import recipe.manager.EnterpriseManager;
 import recipe.manager.RecipeOrderPayFlowManager;
 import recipe.service.PayModeGiveModeUtil;
-import recipe.service.RecipeLogService;
-import recipe.service.RecipeOrderService;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.serviceprovider.recipeorder.service.RemoteRecipeOrderService;
 import recipe.third.HztServiceInterface;
-import recipe.util.JsonUtil;
 import recipe.util.ObjectCopyUtils;
-import com.ngari.pay.api.service.bus.IBusPayService;
 
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
@@ -818,7 +803,13 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
         for (Integer recipeId : recipeIdList) {
             RecipeBean recipe = recipeService.getByRecipeId(recipeId);
             RecipeExtendBean recipeExtendBean = recipeService.findRecipeExtendByRecipeId(recipeId);
-            String costNumber = StringUtils.isBlank(recipeExtendBean.getRecipeCostNumber()) ? recipe.getRecipeCode() : recipe.getRecipeCostNumber();
+            Integer cashDeskSettleUseCode = configurationClient.getValueCatchReturnInteger(recipe.getClinicOrgan(), "cashDeskSettleUseCode", CashDeskSettleUseCodeTypeEnum.HIS_RECIPE_CODE.getType());
+            String costNumber;
+            if (CashDeskSettleUseCodeTypeEnum.HIS_RECIPE_CODE.getType().equals(cashDeskSettleUseCode)) {
+                costNumber = StringUtils.isBlank(recipeExtendBean.getRecipeCostNumber()) ? recipe.getRecipeCode() : recipe.getRecipeCostNumber();
+            } else {
+                costNumber = StringUtils.isBlank(recipeExtendBean.getChargeItemCode()) ? recipe.getRecipeCode() : recipeExtendBean.getChargeItemCode();
+            }
             costNumbers.add(costNumber);
         }
         RecipeOrder order = recipeOrderDAO.get(recipeOrder.getOrderId());

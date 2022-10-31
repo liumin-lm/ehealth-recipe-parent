@@ -174,6 +174,9 @@ public class RecipeExtendBean implements Serializable {
     @ItemProperty(alias = "his处方付费序号合集")
     private String recipeCostNumber;
 
+    @ItemProperty(alias = "收费项编码")
+    private String chargeItemCode;
+
     //date 20201013 字段补录,同步recipeExtend字段
     @ItemProperty(alias = "医保备案号")
     private String putOnRecordID;
@@ -931,4 +934,11 @@ public class RecipeExtendBean implements Serializable {
 
     }
 
+    public String getChargeItemCode() {
+        return chargeItemCode;
+    }
+
+    public void setChargeItemCode(String chargeItemCode) {
+        this.chargeItemCode = chargeItemCode;
+    }
 }

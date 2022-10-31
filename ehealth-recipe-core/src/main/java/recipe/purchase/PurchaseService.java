@@ -158,11 +158,10 @@ public class PurchaseService {
         //到院取药判断
         try {
             IHisConfigService iHisConfigService = ApplicationUtils.getBaseService(IHisConfigService.class);
-            OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
             boolean hisStatus = iHisConfigService.isHisEnable(dbRecipe.getClinicOrgan());
             //机构设置，是否可以到院取药
             //date 20191022,修改到院取药配置项
-            boolean flag = RecipeServiceSub.getDrugToHos(recipeId, dbRecipe.getClinicOrgan());
+            boolean flag = RecipeServiceSub.getDrugToHos(dbRecipe);
             if (RecipeDistributionFlagEnum.DEFAULT.getType().equals(dbRecipe.getDistributionFlag())
                     && hisStatus && flag) {
                 result.setToHos(true);
@@ -498,7 +497,7 @@ public class PurchaseService {
             try {
                 //判断院内是否已取药，防止重复购买
                 //date 20191022到院取药取配置项
-                boolean flag = RecipeServiceSub.getDrugToHos(recipeId, dbRecipe.getClinicOrgan());
+                boolean flag = RecipeServiceSub.getDrugToHos(dbRecipe);
                 //是否支持医院取药 true：支持
                 //该医院不对接HIS的话，则不需要进行该校验
                 if (flag && hisStatus) {
@@ -512,6 +511,8 @@ public class PurchaseService {
             } catch (Exception e) {
                 LOG.warn("order searchRecipeStatusFromHis exception. recipeId={}", recipeId, e);
             }
+            //提交订单查询his收费项
+            recipeManager.queryChargeItemCode(dbRecipe);
         }
 
         //判断是否存在分布式锁

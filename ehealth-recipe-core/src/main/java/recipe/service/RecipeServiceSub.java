@@ -2993,24 +2993,16 @@ public class RecipeServiceSub {
     /**
      * 获取医院时候可以药店取药
      */
-    public static Boolean getDrugToHos(Integer recipeId, Integer organId) {
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        Recipe recipe = recipeDAO.get(recipeId);
-        if (null == recipe) {
-            LOGGER.info("处方不存在 recipeId[{}]", recipeId);
-            return false;
-        }
+    public static Boolean getDrugToHos(Recipe recipe) {
         //平台的取平台配置项
         if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
             //获取配置项
-            GiveModeShowButtonDTO giveModeShowButtonVO = buttonManager.getGiveModeSettingFromYypt(organId);
+            GiveModeShowButtonDTO giveModeShowButtonVO = buttonManager.getGiveModeSettingFromYypt(recipe.getClinicOrgan());
             Map result = giveModeShowButtonVO.getGiveModeButtons().stream().collect(Collectors.toMap(GiveModeButtonDTO::getShowButtonKey, GiveModeButtonDTO::getShowButtonName));
             return result.containsKey("supportToHos");
         } else {
-            return organService.getTakeMedicineFlagById(organId);
+            return organService.getTakeMedicineFlagById(recipe.getClinicOrgan());
         }
-
-
     }
 
     /**
