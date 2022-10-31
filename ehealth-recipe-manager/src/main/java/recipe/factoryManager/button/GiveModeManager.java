@@ -240,6 +240,7 @@ public abstract class GiveModeManager implements IGiveModeBase {
             }
         }
         try {
+            //配置了白名单的就诊人只显示例外支付按钮，不在白名单的则隐藏例外支付按钮
             list = handleMedicalPaymentButton(recipe,list);
         }catch (Exception e){
             LOGGER.error("afterSetting saveGiveModeDatas error", e);
@@ -269,7 +270,7 @@ public abstract class GiveModeManager implements IGiveModeBase {
     }
     /**
      * 针对绍兴市人民医院做个性化处理
-     * 只有配置了白名单的就诊人才会显示例外支付按钮
+     * 配置了白名单的就诊人只显示例外支付按钮，不在白名单的则隐藏例外支付按钮
      * @param recipe
      * @param list
      * @return

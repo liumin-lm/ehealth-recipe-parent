@@ -5810,7 +5810,7 @@ public class RecipeService extends RecipeBaseService {
 
     /**
      * 针对绍兴市人民医院做个性化处理
-     * 只有配置了白名单的就诊人才会显示例外支付按钮
+     * 配置了白名单的就诊人只显示例外支付按钮，不在白名单的则隐藏例外支付按钮
      * @param recipe
      * @param list
      * @return
