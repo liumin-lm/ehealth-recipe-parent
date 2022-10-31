@@ -284,6 +284,7 @@ public abstract class GiveModeManager implements IGiveModeBase {
             if(organIdList.contains(recipe.getClinicOrgan().toString())){
                 if(StringUtils.isEmpty(recipeIdCardWhiteList)){
                     list = list.stream().filter(a -> !a.equals(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText())).collect(Collectors.toList());
+                    return list;
                 }
                 List<String> recipeIdCardWhiteLists = Arrays.asList(recipeIdCardWhiteList.split(","));
                 PatientDTO patient = patientService.get(recipe.getMpiid());
