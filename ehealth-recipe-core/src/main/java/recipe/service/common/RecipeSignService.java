@@ -46,6 +46,7 @@ import recipe.enumerate.status.WriteHisEnum;
 import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
 import recipe.manager.CaManager;
+import recipe.manager.RecipeManager;
 import recipe.manager.RevisitManager;
 import recipe.manager.StateManager;
 import recipe.service.*;
@@ -98,6 +99,8 @@ public class RecipeSignService {
     private CaManager caManager;
     @Autowired
     private CreatePdfFactory createPdfFactory;
+    @Autowired
+    private RecipeManager recipeManager;
 
     /**
      * 武昌模式签名方法
@@ -296,6 +299,13 @@ public class RecipeSignService {
                 checkResult.setRecipeId(recipeId);
                 checkResult.setCheckDoctorId(dbRecipe.getDoctor());
                 checkResult.setCheckOrganId(dbRecipe.getClinicOrgan());
+                List<Integer> checkerList = recipeManager.getDocIdInTime(dbRecipe.getClinicOrgan());
+                if (CollectionUtils.isNotEmpty(checkerList)) {
+                    createPdfFactory.updateCheckNamePdfESign(recipeId, checkerList.get(0));
+                } else {
+                    createPdfFactory.updateCheckNamePdfESign(recipeId, dbRecipe.getDoctor());
+                }
+
                 try {
                     recipeService.autoPassForCheckYs(checkResult);
                 } catch (Exception e) {

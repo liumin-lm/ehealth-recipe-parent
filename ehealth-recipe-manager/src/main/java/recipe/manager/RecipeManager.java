@@ -1058,4 +1058,26 @@ public class RecipeManager extends BaseManager {
             logger.error("RecipeManager queryChargeItemCode error", e);
         }
     }
+
+    /**
+     * 获取默认药师
+     * @param organId
+     * @return
+     */
+    public List<Integer> getDocIdInTime(Integer organId) {
+        List<Integer> list = new ArrayList<>();
+        try {
+            String defaultRecipeCheckDoctor = configurationClient.getValueCatch(organId, "defaultRecipecheckDoctor", "");
+            if (StringUtils.isEmpty(defaultRecipeCheckDoctor)) {
+                return list;
+            }
+            if (!"-1".equals(defaultRecipeCheckDoctor)) {
+                // 固定药师
+                list = Arrays.stream(defaultRecipeCheckDoctor.split(",")).map(Integer::valueOf).collect(Collectors.toList());
+            }
+        } catch (Exception e) {
+            logger.error("RecipeManager getDocIdInTime Exception", e);
+        }
+        return list;
+    }
 }
