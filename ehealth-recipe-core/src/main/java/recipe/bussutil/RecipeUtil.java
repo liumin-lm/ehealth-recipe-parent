@@ -197,7 +197,7 @@ public class RecipeUtil {
                 map.put("serviceChargeRemark", organConfig.getServiceChargeRemark());
             }
             IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-            BigDecimal otherFee = (BigDecimal) configurationService.getConfiguration(organId, "otherFee");
+            BigDecimal otherFee = order.getOtherFee();
             if (null != otherFee && otherFee.compareTo(BigDecimal.ZERO) == 1 && null != configurationService.getConfiguration(organId, "otherServiceChargeDesc") && null != configurationService.getConfiguration(organId, "otherServiceChargeRemark")) {
                 map.put("otherServiceChargeDesc", configurationService.getConfiguration(organId, "otherServiceChargeDesc").toString());
                 map.put("otherServiceChargeRemark", configurationService.getConfiguration(organId, "otherServiceChargeRemark").toString());

@@ -300,15 +300,13 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
                 map.put("serviceChargeRemark", organConfig.getServiceChargeRemark());
             }
             //设置其他费用文案
-            double otherFee = 0.0;
-            //date 2019/10/23
             //添加非空判断
-            if (null != utils.getConfiguration(organId, "otherFee") && null != utils.getConfiguration(organId, "otherServiceChargeDesc") && null != utils.getConfiguration(organId, "otherServiceChargeRemark")) {
-                otherFee = Double.parseDouble(utils.getConfiguration(organId, "otherFee").toString());
-                if (otherFee > 0.0) {
-                    map.put("otherServiceChargeDesc", utils.getConfiguration(organId, "otherServiceChargeDesc").toString());
-                    map.put("otherServiceChargeRemark", utils.getConfiguration(organId, "otherServiceChargeRemark").toString());
-                }
+            BigDecimal otherFee = order.getOtherFee();
+            if (null != otherFee && otherFee.compareTo(BigDecimal.ZERO) == 1
+                    && null != utils.getConfiguration(organId, "otherServiceChargeDesc")
+                    && null != utils.getConfiguration(organId, "otherServiceChargeRemark")) {
+                map.put("otherServiceChargeDesc", utils.getConfiguration(organId, "otherServiceChargeDesc").toString());
+                map.put("otherServiceChargeRemark", utils.getConfiguration(organId, "otherServiceChargeRemark").toString());
             }
 
             //获取展示窗口调试信息,取处方详情中的药品的取药窗口信息
