@@ -409,6 +409,11 @@ public class PurchaseService {
                 LOG.info("checkOrderInfo recipeId:{} 药品详情已变更或数据已经由他人生成", recipeId);
             }
             EmrRecipeManager.getMedicalInfo(dbRecipe, recipeExtend);
+            //费用相关更新
+            hisRecipe.setOtherTotalFee(queryHisRecipResTO.getOtherTotalFee());
+            hisRecipe.setTcmFee(queryHisRecipResTO.getTcmFee());
+            hisRecipe.setDecoctionFee(queryHisRecipResTO.getDecoctionFee());
+            hisRecipeDAO.update(hisRecipe);
         }
         boolean sendFlag = orderManager.orderCanSend(extInfo);
         if (!sendFlag) {

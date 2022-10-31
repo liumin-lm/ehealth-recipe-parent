@@ -11,6 +11,7 @@ import com.ngari.patient.service.OrganConfigService;
 import ctd.account.Client;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
+import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -416,5 +417,22 @@ public class IConfigurationClient extends BaseClient {
      */
     public Integer getRelationJgptId(Integer organId) {
         return (Integer)configService.getConfiguration(organId, "relatedJgpt");
+    }
+
+    /**
+     * 获取线下处方查询相关配置项
+     * @param organId
+     * @return
+     */
+    String getOfflineRecipeQueryConfig(Integer organId) {
+        //费用对照项目代码配置 龙华在用
+        String decoctionFeeCompareCode=getValueCatch(organId,"decoctionFeeCompareCode","");
+        String tcmFeeCompareCode=getValueCatch(organId,"tcmFeeCompareCode","");
+        String otherTotalFeeCompareCode=getValueCatch(organId,"otherTotalFeeCompareCode","");
+        Map<String,Object> jsonConfigMap=new HashMap<>();
+        jsonConfigMap.put("decoctionFeeCompareCode",decoctionFeeCompareCode);
+        jsonConfigMap.put("tcmFeeCompareCode",tcmFeeCompareCode);
+        jsonConfigMap.put("otherTotalFeeCompareCode",otherTotalFeeCompareCode);
+        return JSONUtils.toString(jsonConfigMap);
     }
 }

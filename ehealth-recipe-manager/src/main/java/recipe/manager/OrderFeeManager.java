@@ -91,6 +91,8 @@ public class OrderFeeManager extends BaseManager {
         Integer totalCopyNum = 0;
         // 中医辨证论治费
         BigDecimal tcmFee = null;
+        //  其他费用
+        BigDecimal otherFee=null;
         // 计入订单价格的代煎费用
         BigDecimal decoctionFee = null;
         // 总代煎费用
@@ -141,6 +143,13 @@ public class OrderFeeManager extends BaseManager {
                 if (Objects.nonNull(hisRecipe.getTcmFee())) {
                     tcmFee = hisRecipe.getTcmFee();
                 }
+                if (Objects.nonNull(hisRecipe.getOtherTotalFee())) {
+                    otherFee = hisRecipe.getOtherTotalFee();
+                    if(Objects.isNull(otherFee)){
+                        otherFee = BigDecimal.ZERO;
+                    }
+                    otherFee=otherFee.add(order.getOtherFee());
+                }
                 //有代煎总额
                 if (Objects.nonNull(hisRecipe.getDecoctionFee())) {
                     recipeDecoctionFee = hisRecipe.getDecoctionFee();
@@ -156,6 +165,7 @@ public class OrderFeeManager extends BaseManager {
                     //如果是合并处方-多张处方下得累加
                     recipeDecoctionFee = getRecipeDecoctionFee(extend, recipe);
                 }
+
             } else {
                 logger.info("setRecipeChineseMedicineFee 进入线上处方控制逻辑");
                 BigDecimal tcmPrice = configurationClient.getValueCatchReturnBigDecimal(recipe.getClinicOrgan(), "recipeTCMPrice", BigDecimal.ZERO);
@@ -187,6 +197,7 @@ public class OrderFeeManager extends BaseManager {
         order.setCopyNum(totalCopyNum);
         order.setTcmFee(tcmFee);
         order.setDecoctionFee(decoctionFee);
+        order.setOtherFee(otherFee);
         // 2022 4-v1 版本产品拿掉代煎单价
 //        order.setDecoctionUnitPrice(decoctionTotalFee.divide(BigDecimal.valueOf(totalCopyNum)));
         ext.put("notContainDecoctionPrice", notContainDecoctionPrice);

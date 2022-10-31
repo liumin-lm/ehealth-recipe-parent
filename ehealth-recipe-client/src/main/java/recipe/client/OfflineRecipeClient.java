@@ -51,6 +51,8 @@ public class OfflineRecipeClient extends BaseClient {
     private EmploymentService employmentService;
     @Autowired
     private DepartClient departClient;
+    @Autowired
+    protected IConfigurationClient configurationClient;
 
     /**
      * @param organId   机构id
@@ -290,6 +292,8 @@ public class OfflineRecipeClient extends BaseClient {
         if (StringUtils.isNotEmpty(recipeCode)) {
             queryRecipeRequestTo.setRecipeCode(recipeCode);
         }
+
+        queryRecipeRequestTo.setJsonConfig(configurationClient.getOfflineRecipeQueryConfig(organId));
         logger.info("queryHisRecipeInfo input:" + JSONUtils.toString(queryRecipeRequestTo, QueryRecipeRequestTO.class));
         HisResponseTO<List<QueryHisRecipResTO>> responseTo = recipeHisService.queryHisRecipeInfo(queryRecipeRequestTo);
         logger.info("queryHisRecipeInfo output:" + JSONUtils.toString(responseTo, HisResponseTO.class));
