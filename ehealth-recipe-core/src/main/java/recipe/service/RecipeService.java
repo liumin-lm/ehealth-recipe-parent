@@ -5798,8 +5798,44 @@ public class RecipeService extends RecipeBaseService {
         for (RecipeSupportGiveModeEnum value : values) {
             getGiveModeButton(value, recipes, buttonsMap, list, recipeIds.size());
         }
-
+        //绍兴市人民医院个性化处理，配置了白名单的就诊人只显示例外支付按钮,否则隐藏
+        try {
+            list = handleMedicalPaymentButton(recipes.get(0),list);
+        }catch (Exception e){
+            LOGGER.error("getRecipeGiveModeButtonRes error", e);
+        }
         LOGGER.info("getRecipeGiveModeButtonRes.List<RecipeGiveModeButtonRes> = {}", JSONUtils.toString(list));
+        return list;
+    }
+
+    /**
+     * 针对绍兴市人民医院做个性化处理
+     * 配置了白名单的就诊人只显示例外支付按钮，不在白名单的则隐藏例外支付按钮
+     * @param recipe
+     * @param list
+     * @return
+     */
+    public List<RecipeGiveModeButtonRes> handleMedicalPaymentButton(Recipe recipe,List<RecipeGiveModeButtonRes> list){
+        RecipeParameterDao parameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
+        String recipeIdCardWhiteListOrgan = parameterDao.getByName("recipe_idCard_whiteList_organ");
+        if(StringUtils.isNotEmpty(recipeIdCardWhiteListOrgan)){
+            List<String> organIdList = Arrays.asList(recipeIdCardWhiteListOrgan.split(","));
+            String recipeIdCardWhiteList = parameterDao.getByName("recipe_idCard_whiteList");
+            if(organIdList.contains(recipe.getClinicOrgan().toString())){
+                if(StringUtils.isEmpty(recipeIdCardWhiteList)){
+                    list = list.stream().filter(a -> !a.getGiveModeKey().equals(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText())).collect(Collectors.toList());
+                }
+                List<String> recipeIdCardWhiteLists = Arrays.asList(recipeIdCardWhiteList.split(","));
+                PatientDTO patient = patientService.get(recipe.getMpiid());
+                if (Objects.nonNull(patient)) {
+                    if(recipeIdCardWhiteLists.contains(patient.getIdcard())){
+                        list = list.stream().filter(a -> a.getGiveModeKey().equals(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText())).collect(Collectors.toList());
+                    }else{
+                        list = list.stream().filter(a -> !a.getGiveModeKey().equals(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText())).collect(Collectors.toList());
+                    }
+                }
+            }
+        }
         return list;
     }
 
