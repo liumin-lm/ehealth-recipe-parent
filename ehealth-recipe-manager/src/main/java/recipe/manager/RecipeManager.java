@@ -1041,6 +1041,7 @@ public class RecipeManager extends BaseManager {
             RecipeChargeItemCodeReqTo request = new RecipeChargeItemCodeReqTo();
             PatientDTO patientDTO = patientClient.getPatientDTO(dbRecipe.getMpiid());
             request.setPatientID(dbRecipe.getPatientID());
+            request.setOrganId(dbRecipe.getClinicOrgan());
             request.setPatientName(dbRecipe.getPatientName());
             request.setCertificateType(patientDTO.getCertificateType());
             request.setCertificate(patientDTO.getCertificate());
