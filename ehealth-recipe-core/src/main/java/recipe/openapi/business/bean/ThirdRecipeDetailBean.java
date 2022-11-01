@@ -1,5 +1,7 @@
 package recipe.openapi.business.bean;
 
+import ctd.schema.annotation.Dictionary;
+import ctd.schema.annotation.ItemProperty;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -47,4 +49,12 @@ public class ThirdRecipeDetailBean implements Serializable{
     private String memo;
 
     private String organDrugCode;
+
+
+    @ItemProperty(alias = "机构的频次代码")
+    @Dictionary(id = "eh.cdr.dictionary.UsingRate")
+    private String organUsingRate;
+    @ItemProperty(alias = "机构的用法代码")
+    @Dictionary(id = "eh.cdr.dictionary.UsePathways")
+    private String organUsePathways;
 }

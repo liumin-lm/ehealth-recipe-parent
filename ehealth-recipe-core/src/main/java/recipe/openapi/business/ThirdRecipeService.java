@@ -16,7 +16,6 @@ import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.PatientTabStatusMergeRecipeDTO;
 import com.ngari.recipe.recipe.model.PatientTabStatusRecipeDTO;
-import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.account.UserRoleToken;
 import ctd.account.thirdparty.ThirdPartyMappingController;
 import ctd.persistence.exception.DAOException;
@@ -71,12 +70,13 @@ public class ThirdRecipeService {
 
     /**
      * 根据处方状态查询处方信息
-     * @param request
-     *        appkey 固定值  纳里提供
-     *        tid    第三方平台用户主键
-     *        tabStatus 状态标识
-     *        index  分页起始位置
-     *        limit  每页查询量
+     * 目前只有自助机使用
+     *
+     * @param request appkey 固定值  纳里提供
+     *                tid    第三方平台用户主键
+     *                tabStatus 状态标识
+     *                index  分页起始位置
+     *                limit  每页查询量
      * @return 处方和处方详情
      */
     @Deprecated
@@ -98,6 +98,7 @@ public class ThirdRecipeService {
                 for (PatientTabStatusRecipeDTO patientTabStatusRecipeDTO : patientTabStatusRecipeDTOS) {
                     RecipeAndRecipeDetailsBean recipeAndRecipeDetailsBean = new RecipeAndRecipeDetailsBean();
                     Recipe recipe = recipeDAO.getByRecipeId(patientTabStatusRecipeDTO.getRecipeId());
+                    recipeAndRecipeDetailsBean.setValueDays(recipe.getValueDays());
                     if(Objects.nonNull(recipe.getTotalMoney())) {
                         recipeAndRecipeDetailsBean.setTotalMoney(recipe.getTotalMoney().doubleValue());
                     }
@@ -135,9 +136,7 @@ public class ThirdRecipeService {
                     List<ThirdRecipeDetailBean> recipeDetailBeans = ObjectCopyUtils.convert(recipeDetailList, ThirdRecipeDetailBean.class);
                     //TODO 由于drugCost已经定义为double，现在不改字段类型了，先进行转换
                     Map<Integer, Recipedetail> recipeDetailMap = recipeDetailList.stream().collect(Collectors.toMap(Recipedetail::getRecipeDetailId,a->a,(k1,k2)->k1));
-                    recipeDetailBeans.forEach(recipeDetail->{
-                        recipeDetail.setDrugCost(recipeDetailMap.get(recipeDetail.getRecipeDetailId()).getDrugCost().doubleValue());
-                    });
+                    recipeDetailBeans.forEach(recipeDetail -> recipeDetail.setDrugCost(recipeDetailMap.get(recipeDetail.getRecipeDetailId()).getDrugCost().doubleValue()));
                     recipeAndRecipeDetailsBean.setRecipeDetailBeans(recipeDetailBeans);
                     recipeAndRecipeDetailsBeans.add(recipeAndRecipeDetailsBean);
                 }
@@ -145,7 +144,7 @@ public class ThirdRecipeService {
         } catch (Exception e) {
             LOGGER.error("findRecipesForPatientAndTabStatus error", e);
         }
-        //LOGGER.info("ThirdRecipeService findRecipesForPatientAndTabStatus recipeAndRecipeDetailsBeans:{}.", JSONUtils.toString(recipeAndRecipeDetailsBeans));
+        LOGGER.info("ThirdRecipeService findRecipesForPatientAndTabStatus recipeAndRecipeDetailsBeans={}", JSON.toJSONString(recipeAndRecipeDetailsBeans));
         return recipeAndRecipeDetailsBeans;
     }
 
