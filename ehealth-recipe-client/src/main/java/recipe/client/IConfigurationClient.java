@@ -424,7 +424,7 @@ public class IConfigurationClient extends BaseClient {
      * @param organId
      * @return
      */
-    String getOfflineRecipeQueryConfig(Integer organId) {
+    public String getOfflineRecipeQueryConfig(Integer organId) {
         //费用对照项目代码配置 龙华在用
         String decoctionFeeCompareCode=getValueCatch(organId,"decoctionFeeCompareCode","");
         String tcmFeeCompareCode=getValueCatch(organId,"tcmFeeCompareCode","");
