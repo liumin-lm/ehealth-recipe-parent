@@ -1566,8 +1566,8 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
             logger.info("submitRecipeHisV1 pushRecipe recipeId={}", recipeId);
             RecipeInfoDTO recipePdfDTO = recipeTherapyManager.getRecipeTherapyDTO(recipeId);
             Recipe recipe = recipePdfDTO.getRecipe();
-            if (RecipeStatusEnum.RECIPE_STATUS_REVOKE.getType().equals(recipe.getStatus())) {
-                logger.info("RecipeBusinessService pushRecipe 当前处方已撤销");
+            if (!RecipeStateEnum.PROCESS_STATE_ORDER.getType().equals(recipe.getPatientStatus())) {
+                logger.info("RecipeBusinessService pushRecipe 当前处方不是待下单状态");
                 return ;
             }
             if (new Integer(3).equals(recipe.getWriteHisState())) {
