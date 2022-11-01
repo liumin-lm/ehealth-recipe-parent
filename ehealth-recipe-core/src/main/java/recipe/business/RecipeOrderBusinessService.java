@@ -799,11 +799,12 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
 
             }
             Integer cashDeskSettleUseCode = configurationClient.getValueCatchReturnInteger(recipe.getClinicOrgan(), "cashDeskSettleUseCode", CashDeskSettleUseCodeTypeEnum.HIS_RECIPE_CODE.getType());
-            Collection<String> recipeCodeS;
+            List<String> recipeCodeS = new ArrayList<>();
             if (CashDeskSettleUseCodeTypeEnum.HIS_RECIPE_CODE.getType().equals(cashDeskSettleUseCode)) {
                 recipeCodeS = recipeList.stream().map(Recipe::getRecipeCode).collect(Collectors.toList());
             } else {
-                recipeCodeS = recipeExtendList.stream().map(RecipeExtend::getChargeItemCode).collect(Collectors.toSet());
+                List<String> chargeItemCodeList = recipeManager.getChargeItemCode(recipeExtendList);
+                recipeCodeS.addAll(chargeItemCodeList);
             }
             String join = Joiner.on(",").join(recipeCodeS);
             List<String> list = Arrays.asList(join.split(","));
@@ -921,11 +922,12 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                 medicalPreSettleQueryReq.setHisSettlementNo(recipeOrder.getHisSettlementNo());
                 medicalPreSettleQueryReq.setTotalAmount(recipeOrder.getTotalFee());
                 Integer cashDeskSettleUseCode = configurationClient.getValueCatchReturnInteger(recipe.getClinicOrgan(), "cashDeskSettleUseCode", CashDeskSettleUseCodeTypeEnum.HIS_RECIPE_CODE.getType());
-                Collection<String> recipeCodeS;
+                List<String> recipeCodeS = new ArrayList<>();
                 if (CashDeskSettleUseCodeTypeEnum.HIS_RECIPE_CODE.getType().equals(cashDeskSettleUseCode)) {
                     recipeCodeS = recipeList.stream().map(Recipe::getRecipeCode).collect(Collectors.toList());
                 } else {
-                    recipeCodeS = recipeExtendList.stream().map(RecipeExtend::getChargeItemCode).collect(Collectors.toSet());
+                    List<String> chargeItemCodeList = recipeManager.getChargeItemCode(recipeExtendList);
+                    recipeCodeS.addAll(chargeItemCodeList);
                 }
                 String join = Joiner.on(",").join(recipeCodeS);
                 medicalPreSettleQueryReq.setRecipeNos(join);

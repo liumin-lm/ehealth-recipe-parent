@@ -1106,4 +1106,29 @@ public class RecipeManager extends BaseManager {
         }
         return list;
     }
+
+    /**
+     * 获取收费项编码
+     * @param recipeExtendList
+     * @return
+     */
+    public List<String> getChargeItemCode(List<RecipeExtend> recipeExtendList){
+        try {
+            final List<String> chargeItemCodeList = new ArrayList<>();
+            recipeExtendList.forEach(recipeExtend -> {
+                String chargeItemCode = recipeExtend.getChargeItemCode();
+                if (StringUtils.isNotEmpty(chargeItemCode)) {
+                    chargeItemCodeList.add(chargeItemCode);
+                }
+                if (StringUtils.isNotEmpty(recipeExtend.getChargeId()) && !chargeItemCodeList.toString().contains(recipeExtend.getChargeId())) {
+                    chargeItemCodeList.add(recipeExtend.getChargeId());
+                }
+            });
+            logger.info("RecipeManager getChargeItemCode chargeItemCodeList:{}", JSON.toJSONString(chargeItemCodeList));
+            return chargeItemCodeList;
+        } catch (Exception e) {
+            logger.error("RecipeManager getChargeItemCode error", e);
+        }
+        return new ArrayList<>();
+    }
 }
