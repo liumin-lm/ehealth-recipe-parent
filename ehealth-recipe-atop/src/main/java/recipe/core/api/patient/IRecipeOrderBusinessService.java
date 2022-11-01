@@ -255,4 +255,11 @@ public interface IRecipeOrderBusinessService {
      * @return
      */
     List<RecipeOrder> orderListByClinicId(Integer clinicId, Integer bussSource);
+
+    /**
+     * 获取物流编码文件流
+     *
+     * @param orderCode
+     */
+    String logisticsOrderNo(String orderCode);
 }
