@@ -104,13 +104,13 @@ public class InfraClient extends BaseClient {
     /**
      * 获取物流编码
      *
-     * @param recipeCode
+     * @param orderCode
      */
-    public String logisticsOrderNo(String recipeCode) {
+    public String logisticsOrderNo(String orderCode) {
         try {
-            return logisticsOrderService.waybillBarCodeByLogisticsOrderNo(1, recipeCode);
+            return logisticsOrderService.waybillBarCodeByLogisticsOrderNo(1, orderCode);
         } catch (Exception e) {
-            logger.error("InfraClient logisticsOrderNo recipeCode={}", recipeCode, e);
+            logger.error("InfraClient logisticsOrderNo orderCode={}", orderCode, e);
             return "";
         }
     }

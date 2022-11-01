@@ -1560,8 +1560,8 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
     }
 
     @Override
-    public String logisticsOrderNo(String recipeCode) {
-        return infraClient.logisticsOrderNo(recipeCode);
+    public String logisticsOrderNo(String orderCode) {
+        return infraClient.logisticsOrderNo(orderCode);
     }
 
     @Override

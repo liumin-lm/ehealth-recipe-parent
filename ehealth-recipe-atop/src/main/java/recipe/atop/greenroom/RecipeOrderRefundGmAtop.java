@@ -54,10 +54,10 @@ public class RecipeOrderRefundGmAtop extends BaseAtop {
     /**
      * 获取物流编码文件流
      *
-     * @param recipeCode
+     * @param orderCode
      */
     @RpcService
-    public String logisticsOrderNo(String recipeCode) {
-        return recipeOrderService.logisticsOrderNo(recipeCode);
+    public String logisticsOrderNo(String orderCode) {
+        return recipeOrderService.logisticsOrderNo(orderCode);
     }
 }

@@ -259,7 +259,7 @@ public interface IRecipeOrderBusinessService {
     /**
      * 获取物流编码文件流
      *
-     * @param recipeCode
+     * @param orderCode
      */
-    String logisticsOrderNo(String recipeCode);
+    String logisticsOrderNo(String orderCode);
 }
