@@ -274,6 +274,18 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "his的id")
     private String chargeId;
 
+    @ItemProperty(alias = "单复方表示0:无状态，1单方，2复方")
+    private int singleOrCompoundRecipe;
+
+    @Column(name = "single_or_compound_recipe")
+    public int getSingleOrCompoundRecipe() {
+        return singleOrCompoundRecipe;
+    }
+
+    public void setSingleOrCompoundRecipe(int singleOrCompoundRecipe) {
+        this.singleOrCompoundRecipe = singleOrCompoundRecipe;
+    }
+
     @Column(name = "charge_id")
     public String getChargeId() {
         return chargeId;

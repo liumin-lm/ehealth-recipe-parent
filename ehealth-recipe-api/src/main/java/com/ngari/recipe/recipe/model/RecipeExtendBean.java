@@ -256,6 +256,16 @@ public class RecipeExtendBean implements Serializable {
     @ItemProperty(alias = "是否自动审核 1自动审核，0/null药师审核")
     private Integer autoCheck;
 
+    @ItemProperty(alias = "单复方表示0:无状态，1单方，2复方")
+    private int singleOrCompoundRecipe;
+
+    public int getSingleOrCompoundRecipe() {
+        return singleOrCompoundRecipe;
+    }
+
+    public void setSingleOrCompoundRecipe(int singleOrCompoundRecipe) {
+        this.singleOrCompoundRecipe = singleOrCompoundRecipe;
+    }
 
     public String getTerminalId() {
         return terminalId;
