@@ -2,6 +2,7 @@ package recipe.openapi.business.bean;
 
 import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
+import ctd.schema.annotation.Schema;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -11,6 +12,7 @@ import java.io.Serializable;
  * @date 2020\9\18 0018 15:49
  */
 @Data
+@Schema
 public class ThirdRecipeDetailBean implements Serializable{
     private static final long serialVersionUID = 6048242158398003003L;
 
