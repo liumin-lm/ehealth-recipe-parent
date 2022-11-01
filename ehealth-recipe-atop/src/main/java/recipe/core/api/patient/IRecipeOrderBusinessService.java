@@ -262,4 +262,11 @@ public interface IRecipeOrderBusinessService {
      * @param orderCode
      */
     String logisticsOrderNo(String orderCode);
+
+    /**
+     * 患者端完成订单
+     * @param orderCode
+     * @return
+     */
+    String patientFinishOrder(String orderCode);
 }

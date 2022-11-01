@@ -992,4 +992,22 @@ public class OrderManager extends BaseManager {
         recipeBeforeOrderDAO.save(recipeBeforeOrder);
     }
 
+    public String patientFinishOrder(String orderCode) {
+        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(orderCode);
+        if (null == recipeOrder) {
+            throw new DAOException("没有查询到订单信息");
+        }
+        List<Integer> sendStatusList = Arrays.asList(RecipeOrderStatusEnum.ORDER_STATUS_DONE.getType());
+        if (sendStatusList.contains(recipeOrder.getStatus())) {
+            throw new DAOException("当前订单已完成，不允许再次更新");
+        }
+        List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
+        // 更新处方信息
+        // 更新订单信息
+        // 更新PDF
+        // 上传监管平台
+        // 推送his
+        // 推送患者消息
+        return null;
+    }
 }

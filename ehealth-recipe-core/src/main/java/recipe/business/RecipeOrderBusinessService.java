@@ -1565,6 +1565,11 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
     }
 
     @Override
+    public String patientFinishOrder(String orderCode) {
+        return orderManager.patientFinishOrder(orderCode);
+    }
+
+    @Override
     public void submitRecipeHisV1(List<Integer> recipeIds) {
         AtomicReference<Boolean> msgFlag = new AtomicReference<>(false);
         //推送his
