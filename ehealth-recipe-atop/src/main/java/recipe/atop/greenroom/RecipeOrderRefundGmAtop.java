@@ -46,9 +46,18 @@ public class RecipeOrderRefundGmAtop extends BaseAtop {
     }
 
     @RpcService
-    public void updateRecipePushFlag(List<Integer> recipeIds){
+    public void updateRecipePushFlag(List<Integer> recipeIds) {
         validateAtop(recipeIds);
         recipeOrderRefundService.updateRecipePushFlag(recipeIds);
     }
 
+    /**
+     * 获取物流编码文件流
+     *
+     * @param recipeCode
+     */
+    @RpcService
+    public String logisticsOrderNo(String recipeCode) {
+        return recipeOrderService.logisticsOrderNo(recipeCode);
+    }
 }

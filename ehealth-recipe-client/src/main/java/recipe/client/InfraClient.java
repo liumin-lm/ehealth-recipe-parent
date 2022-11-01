@@ -100,4 +100,18 @@ public class InfraClient extends BaseClient {
         logger.info("InfraClient serviceLog name={},id={},type={},size={},time={},", name, id, type, size, time);
         super.serviceLog(name, id, type, size, time);
     }
+
+    /**
+     * 获取物流编码
+     *
+     * @param recipeCode
+     */
+    public String logisticsOrderNo(String recipeCode) {
+        try {
+            return logisticsOrderService.waybillBarCodeByLogisticsOrderNo(1, recipeCode);
+        } catch (Exception e) {
+            logger.error("InfraClient logisticsOrderNo recipeCode={}", recipeCode, e);
+            return "";
+        }
+    }
 }
