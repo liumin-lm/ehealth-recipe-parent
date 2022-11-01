@@ -95,4 +95,9 @@ public class InfraClient extends BaseClient {
             logger.error("InfraClient serviceLog error", e);
         }
     }
+
+    public void serviceTimeLog(String name, Integer id, Integer type, Integer size, Long time) {
+        logger.info("InfraClient serviceLog name={},id={},type={},size={},time={},", name, id, type, size, time);
+        super.serviceLog(name, id, type, size, time);
+    }
 }
