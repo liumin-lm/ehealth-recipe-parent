@@ -304,4 +304,12 @@ public interface IRecipeAtopService {
      */
     @RpcService(mvcDisabled = true)
     List<RecipeInfoTO> patientOfflineRecipe(Integer organId, String patientId, String patientName, Date startTime, Date endTime);
+
+    /**
+     * 日志分析接口
+     *
+     * @param serviceLog
+     */
+    @RpcService(mvcDisabled = true)
+    void serviceTimeLog(ServiceLogVO serviceLog);
 }

@@ -137,10 +137,11 @@ public class DrugStockClient extends BaseClient {
             logger.info("DrugStockClient scanDrugStock drugStockAmountDTO={}", JSON.toJSONString(drugStockAmountDTO));
             return drugStockAmountDTO;
         } catch (Exception e) {
-            logger.error(" DrugStockClient scanDrugStock error ", e);
+            logger.error("DrugStockClient scanDrugStock error ", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, " recipeHisService.scanDrugStock error");
         } finally {
             Long end = System.currentTimeMillis() - start;
+            super.serviceLog("ScanDrugStock", organId, 1, data.size(), end);
             logger.info("StockBusinessServiceScanDrugStock organ end={},size={},id={}", end, data.size(), organId);
         }
     }
@@ -220,6 +221,7 @@ public class DrugStockClient extends BaseClient {
             drugStockAmountDTO.setDrugInfoList(DrugStockClient.getDrugInfoDTO(recipeDetails, false));
         } finally {
             Long end = System.currentTimeMillis() - start;
+            super.serviceLog("ScanDrugStock", drugsEnterprise.getId(), 2, scanRequestBean.getScanDrugListBeans().size(), end);
             logger.info("StockBusinessServiceScanDrugStock Enterprise end={},size={},id={}", end, scanRequestBean.getScanDrugListBeans().size(), drugsEnterprise.getId());
         }
         logger.info("DrugStockClient scanEnterpriseDrugStockV1 drugStockAmountDTO = {} ", JSON.toJSONString(drugStockAmountDTO));
