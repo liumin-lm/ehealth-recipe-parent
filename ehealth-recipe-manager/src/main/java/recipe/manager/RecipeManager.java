@@ -1084,9 +1084,7 @@ public class RecipeManager extends BaseManager {
                     }
                 }
                 logger.info("RecipeManager queryChargeItemCode recipeChargeCode:{}", recipeChargeCode);
-                if (StringUtils.isNotEmpty(recipeChargeCode)) {
-                    recipeExtend.setChargeItemCode(recipeChargeCode.toString());
-                }
+                recipeExtend.setChargeItemCode(recipeChargeCode.toString());
                 recipeExtendDAO.updateNonNullFieldByPrimaryKey(recipeExtend);
             });
         } catch (Exception e) {
