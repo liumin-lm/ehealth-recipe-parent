@@ -35,9 +35,9 @@ public class ThirdRecipeDetailBean implements Serializable{
     private String useDoseUnit;
 
     private String dosageUnit;
-
+    @Dictionary(id = "eh.cdr.dictionary.UsingRate")
     private String usingRate;
-
+    @Dictionary(id = "eh.cdr.dictionary.UsePathways")
     private String usePathways;
 
     private Double useTotalDose;
@@ -52,11 +52,8 @@ public class ThirdRecipeDetailBean implements Serializable{
 
     private String organDrugCode;
 
-
     @ItemProperty(alias = "机构的频次代码")
-    @Dictionary(id = "eh.cdr.dictionary.UsingRate")
     private String organUsingRate;
     @ItemProperty(alias = "机构的用法代码")
-    @Dictionary(id = "eh.cdr.dictionary.UsePathways")
     private String organUsePathways;
 }
