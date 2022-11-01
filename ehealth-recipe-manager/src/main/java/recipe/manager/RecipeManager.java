@@ -1067,7 +1067,11 @@ public class RecipeManager extends BaseManager {
             recipes.forEach(recipe -> {
                 String hisRecipeCode = hisRecipeCodeMap.get(recipe.getRecipeCode());
                 RecipeExtend recipeExtend = recipeExtendMap.get(recipe.getRecipeId());
-                recipeExtend.setChargeId(hisRecipeCode);
+                if (StringUtils.isNotEmpty(hisRecipeCode)) {
+                    recipeExtend.setChargeId(hisRecipeCode);
+                } else {
+                    recipeExtend.setChargeId("");
+                }
                 String recipeCostNumber = recipeExtend.getRecipeCostNumber();
                 StringBuilder recipeChargeCode = new StringBuilder("");
                 if (StringUtils.isNotEmpty(recipeCostNumber)) {
