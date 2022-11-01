@@ -152,6 +152,7 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
                     result.setCode(1);
                     String prescId = (String) responseTO.getExtend().get("prescId");
                     String chargeItemCode = (String)responseTO.getExtend().get("chargeItemCode");
+                    String recipeCode = (String) responseTO.getExtend().get("recipeCode");
                     RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
                     RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
                     if (StringUtils.isNotEmpty(prescId)) {
@@ -159,6 +160,9 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
                     }
                     if (StringUtils.isNotEmpty(chargeItemCode)) {
                         recipeExtend.setChargeItemCode(chargeItemCode);
+                    }
+                    if (StringUtils.isNotEmpty(recipeCode)) {
+                        recipeExtend.setChargeId(recipeCode);
                     }
                     recipeExtendDAO.updateNonNullFieldByPrimaryKey(recipeExtend);
                 } else {

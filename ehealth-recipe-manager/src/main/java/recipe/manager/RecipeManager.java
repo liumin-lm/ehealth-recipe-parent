@@ -6,10 +6,9 @@ import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.dto.UsingRateDTO;
 import com.ngari.consult.common.model.ConsultExDTO;
 import com.ngari.follow.utils.ObjectCopyUtil;
-import com.ngari.his.visit.mode.NeedPaymentRecipeReqTo;
-import com.ngari.his.visit.mode.NeedPaymentRecipeResTo;
+import com.ngari.his.visit.mode.RecipeChargeItemCodeReqTo;
+import com.ngari.his.visit.mode.RecipeChargeItemCodeResTo;
 import com.ngari.patient.dto.DoctorDTO;
-import com.ngari.patient.service.PatientService;
 import com.ngari.platform.recipe.mode.*;
 import com.ngari.recipe.dto.EmrDetailDTO;
 import com.ngari.recipe.dto.RecipeDTO;
@@ -17,7 +16,6 @@ import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import com.ngari.revisit.RevisitBean;
 import com.ngari.revisit.common.model.RevisitExDTO;
-import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.FileAuth;
 import ctd.util.JSONUtils;
@@ -35,8 +33,6 @@ import recipe.common.CommonConstant;
 import recipe.common.UrlConfig;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
-import recipe.dao.RecipeParameterDao;
-import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RequirementsForTakingDao;
 import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.enumerate.status.RecipeStateEnum;
@@ -45,7 +41,6 @@ import recipe.enumerate.status.WriteHisEnum;
 import recipe.enumerate.type.AppointEnterpriseTypeEnum;
 import recipe.enumerate.type.RecipeShowQrConfigEnum;
 import recipe.util.*;
-import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.util.DictionaryUtil;
 import recipe.util.LocalStringUtil;
 import recipe.util.ObjectCopyUtils;
@@ -1032,28 +1027,58 @@ public class RecipeManager extends BaseManager {
 
     /**
      * 获取收费项
-     * @param recipe 处方
+     * @param recipes 处方
      */
-    public void queryChargeItemCode(Recipe recipe){
-        logger.info("RecipeManager queryChargeItemCode recipe:{}", JSON.toJSONString(recipe));
+    public void queryChargeItemCode(List<Recipe> recipes){
+        logger.info("RecipeManager queryChargeItemCode recipes:{}", JSON.toJSONString(recipes));
         try {
-            Boolean windhpFlag = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "windhpFlag", false);
+            Recipe dbRecipe = recipes.get(0);
+            Boolean windhpFlag = configurationClient.getValueBooleanCatch(dbRecipe.getClinicOrgan(), "windhpFlag", false);
             if (!windhpFlag) {
                 return;
             }
-            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-            NeedPaymentRecipeReqTo needPayment = new NeedPaymentRecipeReqTo();
-            needPayment.setPatientID(recipe.getPatientID());
-            needPayment.setPatientName(recipe.getPatientName());
-            needPayment.setBeginTime(DateConversion.getDateTimeDaysAgo(3));
-            needPayment.setEndTime(new Date());
-            needPayment.setCisRecipeCostNumber(recipeExtend.getRecipeCostNumber());
-            NeedPaymentRecipeResTo paymentRecipeResTo = consultClient.getRecipePaymentFee(needPayment);
-            if (Objects.isNull(paymentRecipeResTo) || StringUtils.isEmpty(paymentRecipeResTo.getChargeItemCode())) {
+            RecipeExtend dbRecipeExtend = recipeExtendDAO.getByRecipeId(dbRecipe.getRecipeId());
+            RecipeChargeItemCodeReqTo request = new RecipeChargeItemCodeReqTo();
+            PatientDTO patientDTO = patientClient.getPatientDTO(dbRecipe.getMpiid());
+            request.setPatientID(dbRecipe.getPatientID());
+            request.setPatientName(dbRecipe.getPatientName());
+            request.setCertificateType(patientDTO.getCertificateType());
+            request.setCertificate(patientDTO.getCertificate());
+            request.setCardType(dbRecipeExtend.getCardType());
+            request.setCardNo(dbRecipeExtend.getCardNo());
+            request.setBeginTime(DateConversion.getDateTimeDaysAgo(3));
+            request.setEndTime(new Date());
+            List<String> cisRecipeCodes = new ArrayList<>();
+            recipes.forEach(recipe -> cisRecipeCodes.add(recipe.getRecipeCode()));
+            request.setRecipeCodes(cisRecipeCodes);
+            List<Integer> recipeIdList = recipes.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
+            List<RecipeExtend> recipeExtendList = recipeExtendDAO.queryRecipeExtendByRecipeIds(recipeIdList);
+            List<String> cisRecipeCostNumber = new ArrayList<>();
+            recipeExtendList.forEach(recipeExtend -> cisRecipeCostNumber.add(recipeExtend.getRecipeCostNumber()));
+            request.setRecipeCostNumber(cisRecipeCostNumber);
+            RecipeChargeItemCodeResTo recipeChargeItemCodeResTo = consultClient.getRecipeChargeItems(request);
+            if (Objects.isNull(recipeChargeItemCodeResTo)) {
                 return;
             }
-            recipeExtend.setChargeItemCode(paymentRecipeResTo.getChargeItemCode());
-            recipeExtendDAO.updateNonNullFieldByPrimaryKey(recipeExtend);
+            Map<Integer, RecipeExtend> recipeExtendMap = recipeExtendList.stream().collect(Collectors.toMap(RecipeExtend::getRecipeId, a -> a, (k1, k2) -> k1));
+            Map<String, String> hisRecipeCodeMap = recipeChargeItemCodeResTo.getHisRecipeCode();
+            Map<String, String> hisRecipeCostNumberMap = recipeChargeItemCodeResTo.getHisRecipeCostNumber();
+            recipes.forEach(recipe -> {
+                String hisRecipeCode = hisRecipeCodeMap.get(recipe.getRecipeCode());
+                RecipeExtend recipeExtend = recipeExtendMap.get(recipe.getRecipeId());
+                recipeExtend.setChargeId(hisRecipeCode);
+                String recipeCostNumber = recipeExtend.getRecipeCostNumber();
+                StringBuilder recipeChargeCode = new StringBuilder("");
+                if (StringUtils.isNotEmpty(recipeCostNumber)) {
+                    List<String> recipeCostNumbers = Arrays.asList(recipeCostNumber.split(","));
+                    recipeCostNumbers.forEach(recipeCostItem -> recipeChargeCode.append(hisRecipeCostNumberMap.get(recipeCostItem)).append(","));
+                    if (recipeChargeCode.toString().contains(",")) {
+                        recipeChargeCode.deleteCharAt(recipeChargeCode.lastIndexOf(","));
+                    }
+                }
+                recipeExtend.setChargeItemCode(recipeChargeCode.toString());
+                recipeExtendDAO.updateNonNullFieldByPrimaryKey(recipeExtend);
+            });
         } catch (Exception e) {
             logger.error("RecipeManager queryChargeItemCode error", e);
         }

@@ -8,9 +8,7 @@ import com.ngari.consult.common.service.IConsultExService;
 import com.ngari.consult.common.service.IConsultRedisService;
 import com.ngari.his.recipe.mode.OutPatientRecordResTO;
 import com.ngari.his.recipe.service.IRecipeHisService;
-import com.ngari.his.visit.mode.NeedPaymentRecipeReqTo;
-import com.ngari.his.visit.mode.NeedPaymentRecipeResTo;
-import com.ngari.his.visit.mode.WriteDrugRecipeReqTO;
+import com.ngari.his.visit.mode.*;
 import com.ngari.patient.dto.ConsultSetDTO;
 import com.ngari.patient.service.ConsultSetService;
 import ctd.util.JSONUtils;
@@ -104,6 +102,24 @@ public class ConsultClient extends BaseClient {
         return response;
     }
 
+    /**
+     * 获取门诊收费项目
+     * @param recipeChargeItemCodeReqTo
+     * @return
+     */
+    public RecipeChargeItemCodeResTo getRecipeChargeItems(RecipeChargeItemCodeReqTo recipeChargeItemCodeReqTo){
+        logger.info("ConsultClient getRecipeChargeItems recipeChargeItemCodeReqTo:{}", JSON.toJSONString(recipeChargeItemCodeReqTo));
+        RecipeChargeItemCodeResTo response = null;
+        try {
+            HisResponseTO<RecipeChargeItemCodeResTo> hisResponseTO = iRecipeHisService.getRecipeChargeItems(recipeChargeItemCodeReqTo);
+            response = this.getResponse(hisResponseTO);
+        } catch (Exception e) {
+            logger.error("ConsultClient getRecipeChargeItems error ", e);
+        }
+        logger.info("ConsultClient getRecipeChargeItems res:{}", JSON.toJSONString(response));
+
+        return response;
+    }
 
     /**
      * 根据单号获取网络门诊信息
