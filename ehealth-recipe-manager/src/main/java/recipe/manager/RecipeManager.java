@@ -1077,7 +1077,10 @@ public class RecipeManager extends BaseManager {
                         recipeChargeCode.deleteCharAt(recipeChargeCode.lastIndexOf(","));
                     }
                 }
-                recipeExtend.setChargeItemCode(recipeChargeCode.toString());
+                logger.info("RecipeManager queryChargeItemCode recipeChargeCode:{}", recipeChargeCode);
+                if (StringUtils.isNotEmpty(recipeChargeCode)) {
+                    recipeExtend.setChargeItemCode(recipeChargeCode.toString());
+                }
                 recipeExtendDAO.updateNonNullFieldByPrimaryKey(recipeExtend);
             });
         } catch (Exception e) {
