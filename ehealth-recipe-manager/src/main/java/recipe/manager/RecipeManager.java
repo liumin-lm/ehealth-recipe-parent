@@ -1072,7 +1072,13 @@ public class RecipeManager extends BaseManager {
                 StringBuilder recipeChargeCode = new StringBuilder("");
                 if (StringUtils.isNotEmpty(recipeCostNumber)) {
                     List<String> recipeCostNumbers = Arrays.asList(recipeCostNumber.split(","));
-                    recipeCostNumbers.forEach(recipeCostItem -> recipeChargeCode.append(hisRecipeCostNumberMap.get(recipeCostItem)).append(","));
+                    recipeCostNumbers.forEach(recipeCostItem -> {
+                        String recipeCost = hisRecipeCostNumberMap.get(recipeCostItem);
+                        if (StringUtils.isEmpty(recipeCost)) {
+                            return;
+                        }
+                        recipeChargeCode.append(recipeCost).append(",");
+                    });
                     if (recipeChargeCode.toString().contains(",")) {
                         recipeChargeCode.deleteCharAt(recipeChargeCode.lastIndexOf(","));
                     }
