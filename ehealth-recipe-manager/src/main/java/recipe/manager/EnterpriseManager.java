@@ -455,6 +455,7 @@ public class EnterpriseManager extends BaseManager {
             recipeUpdate.setEnterpriseId(enterprise.getId());
             recipeUpdate.setPushFlag(1);
             recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
+            recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeNew.getRecipeId(), ImmutableMap.of("chargeItemCode", skipThirdDTO.getChargeItemCode(), "recipeCode", skipThirdDTO.getRecipeCode()));
         } else if (StringUtils.isNotEmpty(skipThirdDTO.getPrescId())) {
             recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeNew.getRecipeId(), ImmutableMap.of("rxid", skipThirdDTO.getPrescId()));
         }
