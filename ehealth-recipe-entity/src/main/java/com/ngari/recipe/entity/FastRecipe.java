@@ -127,14 +127,19 @@ public class FastRecipe {
 
     @ItemProperty(alias = "服用要求")
     private String requirementsForTakingId;
+
     @ItemProperty(alias = "服用要求code")
     private String requirementsForTakingCode;
+
     @ItemProperty(alias = "服用要求text")
     private String requirementsForTakingText;
 
     @ItemProperty(alias = "处方剂型类型 1 饮片方 2 颗粒方")
     @Dictionary(id = "eh.cdr.dictionary.RecipeDrugForm")
     private Integer recipeDrugForm;
+
+    @ItemProperty(alias = "单复方表示：0无状态，1单方，2复方")
+    private Integer singleOrCompoundRecipe;
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
@@ -486,5 +491,14 @@ public class FastRecipe {
 
     public void setRecipeDrugForm(Integer recipeDrugForm) {
         this.recipeDrugForm = recipeDrugForm;
+    }
+
+    @Column(name = "single_or_compound_recipe")
+    public Integer getSingleOrCompoundRecipe() {
+        return singleOrCompoundRecipe;
+    }
+
+    public void setSingleOrCompoundRecipe(Integer singleOrCompoundRecipe) {
+        this.singleOrCompoundRecipe = singleOrCompoundRecipe;
     }
 }
