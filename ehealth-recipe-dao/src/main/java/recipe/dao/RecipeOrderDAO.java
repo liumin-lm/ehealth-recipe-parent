@@ -1960,4 +1960,22 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         hql.append(" order by a.CreateTime DESC");
         return hql;
     }
+
+    public List<Integer> getOrganIdByStatus(){
+        HibernateStatelessResultAction<List<Integer>> action = new AbstractHibernateStatelessResultAction<List<Integer>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                String sql = "select OrganId from RecipeOrder where processState=3 and subState=32 GROUP BY OrganId";
+
+                Query q = ss.createQuery(sql);
+                setResult(q.list());
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    };
+
+    @DAOMethod(sql = "from RecipeOrder where processState=3 and subState=32 and SendTime < :date and OrganId=:organId ")
+    public abstract List<RecipeOrder> findByOrganIdAndStatus(@DAOParam("organId")Integer organId, @DAOParam("date")Date date);
+
 }

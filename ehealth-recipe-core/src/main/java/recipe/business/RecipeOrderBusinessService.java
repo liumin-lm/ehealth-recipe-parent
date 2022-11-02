@@ -1596,6 +1596,29 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
     }
 
     @Override
+    public void finishRecipeOrderJob() {
+        // 获取所有 有 配送中订单 的机构
+        List<Integer> organIds = recipeOrderDAO.getOrganIdByStatus();
+        if (CollectionUtils.isEmpty(organIds)) {
+            return;
+        }
+        organIds.forEach(organId -> {
+            Integer recipeAutoFinishTime = configurationClient.getValueCatch(organId, "recipeAutoFinishTime", 14);
+            Date date = DateUtils.addDays(new Date(), -recipeAutoFinishTime);
+            List<RecipeOrder> recipeOrders = recipeOrderDAO.findByOrganIdAndStatus(organId, date);
+            recipeOrders.forEach(recipeOrder -> {
+                try {
+                    patientFinishOrder(recipeOrder.getOrderCode());
+                }catch (Exception e){
+                    logger.info("完成处方失败 orderCode=" + recipeOrder.getOrderCode());
+                }
+            });
+
+        });
+
+    }
+
+    @Override
     public void submitRecipeHisV1(List<Integer> recipeIds) {
         AtomicReference<Boolean> msgFlag = new AtomicReference<>(false);
         //推送his

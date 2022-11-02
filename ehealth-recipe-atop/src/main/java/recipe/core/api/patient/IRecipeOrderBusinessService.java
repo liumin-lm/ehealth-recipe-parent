@@ -269,4 +269,10 @@ public interface IRecipeOrderBusinessService {
      * @return
      */
     void patientFinishOrder(String orderCode);
+
+
+    /**
+     * 配送中订单定时任务 完成操作
+     */
+    void finishRecipeOrderJob();
 }
