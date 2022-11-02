@@ -1,4 +1,4 @@
-package recipe.bussutil;
+package recipe.third.util;
 
 import com.alibaba.fastjson.JSON;
 import com.itextpdf.text.BaseColor;
@@ -22,9 +22,9 @@ import org.bouncycastle.util.encoders.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
-import recipe.ApplicationUtils;
 import recipe.constant.ErrorCode;
 import recipe.third.IFileDownloadService;
+import recipe.util.BarCodeUtil;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
