@@ -288,5 +288,14 @@ public class RecipeOrderPatientAtop extends BaseAtop {
         return recipeOrderService.patientFinishOrder(orderCode);
     }
 
+    /**
+     * 拦截患者退费申请
+     * @param orderCode
+     * @return
+     */
+    @RpcService
+    public Boolean interceptPatientApplyRefund(String orderCode){
+        return false;
+    }
 
 }
