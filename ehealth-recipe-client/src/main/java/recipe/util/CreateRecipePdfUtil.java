@@ -1,4 +1,4 @@
-package recipe.third.util;
+package recipe.util;
 
 import com.alibaba.fastjson.JSON;
 import com.itextpdf.text.BaseColor;
@@ -24,7 +24,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
 import recipe.constant.ErrorCode;
 import recipe.third.IFileDownloadService;
-import recipe.util.BarCodeUtil;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;

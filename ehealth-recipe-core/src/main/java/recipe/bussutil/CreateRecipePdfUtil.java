@@ -1,9 +1,10 @@
 package recipe.bussutil;
 
 /**
+ * todo：代码位置迁移到父类
  * created by shiyuping on 2019/10/18
  */
-public class CreateRecipePdfUtil extends recipe.third.util.CreateRecipePdfUtil {
+public class CreateRecipePdfUtil extends recipe.util.CreateRecipePdfUtil {
 //    private static final Logger logger = LoggerFactory.getLogger(CreateRecipePdfUtil.class);
 //    private static final IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
 //    private static final IFileUploadService fileUploadService = ApplicationUtils.getBaseService(IFileUploadService.class);
