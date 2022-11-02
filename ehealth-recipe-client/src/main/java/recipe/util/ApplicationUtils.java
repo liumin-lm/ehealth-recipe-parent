@@ -1,4 +1,4 @@
-package recipe.third.util;
+package recipe.util;
 
 import com.ngari.base.BaseAPI;
 import com.ngari.consult.ConsultAPI;

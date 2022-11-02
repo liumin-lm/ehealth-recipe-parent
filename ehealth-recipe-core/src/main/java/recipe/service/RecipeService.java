@@ -4365,6 +4365,18 @@ public class RecipeService extends RecipeBaseService {
             drugListMatch.setPsychotropicDrugFlag(drug.getSpecialUseAntibioticDrugFlag());
         }
 
+        if(!ObjectUtils.isEmpty(drug.getUnitHisCode())){
+            drugListMatch.setUnitHisCode(drug.getUnitHisCode());
+        }
+
+        if(!ObjectUtils.isEmpty(drug.getUseDoseUnitHisCode())){
+            drugListMatch.setUseDoseUnitHisCode(drug.getUseDoseUnitHisCode());
+        }
+
+        if(!ObjectUtils.isEmpty(drug.getUseDoseSmallestUnitHisCode())){
+            drugListMatch.setUseDoseSmallestUnitHisCode(drug.getUseDoseSmallestUnitHisCode());
+        }
+
         LOGGER.info("drugInfoSynMovementaddHisDrug" + drug.getDrugName() + "organId=[{}] drug=[{}]", organId, JSONUtils.toString(drug));
         List<DrugListMatch> dataByOrganDrugCode = drugListMatchDAO.findDataByOrganDrugCode(drugListMatch.getOrganDrugCode(), drugListMatch.getSourceOrgan());
         if (ObjectUtils.isEmpty(dataByOrganDrugCode)) {
@@ -4456,6 +4468,17 @@ public class RecipeService extends RecipeBaseService {
         //是否特殊使用级抗生素药物
         if(!ObjectUtils.isEmpty(drug.getSpecialUseAntibioticDrugFlag())){
             organDrug.setPsychotropicDrugFlag(drug.getSpecialUseAntibioticDrugFlag());
+        }
+        if(!ObjectUtils.isEmpty(drug.getUnitHisCode())){
+            organDrug.setUnitHisCode(drug.getUnitHisCode());
+        }
+
+        if(!ObjectUtils.isEmpty(drug.getUseDoseUnitHisCode())){
+            organDrug.setUseDoseUnitHisCode(drug.getUseDoseUnitHisCode());
+        }
+
+        if(!ObjectUtils.isEmpty(drug.getUseDoseSmallestUnitHisCode())){
+            organDrug.setUseDoseSmallestUnitHisCode(drug.getUseDoseSmallestUnitHisCode());
         }
         if (isAllowSyncField(organDrugListSyncFieldMap.get(SyncDrugConstant.drugForm))
                 &&!ObjectUtils.isEmpty(drug.getDrugform())) {
@@ -4914,6 +4937,17 @@ public class RecipeService extends RecipeBaseService {
         //是否特殊使用级抗生素药物
         if(!ObjectUtils.isEmpty(drug.getSpecialUseAntibioticDrugFlag())){
             organDrug.setPsychotropicDrugFlag(drug.getSpecialUseAntibioticDrugFlag());
+        }
+        if(!ObjectUtils.isEmpty(drug.getUnitHisCode())){
+            organDrug.setUnitHisCode(drug.getUnitHisCode());
+        }
+
+        if(!ObjectUtils.isEmpty(drug.getUseDoseUnitHisCode())){
+            organDrug.setUseDoseUnitHisCode(drug.getUseDoseUnitHisCode());
+        }
+
+        if(!ObjectUtils.isEmpty(drug.getUseDoseSmallestUnitHisCode())){
+            organDrug.setUseDoseSmallestUnitHisCode(drug.getUseDoseSmallestUnitHisCode());
         }
         //医院药房名字
         if (!ObjectUtils.isEmpty(drug.getPharmacy())) {
