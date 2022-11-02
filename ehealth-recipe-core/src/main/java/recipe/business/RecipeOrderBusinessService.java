@@ -49,6 +49,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.curator.shaded.com.google.common.collect.Maps;
+import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.ApplicationUtils;
@@ -58,25 +59,27 @@ import recipe.client.*;
 import recipe.common.CommonConstant;
 import recipe.constant.ErrorCode;
 import recipe.constant.RecipeBussConstant;
+import recipe.constant.RecipeStatusConstant;
 import recipe.core.api.IEnterpriseBusinessService;
 import recipe.core.api.patient.IRecipeOrderBusinessService;
 import recipe.dao.*;
-import recipe.enumerate.status.GiveModeEnum;
-import recipe.enumerate.status.PayModeEnum;
-import recipe.enumerate.status.RecipeOrderStatusEnum;
-import recipe.enumerate.status.RecipeStateEnum;
+import recipe.enumerate.status.*;
 import recipe.enumerate.type.GiveModeTextEnum;
 import recipe.enumerate.type.NeedSendTypeEnum;
+import recipe.enumerate.type.PayFlagEnum;
+import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.factory.status.givemodefactory.GiveModeProxy;
 import recipe.hisservice.RecipeToHisService;
+import recipe.hisservice.syncdata.HisSyncSupervisionService;
+import recipe.hisservice.syncdata.SyncExecutorService;
 import recipe.manager.*;
 import recipe.presettle.IRecipePreSettleService;
 import recipe.presettle.factory.PreSettleFactory;
+import recipe.purchase.CommonOrder;
 import recipe.purchase.PurchaseService;
-import recipe.service.PayModeGiveModeUtil;
-import recipe.service.RecipeLogService;
-import recipe.service.RecipeOrderService;
+import recipe.service.*;
 import recipe.third.IFileDownloadService;
+import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.*;
 import recipe.vo.ResultBean;
 import recipe.vo.base.BaseRecipeDetailVO;
@@ -1565,8 +1568,31 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
     }
 
     @Override
-    public String patientFinishOrder(String orderCode) {
-        return orderManager.patientFinishOrder(orderCode);
+    public void patientFinishOrder(String orderCode) {
+        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(orderCode);
+        if (null == recipeOrder) {
+            throw new DAOException("没有查询到订单信息");
+        }
+        if (OrderStateEnum.PROCESS_STATE_DISPENSING.getType().equals(recipeOrder.getStatus())) {
+            throw new DAOException("当前订单已完成，不允许再次更新");
+        }
+        List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
+        Date finishDate = new Date();
+        boolean isSendFlag = false;
+        if (!RecipeSupportGiveModeEnum.SUPPORT_TFDS.getText().equals(recipeOrder.getGiveModeKey())) {
+            isSendFlag = true;
+        }
+        //更新处方
+        recipeManager.finishRecipes(recipeIdList, finishDate);
+        //更新订单完成
+        recipeOrder.setEffective(1);
+        recipeOrder.setPayFlag(PayFlagEnum.PAYED.getType());
+        recipeOrder.setFinishTime(finishDate);
+        recipeOrder.setStatus(RecipeOrderStatusEnum.ORDER_STATUS_DONE.getType());
+        recipeOrderDAO.updateNonNullFieldByPrimaryKey(recipeOrder);
+        syncFinishOrderHandle(recipeIdList, recipeOrder, isSendFlag);
+        stateManager.updateOrderState(recipeOrder.getOrderId(), OrderStateEnum.PROCESS_STATE_DISPENSING, OrderStateEnum.SUB_DONE_SEND);
+
     }
 
     @Override
@@ -1609,5 +1635,35 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
         if (msgFlag.get()) {
             throw new DAOException(609, "锁定失败请重新锁定");
         }
+    }
+
+    private void syncFinishOrderHandle(List<Integer> recipeIdList, RecipeOrder recipeOrder, boolean isSendFlag) {
+        logger.info("syncFinishOrderHandle recipeIdList:{}, recipeOrder:{}", recipeIdList, JSON.toJSONString(recipeOrder));
+        RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
+        List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIdList);
+        RecipeBusiThreadPool.execute(() -> {
+            recipeList.forEach(recipe -> {
+                stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_DONE, RecipeStateEnum.SUB_DONE_SEND);
+                //HIS消息发送
+                hisService.recipeFinish(recipe.getRecipeId());
+                //更新pdf
+                CommonOrder.finishGetDrugUpdatePdf(recipe.getRecipeId());
+                HisSyncSupervisionService hisSyncService = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
+                if (isSendFlag) {
+                    hisSyncService.uploadFinishMedicine(recipe.getRecipeId());
+                } else {
+                    SyncExecutorService syncExecutorService = ApplicationUtils.getRecipeService(SyncExecutorService.class);
+                    syncExecutorService.uploadRecipeVerificationIndicators(recipe.getRecipeId());
+                }
+            });
+            Recipe recipe = recipeList.get(0);
+            if (isSendFlag) {
+                //配送到家
+                RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.PATIENT_REACHPAY_FINISH);
+            } else {
+                //发送取药完成消息
+                RecipeMsgService.batchSendMsg(recipe.getRecipeId(), RecipeStatusConstant.RECIPE_TAKE_MEDICINE_FINISH);
+            }
+        });
     }
 }
