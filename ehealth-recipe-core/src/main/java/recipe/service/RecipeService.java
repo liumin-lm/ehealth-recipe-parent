@@ -2369,12 +2369,12 @@ public class RecipeService extends RecipeBaseService {
             Integer status = (Integer) hget.get("Status");
             String date = (String) hget.get("Date");
             long minutes = timeDifference(date);
-            if (minutes < 10L) {
-                throw new DAOException(DAOException.VALUE_NEEDED, "距离上次同步未超过10分钟，请稍后再尝试数据同步!");
-            }
-            if (status == 0) {
-                throw new DAOException(DAOException.VALUE_NEEDED, "药品数据正在同步中，请耐心等待...");
-            }
+//            if (minutes < 10L) {
+//                throw new DAOException(DAOException.VALUE_NEEDED, "距离上次同步未超过10分钟，请稍后再尝试数据同步!");
+//            }
+//            if (status == 0) {
+//                throw new DAOException(DAOException.VALUE_NEEDED, "药品数据正在同步中，请耐心等待...");
+//            }
         }
         DrugOrganConfig byOrganId1=ObjectCopyUtils.convert(drugBusinessService.getConfigByOrganId(organId), DrugOrganConfig.class);
         if (ObjectUtils.isEmpty(byOrganId1)) {
@@ -4340,9 +4340,9 @@ public class RecipeService extends RecipeBaseService {
                 }
             }
         }
-        //抗菌素药物等级
+        //抗菌素药物
         if(!ObjectUtils.isEmpty(drug.getAntibioticsDrugLevel())){
-            drugListMatch.setPsychotropicDrugFlag(drug.getAntibioticsDrugLevel());
+            drugListMatch.setAntibioticsDrugLevel(drug.getAntibioticsDrugLevel());
         }
         //是否精神药物
         if(!ObjectUtils.isEmpty(drug.getPsychotropicDrugFlag())){
@@ -4350,19 +4350,19 @@ public class RecipeService extends RecipeBaseService {
         }
         //是否麻醉药物
         if(!ObjectUtils.isEmpty(drug.getNarcoticDrugFlag())){
-            drugListMatch.setPsychotropicDrugFlag(drug.getNarcoticDrugFlag());
+            drugListMatch.setNarcoticDrugFlag(drug.getNarcoticDrugFlag());
         }
         //是否毒性药物
         if(!ObjectUtils.isEmpty(drug.getToxicDrugFlag())){
-            drugListMatch.setPsychotropicDrugFlag(drug.getToxicDrugFlag());
+            drugListMatch.setToxicDrugFlag(drug.getToxicDrugFlag());
         }
         //是否放射性药物
         if(!ObjectUtils.isEmpty(drug.getRadioActivityDrugFlag())){
-            drugListMatch.setPsychotropicDrugFlag(drug.getRadioActivityDrugFlag());
+            drugListMatch.setRadioActivityDrugFlag(drug.getRadioActivityDrugFlag());
         }
         //是否特殊使用级抗生素药物
         if(!ObjectUtils.isEmpty(drug.getSpecialUseAntibioticDrugFlag())){
-            drugListMatch.setPsychotropicDrugFlag(drug.getSpecialUseAntibioticDrugFlag());
+            drugListMatch.setSpecialUseAntibioticDrugFlag(drug.getSpecialUseAntibioticDrugFlag());
         }
 
         if(!ObjectUtils.isEmpty(drug.getUnitHisCode())){
@@ -4447,7 +4447,7 @@ public class RecipeService extends RecipeBaseService {
         }
         //抗菌素药物
         if(!ObjectUtils.isEmpty(drug.getAntibioticsDrugLevel())){
-            organDrug.setAntiTumorDrugFlag(drug.getAntibioticsDrugLevel());
+            organDrug.setAntibioticsDrugLevel(drug.getAntibioticsDrugLevel());
         }
         //是否精神药物
         if(!ObjectUtils.isEmpty(drug.getPsychotropicDrugFlag())){
@@ -4455,19 +4455,19 @@ public class RecipeService extends RecipeBaseService {
         }
         //是否麻醉药物
         if(!ObjectUtils.isEmpty(drug.getNarcoticDrugFlag())){
-            organDrug.setPsychotropicDrugFlag(drug.getNarcoticDrugFlag());
+            organDrug.setNarcoticDrugFlag(drug.getNarcoticDrugFlag());
         }
         //是否毒性药物
         if(!ObjectUtils.isEmpty(drug.getToxicDrugFlag())){
-            organDrug.setPsychotropicDrugFlag(drug.getToxicDrugFlag());
+            organDrug.setToxicDrugFlag(drug.getToxicDrugFlag());
         }
         //是否放射性药物
         if(!ObjectUtils.isEmpty(drug.getRadioActivityDrugFlag())){
-            organDrug.setPsychotropicDrugFlag(drug.getRadioActivityDrugFlag());
+            organDrug.setRadioActivityDrugFlag(drug.getRadioActivityDrugFlag());
         }
         //是否特殊使用级抗生素药物
         if(!ObjectUtils.isEmpty(drug.getSpecialUseAntibioticDrugFlag())){
-            organDrug.setPsychotropicDrugFlag(drug.getSpecialUseAntibioticDrugFlag());
+            organDrug.setSpecialUseAntibioticDrugFlag(drug.getSpecialUseAntibioticDrugFlag());
         }
         if(!ObjectUtils.isEmpty(drug.getUnitHisCode())){
             organDrug.setUnitHisCode(drug.getUnitHisCode());
@@ -4916,7 +4916,7 @@ public class RecipeService extends RecipeBaseService {
         }
         //抗菌素药物
         if(!ObjectUtils.isEmpty(drug.getAntibioticsDrugLevel())){
-            organDrug.setAntiTumorDrugFlag(drug.getAntibioticsDrugLevel());
+            organDrug.setAntibioticsDrugLevel(drug.getAntibioticsDrugLevel());
         }
         //是否精神药物
         if(!ObjectUtils.isEmpty(drug.getPsychotropicDrugFlag())){
@@ -4924,19 +4924,19 @@ public class RecipeService extends RecipeBaseService {
         }
         //是否麻醉药物
         if(!ObjectUtils.isEmpty(drug.getNarcoticDrugFlag())){
-            organDrug.setPsychotropicDrugFlag(drug.getNarcoticDrugFlag());
+            organDrug.setNarcoticDrugFlag(drug.getNarcoticDrugFlag());
         }
         //是否毒性药物
         if(!ObjectUtils.isEmpty(drug.getToxicDrugFlag())){
-            organDrug.setPsychotropicDrugFlag(drug.getToxicDrugFlag());
+            organDrug.setToxicDrugFlag(drug.getToxicDrugFlag());
         }
         //是否放射性药物
         if(!ObjectUtils.isEmpty(drug.getRadioActivityDrugFlag())){
-            organDrug.setPsychotropicDrugFlag(drug.getRadioActivityDrugFlag());
+            organDrug.setRadioActivityDrugFlag(drug.getRadioActivityDrugFlag());
         }
         //是否特殊使用级抗生素药物
         if(!ObjectUtils.isEmpty(drug.getSpecialUseAntibioticDrugFlag())){
-            organDrug.setPsychotropicDrugFlag(drug.getSpecialUseAntibioticDrugFlag());
+            organDrug.setSpecialUseAntibioticDrugFlag(drug.getSpecialUseAntibioticDrugFlag());
         }
         if(!ObjectUtils.isEmpty(drug.getUnitHisCode())){
             organDrug.setUnitHisCode(drug.getUnitHisCode());
