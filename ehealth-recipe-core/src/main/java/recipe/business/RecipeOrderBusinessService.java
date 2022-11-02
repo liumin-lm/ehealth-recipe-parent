@@ -57,6 +57,7 @@ import recipe.bean.RecipePayModeSupportBean;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.*;
 import recipe.common.CommonConstant;
+import recipe.constant.DrugEnterpriseConstant;
 import recipe.constant.ErrorCode;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
@@ -104,6 +105,7 @@ import java.util.stream.Collectors;
 @Service
 public class RecipeOrderBusinessService extends BaseService implements IRecipeOrderBusinessService {
     private final static long VALID_TIME_SECOND = 3600 * 24 * 30;
+    private final static Integer LOGISTICS_COMPANY_SF = 1;
     @Autowired
     private RecipeDAO recipeDAO;
     @Autowired
@@ -1658,6 +1660,23 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
         if (msgFlag.get()) {
             throw new DAOException(609, "锁定失败请重新锁定");
         }
+    }
+
+    @Override
+    public Boolean interceptPatientApplyRefund(String orderCode){
+        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(orderCode);
+        if (Objects.isNull(recipeOrder.getEnterpriseId())) {
+            return true;
+        }
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipeOrder.getEnterpriseId());
+        if (!DrugEnterpriseConstant.LOGISTICS_PLATFORM.equals(drugsEnterprise.getLogisticsType())) {
+            return true;
+        }
+        if (!LOGISTICS_COMPANY_SF.equals(drugsEnterprise.getLogisticsCompany())) {
+            return true;
+        }
+        //查询该物流是否揽件
+        return false;
     }
 
     private void syncFinishOrderHandle(List<Integer> recipeIdList, RecipeOrder recipeOrder, boolean isSendFlag) {

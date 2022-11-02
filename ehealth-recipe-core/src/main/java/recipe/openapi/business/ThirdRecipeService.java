@@ -88,7 +88,8 @@ public class ThirdRecipeService {
         setUrtToContext(request.getAppkey(), request.getTid());
         String mpiId = getOwnMpiId();
         RecipeListService recipeListService = ApplicationUtils.getRecipeService(RecipeListService.class);
-        List<PatientTabStatusMergeRecipeDTO> patientTabStatusMergeRecipeDTOS = recipeListService.findRecipesForPatientAndTabStatusNew(request.getTabStatus(), mpiId, request.getIndex(), request.getLimit());
+        List<PatientTabStatusMergeRecipeDTO> patientTabStatusMergeRecipeDTOS = recipeListService.findRecipesForPatientAndTabStatusNew(request.getTabStatus(),
+                mpiId, request.getIndex(), request.getLimit());
         if (CollectionUtils.isEmpty(patientTabStatusMergeRecipeDTOS)) {
             return recipeAndRecipeDetailsBeans;
         }
