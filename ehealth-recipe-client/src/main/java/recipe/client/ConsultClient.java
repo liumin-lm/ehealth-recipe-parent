@@ -96,13 +96,13 @@ public class ConsultClient extends BaseClient {
         ConsultSetDTO consultSetDTO = consultSetService.getBeanByDoctorId(doctorId);
         logger.info("ConsultClient getAntibioticsDrugLevelLevel consultSetDTO={}", JSON.toJSONString(consultSetDTO));
         List<Integer> flag = new ArrayList<>();
-        if(consultSetDTO.getAntiTumorDrugCommonLevel()){
+        if(consultSetDTO.getAntibioticsLevel1()){
             flag.add(1);
         }
-        if(consultSetDTO.getAntiTumorDrugRestrictLevel()){
+        if(consultSetDTO.getAntibioticsLevel2()){
             flag.add(2);
         }
-        if(consultSetDTO.getAntiTumorDrugRestrictLevel()){
+        if(consultSetDTO.getAntibioticsLevel2()){
             flag.add(3);
         }
         return flag;
