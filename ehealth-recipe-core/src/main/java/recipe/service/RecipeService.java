@@ -5822,9 +5822,11 @@ public class RecipeService extends RecipeBaseService {
     public List<RecipeGiveModeButtonRes> handleMedicalPaymentButton(Recipe recipe,List<RecipeGiveModeButtonRes> list){
         RecipeParameterDao parameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
         String recipeIdCardWhiteListOrgan = parameterDao.getByName("recipe_idCard_whiteList_organ");
+        LOGGER.info("GiveModeManager handleMedicalPaymentButton={}", recipeIdCardWhiteListOrgan);
         if(StringUtils.isNotEmpty(recipeIdCardWhiteListOrgan)){
             List<String> organIdList = Arrays.asList(recipeIdCardWhiteListOrgan.split(","));
             String recipeIdCardWhiteList = parameterDao.getByName("recipe_idCard_whiteList");
+            LOGGER.info("GiveModeManager recipeIdCardWhiteList={}", recipeIdCardWhiteList);
             if(organIdList.contains(recipe.getClinicOrgan().toString())){
                 if(StringUtils.isEmpty(recipeIdCardWhiteList)){
                     list = list.stream().filter(a -> !a.getGiveModeKey().equals(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText())).collect(Collectors.toList());
@@ -5833,6 +5835,7 @@ public class RecipeService extends RecipeBaseService {
                 List<String> recipeIdCardWhiteLists = Arrays.asList(recipeIdCardWhiteList.split(","));
                 PatientDTO patient = patientService.get(recipe.getMpiid());
                 if (Objects.nonNull(patient)) {
+                    LOGGER.info("GiveModeManager patient={}", JSONUtils.toString(patient));
                     if(recipeIdCardWhiteLists.contains(patient.getIdcard())){
                         list = list.stream().filter(a -> a.getGiveModeKey().equals(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText())).collect(Collectors.toList());
                     }else{
