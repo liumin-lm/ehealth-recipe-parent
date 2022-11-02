@@ -1045,6 +1045,8 @@ public class BaseOfflineToOnlineService {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        recipeExtend.setMedicalType(hisRecipe.getMedicalTypeCode());
+        recipeExtend.setMedicalTypeText(hisRecipe.getMedicalTypeText());
         emrRecipeManager.saveMedicalInfo(recipe, recipeExtend);
         recipeExtendDAO.save(recipeExtend);
         LOGGER.info("BaseOfflineToOnlineService saveRecipeExt 拓展表数据已保存");
@@ -1254,6 +1256,9 @@ public class BaseOfflineToOnlineService {
         hisRecipe.setRecipeFlag(queryHisRecipResTo.getRecipeFlag());
         hisRecipe.setIllnessType(queryHisRecipResTo.getIllnessType());
         hisRecipe.setMedicalFlag(queryHisRecipResTo.getMedicalFlag());
+        hisRecipe.setRevisitType(queryHisRecipResTo.getRevisitType());
+        hisRecipe.setMedicalTypeCode(queryHisRecipResTo.getMedicalTypeCode());
+        hisRecipe.setMedicalTypeText(queryHisRecipResTo.getMedicalTypeText());
         LOGGER.info("BaseOfflineToOnlineService covertHisRecipeObject res hisRecipe:{}", JSONUtils.toString(hisRecipe));
         return hisRecipe;
     }
