@@ -295,7 +295,8 @@ public class RecipeOrderPatientAtop extends BaseAtop {
      */
     @RpcService
     public Boolean interceptPatientApplyRefund(String orderCode){
-        return false;
+        validateAtop(orderCode);
+        return recipeOrderService.interceptPatientApplyRefund(orderCode);
     }
 
 }
