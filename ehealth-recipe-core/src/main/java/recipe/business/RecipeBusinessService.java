@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.google.common.collect.Lists;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
+import com.ngari.common.dto.Buss2SessionMsg;
 import com.ngari.follow.utils.ObjectCopyUtil;
 import com.ngari.his.recipe.mode.OutPatientRecipeReq;
 import com.ngari.his.recipe.mode.OutRecipeDetailReq;
@@ -27,6 +28,7 @@ import com.ngari.recipe.vo.*;
 import coupon.api.service.ICouponBaseService;
 import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
+import ctd.net.broadcast.MQHelper;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
@@ -49,6 +51,7 @@ import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.*;
+import recipe.common.OnsConfig;
 import recipe.constant.ErrorCode;
 import recipe.constant.RecipeStatusConstant;
 import recipe.constant.ReviewTypeConstant;
@@ -1287,6 +1290,23 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         return 1;
     }
 
+    @Override
+    public void sendMsgToMq(String recipeId, String clinicId, String contentType, String sessionId, Integer doctorId, String mpiId) {
+        Buss2SessionMsg msg = new Buss2SessionMsg();
+        msg.setBusId(clinicId);
+        msg.setContentId(recipeId);
+        msg.setContentType(contentType);
+        msg.setDoctorId(doctorId);
+        msg.setStatus(0);
+        msg.setMpiId(mpiId);
+        msg.setSessionType(4);
+        msg.setSessionId(sessionId);
+        try {
+            MQHelper.getMqPublisher().publish(OnsConfig.sessionTopic, msg, "tag_revisit");
+        } catch (Exception e) {
+            logger.error("sendMsgToMq can't send to MQ, sessionType:{}, recipeID:{}", msg.getSessionType(), recipeId, e);
+        }
+    }
 
 }
 

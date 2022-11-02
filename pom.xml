@@ -27,8 +27,8 @@
         <ngari.voucher.version>4.9.2.8.master-SNAPSHOT</ngari.voucher.version>
         <ngari.es.version>4.10.2.4.master-SNAPSHOT</ngari.es.version>
         <ngari.miscellany.version>4.1.1.9.master-SNAPSHOT</ngari.miscellany.version>
-        <ngari.basic.version>4.10.2.4.master-SNAPSHOT</ngari.basic.version>
-        <ngari.basicdto.version>4.9.2.8.master-SNAPSHOT</ngari.basicdto.version>
+        <ngari.basic.version>4.11.1.0.master-SNAPSHOT</ngari.basic.version>
+        <ngari.basicdto.version>4.11.1.0.master-SNAPSHOT</ngari.basicdto.version>
         <ngari.jgpt.version>4.1.1.9.master-SNAPSHOT</ngari.jgpt.version>
         <ngari.followup.version>4.2.2.4.master-SNAPSHOT</ngari.followup.version>
         <ngari.cdr.version>4.11.1.0.master-SNAPSHOT</ngari.cdr.version>

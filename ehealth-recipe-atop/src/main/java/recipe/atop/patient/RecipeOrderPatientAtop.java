@@ -284,9 +284,18 @@ public class RecipeOrderPatientAtop extends BaseAtop {
      * @return
      */
     @RpcService
-    public String patientFinishOrder(String orderCode) {
-        return recipeOrderService.patientFinishOrder(orderCode);
+    public void patientFinishOrder(String orderCode) {
+         recipeOrderService.patientFinishOrder(orderCode);
     }
 
+    /**
+     * 拦截患者退费申请
+     * @param orderCode
+     * @return
+     */
+    @RpcService
+    public Boolean interceptPatientApplyRefund(String orderCode){
+        return false;
+    }
 
 }

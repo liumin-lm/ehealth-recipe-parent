@@ -268,5 +268,5 @@ public interface IRecipeOrderBusinessService {
      * @param orderCode
      * @return
      */
-    String patientFinishOrder(String orderCode);
+    void patientFinishOrder(String orderCode);
 }

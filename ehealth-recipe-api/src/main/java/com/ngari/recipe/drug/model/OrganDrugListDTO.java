@@ -163,6 +163,36 @@ public class OrganDrugListDTO implements java.io.Serializable {
     @ItemProperty(alias = "最小销售倍数")
     private Integer smallestSaleMultiple;
 
+    @ItemProperty(alias = "不可在线开具:开关，默认关闭(0),开启（1）")
+    private Integer unavailable;
+
+    @ItemProperty(alias = "是否抗肿瘤药物  0否  1是 ")
+    private Integer antiTumorDrugFlag;
+
+    @ItemProperty(alias = "抗肿瘤药物等级  1普通级 2限制级 ")
+    private Integer antiTumorDrugLevel;
+
+    @ItemProperty(alias = "抗菌素药物等级 0：非抗菌素药物 1：1级 2：2级 3：3级 ")
+    private Integer antibioticsDrugLevel;
+
+    @ItemProperty(alias = "药品本位码 ")
+    private String standardCode;
+
+    @ItemProperty(alias = "是否精神药物  0否  1是 ")
+    private Integer psychotropicDrugFlag;
+
+    @ItemProperty(alias = "是否麻醉药物  0否  1是 ")
+    private Integer narcoticDrugFlag;
+
+    @ItemProperty(alias = "是否毒性药物  0否  1是 ")
+    private Integer toxicDrugFlag;
+
+    @ItemProperty(alias = "是否放射性药物  0否  1是 ")
+    private Integer radioActivityDrugFlag;
+
+    @ItemProperty(alias = "是否特殊使用级抗生素药物  0否  1是 ")
+    private Integer specialUseAntibioticDrugFlag;
+
     public Integer getSmallestSaleMultiple() {
         return smallestSaleMultiple;
     }
@@ -540,5 +570,85 @@ public class OrganDrugListDTO implements java.io.Serializable {
 
     public void setTargetedDrugType(Integer targetedDrugType) {
         this.targetedDrugType = targetedDrugType;
+    }
+
+    public Integer getUnavailable() {
+        return unavailable;
+    }
+
+    public void setUnavailable(Integer unavailable) {
+        this.unavailable = unavailable;
+    }
+
+    public Integer getAntiTumorDrugFlag() {
+        return antiTumorDrugFlag;
+    }
+
+    public void setAntiTumorDrugFlag(Integer antiTumorDrugFlag) {
+        this.antiTumorDrugFlag = antiTumorDrugFlag;
+    }
+
+    public Integer getAntiTumorDrugLevel() {
+        return antiTumorDrugLevel;
+    }
+
+    public void setAntiTumorDrugLevel(Integer antiTumorDrugLevel) {
+        this.antiTumorDrugLevel = antiTumorDrugLevel;
+    }
+
+    public Integer getAntibioticsDrugLevel() {
+        return antibioticsDrugLevel;
+    }
+
+    public void setAntibioticsDrugLevel(Integer antibioticsDrugLevel) {
+        this.antibioticsDrugLevel = antibioticsDrugLevel;
+    }
+
+    public String getStandardCode() {
+        return standardCode;
+    }
+
+    public void setStandardCode(String standardCode) {
+        this.standardCode = standardCode;
+    }
+
+    public Integer getPsychotropicDrugFlag() {
+        return psychotropicDrugFlag;
+    }
+
+    public void setPsychotropicDrugFlag(Integer psychotropicDrugFlag) {
+        this.psychotropicDrugFlag = psychotropicDrugFlag;
+    }
+
+    public Integer getNarcoticDrugFlag() {
+        return narcoticDrugFlag;
+    }
+
+    public void setNarcoticDrugFlag(Integer narcoticDrugFlag) {
+        this.narcoticDrugFlag = narcoticDrugFlag;
+    }
+
+    public Integer getToxicDrugFlag() {
+        return toxicDrugFlag;
+    }
+
+    public void setToxicDrugFlag(Integer toxicDrugFlag) {
+        this.toxicDrugFlag = toxicDrugFlag;
+    }
+
+    public Integer getRadioActivityDrugFlag() {
+        return radioActivityDrugFlag;
+    }
+
+    public void setRadioActivityDrugFlag(Integer radioActivityDrugFlag) {
+        this.radioActivityDrugFlag = radioActivityDrugFlag;
+    }
+
+    public Integer getSpecialUseAntibioticDrugFlag() {
+        return specialUseAntibioticDrugFlag;
+    }
+
+    public void setSpecialUseAntibioticDrugFlag(Integer specialUseAntibioticDrugFlag) {
+        this.specialUseAntibioticDrugFlag = specialUseAntibioticDrugFlag;
     }
 }

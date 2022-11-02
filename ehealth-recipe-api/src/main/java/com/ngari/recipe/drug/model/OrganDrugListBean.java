@@ -193,6 +193,83 @@ public class OrganDrugListBean implements java.io.Serializable {
     @ItemProperty(alias = "单位剂量单位（最小单位）/单位his编码")
     private String useDoseSmallestUnitHisCode;
 
+    @ItemProperty(alias = "抗菌素药物等级 0：非抗菌素药物 1：1级 2：2级 3：3级 ")
+    private Integer antibioticsDrugLevel;
+
+    @ItemProperty(alias = "药品本位码 ")
+    private String standardCode;
+
+    @ItemProperty(alias = "是否精神药物  0否  1是 ")
+    private Integer psychotropicDrugFlag;
+
+    @ItemProperty(alias = "是否麻醉药物  0否  1是 ")
+    private Integer narcoticDrugFlag;
+
+    @ItemProperty(alias = "是否毒性药物  0否  1是 ")
+    private Integer toxicDrugFlag;
+
+    @ItemProperty(alias = "是否放射性药物  0否  1是 ")
+    private Integer radioActivityDrugFlag;
+
+    @ItemProperty(alias = "是否特殊使用级抗生素药物  0否  1是 ")
+    private Integer specialUseAntibioticDrugFlag;
+
+    public Integer getAntibioticsDrugLevel() {
+        return antibioticsDrugLevel;
+    }
+
+    public void setAntibioticsDrugLevel(Integer antibioticsDrugLevel) {
+        this.antibioticsDrugLevel = antibioticsDrugLevel;
+    }
+
+    public String getStandardCode() {
+        return standardCode;
+    }
+
+    public void setStandardCode(String standardCode) {
+        this.standardCode = standardCode;
+    }
+
+    public Integer getPsychotropicDrugFlag() {
+        return psychotropicDrugFlag;
+    }
+
+    public void setPsychotropicDrugFlag(Integer psychotropicDrugFlag) {
+        this.psychotropicDrugFlag = psychotropicDrugFlag;
+    }
+
+    public Integer getNarcoticDrugFlag() {
+        return narcoticDrugFlag;
+    }
+
+    public void setNarcoticDrugFlag(Integer narcoticDrugFlag) {
+        this.narcoticDrugFlag = narcoticDrugFlag;
+    }
+
+    public Integer getToxicDrugFlag() {
+        return toxicDrugFlag;
+    }
+
+    public void setToxicDrugFlag(Integer toxicDrugFlag) {
+        this.toxicDrugFlag = toxicDrugFlag;
+    }
+
+    public Integer getRadioActivityDrugFlag() {
+        return radioActivityDrugFlag;
+    }
+
+    public void setRadioActivityDrugFlag(Integer radioActivityDrugFlag) {
+        this.radioActivityDrugFlag = radioActivityDrugFlag;
+    }
+
+    public Integer getSpecialUseAntibioticDrugFlag() {
+        return specialUseAntibioticDrugFlag;
+    }
+
+    public void setSpecialUseAntibioticDrugFlag(Integer specialUseAntibioticDrugFlag) {
+        this.specialUseAntibioticDrugFlag = specialUseAntibioticDrugFlag;
+    }
+
     public String getUnitHisCode() {
         return unitHisCode;
     }
