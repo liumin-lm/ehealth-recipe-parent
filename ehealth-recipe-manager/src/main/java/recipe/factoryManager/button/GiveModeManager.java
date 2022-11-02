@@ -245,6 +245,7 @@ public abstract class GiveModeManager implements IGiveModeBase {
         }catch (Exception e){
             LOGGER.error("afterSetting saveGiveModeDatas error", e);
         }
+        LOGGER.info("saveGiveModeDatas recipeId={} list={}", recipe.getRecipeId(), JSONUtils.toString(list));
         saveGiveModeDatas(giveModeButtonBeans, list);
         LOGGER.info("afterSetting saveGiveModeDatas recipeId={}  giveModeButtonBeans={}", recipe.getRecipeId(), JSONUtils.toString(giveModeButtonBeans));
 
