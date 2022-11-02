@@ -160,6 +160,7 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
             recipeExtendBean.setJuiceUnit(fastRecipe.getJuiceUnit());
             recipeExtendBean.setDecoctionId(fastRecipe.getDecoctionId());
             recipeExtendBean.setDecoctionText(fastRecipe.getDecoctionText());
+            recipeExtendBean.setSingleOrCompoundRecipe(fastRecipe.getSingleOrCompoundRecipe());
 
             int buyNum = ValidateUtil.nullOrZeroInteger(recipeInfoVO.getBuyNum()) ? 1 : recipeInfoVO.getBuyNum();
             packageTotalParamByBuyNum(recipeInfoVO, buyNum);
@@ -234,6 +235,7 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
         fastRecipe.setDoctorIsDecoction(recipeExtend.getDoctorIsDecoction());
         fastRecipe.setNeedQuestionnaire(0);
         fastRecipe.setRecipeMemo(recipe.getRecipeMemo());
+        fastRecipe.setSingleOrCompoundRecipe(recipeExtend.getSingleOrCompoundRecipe());
         FastRecipe fastRecipeResult = fastRecipeDAO.save(fastRecipe);
 
         //2.保存药方详情
