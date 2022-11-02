@@ -43,6 +43,7 @@ import recipe.drugTool.validate.RecipeDetailValidateTool;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.status.WriteHisEnum;
+import recipe.enumerate.type.SignImageTypeEnum;
 import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
 import recipe.manager.CaManager;
@@ -213,6 +214,7 @@ public class RecipeSignService {
                 //生成pdf并签名
                 Recipe recipe = recipeDAO.getByRecipeId(recipeId);
                 createPdfFactory.queryPdfOssId(recipe);
+                createPdfFactory.updatePdfToImg(recipe.getRecipeId(), SignImageTypeEnum.SIGN_IMAGE_TYPE_DOCTOR.getType());
             } catch (Exception e) {
                 LOG.error("sign 签名服务异常，recipeId={}", recipeId, e);
             }
