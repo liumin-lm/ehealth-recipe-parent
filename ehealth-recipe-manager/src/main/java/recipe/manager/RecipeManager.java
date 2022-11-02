@@ -1044,6 +1044,7 @@ public class RecipeManager extends BaseManager {
             request.setOrganId(dbRecipe.getClinicOrgan());
             request.setPatientName(dbRecipe.getPatientName());
             request.setCertificateType(patientDTO.getCertificateType());
+            request.setRegisterID(dbRecipeExtend.getRegisterID());
             request.setCertificate(patientDTO.getCertificate());
             request.setCardType(dbRecipeExtend.getCardType());
             request.setCardNo(dbRecipeExtend.getCardNo());
