@@ -186,7 +186,7 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
             }
         }
         if (null != request.getTimeQuantum()) {
-            request.getTimeQuantum();
+//            request.setTimeQuantum(request.getTimeQuantum());
         } else {
             request.setTimeQuantum(6);
         }

@@ -39,8 +39,7 @@ public class HisRecipe implements Serializable {
     private String patientTel; // varchar(20) DEFAULT NULL COMMENT '患者手机号',
     @ItemProperty(alias = "患者地址")
     private String patientAddress; // varchar(250) DEFAULT NULL COMMENT '患者地址',
-    @ItemProperty(alias = "患者手机号")
-    @Desensitizations(type = DesensitizationsType.MOBILE)
+    @ItemProperty(alias = "患者病例号")
     private String patientNumber; // varchar(20) DEFAULT NULL COMMENT '患者手机号',
     @ItemProperty(alias = "His处方单号")
     private String recipeCode; // varchar(50) DEFAULT NULL COMMENT 'His处方单号',
@@ -78,8 +77,15 @@ public class HisRecipe implements Serializable {
     private String tcmUsingRate; // varchar(20) DEFAULT NULL COMMENT '中药处方用量',
     @ItemProperty(alias = "帖数")
     private String tcmNum; // int(11) DEFAULT '0' COMMENT '帖数',
+    @Deprecated
+    //作废掉了，不能直接改类型 前置机项目会有影响
     @ItemProperty(alias = "结算类型/医保类型 1 自费  2 医保")
     private Integer medicalType; // tinyint(4) NOT NULL DEFAULT '1' COMMENT '1 自费  2 医保',
+    @ItemProperty(alias = "患者医保类型（编码）")
+    private String medicalTypeCode;
+    @ItemProperty(alias = "患者医保类型（名称）")
+    private String medicalTypeText;
+
     @ItemProperty(alias = "提示文本")
     private String showText; // varchar(250) DEFAULT NULL COMMENT '提示文本',
     @ItemProperty(alias = "是否外延处方")
@@ -171,6 +177,35 @@ public class HisRecipe implements Serializable {
     private String illnessType;
     @ItemProperty(alias = "是否医保 0自费 1医保")
     private Integer medicalFlag;
+    @ItemProperty(alias = "复诊类型 0线下复诊 1线上复诊 默认线上复诊")
+    private Integer revisitType;
+
+    @Column(name = "medical_type_code")
+    public String getMedicalTypeCode() {
+        return medicalTypeCode;
+    }
+
+    public void setMedicalTypeCode(String medicalTypeCode) {
+        this.medicalTypeCode = medicalTypeCode;
+    }
+
+    @Column(name = "medical_type_text")
+    public String getMedicalTypeText() {
+        return medicalTypeText;
+    }
+
+    public void setMedicalTypeText(String medicalTypeText) {
+        this.medicalTypeText = medicalTypeText;
+    }
+
+    @Column(name = "revisit_type")
+    public Integer getRevisitType() {
+        return revisitType;
+    }
+
+    public void setRevisitType(Integer revisitType) {
+        this.revisitType = revisitType;
+    }
 
     @Column(name = "medical_flag")
     public Integer getMedicalFlag() {
