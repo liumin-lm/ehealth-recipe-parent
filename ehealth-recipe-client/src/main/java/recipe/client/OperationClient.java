@@ -26,6 +26,7 @@ import org.springframework.util.ObjectUtils;
 import recipe.constant.ErrorCode;
 import recipe.constant.OperationConstant;
 import recipe.constant.birthdayToAgeConstant;
+import recipe.enumerate.type.SingleOrCompoundEnum;
 import recipe.util.ByteUtils;
 import recipe.util.MapValueUtil;
 
@@ -127,6 +128,9 @@ public class OperationClient extends BaseClient {
             return MapValueUtil.getFieldValueByName(fieldName, recipePdfDTO.getRecipeOrder());
         }
         if (OperationConstant.OP_RECIPE_EXTEND.equals(objectName)) {
+            if ("singleOrCompoundRecipe".equals(fieldName)) {
+                return SingleOrCompoundEnum.getSingleOrCompoundName(recipePdfDTO.getRecipeExtend().getSingleOrCompoundRecipe());
+            }
             return MapValueUtil.getFieldValueByName(fieldName, recipePdfDTO.getRecipeExtend());
         }
         if (OperationConstant.OP_RECIPE_DETAIL.equals(objectName)) {
@@ -286,14 +290,6 @@ public class OperationClient extends BaseClient {
             if (OperationConstant.OP_RECIPE_CARD_NO.equals(fieldName) && StringUtils.isNotEmpty(scratchable.getBoxDesc())) {
                 return DesensitizationsUtil.instance().processField(DesensitizationsType.HEALTHCARD.getType(), recipePdfDTO.getRecipeExtend().getCardNo());
             }
-//            //患者姓名
-//            if (OperationConstant.OP_PATIENT_NAME.equals(fieldName) && StringUtils.isNotEmpty(scratchable.getBoxDesc())) {
-//                return DesensitizationsUtil.instance().processField(DesensitizationsType.NAME.getType(), recipePdfDTO.getPatientBean().getPatientName(),"0A");
-//            }
-//            //陪诊人姓名
-//            if (OperationConstant.OP_RECIPE_EXTEND_NAME.equals(fieldName) && StringUtils.isNotEmpty(scratchable.getBoxDesc())) {
-//                return DesensitizationsUtil.instance().processField(DesensitizationsType.NAME.getType(), recipePdfDTO.getRecipeExtend().getGuardianName(),"0A");
-//            }
             return invokeFieldName(objectName, fieldName, recipePdfDTO);
         }
         //特殊节点处理
