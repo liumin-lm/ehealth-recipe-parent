@@ -817,6 +817,157 @@ public class OrganDrugToolService implements IOrganDrugToolService {
                 validMsg.append("不可在线开具有误").append(";");
             }
 
+            try {
+                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(41)))) {
+                    if (("是").equals(getStrFromCell(cells.get(41)))) {
+                        drug.setPsychotropicDrugFlag(1);
+                    } else if (("否").equals(getStrFromCell(cells.get(41)))) {
+                        drug.setPsychotropicDrugFlag(0);
+                    } else {
+                        validMsg.append("是否精神药物格式错误").append(";");
+                    }
+                }
+            } catch (Exception e) {
+                LOGGER.error("是否精神药物有误 ," + e.getMessage(), e);
+                validMsg.append("是否精神药物有误").append(";");
+            }
+
+            try {
+                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(42)))) {
+                    if (("是").equals(getStrFromCell(cells.get(42)))) {
+                        drug.setNarcoticDrugFlag(1);
+                    } else if (("否").equals(getStrFromCell(cells.get(42)))) {
+                        drug.setNarcoticDrugFlag(0);
+                    } else {
+                        validMsg.append("是否麻醉药物格式错误").append(";");
+                    }
+                }
+            } catch (Exception e) {
+                LOGGER.error("是否麻醉药物有误 ," + e.getMessage(), e);
+                validMsg.append("是否麻醉药物有误").append(";");
+            }
+
+            try {
+                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(43)))) {
+                    if (("是").equals(getStrFromCell(cells.get(43)))) {
+                        drug.setToxicDrugFlag(1);
+                    } else if (("否").equals(getStrFromCell(cells.get(43)))) {
+                        drug.setToxicDrugFlag(0);
+                    } else {
+                        validMsg.append("是否毒性药物格式错误").append(";");
+                    }
+                }
+            } catch (Exception e) {
+                LOGGER.error("是否毒性药物有误 ," + e.getMessage(), e);
+                validMsg.append("是否毒性药物有误").append(";");
+            }
+
+            try {
+                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(44)))) {
+                    if (("是").equals(getStrFromCell(cells.get(44)))) {
+                        drug.setRadioActivityDrugFlag(1);
+                    } else if (("否").equals(getStrFromCell(cells.get(44)))) {
+                        drug.setRadioActivityDrugFlag(0);
+                    } else {
+                        validMsg.append("是否放射性药物格式错误").append(";");
+                    }
+                }
+            } catch (Exception e) {
+                LOGGER.error("是否放射性药物有误 ," + e.getMessage(), e);
+                validMsg.append("是否放射性药物有误").append(";");
+            }
+
+            try {
+                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(45)))) {
+                    if (("是").equals(getStrFromCell(cells.get(45)))) {
+                        drug.setSpecialUseAntibioticDrugFlag(1);
+                    } else if (("否").equals(getStrFromCell(cells.get(45)))) {
+                        drug.setSpecialUseAntibioticDrugFlag(0);
+                    } else {
+                        validMsg.append("是否特殊使用级抗生素药物格式错误").append(";");
+                    }
+                }
+            } catch (Exception e) {
+                LOGGER.error("是否特殊使用级抗生素药物有误 ," + e.getMessage(), e);
+                validMsg.append("是否特殊使用级抗生素药物有误").append(";");
+            }
+
+            try {
+                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(46)))) {
+                    if (("无").equals(getStrFromCell(cells.get(46)))) {
+                        drug.setAntibioticsDrugLevel(0);
+                    } else if (("1级").equals(getStrFromCell(cells.get(46)))) {
+                        drug.setSpecialUseAntibioticDrugFlag(1);
+                    } else if (("2级").equals(getStrFromCell(cells.get(46)))) {
+                        drug.setSpecialUseAntibioticDrugFlag(2);
+                    } else if (("3级").equals(getStrFromCell(cells.get(46)))) {
+                        drug.setSpecialUseAntibioticDrugFlag(3);
+                    } else {
+                        validMsg.append("抗菌素药物等级格式错误").append(";");
+                    }
+                }
+            } catch (Exception e) {
+                LOGGER.error("抗菌素药物等级有误 ," + e.getMessage(), e);
+                validMsg.append("抗菌素药物等级有误").append(";");
+            }
+
+            try {
+                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(47)))) {
+                    if (("是").equals(getStrFromCell(cells.get(47)))) {
+                        drug.setAntiTumorDrugFlag(1);
+                    } else if (("否").equals(getStrFromCell(cells.get(47)))) {
+                        drug.setAntiTumorDrugFlag(0);
+                    } else {
+                        validMsg.append("是否抗肿瘤药物格式错误").append(";");
+                    }
+                }
+            } catch (Exception e) {
+                LOGGER.error("是否抗肿瘤药物有误 ," + e.getMessage(), e);
+                validMsg.append("是否抗肿瘤药物有误").append(";");
+            }
+
+            try {
+                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(48)))) {
+                    if (("普通级").equals(getStrFromCell(cells.get(48)))) {
+                        drug.setAntiTumorDrugLevel(1);
+                    } else if (("限制级").equals(getStrFromCell(cells.get(48)))) {
+                        drug.setAntiTumorDrugFlag(2);
+                    } else {
+                        validMsg.append("抗肿瘤药物等级格式错误").append(";");
+                    }
+                }
+            } catch (Exception e) {
+                LOGGER.error("抗肿瘤药物等级有误 ," + e.getMessage(), e);
+                validMsg.append("抗肿瘤药物等级有误").append(";");
+            }
+
+            try {
+                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(49)))) {
+                    drug.setUnitHisCode(getStrFromCell(cells.get(49)));
+                }
+            } catch (Exception e) {
+                LOGGER.error("最小售药单位HIS编码有误 ," + e.getMessage(), e);
+                validMsg.append("最小售药单位HIS编码有误").append(";");
+            }
+
+            try {
+                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(50)))) {
+                    drug.setUseDoseUnitHisCode(getStrFromCell(cells.get(50)));
+                }
+            } catch (Exception e) {
+                LOGGER.error("规格单位HIS编码有误 ," + e.getMessage(), e);
+                validMsg.append("规格单位HIS编码有误").append(";");
+            }
+
+            try {
+                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(51)))) {
+                    drug.setUseDoseSmallestUnitHisCode(getStrFromCell(cells.get(51)));
+                }
+            } catch (Exception e) {
+                LOGGER.error("药品最小规格包装单位HIS编码有误 ," + e.getMessage(), e);
+                validMsg.append("药品最小规格包装单位HIS编码有误").append(";");
+            }
+
             if (!ObjectUtils.isEmpty(organId)) {
                 DrugSourcesDAO dao = DAOFactory.getDAO(DrugSourcesDAO.class);
                 List<DrugSources> byDrugSourcesId = dao.findByDrugSourcesId(organId);

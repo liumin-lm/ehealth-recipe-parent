@@ -4323,6 +4323,30 @@ public class RecipeService extends RecipeBaseService {
                 }
             }
         }
+        //抗菌素药物等级
+        if(!ObjectUtils.isEmpty(drug.getAntibioticsDrugLevel())){
+            drugListMatch.setPsychotropicDrugFlag(drug.getAntibioticsDrugLevel());
+        }
+        //是否精神药物
+        if(!ObjectUtils.isEmpty(drug.getPsychotropicDrugFlag())){
+            drugListMatch.setPsychotropicDrugFlag(drug.getPsychotropicDrugFlag());
+        }
+        //是否麻醉药物
+        if(!ObjectUtils.isEmpty(drug.getNarcoticDrugFlag())){
+            drugListMatch.setPsychotropicDrugFlag(drug.getNarcoticDrugFlag());
+        }
+        //是否毒性药物
+        if(!ObjectUtils.isEmpty(drug.getToxicDrugFlag())){
+            drugListMatch.setPsychotropicDrugFlag(drug.getToxicDrugFlag());
+        }
+        //是否放射性药物
+        if(!ObjectUtils.isEmpty(drug.getRadioActivityDrugFlag())){
+            drugListMatch.setPsychotropicDrugFlag(drug.getRadioActivityDrugFlag());
+        }
+        //是否特殊使用级抗生素药物
+        if(!ObjectUtils.isEmpty(drug.getSpecialUseAntibioticDrugFlag())){
+            drugListMatch.setPsychotropicDrugFlag(drug.getSpecialUseAntibioticDrugFlag());
+        }
 
         LOGGER.info("drugInfoSynMovementaddHisDrug" + drug.getDrugName() + "organId=[{}] drug=[{}]", organId, JSONUtils.toString(drug));
         List<DrugListMatch> dataByOrganDrugCode = drugListMatchDAO.findDataByOrganDrugCode(drugListMatch.getOrganDrugCode(), drugListMatch.getSourceOrgan());
@@ -4391,6 +4415,34 @@ public class RecipeService extends RecipeBaseService {
                     organDrug.setAntiTumorDrugLevel(drug.getAntiTumorDrugLevel());
                 }
             }
+        }
+        //药品本位码
+        if (!ObjectUtils.isEmpty(drug.getStandardCode())) {
+            organDrug.setStandardCode(drug.getStandardCode());
+        }
+        //抗菌素药物
+        if(!ObjectUtils.isEmpty(drug.getAntibioticsDrugLevel())){
+            organDrug.setAntiTumorDrugFlag(drug.getAntibioticsDrugLevel());
+        }
+        //是否精神药物
+        if(!ObjectUtils.isEmpty(drug.getPsychotropicDrugFlag())){
+            organDrug.setPsychotropicDrugFlag(drug.getPsychotropicDrugFlag());
+        }
+        //是否麻醉药物
+        if(!ObjectUtils.isEmpty(drug.getNarcoticDrugFlag())){
+            organDrug.setPsychotropicDrugFlag(drug.getNarcoticDrugFlag());
+        }
+        //是否毒性药物
+        if(!ObjectUtils.isEmpty(drug.getToxicDrugFlag())){
+            organDrug.setPsychotropicDrugFlag(drug.getToxicDrugFlag());
+        }
+        //是否放射性药物
+        if(!ObjectUtils.isEmpty(drug.getRadioActivityDrugFlag())){
+            organDrug.setPsychotropicDrugFlag(drug.getRadioActivityDrugFlag());
+        }
+        //是否特殊使用级抗生素药物
+        if(!ObjectUtils.isEmpty(drug.getSpecialUseAntibioticDrugFlag())){
+            organDrug.setPsychotropicDrugFlag(drug.getSpecialUseAntibioticDrugFlag());
         }
         if (isAllowSyncField(organDrugListSyncFieldMap.get(SyncDrugConstant.drugForm))
                 &&!ObjectUtils.isEmpty(drug.getDrugform())) {
@@ -4809,6 +4861,46 @@ public class RecipeService extends RecipeBaseService {
                     }
                 }
             }
+        }
+        //是否抗肿瘤药物,及抗肿瘤药物等级
+        if(!ObjectUtils.isEmpty(drug.getAntiTumorDrugFlag()) ){
+            if(new Integer(1).equals(drug.getAntiTumorDrugFlag()) && ObjectUtils.isEmpty(drug.getAntiTumorDrugLevel())){
+                throw new DAOException(DAOException.VALUE_NEEDED, "药品为抗肿瘤药物时，抗肿瘤药物等级必填!");
+            }
+            else {
+                organDrug.setAntiTumorDrugFlag(drug.getAntiTumorDrugFlag());
+                if(!ObjectUtils.isEmpty(drug.getAntiTumorDrugLevel())){
+                    organDrug.setAntiTumorDrugLevel(drug.getAntiTumorDrugLevel());
+                }
+            }
+        }
+        //药品本位码
+        if (!ObjectUtils.isEmpty(drug.getStandardCode())) {
+            organDrug.setStandardCode(drug.getStandardCode());
+        }
+        //抗菌素药物
+        if(!ObjectUtils.isEmpty(drug.getAntibioticsDrugLevel())){
+            organDrug.setAntiTumorDrugFlag(drug.getAntibioticsDrugLevel());
+        }
+        //是否精神药物
+        if(!ObjectUtils.isEmpty(drug.getPsychotropicDrugFlag())){
+            organDrug.setPsychotropicDrugFlag(drug.getPsychotropicDrugFlag());
+        }
+        //是否麻醉药物
+        if(!ObjectUtils.isEmpty(drug.getNarcoticDrugFlag())){
+            organDrug.setPsychotropicDrugFlag(drug.getNarcoticDrugFlag());
+        }
+        //是否毒性药物
+        if(!ObjectUtils.isEmpty(drug.getToxicDrugFlag())){
+            organDrug.setPsychotropicDrugFlag(drug.getToxicDrugFlag());
+        }
+        //是否放射性药物
+        if(!ObjectUtils.isEmpty(drug.getRadioActivityDrugFlag())){
+            organDrug.setPsychotropicDrugFlag(drug.getRadioActivityDrugFlag());
+        }
+        //是否特殊使用级抗生素药物
+        if(!ObjectUtils.isEmpty(drug.getSpecialUseAntibioticDrugFlag())){
+            organDrug.setPsychotropicDrugFlag(drug.getSpecialUseAntibioticDrugFlag());
         }
         //医院药房名字
         if (!ObjectUtils.isEmpty(drug.getPharmacy())) {

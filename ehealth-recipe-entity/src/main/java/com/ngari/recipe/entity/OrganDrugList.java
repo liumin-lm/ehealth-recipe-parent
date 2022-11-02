@@ -194,6 +194,90 @@ public class OrganDrugList implements java.io.Serializable {
     @ItemProperty(alias = "抗肿瘤药物等级  1普通级 2限制级 ")
     private Integer antiTumorDrugLevel;
 
+    @ItemProperty(alias = "抗菌素药物等级 0：非抗菌素药物 1：1级 2：2级 3：3级 ")
+    private Integer antibioticsDrugLevel;
+
+    @ItemProperty(alias = "药品本位码 ")
+    private String standardCode;
+
+    @ItemProperty(alias = "是否精神药物  0否  1是 ")
+    private Integer psychotropicDrugFlag;
+
+    @ItemProperty(alias = "是否麻醉药物  0否  1是 ")
+    private Integer narcoticDrugFlag;
+
+    @ItemProperty(alias = "是否毒性药物  0否  1是 ")
+    private Integer toxicDrugFlag;
+
+    @ItemProperty(alias = "是否放射性药物  0否  1是 ")
+    private Integer radioActivityDrugFlag;
+
+    @ItemProperty(alias = "是否特殊使用级抗生素药物  0否  1是 ")
+    private Integer specialUseAntibioticDrugFlag;
+
+    @Column(name = "antibiotics_drug_level")
+    public Integer getAntibioticsDrugLevel() {
+        return antibioticsDrugLevel;
+    }
+
+    public void setAntibioticsDrugLevel(Integer antibioticsDrugLevel) {
+        this.antibioticsDrugLevel = antibioticsDrugLevel;
+    }
+
+    @Column(name = "standard_code")
+    public String getStandardCode() {
+        return standardCode;
+    }
+
+    public void setStandardCode(String standardCode) {
+        this.standardCode = standardCode;
+    }
+
+    @Column(name = "psychotropic_drug_flag")
+    public Integer getPsychotropicDrugFlag() {
+        return psychotropicDrugFlag;
+    }
+
+    public void setPsychotropicDrugFlag(Integer psychotropicDrugFlag) {
+        this.psychotropicDrugFlag = psychotropicDrugFlag;
+    }
+
+    @Column(name = "narcotic_drug_flag")
+    public Integer getNarcoticDrugFlag() {
+        return narcoticDrugFlag;
+    }
+
+    public void setNarcoticDrugFlag(Integer narcoticDrugFlag) {
+        this.narcoticDrugFlag = narcoticDrugFlag;
+    }
+
+    @Column(name = "toxic_drug_flag")
+    public Integer getToxicDrugFlag() {
+        return toxicDrugFlag;
+    }
+
+    public void setToxicDrugFlag(Integer toxicDrugFlag) {
+        this.toxicDrugFlag = toxicDrugFlag;
+    }
+
+    @Column(name = "radio_activity_drug_flag")
+    public Integer getRadioActivityDrugFlag() {
+        return radioActivityDrugFlag;
+    }
+
+    public void setRadioActivityDrugFlag(Integer radioActivityDrugFlag) {
+        this.radioActivityDrugFlag = radioActivityDrugFlag;
+    }
+
+    @Column(name = "special_use_antibiotic_drug_flag")
+    public Integer getSpecialUseAntibioticDrugFlag() {
+        return specialUseAntibioticDrugFlag;
+    }
+
+    public void setSpecialUseAntibioticDrugFlag(Integer specialUseAntibioticDrugFlag) {
+        this.specialUseAntibioticDrugFlag = specialUseAntibioticDrugFlag;
+    }
+
     @Column(name = "anti_tumor_drug_flag")
     public Integer getAntiTumorDrugFlag() {
         return antiTumorDrugFlag;

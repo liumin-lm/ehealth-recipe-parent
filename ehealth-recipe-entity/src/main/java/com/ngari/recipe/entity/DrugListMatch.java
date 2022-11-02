@@ -56,6 +56,9 @@ public class DrugListMatch implements java.io.Serializable {
     @ItemProperty(alias = "最小规格包装单位")
     private String unit;
 
+    @ItemProperty(alias = "最小售卖单位/单位HIS编码")
+    private String unitHisCode;
+
     @ItemProperty(alias = "药品类型")
     @Dictionary(id = "eh.base.dictionary.DrugType")
     private Integer drugType;
@@ -65,6 +68,9 @@ public class DrugListMatch implements java.io.Serializable {
 
     @ItemProperty(alias = "规格单位")
     private String useDoseUnit;
+
+    @ItemProperty(alias = "规格单位/单位HIS编码")
+    private String useDoseUnitHisCode;
 
     @ItemProperty(alias = "生产厂家")
     private String producer;
@@ -200,6 +206,9 @@ public class DrugListMatch implements java.io.Serializable {
     @ItemProperty(alias = "最小规格包装单位")
     private String useDoseSmallestUnit;
 
+    @ItemProperty(alias = "单位剂量单位（最小单位）/单位his编码")
+    private String useDoseSmallestUnitHisCode;
+
     @ItemProperty(alias = "药品适用业务   历史数据默认 1    1-药品处方 2-诊疗处方 选： 1,2 ")
     private String applyBusiness;
 
@@ -229,6 +238,78 @@ public class DrugListMatch implements java.io.Serializable {
 
     @ItemProperty(alias = "不可在线开具:开关，默认关闭(0),开启（1）")
     private Integer unavailable;
+
+    @ItemProperty(alias = "抗菌素药物等级 0：非抗菌素药物 1：1级 2：2级 3：3级 ")
+    private Integer antibioticsDrugLevel;
+
+    @ItemProperty(alias = "是否精神药物  0否  1是 ")
+    private Integer psychotropicDrugFlag;
+
+    @ItemProperty(alias = "是否麻醉药物  0否  1是 ")
+    private Integer narcoticDrugFlag;
+
+    @ItemProperty(alias = "是否毒性药物  0否  1是 ")
+    private Integer toxicDrugFlag;
+
+    @ItemProperty(alias = "是否放射性药物  0否  1是 ")
+    private Integer radioActivityDrugFlag;
+
+    @ItemProperty(alias = "是否特殊使用级抗生素药物  0否  1是 ")
+    private Integer specialUseAntibioticDrugFlag;
+
+    @Column(name = "antibiotics_drug_level")
+    public Integer getAntibioticsDrugLevel() {
+        return antibioticsDrugLevel;
+    }
+
+    public void setAntibioticsDrugLevel(Integer antibioticsDrugLevel) {
+        this.antibioticsDrugLevel = antibioticsDrugLevel;
+    }
+
+    @Column(name = "psychotropic_drug_flag")
+    public Integer getPsychotropicDrugFlag() {
+        return psychotropicDrugFlag;
+    }
+
+    public void setPsychotropicDrugFlag(Integer psychotropicDrugFlag) {
+        this.psychotropicDrugFlag = psychotropicDrugFlag;
+    }
+
+    @Column(name = "narcotic_drug_flag")
+    public Integer getNarcoticDrugFlag() {
+        return narcoticDrugFlag;
+    }
+
+    public void setNarcoticDrugFlag(Integer narcoticDrugFlag) {
+        this.narcoticDrugFlag = narcoticDrugFlag;
+    }
+
+    @Column(name = "toxic_drug_flag")
+    public Integer getToxicDrugFlag() {
+        return toxicDrugFlag;
+    }
+
+    public void setToxicDrugFlag(Integer toxicDrugFlag) {
+        this.toxicDrugFlag = toxicDrugFlag;
+    }
+
+    @Column(name = "radio_activity_drug_flag")
+    public Integer getRadioActivityDrugFlag() {
+        return radioActivityDrugFlag;
+    }
+
+    public void setRadioActivityDrugFlag(Integer radioActivityDrugFlag) {
+        this.radioActivityDrugFlag = radioActivityDrugFlag;
+    }
+
+    @Column(name = "special_use_antibiotic_drug_flag")
+    public Integer getSpecialUseAntibioticDrugFlag() {
+        return specialUseAntibioticDrugFlag;
+    }
+
+    public void setSpecialUseAntibioticDrugFlag(Integer specialUseAntibioticDrugFlag) {
+        this.specialUseAntibioticDrugFlag = specialUseAntibioticDrugFlag;
+    }
 
     public Integer getUnavailable() {
         return unavailable;
@@ -728,5 +809,32 @@ public class DrugListMatch implements java.io.Serializable {
 
     public void setUnilateralCompound(Integer unilateralCompound) {
         this.unilateralCompound = unilateralCompound;
+    }
+
+    @Column(name = "unit_his_code")
+    public String getUnitHisCode() {
+        return unitHisCode;
+    }
+
+    public void setUnitHisCode(String unitHisCode) {
+        this.unitHisCode = unitHisCode;
+    }
+
+    @Column(name = "use_dose_unit_his_code")
+    public String getUseDoseUnitHisCode() {
+        return useDoseUnitHisCode;
+    }
+
+    public void setUseDoseUnitHisCode(String useDoseUnitHisCode) {
+        this.useDoseUnitHisCode = useDoseUnitHisCode;
+    }
+
+    @Column(name = "use_dose_smallest_unit_his_code")
+    public String getUseDoseSmallestUnitHisCode() {
+        return useDoseSmallestUnitHisCode;
+    }
+
+    public void setUseDoseSmallestUnitHisCode(String useDoseSmallestUnitHisCode) {
+        this.useDoseSmallestUnitHisCode = useDoseSmallestUnitHisCode;
     }
 }
