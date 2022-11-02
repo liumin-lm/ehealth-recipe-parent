@@ -266,7 +266,7 @@ public class RecipeListService extends RecipeBaseService {
                 Map<String, Object> recipeInfo = recipeService.getPatientRecipeById(recipeId);
                 recipeGetModeTip = MapValueUtil.getString(recipeInfo, "recipeGetModeTip");
                 if (null != recipeInfo.get("checkEnterprise")) {
-                    map.put("checkEnterprise", (Boolean) recipeInfo.get("checkEnterprise"));
+                    map.put("checkEnterprise", recipeInfo.get("checkEnterprise"));
                 }
                 recipesMap.add(recipeInfo);
             }
@@ -1166,7 +1166,7 @@ public class RecipeListService extends RecipeBaseService {
      * @return
      */
     @RpcService
-    public List<PatientTabStatusMergeRecipeDTO> findRecipesForPatientAndTabStatusNew(String tabStatus, String mpiId, Integer index, Integer limit) {
+    public List<PatientTabStatusMergeRecipeDTO> findRecipesForPatientAndTabStatusNew(String tabStatus, String mpiId, Integer index, Integer limit, Date startTime, Date endTime) {
         LOGGER.info("findRecipesForPatientAndTabStatusNew tabStatus:{} mpiId:{} index:{} limit:{} ", tabStatus, mpiId, index, limit);
         Assert.hasLength(mpiId, "findRecipesForPatientAndTabStatusNew mpiId为空!");
         checkUserHasPermissionByMpiId(mpiId);
@@ -1190,11 +1190,13 @@ public class RecipeListService extends RecipeBaseService {
         String mergeRecipeWayAfter = groupRecipeConfDTO.getMergeRecipeWayAfter();
         if (RecipeListTabStatusEnum.ON_READY.getText().equals(tabStatus)) {
             // 待处理的走原来老的方法
-            patientTabStatusMergeRecipeDTOS = getRecipeByOnReady(patientTabStatusMergeRecipeDTOS, mergeRecipeFlag, allMpiIds, index, limit, tabStatus, mergeRecipeWayAfter, recipeStatusList);
+            patientTabStatusMergeRecipeDTOS = getRecipeByOnReady(patientTabStatusMergeRecipeDTOS, mergeRecipeFlag, allMpiIds,
+                    index, limit, tabStatus, mergeRecipeWayAfter, recipeStatusList, startTime, endTime);
         } else if (RecipeListTabStatusEnum.ON_GOING.getText().equals(tabStatus) ||
                 RecipeListTabStatusEnum.ON_OVER.getText().equals(tabStatus)) {
             // 已处理跟已完成 走 新的逻辑,合并处方展示仅看是否同一订单
-            patientTabStatusMergeRecipeDTOS = getRecipeByGoingAndOver(patientTabStatusMergeRecipeDTOS, allMpiIds, index, limit, tabStatus, recipeStatusList, groupRecipeConfDTO);
+            patientTabStatusMergeRecipeDTOS = getRecipeByGoingAndOver(patientTabStatusMergeRecipeDTOS, allMpiIds, index,
+                    limit, tabStatus, recipeStatusList, groupRecipeConfDTO, startTime, endTime);
         }
         LOGGER.info("findRecipesForPatientAndTabStatusNew res={}", JSONUtils.toString(patientTabStatusMergeRecipeDTOS));
         return patientTabStatusMergeRecipeDTOS;
@@ -1212,7 +1214,9 @@ public class RecipeListService extends RecipeBaseService {
      * @param recipeStatusList
      * @return
      */
-    private List<PatientTabStatusMergeRecipeDTO> getRecipeByGoingAndOver(List<PatientTabStatusMergeRecipeDTO> result, List<String> allMpiIds, Integer index, Integer limit, String tabStatus, TabStatusEnumNew recipeStatusList, GroupRecipeConfDTO groupRecipeConfDTO) {
+    private List<PatientTabStatusMergeRecipeDTO> getRecipeByGoingAndOver(List<PatientTabStatusMergeRecipeDTO> result, List<String> allMpiIds,
+                                                                         Integer index, Integer limit, String tabStatus, TabStatusEnumNew recipeStatusList,
+                                                                         GroupRecipeConfDTO groupRecipeConfDTO, Date startTime, Date endTime) {
         List<RecipeListBean> recipeListByMPIId = recipeDAO.findRecipeListByMPIId(allMpiIds, index, limit, tabStatus, recipeStatusList.getStatusList());
         LOGGER.info("getRecipeByGoingAndOver recipeListByMPIId = {}", JSONArray.toJSONString(recipeListByMPIId));
         if (CollectionUtils.isEmpty(recipeListByMPIId)) {
@@ -1313,7 +1317,8 @@ public class RecipeListService extends RecipeBaseService {
      * @param recipeStatusList
      * @return
      */
-    private List<PatientTabStatusMergeRecipeDTO> getRecipeByOnReady(List<PatientTabStatusMergeRecipeDTO> result, Boolean mergeRecipeFlag, List<String> allMpiIds, Integer index, Integer limit, String tabStatus, String mergeRecipeWayAfter, TabStatusEnumNew recipeStatusList) {
+    private List<PatientTabStatusMergeRecipeDTO> getRecipeByOnReady(List<PatientTabStatusMergeRecipeDTO> result, Boolean mergeRecipeFlag,
+                                                                    List<String> allMpiIds, Integer index, Integer limit, String tabStatus, String mergeRecipeWayAfter, TabStatusEnumNew recipeStatusList, Date startTime, Date endTime) {
         List<RecipeListBean> recipeListByMPIId = recipeDAO.findRecipeListByMPIId(allMpiIds, index, limit, tabStatus, recipeStatusList.getStatusList());
         LOGGER.info("getRecipeByOnReady recipeListByMPIId = {}", JSONArray.toJSONString(recipeListByMPIId));
         if (CollectionUtils.isEmpty(recipeListByMPIId)) {
