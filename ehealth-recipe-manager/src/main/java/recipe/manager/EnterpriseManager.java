@@ -450,18 +450,19 @@ public class EnterpriseManager extends BaseManager {
         }
         //推送药企处方成功,判断是否为扁鹊平台
         if (null != enterprise && ENTERPRISE_BAN_QUE.equals(enterprise.getAccount())) {
-            try {
-                Recipe recipeUpdate = new Recipe();
-                recipeUpdate.setRecipeId(recipeNew.getRecipeId());
-                recipeUpdate.setEnterpriseId(enterprise.getId());
-                recipeUpdate.setPushFlag(1);
-                recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
-                recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeNew.getRecipeId(), ImmutableMap.of("charge_item_code", skipThirdDTO.getChargeItemCode(), "charge_id", skipThirdDTO.getRecipeCode()));
-            } catch (Exception e) {
-                logger.error("RemoteDrugEnterpriseService pushRecipeInfoForThird error", e);
-            }
+            Recipe recipeUpdate = new Recipe();
+            recipeUpdate.setRecipeId(recipeNew.getRecipeId());
+            recipeUpdate.setEnterpriseId(enterprise.getId());
+            recipeUpdate.setPushFlag(1);
+            recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
         } else if (StringUtils.isNotEmpty(skipThirdDTO.getPrescId())) {
             recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeNew.getRecipeId(), ImmutableMap.of("rxid", skipThirdDTO.getPrescId()));
+        }
+        if (StringUtils.isNotEmpty(skipThirdDTO.getChargeItemCode())) {
+            recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeNew.getRecipeId(), ImmutableMap.of("charge_item_code", skipThirdDTO.getChargeItemCode(), "charge_id", skipThirdDTO.getRecipeCode()));
+        }
+        if (StringUtils.isNotEmpty(skipThirdDTO.getRecipeCode())) {
+            recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeNew.getRecipeId(), ImmutableMap.of( "charge_id", skipThirdDTO.getRecipeCode()));
         }
         Executors.newSingleThreadExecutor().execute(() -> enterpriseClient.uploadRecipePdfToHis(recipeNew));
         return skipThirdDTO;
