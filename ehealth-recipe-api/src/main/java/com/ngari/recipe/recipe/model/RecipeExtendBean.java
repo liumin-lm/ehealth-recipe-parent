@@ -257,13 +257,13 @@ public class RecipeExtendBean implements Serializable {
     private Integer autoCheck;
 
     @ItemProperty(alias = "单复方表示0:无状态，1单方，2复方")
-    private int singleOrCompoundRecipe;
+    private Integer singleOrCompoundRecipe;
 
-    public int getSingleOrCompoundRecipe() {
+    public Integer getSingleOrCompoundRecipe() {
         return singleOrCompoundRecipe;
     }
 
-    public void setSingleOrCompoundRecipe(int singleOrCompoundRecipe) {
+    public void setSingleOrCompoundRecipe(Integer singleOrCompoundRecipe) {
         this.singleOrCompoundRecipe = singleOrCompoundRecipe;
     }
 
