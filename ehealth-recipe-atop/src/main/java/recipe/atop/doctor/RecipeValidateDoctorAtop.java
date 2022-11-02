@@ -272,6 +272,9 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
         }
         MedicalDetailVO result = recipeBusinessService.getDocIndexInfo(caseHistoryVO);
         caseHistoryVO.setDocIndexId(result.getDocIndexId());
+        if (ValidateUtil.validateObjects(caseHistoryVO.getDepartId(), caseHistoryVO.getDoctorId())) {
+            return result;
+        }
         recipeBusinessService.updateDocIndexInfo(caseHistoryVO);
         return result;
     }

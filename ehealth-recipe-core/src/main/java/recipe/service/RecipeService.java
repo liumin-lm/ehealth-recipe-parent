@@ -45,6 +45,7 @@ import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import com.ngari.recipe.recipeorder.model.RecipeOrderInfoBean;
 import com.ngari.revisit.RevisitAPI;
+import com.ngari.revisit.RevisitBean;
 import com.ngari.revisit.common.request.ValidRevisitRequest;
 import com.ngari.revisit.common.service.IRevisitService;
 import com.ngari.revisit.process.service.IRecipeOnLineRevisitService;
@@ -112,6 +113,7 @@ import recipe.hisservice.RecipeToHisMqService;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.hisservice.syncdata.SyncExecutorService;
 import recipe.manager.*;
+import recipe.mq.Buss2SessionProducer;
 import recipe.purchase.PurchaseService;
 import recipe.service.common.RecipeCacheService;
 import recipe.service.common.RecipeSignService;
@@ -138,6 +140,7 @@ import java.util.stream.Collectors;
 
 import static ctd.persistence.DAOFactory.getDAO;
 import static recipe.service.RecipeServiceSub.getRecipeAndDetailByIdImpl;
+import static recipe.service.afterpay.IAfterPayBussService.*;
 
 /**
  * 处方服务类
@@ -1684,13 +1687,20 @@ public class RecipeService extends RecipeBaseService {
             RecipeStateEnum subOrderDeliveredMedicine = RecipeStateEnum.SUB_ORDER_TAKE_MEDICINE;
             OrderStateEnum processStateOrder = OrderStateEnum.PROCESS_STATE_ORDER;
             OrderStateEnum subOrderTakeMedicine = OrderStateEnum.SUB_ORDER_TAKE_MEDICINE;
-            if(RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(recipe.getGiveMode())){
+            if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(recipe.getGiveMode())) {
                 processStateDispensing = RecipeStateEnum.PROCESS_STATE_DISPENSING;
                 subOrderDeliveredMedicine = RecipeStateEnum.SUB_ORDER_DELIVERED_MEDICINE;
                 subOrderTakeMedicine = OrderStateEnum.SUB_ORDER_DELIVERED_MEDICINE;
             }
-            stateManager.updateOrderState(order.getOrderId(),processStateOrder,subOrderTakeMedicine);
-            stateManager.updateRecipeState(recipeId,processStateDispensing,subOrderDeliveredMedicine);
+            stateManager.updateOrderState(order.getOrderId(), processStateOrder, subOrderTakeMedicine);
+            stateManager.updateRecipeState(recipeId, processStateDispensing, subOrderDeliveredMedicine);
+        }
+        if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipe.getBussSource()) && recipe.getClinicId() != null) {
+            IRevisitService iRevisitService = RevisitAPI.getService(IRevisitService.class);
+            RevisitBean revisitBean = iRevisitService.getById(recipe.getClinicId());
+            if (revisitBean != null && REVISIT_STATUS_IN.equals(revisitBean.getStatus())) {
+                Buss2SessionProducer.sendMsgToMq(recipe, "recipeCheckPass", revisitBean.getSessionID());
+            }
         }
         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "审核通过处理完成");
         return resultBean;
@@ -1727,6 +1737,13 @@ public class RecipeService extends RecipeBaseService {
             //线上支付
             //微信退款
             wxPayRefundForRecipe(2, recipe.getRecipeId(), null);
+        }
+        if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipe.getBussSource()) && recipe.getClinicId() != null) {
+            IRevisitService iRevisitService = RevisitAPI.getService(IRevisitService.class);
+            RevisitBean revisitBean = iRevisitService.getById(recipe.getClinicId());
+            if (revisitBean != null && REVISIT_STATUS_IN.equals(revisitBean.getStatus())) {
+                Buss2SessionProducer.sendMsgToMq(recipe, "recipeCheckNotPass", revisitBean.getSessionID());
+            }
         }
     }
 
@@ -4379,12 +4396,8 @@ public class RecipeService extends RecipeBaseService {
      */
     private boolean isAllowSyncField(OrganDrugListSyncField obj) {
         //默认为同步
-        if(null!=obj && "0".equals(obj.getIsSync())){
-            //页面没勾选该字段，表示不同步
-            return false;
-        }else{
-            return true;
-        }
+        //页面没勾选该字段，表示不同步
+        return null == obj || !"0".equals(obj.getIsSync());
 
     }
 

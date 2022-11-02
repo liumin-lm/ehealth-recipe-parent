@@ -49,8 +49,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.curator.shaded.com.google.common.collect.Maps;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.ApplicationUtils;
@@ -63,7 +61,10 @@ import recipe.constant.RecipeBussConstant;
 import recipe.core.api.IEnterpriseBusinessService;
 import recipe.core.api.patient.IRecipeOrderBusinessService;
 import recipe.dao.*;
-import recipe.enumerate.status.*;
+import recipe.enumerate.status.GiveModeEnum;
+import recipe.enumerate.status.PayModeEnum;
+import recipe.enumerate.status.RecipeOrderStatusEnum;
+import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.type.GiveModeTextEnum;
 import recipe.enumerate.type.NeedSendTypeEnum;
 import recipe.factory.status.givemodefactory.GiveModeProxy;
@@ -98,9 +99,7 @@ import java.util.stream.Collectors;
  * @author fuzi
  */
 @Service
-public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
-
+public class RecipeOrderBusinessService extends BaseService implements IRecipeOrderBusinessService {
     private final static long VALID_TIME_SECOND = 3600 * 24 * 30;
     @Autowired
     private RecipeDAO recipeDAO;
@@ -114,6 +113,8 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
     private GiveModeProxy giveModeProxy;
     @Autowired
     private DoctorClient doctorClient;
+    @Autowired
+    private InfraClient infraClient;
     @Autowired
     private CreatePdfFactory createPdfFactory;
     @Autowired
@@ -1559,6 +1560,16 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
     }
 
     @Override
+    public String logisticsOrderNo(String orderCode) {
+        return infraClient.logisticsOrderNo(orderCode);
+    }
+
+    @Override
+    public String patientFinishOrder(String orderCode) {
+        return orderManager.patientFinishOrder(orderCode);
+    }
+
+    @Override
     public void submitRecipeHisV1(List<Integer> recipeIds) {
         AtomicReference<Boolean> msgFlag = new AtomicReference<>(false);
         //推送his
@@ -1566,8 +1577,8 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
             logger.info("submitRecipeHisV1 pushRecipe recipeId={}", recipeId);
             RecipeInfoDTO recipePdfDTO = recipeTherapyManager.getRecipeTherapyDTO(recipeId);
             Recipe recipe = recipePdfDTO.getRecipe();
-            if (RecipeStatusEnum.RECIPE_STATUS_REVOKE.getType().equals(recipe.getStatus())) {
-                logger.info("RecipeBusinessService pushRecipe 当前处方已撤销");
+            if (!RecipeStateEnum.PROCESS_STATE_ORDER.getType().equals(recipe.getPatientStatus())) {
+                logger.info("RecipeBusinessService pushRecipe 当前处方不是待下单状态");
                 return ;
             }
             if (new Integer(3).equals(recipe.getWriteHisState())) {

@@ -84,6 +84,7 @@ public class HomeDeliveryImpl extends AbstractGiveMode {
         if (RecipeOrderStatusEnum.ORDER_STATUS_PROCEED_SHIPPING.getType().equals(orderStatus.getTargetRecipeOrderStatus()) || RecipeOrderStatusEnum.ORDER_STATUS_DONE_DISPENSING.getType().equals(orderStatus.getTargetRecipeOrderStatus())){
             recipeOrder.setProcessState(OrderStateEnum.PROCESS_STATE_ORDER.getType());
             recipeOrder.setSubState(OrderStateEnum.SUB_ORDER_DELIVERED.getType());
+            recipeOrder.setSendTime(new Date());
             recipe.setProcessState(RecipeStateEnum.PROCESS_STATE_DISTRIBUTION.getType());
             recipe.setSubState(RecipeStateEnum.SUB_ORDER_DELIVERED.getType());
         }

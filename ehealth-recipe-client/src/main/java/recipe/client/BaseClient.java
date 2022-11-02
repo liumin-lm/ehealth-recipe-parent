@@ -8,7 +8,10 @@ import com.ngari.his.patient.service.IPatientHisService;
 import com.ngari.his.recipe.mode.DrugInfoTO;
 import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.his.recipe.service.IRecipeToTestService;
+import com.ngari.infra.statistics.IEventLogService;
+import com.ngari.infra.statistics.dto.EventLogDTO;
 import com.ngari.patient.service.DoctorService;
+import com.ngari.recipe.dto.ServiceLogDTO;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.PharmacyTcm;
 import com.ngari.recipe.entity.Recipedetail;
@@ -21,6 +24,7 @@ import recipe.constant.HisErrorCodeEnum;
 import recipe.util.DictionaryUtil;
 
 import javax.annotation.Resource;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -45,6 +49,8 @@ public class BaseClient {
     protected DoctorService doctorService;
     @Resource
     protected IPatientService iPatientService;
+    @Resource
+    protected IEventLogService eventLogService;
 
     /**
      * 解析前置机 出参
@@ -148,5 +154,30 @@ public class BaseClient {
             data.add(drugInfo);
         });
         return data;
+    }
+
+    /**
+     * 增加日志分析
+     *
+     * @param name 业务类型
+     * @param id   id
+     * @param type id类型 1机构，2药企
+     * @param time 执行时间
+     */
+    protected void serviceLog(String name, Integer id, Integer type, Integer size, Long time) {
+        EventLogDTO eventLog = new EventLogDTO();
+        eventLog.setSource("recipe");
+        eventLog.setName(name);
+        ServiceLogDTO serviceLog = new ServiceLogDTO();
+        serviceLog.setId(id);
+        serviceLog.setType(type);
+        serviceLog.setSize(size);
+        serviceLog.setTime(time);
+        eventLog.setData(serviceLog);
+        try {
+            eventLogService.serviceLog(Collections.singletonList(eventLog));
+        } catch (Exception e) {
+            logger.error("BaseClient serviceLog error", e);
+        }
     }
 }

@@ -319,6 +319,9 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
         IVisitService hisService = AppDomainContext.getBean("his.visitService", IVisitService.class);
         IHosrelationService hosrelationService = BaseAPI.getService(IHosrelationService.class);
 
+        IRevisitService revisitService = AppDomainContext.getBean("revisit.revisitService", IRevisitService.class);
+        RevisitBean revisitBean = revisitService.getById(hosrelationBean.getBusId());
+
         //如果his未接诊，则取消挂号
         CancelVisitRequestTO cancelRequest = new CancelVisitRequestTO();
         cancelRequest.setOrganId(hosrelationBean.getOrganId());
@@ -328,6 +331,7 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
         cancelRequest.setCardType(hosrelationBean.getCardType());
         cancelRequest.setCardID(hosrelationBean.getCardId());
         cancelRequest.setExtendsParam(hosrelationBean.getExtendsParam());
+        cancelRequest.setTradeNo(revisitBean.getTradeNo());
         cancelRequest.setCancelReason("系统取消");
         LOGGER.info("cancelVisit request={}", JSONUtils.toString(cancelRequest));
         HisResponseTO cancelResponse = null;

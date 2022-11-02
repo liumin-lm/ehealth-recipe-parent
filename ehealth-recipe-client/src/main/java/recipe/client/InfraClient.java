@@ -6,10 +6,13 @@ import com.ngari.infra.logistics.mode.OrganLogisticsManageDto;
 import com.ngari.infra.logistics.mode.WayBillExceptPriceTO;
 import com.ngari.infra.logistics.service.ILogisticsOrderService;
 import com.ngari.infra.logistics.service.IOrganLogisticsManageService;
+import com.ngari.infra.statistics.dto.EventLogDTO;
+import com.ngari.recipe.dto.ServiceLogDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.aop.LogRecord;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -20,15 +23,14 @@ import java.util.Map;
  */
 @Service
 public class InfraClient extends BaseClient {
-
     @Autowired
     private ILogisticsOrderService logisticsOrderService;
-
     @Autowired
     private IOrganLogisticsManageService organLogisticsManageService;
 
     /**
      * 获取订单配送是否管制
+     *
      * @param controlLogisticsOrderDto
      * @return
      */
@@ -58,7 +60,6 @@ public class InfraClient extends BaseClient {
     }
 
     /**
-     *
      * @param depId
      * @param logisticsCompany
      * @param type
@@ -66,10 +67,51 @@ public class InfraClient extends BaseClient {
      * @return
      */
     @LogRecord
-    public List<OrganLogisticsManageDto> findLogisticsManageByOrganIdAndLogisticsCompanyIdAndAccount(Integer depId,String logisticsCompany,Integer type,Integer var4) {
-        return organLogisticsManageService.findLogisticsManageByOrganIdAndLogisticsCompanyIdAndAccount(depId,logisticsCompany,type,var4);
+    public List<OrganLogisticsManageDto> findLogisticsManageByOrganIdAndLogisticsCompanyIdAndAccount(Integer depId, String logisticsCompany, Integer type, Integer var4) {
+        return organLogisticsManageService.findLogisticsManageByOrganIdAndLogisticsCompanyIdAndAccount(depId, logisticsCompany, type, var4);
     }
 
 
+    /**
+     * 增加时间日志分析
+     *
+     * @param serviceLog 日志分析对象
+     */
+    public void serviceTimeLog(ServiceLogDTO serviceLog) {
+        logger.info("InfraClient serviceLog serviceLog={}", serviceLog);
+        EventLogDTO eventLog = new EventLogDTO();
+        eventLog.setSource(serviceLog.getSource());
+        eventLog.setName(serviceLog.getName());
+        ServiceLogDTO serviceLog1 = new ServiceLogDTO();
+        serviceLog1.setId(serviceLog.getId());
+        serviceLog1.setType(serviceLog.getType());
+        serviceLog1.setCategory(serviceLog.getCategory());
+        serviceLog1.setSize(serviceLog.getSize());
+        serviceLog1.setTime(serviceLog.getTime());
+        eventLog.setData(serviceLog1);
+        try {
+            eventLogService.serviceLog(Collections.singletonList(eventLog));
+        } catch (Exception e) {
+            logger.error("InfraClient serviceLog error", e);
+        }
+    }
 
+    public void serviceTimeLog(String name, Integer id, Integer type, Integer size, Long time) {
+        logger.info("InfraClient serviceLog name={},id={},type={},size={},time={},", name, id, type, size, time);
+        super.serviceLog(name, id, type, size, time);
+    }
+
+    /**
+     * 获取物流编码
+     *
+     * @param orderCode
+     */
+    public String logisticsOrderNo(String orderCode) {
+        try {
+            return logisticsOrderService.waybillBarCodeByLogisticsOrderNo(1, orderCode);
+        } catch (Exception e) {
+            logger.error("InfraClient logisticsOrderNo orderCode={}", orderCode, e);
+            return "";
+        }
+    }
 }

@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.ngari.base.scratchable.model.ScratchableBean;
 import com.ngari.recipe.dto.GiveModeButtonDTO;
 import com.ngari.recipe.dto.OrganDTO;
+import com.ngari.recipe.dto.ServiceLogDTO;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.recipe.model.GiveModeButtonBean;
 import ctd.persistence.exception.DAOException;
@@ -11,6 +12,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.client.IConfigurationClient;
+import recipe.client.InfraClient;
 import recipe.client.OperationClient;
 import recipe.client.OrganClient;
 import recipe.core.api.IOrganBusinessService;
@@ -35,6 +37,8 @@ public class OrganBusinessService extends BaseService implements IOrganBusinessS
     private RecipeParameterDao recipeParameterDao;
     @Autowired
     private OperationClient operationClient;
+    @Autowired
+    private InfraClient infraClient;
 
     @Override
     public List<Integer> getOrganForWeb() {
@@ -113,5 +117,10 @@ public class OrganBusinessService extends BaseService implements IOrganBusinessS
             return SettleAmountStateEnum.SETTLE_SUCCESS.getType();
         }
         return recipeOrder.getSettleAmountState();
+    }
+
+    @Override
+    public void serviceTimeLog(ServiceLogDTO convert) {
+        infraClient.serviceTimeLog(convert);
     }
 }
