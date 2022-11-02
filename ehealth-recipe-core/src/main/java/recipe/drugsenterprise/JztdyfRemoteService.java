@@ -2,11 +2,7 @@ package recipe.drugsenterprise;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.google.common.base.Function;
-import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.EmploymentDTO;
 import com.ngari.patient.dto.PatientDTO;
@@ -18,7 +14,6 @@ import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
@@ -40,23 +35,18 @@ import recipe.constant.DrugEnterpriseConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.bean.JztDrugDTO;
 import recipe.drugsenterprise.bean.JztRecipeDTO;
-import recipe.drugsenterprise.bean.JztTokenRequest;
 import recipe.drugsenterprise.bean.JztTokenResponse;
 import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.enumerate.type.SettlementModeTypeEnum;
 import recipe.service.RecipeOrderService;
-import recipe.service.common.RecipeCacheService;
 import recipe.third.IFileDownloadService;
-import recipe.util.Base64;
 import recipe.util.DateConversion;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -69,19 +59,10 @@ public class JztdyfRemoteService extends AccessDrugEnterpriseService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JztdyfRemoteService.class);
 
-    private String APP_KEY;
-    private String SERVER_CODE;
-    private String SERVER_SECRET;
-
     @Autowired
     private DrugsEnterpriseDAO drugsEnterpriseDAO;
 
-    public JztdyfRemoteService() {
-        RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
-        SERVER_CODE = recipeParameterDao.getByName("jzt_appid");
-        APP_KEY = recipeParameterDao.getByName("jzt_appkey");
-        SERVER_SECRET = recipeParameterDao.getByName("jzt_appsecret");
-    }
+    public JztdyfRemoteService() {}
 
     @RpcService
     @LogRecord
@@ -95,6 +76,10 @@ public class JztdyfRemoteService extends AccessDrugEnterpriseService {
 
     @Override
     public void tokenUpdateImpl(DrugsEnterprise drugsEnterprise) {
+        RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
+        String SERVER_CODE = recipeParameterDao.getByName("jzt_appid");
+        String APP_KEY = recipeParameterDao.getByName("jzt_appkey");
+        String SERVER_SECRET = recipeParameterDao.getByName("jzt_appsecret");
         CloseableHttpClient httpclient = HttpClients.createDefault();
         HttpPost httpPost = new HttpPost(drugsEnterprise.getAuthenUrl());
         String request = "{\"serverCode\":\""+SERVER_CODE+"\",\"serverSecret\":\""+SERVER_SECRET+"\"}";
@@ -142,6 +127,8 @@ public class JztdyfRemoteService extends AccessDrugEnterpriseService {
         if (CollectionUtils.isEmpty(recipeIds)) {
             return getDrugEnterpriseResult(result,"没有获取到处方信息");
         }
+        RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
+        String APP_KEY = recipeParameterDao.getByName("jzt_appkey");
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
         //准备处方数据

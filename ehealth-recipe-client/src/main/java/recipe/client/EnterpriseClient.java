@@ -141,6 +141,8 @@ public class EnterpriseClient extends BaseClient {
         result.setCode(1);
         result.setPrescId(ByteUtils.objValueOf(responseTO.getExtend().get("prescId")));
         result.setUrl(ByteUtils.objValueOf(responseTO.getExtend().get("urlCode")));
+        result.setChargeItemCode(ByteUtils.objValueOf(responseTO.getExtend().get("chargeItemCode")));
+        result.setRecipeCode(ByteUtils.objValueOf(responseTO.getExtend().get("recipeCode")));
         return result;
     }
 
