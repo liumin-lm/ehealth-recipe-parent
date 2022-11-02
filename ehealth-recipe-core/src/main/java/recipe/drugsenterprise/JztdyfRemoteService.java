@@ -40,6 +40,7 @@ import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.enumerate.type.SettlementModeTypeEnum;
 import recipe.service.RecipeOrderService;
 import recipe.third.IFileDownloadService;
+import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.DateConversion;
 
 import java.io.IOException;
@@ -123,10 +124,23 @@ public class JztdyfRemoteService extends AccessDrugEnterpriseService {
 
     @Override
     public DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, DrugsEnterprise enterprise) {
-        DrugEnterpriseResult result = DrugEnterpriseResult.getFail();
+        DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
         if (CollectionUtils.isEmpty(recipeIds)) {
             return getDrugEnterpriseResult(result,"没有获取到处方信息");
         }
+        RecipeBusiThreadPool.execute(() -> {
+            try {
+                Thread.sleep(60000L);
+            } catch (InterruptedException e) {
+                LOGGER.error("pushRecipeInfo error", e);
+            }
+            getDrugEnterpriseResult(recipeIds, enterprise, result);
+        });
+
+        return result;
+    }
+
+    private DrugEnterpriseResult getDrugEnterpriseResult(List<Integer> recipeIds, DrugsEnterprise enterprise, DrugEnterpriseResult result) {
         RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
         String APP_KEY = recipeParameterDao.getByName("jzt_appkey");
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
@@ -204,7 +218,7 @@ public class JztdyfRemoteService extends AccessDrugEnterpriseService {
                 }
             }
         }
-        return result;
+        return null;
     }
 
     @Override
