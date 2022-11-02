@@ -511,9 +511,9 @@ public class PurchaseService {
             } catch (Exception e) {
                 LOG.warn("order searchRecipeStatusFromHis exception. recipeId={}", recipeId, e);
             }
-            //提交订单查询his收费项
-            recipeManager.queryChargeItemCode(dbRecipe);
         }
+        //提交订单查询his收费项
+        recipeManager.queryChargeItemCode(recipeList);
 
         //判断是否存在分布式锁
         boolean unlock = lock(recipeIdStr);

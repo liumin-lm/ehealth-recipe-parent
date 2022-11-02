@@ -66,10 +66,7 @@ import recipe.enumerate.status.GiveModeEnum;
 import recipe.enumerate.type.CashDeskSettleUseCodeTypeEnum;
 import recipe.enumerate.type.ForceCashTypeEnum;
 import recipe.enumerate.type.MedicalTypeEnum;
-import recipe.manager.ButtonManager;
-import recipe.manager.DepartManager;
-import recipe.manager.EnterpriseManager;
-import recipe.manager.RecipeOrderPayFlowManager;
+import recipe.manager.*;
 import recipe.service.PayModeGiveModeUtil;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.serviceprovider.recipeorder.service.RemoteRecipeOrderService;
@@ -132,6 +129,8 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
     private RecipeExtendDAO recipeExtendDAO;
     @Autowired
     private PatientService patientService;
+    @Autowired
+    private RecipeManager recipeManager;
 
     private IConfigurationCenterUtilsService utils = BaseAPI.getService(IConfigurationCenterUtilsService.class);
 
@@ -300,15 +299,13 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
                 map.put("serviceChargeRemark", organConfig.getServiceChargeRemark());
             }
             //设置其他费用文案
-            double otherFee = 0.0;
-            //date 2019/10/23
             //添加非空判断
-            if (null != utils.getConfiguration(organId, "otherFee") && null != utils.getConfiguration(organId, "otherServiceChargeDesc") && null != utils.getConfiguration(organId, "otherServiceChargeRemark")) {
-                otherFee = Double.parseDouble(utils.getConfiguration(organId, "otherFee").toString());
-                if (otherFee > 0.0) {
-                    map.put("otherServiceChargeDesc", utils.getConfiguration(organId, "otherServiceChargeDesc").toString());
-                    map.put("otherServiceChargeRemark", utils.getConfiguration(organId, "otherServiceChargeRemark").toString());
-                }
+            BigDecimal otherFee = order.getOtherFee();
+            if (null != otherFee && otherFee.compareTo(BigDecimal.ZERO) == 1
+                    && null != utils.getConfiguration(organId, "otherServiceChargeDesc")
+                    && null != utils.getConfiguration(organId, "otherServiceChargeRemark")) {
+                map.put("otherServiceChargeDesc", utils.getConfiguration(organId, "otherServiceChargeDesc").toString());
+                map.put("otherServiceChargeRemark", utils.getConfiguration(organId, "otherServiceChargeRemark").toString());
             }
 
             //获取展示窗口调试信息,取处方详情中的药品的取药窗口信息
@@ -802,13 +799,14 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
         List<String> costNumbers = new ArrayList<>();
         for (Integer recipeId : recipeIdList) {
             RecipeBean recipe = recipeService.getByRecipeId(recipeId);
-            RecipeExtendBean recipeExtendBean = recipeService.findRecipeExtendByRecipeId(recipeId);
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
             Integer cashDeskSettleUseCode = configurationClient.getValueCatchReturnInteger(recipe.getClinicOrgan(), "cashDeskSettleUseCode", CashDeskSettleUseCodeTypeEnum.HIS_RECIPE_CODE.getType());
             String costNumber;
             if (CashDeskSettleUseCodeTypeEnum.HIS_RECIPE_CODE.getType().equals(cashDeskSettleUseCode)) {
-                costNumber = StringUtils.isBlank(recipeExtendBean.getRecipeCostNumber()) ? recipe.getRecipeCode() : recipe.getRecipeCostNumber();
+                costNumber = StringUtils.isBlank(recipeExtend.getRecipeCostNumber()) ? recipe.getRecipeCode() : recipe.getRecipeCostNumber();
             } else {
-                costNumber = StringUtils.isBlank(recipeExtendBean.getChargeItemCode()) ? recipe.getRecipeCode() : recipeExtendBean.getChargeItemCode();
+                List<String> chargeItemCode = recipeManager.getChargeItemCode(Arrays.asList(recipeExtend));
+                costNumber = String.join(",", chargeItemCode);
             }
             costNumbers.add(costNumber);
         }

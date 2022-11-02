@@ -64,6 +64,7 @@ import recipe.core.api.IEnterpriseBusinessService;
 import recipe.core.api.patient.IRecipeOrderBusinessService;
 import recipe.dao.*;
 import recipe.enumerate.status.*;
+import recipe.enumerate.type.CashDeskSettleUseCodeTypeEnum;
 import recipe.enumerate.type.GiveModeTextEnum;
 import recipe.enumerate.type.NeedSendTypeEnum;
 import recipe.factory.status.givemodefactory.GiveModeProxy;
@@ -771,6 +772,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
         SelfPreSettleQueryReq selfPreSettleQueryReq = new SelfPreSettleQueryReq();
         RecipeOrder recipeOrder = recipeOrderDAO.get(busId);
         List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
+        List<RecipeExtend> recipeExtendList = recipeExtendDAO.queryRecipeExtendByRecipeIds(recipeIdList);
 
         if (recipeOrder == null) {
             throw new DAOException("订单信息不存在");
@@ -796,8 +798,14 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                 request.setIllnessType(ext.getIllnessType());
 
             }
-
-            List<String> recipeCodeS = recipeList.stream().map(Recipe::getRecipeCode).collect(Collectors.toList());
+            Integer cashDeskSettleUseCode = configurationClient.getValueCatchReturnInteger(recipe.getClinicOrgan(), "cashDeskSettleUseCode", CashDeskSettleUseCodeTypeEnum.HIS_RECIPE_CODE.getType());
+            List<String> recipeCodeS = new ArrayList<>();
+            if (CashDeskSettleUseCodeTypeEnum.HIS_RECIPE_CODE.getType().equals(cashDeskSettleUseCode)) {
+                recipeCodeS = recipeList.stream().map(Recipe::getRecipeCode).collect(Collectors.toList());
+            } else {
+                List<String> chargeItemCodeList = recipeManager.getChargeItemCode(recipeExtendList);
+                recipeCodeS.addAll(chargeItemCodeList);
+            }
             String join = Joiner.on(",").join(recipeCodeS);
             List<String> list = Arrays.asList(join.split(","));
             request.setHisRecipeNoS(list);
@@ -815,7 +823,6 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
             request.setPatientId(recipe.getPatientID());
             request.setDepartId(null != recipe.getDepart() ? recipe.getDepart().toString() : "");
             RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
-
 
             try {
                 if (Objects.nonNull(recipeOrder)) {
@@ -889,6 +896,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
         }
         List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
         List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIdList);
+        List<RecipeExtend> recipeExtendList = recipeExtendDAO.queryRecipeExtendByRecipeIds(recipeIdList);
         if (CollectionUtils.isEmpty(recipeIdList)) {
             throw new DAOException("处方信息不存在");
         }
@@ -913,8 +921,14 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                 }
                 medicalPreSettleQueryReq.setHisSettlementNo(recipeOrder.getHisSettlementNo());
                 medicalPreSettleQueryReq.setTotalAmount(recipeOrder.getTotalFee());
-
-                List<String> recipeCodeS = recipeList.stream().map(Recipe::getRecipeCode).collect(Collectors.toList());
+                Integer cashDeskSettleUseCode = configurationClient.getValueCatchReturnInteger(recipe.getClinicOrgan(), "cashDeskSettleUseCode", CashDeskSettleUseCodeTypeEnum.HIS_RECIPE_CODE.getType());
+                List<String> recipeCodeS = new ArrayList<>();
+                if (CashDeskSettleUseCodeTypeEnum.HIS_RECIPE_CODE.getType().equals(cashDeskSettleUseCode)) {
+                    recipeCodeS = recipeList.stream().map(Recipe::getRecipeCode).collect(Collectors.toList());
+                } else {
+                    List<String> chargeItemCodeList = recipeManager.getChargeItemCode(recipeExtendList);
+                    recipeCodeS.addAll(chargeItemCodeList);
+                }
                 String join = Joiner.on(",").join(recipeCodeS);
                 medicalPreSettleQueryReq.setRecipeNos(join);
             }
@@ -928,7 +942,6 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
         ThirdOrderPreSettleRes thirdOrderPreSettleRes = new ThirdOrderPreSettleRes();
         checkParams(thirdOrderPreSettleReq);
         setUrtToContext(thirdOrderPreSettleReq.getAppkey(), thirdOrderPreSettleReq.getTid());
-        String mpiId = getOwnMpiId();
         List<Recipe> recipes = recipeDAO.findByRecipeIds(thirdOrderPreSettleReq.getRecipeIds());
         if(CollectionUtils.isEmpty(recipes)){
             logger.info("ThirdOrderPreSettle recipes is null");

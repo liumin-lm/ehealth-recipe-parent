@@ -28,4 +28,8 @@ public class SkipThirdDTO implements Serializable {
     private String msg;
 
     private String prescId;
+
+    private String chargeItemCode;
+
+    private String recipeCode;
 }

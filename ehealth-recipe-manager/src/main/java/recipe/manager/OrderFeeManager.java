@@ -100,7 +100,7 @@ public class OrderFeeManager extends BaseManager {
         BigDecimal decoctionTotalFee = BigDecimal.ZERO;
         // 未计入订单的代煎费
         BigDecimal notContainDecoctionPrice = BigDecimal.ZERO;
-        if (Objects.nonNull(otherFee)) {
+        if (Objects.isNull(otherFee)) {
             otherFee= BigDecimal.ZERO;
         }
         if (CollectionUtils.isEmpty(recipeList)) {
