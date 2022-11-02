@@ -448,7 +448,7 @@ public class OrganDrugListManager extends BaseManager {
             dataType.add(organDrug.getNarcoticDrugFlag());
             dataType.add(organDrug.getRadioActivityDrugFlag());
             //优先展示精麻毒放
-            if(dataType.contains(1) && new Integer(1).equals(organDrug.getSpecialUseAntibioticDrugFlag())){
+            if(dataType.contains(1)){
                 a.setValidateHisStatus(5);
                 a.setValidateHisStatusText("“精”“麻”“毒”“放”类药品，禁止在互联网医院上开具");
             }
