@@ -1,4 +1,4 @@
-package recipe.bussutil;
+package com.ngari.recipe.dto;
 
 import lombok.*;
 
