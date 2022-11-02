@@ -208,18 +208,14 @@ public class RecipeSignService {
             return response;
         }
 
-        //签名
-        RecipeBusiThreadPool.execute(() -> {
-            try {
-                //生成pdf并签名
-                Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-                createPdfFactory.queryPdfOssId(recipe);
-                createPdfFactory.updatePdfToImg(recipe.getRecipeId(), SignImageTypeEnum.SIGN_IMAGE_TYPE_DOCTOR.getType());
-            } catch (Exception e) {
-                LOG.error("sign 签名服务异常，recipeId={}", recipeId, e);
-            }
-        });
-
+        try {
+            //生成pdf并签名
+            Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+            createPdfFactory.queryPdfOssId(recipe);
+            createPdfFactory.updatePdfToImg(recipe.getRecipeId(), SignImageTypeEnum.SIGN_IMAGE_TYPE_DOCTOR.getType());
+        } catch (Exception e) {
+            LOG.error("sign 签名服务异常，recipeId={}", recipeId, e);
+        }
 
         //修改订单
         if (StringUtils.isEmpty(dbRecipe.getOrderCode())) {
