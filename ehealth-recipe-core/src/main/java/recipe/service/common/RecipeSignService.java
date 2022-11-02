@@ -300,7 +300,8 @@ public class RecipeSignService {
                 checkResult.setCheckDoctorId(dbRecipe.getDoctor());
                 checkResult.setCheckOrganId(dbRecipe.getClinicOrgan());
                 List<Integer> checkerList = recipeManager.getDocIdInTime(dbRecipe.getClinicOrgan());
-                if (CollectionUtils.isNotEmpty(checkerList)) {
+                LOG.info("sign checkerList:{}", JSON.toJSONString(checkerList));
+                if (CollectionUtils.isNotEmpty(checkerList) && checkerList.size() > 0) {
                     createPdfFactory.updateCheckNamePdfESign(recipeId, checkerList.get(0));
                 } else {
                     createPdfFactory.updateCheckNamePdfESign(recipeId, dbRecipe.getDoctor());
