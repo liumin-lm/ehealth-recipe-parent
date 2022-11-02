@@ -18,7 +18,7 @@ import org.apache.commons.lang3.StringUtils;
  * @author: 0184/yu_yun
  * @date: 2017/8/4.
  */
-public class ApplicationUtils {
+public class ApplicationUtils extends recipe.third.util.ApplicationUtils {
 
     private static String BASE_DOMAIN = "eh";
 
