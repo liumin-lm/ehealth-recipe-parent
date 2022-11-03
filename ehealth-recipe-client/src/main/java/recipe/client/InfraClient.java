@@ -8,6 +8,7 @@ import com.ngari.infra.logistics.service.ILogisticsOrderService;
 import com.ngari.infra.logistics.service.IOrganLogisticsManageService;
 import com.ngari.infra.statistics.dto.EventLogDTO;
 import com.ngari.recipe.dto.ServiceLogDTO;
+import com.ngari.recipe.entity.RecipeOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.aop.LogRecord;
@@ -113,5 +114,15 @@ public class InfraClient extends BaseClient {
             logger.error("InfraClient logisticsOrderNo orderCode={}", orderCode, e);
             return "";
         }
+    }
+
+    /**
+     *
+     * @param recipeOrder
+     * @return
+     */
+    public Boolean cancelLogisticsOrder(RecipeOrder recipeOrder){
+
+        return true;
     }
 }

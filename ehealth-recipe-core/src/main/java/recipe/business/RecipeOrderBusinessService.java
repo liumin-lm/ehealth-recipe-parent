@@ -49,7 +49,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.curator.shaded.com.google.common.collect.Maps;
-import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.ApplicationUtils;
@@ -1678,7 +1677,7 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
             return true;
         }
         //查询该物流是否揽件
-        return false;
+        return infraClient.cancelLogisticsOrder(recipeOrder);
     }
 
     private void syncFinishOrderHandle(List<Integer> recipeIdList, RecipeOrder recipeOrder, boolean isSendFlag) {
