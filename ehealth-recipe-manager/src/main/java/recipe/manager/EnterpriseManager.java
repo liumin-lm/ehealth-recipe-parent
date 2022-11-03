@@ -32,6 +32,7 @@ import recipe.client.*;
 import recipe.constant.DrugEnterpriseConstant;
 import recipe.dao.*;
 import recipe.enumerate.status.GiveModeEnum;
+import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.status.YesOrNoEnum;
 import recipe.enumerate.type.*;
@@ -454,6 +455,9 @@ public class EnterpriseManager extends BaseManager {
             recipeUpdate.setRecipeId(recipeNew.getRecipeId());
             recipeUpdate.setEnterpriseId(enterprise.getId());
             recipeUpdate.setPushFlag(1);
+            recipeUpdate.setStatus(RecipeStatusEnum.RECIPE_STATUS_FINISH.getType());
+            recipeUpdate.setSubState(RecipeStateEnum.SUB_DONE_UPLOAD_THIRD.getType());
+            recipeUpdate.setProcessState(RecipeStateEnum.PROCESS_STATE_DONE.getType());
             recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
         } else if (StringUtils.isNotEmpty(skipThirdDTO.getPrescId())) {
             recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeNew.getRecipeId(), ImmutableMap.of("rxid", skipThirdDTO.getPrescId()));
