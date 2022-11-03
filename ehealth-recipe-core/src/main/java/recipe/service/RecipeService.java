@@ -2717,6 +2717,12 @@ public class RecipeService extends RecipeBaseService {
                 for (Recipe recipe : recipeList) {
                     //过滤掉流转到扁鹊处方流转平台的处方
                     if (RecipeServiceSub.isBQEnterpriseBydepId(recipe.getEnterpriseId())) {
+                        if (Objects.isNull(recipe.getOrderCode()) && Integer.valueOf("1").equals(recipe.getPushFlag())) {
+                            recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_FINISH.getType());
+                            recipe.setSubState(RecipeStateEnum.SUB_DONE_UPLOAD_THIRD.getType());
+                            recipe.setProcessState(RecipeStateEnum.PROCESS_STATE_DONE.getType());
+                            recipeDAO.update(recipe);
+                        }
                         continue;
                     }
                     sendDrugEnterproseMsg(recipe);
@@ -2863,6 +2869,12 @@ public class RecipeService extends RecipeBaseService {
                         }
                         //过滤掉流转到扁鹊处方流转平台的处方
                         if (RecipeServiceSub.isBQEnterpriseBydepId(recipe.getEnterpriseId())) {
+                            if (Objects.isNull(recipe.getOrderCode()) && Integer.valueOf("1").equals(recipe.getPushFlag())) {
+                                recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_FINISH.getType());
+                                recipe.setSubState(RecipeStateEnum.SUB_DONE_UPLOAD_THIRD.getType());
+                                recipe.setProcessState(RecipeStateEnum.PROCESS_STATE_DONE.getType());
+                                recipeDAO.update(recipe);
+                            }
                             continue;
                         }
                         Integer status = RecipeService.getStatus(recipe);
