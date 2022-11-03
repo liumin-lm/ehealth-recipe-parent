@@ -1603,19 +1603,21 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
             return;
         }
         organIds.forEach(organId -> {
+            logger.info("开始执行完成订单定时任务 执行机构id=" + organId);
             Integer recipeAutoFinishTime = configurationClient.getValueCatch(organId, "recipeAutoFinishTime", 14);
             Date date = DateUtils.addDays(new Date(), -recipeAutoFinishTime);
             List<RecipeOrder> recipeOrders = recipeOrderDAO.findByOrganIdAndStatus(organId, date);
-            recipeOrders.forEach(recipeOrder -> {
-                try {
-                    patientFinishOrder(recipeOrder.getOrderCode());
-                }catch (Exception e){
-                    logger.info("完成处方失败 orderCode=" + recipeOrder.getOrderCode());
-                }
-            });
-
+            if (CollectionUtils.isNotEmpty(recipeOrders)) {
+                recipeOrders.forEach(recipeOrder -> {
+                    try {
+                        patientFinishOrder(recipeOrder.getOrderCode());
+                    } catch (Exception e) {
+                        logger.info("完成处方失败 orderCode=" + recipeOrder.getOrderCode());
+                    }
+                });
+                logger.info("完成订单定时任务结束 执行机构id=" + organId);
+            }
         });
-
     }
 
     @Override

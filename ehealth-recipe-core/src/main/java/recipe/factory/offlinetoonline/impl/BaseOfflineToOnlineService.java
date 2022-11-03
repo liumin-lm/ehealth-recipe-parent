@@ -1256,9 +1256,9 @@ public class BaseOfflineToOnlineService {
         hisRecipe.setRecipeFlag(queryHisRecipResTo.getRecipeFlag());
         hisRecipe.setIllnessType(queryHisRecipResTo.getIllnessType());
         hisRecipe.setMedicalFlag(queryHisRecipResTo.getMedicalFlag());
-        hisRecipe.setRevisitType(queryHisRecipResTo.getRevisitType());
-        hisRecipe.setMedicalTypeCode(queryHisRecipResTo.getMedicalTypeCode());
-        hisRecipe.setMedicalTypeText(queryHisRecipResTo.getMedicalTypeText());
+//        hisRecipe.setRevisitType(queryHisRecipResTo.getRevisitType());
+//        hisRecipe.setMedicalTypeCode(queryHisRecipResTo.getMedicalTypeCode());
+//        hisRecipe.setMedicalTypeText(queryHisRecipResTo.getMedicalTypeText());
         LOGGER.info("BaseOfflineToOnlineService covertHisRecipeObject res hisRecipe:{}", JSONUtils.toString(hisRecipe));
         return hisRecipe;
     }
