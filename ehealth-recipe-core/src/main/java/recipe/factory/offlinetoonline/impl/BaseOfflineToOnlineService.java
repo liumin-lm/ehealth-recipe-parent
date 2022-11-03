@@ -1022,16 +1022,19 @@ public class BaseOfflineToOnlineService {
             } catch (Exception e) {
                 LOGGER.error("线下处方转线上通过挂号序号关联复诊 error", e);
             }
-            if (consultExDTO != null && StringUtils.isEmpty(hisRecipe.getIllnessType())) {
-                recipeExtend.setIllnessType(consultExDTO.getDbType());
+            if(consultExDTO!=null){
+                if (StringUtils.isEmpty(hisRecipe.getIllnessType())) {
+                    recipeExtend.setIllnessType(consultExDTO.getDbType());
+                }
+                if (StringUtils.isEmpty(hisRecipe.getCardNo())) {
+                    recipeExtend.setCardNo(consultExDTO.getCardId());
+                }
+                recipeExtend.setMedicalRecordNumber(consultExDTO.getMedicalRecordNo());
+                if (StringUtils.isEmpty(hisRecipe.getCardTypeCode())) {
+                    recipeExtend.setCardType(consultExDTO.getCardType());
+                }
             }
-            if (consultExDTO != null && StringUtils.isEmpty(hisRecipe.getCardNo())) {
-                recipeExtend.setCardNo(consultExDTO.getCardId());
-            }
-            recipeExtend.setMedicalRecordNumber(consultExDTO.getMedicalRecordNo());
-            if (consultExDTO != null && StringUtils.isEmpty(hisRecipe.getCardTypeCode())) {
-                recipeExtend.setCardType(consultExDTO.getCardType());
-            }
+
         }
         recipeExtend.setRecipeCostNumber(hisRecipe.getRecipeCostNumber());
         try {
