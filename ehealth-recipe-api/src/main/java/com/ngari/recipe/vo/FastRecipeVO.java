@@ -141,4 +141,7 @@ public class FastRecipeVO implements Serializable {
     @ItemProperty(alias = "处方剂型类型 1 饮片方 2 颗粒方")
     @Dictionary(id = "eh.cdr.dictionary.RecipeDrugForm")
     private Integer recipeDrugForm;
+
+    @ItemProperty(alias = "单复方表示：0无状态，1单方，2复方")
+    private Integer singleOrCompoundRecipe;
 }

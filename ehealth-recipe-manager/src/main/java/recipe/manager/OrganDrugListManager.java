@@ -389,6 +389,77 @@ public class OrganDrugListManager extends BaseManager {
     }
 
     /**
+     * 校验his 药品规则，抗菌素药物
+     *
+     * @param recipe        处方信息
+     * @param recipeDetails 药品信息
+     * @return
+     */
+    public void validateAntibioticsDrug(Recipe recipe, List<RecipeDetailDTO> recipeDetails) {
+        List<Integer> antibioticsDrug = consultClient.getAntibioticsDrugLevelLevel(recipe.getDoctor());
+        //说明三种权限都有
+        if (antibioticsDrug.containsAll(Stream.of(1,2,3).collect(Collectors.toList()))) {
+            return;
+        }
+        List<Integer> drugIdList = recipeDetails.stream().map(RecipeDetailDTO::getDrugId).collect(Collectors.toList());
+        List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugIds(recipe.getClinicOrgan(), drugIdList);
+        logger.info("OrganDrugListManager validateAntibioticsDrug organDrugList={}", JSON.toJSONString(organDrugList));
+        Map<String, OrganDrugList> organDrugMap = organDrugList.stream().collect(Collectors.toMap(k -> k.getDrugId() + k.getOrganDrugCode(), a -> a, (k1, k2) -> k1));
+        recipeDetails.forEach(a -> {
+            //存在其他权限
+            if (!ValidateUtil.integerIsEmpty(a.getValidateHisStatus())) {
+                return;
+            }
+            //判断抗菌素药物权限
+            OrganDrugList organDrug = organDrugMap.get(a.getDrugId() + a.getOrganDrugCode());
+            if (null == organDrug) {
+                return;
+            }
+            //0表示不是抗菌素药品
+            if( !new Integer(0).equals(organDrug.getAntibioticsDrugLevel()) && !antibioticsDrug.contains(organDrug.getAntibioticsDrugLevel())){
+                a.setValidateHisStatus(4);
+                a.setValidateHisStatusText("不可开具抗菌素药品");
+            }
+
+        });
+    }
+
+    /**
+     * 校验精麻毒放和特殊使用级抗生素药物
+     *
+     * @param recipe        处方信息
+     * @param recipeDetails 药品信息
+     * @return
+     */
+    public void validateOtherDrug(Recipe recipe, List<RecipeDetailDTO> recipeDetails) {
+        List<Integer> drugIdList = recipeDetails.stream().map(RecipeDetailDTO::getDrugId).collect(Collectors.toList());
+        List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugIds(recipe.getClinicOrgan(), drugIdList);
+        logger.info("OrganDrugListManager validateOtherDrug organDrugList={}", JSON.toJSONString(organDrugList));
+        Map<String, OrganDrugList> organDrugMap = organDrugList.stream().collect(Collectors.toMap(k -> k.getDrugId() + k.getOrganDrugCode(), a -> a, (k1, k2) -> k1));
+        recipeDetails.forEach(a -> {
+            OrganDrugList organDrug = organDrugMap.get(a.getDrugId() + a.getOrganDrugCode());
+            if (null == organDrug) {
+                return;
+            }
+            //判断药物类型
+            List<Integer> dataType = new ArrayList<>();
+            dataType.add(organDrug.getPsychotropicDrugFlag());
+            dataType.add(organDrug.getToxicDrugFlag());
+            dataType.add(organDrug.getNarcoticDrugFlag());
+            dataType.add(organDrug.getRadioActivityDrugFlag());
+            //优先展示精麻毒放
+            if(dataType.contains(1)){
+                a.setValidateHisStatus(5);
+                a.setValidateHisStatusText("“精”“麻”“毒”“放”类药品，禁止在互联网医院上开具");
+            }
+            if(!dataType.contains(1) && new Integer(1).equals(organDrug.getSpecialUseAntibioticDrugFlag())){
+                a.setValidateHisStatus(6);
+                a.setValidateHisStatusText("“特殊使用级抗生素”类药品，禁止在互联网医院上开具");
+            }
+        });
+    }
+
+    /**
      * 查询his 药品说明书
      *
      * @param organId      机构id

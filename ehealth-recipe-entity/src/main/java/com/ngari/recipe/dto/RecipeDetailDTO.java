@@ -148,7 +148,8 @@ public class RecipeDetailDTO implements Serializable {
     @ItemProperty(alias = "药品拼接名称")
     private String drugDisplaySplicedName;
 
-    @ItemProperty(alias = "返回his药品状态 0:正常，1大病无权限，2靶向药无权限，3抗肿瘤药物无权限")
+    @ItemProperty(alias = "返回his药品状态 0:正常，1大病无权限，2靶向药无权限，3抗肿瘤药物无权限 " +
+            "4抗菌素药物无权限 5“精”“麻”“毒”“放”类药品，禁止在互联网医院上开具，6“特殊使用级抗生素”类药品，禁止在互联网医院上开具")
     private Integer validateHisStatus;
     /**
      * 返回his药品状态 原因

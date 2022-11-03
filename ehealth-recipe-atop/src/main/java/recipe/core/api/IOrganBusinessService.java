@@ -1,6 +1,7 @@
 package recipe.core.api;
 
 import com.ngari.recipe.dto.GiveModeButtonDTO;
+import com.ngari.recipe.dto.ServiceLogDTO;
 import com.ngari.recipe.recipe.model.GiveModeButtonBean;
 import recipe.vo.second.OrganVO;
 
@@ -80,4 +81,11 @@ public interface IOrganBusinessService {
      * @return
      */
     Integer getOrderPayFlag(Integer orderId);
+
+    /**
+     * 日志记录分析接口
+     *
+     * @param serviceLog
+     */
+    void serviceTimeLog(ServiceLogDTO serviceLog);
 }

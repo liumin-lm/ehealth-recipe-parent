@@ -1646,6 +1646,16 @@ public class DrugToolService implements IDrugToolService {
                         organDrugList.setSmallestSaleMultiple(drugListMatch.getSmallestSaleMultiple());
                         organDrugList.setAntiTumorDrugFlag(drugListMatch.getAntiTumorDrugFlag());
                         organDrugList.setAntiTumorDrugLevel(drugListMatch.getAntiTumorDrugLevel());
+                        organDrugList.setAntibioticsDrugLevel(drugListMatch.getAntibioticsDrugLevel());
+                        organDrugList.setStandardCode(drugListMatch.getStandardCode());
+                        organDrugList.setPsychotropicDrugFlag(drugListMatch.getPsychotropicDrugFlag());
+                        organDrugList.setToxicDrugFlag(drugListMatch.getToxicDrugFlag());
+                        organDrugList.setNarcoticDrugFlag(drugListMatch.getNarcoticDrugFlag());
+                        organDrugList.setRadioActivityDrugFlag(drugListMatch.getRadioActivityDrugFlag());
+                        organDrugList.setSpecialUseAntibioticDrugFlag(drugListMatch.getSpecialUseAntibioticDrugFlag());
+                        organDrugList.setUnitHisCode(drugListMatch.getUnitHisCode());
+                        organDrugList.setUseDoseUnitHisCode(drugListMatch.getUseDoseUnitHisCode());
+                        organDrugList.setUseDoseSmallestUnitHisCode(drugListMatch.getUseDoseSmallestUnitHisCode());
 //                        organDrugList.setUnavailable(drugListMatch.getUnavailable());
                         //updateFlag为1时更新药品信息，否则不更新
                         //防止既更新又新增的时候把更新的数据又保存一编

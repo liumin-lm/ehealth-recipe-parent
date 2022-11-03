@@ -255,4 +255,30 @@ public interface IRecipeOrderBusinessService {
      * @return
      */
     List<RecipeOrder> orderListByClinicId(Integer clinicId, Integer bussSource);
+
+    /**
+     * 获取物流编码文件流
+     *
+     * @param orderCode
+     */
+    String logisticsOrderNo(String orderCode);
+
+    /**
+     * 患者端完成订单
+     * @param orderCode
+     * @return
+     */
+    void patientFinishOrder(String orderCode);
+
+    /**
+     * 配送中订单定时任务 完成操作
+     */
+    void finishRecipeOrderJob();
+
+    /**
+     * 拦截患者退费申请
+     * @param orderCode
+     * @return
+     */
+    Boolean interceptPatientApplyRefund(String orderCode);
 }

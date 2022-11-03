@@ -237,6 +237,14 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
             organDrugListManager.validateAntiTumorDrug(recipe, recipeDetails);
             logger.info("RecipeDetailBusinessService validateAntiTumorDrug 抗肿瘤药物权限 recipeDetails={}", JSON.toJSONString(recipeDetails));
         }
+        //"5": "抗菌素药物权限"
+        if (hisDrugRule.contains("5")) {
+            organDrugListManager.validateAntibioticsDrug(recipe, recipeDetails);
+            logger.info("RecipeDetailBusinessService validateAntibioticsDrug 抗菌素药物权限 recipeDetails={}", JSON.toJSONString(recipeDetails));
+        }
+        //校验精麻毒放、特殊使用级抗生素
+        organDrugListManager.validateOtherDrug(recipe,recipeDetails);
+        logger.info("RecipeDetailBusinessService validateOtherDrug recipeDetails={}", JSON.toJSONString(recipeDetails));
         return recipeDetails;
     }
 

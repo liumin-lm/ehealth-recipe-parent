@@ -47,6 +47,7 @@
     <reference id="infra.waybillService" interface="com.ngari.infra.logistics.service.IWaybillService"/>
     <reference id="infra.invoiceRecordService" interface="com.ngari.infra.invoice.service.InvoiceRecordService"/>
     <reference id="infra.organLogisticsManageService" interface="com.ngari.infra.logistics.service.IOrganLogisticsManageService"/>
+    <reference id="infra.eventLogService" interface="com.ngari.infra.statistics.IEventLogService"/>
 
     <!--随访服务-->
     <reference id="pm.remoteMedicineRemindService" interface="com.ngari.follow.service.IMedicineRemindService"/>

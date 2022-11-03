@@ -20,6 +20,7 @@ import recipe.vo.PageGenericsVO;
 import recipe.vo.doctor.PatientOptionalDrugVO;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.greenroom.DrugUsageLabelResp;
+import recipe.vo.greenroom.FindRecipeListForPatientVO;
 import recipe.vo.greenroom.RecipeRefundInfoReqVO;
 import recipe.vo.patient.PatientOptionalDrugVo;
 import recipe.vo.second.*;
@@ -371,4 +372,24 @@ public interface IRecipeBusinessService {
      * @return
      */
     List<OutpatientPaymentRecipeDTO> findOutpatientPaymentRecipes(Integer organId, String mpiId);
+
+    /**
+     * 复诊会话消息推送
+     *
+     * @param recipeId
+     * @param clinicId
+     * @param contentType
+     * @param sessionId
+     * @param doctorId
+     * @param mpiId
+     */
+    void sendMsgToMq(String recipeId, String clinicId, String contentType, String sessionId, Integer doctorId, String mpiId);
+
+    /**
+     * 患者端查询我的处方列表
+     *
+     * @param param
+     * @return
+     */
+    List<PatientTabStatusMergeRecipeDTO> findRecipeListForPatientByTabStatus(FindRecipeListForPatientVO param);
 }

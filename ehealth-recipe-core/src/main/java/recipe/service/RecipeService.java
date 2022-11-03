@@ -45,6 +45,7 @@ import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import com.ngari.recipe.recipeorder.model.RecipeOrderInfoBean;
 import com.ngari.revisit.RevisitAPI;
+import com.ngari.revisit.RevisitBean;
 import com.ngari.revisit.common.request.ValidRevisitRequest;
 import com.ngari.revisit.common.service.IRevisitService;
 import com.ngari.revisit.process.service.IRecipeOnLineRevisitService;
@@ -112,6 +113,7 @@ import recipe.hisservice.RecipeToHisMqService;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.hisservice.syncdata.SyncExecutorService;
 import recipe.manager.*;
+import recipe.mq.Buss2SessionProducer;
 import recipe.purchase.PurchaseService;
 import recipe.service.common.RecipeCacheService;
 import recipe.service.common.RecipeSignService;
@@ -138,6 +140,7 @@ import java.util.stream.Collectors;
 
 import static ctd.persistence.DAOFactory.getDAO;
 import static recipe.service.RecipeServiceSub.getRecipeAndDetailByIdImpl;
+import static recipe.service.afterpay.IAfterPayBussService.*;
 
 /**
  * 处方服务类
@@ -1684,13 +1687,20 @@ public class RecipeService extends RecipeBaseService {
             RecipeStateEnum subOrderDeliveredMedicine = RecipeStateEnum.SUB_ORDER_TAKE_MEDICINE;
             OrderStateEnum processStateOrder = OrderStateEnum.PROCESS_STATE_ORDER;
             OrderStateEnum subOrderTakeMedicine = OrderStateEnum.SUB_ORDER_TAKE_MEDICINE;
-            if(RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(recipe.getGiveMode())){
+            if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(recipe.getGiveMode())) {
                 processStateDispensing = RecipeStateEnum.PROCESS_STATE_DISPENSING;
                 subOrderDeliveredMedicine = RecipeStateEnum.SUB_ORDER_DELIVERED_MEDICINE;
                 subOrderTakeMedicine = OrderStateEnum.SUB_ORDER_DELIVERED_MEDICINE;
             }
-            stateManager.updateOrderState(order.getOrderId(),processStateOrder,subOrderTakeMedicine);
-            stateManager.updateRecipeState(recipeId,processStateDispensing,subOrderDeliveredMedicine);
+            stateManager.updateOrderState(order.getOrderId(), processStateOrder, subOrderTakeMedicine);
+            stateManager.updateRecipeState(recipeId, processStateDispensing, subOrderDeliveredMedicine);
+        }
+        if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipe.getBussSource()) && recipe.getClinicId() != null) {
+            IRevisitService iRevisitService = RevisitAPI.getService(IRevisitService.class);
+            RevisitBean revisitBean = iRevisitService.getById(recipe.getClinicId());
+            if (revisitBean != null && REVISIT_STATUS_IN.equals(revisitBean.getStatus())) {
+                Buss2SessionProducer.sendMsgToMq(recipe, "recipeCheckPass", revisitBean.getSessionID());
+            }
         }
         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "审核通过处理完成");
         return resultBean;
@@ -1727,6 +1737,13 @@ public class RecipeService extends RecipeBaseService {
             //线上支付
             //微信退款
             wxPayRefundForRecipe(2, recipe.getRecipeId(), null);
+        }
+        if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipe.getBussSource()) && recipe.getClinicId() != null) {
+            IRevisitService iRevisitService = RevisitAPI.getService(IRevisitService.class);
+            RevisitBean revisitBean = iRevisitService.getById(recipe.getClinicId());
+            if (revisitBean != null && REVISIT_STATUS_IN.equals(revisitBean.getStatus())) {
+                Buss2SessionProducer.sendMsgToMq(recipe, "recipeCheckNotPass", revisitBean.getSessionID());
+            }
         }
     }
 
@@ -2352,12 +2369,12 @@ public class RecipeService extends RecipeBaseService {
             Integer status = (Integer) hget.get("Status");
             String date = (String) hget.get("Date");
             long minutes = timeDifference(date);
-            if (minutes < 10L) {
-                throw new DAOException(DAOException.VALUE_NEEDED, "距离上次同步未超过10分钟，请稍后再尝试数据同步!");
-            }
-            if (status == 0) {
-                throw new DAOException(DAOException.VALUE_NEEDED, "药品数据正在同步中，请耐心等待...");
-            }
+//            if (minutes < 10L) {
+//                throw new DAOException(DAOException.VALUE_NEEDED, "距离上次同步未超过10分钟，请稍后再尝试数据同步!");
+//            }
+//            if (status == 0) {
+//                throw new DAOException(DAOException.VALUE_NEEDED, "药品数据正在同步中，请耐心等待...");
+//            }
         }
         DrugOrganConfig byOrganId1=ObjectCopyUtils.convert(drugBusinessService.getConfigByOrganId(organId), DrugOrganConfig.class);
         if (ObjectUtils.isEmpty(byOrganId1)) {
@@ -4327,6 +4344,42 @@ public class RecipeService extends RecipeBaseService {
                 }
             }
         }
+        //抗菌素药物
+        if(!ObjectUtils.isEmpty(drug.getAntibioticsDrugLevel())){
+            drugListMatch.setAntibioticsDrugLevel(drug.getAntibioticsDrugLevel());
+        }
+        //是否精神药物
+        if(!ObjectUtils.isEmpty(drug.getPsychotropicDrugFlag())){
+            drugListMatch.setPsychotropicDrugFlag(drug.getPsychotropicDrugFlag());
+        }
+        //是否麻醉药物
+        if(!ObjectUtils.isEmpty(drug.getNarcoticDrugFlag())){
+            drugListMatch.setNarcoticDrugFlag(drug.getNarcoticDrugFlag());
+        }
+        //是否毒性药物
+        if(!ObjectUtils.isEmpty(drug.getToxicDrugFlag())){
+            drugListMatch.setToxicDrugFlag(drug.getToxicDrugFlag());
+        }
+        //是否放射性药物
+        if(!ObjectUtils.isEmpty(drug.getRadioActivityDrugFlag())){
+            drugListMatch.setRadioActivityDrugFlag(drug.getRadioActivityDrugFlag());
+        }
+        //是否特殊使用级抗生素药物
+        if(!ObjectUtils.isEmpty(drug.getSpecialUseAntibioticDrugFlag())){
+            drugListMatch.setSpecialUseAntibioticDrugFlag(drug.getSpecialUseAntibioticDrugFlag());
+        }
+
+        if(!ObjectUtils.isEmpty(drug.getUnitHisCode())){
+            drugListMatch.setUnitHisCode(drug.getUnitHisCode());
+        }
+
+        if(!ObjectUtils.isEmpty(drug.getUseDoseUnitHisCode())){
+            drugListMatch.setUseDoseUnitHisCode(drug.getUseDoseUnitHisCode());
+        }
+
+        if(!ObjectUtils.isEmpty(drug.getUseDoseSmallestUnitHisCode())){
+            drugListMatch.setUseDoseSmallestUnitHisCode(drug.getUseDoseSmallestUnitHisCode());
+        }
 
         LOGGER.info("drugInfoSynMovementaddHisDrug" + drug.getDrugName() + "organId=[{}] drug=[{}]", organId, JSONUtils.toString(drug));
         List<DrugListMatch> dataByOrganDrugCode = drugListMatchDAO.findDataByOrganDrugCode(drugListMatch.getOrganDrugCode(), drugListMatch.getSourceOrgan());
@@ -4359,12 +4412,8 @@ public class RecipeService extends RecipeBaseService {
      */
     private boolean isAllowSyncField(OrganDrugListSyncField obj) {
         //默认为同步
-        if(null!=obj && "0".equals(obj.getIsSync())){
-            //页面没勾选该字段，表示不同步
-            return false;
-        }else{
-            return true;
-        }
+        //页面没勾选该字段，表示不同步
+        return null == obj || !"0".equals(obj.getIsSync());
 
     }
 
@@ -4395,6 +4444,45 @@ public class RecipeService extends RecipeBaseService {
                     organDrug.setAntiTumorDrugLevel(drug.getAntiTumorDrugLevel());
                 }
             }
+        }
+        //药品本位码
+        if (!ObjectUtils.isEmpty(drug.getStandardCode())) {
+            organDrug.setStandardCode(drug.getStandardCode());
+        }
+        //抗菌素药物
+        if(!ObjectUtils.isEmpty(drug.getAntibioticsDrugLevel())){
+            organDrug.setAntibioticsDrugLevel(drug.getAntibioticsDrugLevel());
+        }
+        //是否精神药物
+        if(!ObjectUtils.isEmpty(drug.getPsychotropicDrugFlag())){
+            organDrug.setPsychotropicDrugFlag(drug.getPsychotropicDrugFlag());
+        }
+        //是否麻醉药物
+        if(!ObjectUtils.isEmpty(drug.getNarcoticDrugFlag())){
+            organDrug.setNarcoticDrugFlag(drug.getNarcoticDrugFlag());
+        }
+        //是否毒性药物
+        if(!ObjectUtils.isEmpty(drug.getToxicDrugFlag())){
+            organDrug.setToxicDrugFlag(drug.getToxicDrugFlag());
+        }
+        //是否放射性药物
+        if(!ObjectUtils.isEmpty(drug.getRadioActivityDrugFlag())){
+            organDrug.setRadioActivityDrugFlag(drug.getRadioActivityDrugFlag());
+        }
+        //是否特殊使用级抗生素药物
+        if(!ObjectUtils.isEmpty(drug.getSpecialUseAntibioticDrugFlag())){
+            organDrug.setSpecialUseAntibioticDrugFlag(drug.getSpecialUseAntibioticDrugFlag());
+        }
+        if(!ObjectUtils.isEmpty(drug.getUnitHisCode())){
+            organDrug.setUnitHisCode(drug.getUnitHisCode());
+        }
+
+        if(!ObjectUtils.isEmpty(drug.getUseDoseUnitHisCode())){
+            organDrug.setUseDoseUnitHisCode(drug.getUseDoseUnitHisCode());
+        }
+
+        if(!ObjectUtils.isEmpty(drug.getUseDoseSmallestUnitHisCode())){
+            organDrug.setUseDoseSmallestUnitHisCode(drug.getUseDoseSmallestUnitHisCode());
         }
         if (isAllowSyncField(organDrugListSyncFieldMap.get(SyncDrugConstant.drugForm))
                 &&!ObjectUtils.isEmpty(drug.getDrugform())) {
@@ -4813,6 +4901,57 @@ public class RecipeService extends RecipeBaseService {
                     }
                 }
             }
+        }
+        //是否抗肿瘤药物,及抗肿瘤药物等级
+        if(!ObjectUtils.isEmpty(drug.getAntiTumorDrugFlag()) ){
+            if(new Integer(1).equals(drug.getAntiTumorDrugFlag()) && ObjectUtils.isEmpty(drug.getAntiTumorDrugLevel())){
+                throw new DAOException(DAOException.VALUE_NEEDED, "药品为抗肿瘤药物时，抗肿瘤药物等级必填!");
+            }
+            else {
+                organDrug.setAntiTumorDrugFlag(drug.getAntiTumorDrugFlag());
+                if(!ObjectUtils.isEmpty(drug.getAntiTumorDrugLevel())){
+                    organDrug.setAntiTumorDrugLevel(drug.getAntiTumorDrugLevel());
+                }
+            }
+        }
+        //药品本位码
+        if (!ObjectUtils.isEmpty(drug.getStandardCode())) {
+            organDrug.setStandardCode(drug.getStandardCode());
+        }
+        //抗菌素药物
+        if(!ObjectUtils.isEmpty(drug.getAntibioticsDrugLevel())){
+            organDrug.setAntibioticsDrugLevel(drug.getAntibioticsDrugLevel());
+        }
+        //是否精神药物
+        if(!ObjectUtils.isEmpty(drug.getPsychotropicDrugFlag())){
+            organDrug.setPsychotropicDrugFlag(drug.getPsychotropicDrugFlag());
+        }
+        //是否麻醉药物
+        if(!ObjectUtils.isEmpty(drug.getNarcoticDrugFlag())){
+            organDrug.setNarcoticDrugFlag(drug.getNarcoticDrugFlag());
+        }
+        //是否毒性药物
+        if(!ObjectUtils.isEmpty(drug.getToxicDrugFlag())){
+            organDrug.setToxicDrugFlag(drug.getToxicDrugFlag());
+        }
+        //是否放射性药物
+        if(!ObjectUtils.isEmpty(drug.getRadioActivityDrugFlag())){
+            organDrug.setRadioActivityDrugFlag(drug.getRadioActivityDrugFlag());
+        }
+        //是否特殊使用级抗生素药物
+        if(!ObjectUtils.isEmpty(drug.getSpecialUseAntibioticDrugFlag())){
+            organDrug.setSpecialUseAntibioticDrugFlag(drug.getSpecialUseAntibioticDrugFlag());
+        }
+        if(!ObjectUtils.isEmpty(drug.getUnitHisCode())){
+            organDrug.setUnitHisCode(drug.getUnitHisCode());
+        }
+
+        if(!ObjectUtils.isEmpty(drug.getUseDoseUnitHisCode())){
+            organDrug.setUseDoseUnitHisCode(drug.getUseDoseUnitHisCode());
+        }
+
+        if(!ObjectUtils.isEmpty(drug.getUseDoseSmallestUnitHisCode())){
+            organDrug.setUseDoseSmallestUnitHisCode(drug.getUseDoseSmallestUnitHisCode());
         }
         //医院药房名字
         if (!ObjectUtils.isEmpty(drug.getPharmacy())) {

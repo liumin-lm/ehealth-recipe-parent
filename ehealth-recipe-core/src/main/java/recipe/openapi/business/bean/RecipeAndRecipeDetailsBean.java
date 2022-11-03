@@ -1,5 +1,6 @@
 package recipe.openapi.business.bean;
 
+import ctd.schema.annotation.ItemProperty;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -45,6 +46,7 @@ public class RecipeAndRecipeDetailsBean implements Serializable{
     private String trackingNumber;
 
     private Integer orderId;
-
+    @ItemProperty(alias = "有效天数")
+    private Integer valueDays;
     private List<ThirdRecipeDetailBean> recipeDetailBeans;
 }

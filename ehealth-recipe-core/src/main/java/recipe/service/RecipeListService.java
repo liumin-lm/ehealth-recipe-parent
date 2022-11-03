@@ -67,6 +67,7 @@ import recipe.service.common.RecipeCacheService;
 import recipe.util.DateConversion;
 import recipe.util.DictionaryUtil;
 import recipe.util.MapValueUtil;
+import recipe.vo.greenroom.FindRecipeListForPatientVO;
 
 import javax.annotation.Resource;
 import java.text.SimpleDateFormat;
@@ -266,7 +267,7 @@ public class RecipeListService extends RecipeBaseService {
                 Map<String, Object> recipeInfo = recipeService.getPatientRecipeById(recipeId);
                 recipeGetModeTip = MapValueUtil.getString(recipeInfo, "recipeGetModeTip");
                 if (null != recipeInfo.get("checkEnterprise")) {
-                    map.put("checkEnterprise", (Boolean) recipeInfo.get("checkEnterprise"));
+                    map.put("checkEnterprise", recipeInfo.get("checkEnterprise"));
                 }
                 recipesMap.add(recipeInfo);
             }
@@ -1190,15 +1191,53 @@ public class RecipeListService extends RecipeBaseService {
         String mergeRecipeWayAfter = groupRecipeConfDTO.getMergeRecipeWayAfter();
         if (RecipeListTabStatusEnum.ON_READY.getText().equals(tabStatus)) {
             // 待处理的走原来老的方法
-            patientTabStatusMergeRecipeDTOS = getRecipeByOnReady(patientTabStatusMergeRecipeDTOS, mergeRecipeFlag, allMpiIds, index, limit, tabStatus, mergeRecipeWayAfter, recipeStatusList);
-        } else if (RecipeListTabStatusEnum.ON_GOING.getText().equals(tabStatus) ||
-                RecipeListTabStatusEnum.ON_OVER.getText().equals(tabStatus)) {
+            getRecipeByOnReady(patientTabStatusMergeRecipeDTOS, mergeRecipeFlag, allMpiIds, index, limit, tabStatus, mergeRecipeWayAfter, recipeStatusList, null, null);
+        } else if (RecipeListTabStatusEnum.ON_GOING.getText().equals(tabStatus) || RecipeListTabStatusEnum.ON_OVER.getText().equals(tabStatus)) {
             // 已处理跟已完成 走 新的逻辑,合并处方展示仅看是否同一订单
-            patientTabStatusMergeRecipeDTOS = getRecipeByGoingAndOver(patientTabStatusMergeRecipeDTOS, allMpiIds, index, limit, tabStatus, recipeStatusList, groupRecipeConfDTO);
+            getRecipeByGoingAndOver(patientTabStatusMergeRecipeDTOS, allMpiIds, index, limit, tabStatus, recipeStatusList, groupRecipeConfDTO, null, null);
         }
         LOGGER.info("findRecipesForPatientAndTabStatusNew res={}", JSONUtils.toString(patientTabStatusMergeRecipeDTOS));
         return patientTabStatusMergeRecipeDTOS;
+    }
 
+
+    public List<PatientTabStatusMergeRecipeDTO> findRecipeListForPatientByTabStatus(FindRecipeListForPatientVO param) {
+        LOGGER.info("findRecipeListForPatientByTabStatus param:{} ", JSONUtils.toString(param));
+        String tabStatus = param.getTabStatus();
+        String mpiId = param.getMpiId();
+        Integer start = param.getStart();
+        Integer limit = param.getLimit();
+        Date startTime = param.getStartTime();
+        Date endTime = param.getEndTime();
+        Assert.hasLength(mpiId, "findRecipesForPatientAndTabStatusNew mpiId为空!");
+        checkUserHasPermissionByMpiId(mpiId);
+        List<String> allMpiIds = patientClient.getAllMemberPatientsByCurrentPatient(mpiId);
+        LOGGER.info("findRecipeListForPatientByTabStatus allMpiIds:{}", JSONArray.toJSONString(allMpiIds));
+
+        List<PatientTabStatusMergeRecipeDTO> patientTabStatusMergeRecipeDTOS = Lists.newArrayList();
+        //获取页面展示的对象
+        TabStatusEnumNew recipeStatusList = TabStatusEnumNew.fromTabStatusAndStatusType(tabStatus, "recipe");
+        if (null == recipeStatusList) {
+            LOGGER.error("findRecipeListForPatientByTabStatus tabStatus={}没有查询到recipe的状态列表", tabStatus);
+            return patientTabStatusMergeRecipeDTOS;
+        }
+        TabStatusEnumNew orderStatusList = TabStatusEnumNew.fromTabStatusAndStatusType(tabStatus, "order");
+        if (null == orderStatusList) {
+            LOGGER.error("findRecipeListForPatientByTabStatus tabStatus={}没有查询到order的状态列表", tabStatus);
+            return patientTabStatusMergeRecipeDTOS;
+        }
+        GroupRecipeConfDTO groupRecipeConfDTO = groupRecipeManager.getMergeRecipeSetting();
+        Boolean mergeRecipeFlag = groupRecipeConfDTO.getMergeRecipeFlag();
+        String mergeRecipeWayAfter = groupRecipeConfDTO.getMergeRecipeWayAfter();
+        if (RecipeListTabStatusEnum.ON_READY.getText().equals(tabStatus)) {
+            // 待处理的走原来老的方法
+            getRecipeByOnReady(patientTabStatusMergeRecipeDTOS, mergeRecipeFlag, allMpiIds, start, limit, tabStatus, mergeRecipeWayAfter, recipeStatusList, startTime, endTime);
+        } else if (RecipeListTabStatusEnum.ON_GOING.getText().equals(tabStatus) || RecipeListTabStatusEnum.ON_OVER.getText().equals(tabStatus)) {
+            // 已处理跟已完成走新的逻辑, 合并处方展示仅看是否同一订单
+            getRecipeByGoingAndOver(patientTabStatusMergeRecipeDTOS, allMpiIds, start, limit, tabStatus, recipeStatusList, groupRecipeConfDTO, startTime, endTime);
+        }
+        LOGGER.info("findRecipeListForPatientByTabStatus res={}", JSONUtils.toString(patientTabStatusMergeRecipeDTOS));
+        return patientTabStatusMergeRecipeDTOS;
     }
 
     /**
@@ -1212,8 +1251,10 @@ public class RecipeListService extends RecipeBaseService {
      * @param recipeStatusList
      * @return
      */
-    private List<PatientTabStatusMergeRecipeDTO> getRecipeByGoingAndOver(List<PatientTabStatusMergeRecipeDTO> result, List<String> allMpiIds, Integer index, Integer limit, String tabStatus, TabStatusEnumNew recipeStatusList, GroupRecipeConfDTO groupRecipeConfDTO) {
-        List<RecipeListBean> recipeListByMPIId = recipeDAO.findRecipeListByMPIId(allMpiIds, index, limit, tabStatus, recipeStatusList.getStatusList());
+    private List<PatientTabStatusMergeRecipeDTO> getRecipeByGoingAndOver(List<PatientTabStatusMergeRecipeDTO> result, List<String> allMpiIds,
+                                                                         Integer start, Integer limit, String tabStatus, TabStatusEnumNew recipeStatusList,
+                                                                         GroupRecipeConfDTO groupRecipeConfDTO, Date startTime, Date endTime) {
+        List<RecipeListBean> recipeListByMPIId = recipeDAO.findRecipeListByMPIId(allMpiIds, start, limit, tabStatus, recipeStatusList.getStatusList(), startTime, endTime);
         LOGGER.info("getRecipeByGoingAndOver recipeListByMPIId = {}", JSONArray.toJSONString(recipeListByMPIId));
         if (CollectionUtils.isEmpty(recipeListByMPIId)) {
             return result;
@@ -1313,8 +1354,10 @@ public class RecipeListService extends RecipeBaseService {
      * @param recipeStatusList
      * @return
      */
-    private List<PatientTabStatusMergeRecipeDTO> getRecipeByOnReady(List<PatientTabStatusMergeRecipeDTO> result, Boolean mergeRecipeFlag, List<String> allMpiIds, Integer index, Integer limit, String tabStatus, String mergeRecipeWayAfter, TabStatusEnumNew recipeStatusList) {
-        List<RecipeListBean> recipeListByMPIId = recipeDAO.findRecipeListByMPIId(allMpiIds, index, limit, tabStatus, recipeStatusList.getStatusList());
+    private List<PatientTabStatusMergeRecipeDTO> getRecipeByOnReady(List<PatientTabStatusMergeRecipeDTO> result, Boolean mergeRecipeFlag,
+                                                                    List<String> allMpiIds, Integer start, Integer limit, String tabStatus,
+                                                                    String mergeRecipeWayAfter, TabStatusEnumNew recipeStatusList, Date startTime, Date endTime) {
+        List<RecipeListBean> recipeListByMPIId = recipeDAO.findRecipeListByMPIId(allMpiIds, start, limit, tabStatus, recipeStatusList.getStatusList(), startTime, endTime);
         LOGGER.info("getRecipeByOnReady recipeListByMPIId = {}", JSONArray.toJSONString(recipeListByMPIId));
         if (CollectionUtils.isEmpty(recipeListByMPIId)) {
             return result;
@@ -1324,17 +1367,17 @@ public class RecipeListService extends RecipeBaseService {
         if (mergeRecipeFlag && !isCrossBusinessConsolidatedPayment) {
             //返回合并处方
             // 合并订单的条件
-            Map<String, List<RecipeListBean>> recipeListMap = new HashMap<>();
+            Map<String, List<RecipeListBean>> recipeListMap;
             Set<Integer> recipeIds = new HashSet<>();
             if ("e.registerId".equals(mergeRecipeWayAfter)) {
                 // 挂号序号
                 recipeListMap = recipeListByMPIId.stream().collect(Collectors.groupingBy(RecipeListBean::getRegisterID));
-            } else if("organId".equals(mergeRecipeWayAfter)){
+            } else if ("organId".equals(mergeRecipeWayAfter)) {
                 // 支持同一个机构下同一个就诊人合并支付
                 recipeListMap = recipeListByMPIId.stream().collect(Collectors.groupingBy(k -> k.getClinicOrgan() + k.getPatientName()));
             } else {
                 // 慢病名称
-                recipeListMap = recipeListByMPIId.stream().collect(Collectors.groupingBy(k-> k.getRegisterID() + k.getChronicDiseaseName()));
+                recipeListMap = recipeListByMPIId.stream().collect(Collectors.groupingBy(k -> k.getRegisterID() + k.getChronicDiseaseName()));
             }
             Map<String, List<RecipeListBean>> finalRecipeListMap = recipeListMap;
             recipeListByMPIId.forEach(recipeListBean -> {
@@ -1344,13 +1387,13 @@ public class RecipeListService extends RecipeBaseService {
                     patientTabStatusMergeRecipeDTO.setFirstRecipeId(recipeListBean.getRecipeId());
                     patientTabStatusMergeRecipeDTO.setMergeRecipeFlag(mergeRecipeFlag);
                     patientTabStatusMergeRecipeDTO.setMergeRecipeWay(mergeRecipeWayAfter);
-                    String key = "";
-                    String searchKey = "";
+                    String key;
+                    String searchKey;
                     if ("e.registerId".equals(mergeRecipeWayAfter)) {
                         // 挂号序号
                         key = recipeListBean.getRegisterID();
                         searchKey = recipeListBean.getRegisterID();
-                    }else if("organId".equals(mergeRecipeWayAfter)){
+                    } else if ("organId".equals(mergeRecipeWayAfter)) {
                         // 支持同一个机构下同一个就诊人合并支付
                         key = recipeListBean.getOrganName();
                         searchKey = recipeListBean.getClinicOrgan() + recipeListBean.getPatientName();

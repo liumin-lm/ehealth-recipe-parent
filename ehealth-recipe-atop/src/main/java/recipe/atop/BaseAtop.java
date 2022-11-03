@@ -10,6 +10,7 @@ import recipe.core.api.IEnterpriseBusinessService;
 import recipe.core.api.IOrganBusinessService;
 import recipe.core.api.doctor.IDoctorBusinessService;
 import recipe.core.api.patient.IPatientBusinessService;
+import recipe.core.api.patient.IRecipeOrderBusinessService;
 import recipe.util.ValidateUtil;
 
 /**
@@ -28,7 +29,9 @@ public class BaseAtop {
     protected IEnterpriseBusinessService enterpriseBusinessService;
     @Autowired
     protected IPatientBusinessService recipePatientService;
-
+    @Autowired
+    protected IRecipeOrderBusinessService recipeOrderService;
+    
     /**
      * Atop层 入参参数校验：自定义msg
      *

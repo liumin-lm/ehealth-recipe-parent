@@ -20,7 +20,10 @@ import com.ngari.his.recipe.mode.*;
 import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.opbase.log.mode.DataSyncDTO;
 import com.ngari.opbase.log.service.IDataSyncLogService;
-import com.ngari.patient.dto.*;
+import com.ngari.patient.dto.AppointDepartDTO;
+import com.ngari.patient.dto.DepartmentDTO;
+import com.ngari.patient.dto.OrganDTO;
+import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
@@ -356,10 +359,6 @@ public class RecipeHisService extends RecipeBaseService {
         LOGGER.info("RecipeHisService cancelRecipeImpl  recipeId = {},otherOrganId={},hisRecipeStatus:{}", recipeId, otherOrganId, hisRecipeStatus);
         RecipeInfoDTO recipePdfDTO = recipeTherapyManager.getRecipeTherapyDTO(recipeId);
         Recipe recipe = recipePdfDTO.getRecipe();
-//        if (skipHis(recipe)) {
-//            return true;
-//        }
-
         Integer sendOrganId = (null == otherOrganId) ? recipe.getClinicOrgan() : otherOrganId;
         if (!isHisEnable(sendOrganId)) {
             LOGGER.error("RecipeHisService cancelRecipeImpl 医院HIS未启用 organId: {} , recipeId:{}", sendOrganId, recipeId);

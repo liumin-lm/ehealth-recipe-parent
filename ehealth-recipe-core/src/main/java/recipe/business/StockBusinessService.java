@@ -179,6 +179,9 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
     @Override
     public Boolean getOrderStockFlag(List<Integer> recipeIds, Integer enterpriseId, String giveModeKey) {
         Recipe recipe = recipeDAO.get(recipeIds.get(0));
+        if (Objects.isNull(recipe)) {
+            throw new DAOException("处方不存在");
+        }
         Integer giveMode = RecipeSupportGiveModeEnum.getGiveMode(giveModeKey);
         if (giveMode == 0) {
             return true;

@@ -211,6 +211,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     private RecipeAuditClient recipeAuditClient;
     @Autowired
     private IConfigurationClient configurationClient;
+    @Autowired
+    private RecipeBeforeOrderDAO recipeBeforeOrderDAO;
 
 
     @RpcService
@@ -282,6 +284,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
     @Override
     public boolean updateRecipeInfoByRecipeIdAndAfterStatus(int recipeId, int afterStatus, Map<String, Object> changeAttr) {
+        // 药师撤销审核后删除处方购物清单数据
+        recipeBeforeOrderDAO.updateDeleteFlagByRecipeId(Lists.newArrayList(recipeId));
         return recipeDAO.updateRecipeInfoByRecipeId(recipeId, afterStatus, changeAttr);
     }
 

@@ -278,5 +278,25 @@ public class RecipeOrderPatientAtop extends BaseAtop {
         return recipeOrderService.batchCheckSendAddressForOrder(checkOrderAddressVoList);
     }
 
+    /**
+     * 患者完成订单
+     * @param orderCode
+     * @return
+     */
+    @RpcService
+    public void patientFinishOrder(String orderCode) {
+         recipeOrderService.patientFinishOrder(orderCode);
+    }
+
+    /**
+     * 拦截患者退费申请
+     * @param orderCode
+     * @return
+     */
+    @RpcService
+    public Boolean interceptPatientApplyRefund(String orderCode){
+        validateAtop(orderCode);
+        return recipeOrderService.interceptPatientApplyRefund(orderCode);
+    }
 
 }

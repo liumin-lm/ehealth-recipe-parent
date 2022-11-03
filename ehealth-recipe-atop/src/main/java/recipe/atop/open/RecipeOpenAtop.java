@@ -7,6 +7,7 @@ import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.platform.recipe.mode.OutpatientPaymentRecipeDTO;
 import com.ngari.platform.recipe.mode.QueryRecipeInfoHisDTO;
 import com.ngari.recipe.dto.PatientDTO;
+import com.ngari.recipe.dto.ServiceLogDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
@@ -386,5 +387,11 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
     public List<RecipeInfoTO> patientOfflineRecipe(Integer organId, String patientId, String patientName, Date startTime, Date endTime) {
         validateAtop(organId, patientId);
         return offlineToOnlineService.patientOfflineRecipe(organId, patientId, patientName, startTime, endTime);
+    }
+
+
+    @Override
+    public void serviceTimeLog(ServiceLogVO serviceLog) {
+        organBusinessService.serviceTimeLog(ObjectCopyUtils.convert(serviceLog, ServiceLogDTO.class));
     }
 }

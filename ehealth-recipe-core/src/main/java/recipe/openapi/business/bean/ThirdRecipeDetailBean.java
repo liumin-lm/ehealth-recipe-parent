@@ -1,5 +1,8 @@
 package recipe.openapi.business.bean;
 
+import ctd.schema.annotation.Dictionary;
+import ctd.schema.annotation.ItemProperty;
+import ctd.schema.annotation.Schema;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -9,6 +12,7 @@ import java.io.Serializable;
  * @date 2020\9\18 0018 15:49
  */
 @Data
+@Schema
 public class ThirdRecipeDetailBean implements Serializable{
     private static final long serialVersionUID = 6048242158398003003L;
 
@@ -31,9 +35,9 @@ public class ThirdRecipeDetailBean implements Serializable{
     private String useDoseUnit;
 
     private String dosageUnit;
-
+    @Dictionary(id = "eh.cdr.dictionary.UsingRate")
     private String usingRate;
-
+    @Dictionary(id = "eh.cdr.dictionary.UsePathways")
     private String usePathways;
 
     private Double useTotalDose;
@@ -47,4 +51,9 @@ public class ThirdRecipeDetailBean implements Serializable{
     private String memo;
 
     private String organDrugCode;
+
+    @ItemProperty(alias = "机构的频次代码")
+    private String organUsingRate;
+    @ItemProperty(alias = "机构的用法代码")
+    private String organUsePathways;
 }

@@ -1,6 +1,8 @@
 package recipe.atop.greenroom;
 
+import com.ngari.common.dto.Buss2SessionMsg;
 import com.ngari.recipe.entity.MedicationSyncConfig;
+import com.ngari.recipe.recipe.model.PatientTabStatusMergeRecipeDTO;
 import com.ngari.recipe.recipe.model.RecipeOrderWaybillDTO;
 import com.ngari.recipe.vo.CodeEnum;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
@@ -14,7 +16,9 @@ import recipe.core.api.IRecipeBusinessService;
 import recipe.core.api.patient.IRecipeOrderBusinessService;
 import recipe.vo.ResultBean;
 import recipe.vo.greenroom.DrugUsageLabelResp;
+import recipe.vo.greenroom.FindRecipeListForPatientVO;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -144,6 +148,26 @@ public class RecipeGmAtop extends BaseAtop {
     @RpcService
     public List<String> medicationInfoSyncTask(){
         return drugBusinessService.medicationInfoSyncTask();
+    }
+
+
+    @RpcService
+    public void testSendMsgToMq(String recipeId, String clinicId, String contentType, String sessionId, Integer doctorId, String mpiId) {
+        Buss2SessionMsg msg = new Buss2SessionMsg();
+        msg.setBusId(clinicId);
+        msg.setContentId(recipeId);
+        msg.setContentType(contentType);
+        msg.setDoctorId(doctorId);
+        msg.setStatus(0);
+        msg.setMpiId(mpiId);
+        msg.setSessionType(4);
+        msg.setSessionId(sessionId);
+        recipeBusinessService.sendMsgToMq(recipeId, clinicId, contentType, sessionId, doctorId, mpiId);
+    }
+
+    @RpcService
+    public List<PatientTabStatusMergeRecipeDTO> findRecipeListForPatientByTabStatus(FindRecipeListForPatientVO param) {
+        return recipeBusinessService.findRecipeListForPatientByTabStatus(param);
     }
 
 }

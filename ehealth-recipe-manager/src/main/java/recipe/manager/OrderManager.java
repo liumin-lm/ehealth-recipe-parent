@@ -572,7 +572,7 @@ public class OrderManager extends BaseManager {
             }
         }
         recipeList.forEach(recipe -> {
-            recipeDAO.updateOrderCodeToNullByOrderCodeAndClearChoose(order.getOrderCode(), recipe, identity,true);
+            recipeDAO.updateOrderCodeToNullByOrderCodeAndClearChoose(order.getOrderCode(), recipe, identity, true);
             String decoctionDeploy = configurationClient.getValueCatchReturnArr(recipe.getClinicOrgan(), "decoctionDeploy", "");
             if ("2".equals(decoctionDeploy)) {
                 RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
@@ -991,5 +991,4 @@ public class OrderManager extends BaseManager {
         logger.info("saveRecipeBeforeOrderInfo recipeBeforeOrder={}", JSONUtils.toString(recipeBeforeOrder));
         recipeBeforeOrderDAO.save(recipeBeforeOrder);
     }
-
 }

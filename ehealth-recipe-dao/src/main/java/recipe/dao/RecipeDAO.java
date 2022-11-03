@@ -3805,11 +3805,12 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      * @param start
      * @param limit
      */
-    public List<RecipeListBean> findRecipeListByMPIId(List<String> allMpiIds, Integer start, Integer limit, String tabStatus, List<Integer> recipeStatus) {
+    public List<RecipeListBean> findRecipeListByMPIId(List<String> allMpiIds, Integer start, Integer limit, String tabStatus, List<Integer> recipeStatus, Date startTime, Date endTime) {
         HibernateStatelessResultAction<List<RecipeListBean>> action = new AbstractHibernateStatelessResultAction<List<RecipeListBean>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder();
+                boolean timeSearchFlag = Objects.nonNull(startTime) && Objects.nonNull(endTime);
 
                 hql.append("select * from (");
                 hql.append("SELECT r.RecipeID,r.orderCode,(CASE WHEN ( r.reviewType = 1 AND r.checkStatus = 1 AND r.STATUS = 15 ) THEN" +
@@ -3820,8 +3821,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         "o.Status as orderStatus,r.GiveMode,o.PayMode,r.process_state,r.sub_state, r.targeted_drug_type,r.medical_flag " +
                         " FROM cdr_recipe r left join cdr_recipeorder o on r.OrderCode = o.OrderCode left join " +
                         " cdr_recipe_ext e  on r.RecipeID = e.recipeId " +
-                        " WHERE " +
-                        " r.mpiid IN ( :allMpiIds  ) AND r.recipeSourceType = 1");
+                        " WHERE r.mpiid IN (:allMpiIds) AND r.recipeSourceType = 1");
+                if (timeSearchFlag) {
+                    hql.append(" AND r.CreateDate > :startTime AND r.CreateDate < :endTime ");
+                }
                 if ("onready".equals(tabStatus)) {
                     hql.append(" AND ((r.recipeMode != 'zjjgpt' && r.STATUS IN ( :recipeStatus ) OR ( r.reviewType != 0 AND r.checkStatus = 1 AND r.STATUS = 15 ) " +
                             ") OR ( r.recipeMode = 'zjjgpt' AND r.STATUS IN ( 2, 22 ) ) ) ");
@@ -3844,8 +3847,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                             " AND r.mpiid IN ( :allMpiIds )" +
                             " AND r.recipeSourceType = 1 " +
                             " AND r.orderCode IS NOT NULL");
+                    if (timeSearchFlag) {
+                        hql.append(" AND r.CreateDate > :startTime AND r.CreateDate < :endTime ");
+                    }
                 }
-
                 hql.append(" ) a ORDER BY a.time DESC LIMIT :start,:limit");
 
                 Query q = ss.createSQLQuery(hql.toString());
@@ -3853,7 +3858,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 q.setParameterList("recipeStatus", recipeStatus);
                 q.setParameter("start", start);
                 q.setParameter("limit", limit);
-
+                if (timeSearchFlag) {
+                    q.setParameter("startTime", startTime);
+                    q.setParameter("endTime", endTime);
+                }
 
                 logger.info("findRecipeListByMPIId hql={}", hql.toString());
                 List<Object[]> result = q.list();

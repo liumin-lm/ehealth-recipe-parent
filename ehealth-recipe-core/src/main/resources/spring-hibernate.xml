@@ -37,6 +37,7 @@
                 <value>ctd.account.thirdparty</value>
                 <value>com.ngari.base.*.model</value>
                 <value>com.ngari.recipe</value>
+                <value>recipe.openapi</value>
                 <value>recipe.vo</value>
                 <value>com.ngari.patient.dto</value>
                 <value>com.ngari.consult</value>
