@@ -1574,7 +1574,7 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
         if (null == recipeOrder) {
             throw new DAOException("没有查询到订单信息");
         }
-        if (OrderStateEnum.PROCESS_STATE_DISPENSING.getType().equals(recipeOrder.getStatus())) {
+        if (OrderStateEnum.PROCESS_STATE_DISPENSING.getType().equals(recipeOrder.getProcessState())) {
             throw new DAOException("当前订单已完成，不允许再次更新");
         }
         List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
