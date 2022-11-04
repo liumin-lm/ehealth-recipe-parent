@@ -76,6 +76,7 @@ import recipe.vo.doctor.PatientOptionalDrugVO;
 import recipe.vo.doctor.PharmacyTcmVO;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.greenroom.DrugUsageLabelResp;
+import recipe.vo.greenroom.FindRecipeListForPatientVO;
 import recipe.vo.greenroom.RecipeRefundInfoReqVO;
 import recipe.vo.patient.PatientOptionalDrugVo;
 import recipe.vo.second.*;
@@ -165,7 +166,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     @Autowired
     private RecipeAuditClient recipeAuditClient;
     @Autowired
-    private DrugDecoctionWayDao drugDecoctionWayDao;
+    private RecipeListService recipeListService;
 
 
     /**
@@ -1306,6 +1307,11 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         } catch (Exception e) {
             logger.error("sendMsgToMq can't send to MQ, sessionType:{}, recipeID:{}", msg.getSessionType(), recipeId, e);
         }
+    }
+
+    @Override
+    public List<PatientTabStatusMergeRecipeDTO> findRecipeListForPatientByTabStatus(FindRecipeListForPatientVO param) {
+        return recipeListService.findRecipeListForPatientByTabStatus(param);
     }
 
 }

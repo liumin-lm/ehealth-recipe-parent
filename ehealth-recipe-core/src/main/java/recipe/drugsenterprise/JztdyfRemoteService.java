@@ -44,6 +44,7 @@ import recipe.drugsenterprise.bean.JztTokenRequest;
 import recipe.drugsenterprise.bean.JztTokenResponse;
 import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.enumerate.type.SettlementModeTypeEnum;
+import recipe.service.RecipeLogService;
 import recipe.service.RecipeOrderService;
 import recipe.service.common.RecipeCacheService;
 import recipe.third.IFileDownloadService;
@@ -196,12 +197,14 @@ public class JztdyfRemoteService extends AccessDrugEnterpriseService {
                     recipeDAO.updateRecipeInfoByRecipeId(dbRecipe.getRecipeId(), ImmutableMap.of("pushFlag", 1));
                     orderService.updateOrderInfo(dbRecipe.getOrderCode(), ImmutableMap.of("pushFlag", 1), null);
                     LOGGER.info("[{}][{}] pushRecipeInfo {} success.", depId, depName, JSONUtils.toString(recipeIds));
+                    RecipeLogService.saveRecipeLog(dbRecipe.getRecipeId(), dbRecipe.getStatus(), dbRecipe.getStatus(), "纳里给"+enterprise.getName()+"推送处方成功");
                 } else {
                     //失败
                     result.setMsg(jztResponse.getMsg());
                     orderService.updateOrderInfo(dbRecipe.getOrderCode(), ImmutableMap.of("pushFlag", -1), null);
                     LOGGER.warn("[{}][{}] pushRecipeInfo {} fail. msg={}", depId, depName,
                             JSONUtils.toString(recipeIds), jztResponse.getMsg());
+                    RecipeLogService.saveRecipeLog(dbRecipe.getRecipeId(), dbRecipe.getStatus(), dbRecipe.getStatus(), "纳里给"+enterprise.getName()+"推送处方失败,失败信息：" + jztResponse.getMsg());
                 }
                 //关闭 HttpEntity 输入流
                 EntityUtils.consume(httpEntity);

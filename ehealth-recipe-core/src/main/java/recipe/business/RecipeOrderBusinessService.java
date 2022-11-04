@@ -49,7 +49,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.curator.shaded.com.google.common.collect.Maps;
-import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.ApplicationUtils;
@@ -57,6 +56,7 @@ import recipe.bean.RecipePayModeSupportBean;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.*;
 import recipe.common.CommonConstant;
+import recipe.constant.DrugEnterpriseConstant;
 import recipe.constant.ErrorCode;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
@@ -104,6 +104,7 @@ import java.util.stream.Collectors;
 @Service
 public class RecipeOrderBusinessService extends BaseService implements IRecipeOrderBusinessService {
     private final static long VALID_TIME_SECOND = 3600 * 24 * 30;
+    private final static Integer LOGISTICS_COMPANY_SF = 1;
     @Autowired
     private RecipeDAO recipeDAO;
     @Autowired
@@ -1596,6 +1597,31 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
     }
 
     @Override
+    public void finishRecipeOrderJob() {
+        // 获取所有 有 配送中订单 的机构
+        List<Integer> organIds = recipeOrderDAO.getOrganIdByStatus();
+        if (CollectionUtils.isEmpty(organIds)) {
+            return;
+        }
+        organIds.forEach(organId -> {
+            logger.info("开始执行完成订单定时任务 执行机构id=" + organId);
+            Integer recipeAutoFinishTime = configurationClient.getValueCatch(organId, "recipeAutoFinishTime", 14);
+            Date date = DateUtils.addDays(new Date(), -recipeAutoFinishTime);
+            List<RecipeOrder> recipeOrders = recipeOrderDAO.findByOrganIdAndStatus(organId, date);
+            if (CollectionUtils.isNotEmpty(recipeOrders)) {
+                recipeOrders.forEach(recipeOrder -> {
+                    try {
+                        patientFinishOrder(recipeOrder.getOrderCode());
+                    } catch (Exception e) {
+                        logger.info("完成处方失败 orderCode=" + recipeOrder.getOrderCode());
+                    }
+                });
+                logger.info("完成订单定时任务结束 执行机构id=" + organId);
+            }
+        });
+    }
+
+    @Override
     public void submitRecipeHisV1(List<Integer> recipeIds) {
         AtomicReference<Boolean> msgFlag = new AtomicReference<>(false);
         //推送his
@@ -1635,6 +1661,23 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
         if (msgFlag.get()) {
             throw new DAOException(609, "锁定失败请重新锁定");
         }
+    }
+
+    @Override
+    public Boolean interceptPatientApplyRefund(String orderCode){
+        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(orderCode);
+        if (Objects.isNull(recipeOrder.getEnterpriseId())) {
+            return true;
+        }
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipeOrder.getEnterpriseId());
+        if (!DrugEnterpriseConstant.LOGISTICS_PLATFORM.equals(drugsEnterprise.getLogisticsType())) {
+            return true;
+        }
+        if (!LOGISTICS_COMPANY_SF.equals(drugsEnterprise.getLogisticsCompany())) {
+            return true;
+        }
+        //查询该物流是否揽件
+        return infraClient.cancelLogisticsOrder(recipeOrder);
     }
 
     private void syncFinishOrderHandle(List<Integer> recipeIdList, RecipeOrder recipeOrder, boolean isSendFlag) {

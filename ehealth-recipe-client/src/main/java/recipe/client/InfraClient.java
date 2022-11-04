@@ -1,13 +1,12 @@
 package recipe.client;
 
-import com.ngari.infra.logistics.mode.ControlLogisticsOrderDto;
-import com.ngari.infra.logistics.mode.LogisticsDistanceDto;
-import com.ngari.infra.logistics.mode.OrganLogisticsManageDto;
-import com.ngari.infra.logistics.mode.WayBillExceptPriceTO;
+import com.alibaba.fastjson.JSON;
+import com.ngari.infra.logistics.mode.*;
 import com.ngari.infra.logistics.service.ILogisticsOrderService;
 import com.ngari.infra.logistics.service.IOrganLogisticsManageService;
 import com.ngari.infra.statistics.dto.EventLogDTO;
 import com.ngari.recipe.dto.ServiceLogDTO;
+import com.ngari.recipe.entity.RecipeOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.aop.LogRecord;
@@ -113,5 +112,21 @@ public class InfraClient extends BaseClient {
             logger.error("InfraClient logisticsOrderNo orderCode={}", orderCode, e);
             return "";
         }
+    }
+
+    /**
+     * 取消物流单
+     * @param recipeOrder 订单号
+     * @return
+     */
+    public Boolean cancelLogisticsOrder(RecipeOrder recipeOrder){
+        LogisticsCancelDto logisticsCancelDto = new LogisticsCancelDto();
+        logisticsCancelDto.setBusinessType(1);
+        logisticsCancelDto.setBusinessNo(recipeOrder.getOrderCode());
+        logisticsCancelDto.setWaybillNo(recipeOrder.getTrackingNumber());
+        logger.info("InfraClient cancelLogisticsOrder logisticsCancelDto:{}", JSON.toJSONString(logisticsCancelDto));
+        LogisticsCancelRespDto logisticsCancelRespDto = logisticsOrderService.cancelOrder(logisticsCancelDto);
+        logger.info("InfraClient cancelLogisticsOrder logisticsCancelRespDto:{}", JSON.toJSONString(logisticsCancelRespDto));
+        return logisticsCancelRespDto.getIfRefund();
     }
 }

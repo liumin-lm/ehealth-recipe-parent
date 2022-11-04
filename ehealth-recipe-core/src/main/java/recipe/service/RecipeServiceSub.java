@@ -2903,21 +2903,33 @@ public class RecipeServiceSub {
                     result = false;
                 }
             } else if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipeMode)) {
-                memo.append("aldyf推送成功");
-                hisMqService.recipeStatusToHis(HisMqRequestInit.initRecipeStatusToHisReq(recipe, HisBussConstant.TOHIS_RECIPE_STATUS_REVOKE));
-                OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
-                List<DrugsEnterprise> drugsEnterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(recipe.getClinicOrgan(), 1);
-                for (DrugsEnterprise drugsEnterprise : drugsEnterprises) {
-                    if ("aldyf".equals(drugsEnterprise.getCallSys())) {
-                        //向阿里大药房推送处方撤销通知
-                        DrugEnterpriseResult drugEnterpriseResult = null;
-                        try {
-                            AldyfRemoteService aldyfRemoteService = ApplicationUtils.getRecipeService(AldyfRemoteService.class);
-                            drugEnterpriseResult = aldyfRemoteService.updatePrescriptionStatus(recipe.getRecipeCode(), AlDyfRecipeStatusConstant.RETREAT);
-                            LOGGER.info("向阿里大药房推送处方撤销通知,{}", JSONUtils.toString(drugEnterpriseResult));
-                        } catch (Exception e) {
-                            LOGGER.warn("cancelRecipeImpl  向阿里大药房推送处方撤销通知,{}", JSONUtils.toString(drugEnterpriseResult), e);
+                Integer cancelRecipeIsSynchronize = configurationClient.getValueCatchReturnInteger(recipe.getClinicOrgan(), "cancelRecipeIsSynchronize", 0);
+                LOGGER.info("cancelRecipeImpl cancelRecipeIsSynchronize = {}", cancelRecipeIsSynchronize);
+                if (0 == cancelRecipeIsSynchronize) {
+                    memo.append("aldyf推送成功");
+                    hisMqService.recipeStatusToHis(HisMqRequestInit.initRecipeStatusToHisReq(recipe, HisBussConstant.TOHIS_RECIPE_STATUS_REVOKE));
+                    OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
+                    List<DrugsEnterprise> drugsEnterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(recipe.getClinicOrgan(), 1);
+                    for (DrugsEnterprise drugsEnterprise : drugsEnterprises) {
+                        if ("aldyf".equals(drugsEnterprise.getCallSys())) {
+                            //向阿里大药房推送处方撤销通知
+                            DrugEnterpriseResult drugEnterpriseResult = null;
+                            try {
+                                AldyfRemoteService aldyfRemoteService = ApplicationUtils.getRecipeService(AldyfRemoteService.class);
+                                drugEnterpriseResult = aldyfRemoteService.updatePrescriptionStatus(recipe.getRecipeCode(), AlDyfRecipeStatusConstant.RETREAT);
+                                LOGGER.info("向阿里大药房推送处方撤销通知,{}", JSONUtils.toString(drugEnterpriseResult));
+                            } catch (Exception e) {
+                                LOGGER.warn("cancelRecipeImpl  向阿里大药房推送处方撤销通知,{}", JSONUtils.toString(drugEnterpriseResult), e);
+                            }
                         }
+                    }
+                } else {
+                    boolean succFlag = hisService.cancelRecipeImpl(recipeId, null, CommonConstant.RECIPE_CANCEL_TYPE.toString());
+                    if (succFlag) {
+                        memo.append("HIS推送成功");
+                    } else {
+                        memo.append("HIS不允许撤销");
+                        result = false;
                     }
                 }
             }

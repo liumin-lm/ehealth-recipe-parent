@@ -33,7 +33,6 @@ import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import eh.base.constant.ErrorCode;
-import eh.cdr.constant.RecipeConstant;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -53,14 +52,12 @@ import recipe.dao.*;
 import recipe.dao.bean.HisRecipeListBean;
 import recipe.enumerate.status.*;
 import recipe.enumerate.type.AppointEnterpriseTypeEnum;
-import recipe.enumerate.type.RecipeDrugFormTypeEnum;
 import recipe.factory.offlinetoonline.IOfflineToOnlineStrategy;
 import recipe.factory.offlinetoonline.OfflineToOnlineFactory;
 import recipe.manager.*;
 import recipe.service.RecipeService;
 import recipe.util.RecipeUtil;
 import recipe.vo.patient.RecipeGiveModeButtonRes;
-import recipe.vo.second.enterpriseOrder.EnterpriseDrugVO;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -579,8 +576,10 @@ public class BaseOfflineToOnlineService {
             stockBusinessService.setSupportGiveMode(recipe);
 
             LOGGER.info("BaseOfflineToOnlineService saveRecipeInfo res:{}", recipe.getRecipeId());
-            revisitManager.saveRevisitTracesList(recipe);
-            revisitManager.updateRecipeIdByConsultId(recipe.getRecipeId(), recipe.getClinicId());
+            if(!new Integer("0").equals(hisRecipe.getRevisitType())){
+                revisitManager.saveRevisitTracesList(recipe);
+                revisitManager.updateRecipeIdByConsultId(recipe.getRecipeId(), recipe.getClinicId());
+            }
             return recipe.getRecipeId();
         }
         return null;
@@ -604,28 +603,37 @@ public class BaseOfflineToOnlineService {
         Recipe recipe = new Recipe();
         recipe.setBussSource(0);
         recipe.setMedicalFlag(hisRecipe.getMedicalFlag());
-        //通过挂号序号关联复诊
-        try {
-            IRevisitExService exService = RevisitAPI.getService(IRevisitExService.class);
-            RevisitExDTO consultExDTO = exService.getByRegisterId(hisRecipe.getRegisteredId());
-            if (consultExDTO != null) {
-                recipe.setBussSource(2);
-                recipe.setClinicId(consultExDTO.getConsultId());
-                //优先级his->复诊->默认自费
-                if (null == hisRecipe.getMedicalFlag()) {
-                    if (null == consultExDTO.getMedicalFlag()) {
-                        recipe.setMedicalFlag(0);
-                    } else {
-                        recipe.setMedicalFlag(consultExDTO.getMedicalFlag());
+        if(!new Integer("0").equals(hisRecipe.getRevisitType())){
+            //通过挂号序号关联复诊
+            try {
+                IRevisitExService exService = RevisitAPI.getService(IRevisitExService.class);
+                RevisitExDTO consultExDTO = exService.getByRegisterId(hisRecipe.getRegisteredId());
+                if (consultExDTO != null) {
+                    recipe.setBussSource(2);
+                    recipe.setClinicId(consultExDTO.getConsultId());
+                    //优先级his->复诊->默认自费
+                    if (null == hisRecipe.getMedicalFlag()) {
+                        if (null == consultExDTO.getMedicalFlag()) {
+                            recipe.setMedicalFlag(0);
+                        } else {
+                            recipe.setMedicalFlag(consultExDTO.getMedicalFlag());
+                        }
                     }
+                } else {
+                    recipe.setMedicalFlag(0);
                 }
-            } else {
-                recipe.setMedicalFlag(0);
+            } catch (Exception e) {
+                LOGGER.error("线下处方转线上通过挂号序号关联复诊 error", e);
             }
-        } catch (Exception e) {
-            LOGGER.error("线下处方转线上通过挂号序号关联复诊 error", e);
-        }
+        }else {
+            recipe.setBussSource(5);
+            if(null==hisRecipe.getMedicalFlag()){
+                recipe.setMedicalFlag(0);
+            }else{
+                recipe.setMedicalFlag(hisRecipe.getMedicalFlag());
+            }
 
+        }
         recipe.setClinicOrgan(hisRecipe.getClinicOrgan());
         recipe.setMpiid(hisRecipe.getMpiId());
         recipe.setPatientName(hisRecipe.getPatientName());
@@ -704,9 +712,13 @@ public class BaseOfflineToOnlineService {
         recipe.setFromflag(1);
         recipe.setRecipeSourceType(2);
         recipe.setRecipePayType(hisRecipe.getRecipePayType());
+        //TODO 龙华？消息推送取不到RequestMpiId 没有操作人 咋整 只能空着或者mpiid
         if(userRoleToken!=null){
             recipe.setRequestMpiId(userRoleToken.getOwnMpiId());
         }else{
+            if(!new Integer("0").equals(hisRecipe.getRevisitType())){
+                recipe.setRequestMpiId(recipe.getMpiid());
+            }
             RevisitBean revisitBean = revisitClient.getRevisitByClinicId(recipe.getClinicId());
             if (null != revisitBean) {
                 recipe.setRequestMpiId(revisitBean.getRequestMpi());
@@ -997,36 +1009,32 @@ public class BaseOfflineToOnlineService {
                 recipeExtend.setSymptomName(recipeExtend.getSymptomName());
             }
         }
-
-        RevisitExDTO consultExDTO = new RevisitExDTO();
-        try {
-            consultExDTO = revisitClient.getByRegisterId(hisRecipe.getRegisteredId());
-            LOGGER.info("recipeId:{},consultExDTO:{}", recipe.getRecipeId(), JSONUtils.toString(consultExDTO));
-        } catch (Exception e) {
-            LOGGER.error("线下处方转线上通过挂号序号关联复诊 error", e);
-        }
         recipeExtend.setIllnessType(hisRecipe.getIllnessType());
-        if (consultExDTO != null && StringUtils.isEmpty(hisRecipe.getIllnessType())) {
-            recipeExtend.setIllnessType(consultExDTO.getDbType());
-        }
-
-        if (StringUtils.isNotEmpty(hisRecipe.getCardNo())) {
-            recipeExtend.setCardNo(hisRecipe.getCardNo());
-        } else {
-            if (consultExDTO != null) {
-                recipeExtend.setCardNo(consultExDTO.getCardId());
+        recipeExtend.setCardNo(hisRecipe.getCardNo());
+//        recipeExtend.setMedicalRecordNumber(hisRecipe.getMedicalRecordNumber());
+        recipeExtend.setCardTypeName(hisRecipe.getCardTypeName());
+        recipeExtend.setCardType(hisRecipe.getCardTypeCode());
+        if(!new Integer("0").equals(hisRecipe.getRevisitType())){
+            RevisitExDTO consultExDTO = new RevisitExDTO();
+            try {
+                consultExDTO = revisitClient.getByRegisterId(hisRecipe.getRegisteredId());
+                LOGGER.info("recipeId:{},consultExDTO:{}", recipe.getRecipeId(), JSONUtils.toString(consultExDTO));
+            } catch (Exception e) {
+                LOGGER.error("线下处方转线上通过挂号序号关联复诊 error", e);
+            }
+            if(consultExDTO!=null){
+                if (StringUtils.isEmpty(hisRecipe.getIllnessType())) {
+                    recipeExtend.setIllnessType(consultExDTO.getDbType());
+                }
+                if (StringUtils.isEmpty(hisRecipe.getCardNo())) {
+                    recipeExtend.setCardNo(consultExDTO.getCardId());
+                }
                 recipeExtend.setMedicalRecordNumber(consultExDTO.getMedicalRecordNo());
+                if (StringUtils.isEmpty(hisRecipe.getCardTypeCode())) {
+                    recipeExtend.setCardType(consultExDTO.getCardType());
+                }
             }
-        }
-        if (StringUtils.isNotEmpty(hisRecipe.getCardTypeName())) {
-            recipeExtend.setCardTypeName(hisRecipe.getCardTypeName());
-        }
-        if (StringUtils.isNotEmpty(hisRecipe.getCardTypeName())) {
-            recipeExtend.setCardType(hisRecipe.getCardTypeCode());
-        } else {
-            if (consultExDTO != null) {
-                recipeExtend.setCardType(consultExDTO.getCardType());
-            }
+
         }
         recipeExtend.setRecipeCostNumber(hisRecipe.getRecipeCostNumber());
         try {
@@ -1040,16 +1048,8 @@ public class BaseOfflineToOnlineService {
         } catch (Exception e) {
             e.printStackTrace();
         }
-//        PatientDTO patient = patientService.get(recipe.getMpiid());
-//        if (patient != null) {
-//            if (new Integer(1).equals(patient.getPatientUserType()) || new Integer(2).equals(patient.getPatientUserType())) {
-//                recipeExtend.setRecipeFlag(1);
-//            } else if (new Integer(0).equals(patient.getPatientUserType())) {
-//                recipeExtend.setRecipeFlag(0);
-//            }
-//        }
-
-
+        recipeExtend.setMedicalType(hisRecipe.getMedicalTypeCode());
+        recipeExtend.setMedicalTypeText(hisRecipe.getMedicalTypeText());
         emrRecipeManager.saveMedicalInfo(recipe, recipeExtend);
         recipeExtendDAO.save(recipeExtend);
         LOGGER.info("BaseOfflineToOnlineService saveRecipeExt 拓展表数据已保存");
@@ -1259,6 +1259,9 @@ public class BaseOfflineToOnlineService {
         hisRecipe.setRecipeFlag(queryHisRecipResTo.getRecipeFlag());
         hisRecipe.setIllnessType(queryHisRecipResTo.getIllnessType());
         hisRecipe.setMedicalFlag(queryHisRecipResTo.getMedicalFlag());
+        hisRecipe.setRevisitType(queryHisRecipResTo.getRevisitType());
+        hisRecipe.setMedicalTypeCode(queryHisRecipResTo.getMedicalTypeCode());
+        hisRecipe.setMedicalTypeText(queryHisRecipResTo.getMedicalTypeText());
         LOGGER.info("BaseOfflineToOnlineService covertHisRecipeObject res hisRecipe:{}", JSONUtils.toString(hisRecipe));
         return hisRecipe;
     }
