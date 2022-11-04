@@ -1618,7 +1618,7 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
         }
         for (Integer organId : organIds) {
             logger.info("开始执行完成订单定时任务 执行机构id=" + organId);
-            Integer recipeAutoFinishTime = configurationClient.getValueCatch(organId, "recipeAutoFinishTime", 14);
+            Integer recipeAutoFinishTime = configurationClient.getValueCatchReturnInteger(organId, "recipeAutoFinishTime", 14);
             if (new Integer(0).equals(recipeAutoFinishTime)) {
                 continue;
             }
@@ -1690,9 +1690,6 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
         }
         DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipeOrder.getEnterpriseId());
         if (!DrugEnterpriseConstant.LOGISTICS_PLATFORM.equals(drugsEnterprise.getLogisticsType())) {
-            return true;
-        }
-        if (!LOGISTICS_COMPANY_SF.equals(recipeOrder.getLogisticsCompany())) {
             return true;
         }
         //查询该物流是否揽件
