@@ -167,6 +167,8 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     private RecipeAuditClient recipeAuditClient;
     @Autowired
     private RecipeListService recipeListService;
+    @Autowired
+    private DrugClient drugClient;
 
 
     /**
@@ -642,6 +644,14 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
                 for (RecipeDetailBean recipeDetailBean : recipeDetailBeans) {
                     if (Objects.nonNull(recipeDetailBean.getHisReturnSalePrice()) && isHosSettle) {
                         recipeDetailBean.setActualSalePrice(recipeDetailBean.getHisReturnSalePrice());
+                    }
+                    com.ngari.base.dto.UsingRateDTO usingRateDTO = drugClient.usingRate(recipe.getClinicOrgan(), recipeDetailBean.getOrganUsingRate());
+                    if (null != usingRateDTO) {
+                        recipeDetailBean.setUsingRateId(String.valueOf(usingRateDTO.getId()));
+                    }
+                    com.ngari.base.dto.UsePathwaysDTO usePathwaysDTO = drugClient.usePathways(recipe.getClinicOrgan(), recipeDetailBean.getOrganUsePathways(), recipeDetailBean.getDrugType());
+                    if (null != usePathwaysDTO) {
+                        recipeDetailBean.setUsePathwaysId(String.valueOf(usePathwaysDTO.getId()));
                     }
                 }
                 drugUsageLabelResp.setDrugUsageLabelList(recipeDetailBeans);

@@ -208,7 +208,6 @@ public class ObtainConfirmOrderObjectResNoDS implements Serializable {
     private Integer copyNum;
 
     @ItemProperty(alias = "完整地址")
-    @Desensitizations(type = DesensitizationsType.ADDRESS)
     private String completeAddress;
 
     @ItemProperty(alias = "处方流转模式")
