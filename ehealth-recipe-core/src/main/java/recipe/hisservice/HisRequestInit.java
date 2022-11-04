@@ -701,7 +701,6 @@ public class HisRequestInit {
                             //总金额
                             requestTO.setPreSettleTotalAmount(BigDecimal.valueOf(order.getPreSettletotalAmount()).toPlainString());
                         }
-
                         //his收据号
                         requestTO.setHisSettlementNo(order.getHisSettlementNo());
                     }
@@ -719,7 +718,6 @@ public class HisRequestInit {
                     } catch (Exception e) {
                         LOGGER.error("MedicalPreSettleService 代缴费用有误");
                     }
-
                 }
                 //合并支付的处方需要将所有his处方编码传过去
                 RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
@@ -728,10 +726,7 @@ public class HisRequestInit {
                     List<String> recipeNoS = recipeS.stream().map(Recipe::getRecipeCode).collect(Collectors.toList());
                     requestTO.setRecipeNoS(recipeNoS);
                 }
-
-
             }
-
         } catch (Exception e) {
             LOGGER.error("initPayNotifyReqTO error  recipeId={}", recipe.getRecipeId(), e);
         }
