@@ -184,6 +184,9 @@ public class QueryRecipeInfoDTO implements Serializable {
     @ItemProperty(alias = "线下常用方/协定方编码")
     private String commonRecipeCode;
 
+    @ItemProperty(alias = "智能预审是否需要医生二次确认 0:不需要，1：需要")
+    private Integer needTwoConfirmFlag;
+
     public Map<String, Object> getMedicalInfoBean() {
         return medicalInfoBean;
     }
@@ -698,5 +701,13 @@ public class QueryRecipeInfoDTO implements Serializable {
 
     public void setRecipeBean(RecipeBean recipeBean) {
         this.recipeBean = recipeBean;
+    }
+
+    public Integer getNeedTwoConfirmFlag() {
+        return needTwoConfirmFlag;
+    }
+
+    public void setNeedTwoConfirmFlag(Integer needTwoConfirmFlag) {
+        this.needTwoConfirmFlag = needTwoConfirmFlag;
     }
 }
