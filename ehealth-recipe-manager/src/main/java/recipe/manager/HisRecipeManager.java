@@ -532,12 +532,20 @@ public class HisRecipeManager extends BaseManager {
             //如果已缴费处方在数据库里已存在，且数据里的状态是未缴费，则处理数据
             if (a.getStatus() == 2) {
                 if (1 == hisRecipe.getStatus()) {
-                    deleteSetRecipeCode.add(recipeCode);
-                    LOGGER.info("deleteSetRecipeCode cause Status recipeCode:{}", recipeCode);
+                    //如果his给过来的处方状态是已经缴费的且在平台查询到订单 判断是否已支付
+                    String payFlag = obtainPayStatus(hisRecipe.getRecipeCode(), hisRecipe.getClinicOrgan());
+                    if (PayConstant.RESULT_SUCCESS.equals(payFlag) || PayConstant.RESULT_WAIT.equals(payFlag) || PayConstant.ERROR.equals(payFlag)) {
+                        //已成功支付
+                        return;
+                    }else{
+                        deleteSetRecipeCode.add(recipeCode);
+                        LOGGER.info("deleteSetRecipeCode cause Status recipeCode:{}", recipeCode);
+                        return;
+                    }
                 }
             }
 
-            //已处理处方(现在因为其他用户绑定了该就诊人也要查询到数据，所以mpiid不一致，数据需要删除)
+            //已处理处方（平台已付费）
             if (2 == hisRecipe.getStatus()) {
                 return;
             }

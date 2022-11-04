@@ -1293,8 +1293,7 @@ public class BaseOfflineToOnlineService {
 
     /**
      * 药品详情发生变化、数据不是由本人生成的未支付处方 数据处理
-     *
-     * @param hisRecipeTo         his处方数据
+     *  @param hisRecipeTo         his处方数据
      * @param hisRecipeMap        key为未处理recipeCode,值为未处理HisRecipe的map对象
      * @param hisRecipeDetailList 未处理的线下处方详情
      * @param mpiId               查看详情处方的操作用户的mpiid
@@ -1331,6 +1330,7 @@ public class BaseOfflineToOnlineService {
         //获取平台处方
         List<Recipe> recipeList = recipeDAO.findByRecipeCodeAndClinicOrgan(recipeCodeList, clinicOrgan);
         LOGGER.info("hisRecipeInfoCheck recipeList = {}", JSONUtils.toString(recipeList));
+//        Map<String, Recipe> recipeMap = recipeList.stream().collect(Collectors.toMap(Recipe::getRecipeCode, a -> a, (k1, k2) -> k1));
 
         //获取未处理的线下处方
         List<HisRecipe> hisRecipeList = hisRecipeDao.findNoDealHisRecipe(clinicOrgan, recipeCodeList);
