@@ -5407,6 +5407,13 @@ public class RecipeService extends RecipeBaseService {
                 RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
                 hisService.recipeStatusUpdate(recipe.getRecipeId());
             }
+            if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipe.getBussSource()) && recipe.getClinicId() != null) {
+                IRevisitService iRevisitService = RevisitAPI.getService(IRevisitService.class);
+                RevisitBean revisitBean = iRevisitService.getById(recipe.getClinicId());
+                if (revisitBean != null && REVISIT_STATUS_IN.equals(revisitBean.getStatus())) {
+                    Buss2SessionProducer.sendMsgToMq(recipe, "recipeCheckNotPass", revisitBean.getSessionID());
+                }
+            }
 
             //记录日志
             RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "审核不通过处理完成");
