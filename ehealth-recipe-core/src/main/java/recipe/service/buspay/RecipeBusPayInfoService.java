@@ -63,9 +63,14 @@ import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.enumerate.status.GiveModeEnum;
+import recipe.enumerate.status.RecipeSourceTypeEnum;
 import recipe.enumerate.type.CashDeskSettleUseCodeTypeEnum;
 import recipe.enumerate.type.ForceCashTypeEnum;
 import recipe.enumerate.type.MedicalTypeEnum;
+import recipe.manager.ButtonManager;
+import recipe.manager.DepartManager;
+import recipe.manager.EnterpriseManager;
+import recipe.manager.RecipeOrderPayFlowManager;
 import recipe.manager.*;
 import recipe.service.PayModeGiveModeUtil;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
@@ -736,7 +741,8 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
     @LogRecord
     public WnExtBusCdrRecipeDTO newWnExtBusCdrRecipe(RecipeOrderBean recipeOrder, Patient patient) {
         List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
-        RecipeBean recipeBean = recipeService.getByRecipeId(recipeIdList.get(0));
+        Recipe recipeBean = recipeDAO.getByRecipeId(recipeIdList.get(0));
+        RecipeExtend extend = recipeExtendDAO.getByRecipeId(recipeIdList.get(0));
         log.info("newWnExtBusCdrRecipe.recipeBean={}", JSONObject.toJSONString(recipeBean));
         IRevisitExService revisitExService = RevisitAPI.getService(IRevisitExService.class);
         RevisitExDTO consultExDTO = revisitExService.getByConsultId(recipeBean.getClinicId());
@@ -756,7 +762,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
         AppointDepartDTO appointDepart = departManager.getAppointDepartByOrganIdAndDepart(convertRecipe);
         log.info("查询挂号科室代码入参={},{},结果={}", recipeBean.getClinicOrgan(), recipeBean.getDepart(), JSONObject.toJSONString(appointDepart));
         wnExtBusCdrRecipe.setKsdm(appointDepart != null ? appointDepart.getAppointDepartCode() : "");
-        String registerId;
+        String registerId = "";
         String cardId = "";
         String insureTypeCode = "";
         String mtTypeCode = "";
@@ -773,13 +779,17 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
             insureType = null == consultExDTO.getMedicalFlag() ? "0" : consultExDTO.getMedicalFlag().toString();
 
         } else {
-            registerId = "";
+            if (RecipeSourceTypeEnum.OFFLINE_RECIPE.getType().equals(recipeBean.getRecipeSourceType())) {
+                registerId = StringUtils.isNotEmpty(extend.getRegisterID())?extend.getRegisterID():"";
+                cardId = StringUtils.isNotEmpty(extend.getCardNo())?extend.getCardNo():"";
+                insureTypeCode = StringUtils.isNotEmpty(extend.getMedicalType())?extend.getMedicalType():"";
+                insureTypeName = StringUtils.isNotEmpty(extend.getMedicalTypeText())?extend.getMedicalTypeText():"";
+            }
         }
         String chronicDiseaseFlag = "";
         String chronicDiseaseCode = "";
         String chronicDiseaseName = "";
         String complication = "";
-        RecipeExtendBean extend = recipeService.findRecipeExtendByRecipeId(recipeIdList.get(0));
         if (extend != null) {
             // 大病标识
             if (StringUtils.isNotEmpty(extend.getIllnessType())) {
