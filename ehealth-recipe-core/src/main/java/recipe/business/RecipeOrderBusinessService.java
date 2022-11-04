@@ -1686,7 +1686,7 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
         if (!DrugEnterpriseConstant.LOGISTICS_PLATFORM.equals(drugsEnterprise.getLogisticsType())) {
             return true;
         }
-        if (!LOGISTICS_COMPANY_SF.equals(drugsEnterprise.getLogisticsCompany())) {
+        if (!LOGISTICS_COMPANY_SF.equals(recipeOrder.getLogisticsCompany())) {
             return true;
         }
         //查询该物流是否揽件
