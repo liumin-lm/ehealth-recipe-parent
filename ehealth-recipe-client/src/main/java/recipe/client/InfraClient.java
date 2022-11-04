@@ -120,13 +120,18 @@ public class InfraClient extends BaseClient {
      * @return
      */
     public Boolean cancelLogisticsOrder(RecipeOrder recipeOrder){
-        LogisticsCancelDto logisticsCancelDto = new LogisticsCancelDto();
-        logisticsCancelDto.setBusinessType(1);
-        logisticsCancelDto.setBusinessNo(recipeOrder.getOrderCode());
-        logisticsCancelDto.setWaybillNo(recipeOrder.getTrackingNumber());
-        logger.info("InfraClient cancelLogisticsOrder logisticsCancelDto:{}", JSON.toJSONString(logisticsCancelDto));
-        LogisticsCancelRespDto logisticsCancelRespDto = logisticsOrderService.cancelOrder(logisticsCancelDto);
-        logger.info("InfraClient cancelLogisticsOrder logisticsCancelRespDto:{}", JSON.toJSONString(logisticsCancelRespDto));
-        return logisticsCancelRespDto.getIfRefund();
+        try {
+            LogisticsCancelDto logisticsCancelDto = new LogisticsCancelDto();
+            logisticsCancelDto.setBusinessType(1);
+            logisticsCancelDto.setBusinessNo(recipeOrder.getOrderCode());
+            logisticsCancelDto.setWaybillNo(recipeOrder.getTrackingNumber());
+            logger.info("InfraClient cancelLogisticsOrder logisticsCancelDto:{}", JSON.toJSONString(logisticsCancelDto));
+            LogisticsCancelRespDto logisticsCancelRespDto = logisticsOrderService.cancelOrder(logisticsCancelDto);
+            logger.info("InfraClient cancelLogisticsOrder logisticsCancelRespDto:{}", JSON.toJSONString(logisticsCancelRespDto));
+            return logisticsCancelRespDto.getIfRefund();
+        } catch (Exception e) {
+            logger.error("InfraClient cancelLogisticsOrder error", e);
+        }
+        return true;
     }
 }

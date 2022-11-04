@@ -1574,7 +1574,7 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
         if (null == recipeOrder) {
             throw new DAOException("没有查询到订单信息");
         }
-        if (OrderStateEnum.PROCESS_STATE_DISPENSING.getType().equals(recipeOrder.getStatus())) {
+        if (OrderStateEnum.PROCESS_STATE_DISPENSING.getType().equals(recipeOrder.getProcessState())) {
             throw new DAOException("当前订单已完成，不允许再次更新");
         }
         List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
@@ -1603,22 +1603,28 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
         if (CollectionUtils.isEmpty(organIds)) {
             return;
         }
-        organIds.forEach(organId -> {
+        for (Integer organId : organIds) {
             logger.info("开始执行完成订单定时任务 执行机构id=" + organId);
-            Integer recipeAutoFinishTime = configurationClient.getValueCatch(organId, "recipeAutoFinishTime", 14);
+            Integer recipeAutoFinishTime = configurationClient.getValueCatchReturnInteger(organId, "recipeAutoFinishTime", 14);
+            if (new Integer(0).equals(recipeAutoFinishTime)) {
+                continue;
+            }
             Date date = DateUtils.addDays(new Date(), -recipeAutoFinishTime);
             List<RecipeOrder> recipeOrders = recipeOrderDAO.findByOrganIdAndStatus(organId, date);
-            if (CollectionUtils.isNotEmpty(recipeOrders)) {
-                recipeOrders.forEach(recipeOrder -> {
-                    try {
-                        patientFinishOrder(recipeOrder.getOrderCode());
-                    } catch (Exception e) {
-                        logger.info("完成处方失败 orderCode=" + recipeOrder.getOrderCode());
-                    }
-                });
-                logger.info("完成订单定时任务结束 执行机构id=" + organId);
+            if (CollectionUtils.isEmpty(recipeOrders)) {
+                continue;
             }
-        });
+            recipeOrders.forEach(recipeOrder -> {
+                try {
+                    patientFinishOrder(recipeOrder.getOrderCode());
+                } catch (Exception e) {
+                    logger.info("完成处方失败 orderCode=" + recipeOrder.getOrderCode());
+                }
+            });
+            logger.info("完成订单定时任务结束 执行机构id=" + organId);
+
+        }
+
     }
 
     @Override
@@ -1629,7 +1635,7 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
             logger.info("submitRecipeHisV1 pushRecipe recipeId={}", recipeId);
             RecipeInfoDTO recipePdfDTO = recipeTherapyManager.getRecipeTherapyDTO(recipeId);
             Recipe recipe = recipePdfDTO.getRecipe();
-            if (!RecipeStateEnum.PROCESS_STATE_ORDER.getType().equals(recipe.getPatientStatus())) {
+            if (!RecipeStateEnum.PROCESS_STATE_ORDER.getType().equals(recipe.getProcessState())) {
                 logger.info("RecipeBusinessService pushRecipe 当前处方不是待下单状态");
                 return ;
             }
@@ -1671,9 +1677,6 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
         }
         DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipeOrder.getEnterpriseId());
         if (!DrugEnterpriseConstant.LOGISTICS_PLATFORM.equals(drugsEnterprise.getLogisticsType())) {
-            return true;
-        }
-        if (!LOGISTICS_COMPANY_SF.equals(drugsEnterprise.getLogisticsCompany())) {
             return true;
         }
         //查询该物流是否揽件

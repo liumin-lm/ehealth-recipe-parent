@@ -931,6 +931,9 @@ public class OrderManager extends BaseManager {
         if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
             throw new DAOException(609, "处方已经存在订单信息");
         }
+        if (!RecipeStateEnum.PROCESS_STATE_ORDER.getType().equals(recipe.getProcessState())) {
+            throw new DAOException(609, "当前处方不是待下单状态");
+        }
         if (recipeId != null) {
             //查询有效的预下单信息
             RecipeBeforeOrder recipeBeforeOrder = recipeBeforeOrderDAO.getRecipeBeforeOrderByRecipeId(recipeId);
