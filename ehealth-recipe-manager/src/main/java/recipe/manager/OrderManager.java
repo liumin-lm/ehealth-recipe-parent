@@ -932,8 +932,7 @@ public class OrderManager extends BaseManager {
             throw new DAOException(609, "处方已经存在订单信息");
         }
         if (!RecipeStateEnum.PROCESS_STATE_ORDER.getType().equals(recipe.getProcessState())) {
-            logger.info("RecipeBusinessService pushRecipe 当前处方不是待下单状态");
-            return ;
+            throw new DAOException(609, "当前处方不是待下单状态");
         }
         if (recipeId != null) {
             //查询有效的预下单信息
