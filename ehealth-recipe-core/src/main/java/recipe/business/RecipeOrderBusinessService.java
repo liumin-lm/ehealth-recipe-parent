@@ -1611,7 +1611,7 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
             }
             Date date = DateUtils.addDays(new Date(), -recipeAutoFinishTime);
             List<RecipeOrder> recipeOrders = recipeOrderDAO.findByOrganIdAndStatus(organId, date);
-            if (CollectionUtils.isNotEmpty(recipeOrders)) {
+            if (CollectionUtils.isEmpty(recipeOrders)) {
                 continue;
             }
             recipeOrders.forEach(recipeOrder -> {
