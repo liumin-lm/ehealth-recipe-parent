@@ -2,6 +2,9 @@ package recipe.audit.auditmode;
 
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.revisit.RevisitAPI;
+import com.ngari.revisit.RevisitBean;
+import com.ngari.revisit.common.service.IRevisitService;
 import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
 import org.slf4j.Logger;
@@ -17,6 +20,7 @@ import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.DocIndexShowEnum;
 import recipe.manager.EnterpriseManager;
 import recipe.manager.StateManager;
+import recipe.mq.Buss2SessionProducer;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeMsgService;
 import recipe.service.RecipeServiceSub;
@@ -26,6 +30,7 @@ import recipe.thread.UpdateWaterPrintRecipePdfRunnable;
 import java.util.List;
 
 import static ctd.persistence.DAOFactory.getDAO;
+import static recipe.service.afterpay.IAfterPayBussService.REVISIT_STATUS_IN;
 
 /**
  * created by shiyuping on 2019/8/15
@@ -63,6 +68,13 @@ public class AuditPreMode extends AbstractAuditMode {
                 } else {
                     //平台前置发送审核通过消息 /向患者推送处方消息 处方通知您有一张处方单需要处理，请及时查看。
                     RecipeMsgService.batchSendMsg(recipe, RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS_YS.getType());
+                }
+            }
+            if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipe.getBussSource()) && recipe.getClinicId() != null) {
+                IRevisitService iRevisitService = RevisitAPI.getService(IRevisitService.class);
+                RevisitBean revisitBean = iRevisitService.getById(recipe.getClinicId());
+                if (revisitBean != null && REVISIT_STATUS_IN.equals(revisitBean.getStatus())) {
+                    Buss2SessionProducer.sendMsgToMq(recipe, "recipeCheckPass", revisitBean.getSessionID());
                 }
             }
         } catch (Exception e) {
