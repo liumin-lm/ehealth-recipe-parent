@@ -107,7 +107,7 @@ public abstract class AbstractAuditMode implements IAuditMode {
             IRevisitService iRevisitService = RevisitAPI.getService(IRevisitService.class);
             RevisitBean revisitBean = iRevisitService.getById(recipe.getClinicId());
             if (revisitBean != null && REVISIT_STATUS_IN.equals(revisitBean.getStatus())) {
-                Buss2SessionProducer.sendMsgToMq(recipe, "recipeCheckPass", revisitBean.getSessionID());
+                Buss2SessionProducer.sendMsgToMq(recipe, "recipeCheckNotPass", revisitBean.getSessionID());
             }
         }
         stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_AUDIT_NOT_PASS);
