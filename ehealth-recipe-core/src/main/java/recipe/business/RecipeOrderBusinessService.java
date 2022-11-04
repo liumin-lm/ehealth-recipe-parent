@@ -1642,7 +1642,7 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
             logger.info("submitRecipeHisV1 pushRecipe recipeId={}", recipeId);
             RecipeInfoDTO recipePdfDTO = recipeTherapyManager.getRecipeTherapyDTO(recipeId);
             Recipe recipe = recipePdfDTO.getRecipe();
-            if (!RecipeStateEnum.PROCESS_STATE_ORDER.getType().equals(recipe.getPatientStatus())) {
+            if (!RecipeStateEnum.PROCESS_STATE_ORDER.getType().equals(recipe.getProcessState())) {
                 logger.info("RecipeBusinessService pushRecipe 当前处方不是待下单状态");
                 return ;
             }

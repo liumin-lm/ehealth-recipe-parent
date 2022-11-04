@@ -897,11 +897,11 @@ public class OrganDrugToolService implements IOrganDrugToolService {
                     if (("无").equals(getStrFromCell(cells.get(46)))) {
                         drug.setAntibioticsDrugLevel(0);
                     } else if (("1级").equals(getStrFromCell(cells.get(46)))) {
-                        drug.setSpecialUseAntibioticDrugFlag(1);
+                        drug.setAntibioticsDrugLevel(1);
                     } else if (("2级").equals(getStrFromCell(cells.get(46)))) {
-                        drug.setSpecialUseAntibioticDrugFlag(2);
+                        drug.setAntibioticsDrugLevel(2);
                     } else if (("3级").equals(getStrFromCell(cells.get(46)))) {
-                        drug.setSpecialUseAntibioticDrugFlag(3);
+                        drug.setAntibioticsDrugLevel(3);
                     } else {
                         validMsg.append("抗菌素药物等级格式错误").append(";");
                     }
@@ -931,7 +931,7 @@ public class OrganDrugToolService implements IOrganDrugToolService {
                     if (("普通级").equals(getStrFromCell(cells.get(48)))) {
                         drug.setAntiTumorDrugLevel(1);
                     } else if (("限制级").equals(getStrFromCell(cells.get(48)))) {
-                        drug.setAntiTumorDrugFlag(2);
+                        drug.setAntiTumorDrugLevel(2);
                     } else {
                         validMsg.append("抗肿瘤药物等级格式错误").append(";");
                     }
