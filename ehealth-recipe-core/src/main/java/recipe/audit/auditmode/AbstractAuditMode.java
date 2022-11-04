@@ -6,6 +6,9 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.revisit.RevisitAPI;
+import com.ngari.revisit.RevisitBean;
+import com.ngari.revisit.common.service.IRevisitService;
 import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
 import eh.cdr.constant.RecipeStatusConstant;
@@ -28,6 +31,7 @@ import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.SignImageTypeEnum;
 import recipe.manager.StateManager;
+import recipe.mq.Buss2SessionProducer;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeMsgService;
 import recipe.service.RecipeServiceSub;
@@ -39,6 +43,7 @@ import java.util.List;
 import java.util.Map;
 
 import static ctd.persistence.DAOFactory.getDAO;
+import static recipe.service.afterpay.IAfterPayBussService.REVISIT_STATUS_IN;
 
 /**
  * created by shiyuping on 2019/9/3
@@ -98,6 +103,13 @@ public abstract class AbstractAuditMode implements IAuditMode {
     @Override
     public void afterCheckNotPassYs(Recipe recipe) {
         StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
+        if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipe.getBussSource()) && recipe.getClinicId() != null) {
+            IRevisitService iRevisitService = RevisitAPI.getService(IRevisitService.class);
+            RevisitBean revisitBean = iRevisitService.getById(recipe.getClinicId());
+            if (revisitBean != null && REVISIT_STATUS_IN.equals(revisitBean.getStatus())) {
+                Buss2SessionProducer.sendMsgToMq(recipe, "recipeCheckPass", revisitBean.getSessionID());
+            }
+        }
         stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_AUDIT_NOT_PASS);
     }
 
