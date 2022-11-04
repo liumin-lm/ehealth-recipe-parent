@@ -208,10 +208,6 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @Autowired
     private CaBusinessService CaBusinessService;
     @Autowired
-    private RecipeAuditClient recipeAuditClient;
-    @Autowired
-    private IConfigurationClient configurationClient;
-    @Autowired
     private RecipeBeforeOrderDAO recipeBeforeOrderDAO;
 
 
