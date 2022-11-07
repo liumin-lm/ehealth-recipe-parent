@@ -1694,14 +1694,16 @@ public class RecipeService extends RecipeBaseService {
             }
             stateManager.updateOrderState(order.getOrderId(), processStateOrder, subOrderTakeMedicine);
             stateManager.updateRecipeState(recipeId, processStateDispensing, subOrderDeliveredMedicine);
-        }
-        if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipe.getBussSource()) && recipe.getClinicId() != null) {
-            IRevisitService iRevisitService = RevisitAPI.getService(IRevisitService.class);
-            RevisitBean revisitBean = iRevisitService.getById(recipe.getClinicId());
-            if (revisitBean != null && REVISIT_STATUS_IN.equals(revisitBean.getStatus())) {
-                Buss2SessionProducer.sendMsgToMq(recipe, "recipeCheckPass", revisitBean.getSessionID());
+
+            if (Objects.nonNull(recipe.getClinicId()) && RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipe.getBussSource())) {
+                IRevisitService iRevisitService = RevisitAPI.getService(IRevisitService.class);
+                RevisitBean revisitBean = iRevisitService.getById(recipe.getClinicId());
+                if (revisitBean != null && REVISIT_STATUS_IN.equals(revisitBean.getStatus())) {
+                    Buss2SessionProducer.sendMsgToMq(recipe, "recipeCheckPass", revisitBean.getSessionID());
+                }
             }
         }
+
         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "审核通过处理完成");
         return resultBean;
     }
@@ -5406,13 +5408,6 @@ public class RecipeService extends RecipeBaseService {
                 //平台模式
                 RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
                 hisService.recipeStatusUpdate(recipe.getRecipeId());
-            }
-            if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipe.getBussSource()) && recipe.getClinicId() != null) {
-                IRevisitService iRevisitService = RevisitAPI.getService(IRevisitService.class);
-                RevisitBean revisitBean = iRevisitService.getById(recipe.getClinicId());
-                if (revisitBean != null && REVISIT_STATUS_IN.equals(revisitBean.getStatus())) {
-                    Buss2SessionProducer.sendMsgToMq(recipe, "recipeCheckNotPass", revisitBean.getSessionID());
-                }
             }
 
             //记录日志
