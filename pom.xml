@@ -27,14 +27,14 @@
         <ngari.voucher.version>4.9.2.8.master-SNAPSHOT</ngari.voucher.version>
         <ngari.es.version>4.10.2.4.master-SNAPSHOT</ngari.es.version>
         <ngari.miscellany.version>4.1.1.9.master-SNAPSHOT</ngari.miscellany.version>
-        <ngari.basic.version>4.10.2.4.master-SNAPSHOT</ngari.basic.version>
-        <ngari.basicdto.version>4.9.2.8.master-SNAPSHOT</ngari.basicdto.version>
+        <ngari.basic.version>4.11.1.0.master-SNAPSHOT</ngari.basic.version>
+        <ngari.basicdto.version>4.11.1.0.master-SNAPSHOT</ngari.basicdto.version>
         <ngari.jgpt.version>4.1.1.9.master-SNAPSHOT</ngari.jgpt.version>
         <ngari.followup.version>4.2.2.4.master-SNAPSHOT</ngari.followup.version>
-        <ngari.cdr.version>4.10.2.4.master-SNAPSHOT</ngari.cdr.version>
+        <ngari.cdr.version>4.11.1.0.master-SNAPSHOT</ngari.cdr.version>
         <ngari.pay.version>4.8.1.1.master-SNAPSHOT</ngari.pay.version>
         <ngari.easypay.version>4.7.0.7.master-SNAPSHOT</ngari.easypay.version>
-        <ngari.recipeaudit.version>4.11.1.0.master-SNAPSHOT</ngari.recipeaudit.version>
+        <ngari.recipeaudit.version>4.9.2.8.master-SNAPSHOT</ngari.recipeaudit.version>
         <ngari.consult.version>4.4.2.7.master-SNAPSHOT</ngari.consult.version>
         <ngari.networkclinic.version>4.1.1.9.master-SNAPSHOT</ngari.networkclinic.version>
         <ngari.hisapi.version>4.11.1.0.master-SNAPSHOT</ngari.hisapi.version>
@@ -44,13 +44,12 @@
         <ngari.casign.version>4.6.2.0.master-SNAPSHOT</ngari.casign.version>
         <ngari.video.version>4.1.1.9.master-SNAPSHOT</ngari.video.version>
         <ngari.weixin.service.version>4.1.1.9.master-SNAPSHOT</ngari.weixin.service.version>
-        <ngari.infra.version>4.9.2.8.master-SNAPSHOT</ngari.infra.version>
+        <ngari.infra.version>4.11.1.0.master-SNAPSHOT</ngari.infra.version>
         <ngari.message.version>4.8.3.0.master-SNAPSHOT</ngari.message.version>
         <ngari.bill.version>4.1.1.9.master-SNAPSHOT</ngari.bill.version>
         <ngari.account.version>4.1.1.9.master-SNAPSHOT</ngari.account.version>
         <ngari.revisit.version>4.10.2.4.master-SNAPSHOT</ngari.revisit.version>
         <ngari.entity.version>4.9.1.5.master-SNAPSHOT</ngari.entity.version>
-<!--        <ehealth-pay-api.version>4.7.0.7.master-SNAPSHOT</ehealth-pay-api.version>-->
     </properties>
 
     <build>
