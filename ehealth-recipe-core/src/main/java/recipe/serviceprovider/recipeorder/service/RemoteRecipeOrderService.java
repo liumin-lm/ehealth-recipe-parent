@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.ThirdResultBean;
+import recipe.client.InfraClient;
 import recipe.client.PatientClient;
 import recipe.constant.OrderStatusConstant;
 import recipe.constant.RecipeBaseTrackingStatusEnum;
@@ -75,13 +76,14 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RemoteRecipeOrderService.class);
 
-
     @Autowired
     private StateManager stateManager;
     @Autowired
     private RecipeOrderDAO recipeOrderDAO;
     @Autowired
     private RecipeManager recipeManager;
+    @Autowired
+    private InfraClient infraClient;
 
     @RpcService
     @Override
@@ -323,18 +325,16 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
                 recipeOrderDAO.updateByOrdeCode(recipeOrder.getOrderCode(), orderAttrMap);
                 stateManager.updateOrderState(recipeOrder.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION,OrderStateEnum.SUB_CANCELLATION_REFUND);
 
-                LOGGER.info("退款完成修改订单状态：{}", recipe.getRecipeId());
-//                RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusConstant.REVOKE, null);
                 LOGGER.info("存储退款完成记录-remoteRecipeOrderService：{}", recipe.getRecipeId());
                 if (PayBusTypeEnum.RECIPE_BUS_TYPE.getType().equals(busType)) {
                     recipeRefundService.recipeReFundSave(recipe, nowRecipeRefund);
                 }
                 recipeManager.updateRecipeRefundStatus(recipes, RefundNodeStatusConstant.REFUND_NODE_SUCCESS_STATUS);
+                infraClient.cancelLogisticsOrder(recipeOrder, true);
                 break;
             case 4:
                 nowRecipeRefund.setReason("退费失败");
                 RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.RECIPE_REFUND_FAIL);
-//                RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), null);
                 LOGGER.info("remoteRecipeOrderService-refundCallback-退费失败的记录：{}", recipe.getRecipeId());
                 if (PayBusTypeEnum.RECIPE_BUS_TYPE.getType().equals(busType)) {
                     recipeRefundService.recipeReFundSave(recipe, nowRecipeRefund);
@@ -345,8 +345,6 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
                 LOGGER.warn("当前处方{}退费状态{}无法解析！", recipeId, refundStatus);
                 break;
         }
-
-
     }
 
     @Override
