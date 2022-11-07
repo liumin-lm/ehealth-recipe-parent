@@ -994,4 +994,27 @@ public class OrderManager extends BaseManager {
         logger.info("saveRecipeBeforeOrderInfo recipeBeforeOrder={}", JSONUtils.toString(recipeBeforeOrder));
         recipeBeforeOrderDAO.save(recipeBeforeOrder);
     }
+
+    /**
+     * 处理购物清单中的地址
+     *
+     * @param recipeBeforeOrder1
+     * @param recipeBeforeOrder2
+     * @param recipeOrder
+     * @return
+     */
+    public void processShoppingCartAddress(RecipeBeforeOrderDTO recipeBeforeOrder1,RecipeBeforeOrder recipeBeforeOrder2,RecipeOrder recipeOrder){
+        recipeBeforeOrder1.setAddressId(recipeBeforeOrder2.getAddressId() != null ? recipeBeforeOrder2.getAddressId() : recipeOrder.getAddressID());
+        recipeBeforeOrder1.setAddress1(recipeBeforeOrder2.getAddress1() != null ? recipeBeforeOrder2.getAddress1() : recipeOrder.getAddress1());
+        recipeBeforeOrder1.setAddress2(recipeBeforeOrder2.getAddress2() != null ? recipeBeforeOrder2.getAddress2() : recipeOrder.getAddress2());
+        recipeBeforeOrder1.setAddress3(recipeBeforeOrder2.getAddress3() != null ? recipeBeforeOrder2.getAddress3() : recipeOrder.getAddress3());
+        recipeBeforeOrder1.setAddress4(recipeBeforeOrder2.getAddress4() != null ? recipeBeforeOrder2.getAddress4() : recipeOrder.getAddress4());
+        recipeBeforeOrder1.setStreetAddress(recipeBeforeOrder2.getStreetAddress() != null ? recipeBeforeOrder2.getStreetAddress() : recipeOrder.getStreetAddress());
+        recipeBeforeOrder1.setAddress5(recipeBeforeOrder2.getAddress5() != null ? recipeBeforeOrder2.getAddress5() : recipeOrder.getAddress5());
+        recipeBeforeOrder1.setAddress5Text(recipeBeforeOrder2.getAddress5Text() != null ? recipeBeforeOrder2.getAddress5Text() : recipeOrder.getAddress5Text());
+        recipeBeforeOrder1.setReceiver(recipeBeforeOrder2.getReceiver() != null ? recipeBeforeOrder2.getReceiver() : recipeOrder.getReceiver());
+        recipeBeforeOrder1.setRecMobile(recipeBeforeOrder2.getRecMobile() != null ? recipeBeforeOrder2.getRecMobile() : recipeOrder.getRecMobile());
+        recipeBeforeOrder1.setRecTel(recipeBeforeOrder2.getRecTel() != null ? recipeBeforeOrder2.getRecTel() : recipeOrder.getRecTel());
+        recipeBeforeOrder1.setZipCode(recipeBeforeOrder2.getZipCode() != null ? recipeBeforeOrder2.getZipCode() : recipeOrder.getZipCode());
+    }
 }

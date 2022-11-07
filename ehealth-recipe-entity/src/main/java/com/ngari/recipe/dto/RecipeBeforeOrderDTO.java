@@ -57,9 +57,11 @@ public class RecipeBeforeOrderDTO implements Serializable {
     private String receiver;
 
     @ItemProperty(alias = "收货人手机号")
+    @Desensitizations(type = DesensitizationsType.MOBILE)
     private String recMobile;
 
     @ItemProperty(alias = "收货人电话")
+    @Desensitizations(type = DesensitizationsType.MOBILE)
     private String recTel;
 
     @ItemProperty(alias = "地址（省）")

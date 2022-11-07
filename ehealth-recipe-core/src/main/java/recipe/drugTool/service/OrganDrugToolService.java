@@ -927,13 +927,17 @@ public class OrganDrugToolService implements IOrganDrugToolService {
             }
 
             try {
-                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(48)))) {
-                    if (("普通级").equals(getStrFromCell(cells.get(48)))) {
-                        drug.setAntiTumorDrugLevel(1);
-                    } else if (("限制级").equals(getStrFromCell(cells.get(48)))) {
-                        drug.setAntiTumorDrugLevel(2);
-                    } else {
-                        validMsg.append("抗肿瘤药物等级格式错误").append(";");
+                if(new Integer(1).equals(drug.getAntiTumorDrugFlag()) && StringUtils.isEmpty(getStrFromCell(cells.get(48)))){
+                        validMsg.append("抗肿瘤药物等级未填写").append(";");
+                }else{
+                    if (StringUtils.isNotEmpty(getStrFromCell(cells.get(48)))) {
+                        if (("普通级").equals(getStrFromCell(cells.get(48)))) {
+                            drug.setAntiTumorDrugLevel(1);
+                        } else if (("限制级").equals(getStrFromCell(cells.get(48)))) {
+                            drug.setAntiTumorDrugLevel(2);
+                        } else {
+                            validMsg.append("抗肿瘤药物等级格式错误").append(";");
+                        }
                     }
                 }
             } catch (Exception e) {

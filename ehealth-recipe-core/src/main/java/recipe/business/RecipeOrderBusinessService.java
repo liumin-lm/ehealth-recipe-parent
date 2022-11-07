@@ -1263,28 +1263,24 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
                         }
                         recipeDTOList.add(recipeDTO);
                     }
-                    //当购药方式为配送到家（药企配送、医院配送）和获取到了默认地址时才保存地址
-                    if(new Integer(1).equals(recipeBeforeOrder.getGiveMode()) && recipeBeforeOrder.getAddressId() == null){
-                        if(recipeOrder.getAddressID() != null){
-                            recipeBeforeOrder.setAddressId(recipeOrder.getAddressID());
-                            recipeBeforeOrder.setAddress1(recipeOrder.getAddress1());
-                            recipeBeforeOrder.setAddress2(recipeOrder.getAddress2());
-                            recipeBeforeOrder.setAddress3(recipeOrder.getAddress3());
-                            recipeBeforeOrder.setAddress4(recipeOrder.getAddress4());
-                            recipeBeforeOrder.setStreetAddress(recipeOrder.getStreetAddress());
-                            recipeBeforeOrder.setAddress5(recipeOrder.getAddress5());
-                            recipeBeforeOrder.setAddress5Text(recipeOrder.getAddress5Text());
-                            recipeBeforeOrder.setReceiver(recipeOrder.getReceiver());
-                            recipeBeforeOrder.setRecMobile(recipeOrder.getRecMobile());
-                            recipeBeforeOrder.setRecTel(recipeOrder.getRecTel());
-                            recipeBeforeOrder.setZipCode(recipeOrder.getZipCode());
-                            recipeBeforeOrder.setCompleteAddress(orderManager.getCompleteAddress(recipeOrder));
-                            //有地址则为完善
-                            recipeBeforeOrder.setIsReady(1);
-                        }else {
-                            //否则为不完善
+                    try {
+                        //当购药方式为配送到家（药企配送、医院配送）和获取到了默认地址时才保存地址
+                        if(new Integer(1).equals(recipeBeforeOrder.getGiveMode()) && recipeBeforeOrder.getAddressId() == null){
+                            //找该患者为已完善的地址，再赋值给后面加入购物车的单子，保证配送地址唯一
+                            List<RecipeBeforeOrder> beforeOrderList = recipeBeforeOrderList.stream().filter(a -> new Integer(1).equals(a.getIsReady())).collect(Collectors.toList());
+                            if(beforeOrderList.size() > 0){
+                                orderManager.processShoppingCartAddress(recipeBeforeOrder,beforeOrderList.get(0),new RecipeOrder());
+                                recipeBeforeOrder.setCompleteAddress(beforeOrderList.get(0).getCompleteAddress());
+                            }else{
+                                if(recipeOrder.getAddressID() != null){
+                                    orderManager.processShoppingCartAddress(recipeBeforeOrder,new RecipeBeforeOrder(),recipeOrder);
+                                    recipeBeforeOrder.setCompleteAddress(orderManager.getCompleteAddress(recipeOrder));
+                                }
+                            }
                             recipeBeforeOrder.setIsReady(0);
                         }
+                    }catch (Exception e){
+                        logger.info("getShoppingCartDetail processShoppingCartAddress error",e);
                     }
                     recipeBeforeOrder.setRecipeFee(recipeOrder.getRecipeFee());
                     recipeBeforeOrder.setAuditFee(recipeOrder.getAuditFee());
