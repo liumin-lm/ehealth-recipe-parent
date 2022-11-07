@@ -38,8 +38,10 @@ import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import eh.base.constant.ErrorCode;
 import eh.cdr.api.service.IDocIndexService;
+import eh.recipeaudit.api.IAuditMedicinesService;
 import eh.utils.BeanCopyUtils;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -84,8 +86,10 @@ public class QueryRecipeService implements IQueryRecipeService {
 
     @Resource
     private RecipeExtendDAO recipeExtendDAO;
+
     @Resource
     private IDocIndexService docIndexService;
+
     @Autowired
     private CreatePdfFactory createPdfFactory;
 
@@ -100,6 +104,9 @@ public class QueryRecipeService implements IQueryRecipeService {
 
     @Autowired
     private DrugDecoctionWayDao drugDecoctionWayDao;
+
+    @Autowired
+    private IAuditMedicinesService iAuditMedicinesService;
 
     /**
      * 用于sendRecipeToHIS 推送处方mq后 查询接口
@@ -276,7 +283,7 @@ public class QueryRecipeService implements IQueryRecipeService {
                 }
                 recipeDTO.setSymptomValue(ObjectCopyUtils.convert(emrDetail.getSymptomValue(), EmrDetailValueVO.class));
                 recipeDTO.setDiseaseValue(ObjectCopyUtils.convert(emrDetail.getDiseaseValue(), EmrDetailValueVO.class));
-                
+
                 Map<String, Object> medicalInfoBean = docIndexService.getMedicalInfoByDocIndexId(recipeExtend.getDocIndexId());
                 recipeDTO.setMedicalInfoBean(medicalInfoBean);
                 //终端是否为自助机
@@ -431,6 +438,28 @@ public class QueryRecipeService implements IQueryRecipeService {
                         LOGGER.warn("queryRecipe splicingBackData GiveMode = {}", recipe.getGiveMode());
                 }
             }
+            try {
+                IConfigurationCenterUtilsService configService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+                Map<Integer, Integer> map = iAuditMedicinesService.queryRecipeMaxLevel(recipeId);
+                Object needTwoConfirmLevel = configService.getConfiguration(recipe.getClinicOrgan(), "needTwoConfirmLevel");
+                if (MapUtils.isNotEmpty(map) && Objects.nonNull(needTwoConfirmLevel)) {
+                    String[] levels = needTwoConfirmLevel.toString().split(",");
+                    int minLevel = Integer.parseInt(levels[0]);
+                    int maxLevel = Integer.parseInt(levels[1]);
+                    Integer dangerLevel = map.get(recipeId);
+                    LOGGER.info("setNeedTwoConfirmFlag minLevel={}, maxLevel={}, dangerLevel={}", minLevel, maxLevel, dangerLevel);
+                    if (Objects.nonNull(dangerLevel) && dangerLevel >= minLevel && dangerLevel <= maxLevel) {
+                        recipeDTO.setNeedTwoConfirmFlag(1);
+                    } else {
+                        recipeDTO.setNeedTwoConfirmFlag(0);
+                    }
+                } else {
+                    recipeDTO.setNeedTwoConfirmFlag(0);
+                }
+            } catch (Exception e) {
+                LOGGER.error("setNeedTwoConfirmFlag error", e);
+            }
+
             splicingBackDataForRecipeDetails(recipe.getClinicOrgan(), details, recipeDTO);
             LOGGER.info("queryRecipe splicingBackData recipeDTO:{}", JSONUtils.toString(recipeDTO));
         } catch (Exception e) {
