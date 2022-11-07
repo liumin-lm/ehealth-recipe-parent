@@ -1680,7 +1680,7 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
             return true;
         }
         //查询该物流是否揽件
-        return infraClient.cancelLogisticsOrder(recipeOrder);
+        return infraClient.cancelLogisticsOrder(recipeOrder, false);
     }
 
     private void syncFinishOrderHandle(List<Integer> recipeIdList, RecipeOrder recipeOrder, boolean isSendFlag) {
