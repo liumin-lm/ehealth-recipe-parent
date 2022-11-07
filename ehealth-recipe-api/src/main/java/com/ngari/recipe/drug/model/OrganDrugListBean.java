@@ -214,6 +214,17 @@ public class OrganDrugListBean implements java.io.Serializable {
     @ItemProperty(alias = "是否特殊使用级抗生素药物  0否  1是 ")
     private Integer specialUseAntibioticDrugFlag;
 
+    @ItemProperty(alias = "his剂型名称")
+    private String hisDrugForm;
+
+    public String getHisDrugForm() {
+        return hisDrugForm;
+    }
+
+    public void setHisDrugForm(String hisDrugForm) {
+        this.hisDrugForm = hisDrugForm;
+    }
+
     public Integer getAntibioticsDrugLevel() {
         return antibioticsDrugLevel;
     }

@@ -1044,6 +1044,9 @@ public class QueryRecipeService implements IQueryRecipeService {
             request.setUsingRate(organDrugChangeBean.getUsingRate());
             request.setTargetedDrugType(organDrugChangeBean.getTargetedDrugType());
             request.setSmallestSaleMultiple(organDrugChangeBean.getSmallestSaleMultiple());
+            request.setHisDrugForm(organDrugChangeBean.getHisDrugForm());
+            request.setMedicalDrugFormCode(organDrugChangeBean.getMedicalDrugFormCode());
+            request.setDrugFormCode(organDrugChangeBean.getDrugFormCode());
         } catch (Exception e) {
             //抛出异常信息，返回空数组
             LOGGER.error("updateOrSaveOrganDrug 当前更新操作异常：", e);

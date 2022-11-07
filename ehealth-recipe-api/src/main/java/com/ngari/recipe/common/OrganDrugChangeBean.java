@@ -5,8 +5,6 @@ import ctd.schema.annotation.ItemProperty;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.util.Date;
-import java.util.List;
 
 //JRK
 //date 20200227 机构药品更新保存信息对象
@@ -72,10 +70,36 @@ public class OrganDrugChangeBean implements Serializable {
 
     @ItemProperty(alias = "医保药品编码 insuDrugCode")
     private String medicalDrugCode;
-//    @ItemProperty(alias = "医院剂型编码")
-//    private String drugFormCode;
-//    @ItemProperty(alias = "医保剂型编码")
-//    private String medicalDrugFormCode;
+    @ItemProperty(alias = "医院剂型编码")
+    private String drugFormCode;
+    @ItemProperty(alias = "his医院剂型名称")
+    private String hisDrugForm;
+    @ItemProperty(alias = "医保剂型代码")
+    private String medicalDrugFormCode;
+
+    public String getMedicalDrugFormCode() {
+        return medicalDrugFormCode;
+    }
+
+    public void setMedicalDrugFormCode(String medicalDrugFormCode) {
+        this.medicalDrugFormCode = medicalDrugFormCode;
+    }
+
+    public String getDrugFormCode() {
+        return drugFormCode;
+    }
+
+    public void setDrugFormCode(String drugFormCode) {
+        this.drugFormCode = drugFormCode;
+    }
+
+    public String getHisDrugForm() {
+        return hisDrugForm;
+    }
+
+    public void setHisDrugForm(String hisDrugForm) {
+        this.hisDrugForm = hisDrugForm;
+    }
 
     @ItemProperty(alias = "修改的方式 1新增 2修改 3停用  operationCode")
     private Integer operationCode;

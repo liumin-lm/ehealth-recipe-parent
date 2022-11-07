@@ -297,7 +297,7 @@ public class RecipeValidateUtil {
                         recipeDetail.setDrugUnit(drugSaleStrategy.getDrugUnit());
                         BigDecimal useTotalDose = new BigDecimal(recipeDetail.getUseTotalDose());
                         if (RecipeTypeEnum.RECIPETYPE_TCM.getType().equals(recipeDetail.getDrugType())) {
-                            useTotalDose = useTotalDose.divide(new BigDecimal(recipe.getCopyNum())).divide(new BigDecimal(drugSaleStrategy.getDrugAmount()),2,BigDecimal.ROUND_HALF_UP);
+                            useTotalDose = useTotalDose.divide(new BigDecimal(recipe.getCopyNum()), 2,BigDecimal.ROUND_HALF_UP).divide(new BigDecimal(drugSaleStrategy.getDrugAmount()),2,BigDecimal.ROUND_HALF_UP);
                             recipeDetail.setUseDose(useTotalDose.doubleValue());
                             recipeDetail.setUseDoseUnit(drugSaleStrategy.getDrugUnit());
                             recipeDetail.setPack(1);

@@ -117,16 +117,23 @@ public class InfraClient extends BaseClient {
     /**
      * 取消物流单
      * @param recipeOrder 订单号
+     * @param isCancelLogistics 是否取消物流
      * @return
      */
-    public Boolean cancelLogisticsOrder(RecipeOrder recipeOrder){
+    public Boolean cancelLogisticsOrder(RecipeOrder recipeOrder, Boolean isCancelLogistics){
+        logger.info("InfraClient cancelLogisticsOrder recipeOrder:{},isCancelLogistics:{}", JSON.toJSONString(recipeOrder), isCancelLogistics);
         try {
             LogisticsCancelDto logisticsCancelDto = new LogisticsCancelDto();
             logisticsCancelDto.setBusinessType(1);
             logisticsCancelDto.setBusinessNo(recipeOrder.getOrderCode());
             logisticsCancelDto.setWaybillNo(recipeOrder.getTrackingNumber());
             logger.info("InfraClient cancelLogisticsOrder logisticsCancelDto:{}", JSON.toJSONString(logisticsCancelDto));
-            LogisticsCancelRespDto logisticsCancelRespDto = logisticsOrderService.cancelOrder(logisticsCancelDto);
+            LogisticsCancelRespDto logisticsCancelRespDto;
+            if (isCancelLogistics) {
+                logisticsCancelRespDto = logisticsOrderService.cancelOrder(logisticsCancelDto);
+            } else {
+                logisticsCancelRespDto = logisticsOrderService.ifCancelOrder(logisticsCancelDto);
+            }
             logger.info("InfraClient cancelLogisticsOrder logisticsCancelRespDto:{}", JSON.toJSONString(logisticsCancelRespDto));
             return logisticsCancelRespDto.getIfRefund();
         } catch (Exception e) {
