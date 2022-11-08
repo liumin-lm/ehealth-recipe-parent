@@ -25,6 +25,8 @@ public class DrugUsageLabelResp implements Serializable {
 
     private String patientName;
 
+    private String organName;
+
     private String patientSex;
 
     private String patientAge;

@@ -622,6 +622,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         }
         DrugsEnterprise drugsEnterprise = enterpriseManager.drugsEnterprise(recipe.getEnterpriseId());
         drugUsageLabelResp.setEnterpriseName(drugsEnterprise.getName());
+        drugUsageLabelResp.setOrganName(recipe.getOrganName());
 
         //患者信息
         PatientDTO patientDTO = patientClient.getPatientDTOByMpiId(recipe.getMpiid());

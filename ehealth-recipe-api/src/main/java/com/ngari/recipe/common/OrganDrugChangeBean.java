@@ -77,30 +77,6 @@ public class OrganDrugChangeBean implements Serializable {
     @ItemProperty(alias = "医保剂型代码")
     private String medicalDrugFormCode;
 
-    public String getMedicalDrugFormCode() {
-        return medicalDrugFormCode;
-    }
-
-    public void setMedicalDrugFormCode(String medicalDrugFormCode) {
-        this.medicalDrugFormCode = medicalDrugFormCode;
-    }
-
-    public String getDrugFormCode() {
-        return drugFormCode;
-    }
-
-    public void setDrugFormCode(String drugFormCode) {
-        this.drugFormCode = drugFormCode;
-    }
-
-    public String getHisDrugForm() {
-        return hisDrugForm;
-    }
-
-    public void setHisDrugForm(String hisDrugForm) {
-        this.hisDrugForm = hisDrugForm;
-    }
-
     @ItemProperty(alias = "修改的方式 1新增 2修改 3停用  operationCode")
     private Integer operationCode;
 
@@ -127,6 +103,41 @@ public class OrganDrugChangeBean implements Serializable {
 
     @ItemProperty(alias = "抗肿瘤药物等级  1普通级 2限制级 ")
     private Integer antiTumorDrugLevel;
+
+    @ItemProperty(alias = "剂型名称")
+    private String drugForm;
+
+    public String getDrugForm() {
+        return drugForm;
+    }
+
+    public void setDrugForm(String drugForm) {
+        this.drugForm = drugForm;
+    }
+
+    public String getDrugFormCode() {
+        return drugFormCode;
+    }
+
+    public void setDrugFormCode(String drugFormCode) {
+        this.drugFormCode = drugFormCode;
+    }
+
+    public String getHisDrugForm() {
+        return hisDrugForm;
+    }
+
+    public void setHisDrugForm(String hisDrugForm) {
+        this.hisDrugForm = hisDrugForm;
+    }
+
+    public String getMedicalDrugFormCode() {
+        return medicalDrugFormCode;
+    }
+
+    public void setMedicalDrugFormCode(String medicalDrugFormCode) {
+        this.medicalDrugFormCode = medicalDrugFormCode;
+    }
 
     public Integer getAntiTumorDrugFlag() {
         return antiTumorDrugFlag;
