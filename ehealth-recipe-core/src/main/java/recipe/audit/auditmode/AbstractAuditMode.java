@@ -103,7 +103,7 @@ public abstract class AbstractAuditMode implements IAuditMode {
     @Override
     public void afterCheckNotPassYs(Recipe recipe) {
         StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
-        if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipe.getBussSource()) && recipe.getClinicId() != null) {
+        if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode()) && RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipe.getBussSource()) && recipe.getClinicId() != null) {
             IRevisitService iRevisitService = RevisitAPI.getService(IRevisitService.class);
             RevisitBean revisitBean = iRevisitService.getById(recipe.getClinicId());
             if (revisitBean != null && REVISIT_STATUS_IN.equals(revisitBean.getStatus())) {
