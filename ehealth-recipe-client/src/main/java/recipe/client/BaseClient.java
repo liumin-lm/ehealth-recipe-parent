@@ -168,6 +168,8 @@ public class BaseClient {
         EventLogDTO eventLog = new EventLogDTO();
         eventLog.setSource("recipe");
         eventLog.setName(name);
+        eventLog.setMilli_timestamp(String.valueOf(System.currentTimeMillis()));
+        eventLog.setEvent_uuid(name);
         ServiceLogDTO serviceLog = new ServiceLogDTO();
         serviceLog.setId(id);
         serviceLog.setType(type);

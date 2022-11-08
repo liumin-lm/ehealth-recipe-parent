@@ -79,6 +79,8 @@ public class InfraClient extends BaseClient {
     public void serviceTimeLog(ServiceLogDTO serviceLog) {
         logger.info("InfraClient serviceLog serviceLog={}", serviceLog);
         EventLogDTO eventLog = new EventLogDTO();
+        eventLog.setMilli_timestamp(String.valueOf(System.currentTimeMillis()));
+        eventLog.setEvent_uuid(serviceLog.getName());
         eventLog.setSource(serviceLog.getSource());
         eventLog.setName(serviceLog.getName());
         ServiceLogDTO serviceLog1 = new ServiceLogDTO();
