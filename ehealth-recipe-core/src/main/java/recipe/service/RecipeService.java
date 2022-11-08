@@ -1740,7 +1740,7 @@ public class RecipeService extends RecipeBaseService {
             //微信退款
             wxPayRefundForRecipe(2, recipe.getRecipeId(), null);
         }
-        if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipe.getBussSource()) && recipe.getClinicId() != null) {
+        if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode()) && RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipe.getBussSource()) && recipe.getClinicId() != null) {
             IRevisitService iRevisitService = RevisitAPI.getService(IRevisitService.class);
             RevisitBean revisitBean = iRevisitService.getById(recipe.getClinicId());
             if (revisitBean != null && REVISIT_STATUS_IN.equals(revisitBean.getStatus())) {
