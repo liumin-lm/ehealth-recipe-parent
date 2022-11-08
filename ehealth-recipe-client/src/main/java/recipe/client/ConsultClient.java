@@ -100,7 +100,7 @@ public class ConsultClient extends BaseClient {
         if(consultSetDTO.getAntibioticsLevel2()){
             flag.add(2);
         }
-        if(consultSetDTO.getAntibioticsLevel2()){
+        if(consultSetDTO.getAntibioticsLevel3()){
             flag.add(3);
         }
         return flag;

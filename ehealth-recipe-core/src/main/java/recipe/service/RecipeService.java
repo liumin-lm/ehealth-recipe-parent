@@ -1740,7 +1740,7 @@ public class RecipeService extends RecipeBaseService {
             //微信退款
             wxPayRefundForRecipe(2, recipe.getRecipeId(), null);
         }
-        if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipe.getBussSource()) && recipe.getClinicId() != null) {
+        if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode()) && RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipe.getBussSource()) && recipe.getClinicId() != null) {
             IRevisitService iRevisitService = RevisitAPI.getService(IRevisitService.class);
             RevisitBean revisitBean = iRevisitService.getById(recipe.getClinicId());
             if (revisitBean != null && REVISIT_STATUS_IN.equals(revisitBean.getStatus())) {
@@ -2054,10 +2054,6 @@ public class RecipeService extends RecipeBaseService {
                                     if (commit != null&&!commit) {
                                         drugToolService.drugCommitT(null, organId);
                                     }
-                                    DataSyncDTO dataSyncDTO = convertDataSyn(organDrug, organId, 1, null, 1, null);
-                                    List<DataSyncDTO> syncDTOList = Lists.newArrayList();
-                                    syncDTOList.add(dataSyncDTO);
-                                    dataSyncLogService.addDataSyncLog("1", syncDTOList);
                                 }
                             }
                         } catch (Exception e) {
@@ -2075,10 +2071,6 @@ public class RecipeService extends RecipeBaseService {
                             boolean isAllow=drugManager.isAllowDealBySyncDataRange(organDrug.getOrganDrugCode(),byOrganId1.getUpdateDrugDataRange(),byOrganId1.getUpdateSyncDrugType(),byOrganId1.getUpdateDrugFromList(),organDrug.getDrugType(),organDrug.getDrugform());
                             if(isAllow){
                                 updateHisOrganDrug(organDrug, organDrugList, organId);
-                                DataSyncDTO dataSyncDTO = convertDataSyn(organDrug, organId, 2, null, 2, null);
-                                List<DataSyncDTO> syncDTOList = Lists.newArrayList();
-                                syncDTOList.add(dataSyncDTO);
-                                dataSyncLogService.addDataSyncLog("1", syncDTOList);
                             }
 
                         } catch (Exception e) {
