@@ -197,7 +197,7 @@ public class SignInfoService implements ISignInfoService {
         if ("bjYwxCA".equals(thirdCASign)) {
 //            BeijingYwxCAImpl beijingYwxCA = AppContextHolder.getBean("BeijingYCA", BeijingYwxCAImpl.class);
 //            String token = beijingYwxCA.caTokenBussiness(recipeBean.getClinicOrgan());
-//            String openId = beijingYwxCA.getDocStatusForPC(recipeBean.getClinicOrgan(),recipeBean.getDoctor()).getUserAccount();
+            String openId = beijingYwxCA.getDocStatusForPC(recipeBean.getClinicOrgan(),recipeBean.getDoctor()).getUserAccount();
 //            caAccountRequestTO.setUserName(token);
 //            caAccountRequestTO.setUserAccount(StringUtils.isNotEmpty(recipeBean.getCaPassword()) ? recipeBean.getCaPassword():openId);
 //
