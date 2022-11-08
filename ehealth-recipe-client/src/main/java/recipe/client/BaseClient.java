@@ -24,10 +24,7 @@ import recipe.constant.HisErrorCodeEnum;
 import recipe.util.DictionaryUtil;
 
 import javax.annotation.Resource;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -169,7 +166,7 @@ public class BaseClient {
         eventLog.setSource("recipe");
         eventLog.setName(name);
         eventLog.setMilli_timestamp(String.valueOf(System.currentTimeMillis()));
-        eventLog.setEvent_uuid(name);
+        eventLog.setEvent_uuid(UUID.randomUUID().toString());
         ServiceLogDTO serviceLog = new ServiceLogDTO();
         serviceLog.setId(id);
         serviceLog.setType(type);

@@ -14,6 +14,7 @@ import recipe.aop.LogRecord;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * @description： 物流client
@@ -80,7 +81,7 @@ public class InfraClient extends BaseClient {
         logger.info("InfraClient serviceLog serviceLog={}", serviceLog);
         EventLogDTO eventLog = new EventLogDTO();
         eventLog.setMilli_timestamp(String.valueOf(System.currentTimeMillis()));
-        eventLog.setEvent_uuid(serviceLog.getName());
+        eventLog.setEvent_uuid(UUID.randomUUID().toString());
         eventLog.setSource(serviceLog.getSource());
         eventLog.setName(serviceLog.getName());
         ServiceLogDTO serviceLog1 = new ServiceLogDTO();
