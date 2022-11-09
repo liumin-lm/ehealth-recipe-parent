@@ -807,6 +807,7 @@ public class QueryRecipeService implements IQueryRecipeService {
         OrganDrugList organDrugList = new OrganDrugList();
         BeanUtils.copyProperties(organDrugChangeBean, organDrugList);
 
+        LOGGER.info("updateOrSaveOrganDrug organDrugList={}", JSONUtils.toString(organDrugChangeBean));
         if (!validDrugMsg(organDrugChangeBean, result)) {
             return result;
         }
