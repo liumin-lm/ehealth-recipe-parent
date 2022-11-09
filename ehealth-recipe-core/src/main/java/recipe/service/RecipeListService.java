@@ -1798,7 +1798,7 @@ public class RecipeListService extends RecipeBaseService {
         try {
             //如果运营平台-配置管理 中药是否隐方的配置项, 选择隐方后,患者在支付成功处方费用后才可以显示中药明细，否则就隐藏掉对应的中药明细。
             Object isHiddenRecipeDetail = configService.getConfiguration(recipe.getClinicOrgan(), "isHiddenRecipeDetail");
-            LOGGER.info("isReturnRecipeDetail 是否是中药：{} 是否隐方", RecipeUtil.isTcmType(recipe.getRecipeType()), isHiddenRecipeDetail);
+            LOGGER.info("isReturnRecipeDetail 是否是中药：{} 是否隐方:{}", RecipeUtil.isTcmType(recipe.getRecipeType()), isHiddenRecipeDetail);
             if (RecipeUtil.isTcmType(recipe.getRecipeType())//中药
                     && (boolean) isHiddenRecipeDetail == true//隐方)
             ) {
