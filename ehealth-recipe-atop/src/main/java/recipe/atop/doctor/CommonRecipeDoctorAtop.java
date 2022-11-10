@@ -240,8 +240,7 @@ public class CommonRecipeDoctorAtop extends BaseAtop {
             detailBean.setUsePathways(a.getUsePathwaysCode());
             hisRecipeDetailBeans.add(detailBean);
         });
-        logger.info("CommonRecipeDoctorAtop offlineCommonV1 hisRecipeDTO:{}", JSON.toJSONString(hisRecipeDTO));
-        if (RecipeTypeEnum.RECIPETYPE_TCM.getType().toString().equals(hisRecipeDTO.getHisRecipeInfo().getRecipeType())) {
+        if (RecipeTypeEnum.RECIPETYPE_TCM.getType().toString().equals(recipeBean.getRecipeType())) {
             List<String> drugCodeList = hisRecipeDetailBeans.stream().filter(hisRecipeDetailBean -> StringUtils.isNotEmpty(hisRecipeDetailBean.getDrugCode())).map(HisRecipeDetailBean::getDrugCode).collect(Collectors.toList());
             List<OrganDrugList> organDrugLists = drugBusinessService.organDrugList(commonRecipe.getOrganId(), drugCodeList);
             List<String> organDrugFormLists = organDrugLists.stream().filter(organDrugList -> StringUtils.isNotEmpty(organDrugList.getDrugForm())).map(OrganDrugList::getDrugForm).collect(Collectors.toList());
