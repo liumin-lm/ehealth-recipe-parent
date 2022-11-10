@@ -576,7 +576,7 @@ public class BaseOfflineToOnlineService {
             stockBusinessService.setSupportGiveMode(recipe);
 
             LOGGER.info("BaseOfflineToOnlineService saveRecipeInfo res:{}", recipe.getRecipeId());
-            if (!new Integer("0").equals(hisRecipe.getRevisitType())) {
+            if(!new Integer("0").equals(hisRecipe.getRevisitType())){
                 revisitManager.saveRevisitTracesList(recipe);
                 revisitManager.updateRecipeIdByConsultId(recipe.getRecipeId(), recipe.getClinicId());
             }
@@ -603,7 +603,7 @@ public class BaseOfflineToOnlineService {
         Recipe recipe = new Recipe();
         recipe.setBussSource(0);
         recipe.setMedicalFlag(hisRecipe.getMedicalFlag());
-        if (!new Integer("0").equals(hisRecipe.getRevisitType())) {
+        if(!new Integer("0").equals(hisRecipe.getRevisitType())){
             //通过挂号序号关联复诊
             try {
                 IRevisitExService exService = RevisitAPI.getService(IRevisitExService.class);
@@ -625,11 +625,11 @@ public class BaseOfflineToOnlineService {
             } catch (Exception e) {
                 LOGGER.error("线下处方转线上通过挂号序号关联复诊 error", e);
             }
-        } else {
+        }else {
             recipe.setBussSource(5);
-            if (null == hisRecipe.getMedicalFlag()) {
+            if(null==hisRecipe.getMedicalFlag()){
                 recipe.setMedicalFlag(0);
-            } else {
+            }else{
                 recipe.setMedicalFlag(hisRecipe.getMedicalFlag());
             }
 
@@ -715,13 +715,14 @@ public class BaseOfflineToOnlineService {
         //TODO 龙华？消息推送取不到RequestMpiId 没有操作人 咋整 只能空着或者mpiid
         if(userRoleToken!=null){
             recipe.setRequestMpiId(userRoleToken.getOwnMpiId());
-        }else {
-            if (!new Integer("0").equals(hisRecipe.getRevisitType())) {
+        }else{
+            if(!new Integer("0").equals(hisRecipe.getRevisitType())){
+                RevisitBean revisitBean = revisitClient.getRevisitByClinicId(recipe.getClinicId());
+                if (null != revisitBean) {
+                    recipe.setRequestMpiId(revisitBean.getRequestMpi());
+                }
+            }else{
                 recipe.setRequestMpiId(recipe.getMpiid());
-            }
-            RevisitBean revisitBean = revisitClient.getRevisitByClinicId(recipe.getClinicId());
-            if (null != revisitBean) {
-                recipe.setRequestMpiId(revisitBean.getRequestMpi());
             }
         }
         recipe.setRecipeSource(hisRecipe.getRecipeSource());
@@ -1014,7 +1015,7 @@ public class BaseOfflineToOnlineService {
 //        recipeExtend.setMedicalRecordNumber(hisRecipe.getMedicalRecordNumber());
         recipeExtend.setCardTypeName(hisRecipe.getCardTypeName());
         recipeExtend.setCardType(hisRecipe.getCardTypeCode());
-        if (!new Integer("0").equals(hisRecipe.getRevisitType())) {
+        if(!new Integer("0").equals(hisRecipe.getRevisitType())){
             RevisitExDTO consultExDTO = new RevisitExDTO();
             try {
                 consultExDTO = revisitClient.getByRegisterId(hisRecipe.getRegisteredId());
@@ -1256,7 +1257,6 @@ public class BaseOfflineToOnlineService {
         //审核药师
         hisRecipe.setCheckerCode(queryHisRecipResTo.getCheckerCode());
         hisRecipe.setCheckerName(queryHisRecipResTo.getCheckerName());
-
         hisRecipe.setRecipeFlag(queryHisRecipResTo.getRecipeFlag());
         hisRecipe.setIllnessType(queryHisRecipResTo.getIllnessType());
         hisRecipe.setMedicalFlag(queryHisRecipResTo.getMedicalFlag());
