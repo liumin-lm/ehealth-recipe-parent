@@ -118,7 +118,7 @@ public class DrugClient extends BaseClient {
             return null;
         }
         try {
-            com.ngari.patient.dto.UsingRateDTO usingRateDTO = usingRateService.getUsingRateDTOByOrganAndPlatformKeyV1(organId, organUsingRate);
+            com.ngari.patient.dto.UsingRateDTO usingRateDTO = usingRateService.newFindUsingRateDTOByOrganAndKey(organId, organUsingRate);
             if (null == usingRateDTO) {
                 return null;
             }
@@ -147,9 +147,9 @@ public class DrugClient extends BaseClient {
             com.ngari.patient.service.IUsePathwaysService usePathwaysService = AppDomainContext.getBean("basic.usePathwaysService", com.ngari.patient.service.IUsePathwaysService.class);
             com.ngari.patient.dto.UsePathwaysDTO usePathwaysDTO;
             if (ValidateUtil.integerIsEmpty(drugType)) {
-                usePathwaysDTO = usePathwaysService.getUsePathwaysByOrganAndPlatformKeyV1(organId, organUsePathways);
+                usePathwaysDTO = usePathwaysService.newFindUsePathwaysByOrganAndKey(organId, organUsePathways);
             } else {
-                usePathwaysDTO = usePathwaysService.newGetUsePathwaysByOrganAndPlatformKeyAndCategory(organId, organUsePathways, drugType.toString());
+                usePathwaysDTO = usePathwaysService.newGetUsePathwaysByOrganAndKeyAndCategory(organId, organUsePathways, drugType.toString());
             }
             if (null == usePathwaysDTO) {
                 return null;
