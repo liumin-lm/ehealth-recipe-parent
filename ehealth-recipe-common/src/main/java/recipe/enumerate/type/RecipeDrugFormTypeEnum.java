@@ -6,7 +6,6 @@ import org.apache.commons.lang3.StringUtils;
  * 处方剂型类型 1 中药饮片 2 配方颗粒
  */
 public enum RecipeDrugFormTypeEnum {
-
     TCM_DECOCTION_PIECES(1, "饮片方", "中药饮片"),
     TCM_FORMULA_PIECES(2, "颗粒方", "配方颗粒");
 
@@ -42,11 +41,12 @@ public enum RecipeDrugFormTypeEnum {
     }
 
     public static Integer getDrugFormType(String desc){
+
         if (StringUtils.isEmpty(desc)) {
             return TCM_DECOCTION_PIECES.type;
         }
         for (RecipeDrugFormTypeEnum e : RecipeDrugFormTypeEnum.values()) {
-            if (e.desc.equals(desc.replace("\n", "").replace("\r", ""))) {
+            if (e.desc.equals(desc)) {
                 return e.type;
             }
         }
