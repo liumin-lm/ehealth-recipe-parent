@@ -46,7 +46,7 @@ public enum RecipeDrugFormTypeEnum {
             return TCM_DECOCTION_PIECES.type;
         }
         for (RecipeDrugFormTypeEnum e : RecipeDrugFormTypeEnum.values()) {
-            if (e.desc.equals(desc)) {
+            if (e.desc.equals(desc.replace("\n", "").replace("\r", ""))) {
                 return e.type;
             }
         }
