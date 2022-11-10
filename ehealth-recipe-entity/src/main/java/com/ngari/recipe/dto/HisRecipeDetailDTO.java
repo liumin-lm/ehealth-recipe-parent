@@ -13,7 +13,7 @@ public class HisRecipeDetailDTO {
     private String drugCode;
     private String drugName;
     private BigDecimal price;
-    //药品发药数量
+    //药品发药金额
     private Double amount;
     private BigDecimal totalPrice;
     //药品规格
