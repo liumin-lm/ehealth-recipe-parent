@@ -717,11 +717,12 @@ public class BaseOfflineToOnlineService {
             recipe.setRequestMpiId(userRoleToken.getOwnMpiId());
         }else{
             if(!new Integer("0").equals(hisRecipe.getRevisitType())){
+                RevisitBean revisitBean = revisitClient.getRevisitByClinicId(recipe.getClinicId());
+                if (null != revisitBean) {
+                    recipe.setRequestMpiId(revisitBean.getRequestMpi());
+                }
+            }else{
                 recipe.setRequestMpiId(recipe.getMpiid());
-            }
-            RevisitBean revisitBean = revisitClient.getRevisitByClinicId(recipe.getClinicId());
-            if (null != revisitBean) {
-                recipe.setRequestMpiId(revisitBean.getRequestMpi());
             }
         }
         recipe.setRecipeSource(hisRecipe.getRecipeSource());
