@@ -96,13 +96,10 @@ public class DoctorManager extends BaseManager{
      */
     public DoctorPermissionDTO doctorHisRecipePermission(DoctorPermissionDTO doctorPermission) {
         DoctorDTO doctorDTO = doctorClient.jobNumber(doctorPermission.getOrganId(), doctorPermission.getDoctorId(), doctorPermission.getDepartId());
-        doctorDTO.getJobNumber();
-        doctorDTO.getName();
-        doctorDTO.getIdNumber();
         AppointDepartDTO appointDepartDTO = departClient.getAppointDepartById(doctorPermission.getAppointId());
-        appointDepartDTO.getAppointDepartName();
-        appointDepartDTO.getAppointDepartCode();
-
-        return new DoctorPermissionDTO();
+        Boolean response = offlineRecipeClient.doctorRecipePermission(doctorPermission.getOrganId(), doctorDTO, appointDepartDTO);
+        DoctorPermissionDTO doctorPermissionDTO = new DoctorPermissionDTO();
+        doctorPermissionDTO.setResult(response);
+        return doctorPermissionDTO;
     }
 }
