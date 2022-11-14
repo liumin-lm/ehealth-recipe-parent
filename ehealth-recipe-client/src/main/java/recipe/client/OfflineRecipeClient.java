@@ -8,15 +8,19 @@ import com.github.rholder.retry.WaitStrategies;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.recipe.mode.EmrDetailValueDTO;
+import com.ngari.his.recipe.mode.*;
 import com.ngari.patient.dto.AppointDepartDTO;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.EmploymentService;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.platform.recipe.mode.*;
 import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.DrugSpecificationInfoDTO;
 import com.ngari.recipe.dto.EmrDetailDTO;
+import com.ngari.recipe.dto.*;
+import com.ngari.recipe.entity.*;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
@@ -588,9 +592,10 @@ public class OfflineRecipeClient extends BaseClient {
         doctor.getIdNumber();
         appointDepart.getAppointDepartName();
         appointDepart.getAppointDepartCode();
-        HisResponseTO<Boolean> hisResponse = recipeHisService.doctorRecipePermission(request);
+        // HisResponseTO<Boolean> hisResponse = recipeHisService.doctorRecipePermission(request);
         try {
-            return getResponse(hisResponse);
+            //     return getResponse(hisResponse);
+            return true;
         } catch (Exception e) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
