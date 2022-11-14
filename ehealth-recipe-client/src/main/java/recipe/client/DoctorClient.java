@@ -8,7 +8,6 @@ import com.ngari.patient.service.EmploymentService;
 import com.ngari.recipe.dto.ApothecaryDTO;
 import com.ngari.recipe.entity.Recipe;
 import ctd.util.JSONUtils;
-import eh.recipeaudit.model.RecipeCheckBean;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -16,7 +15,10 @@ import recipe.util.ByteUtils;
 import recipe.util.RecipeUtil;
 import recipe.util.ValidateUtil;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -32,8 +34,6 @@ public class DoctorClient extends BaseClient {
     private DoctorExtendService doctorExtendService;
     @Autowired
     private EmploymentService iEmploymentService;
-    @Autowired
-    private RecipeAuditClient recipeAuditClient;
 
     /**
      * 获取平台药师信息 无选择发药药师 则获取默认发药药师
@@ -118,6 +118,7 @@ public class DoctorClient extends BaseClient {
             if (null == doctorDTO) {
                 return new DoctorDTO();
             }
+            logger.info("DoctorClient getDoctor doctorDTO:{}", JSON.toJSONString(doctorDTO));
             return doctorDTO;
         } catch (Exception e) {
             logger.warn("DoctorClient getDoctor doctorId:{}", doctorId, e);
@@ -134,18 +135,18 @@ public class DoctorClient extends BaseClient {
      * @return 医生工号
      */
     public DoctorDTO jobNumber(Integer organId, Integer doctorId, Integer departId) {
-        if (ValidateUtil.validateObjects(organId, doctorId, departId)) {
+        DoctorDTO doctorDTO = this.getDoctor(doctorId);
+        if (ValidateUtil.validateObjects(organId, departId)) {
             logger.info("DoctorClient jobNumber organId:{} ,doctorId:{}, departId:{}", organId, doctorId, departId);
-            return new DoctorDTO();
+            return doctorDTO;
         }
         try {
-            DoctorDTO doctorDTO = doctorService.getByDoctorId(doctorId);
             doctorDTO.setJobNumber(iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(doctorId, organId, departId));
-            return doctorDTO;
         } catch (Exception e) {
             logger.warn("DoctorClient jobNumber doctorId:{}", doctorId, e);
-            return new DoctorDTO();
+            return doctorDTO;
         }
+        return doctorDTO;
     }
 
 

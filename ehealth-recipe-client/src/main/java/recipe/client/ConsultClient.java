@@ -11,6 +11,7 @@ import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.his.visit.mode.*;
 import com.ngari.patient.dto.ConsultSetDTO;
 import com.ngari.patient.service.ConsultSetService;
+import com.ngari.recipe.dto.DoctorPermissionDTO;
 import ctd.util.JSONUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -187,4 +188,39 @@ public class ConsultClient extends BaseClient {
     public void updateRecipeIdByConsultId(Integer recipeId, Integer clinicId) {
         consultExService.updateRecipeIdByConsultId(recipeId, clinicId);
     }
+
+    /**
+     * 获取医生权限
+     *
+     * @param doctorId  医生id
+     * @param isDrugNum 是否有中药数量
+     * @return
+     */
+    public DoctorPermissionDTO doctorPermissionSetting(Integer doctorId, boolean isDrugNum) {
+        DoctorPermissionDTO doctorPermission = new DoctorPermissionDTO();
+        ConsultSetDTO permission = consultSetService.getBeanByDoctorId(doctorId);
+        //西药开方权
+        boolean xiYaoRecipeRight = null != permission.getXiYaoRecipeRight() && permission.getXiYaoRecipeRight();
+        doctorPermission.setXiYaoRecipeRight(xiYaoRecipeRight);
+        //中成药开方权
+        boolean zhongChengRecipeRight = null != permission.getZhongChengRecipeRight() && permission.getZhongChengRecipeRight();
+        doctorPermission.setZhongChengRecipeRight(zhongChengRecipeRight);
+        //中药开方权
+        boolean zhongRecipeRight = null != permission.getZhongRecipeRight() && permission.getZhongRecipeRight() && isDrugNum;
+        doctorPermission.setZhongRecipeRight(zhongRecipeRight);
+        //膏方开方权
+        boolean gaoFangRecipeRight = null != permission.getGaoFangRecipeRight() && permission.getGaoFangRecipeRight();
+        doctorPermission.setGaoFangRecipeRight(gaoFangRecipeRight);
+        // 靶向药开方权
+        boolean targetedDrugTypeRecipeRight = null != permission.getTargetedDrugTypeRecipeRight() && permission.getTargetedDrugTypeRecipeRight();
+        doctorPermission.setTargetedDrugTypeRecipeRight(targetedDrugTypeRecipeRight);
+        //开方权
+        boolean prescription = xiYaoRecipeRight || zhongChengRecipeRight || zhongRecipeRight || gaoFangRecipeRight || targetedDrugTypeRecipeRight;
+        doctorPermission.setPrescription(prescription);
+        //能否开医保处方
+        boolean medicalFlag = null != permission.getMedicarePrescription() && permission.getMedicarePrescription();
+        doctorPermission.setMedicalFlag(medicalFlag);
+        return doctorPermission;
+    }
+
 }

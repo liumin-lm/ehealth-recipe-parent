@@ -1,11 +1,6 @@
 package recipe.service;
 
 import com.google.common.collect.Maps;
-import com.ngari.base.doctor.model.DoctorBean;
-import com.ngari.base.employment.model.EmploymentBean;
-import com.ngari.base.employment.service.IEmploymentService;
-import com.ngari.patient.dto.ConsultSetDTO;
-import com.ngari.patient.service.ConsultSetService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.entity.DrugList;
@@ -15,9 +10,6 @@ import ctd.persistence.DAOFactory;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import recipe.ApplicationUtils;
 import recipe.dao.DrugListDAO;
 import recipe.dao.PriortyDrugsBindDoctorDao;
 import recipe.dao.PriortyDrugsDao;
@@ -29,19 +21,18 @@ import java.util.Map;
 
 /**
  * 重点药品选择医生开处方(药品和医生均在数据库配置)
- *
+ * <p>
  * 在线续方首页增加药品重点展示栏目或，点击该栏找医生开处方按钮，
  * 进入指定的医生列表，若未人工指定，则进入所有开方医生列表。
+ *
  * @author jiangtingfeng
  * @date 2017/10/23.
  */
 @RpcBean(value = "priorityDrugBindDoctorService", mvc_authentication = false)
-public class PriorityDrugBindDoctorService
-{
-    private static final Log LOGGER = LogFactory.getLog(PriorityDrugBindDoctorService.class);
-
+public class PriorityDrugBindDoctorService {
     /**
      * 获取重点药品信息
+     *
      * @return
      */
     @RpcService
@@ -67,43 +58,6 @@ public class PriorityDrugBindDoctorService
         }
         return result;
     }
-
-//    2019/12/16去除废弃接口
-//     /**
-//     * 获取重点药品的开药医生列表
-//     * @param getPriorityDrugsTO
-//     * @return
-//     */
-//    @Deprecated
-//    @RpcService
-//    public List<Map<String, Object>> getDoctorsForDishingOutDrug(GetPriorityDrugsTO getPriorityDrugsTO) {
-//        PriortyDrugsBindDoctorDao priortyDrugsBindDoctorDao = DAOFactory.getDAO(PriortyDrugsBindDoctorDao.class);
-//        IDoctorService iDoctorService = ApplicationUtils.getBaseService(IDoctorService.class);
-//        IEmploymentService iEmploymentService = ApplicationUtils.getBaseService(IEmploymentService.class);
-//        List<Map<String, Object>> result = Lists.newArrayList();
-//
-//        LOGGER.info("Enter PriorityDrugBindDoctorService.getDoctorsForDishingOutDrug " +
-//            "GetPriorityDrugsTO = " + getPriorityDrugsTO);
-//
-//        if (null == getPriorityDrugsTO || null == getPriorityDrugsTO.getDrugId()){
-//            return result;
-//        }
-//        Integer drugId = getPriorityDrugsTO.getDrugId();
-//        List<Integer> doctorIds =
-//            priortyDrugsBindDoctorDao.findPriortyDrugBindDoctors(drugId);
-//
-//        if (CollectionUtils.isEmpty(doctorIds)) {
-//            return null;
-//        }
-//        List<DoctorBean> doctors =
-//            iDoctorService.findDoctorsByConditions(getPriorityDrugsTO,
-//                doctorIds);
-//
-//        for (DoctorBean doctor : doctors) {
-//            getResult(result, iEmploymentService, doctor);
-//        }
-//        return result;
-//    }
 
     /**
      * 配置重点药品
@@ -136,28 +90,5 @@ public class PriorityDrugBindDoctorService
         priortyDrugBindDoctor.setDoctorId(doctorId);
         priortyDrugBindDoctor.setCreateTime(new Date());
         priortyDrugsBindDoctorDao.save(priortyDrugBindDoctor);
-    }
-
-    /**
-     * 封装返回信息
-     * @param docInfoList
-     * @param iEmploymentService
-     * @param doctor
-     * @return
-     */
-    public List<Map<String, Object>> getResult(List<Map<String, Object>> docInfoList,
-        IEmploymentService iEmploymentService, DoctorBean doctor){
-        int doctorId = doctor.getDoctorId();
-        Map<String, Object> docInfo = Maps.newHashMap();
-        EmploymentBean employment = iEmploymentService.getPrimaryEmpByDoctorId(doctorId);
-        if (employment != null) {
-            doctor.setDepartment(employment.getDepartment());
-        }
-        ConsultSetService consultSetService = ApplicationUtils.getBasicService(ConsultSetService.class);
-        ConsultSetDTO consultSet = consultSetService.getNoDisCountSet(doctorId);
-        docInfo.put("doctor", doctor);
-        docInfo.put("consultSet", consultSet);
-        docInfoList.add(docInfo);
-        return docInfoList;
     }
 }

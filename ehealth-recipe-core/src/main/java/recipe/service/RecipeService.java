@@ -140,7 +140,7 @@ import java.util.stream.Collectors;
 
 import static ctd.persistence.DAOFactory.getDAO;
 import static recipe.service.RecipeServiceSub.getRecipeAndDetailByIdImpl;
-import static recipe.service.afterpay.IAfterPayBussService.*;
+import static recipe.service.afterpay.IAfterPayBussService.REVISIT_STATUS_IN;
 
 /**
  * 处方服务类
@@ -389,6 +389,7 @@ public class RecipeService extends RecipeBaseService {
      * @return Map<String, Object>
      */
     @RpcService
+    @Deprecated
     public Map<String, Object> openRecipeOrNotNew(Integer doctorId, Integer organId) {
         Args.notNull(organId, "organId");
         Args.notNull(doctorId, "doctorId");

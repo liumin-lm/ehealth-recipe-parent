@@ -1,11 +1,15 @@
 package recipe.manager;
 
+import com.ngari.patient.dto.AppointDepartDTO;
+import com.ngari.patient.dto.DoctorDTO;
+import com.ngari.recipe.dto.DoctorPermissionDTO;
 import com.ngari.recipe.entity.DoctorDefault;
 import org.springframework.stereotype.Service;
 import recipe.dao.DoctorDefaultDAO;
 import recipe.util.ValidateUtil;
 
 import javax.annotation.Resource;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -55,5 +59,50 @@ public class DoctorManager extends BaseManager{
             return;
         }
         doctorDefaultDAO.save(doctorDefault);
+    }
+
+    /**
+     * 平台医生权限
+     *
+     * @param doctorPermissionVO
+     */
+    public DoctorPermissionDTO doctorRecipePermission(DoctorPermissionDTO doctorPermissionVO) {
+        Integer organId = doctorPermissionVO.getOrganId();
+
+        int listNum = organDrugListDAO.getCountByOrganIdAndStatus(Collections.singletonList(organId));
+        boolean haveDrug = listNum > 0;
+        //获取中药数量
+        boolean isDrugNum = false;
+        if (haveDrug) {
+            Long zhongDrugNum = drugListDAO.getSpecifyNum(organId, 3);
+            isDrugNum = zhongDrugNum > 0;
+        }
+        DoctorPermissionDTO doctorPermission = consultClient.doctorPermissionSetting(doctorPermissionVO.getDoctorId(), isDrugNum);
+        //处方权限结果
+        doctorPermission.setResult(doctorPermission.getPrescription() && haveDrug);
+        //提示内容
+        String tips = configurationClient.getValueCatch(organId, "DoctorRecipeNoPermissionText", "");
+        doctorPermission.setTips(tips);
+        //开处方页顶部文案配置
+        String openRecipeTopText = configurationClient.getValueCatch(organId, "openRecipeTopTextConfig", "");
+        doctorPermission.setUnSendTitle(openRecipeTopText);
+        return doctorPermission;
+    }
+
+    /**
+     * his医生权限
+     *
+     * @param doctorPermission
+     */
+    public DoctorPermissionDTO doctorHisRecipePermission(DoctorPermissionDTO doctorPermission) {
+        DoctorDTO doctorDTO = doctorClient.jobNumber(doctorPermission.getOrganId(), doctorPermission.getDoctorId(), doctorPermission.getDepartId());
+        doctorDTO.getJobNumber();
+        doctorDTO.getName();
+        doctorDTO.getIdNumber();
+        AppointDepartDTO appointDepartDTO = departClient.getAppointDepartById(doctorPermission.getAppointId());
+        appointDepartDTO.getAppointDepartName();
+        appointDepartDTO.getAppointDepartCode();
+
+        return new DoctorPermissionDTO();
     }
 }

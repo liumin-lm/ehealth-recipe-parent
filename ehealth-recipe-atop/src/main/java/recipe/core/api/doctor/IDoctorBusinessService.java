@@ -1,6 +1,7 @@
 package recipe.core.api.doctor;
 
 import com.ngari.patient.dto.DoctorDTO;
+import com.ngari.recipe.dto.DoctorPermissionDTO;
 import com.ngari.recipe.entity.DoctorDefault;
 import recipe.vo.doctor.DoctorDefaultVO;
 
@@ -30,7 +31,15 @@ public interface IDoctorBusinessService {
 
     /**
      * 保存医生 默认数据
+     *
      * @param doctorDefaultVO
      */
     void saveDoctorDefault(DoctorDefaultVO doctorDefaultVO);
+
+    /**
+     * 获取医生权限
+     *
+     * @param doctorPermission
+     */
+    DoctorPermissionDTO doctorRecipePermission(DoctorPermissionDTO doctorPermission);
 }

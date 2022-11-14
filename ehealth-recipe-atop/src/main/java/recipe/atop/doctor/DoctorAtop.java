@@ -1,5 +1,6 @@
 package recipe.atop.doctor;
 
+import com.ngari.recipe.dto.DoctorPermissionDTO;
 import com.ngari.recipe.entity.DoctorDefault;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -8,6 +9,7 @@ import recipe.atop.BaseAtop;
 import recipe.core.api.doctor.IDoctorBusinessService;
 import recipe.util.ObjectCopyUtils;
 import recipe.vo.doctor.DoctorDefaultVO;
+import recipe.vo.doctor.DoctorPermissionVO;
 
 import java.util.List;
 
@@ -32,14 +34,26 @@ public class DoctorAtop extends BaseAtop {
 
     /**
      * 获取医生 默认数据
+     *
      * @param doctorDefault
      * @return 医生默认数据
      */
     @RpcService
-    public List<DoctorDefaultVO> doctorDefaultList(DoctorDefaultVO doctorDefault){
+    public List<DoctorDefaultVO> doctorDefaultList(DoctorDefaultVO doctorDefault) {
         validateAtop(doctorDefault, doctorDefault.getOrganId(), doctorDefault.getDoctorId());
         List<DoctorDefault> result = iDoctorBusinessService.doctorDefaultList(doctorDefault);
         return ObjectCopyUtils.convert(result, DoctorDefaultVO.class);
+    }
+
+    /**
+     * 医生权限
+     *
+     * @param doctorPermission
+     */
+    @RpcService
+    public DoctorPermissionVO doctorRecipePermission(DoctorPermissionVO doctorPermission) {
+        DoctorPermissionDTO result = iDoctorBusinessService.doctorRecipePermission(ObjectCopyUtils.convert(doctorPermission, DoctorPermissionDTO.class));
+        return ObjectCopyUtils.convert(result, DoctorPermissionVO.class);
     }
 
 }

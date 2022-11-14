@@ -1,6 +1,7 @@
 package recipe.business;
 
 import com.ngari.patient.dto.DoctorDTO;
+import com.ngari.recipe.dto.DoctorPermissionDTO;
 import com.ngari.recipe.entity.DoctorDefault;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -29,12 +30,26 @@ public class DoctorBusinessService extends BaseService implements IDoctorBusines
 
     @Override
     public List<DoctorDefault> doctorDefaultList(DoctorDefaultVO doctorDefault) {
-        return doctorManager.doctorDefaultList(doctorDefault.getOrganId(),doctorDefault.getDoctorId(),doctorDefault.getCategory());
+        return doctorManager.doctorDefaultList(doctorDefault.getOrganId(), doctorDefault.getDoctorId(), doctorDefault.getCategory());
     }
 
     @Override
     public void saveDoctorDefault(DoctorDefaultVO doctorDefaultVO) {
         DoctorDefault doctorDefault = ObjectCopyUtils.convert(doctorDefaultVO, DoctorDefault.class);
+        if (null == doctorDefault) {
+            return;
+        }
         doctorManager.saveDoctorDefault(doctorDefault);
+    }
+
+    @Override
+    public DoctorPermissionDTO doctorRecipePermission(DoctorPermissionDTO doctorPermission) {
+        //校验权限类型 true：his权限，false：平台权限
+        Boolean drugToHosByEnterprise = configurationClient.getValueBooleanCatch(doctorPermission.getOrganId(), "doctorRecipePermission", false);
+        if (drugToHosByEnterprise) {
+            return doctorManager.doctorHisRecipePermission(doctorPermission);
+        } else {
+            return doctorManager.doctorRecipePermission(doctorPermission);
+        }
     }
 }
