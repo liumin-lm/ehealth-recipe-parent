@@ -1,5 +1,6 @@
 package recipe.client;
 
+import com.alibaba.fastjson.JSON;
 import com.ngari.patient.dto.AppointDepartDTO;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.service.AppointDepartService;
@@ -9,6 +10,7 @@ import ctd.util.JSONUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.util.ValidateUtil;
 
 
 /**
@@ -88,11 +90,17 @@ public class DepartClient extends BaseClient {
 
     /**
      * 获取挂号科室
+     *
      * @param appointId
      * @return
      */
-    public AppointDepartDTO getAppointDepartById(Integer appointId){
-        return appointDepartService.getById(appointId);
+    public AppointDepartDTO getAppointDepartById(Integer appointId) {
+        if (ValidateUtil.integerIsEmpty(appointId)) {
+            return null;
+        }
+        AppointDepartDTO appointDepartDTO = appointDepartService.getById(appointId);
+        logger.info("DepartClient getAppointDepartById appointDepartDTO ={}", JSON.toJSONString(appointDepartDTO));
+        return appointDepartDTO;
     }
 
 }

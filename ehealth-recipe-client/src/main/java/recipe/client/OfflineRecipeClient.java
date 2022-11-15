@@ -587,16 +587,11 @@ public class OfflineRecipeClient extends BaseClient {
      * @return false 无权限 true 有权限
      */
     public Boolean doctorRecipePermission(Integer organId, DoctorDTO doctor, AppointDepartDTO appointDepart) {
-        doctor.getJobNumber();
-        doctor.getName();
-        doctor.getIdNumber();
-        appointDepart.getAppointDepartName();
-        appointDepart.getAppointDepartCode();
-
         DoctorPermissionTO doctorPermission = new DoctorPermissionTO();
         doctorPermission.setOrganId(organId);
         doctorPermission.setDoctorDTO(ObjectCopyUtils.convert(doctor, DoctorDTO.class));
         doctorPermission.setAppointDepartDTO(ObjectCopyUtils.convert(appointDepart, AppointDepartDTO.class));
+        logger.info("OfflineRecipeClient doctorRecipePermission doctorPermission ={}", JSON.toJSONString(doctorPermission));
         try {
             HisResponseTO<Boolean> hisResponse = recipeHisService.doctorRecipePermission(doctorPermission);
             return getResponse(hisResponse);

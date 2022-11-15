@@ -199,6 +199,7 @@ public class ConsultClient extends BaseClient {
     public DoctorPermissionDTO doctorPermissionSetting(Integer doctorId, boolean isDrugNum) {
         DoctorPermissionDTO doctorPermission = new DoctorPermissionDTO();
         ConsultSetDTO permission = consultSetService.getBeanByDoctorId(doctorId);
+        logger.info("ConsultClient doctorPermissionSetting permission ={}", JSON.toJSONString(permission));
         //西药开方权
         boolean xiYaoRecipeRight = null != permission.getXiYaoRecipeRight() && permission.getXiYaoRecipeRight();
         doctorPermission.setXiYaoRecipeRight(xiYaoRecipeRight);
@@ -220,6 +221,7 @@ public class ConsultClient extends BaseClient {
         //能否开医保处方
         boolean medicalFlag = null != permission.getMedicarePrescription() && permission.getMedicarePrescription();
         doctorPermission.setMedicalFlag(medicalFlag);
+        logger.info("ConsultClient doctorPermissionSetting doctorPermission ={}", JSON.toJSONString(doctorPermission));
         return doctorPermission;
     }
 
