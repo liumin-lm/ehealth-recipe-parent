@@ -808,6 +808,12 @@ public class HisRequestInit {
                     List<String> recipeNoS = recipeS.stream().map(Recipe::getRecipeCode).collect(Collectors.toList());
                     requestTO.setRecipeNoS(recipeNoS);
                 }
+                if (Objects.nonNull(order.getEnterpriseId())) {
+                    DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+                    DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
+                    requestTO.setThirdEnterpriseCode(drugsEnterprise.getThirdEnterpriseCode());
+                    requestTO.setEnterpriseCode(drugsEnterprise.getEnterpriseCode());
+                }
             }
 
             //此处就行改造
