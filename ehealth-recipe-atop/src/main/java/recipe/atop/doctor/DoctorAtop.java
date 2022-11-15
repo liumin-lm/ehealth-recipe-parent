@@ -52,6 +52,7 @@ public class DoctorAtop extends BaseAtop {
      */
     @RpcService
     public DoctorPermissionVO doctorRecipePermission(DoctorPermissionVO doctorPermission) {
+        validateAtop(doctorPermission, doctorPermission.getOrganId(), doctorPermission.getDoctorId(), doctorPermission.getAppointId());
         DoctorPermissionDTO result = iDoctorBusinessService.doctorRecipePermission(ObjectCopyUtils.convert(doctorPermission, DoctorPermissionDTO.class));
         return ObjectCopyUtils.convert(result, DoctorPermissionVO.class);
     }

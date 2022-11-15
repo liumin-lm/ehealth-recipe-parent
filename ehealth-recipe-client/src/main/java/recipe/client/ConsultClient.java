@@ -211,7 +211,7 @@ public class ConsultClient extends BaseClient {
         //膏方开方权
         boolean gaoFangRecipeRight = null != permission.getGaoFangRecipeRight() && permission.getGaoFangRecipeRight();
         doctorPermission.setGaoFangRecipeRight(gaoFangRecipeRight);
-        // 靶向药开方权
+        //靶向药开方权
         boolean targetedDrugTypeRecipeRight = null != permission.getTargetedDrugTypeRecipeRight() && permission.getTargetedDrugTypeRecipeRight();
         doctorPermission.setTargetedDrugTypeRecipeRight(targetedDrugTypeRecipeRight);
         //开方权
