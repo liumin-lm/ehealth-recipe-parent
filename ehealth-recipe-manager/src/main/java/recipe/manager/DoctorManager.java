@@ -107,6 +107,9 @@ public class DoctorManager extends BaseManager{
         AppointDepartDTO appointDepartDTO = departClient.getAppointDepartById(doctorPermission.getAppointId());
         Boolean response = offlineRecipeClient.doctorRecipePermission(doctorPermission.getOrganId(), doctorDTO, appointDepartDTO);
         doctorPermissionDTO.setResult(response);
+        if (!response) {
+            doctorPermissionDTO.setTips("暂无开方权限");
+        }
         return doctorPermissionDTO;
     }
 }
