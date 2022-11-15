@@ -51,9 +51,7 @@ public class DoctorBusinessService extends BaseService implements IDoctorBusines
             if (!doctorPermissionDTO.getResult()) {
                 return doctorPermissionDTO;
             }
-            return doctorManager.doctorRecipePermission(doctorPermission);
-        } else {
-            return doctorManager.doctorRecipePermission(doctorPermission);
         }
+        return doctorManager.doctorRecipePermission(doctorPermission);
     }
 }
