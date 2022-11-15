@@ -47,7 +47,11 @@ public class DoctorBusinessService extends BaseService implements IDoctorBusines
         //校验权限类型 true：his权限，false：平台权限
         Boolean drugToHosByEnterprise = configurationClient.getValueBooleanCatch(doctorPermission.getOrganId(), "doctorRecipePermission", false);
         if (drugToHosByEnterprise) {
-            return doctorManager.doctorHisRecipePermission(doctorPermission);
+            DoctorPermissionDTO doctorPermissionDTO = doctorManager.doctorHisRecipePermission(doctorPermission);
+            if (!doctorPermissionDTO.getResult()) {
+                return doctorPermissionDTO;
+            }
+            return doctorManager.doctorRecipePermission(doctorPermission);
         } else {
             return doctorManager.doctorRecipePermission(doctorPermission);
         }
