@@ -1,5 +1,6 @@
 package recipe.manager;
 
+import com.aliyun.openservices.shade.com.alibaba.fastjson.JSON;
 import com.ngari.patient.dto.AppointDepartDTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.recipe.dto.DoctorPermissionDTO;
@@ -95,10 +96,16 @@ public class DoctorManager extends BaseManager{
      * @param doctorPermission
      */
     public DoctorPermissionDTO doctorHisRecipePermission(DoctorPermissionDTO doctorPermission) {
+        logger.info("DoctorManager doctorHisRecipePermission doctorPermission = {}", JSON.toJSONString(doctorPermission));
+        DoctorPermissionDTO doctorPermissionDTO = new DoctorPermissionDTO();
+        //挂号科室id 为空 则不走his校验
+        if (ValidateUtil.integerIsEmpty(doctorPermission.getAppointId())) {
+            doctorPermissionDTO.setResult(true);
+            return doctorPermissionDTO;
+        }
         DoctorDTO doctorDTO = doctorClient.jobNumber(doctorPermission.getOrganId(), doctorPermission.getDoctorId(), doctorPermission.getDepartId());
         AppointDepartDTO appointDepartDTO = departClient.getAppointDepartById(doctorPermission.getAppointId());
         Boolean response = offlineRecipeClient.doctorRecipePermission(doctorPermission.getOrganId(), doctorDTO, appointDepartDTO);
-        DoctorPermissionDTO doctorPermissionDTO = new DoctorPermissionDTO();
         doctorPermissionDTO.setResult(response);
         return doctorPermissionDTO;
     }
