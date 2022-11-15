@@ -592,10 +592,14 @@ public class OfflineRecipeClient extends BaseClient {
         doctor.getIdNumber();
         appointDepart.getAppointDepartName();
         appointDepart.getAppointDepartCode();
-        // HisResponseTO<Boolean> hisResponse = recipeHisService.doctorRecipePermission(request);
+
+        DoctorPermissionTO doctorPermission = new DoctorPermissionTO();
+        doctorPermission.setOrganId(organId);
+        doctorPermission.setDoctorDTO(ObjectCopyUtils.convert(doctor, DoctorDTO.class));
+        doctorPermission.setAppointDepartDTO(ObjectCopyUtils.convert(appointDepart, AppointDepartDTO.class));
         try {
-            //     return getResponse(hisResponse);
-            return true;
+            HisResponseTO<Boolean> hisResponse = recipeHisService.doctorRecipePermission(doctorPermission);
+            return getResponse(hisResponse);
         } catch (Exception e) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
