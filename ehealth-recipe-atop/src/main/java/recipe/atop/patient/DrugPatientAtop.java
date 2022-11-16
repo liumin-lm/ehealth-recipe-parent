@@ -8,17 +8,17 @@ import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.vo.HospitalDrugListReqVO;
 import com.ngari.recipe.vo.HospitalDrugListVO;
-import recipe.core.api.IClinicCartBusinessService;
-import recipe.vo.patient.PatientContinueRecipeCheckDrugReq;
 import com.ngari.recipe.vo.SearchDrugReqVO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
+import recipe.core.api.IClinicCartBusinessService;
 import recipe.core.api.IDrugBusinessService;
 import recipe.core.api.IStockBusinessService;
 import recipe.util.ObjectCopyUtils;
+import recipe.vo.patient.PatientContinueRecipeCheckDrugReq;
 import recipe.vo.patient.PatientContinueRecipeCheckDrugRes;
 import recipe.vo.second.ClinicCartVO;
 
@@ -43,7 +43,7 @@ public class DrugPatientAtop extends BaseAtop {
     private IClinicCartBusinessService clinicCartService;
 
     /**
-     * 患者端获取药品详情
+     * 患者端获取药品列表
      *
      * @param searchDrugReqVo
      * @return
