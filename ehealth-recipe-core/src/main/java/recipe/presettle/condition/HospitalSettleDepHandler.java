@@ -32,7 +32,14 @@ public class HospitalSettleDepHandler implements IOrderTypeConditionHandler {
         LOGGER.info("HospitalSettleDepHandler.getOrderType req={}", JSONArray.toJSONString(request));
         if (request.getDrugsEnterprise() != null) {
             OrganDrugsSaleConfig organDrugsSaleConfig = organDrugsSaleConfigDAO.getOrganDrugsSaleConfig(request.getDrugsEnterprise().getId());
-            if (Objects.nonNull(organDrugsSaleConfig) && Integer.valueOf("1").equals(organDrugsSaleConfig.getIsHosDep())) {
+            Integer isHosDep;
+            if (Objects.isNull(organDrugsSaleConfig)) {
+                //该药企未配置销售配置，走老配置
+                isHosDep = request.getDrugsEnterprise().getIsHosDep();
+            } else {
+                isHosDep = organDrugsSaleConfig.getIsHosDep();
+            }
+            if (Objects.nonNull(organDrugsSaleConfig) && Integer.valueOf("1").equals(isHosDep)) {
                 return RecipeOrderTypeEnum.HOSPITAL_SELF.getType();
             }
         }
