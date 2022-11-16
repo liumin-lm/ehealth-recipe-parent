@@ -354,6 +354,9 @@ public class Recipe implements Serializable {
     @Dictionary(id = "eh.cdr.dictionary.RecipeDrugForm")
     private Integer recipeDrugForm;
 
+    @ItemProperty(alias = "代煎帖数")
+    private Integer decoctionNum;
+
     @Column(name = "doctor_sign_state")
     public Integer getDoctorSignState() {
         return doctorSignState;
@@ -1283,6 +1286,15 @@ public class Recipe implements Serializable {
 
     public void setRecipeDrugForm(Integer recipeDrugForm) {
         this.recipeDrugForm = recipeDrugForm;
+    }
+
+    @Column(name = "decoction_num")
+    public Integer getDecoctionNum() {
+        return decoctionNum;
+    }
+
+    public void setDecoctionNum(Integer decoctionNum) {
+        this.decoctionNum = decoctionNum;
     }
 
     public void setCommonRecipeCode(String commonRecipeCode) {

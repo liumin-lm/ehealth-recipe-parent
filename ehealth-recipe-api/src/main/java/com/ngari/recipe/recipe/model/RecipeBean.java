@@ -458,6 +458,9 @@ public class RecipeBean implements Serializable {
     @Dictionary(id = "eh.cdr.dictionary.RecipeDrugForm")
     private Integer recipeDrugForm;
 
+    @ItemProperty(alias = "代煎帖数")
+    private Integer decoctionNum;
+
     public Integer getCheckerSignState() {
         return checkerSignState;
     }
@@ -1670,5 +1673,13 @@ public class RecipeBean implements Serializable {
 
     public void setRecipeDrugForm(Integer recipeDrugForm) {
         this.recipeDrugForm = recipeDrugForm;
+    }
+
+    public Integer getDecoctionNum() {
+        return decoctionNum;
+    }
+
+    public void setDecoctionNum(Integer decoctionNum) {
+        this.decoctionNum = decoctionNum;
     }
 }
