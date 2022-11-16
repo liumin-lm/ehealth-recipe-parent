@@ -3,6 +3,8 @@ package recipe.presettle;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.google.common.collect.Maps;
+import com.ngari.base.currentuserinfo.model.SimpleWxAccountBean;
+import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
@@ -19,6 +21,7 @@ import recipe.constant.RecipeBussConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
+import recipe.dao.RecipeParameterDao;
 import recipe.presettle.factory.PreSettleFactory;
 
 import javax.annotation.Resource;
@@ -45,6 +48,10 @@ public class RecipePreSettleService {
     private RecipeOrderDAO recipeOrderDAO;
     @Resource
     private StockBusinessService stockBusinessService;
+    @Autowired
+    private ICurrentUserInfoService currentUserInfoService;
+    @Autowired
+    private RecipeParameterDao recipeParameterDao;
 
     /**
      * 统一处方预结算接口
@@ -116,6 +123,12 @@ public class RecipePreSettleService {
         param.put("recipeIds", recipeId);
         if(CollectionUtils.isNotEmpty(recipeCostNumber)) {
             param.put("recipeCostNumber", JSONUtils.toString(recipeCostNumber));
+        }
+        // 支付宝小程序邵逸夫 直接走自费预结算
+        SimpleWxAccountBean wxAccount = currentUserInfoService.getSimpleWxAccount();
+        String appId = recipeParameterDao.getByName("syf_alipay_appid");
+        if (wxAccount != null && appId.equals(wxAccount.getAppId())) {
+            orderType = 5;
         }
         //获取对应预结算服务
         IRecipePreSettleService preSettleService = PreSettleFactory.getPreSettleService(recipe.getClinicOrgan(),orderType);
