@@ -13,6 +13,7 @@ import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -128,7 +129,7 @@ public class RecipePreSettleService {
         SimpleWxAccountBean wxAccount = currentUserInfoService.getSimpleWxAccount();
         LOGGER.info("unifyRecipePreSettle wxAccount={}", JSONUtils.toString(wxAccount));
         String appId = recipeParameterDao.getByName("syf_alipay_appid");
-        if (wxAccount != null && appId.equals(wxAccount.getAppId())) {
+        if (wxAccount != null && StringUtils.isNotEmpty(appId) && appId.equals(wxAccount.getAppId())) {
             orderType = 5;
         }
         //获取对应预结算服务
