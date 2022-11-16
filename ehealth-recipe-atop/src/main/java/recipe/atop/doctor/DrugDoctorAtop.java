@@ -30,6 +30,7 @@ import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.util.ByteUtils;
 import recipe.util.ObjectCopyUtils;
 import recipe.util.RecipeUtil;
+import recipe.util.ValidateUtil;
 import recipe.vo.doctor.*;
 
 import java.math.BigDecimal;
@@ -358,7 +359,9 @@ public class DrugDoctorAtop extends BaseAtop {
         drugQueryVO.getRecipeDetails().forEach(a -> {
             validateAtop(a.getDrugId(), a.getOrganDrugCode(), a.getUseTotalDose());
             Recipedetail recipedetail = ObjectCopyUtils.convert(a, Recipedetail.class);
-            recipedetail.setPharmacyId(drugQueryVO.getPharmacyId());
+            if (null != recipedetail && !ValidateUtil.integerIsEmpty(drugQueryVO.getPharmacyId())) {
+                recipedetail.setPharmacyId(drugQueryVO.getPharmacyId());
+            }
             detailList.add(recipedetail);
         });
         Recipe recipe = new Recipe();
