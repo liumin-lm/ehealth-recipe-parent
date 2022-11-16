@@ -103,7 +103,7 @@ public class DrugsEnterprise implements java.io.Serializable {
     @FileToken(expires = 3600)
     private String transFeeDetail;
 
-    @ItemProperty(alias = "是否医院类型药企：1医院结算药企，0普通药企")
+    @ItemProperty(alias = "是否医院类型药企：1医院结算药企，0普通药企, 这个字段转移到organ_drugs_sale_config表，后续可删除药企表这个字段")
     private Integer isHosDep;
 
     @ItemProperty(alias = "药企备注")
@@ -410,6 +410,7 @@ public class DrugsEnterprise implements java.io.Serializable {
         this.transFeeDetail = transFeeDetail;
     }
 
+    @Deprecated
     @Column(name = "isHosDep")
     public Integer getIsHosDep() {
         return isHosDep;
@@ -529,11 +530,7 @@ public class DrugsEnterprise implements java.io.Serializable {
 
         DrugsEnterprise that = (DrugsEnterprise) o;
 
-        if (!id.equals(that.id)) {
-            return false;
-        }
-
-        return true;
+        return id.equals(that.id);
     }
 
     @Override
