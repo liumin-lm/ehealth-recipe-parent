@@ -353,6 +353,12 @@ public class DrugDoctorAtop extends BaseAtop {
     }
 
 
+    /**
+     * 封装查询库存参数
+     *
+     * @param drugQueryVO
+     * @return
+     */
     private RecipeDTO recipeDTO(DrugQueryVO drugQueryVO) {
         validateAtop(drugQueryVO, drugQueryVO.getRecipeDetails(), drugQueryVO.getOrganId());
         List<Recipedetail> detailList = new ArrayList<>();
