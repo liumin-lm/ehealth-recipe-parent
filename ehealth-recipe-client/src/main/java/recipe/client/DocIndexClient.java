@@ -320,7 +320,7 @@ public class DocIndexClient extends BaseClient {
         docIndex.setCreateDepart(recipe.getDepart());
         docIndex.setCreateDoctor(recipe.getDoctor());
         // docStatus   0  正常（显示） 1  删除状态（不显示）
-        docIndex.setDocStatus(DocIndexShowEnum.NO_AUDIT.getCode().equals(recipe.getReviewType()) ? DocIndexShowEnum.SHOW.getCode() : DocIndexShowEnum.HIDE.getCode());
+//        docIndex.setDocStatus(DocIndexShowEnum.NO_AUDIT.getCode().equals(recipe.getReviewType()) ? DocIndexShowEnum.SHOW.getCode() : DocIndexShowEnum.HIDE.getCode());
         String recipeTypeText = DictionaryUtil.getDictionary("eh.cdr.dictionary.RecipeType", recipe.getRecipeType());
         docIndex.setDocTitle(recipeTypeText);
         docIndex.setDoctorName(doctorService.getNameById(recipe.getDoctor()));
