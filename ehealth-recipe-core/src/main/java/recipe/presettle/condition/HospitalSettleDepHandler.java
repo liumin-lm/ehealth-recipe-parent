@@ -1,11 +1,16 @@
 package recipe.presettle.condition;
 
 import com.alibaba.fastjson.JSONArray;
+import com.ngari.recipe.entity.OrganDrugsSaleConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import recipe.dao.OrganDrugsSaleConfigDAO;
 import recipe.presettle.RecipeOrderTypeEnum;
 import recipe.presettle.model.OrderTypeCreateConditionRequest;
+
+import java.util.Objects;
 
 /**
  * created by shiyuping on 2020/11/30
@@ -19,15 +24,15 @@ public class HospitalSettleDepHandler implements IOrderTypeConditionHandler {
      */
     private static final Logger LOGGER = LoggerFactory.getLogger(HospitalSettleDepHandler.class);
 
-    /**医院结算类型药企----是否医院类型药企：1医院结算药企，0普通药企*/
-    private final Integer HOSPITAL_SETTLE_DEP = 1;
+    @Autowired
+    OrganDrugsSaleConfigDAO organDrugsSaleConfigDAO;
 
     @Override
     public Integer getOrderType(OrderTypeCreateConditionRequest request) {
         LOGGER.info("HospitalSettleDepHandler.getOrderType req={}", JSONArray.toJSONString(request));
-        if (request.getDrugsEnterprise() != null){
-            Integer isHosDep = request.getDrugsEnterprise().getIsHosDep();
-            if (HOSPITAL_SETTLE_DEP.equals(isHosDep)){
+        if (request.getDrugsEnterprise() != null) {
+            OrganDrugsSaleConfig organDrugsSaleConfig = organDrugsSaleConfigDAO.getOrganDrugsSaleConfig(request.getDrugsEnterprise().getId());
+            if (Objects.nonNull(organDrugsSaleConfig) && Integer.valueOf("1").equals(organDrugsSaleConfig.getIsHosDep())) {
                 return RecipeOrderTypeEnum.HOSPITAL_SELF.getType();
             }
         }
