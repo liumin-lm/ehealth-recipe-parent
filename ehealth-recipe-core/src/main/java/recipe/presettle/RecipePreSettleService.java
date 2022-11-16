@@ -126,6 +126,7 @@ public class RecipePreSettleService {
         }
         // 支付宝小程序邵逸夫 直接走自费预结算
         SimpleWxAccountBean wxAccount = currentUserInfoService.getSimpleWxAccount();
+        LOGGER.info("unifyRecipePreSettle wxAccount={}", JSONUtils.toString(wxAccount));
         String appId = recipeParameterDao.getByName("syf_alipay_appid");
         if (wxAccount != null && appId.equals(wxAccount.getAppId())) {
             orderType = 5;
