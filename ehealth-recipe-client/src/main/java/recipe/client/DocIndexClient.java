@@ -50,6 +50,8 @@ public class DocIndexClient extends BaseClient {
     private IDocIndexService docIndexService;
     @Resource
     private DepartmentService departmentService;
+    @Resource
+    private IConfigurationClient configurationClient;
 
 
     /**
@@ -321,6 +323,13 @@ public class DocIndexClient extends BaseClient {
         docIndex.setCreateDoctor(recipe.getDoctor());
         // docStatus   0  正常（显示） 1  删除状态（不显示）
 //        docIndex.setDocStatus(DocIndexShowEnum.NO_AUDIT.getCode().equals(recipe.getReviewType()) ? DocIndexShowEnum.SHOW.getCode() : DocIndexShowEnum.HIDE.getCode());
+        List<String> hideRecipeDetail = configurationClient.getValueListCatch(recipe.getClinicOrgan(), "hideRecipeDetail", null);
+        logger.info("saveRecipeDocIndex 药品类型：{} 需要隐方的类型:{}", recipe.getRecipeType(), hideRecipeDetail);
+        Integer code = DocIndexShowEnum.SHOW.getCode();
+        if (org.apache.commons.collections.CollectionUtils.isNotEmpty(hideRecipeDetail) && hideRecipeDetail.contains(recipe.getRecipeType().toString())) {
+            code = DocIndexShowEnum.HIDE.getCode();
+        }
+        docIndex.setDocStatus(code);
         String recipeTypeText = DictionaryUtil.getDictionary("eh.cdr.dictionary.RecipeType", recipe.getRecipeType());
         docIndex.setDocTitle(recipeTypeText);
         docIndex.setDoctorName(doctorService.getNameById(recipe.getDoctor()));
