@@ -1127,6 +1127,7 @@ public class OrganDrugListService implements IOrganDrugListService {
      * @param organConfigVO
      */
     @LogRecord
+    @RpcService
     public void copyOrganDrugByOrganId(OrganConfigVO organConfigVO) {
         try {
             AtomicReference<String> targetOrganNames = new AtomicReference<>("");
