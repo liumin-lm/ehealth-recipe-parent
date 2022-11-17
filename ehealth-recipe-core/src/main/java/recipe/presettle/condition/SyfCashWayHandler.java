@@ -1,13 +1,17 @@
 package recipe.presettle.condition;
 
+import com.ngari.base.currentuserinfo.model.SimpleWxAccountBean;
+import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import ctd.util.JSONUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import recipe.client.IConfigurationClient;
 import recipe.client.RevisitClient;
+import recipe.dao.RecipeParameterDao;
 import recipe.enumerate.type.BussSourceTypeEnum;
 import recipe.enumerate.type.MedicalTypeEnum;
 import recipe.presettle.RecipeOrderTypeEnum;
@@ -25,6 +29,10 @@ public class SyfCashWayHandler implements IOrderTypeConditionHandler{
     private IConfigurationClient configurationClient;
     @Autowired
     private RevisitClient revisitClient;
+    @Autowired
+    private ICurrentUserInfoService currentUserInfoService;
+    @Autowired
+    private RecipeParameterDao recipeParameterDao;
 
     @Override
     public Integer getOrderType(OrderTypeCreateConditionRequest request) {
@@ -54,6 +62,12 @@ public class SyfCashWayHandler implements IOrderTypeConditionHandler{
             //自费结算
             return RecipeOrderTypeEnum.HOSPITAL_SELF.getType();
         } else if (MedicalTypeEnum.MEDICAL_PAY.getType().equals(revisitExDTO.getMedicalFlag())) {
+            SimpleWxAccountBean wxAccount = currentUserInfoService.getSimpleWxAccount();
+            LOGGER.info("unifyRecipePreSettle wxAccount={}", JSONUtils.toString(wxAccount));
+            String appId = recipeParameterDao.getByName("syf_alipay_appid");
+            if (wxAccount != null && StringUtils.isNotEmpty(appId) && appId.equals(wxAccount.getAppId())) {
+                return RecipeOrderTypeEnum.HOSPITAL_SELF.getType();
+            }
             //医保结算
             return RecipeOrderTypeEnum.PROVINCIAL_MEDICAL.getType();
         }
