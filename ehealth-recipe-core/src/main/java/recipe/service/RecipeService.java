@@ -1559,7 +1559,7 @@ public class RecipeService extends RecipeBaseService {
         if (ReviewTypeConstant.Preposition_Check.equals(dbRecipe.getReviewType())) {
             auditModeContext.getAuditModes(dbRecipe.getReviewType()).afterCheckPassYs(dbRecipe);
         }
-        docIndexClient.updateStatusByBussIdBussType(recipe.getRecipeId(), DocIndexShowEnum.SHOW.getCode());
+//        docIndexClient.updateStatusByBussIdBussType(recipe.getRecipeId(), DocIndexShowEnum.SHOW.getCode());
         stateManager.updateAuditState(recipe.getRecipeId(), RecipeAuditStateEnum.DOC_FORCED_PASS);
         recipeAuditClient.recipeAuditNotice(ObjectCopyUtils.convert(dbRecipe, com.ngari.platform.recipe.mode.RecipeBean.class), 1);
         LOGGER.info("RecipeService doSecondSignRecipe  execute ok!  recipeId ： {} ", recipe.getRecipeId());
@@ -1675,12 +1675,12 @@ public class RecipeService extends RecipeBaseService {
             orderService.updateOrderInfo(recipe.getOrderCode(), ImmutableMap.of("status", status), resultBean);
         }
         // 病历处方-状态修改成显示
-        try {
-            DocIndexClient docIndexClient = AppContextHolder.getBean("docIndexClient", DocIndexClient.class);
-            docIndexClient.updateStatusByBussIdBussType(recipe.getRecipeId(), DocIndexShowEnum.SHOW.getCode());
-        } catch (Exception e) {
-            LOGGER.error("afterCheckPassYs recipeId:{} error", recipe.getRecipeId(), e);
-        }
+//        try {
+//            DocIndexClient docIndexClient = AppContextHolder.getBean("docIndexClient", DocIndexClient.class);
+//            docIndexClient.updateStatusByBussIdBussType(recipe.getRecipeId(), DocIndexShowEnum.SHOW.getCode());
+//        } catch (Exception e) {
+//            LOGGER.error("afterCheckPassYs recipeId:{} error", recipe.getRecipeId(), e);
+//        }
         StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
         if (ReviewTypeConstant.Postposition_Check.equals(recipe.getReviewType())) {
             RecipeStateEnum processStateDispensing = RecipeStateEnum.PROCESS_STATE_MEDICINE;
@@ -3189,6 +3189,10 @@ public class RecipeService extends RecipeBaseService {
      */
     @RpcService
     public List<Map<String, Object>> findPatientRecipesByIdsAndDepId(Integer ext, List<Integer> recipeIds, Integer depId) {
+        // 校验越权
+        recipeIds.forEach(recipeId -> {
+            checkUserHasPermission(recipeId);
+        });
         Collections.sort(recipeIds, Collections.reverseOrder());
         LOGGER.info("findPatientRecipesByIdsAndDepId recipeIds:{} depId:{}", JSONUtils.toString(recipeIds), depId);
         //把处方对象返回给前端--合并处方--原确认订单页面的处方详情是通过getPatientRecipeById获取的

@@ -60,6 +60,7 @@ import recipe.dao.bean.RecipeRollingInfo;
 import recipe.enumerate.status.*;
 import recipe.enumerate.type.MedicalTypeEnum;
 import recipe.enumerate.type.RecipeDistributionFlagEnum;
+import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.manager.ButtonManager;
 import recipe.manager.EmrRecipeManager;
 import recipe.manager.GroupRecipeManager;
@@ -1797,10 +1798,9 @@ public class RecipeListService extends RecipeBaseService {
         LOGGER.info("isReturnRecipeDetail recipeId:{} recipe:{} order:{}", recipeId, JSONUtils.toString(recipe), JSONUtils.toString(order));
         try {
             //如果运营平台-配置管理 中药是否隐方的配置项, 选择隐方后,患者在支付成功处方费用后才可以显示中药明细，否则就隐藏掉对应的中药明细。
-            Object isHiddenRecipeDetail = configService.getConfiguration(recipe.getClinicOrgan(), "isHiddenRecipeDetail");
-            LOGGER.info("isReturnRecipeDetail 是否是中药：{} 是否隐方:{}", RecipeUtil.isTcmType(recipe.getRecipeType()), isHiddenRecipeDetail);
-            if (RecipeUtil.isTcmType(recipe.getRecipeType())//中药
-                    && (boolean) isHiddenRecipeDetail == true//隐方)
+            List<String> hideRecipeDetail = configurationClient.getValueListCatch(recipe.getClinicOrgan(), "hideRecipeDetail", null);
+            LOGGER.info("hideRecipeDetail 药品类型：{} 需要隐方的类型:{}", recipe.getRecipeType(), hideRecipeDetail);
+            if (CollectionUtils.isNotEmpty(hideRecipeDetail) && hideRecipeDetail.contains(recipe.getRecipeType().toString())
             ) {
                 //支付状态为非已支付
                 if (order == null) {

@@ -68,6 +68,7 @@ import recipe.bean.PurchaseResponse;
 import recipe.bean.RecipePayModeSupportBean;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
+import recipe.client.DocIndexClient;
 import recipe.client.IConfigurationClient;
 import recipe.client.InfraClient;
 import recipe.client.PayClient;
@@ -2360,6 +2361,10 @@ public class RecipeOrderService extends RecipeBaseService {
                 //支付成功后，对来源于HIS的处方单状态更新为已处理
                 updateHisRecieStatus(recipes);
                 purchaseService.setRecipeOrderInfo(nowRecipe, order, payFlag);
+                DocIndexClient docIndexClient = AppContextHolder.getBean("docIndexClient", DocIndexClient.class);
+                recipes.forEach(recipe -> {
+                    docIndexClient.updateStatusByBussIdBussType(recipe.getRecipeId(), DocIndexShowEnum.SHOW.getCode());
+                });
             } else if (PayConstant.PAY_FLAG_NOT_PAY == payFlag && null != order) {
                 attrMap.put("status", getPayStatus(reviewType, giveMode, nowRecipe));
                 //支付前调用

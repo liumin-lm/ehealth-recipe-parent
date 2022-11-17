@@ -1,10 +1,7 @@
 package recipe.vo.greenroom;
 
-import com.ngari.patient.dto.OrganDTO;
 import ctd.schema.annotation.ItemProperty;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.io.Serializable;
 import java.sql.Time;
@@ -99,5 +96,8 @@ public class OrganConfigVO  implements Serializable {
     private Date updateTime;
 
     private List<OrganDrugListSyncFieldVo> organDrugListSyncFieldList;
+
+    @ItemProperty(alias = "同步到哪个机构去，选择需要同步目录的机构（将当前目录同步到选中机构中）")
+    private String toOrganIds;
 
 }

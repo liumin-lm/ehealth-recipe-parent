@@ -1,17 +1,11 @@
 package recipe.atop.greenroom;
 
-import com.ngari.patient.dto.OrganDTO;
-import com.ngari.recipe.entity.SaleDrugList;
-import ctd.persistence.exception.DAOException;
-import ctd.util.AppContextHolder;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.core.api.IDrugBusinessService;
 import recipe.vo.greenroom.OrganConfigVO;
-
-import java.util.List;
 
 /**
  * @description： 运营平台机构药品

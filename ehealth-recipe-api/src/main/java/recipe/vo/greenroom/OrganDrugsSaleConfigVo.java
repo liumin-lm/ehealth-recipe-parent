@@ -90,12 +90,13 @@ public class OrganDrugsSaleConfigVo implements Serializable {
     @ItemProperty(alias = "退费审核通知电话")
     private String refundNotifyPhone;
 
-    /**
-     * 是否支持打印发票：0不支持，1支持
-     */
+    @ItemProperty(alias = "是否支持打印发票：0不支持，1支持")
     private Integer invoiceSupportFlag;
 
     @ItemProperty(alias = "退款申请中允许发药：0不允许，1允许 默认允许")
     private Integer refundFeeisAllowSendDrug;
+
+    @ItemProperty(alias = "是否走医院预结算：1是，0否")
+    private Integer isHosDep;
 
 }
