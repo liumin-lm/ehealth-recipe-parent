@@ -394,4 +394,9 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
     public void serviceTimeLog(ServiceLogVO serviceLog) {
         organBusinessService.serviceTimeLog(ObjectCopyUtils.convert(serviceLog, ServiceLogDTO.class));
     }
+
+    @Override
+    public List<RecipeToGuideResVO> findRecipeByClinicId(Integer clinicId) {
+        return recipeBusinessService.findRecipeByClinicId(clinicId);
+    }
 }
