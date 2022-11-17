@@ -55,6 +55,7 @@ import recipe.dao.RecipeExtendDAO;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.status.SignEnum;
 import recipe.manager.EmrRecipeManager;
+import recipe.manager.StateManager;
 import recipe.util.ByteUtils;
 import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
@@ -88,6 +89,9 @@ public class RecipeCAService {
     private CreatePdfFactory createPdfFactory;
     @Autowired
     private CaBusinessService caBusinessService;
+
+    @Autowired
+    private StateManager stateManager;
 
     @RpcService
     public CommonSignRequest packageCAFromRecipe(Integer recipeId, Integer doctorId, Boolean isDoctor) {
@@ -654,6 +658,7 @@ public class RecipeCAService {
         Integer beforeStatus = recipe.getStatus();
         if (RecipeStatusConstant.SIGN_NO_CODE_PHA != recipe.getStatus()) {
             recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of("status", RecipeStatusConstant.SIGN_NO_CODE_PHA));
+            stateManager.updateCheckerSignState(recipeId, SignEnum.SIGN_STATE_AUDIT);
             RecipeLogService.saveRecipeLog(recipe.getRecipeId(), beforeStatus, RecipeStatusConstant.SIGN_NO_CODE_PHA, "签名失败，设置药师未签名！");
         }
     }
