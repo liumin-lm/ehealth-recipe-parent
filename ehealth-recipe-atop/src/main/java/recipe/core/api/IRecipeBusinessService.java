@@ -392,4 +392,11 @@ public interface IRecipeBusinessService {
      * @return
      */
     List<PatientTabStatusMergeRecipeDTO> findRecipeListForPatientByTabStatus(FindRecipeListForPatientVO param);
+
+    /**
+     * 就医引导--根据复诊id查询复诊下的处方
+     * @param clinicId
+     * @return
+     */
+    List<RecipeToGuideResVO> findRecipeByClinicId(Integer clinicId);
 }
