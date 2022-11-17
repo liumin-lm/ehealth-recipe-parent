@@ -433,6 +433,9 @@ public class HisRequestInit {
         if (StringUtils.isNotEmpty(recipe.getCommonRecipeCode())) {
             requestTO.setCommonRecipeCode(recipe.getCommonRecipeCode());
         }
+        if (Objects.nonNull(recipe.getDecoctionNum())) {
+            requestTO.setDecoctionNum(recipe.getDecoctionNum());
+        }
         //医生名字
         requestTO.setDoctorName(recipe.getDoctorName());
         //设置医生工号
