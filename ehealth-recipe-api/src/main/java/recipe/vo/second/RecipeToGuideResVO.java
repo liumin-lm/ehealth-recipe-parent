@@ -7,6 +7,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -22,6 +23,12 @@ public class RecipeToGuideResVO implements Serializable {
 
     @ItemProperty(alias = "处方序号")
     private Integer recipeId;
+
+    @ItemProperty(alias = "主索引（患者编号）")
+    private String mpiid;
+
+    @ItemProperty(alias = "签名时间")
+    private Date signDate;
 
     @ItemProperty(alias = "就诊序号(对应来源的业务id)  复诊id")
     private Integer clinicId;
