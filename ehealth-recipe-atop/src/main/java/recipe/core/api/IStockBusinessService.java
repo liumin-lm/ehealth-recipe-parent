@@ -99,4 +99,11 @@ public interface IStockBusinessService {
      */
     Boolean getOrderStockFlag(List<Integer> recipeIds, Integer enterpriseId, String giveModeKey);
 
+    /**
+     * 查询药品是否用库存
+     *
+     * @param recipeDTO
+     * @return
+     */
+    List<EnterpriseStock> drugsStock(RecipeDTO recipeDTO);
 }

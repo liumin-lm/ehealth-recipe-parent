@@ -190,6 +190,25 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         return this.getStockFlag(recipeIds, recipe, enterpriseId);
     }
 
+    
+    @Override
+    public List<EnterpriseStock> drugsStock(RecipeDTO recipeDTO) {
+        Recipe recipe = recipeDTO.getRecipe();
+        List<Recipedetail> recipeDetails = recipeDTO.getRecipeDetails();
+        RecipeExtend recipeExtend = recipeDTO.getRecipeExtend();
+        //药企库存
+        List<EnterpriseStock> enterpriseList = buttonManager.enterpriseStockCheck(recipe.getClinicOrgan(), recipe.getRecipeType(), recipeExtend.getDecoctionId(), recipeDetails);
+        List<EnterpriseStock> result = this.enterpriseStockCheck(recipe.getClinicOrgan(), enterpriseList, null, recipeDetails);
+        //医院库存
+        EnterpriseStock organStock = organDrugListManager.organStock(recipe, recipeDetails);
+        if (null != organStock) {
+            result.add(organStock);
+        }
+        logger.info("StockBusinessService drugStock result={}", JSON.toJSONString(result));
+        return result;
+    }
+
+
     /**
      * 保存购药按钮
      *
@@ -520,6 +539,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         logger.info("StockBusinessService drugRecipeStockV1 result={}", JSON.toJSONString(result));
         return result;
     }
+
 
     /**
      * * 异步保存处方购药方式
