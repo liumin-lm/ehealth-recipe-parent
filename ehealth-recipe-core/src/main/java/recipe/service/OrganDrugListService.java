@@ -1134,7 +1134,7 @@ public class OrganDrugListService implements IOrganDrugListService {
             //更新toOrganIds
             OrganConfigVO organConfigVODb = drugBusinessService.getConfigByOrganId(organConfigVO.getOrganId());
             organConfigVODb.setToOrganIds(organConfigVO.getToOrganIds());
-            drugOrganConfigDAO.update(ObjectCopyUtils.convert(organConfigVO, DrugOrganConfig.class));
+            drugOrganConfigDAO.updateToOrganIdsByOrganId(organConfigVO.getToOrganIds(), organConfigVO.getOrganId());
             String organIds = organConfigVODb.getToOrganIds();
             if (StringUtils.isEmpty(organIds)) {
                 return;
@@ -1145,12 +1145,12 @@ public class OrganDrugListService implements IOrganDrugListService {
                 return;
             }
             OrganDrugListService.logger.info("copyOrganDrugByOrganId:{}同步到{}", organConfigVO.getOrganId(), JSONUtils.toString(organIdList));
-            List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganId(Integer.valueOf(organConfigVO.getOrganId()));
+            List<OrganDrugList> sourceOrganDrugLists = organDrugListDAO.findByOrganIdWithOutStatus(Integer.valueOf(organConfigVO.getOrganId()));
             organIdList.forEach(organId -> {
                 OrganDrugListService.logger.info("copyOrganDrugByOrganId:{}同步到{}start", organConfigVO.getOrganId(), organId);
                 targetOrganNames.set(targetOrganNames + "【" + organClient.organDTO(Integer.valueOf(organId)).getName() + "】");
                 drugListMatchDAO.deleteByOrganIdAndStatus(Integer.valueOf(organId));
-                if (CollectionUtils.isEmpty(organDrugLists)) {
+                if (CollectionUtils.isEmpty(sourceOrganDrugLists)) {
                     return;
                 }
                 List<OrganDrugList> toOrganDrugLists = organDrugListDAO.findByOrganId(Integer.valueOf(organId));
@@ -1160,19 +1160,20 @@ public class OrganDrugListService implements IOrganDrugListService {
                     }
                     deleteOrganDrug(Integer.valueOf(organId), organDrugList.getOrganDrugId());
                 });
-                organDrugLists.forEach(organDrugList -> {
-                    OrganDrugListService.logger.info("copyOrganDrugByOrganId organId:{},organDrugCode:{}", organId, organDrugList.getOrganDrugCode());
-                    OrganDrugList organDrugListTarget = new OrganDrugList();
-                    org.springframework.beans.BeanUtils.copyProperties(organDrugList, organDrugListTarget);
-                    organDrugListTarget.setOrganId(Integer.valueOf(organId));
+
+                sourceOrganDrugLists.forEach(sourceOrganDrugList -> {
+                    OrganDrugListService.logger.info("copyOrganDrugByOrganId organId:{},organDrugCode:{}", organId, sourceOrganDrugList.getOrganDrugCode());
+                    OrganDrugList targetOrganDrugList = new OrganDrugList();
+                    org.springframework.beans.BeanUtils.copyProperties(sourceOrganDrugList, targetOrganDrugList);
+                    targetOrganDrugList.setOrganId(Integer.valueOf(organId));
                     //如果有禁用的，设置为启用状态
-                    List<OrganDrugList> organDrugListsDb = organDrugListDAO.findByOrganDrugCodeAndOrganIdAndAllStatus(organDrugList.getOrganDrugCode(), Integer.valueOf(organId));
+                    List<OrganDrugList> organDrugListsDb = organDrugListDAO.findByOrganDrugCodeAndOrganIdAndAllStatus(sourceOrganDrugList.getOrganDrugCode(), Integer.valueOf(organId));
                     if (CollectionUtils.isEmpty(organDrugListsDb)) {
-                        organDrugListDAO.save(organDrugListTarget);
+                        organDrugListDAO.save(targetOrganDrugList);
                     } else {
                         organDrugListsDb.forEach(organDrugListDb -> {
-                            organDrugListTarget.setOrganDrugId(organDrugListDb.getOrganDrugId());
-                            organDrugListDAO.update(organDrugListTarget);
+                            targetOrganDrugList.setOrganDrugId(organDrugListDb.getOrganDrugId());
+                            organDrugListDAO.update(targetOrganDrugList);
                         });
                     }
                 });
@@ -1184,7 +1185,7 @@ public class OrganDrugListService implements IOrganDrugListService {
                 IBusActionLogService busActionLogService = AppDomainContext.getBean("opbase.busActionLogService", IBusActionLogService.class);
                 busActionLogService.recordBusinessLogRpcNew(
                         "机构药品管理", "",
-                        "OrganDrugSync",
+                        "OrganDrugList",
                         "【" + urt.getUserName() + "】操作，将【" + organClient.organDTO(organConfigVO.getOrganId()).getName() + "】的药品一键更新到" + targetOrganNames.get() + "的药品目录",
                         organClient.organDTO(organConfigVO.getOrganId()).getName());
             }
