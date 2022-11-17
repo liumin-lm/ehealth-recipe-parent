@@ -539,7 +539,7 @@ public class DrugListMatch implements java.io.Serializable {
         this.useDose = useDose;
     }
 
-    @Column(name = "useDoseUnit", length = 6)
+    @Column(name = "useDoseUnit")
     public String getUseDoseUnit() {
         return this.useDoseUnit;
     }
