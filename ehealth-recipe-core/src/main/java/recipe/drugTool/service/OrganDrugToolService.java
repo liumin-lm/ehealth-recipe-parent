@@ -450,14 +450,14 @@ public class OrganDrugToolService implements IOrganDrugToolService {
                     drug.setUseDoseSmallestUnit(getStrFromCell(cells.get(12)));
                 }
             } catch (Exception e) {
-                LOGGER.error("药品最小单位有误 ," + e.getMessage(), e);
-                validMsg.append("药品最小单位有误").append(";");
+                LOGGER.error("药品通用开方单位有误 ," + e.getMessage(), e);
+                validMsg.append("药品通用开方单位有误").append(";");
             }
             try {
                 if (StringUtils.isEmpty(getStrFromCell(cells.get(13)))) {
                     //中药不需要设置
                     if (!(new Integer(3).equals(drug.getDrugType()))) {
-                        validMsg.append("【包装数量(转换系数)】未填写").append(";");
+                        validMsg.append("【出售单位下的包装量】未填写").append(";");
                     } else {
                         drug.setPack(1);
                     }
@@ -465,56 +465,56 @@ public class OrganDrugToolService implements IOrganDrugToolService {
                     drug.setPack(Integer.parseInt(getStrFromCell(cells.get(13))));
                 }
             } catch (Exception e) {
-                LOGGER.error("包装数量(转换系数)有误 ," + e.getMessage(), e);
-                validMsg.append("包装数量(转换系数)有误").append(";");
+                LOGGER.error("出售单位下的包装量有误 ," + e.getMessage(), e);
+                validMsg.append("出售单位下的包装量有误").append(";");
             }
             try {
                 if (StringUtils.isEmpty(getStrFromCell(cells.get(14)))) {
                     //中药不需要设置
                     if (!(new Integer(3).equals(drug.getDrugType()))) {
-                        validMsg.append("【单次剂量(规格单位)】未填写").append(";");
+                        validMsg.append("【注册规格剂量】未填写").append(";");
                     }
 
                 } else {
                     drug.setUseDose(Double.parseDouble(getStrFromCell(cells.get(14))));
                 }
             } catch (Exception e) {
-                LOGGER.error("单次剂量(规格单位)有误 ," + e.getMessage(), e);
-                validMsg.append("单次剂量(规格单位)有误").append(";");
+                LOGGER.error("注册规格剂量有误 ," + e.getMessage(), e);
+                validMsg.append("注册规格剂量有误").append(";");
             }
             try {
                 if (StringUtils.isEmpty(getStrFromCell(cells.get(15)))) {
                     //中药不需要设置
                     if (!(new Integer(3).equals(drug.getDrugType()))) {
-                        validMsg.append("【规格单位】未填写").append(";");
+                        validMsg.append("【注册规格单位】未填写").append(";");
                     }
 
                 } else {
                     drug.setUseDoseUnit(getStrFromCell(cells.get(15)));
                 }
             } catch (Exception e) {
-                LOGGER.error("规格单位有误 ," + e.getMessage(), e);
-                validMsg.append("规格单位有误").append(";");
+                LOGGER.error("注册规格单位有误 ," + e.getMessage(), e);
+                validMsg.append("注册规格单位有误").append(";");
             }
             try {
                 if (StringUtils.isNotEmpty(getStrFromCell(cells.get(16)))) {
                     drug.setRecommendedUseDose(Double.parseDouble(getStrFromCell(cells.get(16))));
                 }
             } catch (Exception e) {
-                LOGGER.error("默认单次剂量(规格单位)有误 ," + e.getMessage(), e);
-                validMsg.append("默认单次剂量(规格单位)有误").append(";");
+                LOGGER.error("注册规格默认每次剂量有误 ," + e.getMessage(), e);
+                validMsg.append("注册规格默认每次剂量有误").append(";");
             }
             try {
                 if (StringUtils.isEmpty(getStrFromCell(cells.get(17)))) {
                     //中药不需要设置
                     if (!(new Integer(3).equals(drug.getDrugType()))) {
-                        validMsg.append("【包装单位】未填写").append(";");
+                        validMsg.append("【出售单位】未填写").append(";");
                     }
                 }
                 drug.setUnit(getStrFromCell(cells.get(17)));
             } catch (Exception e) {
-                LOGGER.error("药品包装单位有误 ," + e.getMessage(), e);
-                validMsg.append("药品包装单位有误").append(";");
+                LOGGER.error("出售单位有误 ," + e.getMessage(), e);
+                validMsg.append("出售单位有误").append(";");
             }
             try {
                 if (StringUtils.isEmpty(getStrFromCell(cells.get(18)))) {
@@ -589,7 +589,7 @@ public class OrganDrugToolService implements IOrganDrugToolService {
                     drug.setDrugsEnterpriseIds(ss.toString());
                 }
             } catch (Exception e) {
-                LOGGER.error("配送药企有误 ," + e.getMessage(), e);
+                LOGGER.error("出售流转药企有误 ," + e.getMessage(), e);
             }
 
             try {
@@ -739,8 +739,8 @@ public class OrganDrugToolService implements IOrganDrugToolService {
                     drug.setMedicalDrugCode(getStrFromCell(cells.get(33)));
                 }
             } catch (Exception e) {
-                LOGGER.error("药品医保药品编码有误 ," + e.getMessage(), e);
-                validMsg.append("药品医保药品编码有误").append(";");
+                LOGGER.error("地方医保代码有误 ," + e.getMessage(), e);
+                validMsg.append("地方医保代码有误").append(";");
             }
             try {
                 if (StringUtils.isNotEmpty(getStrFromCell(cells.get(34)))) {
@@ -820,8 +820,8 @@ public class OrganDrugToolService implements IOrganDrugToolService {
                     drug.setSmallestSaleMultiple(Integer.parseInt(getStrFromCell(cells.get(39)).trim()));
                 }
             } catch (Exception e) {
-                LOGGER.error("最小销售倍数有误 ," + e.getMessage(), e);
-                validMsg.append("最小销售倍数有误").append(";");
+                LOGGER.error("出售单位的销售倍数有误 ," + e.getMessage(), e);
+                validMsg.append("出售单位的销售倍数有误").append(";");
             }
 
             try {
@@ -974,8 +974,8 @@ public class OrganDrugToolService implements IOrganDrugToolService {
                     drug.setUnitHisCode(getStrFromCell(cells.get(49)));
                 }
             } catch (Exception e) {
-                LOGGER.error("最小售药单位HIS编码有误 ," + e.getMessage(), e);
-                validMsg.append("最小售药单位HIS编码有误").append(";");
+                LOGGER.error("出售单位HIS编码有误 ," + e.getMessage(), e);
+                validMsg.append("出售单位HIS编码有误").append(";");
             }
 
             try {
@@ -983,8 +983,8 @@ public class OrganDrugToolService implements IOrganDrugToolService {
                     drug.setUseDoseUnitHisCode(getStrFromCell(cells.get(50)));
                 }
             } catch (Exception e) {
-                LOGGER.error("规格单位HIS编码有误 ," + e.getMessage(), e);
-                validMsg.append("规格单位HIS编码有误").append(";");
+                LOGGER.error("注册规格单位HIS编码有误 ," + e.getMessage(), e);
+                validMsg.append("注册规格单位HIS编码有误").append(";");
             }
 
             try {
@@ -992,8 +992,8 @@ public class OrganDrugToolService implements IOrganDrugToolService {
                     drug.setUseDoseSmallestUnitHisCode(getStrFromCell(cells.get(51)));
                 }
             } catch (Exception e) {
-                LOGGER.error("药品最小规格包装单位HIS编码有误 ," + e.getMessage(), e);
-                validMsg.append("药品最小规格包装单位HIS编码有误").append(";");
+                LOGGER.error("通用开方单位HIS编码有误 ," + e.getMessage(), e);
+                validMsg.append("通用开方单位HIS编码有误").append(";");
             }
 
             if (!ObjectUtils.isEmpty(organId)) {
