@@ -29,6 +29,7 @@ import recipe.bussutil.ExcelUtil;
 import recipe.constant.DrugMatchConstant;
 import recipe.dao.*;
 import recipe.manager.RecipeManager;
+import recipe.service.OrganDrugListService;
 import recipe.third.IFileDownloadService;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.vo.greenroom.ImportDrugRecordVO;
@@ -81,6 +82,9 @@ public class OrganDrugToolService implements IOrganDrugToolService {
 
     @Autowired
     private RecipeManager  recipeManager;
+
+    @Autowired
+    private OrganDrugListService organDrugListService;
 
     private static final String SUFFIX_2003 = ".xls";
     private static final String SUFFIX_2007 = ".xlsx";
@@ -184,11 +188,10 @@ public class OrganDrugToolService implements IOrganDrugToolService {
                 LOGGER.info("readDrugExcel.successProcess organDrugList={},", JSONUtils.toString(organDrugLists));
                 if(organDrugLists.size()>0){
                     organDrugLists.forEach(organDrugList -> {
-                        organDrugList.setStatus(0);
-                        organDrugListDAO.update(organDrugList);
+                        organDrugListService.updateOrganDrugListStatusByIdSync(drug.getSourceOrgan(),organDrugList.getOrganDrugId());
                     });
-                    importDrugRecord.setUpdateNum(importDrugRecord.getUpdateNum()+1);
                 }
+                importDrugRecord.setUpdateNum(importDrugRecord.getUpdateNum()+1);
                 return;
             }
         }catch (Exception e){
