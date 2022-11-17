@@ -82,7 +82,7 @@ public class OrganDrugListDTO implements java.io.Serializable {
     @ItemProperty(alias = "包装材料")
     private String packingMaterials;
 
-    @ItemProperty(alias = "医保药品编码")
+    @ItemProperty(alias = "地方医保代码")
     private String medicalDrugCode;
     @ItemProperty(alias = "HIS剂型编码")
     private String drugFormCode;
@@ -92,13 +92,13 @@ public class OrganDrugListDTO implements java.io.Serializable {
     @ItemProperty(alias = "禁用原因")
     private String disableReason;
 
-    @ItemProperty(alias = "推荐单次剂量")
+    @ItemProperty(alias = "注册规格默认每次剂量")
     private Double recommendedUseDose;
 
-    @ItemProperty(alias = "转换系数")
+    @ItemProperty(alias = "出售单位下的包装量")
     private Integer pack;
 
-    @ItemProperty(alias = "药品包装单位")
+    @ItemProperty(alias = "出售单位")
     private String unit;
 
     @ItemProperty(alias = "使用频率")
@@ -117,7 +117,7 @@ public class OrganDrugListDTO implements java.io.Serializable {
     @Dictionary(id = "eh.cdr.dictionary.NewUsePathways")
     private String usePathwaysId;
 
-    @ItemProperty(alias = "单次剂量单位")
+    @ItemProperty(alias = "注册规格单位")
     private String useDoseUnit;
 
     @ItemProperty(alias = "生产厂家")
@@ -141,13 +141,13 @@ public class OrganDrugListDTO implements java.io.Serializable {
     @ItemProperty(alias = "化学名")
     private String chemicalName;
 
-    @ItemProperty(alias = "配送药企ids")
+    @ItemProperty(alias = "出售流转药企ids")
     private String drugsEnterpriseIds;
 
-    @ItemProperty(alias = "实际单位剂量（最小单位）")
+    @ItemProperty(alias = "开方单位剂量")
     private Double smallestUnitUseDose;
 
-    @ItemProperty(alias = "单位剂量单位（最小单位）")
+    @ItemProperty(alias = "通用开方单位")
     private String useDoseSmallestUnit;
 
     @ItemProperty(alias="药品适用业务  eh.base.dictionary.ApplyBusiness ")
@@ -160,7 +160,7 @@ public class OrganDrugListDTO implements java.io.Serializable {
     @ItemProperty(alias="是否靶向药  0否  1是 ")
     private Integer targetedDrugType;
 
-    @ItemProperty(alias = "最小销售倍数")
+    @ItemProperty(alias = "出售单位的销售倍数")
     private Integer smallestSaleMultiple;
 
     @ItemProperty(alias = "不可在线开具:开关，默认关闭(0),开启（1）")
@@ -192,6 +192,17 @@ public class OrganDrugListDTO implements java.io.Serializable {
 
     @ItemProperty(alias = "是否特殊使用级抗生素药物  0否  1是 ")
     private Integer specialUseAntibioticDrugFlag;
+
+    @ItemProperty(alias = "国家医保代码")
+    private String nationalMedicalCode;
+
+    public String getNationalMedicalCode() {
+        return nationalMedicalCode;
+    }
+
+    public void setNationalMedicalCode(String nationalMedicalCode) {
+        this.nationalMedicalCode = nationalMedicalCode;
+    }
 
     public Integer getSmallestSaleMultiple() {
         return smallestSaleMultiple;
