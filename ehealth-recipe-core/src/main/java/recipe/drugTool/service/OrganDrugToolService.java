@@ -177,6 +177,16 @@ public class OrganDrugToolService implements IOrganDrugToolService {
      */
     private void successProcess(ImportDrugRecord importDrugRecord, AtomicReference<Integer> rowIndex, DrugListMatch drug, String operator) {
         if(new Integer("0").equals(rowIndex.get()) || drug==null ||StringUtils.isEmpty(drug.getOrganDrugCode()))return;
+        //如果状态为无效则禁用药品
+        if(new Integer(0).equals(drug.getDrugStatus())){
+            OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(drug.getSourceOrgan(), drug.getOrganDrugCode(), drug.getMatchDrugId());
+            LOGGER.info("readDrugExcel.successProcess organDrugList={},", JSONUtils.toString(organDrugList));
+            if(Objects.nonNull(organDrugList)){
+                organDrugList.setStatus(0);
+                organDrugListDAO.update(organDrugList);
+            }
+            return;
+        }
         try {
             drugToolService.AutoMatch(drug);
             boolean isUpdateSuccess=drugListMatchDAO.updateDrugListMatch(drug);
@@ -377,16 +387,20 @@ public class OrganDrugToolService implements IOrganDrugToolService {
                 LOGGER.error("药品院内检索码有误 ," + e.getMessage(), e);
                 validMsg.append("药品院内检索码有误").append(";");
             }
-           /* try {
-                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(7)))) {
-                    if ("有效".equals(getStrFromCell(cells.get(7)).trim())){
-                        drug.setStatus(1);
+            try {
+                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(8)))) {
+                    if ("有效".equals(getStrFromCell(cells.get(8)).trim())){
+                        drug.setDrugStatus(1);
+                    }else if ("无效".equals(getStrFromCell(cells.get(8)).trim())){
+                        drug.setDrugStatus(0);
+                    }else {
+                        validMsg.append("状态格式错误").append(";");
                     }
                 }
             } catch (Exception e) {
                 LOGGER.error("药品状态有误 ," + e.getMessage(), e);
                 validMsg.append("药品状态有误").append(";");
-            }*/
+            }
             try {
                 if (StringUtils.isEmpty(getStrFromCell(cells.get(9)))) {
                     validMsg.append("【药品类型】未填写").append(";");
