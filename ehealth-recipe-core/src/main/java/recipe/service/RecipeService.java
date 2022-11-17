@@ -2363,12 +2363,12 @@ public class RecipeService extends RecipeBaseService {
             Integer status = (Integer) hget.get("Status");
             String date = (String) hget.get("Date");
             long minutes = timeDifference(date);
-//            if (minutes < 10L) {
-//                throw new DAOException(DAOException.VALUE_NEEDED, "距离上次同步未超过10分钟，请稍后再尝试数据同步!");
-//            }
-//            if (status == 0) {
-//                throw new DAOException(DAOException.VALUE_NEEDED, "药品数据正在同步中，请耐心等待...");
-//            }
+            if (minutes < 10L) {
+                throw new DAOException(DAOException.VALUE_NEEDED, "距离上次同步未超过10分钟，请稍后再尝试数据同步!");
+            }
+            if (status == 0) {
+                throw new DAOException(DAOException.VALUE_NEEDED, "药品数据正在同步中，请耐心等待...");
+            }
         }
         DrugOrganConfig byOrganId1=ObjectCopyUtils.convert(drugBusinessService.getConfigByOrganId(organId), DrugOrganConfig.class);
         if (ObjectUtils.isEmpty(byOrganId1)) {

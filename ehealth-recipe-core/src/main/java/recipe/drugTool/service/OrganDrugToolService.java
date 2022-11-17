@@ -178,14 +178,21 @@ public class OrganDrugToolService implements IOrganDrugToolService {
     private void successProcess(ImportDrugRecord importDrugRecord, AtomicReference<Integer> rowIndex, DrugListMatch drug, String operator) {
         if(new Integer("0").equals(rowIndex.get()) || drug==null ||StringUtils.isEmpty(drug.getOrganDrugCode()))return;
         //如果状态为无效则禁用药品
-        if(new Integer(0).equals(drug.getDrugStatus())){
-            OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCode(drug.getSourceOrgan(), drug.getOrganDrugCode());
-            LOGGER.info("readDrugExcel.successProcess organDrugList={},", JSONUtils.toString(organDrugList));
-            if(Objects.nonNull(organDrugList)){
-                organDrugList.setStatus(0);
-                organDrugListDAO.update(organDrugList);
+        try{
+            if(new Integer(0).equals(drug.getDrugStatus())){
+                List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganDrugCodeAndOrganId(drug.getOrganDrugCode(),drug.getSourceOrgan());
+                LOGGER.info("readDrugExcel.successProcess organDrugList={},", JSONUtils.toString(organDrugLists));
+                if(organDrugLists.size()>0){
+                    organDrugLists.forEach(organDrugList -> {
+                        organDrugList.setStatus(0);
+                        organDrugListDAO.update(organDrugList);
+                    });
+                    importDrugRecord.setUpdateNum(importDrugRecord.getUpdateNum()+1);
+                }
+                return;
             }
-            return;
+        }catch (Exception e){
+            LOGGER.error("update organDrugList error " + e.getMessage(), e);
         }
         try {
             drugToolService.AutoMatch(drug);
