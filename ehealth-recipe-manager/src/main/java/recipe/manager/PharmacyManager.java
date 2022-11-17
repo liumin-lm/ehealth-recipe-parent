@@ -87,6 +87,7 @@ public class PharmacyManager extends BaseManager {
         if (!Arrays.asList(organPharmacy.split(ByteUtils.COMMA)).contains(String.valueOf(pharmacy.getPharmacyId()))) {
             return true;
         }
+        //比对药房 剂型权限
         String pharmacyDrugFormType = null == pharmacy.getDrugFormType() ? "" : pharmacy.getDrugFormType();
         String drugForm = null == drugFormType ? "" : drugFormType.toString();
         if (!pharmacyDrugFormType.contains(drugForm)) {
