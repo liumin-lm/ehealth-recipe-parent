@@ -1154,6 +1154,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     }
 
     @RpcService
+    @LogRecord
     @Override
     public Boolean updateRecipeInfoByRecipeId(int recipeId, final Map<String, Object> changeAttr) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
