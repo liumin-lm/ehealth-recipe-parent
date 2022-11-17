@@ -43,6 +43,8 @@ import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBeanNoDS;
 import com.ngari.recipe.recipeorder.service.IRecipeOrderService;
+import com.ngari.revisit.common.model.RevisitExDTO;
+import com.ngari.revisit.common.service.IRevisitExService;
 import com.ngari.wxpay.service.INgariPayService;
 import coupon.api.service.ICouponBaseService;
 import coupon.api.vo.Coupon;
@@ -188,6 +190,8 @@ public class RecipeOrderService extends RecipeBaseService {
     private DrugSaleStrategyDAO drugSaleStrategyDAO;
     @Autowired
     private InfraClient infraClient;
+    @Autowired
+    private IRevisitExService revisitExService;
 
 
 
@@ -1718,6 +1722,12 @@ public class RecipeOrderService extends RecipeBaseService {
                     prb.setSignDate(recipe.getSignDate());
                     prb.setPatientName(patientService.getNameByMpiId(recipe.getMpiid()));
                     prb.setStatusCode(recipe.getStatus());
+
+                    // 特需门诊
+                    if (BussSourceTypeEnum.BUSSSOURCE_REVISIT.getType().equals(recipe.getBussSource())) {
+                        RevisitExDTO revisitExDTO = revisitExService.getByConsultId(recipe.getClinicId());
+                        prb.setSpecialNeedClinicFlag(revisitExDTO.getSpecialNeedClinicFlag());
+                    }
 
                     Integer payModeNew = PayModeGiveModeUtil.getPayMode(order.getPayMode(), recipe.getGiveMode());
                     prb.setPayMode(payModeNew);

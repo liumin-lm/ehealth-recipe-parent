@@ -1837,6 +1837,7 @@ public class RecipeServiceSub {
             // 特需门诊
             if (BussSourceTypeEnum.BUSSSOURCE_REVISIT.getType().equals(recipe.getBussSource())) {
                 RevisitExDTO revisitExDTO = iRevisitExService.getByConsultId(recipe.getClinicId());
+                map.put("specialNeedClinicFlag", revisitExDTO.getSpecialNeedClinicFlag());
             }
             //患者处方单详情页按钮显示
             patientRecipeInfoButtonShowNew(map, recipe, order);

@@ -99,6 +99,8 @@ public class PatientRecipeDTO implements Serializable {
     private RecipeBean recipe;
     /**订单详情页用到*/
     private PatientDTO patient;
+    /**订单详情页用到*/
+    private Boolean specialNeedClinicFlag;
 
     private String qrName;
 
@@ -399,5 +401,13 @@ public class PatientRecipeDTO implements Serializable {
 
     public void setQrName(String qrName) {
         this.qrName = qrName;
+    }
+
+    public Boolean getSpecialNeedClinicFlag() {
+        return specialNeedClinicFlag;
+    }
+
+    public void setSpecialNeedClinicFlag(Boolean specialNeedClinicFlag) {
+        this.specialNeedClinicFlag = specialNeedClinicFlag;
     }
 }
