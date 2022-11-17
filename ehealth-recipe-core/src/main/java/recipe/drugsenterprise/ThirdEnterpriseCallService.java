@@ -1731,6 +1731,9 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             } else {
                 orderDetailBean.setTcmNum("");
             }
+            if (Objects.nonNull(recipe.getDecoctionNum())) {
+                orderDetailBean.setDecoctionNum(recipe.getDecoctionNum());
+            }
             if (Integer.valueOf(1).equals(recipeOrder.getPayMode())) {
                 orderDetailBean.setDistributionFlag("1");
             } else {

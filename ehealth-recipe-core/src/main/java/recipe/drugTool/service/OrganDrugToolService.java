@@ -179,7 +179,7 @@ public class OrganDrugToolService implements IOrganDrugToolService {
         if(new Integer("0").equals(rowIndex.get()) || drug==null ||StringUtils.isEmpty(drug.getOrganDrugCode()))return;
         //如果状态为无效则禁用药品
         if(new Integer(0).equals(drug.getDrugStatus())){
-            OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(drug.getSourceOrgan(), drug.getOrganDrugCode(), drug.getMatchDrugId());
+            OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCode(drug.getSourceOrgan(), drug.getOrganDrugCode());
             LOGGER.info("readDrugExcel.successProcess organDrugList={},", JSONUtils.toString(organDrugList));
             if(Objects.nonNull(organDrugList)){
                 organDrugList.setStatus(0);
