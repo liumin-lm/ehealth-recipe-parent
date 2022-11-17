@@ -67,9 +67,10 @@ public class PharmacyManager extends BaseManager {
      *
      * @param pharmacy      最优药房
      * @param organPharmacy 当前药品 机构药房id
+     * @param drugFormType  处方剂型 1 饮片方 2 颗粒方
      * @return true 不一致
      */
-    public Boolean pharmacyVariationV1(PharmacyTcm pharmacy, String organPharmacy) {
+    public Boolean pharmacyVariationV1(PharmacyTcm pharmacy, String organPharmacy, Integer drugFormType) {
         //机构没药房
         if (null == pharmacy) {
             return false;
@@ -86,9 +87,13 @@ public class PharmacyManager extends BaseManager {
         if (!Arrays.asList(organPharmacy.split(ByteUtils.COMMA)).contains(String.valueOf(pharmacy.getPharmacyId()))) {
             return true;
         }
+        String pharmacyDrugFormType = null == pharmacy.getDrugFormType() ? "" : pharmacy.getDrugFormType();
+        String drugForm = null == drugFormType ? "" : drugFormType.toString();
+        if (!pharmacyDrugFormType.contains(drugForm)) {
+            return true;
+        }
         return false;
     }
-
 
     /**
      * 药房信息
