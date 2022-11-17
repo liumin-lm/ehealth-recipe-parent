@@ -522,7 +522,7 @@ public class Recipedetail implements java.io.Serializable {
 		this.defaultUseDose = defaultUseDose;
 	}
 
-	@Column(name = "UseDoseUnit", length = 6)
+	@Column(name = "UseDoseUnit")
 	public String getUseDoseUnit() {
 		return this.useDoseUnit;
 	}

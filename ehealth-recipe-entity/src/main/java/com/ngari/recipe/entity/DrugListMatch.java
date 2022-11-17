@@ -257,6 +257,18 @@ public class DrugListMatch implements java.io.Serializable {
     @ItemProperty(alias = "是否特殊使用级抗生素药物  0否  1是 ")
     private Integer specialUseAntibioticDrugFlag;
 
+    @ItemProperty(alias = "药品状态 0无效 1有效")
+    private Integer drugStatus;
+
+    @Column(name = "drug_status")
+    public Integer getDrugStatus() {
+        return drugStatus;
+    }
+
+    public void setDrugStatus(Integer drugStatus) {
+        this.drugStatus = drugStatus;
+    }
+
     @Column(name = "antibiotics_drug_level")
     public Integer getAntibioticsDrugLevel() {
         return antibioticsDrugLevel;
@@ -539,7 +551,7 @@ public class DrugListMatch implements java.io.Serializable {
         this.useDose = useDose;
     }
 
-    @Column(name = "useDoseUnit", length = 6)
+    @Column(name = "useDoseUnit")
     public String getUseDoseUnit() {
         return this.useDoseUnit;
     }

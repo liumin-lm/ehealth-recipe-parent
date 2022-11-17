@@ -1834,6 +1834,10 @@ public class RecipeServiceSub {
             if (null != colorType) {
                 map.put("tipsType", colorType.getShowType());
             }
+            // 特需门诊
+            if (BussSourceTypeEnum.BUSSSOURCE_REVISIT.getType().equals(recipe.getBussSource())) {
+                RevisitExDTO revisitExDTO = iRevisitExService.getByConsultId(recipe.getClinicId());
+            }
             //患者处方单详情页按钮显示
             patientRecipeInfoButtonShowNew(map, recipe, order);
             patientRecipeInfoBottonShow(map, recipe, order);

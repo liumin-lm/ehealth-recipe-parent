@@ -312,4 +312,13 @@ public interface IRecipeAtopService {
      */
     @RpcService(mvcDisabled = true)
     void serviceTimeLog(ServiceLogVO serviceLog);
+
+    /**
+     * 就医引导--根据复诊id查询复诊下的处方
+     *
+     * @param clinicId 复诊id
+     * @return
+     */
+    @RpcService(mvcDisabled = true)
+    List<RecipeToGuideResVO> findRecipeByClinicId(Integer clinicId);
 }
