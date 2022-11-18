@@ -20,9 +20,7 @@ import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.recipe.mode.QueryHisRecipResTO;
 import com.ngari.his.recipe.mode.RecipeThirdUrlReqTO;
 import com.ngari.his.recipe.service.IRecipeEnterpriseService;
-import com.ngari.infra.logistics.mode.OpenApiAddressTO;
-import com.ngari.infra.logistics.mode.OrganLogisticsManageDto;
-import com.ngari.infra.logistics.mode.WayBillExceptPriceTO;
+import com.ngari.infra.logistics.mode.*;
 import com.ngari.patient.dto.AddressDTO;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
@@ -213,6 +211,10 @@ public class RecipeOrderService extends RecipeBaseService {
             Map<String, Object> ext = result.getExt();
             order.setDecoctionTotalFee(getBigDecimal(ext.get("decoctionTotalFee")));
             order.setNotContainDecoctionPrice(getBigDecimal(ext.get("notContainDecoctionPrice")));
+            Object collectPaymentExpressFee = ext.get("collectPaymentExpressFee");
+            if (Objects.nonNull(collectPaymentExpressFee)) {
+                order.setCollectPaymentExpressFee(collectPaymentExpressFee.toString());
+            }
         }
         return order;
     }
@@ -861,6 +863,28 @@ public class RecipeOrderService extends RecipeBaseService {
                 organLogisticsManageDto=obtainExpressFee(order,enterpriseId,logisticsCompany,address,organLogisticsManageDto);
                 if(ExpressFeePayMethodEnum.CASHONDELIVERYOFFLINE.getType().equals(order.getExpressFeePayMethod())){
                     expressFee=null;
+                    if ("301".equals(String.valueOf(logisticsCompany))) {
+                        LogisticsEmsPriceDto logisticsEmsPriceDto = new LogisticsEmsPriceDto();
+                        logisticsEmsPriceDto.setCode("301");
+                        logisticsEmsPriceDto.setType(0);
+                        logisticsEmsPriceDto.setOrganId(enterpriseId);
+                        logisticsEmsPriceDto.setSrcProvince(organLogisticsManageDto.getConsignorProvince());
+                        logisticsEmsPriceDto.setSrcCity(organLogisticsManageDto.getConsignorCity());
+                        logisticsEmsPriceDto.setSrcDistrict(organLogisticsManageDto.getConsignorDistrict());
+                        logisticsEmsPriceDto.setSrcAddress(organLogisticsManageDto.getConsignorAddress());
+                        logisticsEmsPriceDto.setDestProvince(getAddressDic(address.getAddress1()));
+                        logisticsEmsPriceDto.setDestCity(getAddressDic(address.getAddress2()));
+                        logisticsEmsPriceDto.setDestDistrict(getAddressDic(address.getAddress3()));
+                        logisticsEmsPriceDto.setDestAddress(address.getAddress4());
+                        logisticsEmsPriceDto.setUserLat(address.getLatitude().toString());
+                        logisticsEmsPriceDto.setUserLng(address.getLongitude().toString());
+                        LogisticsEmsPriceInfoDto logisticsEstimatedPrice = infraClient.getLogisticsEstimatedPrice(logisticsEmsPriceDto);
+                        if (Objects.nonNull(logisticsCompany) && StringUtils.isNotEmpty(logisticsEstimatedPrice.getRealFee())) {
+                            Map<String, Object> ext = result.getExt();
+                            ext.put("collectPaymentExpressFee", logisticsEstimatedPrice.getRealFee());
+                            result.setExt(ext);
+                        }
+                    }
                 }else if(organLogisticsManageDto!=null&&
                         !ExpressFeePayMethodEnum.CASHONDELIVERYOFFLINE.getType().equals(organLogisticsManageDto.getPayMethod())&&
                         ConsignmentPricingMethodEnum.LOGISTICS_COMPANY_PRICE.getType().equals(organLogisticsManageDto.getConsignmentPricingMethod())){

@@ -180,6 +180,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
                         order1 = resTO.getData();
                         map.put("notContainDecoctionPrice", Objects.isNull(order1.getNotContainDecoctionPrice()) ? null : order1.getNotContainDecoctionPrice().toString());
                         map.put("decoctionTotalFee", Objects.isNull(order1.getDecoctionTotalFee()) ? null : order1.getDecoctionTotalFee().toString());
+                        map.put("collectPaymentExpressFee", order1.getCollectPaymentExpressFee());
                     } else {
                         log.info("obtainConfirmOrder createBlankOrder order is null.");
                         return null;
