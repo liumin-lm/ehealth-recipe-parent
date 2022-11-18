@@ -554,7 +554,7 @@ public class OrganDrugToolService implements IOrganDrugToolService {
                     for (int i = 0; i < split.length; i++) {
                         Integer idByPharmacyName = pharmacyTcmDAO.getIdByPharmacyNameAndOrganId(split[i], organId);
                         if (idByPharmacyName == null) {
-                            validMsg.append("药房名称有误").append(";");
+                            validMsg.append("开方药房名称有误").append(";");
                         } else {
                             if (i != split.length - 1) {
                                 ss.append(idByPharmacyName.toString() + ",");
@@ -566,7 +566,7 @@ public class OrganDrugToolService implements IOrganDrugToolService {
                     drug.setPharmacy(ss.toString());
                 }
             } catch (Exception e) {
-                LOGGER.error("药房名称有误 ," + e.getMessage(), e);
+                LOGGER.error("开方药房名称有误 ," + e.getMessage(), e);
             }
 
             try {

@@ -140,7 +140,7 @@ public class OrganDrugListBean implements java.io.Serializable {
     @ItemProperty(alias = "禁用原因")
     private String disableReason;
 
-    @ItemProperty(alias = "药房")
+    @ItemProperty(alias = "开方药房")
     private String pharmacy;
 
     @ItemProperty(alias = "药品嘱托")
@@ -184,13 +184,13 @@ public class OrganDrugListBean implements java.io.Serializable {
     @ItemProperty(alias = "抗肿瘤药物等级  1普通级 2限制级 ")
     private Integer antiTumorDrugLevel;
 
-    @ItemProperty(alias = "出售单位/HIS编码")
+    @ItemProperty(alias = "出售单位HIS编码")
     private String unitHisCode;
 
-    @ItemProperty(alias = "注册规格单位/HIS编码")
+    @ItemProperty(alias = "注册规格单位HIS编码")
     private String useDoseUnitHisCode;
 
-    @ItemProperty(alias = "通用开方单位/HIS编码")
+    @ItemProperty(alias = "通用开方单位HIS编码")
     private String useDoseSmallestUnitHisCode;
 
     @ItemProperty(alias = "抗菌素药物等级 0：非抗菌素药物 1：1级 2：2级 3：3级 ")

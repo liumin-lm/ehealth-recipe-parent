@@ -55,7 +55,7 @@ public class OrganDrugList implements java.io.Serializable {
     @ItemProperty(alias = "出售单位")
     private String unit;
 
-    @ItemProperty(alias = "出售单位/HIS编码")
+    @ItemProperty(alias = "出售单位HIS编码")
     private String unitHisCode;
 
     @ItemProperty(alias = "注册规格剂量")
@@ -67,7 +67,7 @@ public class OrganDrugList implements java.io.Serializable {
     @ItemProperty(alias = "注册规格单位")
     private String useDoseUnit;
 
-    @ItemProperty(alias = "注册规格单位/HIS编码")
+    @ItemProperty(alias = "注册规格单位HIS编码")
     private String useDoseUnitHisCode;
 
     @ItemProperty(alias = "开方单位剂量")
@@ -79,7 +79,7 @@ public class OrganDrugList implements java.io.Serializable {
     @ItemProperty(alias = "通用开方单位")
     private String useDoseSmallestUnit;
 
-    @ItemProperty(alias = "通用开方单位/HIS编码")
+    @ItemProperty(alias = "通用开方单位HIS编码")
     private String useDoseSmallestUnitHisCode;
 
     @ItemProperty(alias = "使用频率平台")
@@ -154,7 +154,7 @@ public class OrganDrugList implements java.io.Serializable {
     @ItemProperty(alias = "禁用原因")
     private String disableReason;
 
-    @ItemProperty(alias = "药房主键(一个药品多个药房：325,324)")
+    @ItemProperty(alias = "开方药房，主键(一个药品多个药房：325,324)")
     private String pharmacy;
 
     @ItemProperty(alias = "药品嘱托(中文，对应机构字典表-药品医嘱)")
