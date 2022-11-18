@@ -356,10 +356,10 @@ public class BaseOfflineToOnlineService {
             mergeRecipeVO.setMergeRecipeFlag(mergeRecipeFlag);
             mergeRecipeVO.setMergeRecipeWay(mergeRecipeWay);
             //这个字段前端应该用不上RegisteredId
-            if(CollectionUtils.isNotEmpty(recipes)){
-                recipes.forEach(recipe->{
-                    if(StringUtils.isNotEmpty(recipe.getRegisteredId())&&recipe.getRegisteredId().contains("noMerge")){
-                        recipe.setRegisteredId(recipe.getRegisteredId().replace("noMerge",""));
+            if (CollectionUtils.isNotEmpty(recipes)) {
+                recipes.forEach(recipe -> {
+                    if (StringUtils.isNotEmpty(recipe.getRegisteredId()) && recipe.getRegisteredId().contains("noMerge")) {
+                        recipe.setRegisteredId(recipe.getRegisteredId().replace("noMerge", ""));
                     }
                 });
                 mergeRecipeVO.setRecipe(recipes);
@@ -372,8 +372,8 @@ public class BaseOfflineToOnlineService {
                 MergeRecipeVO mergeRecipeVO = new MergeRecipeVO();
                 mergeRecipeVO.setMergeRecipeFlag(mergeRecipeFlag);
                 //这个字段前端应该用不上RegisteredId
-                if(StringUtils.isNotEmpty(hisRecipeVO.getRegisteredId())&&hisRecipeVO.getRegisteredId().contains("noMerge")){
-                    hisRecipeVO.setRegisteredId(hisRecipeVO.getRegisteredId().replace("noMerge",""));
+                if (StringUtils.isNotEmpty(hisRecipeVO.getRegisteredId()) && hisRecipeVO.getRegisteredId().contains("noMerge")) {
+                    hisRecipeVO.setRegisteredId(hisRecipeVO.getRegisteredId().replace("noMerge", ""));
                 }
                 mergeRecipeVO.setRecipe(Arrays.asList(hisRecipeVO));
                 mergeRecipeVO.setListSkipType(listSkipType);
@@ -517,12 +517,12 @@ public class BaseOfflineToOnlineService {
         HisRecipe hisRecipe = hisRecipeDao.get(hisRecipeId);
 
         List<HisRecipeExt> hisRecipeExts = hisRecipeExtDAO.findByHisRecipeId(hisRecipeId);
-        if (recipe == null ) {
+        if (recipe == null) {
             throw new DAOException(DAOException.DAO_NOT_FOUND, "没有查询到来自医院的处方单,请刷新页面！");
         }
         if (!request.getMpiId().equals(recipe.getMpiid())) {
-            LOGGER.info("UserRoleToken.getCurrent().getOwnMpiId():{}",UserRoleToken.getCurrent().getOwnMpiId());
-            if(hisRecipe!=null && HisRecipeConstant.HISRECIPESTATUS_ALREADYIDEAL.equals(hisRecipe.getStatus())){
+            LOGGER.info("UserRoleToken.getCurrent().getOwnMpiId():{}", UserRoleToken.getCurrent().getOwnMpiId());
+            if (hisRecipe != null && HisRecipeConstant.HISRECIPESTATUS_ALREADYIDEAL.equals(hisRecipe.getStatus())) {
                 throw new DAOException(609, "该处方单已被他人处理！");
             }
             String payFlag = hisRecipeManager.obtainPayStatus(hisRecipe.getRecipeCode(), hisRecipe.getClinicOrgan());
@@ -576,7 +576,7 @@ public class BaseOfflineToOnlineService {
             stockBusinessService.setSupportGiveMode(recipe);
 
             LOGGER.info("BaseOfflineToOnlineService saveRecipeInfo res:{}", recipe.getRecipeId());
-            if(!new Integer("0").equals(hisRecipe.getRevisitType())){
+            if (!new Integer("0").equals(hisRecipe.getRevisitType())) {
                 revisitManager.saveRevisitTracesList(recipe);
                 revisitManager.updateRecipeIdByConsultId(recipe.getRecipeId(), recipe.getClinicId());
             }
@@ -603,7 +603,7 @@ public class BaseOfflineToOnlineService {
         Recipe recipe = new Recipe();
         recipe.setBussSource(0);
         recipe.setMedicalFlag(hisRecipe.getMedicalFlag());
-        if(!new Integer("0").equals(hisRecipe.getRevisitType())){
+        if (!new Integer("0").equals(hisRecipe.getRevisitType())) {
             //通过挂号序号关联复诊
             try {
                 IRevisitExService exService = RevisitAPI.getService(IRevisitExService.class);
@@ -625,11 +625,11 @@ public class BaseOfflineToOnlineService {
             } catch (Exception e) {
                 LOGGER.error("线下处方转线上通过挂号序号关联复诊 error", e);
             }
-        }else {
+        } else {
             recipe.setBussSource(5);
-            if(null==hisRecipe.getMedicalFlag()){
+            if (null == hisRecipe.getMedicalFlag()) {
                 recipe.setMedicalFlag(0);
-            }else{
+            } else {
                 recipe.setMedicalFlag(hisRecipe.getMedicalFlag());
             }
 
@@ -713,15 +713,15 @@ public class BaseOfflineToOnlineService {
         recipe.setRecipeSourceType(2);
         recipe.setRecipePayType(hisRecipe.getRecipePayType());
         //TODO 龙华？消息推送取不到RequestMpiId 没有操作人 咋整 只能空着或者mpiid
-        if(userRoleToken!=null){
+        if (userRoleToken != null) {
             recipe.setRequestMpiId(userRoleToken.getOwnMpiId());
-        }else{
-            if(!new Integer("0").equals(hisRecipe.getRevisitType())){
+        } else {
+            if (!new Integer("0").equals(hisRecipe.getRevisitType())) {
                 RevisitBean revisitBean = revisitClient.getRevisitByClinicId(recipe.getClinicId());
                 if (null != revisitBean) {
                     recipe.setRequestMpiId(revisitBean.getRequestMpi());
                 }
-            }else{
+            } else {
                 recipe.setRequestMpiId(recipe.getMpiid());
             }
         }
@@ -782,7 +782,7 @@ public class BaseOfflineToOnlineService {
         Map<String, List<OrganDrugList>> organDrugListMap = organDrugList.stream().collect(Collectors.groupingBy(OrganDrugList::getOrganDrugCode));
         Integer targetedDrugType = 0;
         for (HisRecipeDetail hisRecipeDetail : hisRecipeDetails) {
-            LOGGER.info("hisRecipe saveRecipeDetail hisRecipeDetail:{} " , JSON.toJSONString(hisRecipeDetail));
+            LOGGER.info("hisRecipe saveRecipeDetail hisRecipeDetail:{} ", JSON.toJSONString(hisRecipeDetail));
             List<OrganDrugList> organDrugLists = organDrugListMap.get(hisRecipeDetail.getDrugCode());
             LOGGER.info("hisRecipe saveRecipeDetail organDrugLists:{}", JSONUtils.toString(organDrugLists));
             if (CollectionUtils.isEmpty(organDrugLists)) {
@@ -794,7 +794,7 @@ public class BaseOfflineToOnlineService {
                 targetedDrugType = 1;
             }
             Recipedetail recipedetail = new Recipedetail();
-            recipedetail=ObjectCopyUtils.convert(hisRecipeDetail, Recipedetail.class);
+            recipedetail = ObjectCopyUtils.convert(hisRecipeDetail, Recipedetail.class);
             recipedetail.setRecipeId(recipeId);
             recipedetail.setUseDoseUnit(hisRecipeDetail.getUseDoseUnit());
             //用量纯数字的存useDose,非数字的存useDoseStr
@@ -892,9 +892,9 @@ public class BaseOfflineToOnlineService {
             if (StringUtils.isNotEmpty(hisRecipeDetail.getPharmacyName())) {
                 recipedetail.setPharmacyName(hisRecipeDetail.getPharmacyName());
             }
-            if (hisRecipeDetail.getPeritonealDialysisFluidType()!=null) {
+            if (hisRecipeDetail.getPeritonealDialysisFluidType() != null) {
                 recipedetail.setPeritonealDialysisFluidType(hisRecipeDetail.getPeritonealDialysisFluidType());
-            }else{
+            } else {
                 recipedetail.setPeritonealDialysisFluidType(0);
             }
             recipedetail.setTcmContraindicationCause(hisRecipeDetail.getTcmContraindicationCause());
@@ -1015,7 +1015,7 @@ public class BaseOfflineToOnlineService {
 //        recipeExtend.setMedicalRecordNumber(hisRecipe.getMedicalRecordNumber());
         recipeExtend.setCardTypeName(hisRecipe.getCardTypeName());
         recipeExtend.setCardType(hisRecipe.getCardTypeCode());
-        if(!new Integer("0").equals(hisRecipe.getRevisitType())){
+        if (!new Integer("0").equals(hisRecipe.getRevisitType())) {
             RevisitExDTO consultExDTO = new RevisitExDTO();
             try {
                 consultExDTO = revisitClient.getByRegisterId(hisRecipe.getRegisteredId());
@@ -1023,7 +1023,7 @@ public class BaseOfflineToOnlineService {
             } catch (Exception e) {
                 LOGGER.error("线下处方转线上通过挂号序号关联复诊 error", e);
             }
-            if(consultExDTO!=null){
+            if (consultExDTO != null) {
                 if (StringUtils.isEmpty(hisRecipe.getIllnessType())) {
                     recipeExtend.setIllnessType(consultExDTO.getDbType());
                 }
@@ -1230,6 +1230,7 @@ public class BaseOfflineToOnlineService {
         hisRecipe.setDeliveryCode(queryHisRecipResTo.getDeliveryCode());
         hisRecipe.setDeliveryName(queryHisRecipResTo.getDeliveryName());
         hisRecipe.setSendAddr(queryHisRecipResTo.getSendAddr());
+        hisRecipe.setSendType(queryHisRecipResTo.getSendType());
         hisRecipe.setRecipeSource(queryHisRecipResTo.getRecipeSource());
         hisRecipe.setReceiverName(queryHisRecipResTo.getReceiverName());
         hisRecipe.setReceiverTel(queryHisRecipResTo.getReceiverTel());
@@ -1293,7 +1294,8 @@ public class BaseOfflineToOnlineService {
 
     /**
      * 药品详情发生变化、数据不是由本人生成的未支付处方 数据处理
-     *  @param hisRecipeTo         his处方数据
+     *
+     * @param hisRecipeTo         his处方数据
      * @param hisRecipeMap        key为未处理recipeCode,值为未处理HisRecipe的map对象
      * @param hisRecipeDetailList 未处理的线下处方详情
      * @param mpiId               查看详情处方的操作用户的mpiid

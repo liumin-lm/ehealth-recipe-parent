@@ -115,6 +115,8 @@ public class HisRecipe implements Serializable {
     @ItemProperty(alias = "配送地址")
     @Desensitizations(type = DesensitizationsType.ADDRESS)
     private String sendAddr;
+    @ItemProperty(alias = "配送类型 0:院内现场取药不配送  1：医院药房负责配送；2：第三方平台配送（九州通药房发药）")
+    private Integer sendType;
     @ItemProperty(alias = "处方单特殊来源标识：1省中，邵逸夫医保小程序;  2北京 默认null")
     private Integer recipeSource;
     @ItemProperty(alias = "收货人姓名")
@@ -846,5 +848,14 @@ public class HisRecipe implements Serializable {
 
     public void setOtherTotalFee(BigDecimal otherTotalFee) {
         this.otherTotalFee = otherTotalFee;
+    }
+
+    @Column(name = "send_type")
+    public Integer getSendType() {
+        return sendType;
+    }
+
+    public void setSendType(Integer sendType) {
+        this.sendType = sendType;
     }
 }
