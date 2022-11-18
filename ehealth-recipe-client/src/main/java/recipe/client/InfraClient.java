@@ -60,6 +60,16 @@ public class InfraClient extends BaseClient {
     }
 
     /**
+     * 获取预估价格金额 新接口
+     * @param logisticsEmsPriceDto
+     * @return
+     */
+    @LogRecord
+    public LogisticsEmsPriceInfoDto getLogisticsEstimatedPrice(LogisticsEmsPriceDto logisticsEmsPriceDto) {
+        return logisticsOrderService.getLogisticsEstimatedPrice(logisticsEmsPriceDto);
+    }
+
+    /**
      * @param depId
      * @param logisticsCompany
      * @param type

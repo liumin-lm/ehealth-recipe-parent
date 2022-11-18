@@ -44,28 +44,28 @@ public class OrganDrugListBean implements java.io.Serializable {
     @ItemProperty(alias = "药品规格")
     private String drugSpec;
 
-    @ItemProperty(alias = "转换系数")
+    @ItemProperty(alias = "出售单位下的包装量")
     private Integer pack;
 
-    @ItemProperty(alias = "药品包装单位")
+    @ItemProperty(alias = "出售单位")
     private String unit;
 
-    @ItemProperty(alias = "实际单次剂量")
+    @ItemProperty(alias = "注册规格剂量")
     private Double useDose;
 
-    @ItemProperty(alias = "推荐单次剂量")
+    @ItemProperty(alias = "注册规格默认每次剂量")
     private Double recommendedUseDose;
 
-    @ItemProperty(alias = "单次剂量单位")
+    @ItemProperty(alias = "注册规格单位")
     private String useDoseUnit;
 
-    @ItemProperty(alias = "实际单位剂量（最小单位）")
+    @ItemProperty(alias = "开方单位剂量")
     private Double smallestUnitUseDose;
 
-    @ItemProperty(alias = "默认单位剂量（最小单位）")
+    @ItemProperty(alias = "开方单位默认每次剂量")
     private Double defaultSmallestUnitUseDose;
 
-    @ItemProperty(alias = "单位剂量单位（最小单位）")
+    @ItemProperty(alias = "通用开方单位")
     private String useDoseSmallestUnit;
 
     @ItemProperty(alias = "使用频率平台")
@@ -130,7 +130,7 @@ public class OrganDrugListBean implements java.io.Serializable {
     @ItemProperty(alias = "包装材料")
     private String packingMaterials;
 
-    @ItemProperty(alias = "医保药品编码")
+    @ItemProperty(alias = "地方医保代码")
     private String medicalDrugCode;
     @ItemProperty(alias = "医院剂型编码")
     private String drugFormCode;
@@ -140,7 +140,7 @@ public class OrganDrugListBean implements java.io.Serializable {
     @ItemProperty(alias = "禁用原因")
     private String disableReason;
 
-    @ItemProperty(alias = "药房")
+    @ItemProperty(alias = "开方药房")
     private String pharmacy;
 
     @ItemProperty(alias = "药品嘱托")
@@ -155,7 +155,7 @@ public class OrganDrugListBean implements java.io.Serializable {
     @ItemProperty(alias = "是否支持下载处方笺 0   否，1  是   默认1")
     private Boolean supportDownloadPrescriptionPad;
 
-    @ItemProperty(alias = "配送药企ids")
+    @ItemProperty(alias = "出售流转药企ids")
     private String drugsEnterpriseIds;
 
     @ItemProperty(alias="药品适用业务  eh.base.dictionary.ApplyBusiness ")
@@ -168,7 +168,7 @@ public class OrganDrugListBean implements java.io.Serializable {
     @ItemProperty(alias = "是否靶向药  0否  1是 ")
     private Integer targetedDrugType;
 
-    @ItemProperty(alias = "最小销售倍数")
+    @ItemProperty(alias = "出售单位的销售倍数")
     private Integer smallestSaleMultiple;
 
     @ItemProperty(alias = "销售策略")
@@ -184,13 +184,13 @@ public class OrganDrugListBean implements java.io.Serializable {
     @ItemProperty(alias = "抗肿瘤药物等级  1普通级 2限制级 ")
     private Integer antiTumorDrugLevel;
 
-    @ItemProperty(alias = "最小售卖单位/单位HIS编码")
+    @ItemProperty(alias = "出售单位HIS编码")
     private String unitHisCode;
 
-    @ItemProperty(alias = "规格单位/单位HIS编码")
+    @ItemProperty(alias = "注册规格单位HIS编码")
     private String useDoseUnitHisCode;
 
-    @ItemProperty(alias = "单位剂量单位（最小单位）/单位his编码")
+    @ItemProperty(alias = "通用开方单位HIS编码")
     private String useDoseSmallestUnitHisCode;
 
     @ItemProperty(alias = "抗菌素药物等级 0：非抗菌素药物 1：1级 2：2级 3：3级 ")
@@ -216,6 +216,17 @@ public class OrganDrugListBean implements java.io.Serializable {
 
     @ItemProperty(alias = "his剂型名称")
     private String hisDrugForm;
+
+    @ItemProperty(alias = "国家医保代码")
+    private String nationalMedicalCode;
+
+    public String getNationalMedicalCode() {
+        return nationalMedicalCode;
+    }
+
+    public void setNationalMedicalCode(String nationalMedicalCode) {
+        this.nationalMedicalCode = nationalMedicalCode;
+    }
 
     public String getHisDrugForm() {
         return hisDrugForm;

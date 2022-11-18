@@ -1341,6 +1341,8 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             recipeToGuideResVO.setClinicId(recipe.getClinicId());
             recipeToGuideResVO.setProcessState(recipe.getProcessState());
             recipeToGuideResVO.setRecipeType(recipe.getRecipeType());
+            recipeToGuideResVO.setMpiid(recipe.getMpiid());
+            recipeToGuideResVO.setSignDate(recipe.getSignDate());
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
             if (Objects.nonNull(recipeExtend) && StringUtils.isNotEmpty(recipeExtend.getPharmNo())) {
                 recipeToGuideResVO.setPharmNo(recipe.getOrganName() + recipeExtend.getPharmNo() + "窗口取药");
