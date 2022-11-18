@@ -39,6 +39,11 @@ public class ServiceLogDTO implements Serializable {
     private String source;
 
     /**
+     * 子项目名称 如处方：audit，recipe，ngariRecipe
+     */
+    private String subSource;
+
+    /**
      * 业务类型
      */
     private String name;
