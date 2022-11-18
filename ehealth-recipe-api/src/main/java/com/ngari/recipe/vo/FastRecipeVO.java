@@ -144,4 +144,7 @@ public class FastRecipeVO implements Serializable {
 
     @ItemProperty(alias = "单复方表示：0无状态，1单方，2复方")
     private Integer singleOrCompoundRecipe;
+
+    @ItemProperty(alias = "代煎帖数")
+    private Integer decoctionNum;
 }

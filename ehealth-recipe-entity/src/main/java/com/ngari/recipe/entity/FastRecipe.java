@@ -141,6 +141,9 @@ public class FastRecipe {
     @ItemProperty(alias = "单复方表示：0无状态，1单方，2复方")
     private Integer singleOrCompoundRecipe;
 
+    @ItemProperty(alias = "代煎帖数")
+    private Integer decoctionNum;
+
     @Id
     @GeneratedValue(strategy = IDENTITY)
     @Column(name = "id", unique = true, nullable = false)
@@ -500,5 +503,14 @@ public class FastRecipe {
 
     public void setSingleOrCompoundRecipe(Integer singleOrCompoundRecipe) {
         this.singleOrCompoundRecipe = singleOrCompoundRecipe;
+    }
+
+    @Column(name = "decoction_num")
+    public Integer getDecoctionNum() {
+        return decoctionNum;
+    }
+
+    public void setDecoctionNum(Integer decoctionNum) {
+        this.decoctionNum = decoctionNum;
     }
 }
