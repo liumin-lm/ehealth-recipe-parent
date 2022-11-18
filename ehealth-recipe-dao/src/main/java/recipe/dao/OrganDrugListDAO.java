@@ -41,7 +41,7 @@ import java.util.*;
  * @author yuyun
  */
 @RpcSupportDAO
-public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<OrganDrugList> implements DBDictionaryItemLoader<OrganDrugList> , ExtendDao<OrganDrugList> {
+public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<OrganDrugList> implements DBDictionaryItemLoader<OrganDrugList>, ExtendDao<OrganDrugList> {
 
     private static final Integer ALL_DRUG_FLAG = 9;
     private static Logger logger = Logger.getLogger(OrganDrugListDAO.class);
@@ -132,6 +132,7 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
      */
     @DAOMethod(sql = "from OrganDrugList where organId=:organId  and status=1", limit = 0)
     public abstract List<OrganDrugList> findByOrganId(@DAOParam("organId") int organId);
+
     @DAOMethod(sql = "from OrganDrugList where organId=:organId", limit = 0)
     public abstract List<OrganDrugList> findByOrganIdWithOutStatus(@DAOParam("organId") int organId);
 
@@ -1197,6 +1198,9 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
      */
     @DAOMethod(sql = "from OrganDrugList where organId=:organId and  status=1  ", limit = 0)
     public abstract List<OrganDrugList> findOrganDrugByOrganId(@DAOParam("organId") int organId);
+
+    @DAOMethod(sql = "from OrganDrugList where organId=:organId ", limit = 0)
+    public abstract List<OrganDrugList> findOrganDrugByOrganIdAndAllStatus(@DAOParam("organId") int organId);
 
     /**
      * 根据机构id 和配送药企ID 获取机构药品

@@ -2517,7 +2517,7 @@ public class RecipeService extends RecipeBaseService {
                 if (delete) {
                     if (!CollectionUtils.isEmpty(data)) {
                         Map<String, OrganDrugInfoTO> collect = data.stream().collect(Collectors.toMap(OrganDrugInfoTO::getOrganDrugCode, a -> a, (k1, k2) -> k1));
-                        List<OrganDrugList> details = organDrugListDAO.findOrganDrugByOrganId(organId);
+                        List<OrganDrugList> details = organDrugListDAO.findOrganDrugByOrganIdAndAllStatus(organId);
                         if (!ObjectUtils.isEmpty(details)) {
                             for (OrganDrugList detail : details) {
                                 boolean isAllow = drugManager.isAllowDealBySyncDataRange(detail.getOrganDrugCode(), byOrganId1.getDelDrugDataRange(), byOrganId1.getDelSyncDrugType(), byOrganId1.getDelDrugFromList(), drugListDAO.get(detail.getDrugId()).getDrugType(), detail.getDrugForm());
