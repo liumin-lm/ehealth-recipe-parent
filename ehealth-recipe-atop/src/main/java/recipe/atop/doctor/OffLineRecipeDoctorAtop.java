@@ -8,6 +8,7 @@ import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.vo.OffLineRecipeDetailVO;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.core.api.patient.IOfflineRecipeBusinessService;
@@ -54,8 +55,10 @@ public class OffLineRecipeDoctorAtop extends BaseAtop {
         HisRecipeDTO hisRecipeDTO = offlineRecipeBusinessService.getOffLineRecipeDetailsV1(recipe.getClinicOrgan(), recipe.getRecipeCode(), createDate);
         HisRecipeInfoDTO hisRecipeInfo = hisRecipeDTO.getHisRecipeInfo();
         HisRecipeBean recipeBean = ObjectCopyUtils.convert(hisRecipeInfo, HisRecipeBean.class);
-        recipeBean.setSignDate(hisRecipeInfo.getSignTime());
-        recipeBean.setCreateDate(Timestamp.valueOf(hisRecipeInfo.getSignTime()));
+        if (StringUtils.isNotEmpty(hisRecipeInfo.getSignTime())) {
+            recipeBean.setSignDate(hisRecipeInfo.getSignTime());
+            recipeBean.setCreateDate(Timestamp.valueOf(hisRecipeInfo.getSignTime()));
+        }
         recipeBean.setOrganDiseaseName(hisRecipeInfo.getDiseaseName());
         recipeBean.setDepartText(hisRecipeInfo.getDepartName());
         recipeBean.setClinicOrgan(recipe.getClinicOrgan());
