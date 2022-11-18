@@ -158,8 +158,6 @@ public class DrugToolService implements IDrugToolService {
     private DrugsEnterpriseDAO drugsEnterpriseDAO;
 
 
-
-
     private LoadingCache<String, List<DrugList>> drugListCache = CacheBuilder.newBuilder().expireAfterWrite(10, TimeUnit.MINUTES).build(new CacheLoader<String, List<DrugList>>() {
         @Override
         public List<DrugList> load(String str) throws Exception {
@@ -701,7 +699,7 @@ public class DrugToolService implements IDrugToolService {
                         LOGGER.error("是否基药有误 ," + e.getMessage(), e);
                         errMsg.append("是否基药有误").append(";");
                     }
-                }else{
+                } else {
                     if (("是").equals(getStrFromCell(row.getCell(30)))) {
                         drug.setBaseDrug(1);
                     } else if (("否").equals(getStrFromCell(row.getCell(30)))) {
@@ -834,7 +832,7 @@ public class DrugToolService implements IDrugToolService {
                         } else {
                             errMsg.append("不可在线开具有误").append(";");
                         }
-                    }else{
+                    } else {
                         drug.setUnavailable(0);
                     }
                 } catch (Exception e) {
@@ -933,6 +931,7 @@ public class DrugToolService implements IDrugToolService {
 
     /**
      * 这段逻辑是   为什么不直接放automaticDrugMatch处理Status、MatchDrugId了
+     *
      * @param drug
      */
     public void AutoMatch(DrugListMatch drug) {
@@ -1533,6 +1532,8 @@ public class DrugToolService implements IDrugToolService {
 
     /**
      * TODO药品转换 3
+     * 提交就提交 同步药企的代码为啥放这里面 层次结构？？
+     *
      * @param lists
      * @param addFlag
      * @param updateFlag
@@ -3012,8 +3013,9 @@ public class DrugToolService implements IDrugToolService {
 
     /**
      * 同步自健药企药品
-     *
+     * <p>
      * 机构自动同步到药企
+     *
      * @param detail
      */
     public void organDrugSync(OrganDrugList detail) {
@@ -3023,8 +3025,8 @@ public class DrugToolService implements IDrugToolService {
         if (drugsEnterprises != null && drugsEnterprises.size() > 0) {
             for (DrugsEnterprise drugsEnterpris : drugsEnterprises) {
                 DrugsEnterpriseConfig config = bean.getConfigByDrugsenterpriseId(drugsEnterpris.getId());
-                if (config.getEnable_drug_sync()!=1){
-                     LOGGER.info( "基础数据-药品目录-药企药品目录-同步设置-【药企药品是否支持同步】未开启，药企：{}",config.getId());
+                if (config.getEnable_drug_sync() != 1) {
+                    LOGGER.info("基础数据-药品目录-药企药品目录-同步设置-【药企药品是否支持同步】未开启，药企：{}", config.getId());
                     return;
                 }
                 try {

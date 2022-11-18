@@ -443,7 +443,7 @@ public class OrganDrugListService implements IOrganDrugListService {
 
 
     /**
-     * 药品目录-机构药品禁用手动同步调用
+     * 删除机构药品目录 药品目录-机构药品禁用、手动同步、定时同步调用
      *
      * @param organId 机构Id
      */
