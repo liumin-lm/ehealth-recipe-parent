@@ -88,6 +88,8 @@ public class OrderManager extends BaseManager {
     private RecipeBeforeOrderDAO recipeBeforeOrderDAO;
     @Autowired
     private AddressService addressService;
+    @Autowired
+    private RecipeParameterDao parameterDao;
 
     /**
      * 合并预下单信息
@@ -1016,5 +1018,16 @@ public class OrderManager extends BaseManager {
         recipeBeforeOrder1.setRecMobile(recipeBeforeOrder2.getRecMobile() != null ? recipeBeforeOrder2.getRecMobile() : recipeOrder.getRecMobile());
         recipeBeforeOrder1.setRecTel(recipeBeforeOrder2.getRecTel() != null ? recipeBeforeOrder2.getRecTel() : recipeOrder.getRecTel());
         recipeBeforeOrder1.setZipCode(recipeBeforeOrder2.getZipCode() != null ? recipeBeforeOrder2.getZipCode() : recipeOrder.getZipCode());
+    }
+
+    public void recordPayBackLog(Integer orderId, String orderLog){
+        try {
+            RecipeParameter recipeParameter = new RecipeParameter();
+            recipeParameter.setParamName(orderId + "_PayInfoCallBack");
+            recipeParameter.setParamValue(orderLog);
+            parameterDao.save(recipeParameter);
+        } catch (DAOException e) {
+            logger.error("OrderManager recordPayBackLog error", e);
+        }
     }
 }

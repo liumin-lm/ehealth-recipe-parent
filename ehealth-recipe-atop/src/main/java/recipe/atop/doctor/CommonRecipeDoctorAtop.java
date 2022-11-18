@@ -213,8 +213,10 @@ public class CommonRecipeDoctorAtop extends BaseAtop {
 
         HisRecipeInfoDTO hisRecipeInfo = hisRecipeDTO.getHisRecipeInfo();
         HisRecipeBean recipeBean = ObjectCopyUtils.convert(hisRecipeInfo, HisRecipeBean.class);
-        recipeBean.setSignDate(hisRecipeInfo.getSignTime());
-        recipeBean.setCreateDate(Timestamp.valueOf(hisRecipeInfo.getSignTime()));
+        if (StringUtils.isNotEmpty(hisRecipeInfo.getSignTime())) {
+            recipeBean.setSignDate(hisRecipeInfo.getSignTime());
+            recipeBean.setCreateDate(Timestamp.valueOf(hisRecipeInfo.getSignTime()));
+        }
         recipeBean.setOrganDiseaseName(hisRecipeInfo.getDiseaseName());
         recipeBean.setDepartText(hisRecipeInfo.getDepartName());
         recipeBean.setClinicOrgan(commonRecipe.getOrganId());

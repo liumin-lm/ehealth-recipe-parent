@@ -25,7 +25,7 @@ import java.util.List;
  *
  * @author fuzi
  */
-@RpcBean(value = "textGmAtop")
+@RpcBean(value = "textGmAtop", mvc_authentication = false)
 public class TextGmAtop {
     @Autowired
     private ITextService textBusinessService;
@@ -77,7 +77,6 @@ public class TextGmAtop {
     public void generateRecipePdf(Integer recipeId) {
         textBusinessService.generateRecipePdf(recipeId);
     }
-
 
     /**
      * 生产pdf文件

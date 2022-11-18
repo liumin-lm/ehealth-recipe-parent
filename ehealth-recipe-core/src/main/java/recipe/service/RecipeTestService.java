@@ -1,7 +1,6 @@
 package recipe.service;
 
 import com.alibaba.fastjson.JSON;
-import com.google.common.collect.Lists;
 import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.base.push.service.ISmsPushService;
 import com.ngari.common.mode.HisResponseTO;
@@ -16,6 +15,7 @@ import com.ngari.platform.recipe.mode.PushRecipeAndOrder;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.pay.model.PayResultDTO;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import ctd.account.session.ClientSession;
 import ctd.net.broadcast.MQHelper;
@@ -40,7 +40,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import recipe.ApplicationUtils;
 import recipe.aop.LogRecord;
-import recipe.business.StockBusinessService;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.RevisitClient;
 import recipe.common.OnsConfig;
@@ -53,6 +52,7 @@ import recipe.manager.EnterpriseManager;
 import recipe.manager.OrderManager;
 import recipe.manager.StateManager;
 import recipe.service.afterpay.LogisticsOnlineOrderService;
+import recipe.service.paycallback.RecipePayInfoCallBackService;
 import recipe.service.recipecancel.RecipeCancelService;
 import recipe.util.DateConversion;
 import recipe.util.RecipeMsgUtils;
@@ -83,20 +83,18 @@ public class RecipeTestService {
     private EnterpriseManager enterpriseManager;
     @Autowired
     private DrugsEnterpriseDAO drugsEnterpriseDAO;
-//    @Autowired
-//    private DrugDistributionPriceDAO drugDistributionPriceDAO;
     @Autowired
     private IDrugBusinessService drugBusinessService;
     @Autowired
     private CreatePdfFactory createPdfFactory;
-    @Autowired
-    private StockBusinessService stockBusinessService;
     @Autowired
     private DrugToolService drugToolService;
     @Autowired
     private OrderManager orderManager;
     @Autowired
     private RevisitClient revisitClient;
+    @Autowired
+    private RecipeParameterDao recipeParameterDao;
 
 
 
@@ -642,5 +640,35 @@ public class RecipeTestService {
     @RpcService
     public RevisitExDTO retryGetByClinicId(Integer clinicId){
         return revisitClient.retryGetByClinicId(clinicId);
+    }
+
+    /**
+     * 卫宁支付回调太慢导致患者取消，数据处理
+     * @param orderIdList 订单列表
+     * @param flag 是否调用支付回调接口
+     */
+    @RpcService
+    public void updatePayBackInfo(List<Integer> orderIdList, Boolean flag){
+        List<RecipeOrder> recipeOrderList = recipeOrderDAO.findByOrderId(orderIdList);
+        recipeOrderList.forEach(recipeOrder -> {
+            List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
+            recipeIdList.forEach(recipeId->{
+                Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+                recipe.setStatus(2);
+                recipe.setGiveMode(1);
+                recipe.setPayFlag(0);
+                recipe.setOrderCode(recipeOrder.getOrderCode());
+                recipeDAO.updateNonNullFieldByPrimaryKey(recipe);
+            });
+            recipeOrder.setStatus(1);
+            recipeOrder.setEffective(1);
+            recipeOrderDAO.updateNonNullFieldByPrimaryKey(recipeOrder);
+            if(flag){
+                String payBackInfo = recipeParameterDao.getByName(recipeOrder.getOrderId() + "_PayInfoCallBack");
+                PayResultDTO payResultDTO = JSON.parseObject(payBackInfo, PayResultDTO.class);
+                RecipePayInfoCallBackService recipePayInfoCallBackService = ApplicationUtils.getRecipeService(RecipePayInfoCallBackService.class);
+                recipePayInfoCallBackService.doHandleAfterPay(payResultDTO);
+            }
+        });
     }
 }
