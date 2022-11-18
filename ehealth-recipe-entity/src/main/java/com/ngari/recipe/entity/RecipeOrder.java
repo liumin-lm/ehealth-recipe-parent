@@ -133,7 +133,7 @@ public class RecipeOrder implements Serializable {
     @Dictionary(id = "eh.base.dictionary.AddrArea")
     private String address3;
 
-    @ItemProperty(alias = "地址（区县）")
+    @ItemProperty(alias = "地址（街道）")
     @Dictionary(id = "eh.base.dictionary.AddrArea")
     private String streetAddress;
 
