@@ -168,6 +168,8 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
     private StateManager stateManager;
     @Autowired
     private BeforeOrderManager beforeOrderManager;
+    @Autowired
+    private HisRecipeDAO hisRecipeDAO;
 
 
     @Override
@@ -464,6 +466,12 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
                         downRecipeVO.setRecipeSignImg(imgStr);
                     } catch (Exception e) {
                         logger.error("findOrderAndRecipes recipeId{}处方，下载处方笺服务异常：{}.", recipe.getRecipeId(), e.getMessage(), e);
+                    }
+                }
+                if (RecipeSourceTypeEnum.OFFLINE_RECIPE.getType().equals(recipe.getRecipeSourceType())) {
+                    HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(recipe.getClinicOrgan(), recipe.getRecipeCode());
+                    if (Objects.nonNull(hisRecipe) && Objects.nonNull(hisRecipe.getSendType())) {
+                        downRecipeVO.setSendType(hisRecipe.getSendType());
                     }
                 }
                 //设置订单的购药方式

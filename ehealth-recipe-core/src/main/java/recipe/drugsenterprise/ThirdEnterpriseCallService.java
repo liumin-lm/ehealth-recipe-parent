@@ -46,10 +46,7 @@ import recipe.constant.*;
 import recipe.dao.*;
 import recipe.drugsenterprise.bean.DrugsEnterpriseDTO;
 import recipe.drugsenterprise.bean.StandardResultDTO;
-import recipe.enumerate.status.GiveModeEnum;
-import recipe.enumerate.status.OrderStateEnum;
-import recipe.enumerate.status.RecipeOrderStatusEnum;
-import recipe.enumerate.status.RecipeStateEnum;
+import recipe.enumerate.status.*;
 import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.HisRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
@@ -125,6 +122,8 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
     private StateManager stateManager;
     @Autowired
     private RecipeOrderDAO recipeOrderDAO;
+    @Autowired
+    private HisRecipeDAO hisRecipeDAO;
 
     /**
      * 待配送状态
@@ -1738,6 +1737,13 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                 orderDetailBean.setDistributionFlag("1");
             } else {
                 orderDetailBean.setDistributionFlag("0");
+            }
+
+            if (RecipeSourceTypeEnum.OFFLINE_RECIPE.getType().equals(recipe.getRecipeSourceType())) {
+                HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(recipe.getClinicOrgan(), recipe.getRecipeCode());
+                if (Objects.nonNull(hisRecipe) && Objects.nonNull(hisRecipe.getSendType())) {
+                    orderDetailBean.setSendType(hisRecipe.getSendType());
+                }
             }
 
             DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipeOrder.getEnterpriseId());

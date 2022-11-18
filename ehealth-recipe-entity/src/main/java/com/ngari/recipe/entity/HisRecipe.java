@@ -24,80 +24,80 @@ public class HisRecipe implements Serializable {
     private static final long serialVersionUID = -7402055250734266918L;
 
     @ItemProperty(alias = "处方序号")
-    private Integer hisRecipeID; // int(11) NOT NULL AUTO_INCREMENT,
+    private Integer hisRecipeID;
     @ItemProperty(alias = "挂号序号")
-    private String registeredId; // varchar(30) DEFAULT NULL COMMENT '挂号序号',
+    private String registeredId;
     @ItemProperty(alias = "mpiId")
     private String mpiId;
     @ItemProperty(alias = "证件类型 1 身份证")
-    private Integer certificateType; // tinyint(1) DEFAULT NULL COMMENT '证件类型 1 身份证',
+    private Integer certificateType;
     @ItemProperty(alias = "证件号")
-    private String certificate; // varchar(18) DEFAULT NULL COMMENT '证件号',
+    private String certificate;
     @ItemProperty(alias = "患者姓名")
-    private String patientName; // varchar(32) NOT NULL COMMENT '患者姓名',
+    private String patientName;
     @ItemProperty(alias = "患者手机号")
-    private String patientTel; // varchar(20) DEFAULT NULL COMMENT '患者手机号',
+    private String patientTel;
     @ItemProperty(alias = "患者地址")
-    private String patientAddress; // varchar(250) DEFAULT NULL COMMENT '患者地址',
+    private String patientAddress;
     @ItemProperty(alias = "患者病例号")
-    private String patientNumber; // varchar(20) DEFAULT NULL COMMENT '患者手机号',
+    private String patientNumber;
     @ItemProperty(alias = "His处方单号")
-    private String recipeCode; // varchar(50) DEFAULT NULL COMMENT 'His处方单号',
+    private String recipeCode;
     @ItemProperty(alias = "处方金额")
-    private BigDecimal recipeFee; // decimal(10,2) DEFAULT NULL COMMENT '处方金额',
+    private BigDecimal recipeFee;
     @ItemProperty(alias = "开方机构序号")
-    private Integer clinicOrgan; // int(11) DEFAULT NULL COMMENT '开方机构序号',
+    private Integer clinicOrgan;
     @ItemProperty(alias = "机构名称")
-    private String organName; // varchar(50) DEFAULT NULL COMMENT '机构名称',
+    private String organName;
     @ItemProperty(alias = "1西药  2中成药 3 草药")
-    private Integer recipeType; // tinyint(1) DEFAULT NULL COMMENT '1西药  2中成药 3 草药',
+    private Integer recipeType;
     @ItemProperty(alias = "科室编码")
-    private String departCode; // varchar(10) DEFAULT NULL COMMENT '科室编码',
+    private String departCode;
     @ItemProperty(alias = "科室名称")
-    private String departName; // varchar(20) DEFAULT NULL COMMENT '科室名称',
+    private String departName;
     @ItemProperty(alias = "开方医生工号")
-    private String doctorCode; // varchar(20) DEFAULT NULL COMMENT '开方医生工号',
+    private String doctorCode;
     @ItemProperty(alias = "开方医生姓名")
-    private String doctorName; // varchar(50) DEFAULT NULL COMMENT '开方医生姓名',
+    private String doctorName;
     @ItemProperty(alias = "创建时间")
-    private Date createDate; // datetime DEFAULT NULL,
+    private Date createDate;
     @ItemProperty(alias = "诊断编码")
-    private String disease; // varchar(50) DEFAULT NULL COMMENT '诊断编码',
+    private String disease;
     @ItemProperty(alias = "诊断编码")
-    private String diseaseName; // varchar(50) DEFAULT NULL COMMENT '诊断名称',
+    private String diseaseName;
     @ItemProperty(alias = "诊断备注")
-    private String memo; // varchar(255) DEFAULT NULL COMMENT '诊断备注',
+    private String memo;
     @ItemProperty(alias = "处方备注")
-    private String recipeMemo; // varchar(250) DEFAULT NULL COMMENT '处方备注',
+    private String recipeMemo;
     @ItemProperty(alias = "1 未处理 2已处理")
-    private Integer status; //tinyint(4) NOT NULL DEFAULT '0' COMMENT '1 未处理 2已处理',
+    private Integer status;
     @ItemProperty(alias = "中药处方用法")
-    private String tcmUsePathways; //varchar(30) DEFAULT NULL COMMENT '中药处方用法',
+    private String tcmUsePathways;
     @ItemProperty(alias = "中药处方用量")
-    private String tcmUsingRate; // varchar(20) DEFAULT NULL COMMENT '中药处方用量',
+    private String tcmUsingRate;
     @ItemProperty(alias = "帖数")
-    private String tcmNum; // int(11) DEFAULT '0' COMMENT '帖数',
+    private String tcmNum;
     @Deprecated
     //作废掉了，不能直接改类型 前置机项目会有影响
     @ItemProperty(alias = "结算类型/医保类型 1 自费  2 医保")
-    private Integer medicalType; // tinyint(4) NOT NULL DEFAULT '1' COMMENT '1 自费  2 医保',
+    private Integer medicalType;
     @ItemProperty(alias = "患者医保类型（编码）")
     private String medicalTypeCode;
     @ItemProperty(alias = "患者医保类型（名称）")
     private String medicalTypeText;
 
     @ItemProperty(alias = "提示文本")
-    private String showText; // varchar(250) DEFAULT NULL COMMENT '提示文本',
+    private String showText;
     @ItemProperty(alias = "是否外延处方")
-    private Integer extensionFlag; // tinyint(4) NOT NULL DEFAULT '1' COMMENT '是否外延处方 0 否  1 是',
+    private Integer extensionFlag;
     @ItemProperty(alias = "处方流水号")
-    private String tradeNo; // varchar(50) DEFAULT NULL COMMENT '处方流水号',
+    private String tradeNo;
     @ItemProperty(alias = "医保报销金额")
-    private BigDecimal medicalAmount; // decimal(10,2) DEFAULT NULL COMMENT '医保报销金额',
+    private BigDecimal medicalAmount;
     @ItemProperty(alias = "自费金额")
-    private BigDecimal cashAmount; // decimal(10,2) DEFAULT NULL COMMENT '自费金额',
+    private BigDecimal cashAmount;
     @ItemProperty(alias = "总金额")
-    private BigDecimal totalAmount; // decimal(10,2) DEFAULT NULL COMMENT '总金额',
+    private BigDecimal totalAmount;
     @ItemProperty(alias = "订单状态描述")
     private String orderStatusText;
     @ItemProperty(alias = "处方来源")
@@ -134,7 +134,8 @@ public class HisRecipe implements Serializable {
     private BigDecimal tcmFee;
     @ItemProperty(alias = "代煎费")
     private BigDecimal decoctionFee;
-    private BigDecimal decoctionUnitFee;//代煎单价
+    @ItemProperty(alias = "代煎单价")
+    private BigDecimal decoctionUnitFee;
     @ItemProperty(alias = "his处方付费序号合集")
     private String recipeCostNumber;
     @ItemProperty(alias = "煎法编码")
@@ -149,7 +150,6 @@ public class HisRecipe implements Serializable {
     private String chronicDiseaseCode;
     @ItemProperty(alias = "病种名称")
     private String chronicDiseaseName;
-
     @ItemProperty(alias = "制法")
     private String makeMethodCode;
     @ItemProperty(alias = "制法text")
