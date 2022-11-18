@@ -388,6 +388,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
      * @return
      */
     @RpcService
+    @LogRecord
     public Map<String, Integer> syncOrganDrugDataToSaleDrugList(OrganDrugList detail, DrugsEnterpriseConfig config, Integer drugsEnterpriseId) {
         Integer addNum = 0;
         Integer updateNum = 0;
