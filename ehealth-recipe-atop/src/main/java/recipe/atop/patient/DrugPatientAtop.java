@@ -132,7 +132,7 @@ public class DrugPatientAtop extends BaseAtop {
         recipedetail.setOrganDrugCode(drugsRes.getOrganDrugCode());
         recipedetail.setUseTotalDose(1D);
         if (StringUtils.isNotEmpty(organDrug.getPharmacy())) {
-            String pharmacyId = organDrug.getPharmacy().split(ByteUtils.COMMA)[1];
+            String pharmacyId = organDrug.getPharmacy().split(ByteUtils.COMMA)[0];
             recipedetail.setPharmacyId(Integer.valueOf(pharmacyId));
         }
         RecipeDTO recipeDTO = new RecipeDTO();
@@ -144,6 +144,7 @@ public class DrugPatientAtop extends BaseAtop {
         List<EnterpriseStock> drugsStock = stockBusinessService.drugsStock(recipeDTO);
         return drugsStock.stream().anyMatch(EnterpriseStock::getStock);
     }
+    
 
     /**
      * 方便门诊购物车列表查询
