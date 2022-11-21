@@ -149,6 +149,9 @@ public class DrugList implements java.io.Serializable {
     @ItemProperty(alias = "来源渠道名称")
     private String sourceOrganText;
 
+    @ItemProperty(alias = "国家医保代码")
+    private String nationalMedicalCode;
+
 
 
     public DrugList() {
@@ -571,5 +574,14 @@ public class DrugList implements java.io.Serializable {
 
     public void setSourceOrganText(String sourceOrganText) {
         this.sourceOrganText = sourceOrganText;
+    }
+
+    @Column(name = "national_medical_code")
+    public String getNationalMedicalCode() {
+        return nationalMedicalCode;
+    }
+
+    public void setNationalMedicalCode(String nationalMedicalCode) {
+        this.nationalMedicalCode = nationalMedicalCode;
     }
 }
