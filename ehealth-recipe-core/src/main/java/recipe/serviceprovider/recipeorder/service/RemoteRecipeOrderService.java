@@ -59,6 +59,7 @@ import recipe.service.RecipeOrderService;
 import recipe.service.RecipeRefundService;
 import recipe.serviceprovider.BaseService;
 import recipe.util.DateConversion;
+import recipe.util.LocalStringUtil;
 import recipe.util.MapValueUtil;
 import recipe.util.ObjectCopyUtils;
 import recipe.vo.greenroom.RecipeOrderRefundReqVO;
@@ -503,6 +504,11 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
                         recipeOrderDetailExportBean.setSingleAuditFee(Objects.toString(recipeOrderDetailExportDTO.getAuditFee(), ""));
                         recipeOrderDetailExportBean.setSingleDecoctionFee(Objects.toString(recipeOrderDetailExportDTO.getDecoctionFee(), ""));
                     }
+
+                    recipeOrderDetailExportBean.setAddress1(LocalStringUtil.getAddressDic(recipeOrderDetailExportDTO.getAddress1()));
+                    recipeOrderDetailExportBean.setAddress2(LocalStringUtil.getAddressDic(recipeOrderDetailExportDTO.getAddress2()));
+                    recipeOrderDetailExportBean.setAddress3(LocalStringUtil.getAddressDic(recipeOrderDetailExportDTO.getAddress3()));
+                    recipeOrderDetailExportBean.setStreetAddress(LocalStringUtil.getAddressDic(recipeOrderDetailExportDTO.getStreetAddress()));
 
                     PatientService patientService = BasicAPI.getService(PatientService.class);
                     PatientDTO patientDTO = patientService.get(recipeOrderDetailExportBean.getRequestMpiId());

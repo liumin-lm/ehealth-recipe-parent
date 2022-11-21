@@ -546,7 +546,6 @@ public class RecipeOrderDetailExportDTO implements Serializable {
         this.singleDecoctionFee = singleDecoctionFee;
     }
 
-    @Transient
     public Integer getSingleOrCompoundRecipe() {
         return singleOrCompoundRecipe;
     }
