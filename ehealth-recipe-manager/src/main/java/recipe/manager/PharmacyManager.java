@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import recipe.dao.PharmacyTcmDAO;
 import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.util.ByteUtils;
+import recipe.util.RecipeUtil;
 import recipe.util.ValidateUtil;
 
 import java.util.*;
@@ -70,7 +71,7 @@ public class PharmacyManager extends BaseManager {
      * @param drugFormType  处方剂型 1 饮片方 2 颗粒方
      * @return true 不一致
      */
-    public Boolean pharmacyVariationV1(PharmacyTcm pharmacy, String organPharmacy, Integer drugFormType) {
+    public Boolean pharmacyVariationV1(PharmacyTcm pharmacy, String organPharmacy, Integer drugFormType, Integer recipeType) {
         //机构没药房
         if (null == pharmacy) {
             return false;
@@ -86,6 +87,9 @@ public class PharmacyManager extends BaseManager {
         //当前药品药房不包含最优药房
         if (!Arrays.asList(organPharmacy.split(ByteUtils.COMMA)).contains(String.valueOf(pharmacy.getPharmacyId()))) {
             return true;
+        }
+        if (!RecipeUtil.isTcmType(recipeType)) {
+            return false;
         }
         //比对药房 剂型权限
         String pharmacyDrugFormType = null == pharmacy.getDrugFormType() ? "" : pharmacy.getDrugFormType();
