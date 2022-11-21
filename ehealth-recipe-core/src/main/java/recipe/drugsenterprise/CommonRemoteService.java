@@ -412,6 +412,7 @@ public class CommonRemoteService extends AccessDrugEnterpriseService {
         String backMsg = "";
         try {
             backMsg = HttpHelper.doPost(drugsEnterprise.getBusinessUrl(), sendInfoStr);
+            LOGGER.info("CommonRemoteService backMsg:{}", backMsg);
             if (StringUtils.isEmpty(backMsg)) {
                 return "暂无库存";
             }

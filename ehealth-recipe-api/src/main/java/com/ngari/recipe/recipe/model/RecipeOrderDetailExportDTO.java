@@ -294,6 +294,7 @@ public class RecipeOrderDetailExportDTO implements Serializable {
         this.address4 = address4;
     }
 
+    @Transient
     public String getCompleteAddress() {
         return completeAddress;
     }
@@ -502,6 +503,7 @@ public class RecipeOrderDetailExportDTO implements Serializable {
         this.createDate = createDate;
     }
 
+    @Transient
     public String getSingleRecipeFee() {
         return singleRecipeFee;
     }
@@ -510,6 +512,7 @@ public class RecipeOrderDetailExportDTO implements Serializable {
         this.singleRecipeFee = singleRecipeFee;
     }
 
+    @Transient
     public String getSingleAuditFee() {
         return singleAuditFee;
     }
@@ -534,6 +537,7 @@ public class RecipeOrderDetailExportDTO implements Serializable {
         this.generationisOfDecoction = generationisOfDecoction;
     }
 
+    @Transient
     public String getSingleDecoctionFee() {
         return singleDecoctionFee;
     }
@@ -542,6 +546,7 @@ public class RecipeOrderDetailExportDTO implements Serializable {
         this.singleDecoctionFee = singleDecoctionFee;
     }
 
+    @Transient
     public Integer getSingleOrCompoundRecipe() {
         return singleOrCompoundRecipe;
     }

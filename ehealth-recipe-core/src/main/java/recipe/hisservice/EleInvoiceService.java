@@ -1,5 +1,6 @@
 package recipe.hisservice;
 
+import com.google.common.collect.Lists;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.EleInvoiceReqTo;
@@ -33,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.EleInvoiceDTO;
+import recipe.client.IConfigurationClient;
 import recipe.constant.ErrorCode;
 import recipe.constant.MedicalChargesEnum;
 import recipe.dao.*;
@@ -71,6 +73,8 @@ public class EleInvoiceService {
     private OrganService organService;
     @Autowired
     private RecipeOrderBillDAO recipeOrderBillDAO;
+    @Autowired
+    private IConfigurationClient configurationClient;
 
     @RpcService
     public List<String> findEleInvoice(EleInvoiceDTO eleInvoiceDTO) {
@@ -131,6 +135,20 @@ public class EleInvoiceService {
         eleInvoiceReqTo.setJsrq(DateConversion.getToDayDate());
         eleInvoiceReqTo.setGhxh(eleInvoiceDTO.getGhxh());
 
+        // 获取开票信息配置
+        Map<String, Object> configurationByKeyList = configurationClient.getConfigurationByKeyList(eleInvoiceDTO.getOrganId(), Lists.newArrayList("illingPointCode", "tollCollector", "billPreparer", "medicalInstitutionType"));
+        if (Objects.nonNull(configurationByKeyList.get("illingPointCode"))) {
+            eleInvoiceReqTo.setPlaceCode(configurationByKeyList.get("illingPointCode").toString());
+        }
+        if (Objects.nonNull(configurationByKeyList.get("tollCollector"))) {
+            eleInvoiceReqTo.setPayee(configurationByKeyList.get("tollCollector").toString());
+        }
+        if (Objects.nonNull(configurationByKeyList.get("billPreparer"))) {
+            eleInvoiceReqTo.setAuthor(configurationByKeyList.get("billPreparer").toString());
+        }
+        if (Objects.nonNull(configurationByKeyList.get("medicalInstitutionType"))) {
+            eleInvoiceReqTo.setMedicalInstitution(configurationByKeyList.get("medicalInstitutionType").toString());
+        }
         IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         LOGGER.info("EleInvoiceService.findEleInvoice 待推送数据:eleInvoiceReqTo:[{}]", JSONUtils.toString(eleInvoiceReqTo));
         HisResponseTO<RecipeInvoiceTO> hisResponse = hisService.queryEleInvoice(eleInvoiceReqTo);
@@ -285,6 +303,9 @@ public class EleInvoiceService {
             }
             if (StringUtils.isNotBlank(recipeExtend.getCardNo())) {
                 eleInvoiceDTO.setCardId(recipeExtend.getCardNo());
+            }
+            if (StringUtils.isNotBlank(recipeExtend.getMedicalRecordNumber())) {
+                eleInvoiceReqTo.setBlh(recipeExtend.getMedicalRecordNumber());
             }
         }
         if (StringUtils.isBlank(invoiceNumber) && StringUtils.isNotBlank(recipe.getOrderCode())){
