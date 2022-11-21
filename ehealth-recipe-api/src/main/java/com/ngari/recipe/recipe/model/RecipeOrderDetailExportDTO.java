@@ -14,7 +14,9 @@ import static javax.persistence.GenerationType.IDENTITY;
  * @author zgy
  * @date 2022/7/4 10:05
  */
+@Entity
 @Schema
+@Access(AccessType.PROPERTY)
 public class RecipeOrderDetailExportDTO implements Serializable {
     private static final long serialVersionUID = -8299461454513863587L;
 
@@ -178,6 +180,8 @@ public class RecipeOrderDetailExportDTO implements Serializable {
         this.fastRecipeFlag = fastRecipeFlag;
     }
 
+    @Id
+    @GeneratedValue(strategy = IDENTITY)
     public String getOrderCode() {
         return orderCode;
     }
