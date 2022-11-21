@@ -206,6 +206,9 @@ public class DrugListBean implements IDrugInventory, Serializable {
     @ItemProperty(alias = "最小销售倍数")
     private Integer smallestSaleMultiple;
 
+    @ItemProperty(alias = "国家医保代码")
+    private String nationalMedicalCode;
+
     public Integer getUnilateralCompound() {
         return unilateralCompound;
     }
@@ -700,5 +703,13 @@ public class DrugListBean implements IDrugInventory, Serializable {
 
     public void setSmallestSaleMultiple(Integer smallestSaleMultiple) {
         this.smallestSaleMultiple = smallestSaleMultiple;
+    }
+
+    public String getNationalMedicalCode() {
+        return nationalMedicalCode;
+    }
+
+    public void setNationalMedicalCode(String nationalMedicalCode) {
+        this.nationalMedicalCode = nationalMedicalCode;
     }
 }
