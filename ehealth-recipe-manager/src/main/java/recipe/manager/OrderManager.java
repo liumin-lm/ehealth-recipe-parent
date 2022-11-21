@@ -352,6 +352,16 @@ public class OrderManager extends BaseManager {
         return address.toString();
     }
 
+    public String getCompleteAddress(String address1, String address2, String address3, String address4, String streetAddress) {
+        StringBuilder address = new StringBuilder();
+        super.getAddressDic(address, address1);
+        super.getAddressDic(address, address2);
+        super.getAddressDic(address, address3);
+        super.getAddressDic(address, streetAddress);
+        address.append(StringUtils.isEmpty(address4) ? "" : address4);
+        return address.toString();
+    }
+
 
     /**
      * 获取订单列表
@@ -665,10 +675,7 @@ public class OrderManager extends BaseManager {
      * @return
      */
     private Boolean checkExpressFeePayWay(Integer expressFeePayWay) {
-        if (new Integer(2).equals(expressFeePayWay) || new Integer(3).equals(expressFeePayWay) || new Integer(4).equals(expressFeePayWay)) {
-            return false;
-        }
-        return true;
+        return !new Integer(2).equals(expressFeePayWay) && !new Integer(3).equals(expressFeePayWay) && !new Integer(4).equals(expressFeePayWay);
     }
 
     private SkipThirdDTO getUrl(Recipe recipe, Integer giveMode) {
@@ -919,9 +926,7 @@ public class OrderManager extends BaseManager {
         logisticsDistanceDto.setBusinessType(1);
         Map<String, String> result = infraClient.controlLogisticsDistance(logisticsDistanceDto);
         if (result != null) {
-            if ("1".equals(result.get("distance"))) {
-                return false;
-            }
+            return !"1".equals(result.get("distance"));
         }
         return true;
     }
