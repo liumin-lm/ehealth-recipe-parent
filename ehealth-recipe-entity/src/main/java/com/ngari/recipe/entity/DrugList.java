@@ -294,7 +294,7 @@ public class DrugList implements java.io.Serializable {
         this.useDose = useDose;
     }
 
-    @Column(name = "UseDoseUnit", length = 6)
+    @Column(name = "UseDoseUnit")
     public String getUseDoseUnit() {
         return this.useDoseUnit;
     }

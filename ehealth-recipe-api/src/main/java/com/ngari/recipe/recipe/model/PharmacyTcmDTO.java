@@ -31,6 +31,9 @@ public class PharmacyTcmDTO implements Serializable {
 
     private String pharmacyCategray;
 
+    @ItemProperty(alias = "剂型 1 中药饮片 2 配送颗粒")
+    private String drugFormType;
+
     public Integer getPharmacyId() {
         return pharmacyId;
     }
@@ -101,5 +104,13 @@ public class PharmacyTcmDTO implements Serializable {
 
     public void setPharmacyCategray(String pharmacyCategray) {
         this.pharmacyCategray = pharmacyCategray;
+    }
+
+    public String getDrugFormType() {
+        return drugFormType;
+    }
+
+    public void setDrugFormType(String drugFormType) {
+        this.drugFormType = drugFormType;
     }
 }

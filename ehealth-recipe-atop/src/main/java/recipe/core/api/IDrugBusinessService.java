@@ -214,8 +214,18 @@ public interface IDrugBusinessService {
      */
     void organDrugList2Es(Integer organId);
 
+    /**
+     * 获取机构药品配置
+     * @param organId
+     * @return
+     */
     OrganConfigVO getConfigByOrganId(Integer organId);
 
+    /**
+     * 更新机构药品配置
+     * @param organConfigVO
+     * @return
+     */
     OrganConfigVO updateOrganConfig(OrganConfigVO organConfigVO);
 
     /**
@@ -243,5 +253,4 @@ public interface IDrugBusinessService {
      * @return
      */
     HisResponseTO medicationInfoSyncTaskForHis(List<MedicationInfoResTO> medicationInfoResTOList);
-
 }

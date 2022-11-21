@@ -50,26 +50,26 @@ public class DrugListMatch implements java.io.Serializable {
     @ItemProperty(alias = "药品规格")
     private String drugSpec;
 
-    @ItemProperty(alias = "包装数量（转化系数）")
+    @ItemProperty(alias = "出售单位下的包装量")
     private Integer pack;
 
-    @ItemProperty(alias = "最小规格包装单位")
+    @ItemProperty(alias = "出售单位")
     private String unit;
 
-    @ItemProperty(alias = "最小售卖单位/单位HIS编码")
+    @ItemProperty(alias = "出售单位HIS编码")
     private String unitHisCode;
 
     @ItemProperty(alias = "药品类型")
     @Dictionary(id = "eh.base.dictionary.DrugType")
     private Integer drugType;
 
-    @ItemProperty(alias = "单次剂量（规格单位）")
+    @ItemProperty(alias = "注册规格剂量")
     private Double useDose;
 
-    @ItemProperty(alias = "规格单位")
+    @ItemProperty(alias = "注册规格单位")
     private String useDoseUnit;
 
-    @ItemProperty(alias = "规格单位/单位HIS编码")
+    @ItemProperty(alias = "注册规格单位HIS编码")
     private String useDoseUnitHisCode;
 
     @ItemProperty(alias = "生产厂家")
@@ -157,7 +157,7 @@ public class DrugListMatch implements java.io.Serializable {
     @Dictionary(id = "eh.cdr.dictionary.NewUsePathways")
     private String usePathwaysId;
 
-    @ItemProperty(alias = "默认单次剂量（规格单位）对应recommendedUseDose")
+    @ItemProperty(alias = "注册规格默认每次剂量，对应recommendedUseDose")
     private Double defaultUseDose;
 
     @ItemProperty(alias = "院内搜索关键字")
@@ -169,7 +169,7 @@ public class DrugListMatch implements java.io.Serializable {
     @ItemProperty(alias = "药品产地编码 对应ProducerCode")
     private String drugManfCode;
 
-    @ItemProperty(alias = "医保药品编码")
+    @ItemProperty(alias = "地方医保代码")
     private String medicalDrugCode;
 
     @ItemProperty(alias = "医保剂型代码")
@@ -181,7 +181,7 @@ public class DrugListMatch implements java.io.Serializable {
     @ItemProperty(alias = "平台药品id(drugList表主键)")
     private Integer platformDrugId;
 
-    @ItemProperty(alias = "药房(一个药品多个药房：325,324)")
+    @ItemProperty(alias = "开方药房，主键(一个药品多个药房：325,324)")
     private String pharmacy;
 
     @ItemProperty(alias = "药品嘱托(中文)")
@@ -193,20 +193,20 @@ public class DrugListMatch implements java.io.Serializable {
     @ItemProperty(alias = "适应症说明")
     private String IndicationsDeclare;
 
-    @ItemProperty(alias = "单次剂量(最小规格包装单位)")
+    @ItemProperty(alias = "开方单位剂量")
     private Double smallestUnitUseDose;
 
-    @ItemProperty(alias = "默认单次剂量（规格单位）")
+    @ItemProperty(alias = "注册规格默认每次剂量")
     private Double recommendedUseDose;
 
-    @ItemProperty(alias = "配送药企主键(drugsenterprise)多选： 1,2 ")
+    @ItemProperty(alias = "出售流转药企，主键(drugsenterprise)多选： 1,2 ")
     private String drugsEnterpriseIds;
 
 
-    @ItemProperty(alias = "最小规格包装单位")
+    @ItemProperty(alias = "通用开方单位")
     private String useDoseSmallestUnit;
 
-    @ItemProperty(alias = "单位剂量单位（最小单位）/单位his编码")
+    @ItemProperty(alias = "通用开方单位HIS编码")
     private String useDoseSmallestUnitHisCode;
 
     @ItemProperty(alias = "药品适用业务   历史数据默认 1    1-药品处方 2-诊疗处方 选： 1,2 ")
@@ -221,13 +221,13 @@ public class DrugListMatch implements java.io.Serializable {
     @Dictionary(id = "eh.cdr.dictionary.UnilateralCompound")
     private Integer unilateralCompound;
 
-    @ItemProperty(alias = "默认单次剂量（最小规格包装单位）")
+    @ItemProperty(alias = "开方单位默认每次剂量")
     private Double defaultSmallestUnitUseDose;
 
     @ItemProperty(alias = "是否靶向药  0否  1是 ")
     private Integer targetedDrugType;
 
-    @ItemProperty(alias = "最小销售倍数")
+    @ItemProperty(alias = "出售单位的销售倍数")
     private Integer smallestSaleMultiple;
 
     @ItemProperty(alias = "是否抗肿瘤药物  0否  1是 ")
@@ -256,6 +256,18 @@ public class DrugListMatch implements java.io.Serializable {
 
     @ItemProperty(alias = "是否特殊使用级抗生素药物  0否  1是 ")
     private Integer specialUseAntibioticDrugFlag;
+
+    @ItemProperty(alias = "药品状态 0无效 1有效")
+    private Integer drugStatus;
+
+    @Column(name = "drug_status")
+    public Integer getDrugStatus() {
+        return drugStatus;
+    }
+
+    public void setDrugStatus(Integer drugStatus) {
+        this.drugStatus = drugStatus;
+    }
 
     @Column(name = "antibiotics_drug_level")
     public Integer getAntibioticsDrugLevel() {
@@ -539,7 +551,7 @@ public class DrugListMatch implements java.io.Serializable {
         this.useDose = useDose;
     }
 
-    @Column(name = "useDoseUnit", length = 6)
+    @Column(name = "useDoseUnit")
     public String getUseDoseUnit() {
         return this.useDoseUnit;
     }

@@ -124,4 +124,10 @@ public class BaseRecipeVO implements Serializable {
 
     @ItemProperty(alias = "处方剂型类型 1 饮片方 2 颗粒方")
     private Integer recipeDrugForm;
+
+    @ItemProperty(alias = "代煎帖数")
+    private Integer decoctionNum;
+
+    @ItemProperty(alias = "配送类型 0:院内现场取药不配送  1：医院药房负责配送；2：第三方平台配送（九州通药房发药）")
+    private Integer sendType;
 }

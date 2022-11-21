@@ -85,12 +85,13 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
         }
         //已处理-幂等判断
         if (order.getPayFlag() != null && order.getPayFlag() == 1) {
-            logger.info("doBusinessAfterOrderSuccess payflag has been set true, busId[{}]", busId);
+            logger.info("doBusinessAfterOrderSuccess payFlag has been set true, busId[{}]", busId);
             return true;
         }
         //已取消不做更新
         if (order.getStatus() == 8 || order.getStatus() == 7) {
             logger.info("doBusinessAfterOrderSuccess effective is 0, busId[{}]", busId);
+            orderManager.recordPayBackLog(busId, JSONUtils.toString(payResult));
             return true;
         }
         HashMap<String, Object> attr = new HashMap<>();

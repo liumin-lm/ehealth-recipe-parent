@@ -389,6 +389,17 @@ public class RecipeOrderBean implements Serializable {
     @ItemProperty(alias = "发药标示：0:无需发药，1：已发药，2:已退药")
     private Integer dispensingFlag;
 
+    @ItemProperty(alias = "到付运费")
+    private String collectPaymentExpressFee;
+
+    public String getCollectPaymentExpressFee() {
+        return collectPaymentExpressFee;
+    }
+
+    public void setCollectPaymentExpressFee(String collectPaymentExpressFee) {
+        this.collectPaymentExpressFee = collectPaymentExpressFee;
+    }
+
     public Integer getDispensingFlag() {
         return dispensingFlag;
     }

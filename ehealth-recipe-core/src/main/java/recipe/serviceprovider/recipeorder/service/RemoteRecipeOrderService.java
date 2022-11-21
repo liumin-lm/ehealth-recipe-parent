@@ -50,6 +50,7 @@ import recipe.enumerate.status.OrderStateEnum;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RefundNodeStatusEnum;
 import recipe.enumerate.type.PayBusTypeEnum;
+import recipe.manager.OrderManager;
 import recipe.manager.RecipeManager;
 import recipe.manager.StateManager;
 import recipe.service.PayModeGiveModeUtil;
@@ -84,6 +85,8 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
     private RecipeManager recipeManager;
     @Autowired
     private InfraClient infraClient;
+    @Autowired
+    private OrderManager orderManager;
 
     @RpcService
     @Override
@@ -222,7 +225,7 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
             list.forEach(a -> {
                 String mpiId = String.valueOf(a.get("mpiId"));
                 PatientDTO patient = patientService.get(mpiId);
-                a.put("cardId", null == patient.getCardId() ? null : patient.getCardId());
+                a.put("cardId", patient.getCardId());
             });
         }
         map.put("orderData", list);
@@ -490,6 +493,8 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
             if(Objects.nonNull(recipeOrderDetailExportBean)){
                 recipeOrderDetailExportBean.setProcessState(OrderStateEnum.getOrderStateEnum(recipeOrderDetailExportDTO.getProcessState()).getName());
                 recipeOrderDetailExportBean.setRefundNodeStatus(RefundNodeStatusEnum.getRefundStatus(recipeOrderDetailExportDTO.getRefundNodeStatus()));
+                recipeOrderDetailExportBean.setCompleteAddress(orderManager.getCompleteAddress(recipeOrderDetailExportBean.getAddress1(), recipeOrderDetailExportBean.getAddress2(),
+                        recipeOrderDetailExportBean.getAddress3(), recipeOrderDetailExportBean.getAddress4(), recipeOrderDetailExportBean.getCompleteAddress()));
                 try {
                     PatientService patientService = BasicAPI.getService(PatientService.class);
                     PatientDTO patientDTO = patientService.get(recipeOrderDetailExportBean.getRequestMpiId());

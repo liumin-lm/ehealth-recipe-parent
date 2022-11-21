@@ -1,10 +1,7 @@
 package recipe.vo.greenroom;
 
-import com.ngari.patient.dto.OrganDTO;
 import ctd.schema.annotation.ItemProperty;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.io.Serializable;
 import java.sql.Time;
@@ -17,7 +14,7 @@ import java.util.List;
  * @date： 2022-05-09 11:10
  */
 @Data
-public class OrganConfigVO  implements Serializable {
+public class OrganConfigVO implements Serializable {
 
     @ItemProperty(alias = "id")
     private Integer id;
@@ -100,4 +97,206 @@ public class OrganConfigVO  implements Serializable {
 
     private List<OrganDrugListSyncFieldVo> organDrugListSyncFieldList;
 
+    @ItemProperty(alias = "同步到哪个机构去，选择需要同步目录的机构（将当前目录同步到选中机构中）")
+    private String toOrganIds;
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public Integer getOrganId() {
+        return organId;
+    }
+
+    public void setOrganId(Integer organId) {
+        this.organId = organId;
+    }
+
+    public Boolean getEnableDrugSync() {
+        return enableDrugSync;
+    }
+
+    public void setEnableDrugSync(Boolean enableDrugSync) {
+        this.enableDrugSync = enableDrugSync;
+    }
+
+    public Integer getDockingMode() {
+        return dockingMode;
+    }
+
+    public void setDockingMode(Integer dockingMode) {
+        this.dockingMode = dockingMode;
+    }
+
+    public Boolean getEnableDrugSyncArtificial() {
+        return enableDrugSyncArtificial;
+    }
+
+    public void setEnableDrugSyncArtificial(Boolean enableDrugSyncArtificial) {
+        this.enableDrugSyncArtificial = enableDrugSyncArtificial;
+    }
+
+    public Time getRegularTime() {
+        return regularTime;
+    }
+
+    public void setRegularTime(Time regularTime) {
+        this.regularTime = regularTime;
+    }
+
+    public String getDrugDataSource() {
+        return drugDataSource;
+    }
+
+    public void setDrugDataSource(String drugDataSource) {
+        this.drugDataSource = drugDataSource;
+    }
+
+    public Boolean getEnableDrugAdd() {
+        return enableDrugAdd;
+    }
+
+    public void setEnableDrugAdd(Boolean enableDrugAdd) {
+        this.enableDrugAdd = enableDrugAdd;
+    }
+
+    public Boolean getEnableDrugUpdate() {
+        return enableDrugUpdate;
+    }
+
+    public void setEnableDrugUpdate(Boolean enableDrugUpdate) {
+        this.enableDrugUpdate = enableDrugUpdate;
+    }
+
+    public Boolean getEnableDrugDelete() {
+        return enableDrugDelete;
+    }
+
+    public void setEnableDrugDelete(Boolean enableDrugDelete) {
+        this.enableDrugDelete = enableDrugDelete;
+    }
+
+    public Integer getAddDrugDataRange() {
+        return addDrugDataRange;
+    }
+
+    public void setAddDrugDataRange(Integer addDrugDataRange) {
+        this.addDrugDataRange = addDrugDataRange;
+    }
+
+    public Integer getUpdateDrugDataRange() {
+        return updateDrugDataRange;
+    }
+
+    public void setUpdateDrugDataRange(Integer updateDrugDataRange) {
+        this.updateDrugDataRange = updateDrugDataRange;
+    }
+
+    public Integer getDelDrugDataRange() {
+        return delDrugDataRange;
+    }
+
+    public void setDelDrugDataRange(Integer delDrugDataRange) {
+        this.delDrugDataRange = delDrugDataRange;
+    }
+
+    public String getAddSyncDrugType() {
+        return addSyncDrugType;
+    }
+
+    public void setAddSyncDrugType(String addSyncDrugType) {
+        this.addSyncDrugType = addSyncDrugType;
+    }
+
+    public String getUpdateSyncDrugType() {
+        return updateSyncDrugType;
+    }
+
+    public void setUpdateSyncDrugType(String updateSyncDrugType) {
+        this.updateSyncDrugType = updateSyncDrugType;
+    }
+
+    public String getDelSyncDrugType() {
+        return delSyncDrugType;
+    }
+
+    public void setDelSyncDrugType(String delSyncDrugType) {
+        this.delSyncDrugType = delSyncDrugType;
+    }
+
+    public String getAddDrugFromList() {
+        return addDrugFromList;
+    }
+
+    public void setAddDrugFromList(String addDrugFromList) {
+        this.addDrugFromList = addDrugFromList;
+    }
+
+    public String getUpdateDrugFromList() {
+        return updateDrugFromList;
+    }
+
+    public void setUpdateDrugFromList(String updateDrugFromList) {
+        this.updateDrugFromList = updateDrugFromList;
+    }
+
+    public String getDelDrugFromList() {
+        return delDrugFromList;
+    }
+
+    public void setDelDrugFromList(String delDrugFromList) {
+        this.delDrugFromList = delDrugFromList;
+    }
+
+    public Integer getDrugDataRange() {
+        return drugDataRange;
+    }
+
+    public void setDrugDataRange(Integer drugDataRange) {
+        this.drugDataRange = drugDataRange;
+    }
+
+    public String getDrugFromList() {
+        return drugFromList;
+    }
+
+    public void setDrugFromList(String drugFromList) {
+        this.drugFromList = drugFromList;
+    }
+
+    public Date getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime;
+    }
+
+    public Date getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(Date updateTime) {
+        this.updateTime = updateTime;
+    }
+
+    public List<OrganDrugListSyncFieldVo> getOrganDrugListSyncFieldList() {
+        return organDrugListSyncFieldList;
+    }
+
+    public void setOrganDrugListSyncFieldList(List<OrganDrugListSyncFieldVo> organDrugListSyncFieldList) {
+        this.organDrugListSyncFieldList = organDrugListSyncFieldList;
+    }
+
+    public String getToOrganIds() {
+        return toOrganIds;
+    }
+
+    public void setToOrganIds(String toOrganIds) {
+        this.toOrganIds = toOrganIds;
+    }
 }

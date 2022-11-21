@@ -3,26 +3,35 @@ package recipe.atop.patient;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.ngari.recipe.dto.DrugSpecificationInfoDTO;
+import com.ngari.recipe.dto.EnterpriseStock;
 import com.ngari.recipe.dto.PatientDrugWithEsDTO;
+import com.ngari.recipe.dto.RecipeDTO;
+import com.ngari.recipe.entity.OrganDrugList;
+import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.vo.HospitalDrugListReqVO;
 import com.ngari.recipe.vo.HospitalDrugListVO;
-import recipe.core.api.IClinicCartBusinessService;
-import recipe.vo.patient.PatientContinueRecipeCheckDrugReq;
 import com.ngari.recipe.vo.SearchDrugReqVO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import org.apache.commons.lang3.StringUtils;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
+import recipe.core.api.IClinicCartBusinessService;
 import recipe.core.api.IDrugBusinessService;
 import recipe.core.api.IStockBusinessService;
+import recipe.util.ByteUtils;
 import recipe.util.ObjectCopyUtils;
+import recipe.vo.doctor.DrugsResVo;
+import recipe.vo.patient.PatientContinueRecipeCheckDrugReq;
 import recipe.vo.patient.PatientContinueRecipeCheckDrugRes;
 import recipe.vo.second.ClinicCartVO;
 
 import javax.annotation.Resource;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -43,7 +52,7 @@ public class DrugPatientAtop extends BaseAtop {
     private IClinicCartBusinessService clinicCartService;
 
     /**
-     * 患者端获取药品详情
+     * 患者端获取药品列表
      *
      * @param searchDrugReqVo
      * @return
@@ -98,15 +107,44 @@ public class DrugPatientAtop extends BaseAtop {
 
     /**
      * 患者端续方药品信息校验
+     *
      * @param patientContinueRecipeCheckDrugReq
      * @return PatientContinueRecipeCheckDrugRes
      */
     @RpcService
-    public PatientContinueRecipeCheckDrugRes patientContinueRecipeCheckDrug(PatientContinueRecipeCheckDrugReq patientContinueRecipeCheckDrugReq){
-        validateAtop(patientContinueRecipeCheckDrugReq,patientContinueRecipeCheckDrugReq.getOrganId());
+    public PatientContinueRecipeCheckDrugRes patientContinueRecipeCheckDrug(PatientContinueRecipeCheckDrugReq patientContinueRecipeCheckDrugReq) {
+        validateAtop(patientContinueRecipeCheckDrugReq, patientContinueRecipeCheckDrugReq.getOrganId());
         return drugBusinessService.patientContinueRecipeCheckDrug(patientContinueRecipeCheckDrugReq);
     }
 
+    /**
+     * 查询患者指定用药库存 - 一个药品的库存情况
+     */
+    @RpcService
+    public Boolean designatedDrugStock(DrugsResVo drugsRes) {
+        validateAtop(drugsRes, drugsRes.getOrganId(), drugsRes.getDrugId(), drugsRes.getOrganDrugCode());
+        OrganDrugList organDrug = drugBusinessService.getOrganDrugList(drugsRes.getOrganId(), drugsRes.getOrganDrugCode(), drugsRes.getDrugId());
+        if (null == organDrug) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "无机构药品");
+        }
+        Recipedetail recipedetail = new Recipedetail();
+        recipedetail.setDrugId(drugsRes.getDrugId());
+        recipedetail.setOrganDrugCode(drugsRes.getOrganDrugCode());
+        recipedetail.setUseTotalDose(1D);
+        if (StringUtils.isNotEmpty(organDrug.getPharmacy())) {
+            String pharmacyId = organDrug.getPharmacy().split(ByteUtils.COMMA)[0];
+            recipedetail.setPharmacyId(Integer.valueOf(pharmacyId));
+        }
+        RecipeDTO recipeDTO = new RecipeDTO();
+        Recipe recipe = new Recipe();
+        recipe.setClinicOrgan(drugsRes.getOrganId());
+        recipeDTO.setRecipe(recipe);
+        recipeDTO.setRecipeExtend(new RecipeExtend());
+        recipeDTO.setRecipeDetails(Collections.singletonList(recipedetail));
+        List<EnterpriseStock> drugsStock = stockBusinessService.drugsStock(recipeDTO);
+        return drugsStock.stream().anyMatch(EnterpriseStock::getStock);
+    }
+    
 
     /**
      * 方便门诊购物车列表查询
@@ -116,7 +154,8 @@ public class DrugPatientAtop extends BaseAtop {
      * @return
      */
     @RpcService
-    public List<ClinicCartVO> findClinicCartsByOrganIdAndUserId(Integer organId, String userId, Integer workType){
+
+    public List<ClinicCartVO> findClinicCartsByOrganIdAndUserId(Integer organId, String userId, Integer workType) {
         validateAtop(organId, userId, workType);
         return clinicCartService.findClinicCartsByOrganIdAndUserId(organId, userId, workType);
     }

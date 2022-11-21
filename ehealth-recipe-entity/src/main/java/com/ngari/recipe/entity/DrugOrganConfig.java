@@ -1,6 +1,5 @@
 package com.ngari.recipe.entity;
 
-import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 import org.hibernate.annotations.DynamicInsert;
@@ -106,7 +105,17 @@ public class DrugOrganConfig implements Serializable {
     @ItemProperty(alias = "药品目录同步字段")
     private List<OrganDrugListSyncField> organDrugListSyncFieldList;
 
+    @ItemProperty(alias = "同步到哪个机构去，选择需要同步目录的机构（将当前目录同步到选中机构中）")
+    private String toOrganIds;
 
+    @Column(name = "to_organ_ids")
+    public String getToOrganIds() {
+        return toOrganIds;
+    }
+
+    public void setToOrganIds(String toOrganIds) {
+        this.toOrganIds = toOrganIds;
+    }
 
     @Transient
     public List<OrganDrugListSyncField> getOrganDrugListSyncFieldList() {

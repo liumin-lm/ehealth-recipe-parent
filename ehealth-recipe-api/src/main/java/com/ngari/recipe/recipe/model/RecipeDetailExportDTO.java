@@ -160,7 +160,7 @@ public class RecipeDetailExportDTO implements Serializable {
     }
 
 
-    @Column(name = "UseDoseUnit", length = 6)
+    @Column(name = "UseDoseUnit",length = 25)
     public String getUseDoseUnit() {
         return this.useDoseUnit;
     }

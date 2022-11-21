@@ -31,10 +31,7 @@ import recipe.aop.LogRecord;
 import recipe.client.*;
 import recipe.constant.DrugEnterpriseConstant;
 import recipe.dao.*;
-import recipe.enumerate.status.GiveModeEnum;
-import recipe.enumerate.status.RecipeStateEnum;
-import recipe.enumerate.status.RecipeStatusEnum;
-import recipe.enumerate.status.YesOrNoEnum;
+import recipe.enumerate.status.*;
 import recipe.enumerate.type.*;
 import recipe.third.IFileDownloadService;
 import recipe.util.LocalStringUtil;
@@ -531,6 +528,12 @@ public class EnterpriseManager extends BaseManager {
                 }
             } catch (Exception e) {
                 logger.error("getPushRecipeAndOrder queryPatientChannelId error", e);
+            }
+            if (RecipeSourceTypeEnum.OFFLINE_RECIPE.getType().equals(rec.getRecipeSourceType())) {
+                HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(rec.getClinicOrgan(), rec.getRecipeCode());
+                if (Objects.nonNull(hisRecipe) && Objects.nonNull(hisRecipe.getSendType())) {
+                    recipeBean.setSendType(hisRecipe.getSendType());
+                }
             }
             pushRecipeAndOrder.setRecipeBean(recipeBean);
             //设置药企扩展信息

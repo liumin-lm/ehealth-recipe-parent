@@ -240,10 +240,10 @@ public class RecipeHisService extends RecipeBaseService {
         List<String> recipeTypes = configurationClient.getValueListCatch(recipe.getClinicOrgan(), "patientRecipeUploadHis", null);
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
         if (CollectionUtils.isEmpty(recipeTypes)) {
-            if(new Integer(2).equals(recipe.getBussSource())){
+            if (new Integer(2).equals(recipe.getBussSource())) {
                 orderRepTO.setPatientID(recipe.getPatientID());
                 orderRepTO.setRegisterID(recipeExtend.getRegisterID());
-            }else{
+            } else {
                 //门诊号处理 年月日+患者身份证后5位 例：2019060407915
                 orderRepTO.setPatientID(DateConversion.getDateFormatter(now, "yyMMdd") + str);
                 orderRepTO.setRegisterID(orderRepTO.getPatientID());
@@ -463,7 +463,7 @@ public class RecipeHisService extends RecipeBaseService {
             if (RecipeResultBean.SUCCESS.equals(result.getCode()) && 1 == payFlag) {
                 //处理处方结算
                 canDrugTakeChange = doRecipeSettle(recipe, patientBean, cardBean, result);
-                updateState(canDrugTakeChange,recipe);
+                updateState(canDrugTakeChange, recipe);
             }
             if (canDrugTakeChange) {
                 DrugTakeChangeReqTO request = HisRequestInit.initDrugTakeChangeReqTO(recipe, details, patientBean, cardBean);
@@ -495,10 +495,11 @@ public class RecipeHisService extends RecipeBaseService {
 
     /**
      * 修改处方订单 新状态
+     *
      * @param canDrugTakeChange
      * @param recipe
      */
-    private void updateState(boolean canDrugTakeChange,Recipe recipe){
+    private void updateState(boolean canDrugTakeChange, Recipe recipe) {
         // 审方后置的已经处理流转新状态
         if (ReviewTypeConstant.Postposition_Check == recipe.getReviewType()) {
             return;
@@ -521,7 +522,7 @@ public class RecipeHisService extends RecipeBaseService {
                     processStateOrder = OrderStateEnum.SUB_ORDER_TAKE_MEDICINE;
                     break;
             }
-            if(Objects.isNull(processStateDispensing)){
+            if (Objects.isNull(processStateDispensing)) {
                 return;
             }
             stateManager.updateRecipeState(recipe.getRecipeId(), processStateDispensing, subStateDispensing);
@@ -532,6 +533,7 @@ public class RecipeHisService extends RecipeBaseService {
             }
         }
     }
+
     /**
      * @param recipe
      * @param patientBean
@@ -544,11 +546,11 @@ public class RecipeHisService extends RecipeBaseService {
         //调用前置机结算支持两种方式---配送到家和药店取药
         // 到院取药线上支付
         if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(recipe.getGiveMode()) || RecipeBussConstant.GIVEMODE_TFDS.equals(recipe.getGiveMode())
-            || RecipeBussConstant.GIVEMODE_TO_HOS.equals(recipe.getGiveMode())) {
+                || RecipeBussConstant.GIVEMODE_TO_HOS.equals(recipe.getGiveMode())) {
             LOGGER.info("doRecipeSettle recipeId={}", recipe.getRecipeId());
-            String settle_by_givemode_tfds = recipeParameterDao.getByName("settle_by_givemode_tfds");
-            List<Integer> organIds = JSONUtils.parse(settle_by_givemode_tfds, ArrayList.class);
-            if (CollectionUtils.isNotEmpty(organIds) && organIds.contains(recipe.getClinicOrgan()) && RecipeBussConstant.GIVEMODE_TFDS.equals(recipe.getGiveMode())) {
+            IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+            Boolean giveModeTfdsHisSettle = (Boolean) configurationService.getConfiguration(recipe.getClinicOrgan(), "giveModeTfdsHisSettle");
+            if (giveModeTfdsHisSettle && RecipeBussConstant.GIVEMODE_TFDS.equals(recipe.getGiveMode())) {
                 return true;
             }
 
@@ -570,7 +572,7 @@ public class RecipeHisService extends RecipeBaseService {
                 return true;
             }
             // 到院取药只有线上支付才走
-            if(RecipeBussConstant.GIVEMODE_TO_HOS.equals(recipe.getGiveMode()) && RecipeBussConstant.PAYMODE_OFFLINE.equals(recipeOrder.getPayMode())){
+            if (RecipeBussConstant.GIVEMODE_TO_HOS.equals(recipe.getGiveMode()) && RecipeBussConstant.PAYMODE_OFFLINE.equals(recipeOrder.getPayMode())) {
                 LOGGER.info("doRecipeSettle 到院取药线下支付不走平台结算;recipeId={}", recipe.getRecipeId());
                 recipeOrder.setSettleAmountState(SettleAmountStateEnum.NO_NEED.getType());
                 recipeOrderDAO.updateNonNullFieldByPrimaryKey(recipeOrder);
@@ -593,9 +595,9 @@ public class RecipeHisService extends RecipeBaseService {
             try {
                 //如果异常重试处理
                 response = recipeRetryService.doRecipeSettle(settleService, payNotifyReq);
-                LOGGER.info("doRecipeSettle settleService recipeId={}. response={}", recipe.getRecipeId(),JsonUtil.toString(response));
+                LOGGER.info("doRecipeSettle settleService recipeId={}. response={}", recipe.getRecipeId(), JsonUtil.toString(response));
                 // 前置机返回结算异常码 99 启动结算重试
-                if(Objects.nonNull(response) && new Integer(99).equals(response.getMsgCode())) {
+                if (Objects.nonNull(response) && new Integer(99).equals(response.getMsgCode())) {
                     HisResponseTO hisResponseTO = payClient.retrySettle(payNotifyReq);
                     // 反查成功或异常都算结算成功
                     if ("99".equals(hisResponseTO.getMsgCode()) || "200".equals(hisResponseTO.getMsgCode())) {
@@ -866,9 +868,7 @@ public class RecipeHisService extends RecipeBaseService {
                     if (CollectionUtils.isEmpty(drugInfoTOs)) {
                         LOGGER.warn("queryDrugInfo 药品code集合{}未查询到医院药品数据", drugCodes);
                         backList = new ArrayList<>();
-//                        com.ngari.patient.service.OrganConfigService organConfigService = AppContextHolder.getBean("basic.organConfigService", com.ngari.patient.service.OrganConfigService.class);
-//                        OrganConfigDTO byOrganId1 = organConfigService.getByOrganId(organId);
-                        DrugOrganConfig byOrganId1=drugOrganConfigDao.getByOrganId(organId);
+                        DrugOrganConfig byOrganId1 = drugOrganConfigDao.getByOrganId(organId);
                         Boolean delete = byOrganId1.getEnableDrugDelete();
                         if (!ObjectUtils.isEmpty(delete)) {
                             if (delete) {
@@ -1513,8 +1513,8 @@ public class RecipeHisService extends RecipeBaseService {
         }
 
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeBean.getRecipeId());
-        if(Objects.nonNull(recipeExtend)){
-            if(StringUtils.isNotEmpty(recipeExtend.getTerminalId())){
+        if (Objects.nonNull(recipeExtend)) {
+            if (StringUtils.isNotEmpty(recipeExtend.getTerminalId())) {
                 hisCheckRecipeReqTO.setTerminalId(recipeExtend.getTerminalId());
             }
             if (recipeExtend.getTerminalType() != null) {

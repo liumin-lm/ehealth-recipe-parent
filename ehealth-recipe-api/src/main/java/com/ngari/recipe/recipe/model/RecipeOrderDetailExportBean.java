@@ -37,6 +37,33 @@ public class RecipeOrderDetailExportBean implements Serializable {
     @ItemProperty(alias = "供药药店")
     private String drugStoreName;
 
+    @ItemProperty(alias = "收货人")
+    private String receiver;
+
+    @ItemProperty(alias = "联系方式")
+    private String recMobile;
+
+    @ItemProperty(alias = "省")
+    private String address1;
+
+    @ItemProperty(alias = "市")
+    private String address2;
+
+    @ItemProperty(alias = "区县")
+    private String address3;
+
+    @ItemProperty(alias = "街道")
+    private String streetAddress;
+
+    @ItemProperty(alias = "社区")
+    private String address5Text;
+
+    @ItemProperty(alias = "详细地址")
+    private String address4;
+
+    @ItemProperty(alias = "收货地址")
+    private String completeAddress;
+
     @ItemProperty(alias = "下单人")
     private String requestPatientName;
 
@@ -94,6 +121,12 @@ public class RecipeOrderDetailExportBean implements Serializable {
     @ItemProperty(alias = "处方类型")
     private String recipeType;
 
+    @ItemProperty(alias = "帖数")
+    private String copyNum;
+
+    @ItemProperty(alias = "协定方名称")
+    private String offlineRecipeName;
+
     @ItemProperty(alias = "开方科室")
     private String appointDepartName;
 
@@ -106,11 +139,19 @@ public class RecipeOrderDetailExportBean implements Serializable {
     @ItemProperty(alias = "开方时间")
     private Date createDate;
 
+    @ItemProperty(alias = "单方药品费")
+    private String singleRecipeFee;
+
+    @ItemProperty(alias = "单方药事服务费")
+    private String singleAuditFee;
+
     @ItemProperty(alias = "煎法")
     private String decoctionText;
 
     @ItemProperty(alias = "是否代煎")
     private String generationisOfDecoction;
 
+    @ItemProperty(alias = "单方代煎费")
+    private String singleDecoctionFee;
 
 }

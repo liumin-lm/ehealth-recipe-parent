@@ -3,7 +3,8 @@ package recipe.business;
 import com.google.common.collect.Lists;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.MedicationInfoResTO;
-import com.ngari.patient.dto.*;
+import com.ngari.patient.dto.UsePathwaysDTO;
+import com.ngari.patient.dto.UsingRateDTO;
 import com.ngari.patient.service.IUsePathwaysService;
 import com.ngari.patient.service.IUsingRateService;
 import com.ngari.patient.utils.ObjectCopyUtils;
@@ -12,7 +13,10 @@ import com.ngari.platform.recipe.mode.HospitalDrugListReqDTO;
 import com.ngari.recipe.drug.model.CommonDrugListDTO;
 import com.ngari.recipe.drug.model.DispensatoryDTO;
 import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
-import com.ngari.recipe.dto.*;
+import com.ngari.recipe.dto.DrugInfoDTO;
+import com.ngari.recipe.dto.DrugSpecificationInfoDTO;
+import com.ngari.recipe.dto.PatientDrugWithEsDTO;
+import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.vo.DrugSaleStrategyVO;
 import com.ngari.recipe.vo.HospitalDrugListReqVO;
@@ -91,6 +95,8 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
     private IUsePathwaysService usePathwaysService;
     @Autowired
     private MedicationSyncConfigDAO medicationSyncConfigDAO;
+    @Autowired
+    private DrugListMatchDAO drugListMatchDAO;
 
     @Override
     public List<PatientDrugWithEsDTO> findDrugWithEsByPatient(SearchDrugReqVO searchDrugReqVo) {
@@ -783,4 +789,6 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
         }
         return msg;
     }
+
+
 }

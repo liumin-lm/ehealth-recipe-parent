@@ -71,7 +71,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
     @Resource
     private DrugsEnterpriseDAO drugsEnterpriseDAO;
 
-@Resource
+    @Resource
     private OrganAndDrugsepRelationDAO relationDAO;
 
 
@@ -85,7 +85,6 @@ public class SaleDrugToolService implements ISaleDrugToolService {
     private SaleDrugListSyncFieldDAO saleDrugListSyncFieldDAO;
 
     private IDataSyncLogService dataSyncLogService = AppDomainContext.getBean("opbase.dataSyncLogService", IDataSyncLogService.class);
-
 
 
     @Override
@@ -124,7 +123,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            LOGGER.error("readDrugExcel error ," + e.getMessage(),e);
+            LOGGER.error("readDrugExcel error ," + e.getMessage(), e);
             result.put("code", 609);
             result.put("msg", "上传文件格式有问题");
             return result;
@@ -142,9 +141,9 @@ public class SaleDrugToolService implements ISaleDrugToolService {
         List<String> errDrugListMatchList = Lists.newArrayList();
         Integer addNum = 0;
         Integer updateNum = 0;
-        List<SaleDrugList> drugLists=Lists.newArrayList();
+        List<SaleDrugList> drugLists = Lists.newArrayList();
 
-            for (int rowIndex = 0; rowIndex <= total; rowIndex++) {
+        for (int rowIndex = 0; rowIndex <= total; rowIndex++) {
             //循环获得每个行
             row = sheet.getRow(rowIndex);
             // 判断是否是模板
@@ -165,55 +164,55 @@ public class SaleDrugToolService implements ISaleDrugToolService {
             StringBuilder errMsg = new StringBuilder();
             /*try{*/
 
-                try {
-                    if (StringUtils.isEmpty(getStrFromCell(row.getCell(0)))) {
-                        errMsg.append("【平台药品编码】未填写").append(";");
-                    }
-                    DrugList drugList = drugListDAO.get(Integer.parseInt(getStrFromCell(row.getCell(0)).trim()));
-                    if (ObjectUtils.isEmpty(drugList)){
-                        errMsg.append("平台未找到该平台通用药品").append(";");
-                    }
-                    if (StringUtils.isNotEmpty(getStrFromCell(row.getCell(0)))) {
-                        SaleDrugList byDrugIdAndOrganId = saleDrugListDAO.getByDrugIdAndOrganId(Integer.parseInt(getStrFromCell(row.getCell(0)).trim()), organId);
-                        if (!ObjectUtils.isEmpty(byDrugIdAndOrganId)){
-                            errMsg.append("药企已存在药品关联该平台药品").append(";");
-                        }
-                        drug.setDrugId(Integer.parseInt(getStrFromCell(row.getCell(0)).trim()));
-                    }
-                } catch (Exception e) {
-                    LOGGER.error("平台药品编码有误 ," + e.getMessage(), e);
-                    errMsg.append("平台药品编码有误").append(";");
+            try {
+                if (StringUtils.isEmpty(getStrFromCell(row.getCell(0)))) {
+                    errMsg.append("【平台药品编码】未填写").append(";");
                 }
+                DrugList drugList = drugListDAO.get(Integer.parseInt(getStrFromCell(row.getCell(0)).trim()));
+                if (ObjectUtils.isEmpty(drugList)) {
+                    errMsg.append("平台未找到该平台通用药品").append(";");
+                }
+                if (StringUtils.isNotEmpty(getStrFromCell(row.getCell(0)))) {
+                    SaleDrugList byDrugIdAndOrganId = saleDrugListDAO.getByDrugIdAndOrganId(Integer.parseInt(getStrFromCell(row.getCell(0)).trim()), organId);
+                    if (!ObjectUtils.isEmpty(byDrugIdAndOrganId)) {
+                        errMsg.append("药企已存在药品关联该平台药品").append(";");
+                    }
+                    drug.setDrugId(Integer.parseInt(getStrFromCell(row.getCell(0)).trim()));
+                }
+            } catch (Exception e) {
+                LOGGER.error("平台药品编码有误 ," + e.getMessage(), e);
+                errMsg.append("平台药品编码有误").append(";");
+            }
 
-                try {
-                    if (StringUtils.isEmpty(getStrFromCell(row.getCell(2)))) {
-                        errMsg.append("【药品名】未填写").append(";");
-                    }
-                    drug.setDrugName(getStrFromCell(row.getCell(2)));
-                } catch (Exception e) {
-                    LOGGER.error("药品名有误 ," + e.getMessage(), e);
-                    errMsg.append("药品名有误").append(";");
+            try {
+                if (StringUtils.isEmpty(getStrFromCell(row.getCell(2)))) {
+                    errMsg.append("【药品名】未填写").append(";");
                 }
-                try {
-                    if (StringUtils.isEmpty(getStrFromCell(row.getCell(3)))) {
-                        errMsg.append("【商品名】未填写").append(";");
-                    }
-                    drug.setSaleName(getStrFromCell(row.getCell(3)));
-                } catch (Exception e) {
-                    LOGGER.error("药品商品名有误 ," + e.getMessage(), e);
-                    errMsg.append("药品商品名有误").append(";");
+                drug.setDrugName(getStrFromCell(row.getCell(2)));
+            } catch (Exception e) {
+                LOGGER.error("药品名有误 ," + e.getMessage(), e);
+                errMsg.append("药品名有误").append(";");
+            }
+            try {
+                if (StringUtils.isEmpty(getStrFromCell(row.getCell(3)))) {
+                    errMsg.append("【商品名】未填写").append(";");
                 }
+                drug.setSaleName(getStrFromCell(row.getCell(3)));
+            } catch (Exception e) {
+                LOGGER.error("药品商品名有误 ," + e.getMessage(), e);
+                errMsg.append("药品商品名有误").append(";");
+            }
 
-                try {
-                    if (StringUtils.isEmpty(getStrFromCell(row.getCell(4)))) {
-                        errMsg.append("【药企药品编码】未填写").append(";");
-                    }
-                    drug.setOrganDrugCode(getStrFromCell(row.getCell(4)));
-                    drug.setSaleDrugCode(getStrFromCell(row.getCell(4)));
-                } catch (Exception e) {
-                    LOGGER.error("药企药品编码有误 ," + e.getMessage(), e);
-                    errMsg.append("药企药品编码有误").append(";");
+            try {
+                if (StringUtils.isEmpty(getStrFromCell(row.getCell(4)))) {
+                    errMsg.append("【药企药品编码】未填写").append(";");
                 }
+                drug.setOrganDrugCode(getStrFromCell(row.getCell(4)));
+                drug.setSaleDrugCode(getStrFromCell(row.getCell(4)));
+            } catch (Exception e) {
+                LOGGER.error("药企药品编码有误 ," + e.getMessage(), e);
+                errMsg.append("药企药品编码有误").append(";");
+            }
 
                 /*try {
                     if (StringUtils.isNotEmpty(getStrFromCell(row.getCell(5)))) {
@@ -227,33 +226,33 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                     LOGGER.error("平台药品状态有误 ," + e.getMessage(), e);
                     errMsg.append("平台药品状态有误").append(";");
                 }*/
-                try {
-                    if (StringUtils.isEmpty(getStrFromCell(row.getCell(6)))) {
-                        errMsg.append("【价格(不含税)】未填写").append(";");
-                    }
-                    String priceCell = getStrFromCell(row.getCell(6));
-                    drug.setPrice(new BigDecimal(priceCell));
-                } catch (Exception e) {
-                    LOGGER.error("药品价格(不含税)有误 ," + e.getMessage(), e);
-                    errMsg.append("药品价格(不含税)有误").append(";");
+            try {
+                if (StringUtils.isEmpty(getStrFromCell(row.getCell(6)))) {
+                    errMsg.append("【价格(不含税)】未填写").append(";");
                 }
-                try {
-                    if (StringUtils.isNotEmpty(getStrFromCell(row.getCell(7)))) {
-                        drug.setRate(Double.parseDouble(getStrFromCell(row.getCell(7))));
-                    }
-                } catch (Exception e) {
-                    LOGGER.error("药品税率有误," + e.getMessage(), e);
-                    errMsg.append("药品税率有误").append(";");
+                String priceCell = getStrFromCell(row.getCell(6));
+                drug.setPrice(new BigDecimal(priceCell));
+            } catch (Exception e) {
+                LOGGER.error("药品价格(不含税)有误 ," + e.getMessage(), e);
+                errMsg.append("药品价格(不含税)有误").append(";");
+            }
+            try {
+                if (StringUtils.isNotEmpty(getStrFromCell(row.getCell(7)))) {
+                    drug.setRate(Double.parseDouble(getStrFromCell(row.getCell(7))));
                 }
-                if (StringUtils.isNotEmpty(getStrFromCell(row.getCell(0)))) {
-                    DrugList drugList = drugListDAO.get(Integer.parseInt(getStrFromCell(row.getCell(0))));
-                    if (!ObjectUtils.isEmpty(drugList)){
-                        drug.setDrugSpec(drugList.getDrugSpec());
-                    }
+            } catch (Exception e) {
+                LOGGER.error("药品税率有误," + e.getMessage(), e);
+                errMsg.append("药品税率有误").append(";");
+            }
+            if (StringUtils.isNotEmpty(getStrFromCell(row.getCell(0)))) {
+                DrugList drugList = drugListDAO.get(Integer.parseInt(getStrFromCell(row.getCell(0))));
+                if (!ObjectUtils.isEmpty(drugList)) {
+                    drug.setDrugSpec(drugList.getDrugSpec());
                 }
+            }
 
-            if (!ObjectUtils.isEmpty(drug.getRate())){
-                drug.setRatePrice(drug.getPrice().doubleValue()*(1-drug.getRate()));
+            if (!ObjectUtils.isEmpty(drug.getRate())) {
+                drug.setRatePrice(drug.getPrice().doubleValue() * (1 - drug.getRate()));
             }
 
             drug.setStatus(1);
@@ -264,18 +263,18 @@ public class SaleDrugToolService implements ISaleDrugToolService {
 
             if (errMsg.length() > 1) {
                 int showNum = rowIndex + 1;
-                String error = ("【第" + showNum + "行】" + errMsg.substring(0, errMsg.length() - 1)+"\n");
+                String error = ("【第" + showNum + "行】" + errMsg.substring(0, errMsg.length() - 1) + "\n");
                 errMsgAll.append(error);
                 errDrugListMatchList.add(error);
             } else {
                 drugLists.add(drug);
             }
         }
-        if (errDrugListMatchList.size()>0){
+        if (errDrugListMatchList.size() > 0) {
 
             IImportExcelInfoService iImportExcelInfoService = AppContextHolder.getBean("opbase.importExcelInfoService", IImportExcelInfoService.class);
 
-            ImportExcelInfoDTO importExcelInfoDTO=new ImportExcelInfoDTO();
+            ImportExcelInfoDTO importExcelInfoDTO = new ImportExcelInfoDTO();
             //导入药品记录
             importExcelInfoDTO.setFileName(originalFilename);
             importExcelInfoDTO.setExcelType(14);
@@ -291,18 +290,18 @@ public class SaleDrugToolService implements ISaleDrugToolService {
             importExcelInfoDTO = iImportExcelInfoService.addExcelInfo(importExcelInfoDTO);
             result.put("code", 609);
             result.put("msg", errDrugListMatchList);
-            result.put("addNum",addNum);
-            result.put("updateNum",updateNum);
-            result.put("failNum",total-addNum-updateNum);
-            result.put("ImportExcelInfoId",importExcelInfoDTO.getId());
+            result.put("addNum", addNum);
+            result.put("updateNum", updateNum);
+            result.put("failNum", total - addNum - updateNum);
+            result.put("ImportExcelInfoId", importExcelInfoDTO.getId());
             LOGGER.info(operator + "结束 readDrugExcel 方法" + System.currentTimeMillis() + "当前进程=" + Thread.currentThread().getName());
             return result;
 
-        }else {
+        } else {
             for (SaleDrugList drugList : drugLists) {
                 try {
                     List<SaleDrugList> byOrganIdAndDrugCode = saleDrugListDAO.findByOrganIdAndDrugCode(organId, drugList.getOrganDrugCode());
-                    if (!ObjectUtils.isEmpty(byOrganIdAndDrugCode)){
+                    if (!ObjectUtils.isEmpty(byOrganIdAndDrugCode)) {
                         SaleDrugList saleDrugList = byOrganIdAndDrugCode.get(0);
                         saleDrugList.setDrugId(drugList.getDrugId());
                         saleDrugList.setDrugName(drugList.getDrugName());
@@ -313,12 +312,12 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                         saleDrugList.setPrice(drugList.getPrice());
                         saleDrugListDAO.update(drugList);
                         updateNum++;
-                    }else {
+                    } else {
                         saleDrugListDAO.save(drugList);
                         addNum++;
                     }
                 } catch (Exception e) {
-                    LOGGER.error("save or update drugListMatch error " + e.getMessage(),e);
+                    LOGGER.error("save or update drugListMatch error " + e.getMessage(), e);
                 }
             }
         }
@@ -326,7 +325,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
         //导入药品记录
         IImportExcelInfoService iImportExcelInfoService = AppContextHolder.getBean("opbase.importExcelInfoService", IImportExcelInfoService.class);
 
-        ImportExcelInfoDTO importExcelInfoDTO=new ImportExcelInfoDTO();
+        ImportExcelInfoDTO importExcelInfoDTO = new ImportExcelInfoDTO();
         //导入药品记录
         importExcelInfoDTO.setFileName(originalFilename);
         importExcelInfoDTO.setExcelType(14);
@@ -339,14 +338,15 @@ public class SaleDrugToolService implements ISaleDrugToolService {
         importExcelInfoDTO.setExecuteDate(new Date());
         importExcelInfoDTO.setOssId(ossId);
         importExcelInfoDTO = iImportExcelInfoService.addExcelInfo(importExcelInfoDTO);
-        result.put("ImportExcelInfoId",importExcelInfoDTO.getId());
-        result.put("addNum",addNum);
-        result.put("updateNum",updateNum);
-        result.put("failNum",total-addNum-updateNum);
+        result.put("ImportExcelInfoId", importExcelInfoDTO.getId());
+        result.put("addNum", addNum);
+        result.put("updateNum", updateNum);
+        result.put("failNum", total - addNum - updateNum);
         LOGGER.info(operator + "结束 readDrugExcel 方法" + System.currentTimeMillis() + "当前进程=" + Thread.currentThread().getName());
         result.put("code", 200);
         return result;
     }
+
     /**
      * 获取单元格值（字符串）
      *
@@ -371,52 +371,53 @@ public class SaleDrugToolService implements ISaleDrugToolService {
 
     /**
      * 判断该机构是否关联省平台（包括互联网医院）供前端调用
+     *
      * @param organId
      * @return
      */
     @RpcService
-    public List<ImportDrugRecord> findImportDrugRecordByOrganId(Integer organId){
+    public List<ImportDrugRecord> findImportDrugRecordByOrganId(Integer organId) {
         return importDrugRecordDAO.findImportDrugRecordByOrganId(organId);
     }
 
 
     /**
-     *
      * @param detail
      * @param config
      * @param drugsEnterpriseId
      * @return
      */
     @RpcService
-    public Map<String,Integer>   syncOrganDrugDataToSaleDrugList(OrganDrugList detail,DrugsEnterpriseConfig config, Integer drugsEnterpriseId) {
-        Integer addNum=0;
-        Integer updateNum=0;
+    @LogRecord
+    public Map<String, Integer> syncOrganDrugDataToSaleDrugList(OrganDrugList detail, DrugsEnterpriseConfig config, Integer drugsEnterpriseId) {
+        Integer addNum = 0;
+        Integer updateNum = 0;
         Integer falseNum = 0;
-        Map<String,Integer> map=new HashMap<>();
-        if (ObjectUtils.isEmpty(config.getEnable_drug_syncType())){
+        Map<String, Integer> map = new HashMap<>();
+        if (ObjectUtils.isEmpty(config.getEnable_drug_syncType())) {
             throw new DAOException(DAOException.VALUE_NEEDED, "未找到该药企[数据同步类型]配置数据!");
         }
         String[] strings = config.getEnable_drug_syncType().split(",");
         //同步类型
         List<String> syncTypeList = new ArrayList<String>(Arrays.asList(strings));
-        List<SaleDrugList> byOrganIdAndDrugCode =Lists.newArrayList();
+        List<SaleDrugList> byOrganIdAndDrugCode = Lists.newArrayList();
 
         //药企药品编码保存字段
         switch (config.getSyncSaleDrugCodeType()) {
             case 1:
-                byOrganIdAndDrugCode=saleDrugListDAO.findByOrganIdAndDrugCode(drugsEnterpriseId, detail.getOrganDrugCode());
+                byOrganIdAndDrugCode = saleDrugListDAO.findByOrganIdAndDrugCode(drugsEnterpriseId, detail.getOrganDrugCode());
                 break;
             case 2:
-                byOrganIdAndDrugCode=saleDrugListDAO.findByOrganIdAndDrugCode(drugsEnterpriseId, detail.getDrugId().toString());
+                byOrganIdAndDrugCode = saleDrugListDAO.findByOrganIdAndDrugCode(drugsEnterpriseId, detail.getDrugId().toString());
                 break;
             case 3:
-                if (!ObjectUtils.isEmpty(detail.getMedicalDrugCode())){
-                    byOrganIdAndDrugCode=saleDrugListDAO.findByOrganIdAndDrugCode(drugsEnterpriseId, detail.getMedicalDrugCode());
+                if (!ObjectUtils.isEmpty(detail.getMedicalDrugCode())) {
+                    byOrganIdAndDrugCode = saleDrugListDAO.findByOrganIdAndDrugCode(drugsEnterpriseId, detail.getMedicalDrugCode());
                 }
                 break;
             case 4:
-                if (!ObjectUtils.isEmpty(detail.getProducerCode())){
-                    byOrganIdAndDrugCode=saleDrugListDAO.findByOrganIdAndDrugCode(drugsEnterpriseId, detail.getProducerCode());
+                if (!ObjectUtils.isEmpty(detail.getProducerCode())) {
+                    byOrganIdAndDrugCode = saleDrugListDAO.findByOrganIdAndDrugCode(drugsEnterpriseId, detail.getProducerCode());
                 }
                 break;
             default:
@@ -425,34 +426,34 @@ public class SaleDrugToolService implements ISaleDrugToolService {
         SaleDrugList byDrugIdAndOrganId = saleDrugListDAO.getByDrugIdAndOrganId(detail.getDrugId(), drugsEnterpriseId);
         try {
             if (!CollectionUtils.isEmpty(byOrganIdAndDrugCode)) {
-                if (syncTypeList.indexOf("3")!=-1){
-                    if (detail.getStatus().equals(0)){
+                if (syncTypeList.indexOf("3") != -1) {
+                    if (detail.getStatus().equals(0)) {
                         for (SaleDrugList saleDrugList : byOrganIdAndDrugCode) {
-                            boolean isAllow =isAllowDealBySyncDataRange(config.getDelSyncDataRange(),config.getDelSyncDrugType(),detail,drugsEnterpriseId);
-                            if(isAllow){
+                            boolean isAllow = isAllowDealBySyncDataRange(config.getDelSyncDataRange(), config.getDelSyncDrugType(), detail, drugsEnterpriseId);
+                            if (isAllow) {
                                 saleDrugList.setStatus(0);
                                 saleDrugListDAO.update(saleDrugList);
-                                LOGGER.info("syncOrganDrugDataToSaleDrugList 删除" + detail.getDrugName() + " 药企Id=[{}] 药企药品=[{}]  机构药品=[{}]", drugsEnterpriseId, JSONUtils.toString(saleDrugList),JSONUtils.toString(detail));
+                                LOGGER.info("syncOrganDrugDataToSaleDrugList 删除" + detail.getDrugName() + " 药企Id=[{}] 药企药品=[{}]  机构药品=[{}]", drugsEnterpriseId, JSONUtils.toString(saleDrugList), JSONUtils.toString(detail));
                             }
                         }
                         //deleteNum++;
                     }
                 }
                 //TODO liumin
-                if (syncTypeList.indexOf("2")!=-1){
-                    if (detail.getStatus().equals(1)){
-                        boolean isAllow =isAllowDealBySyncDataRange(config.getUpdateSyncDataRange(),config.getUpdateSyncDrugType(),detail,drugsEnterpriseId);
-                        if(isAllow){
-                            List<SaleDrugListSyncField> saleDrugListSyncFieldList=saleDrugListSyncFieldDAO.findByDrugsenterpriseIdAndType(drugsEnterpriseId,"2");
+                if (syncTypeList.indexOf("2") != -1) {
+                    if (detail.getStatus().equals(1)) {
+                        boolean isAllow = isAllowDealBySyncDataRange(config.getUpdateSyncDataRange(), config.getUpdateSyncDrugType(), detail, drugsEnterpriseId);
+                        if (isAllow) {
+                            List<SaleDrugListSyncField> saleDrugListSyncFieldList = saleDrugListSyncFieldDAO.findByDrugsenterpriseIdAndType(drugsEnterpriseId, "2");
 
                             SaleDrugList saleDrugList1 = byOrganIdAndDrugCode.get(0);
                             //没有找到配置项，同步所有字段
-                            if(CollectionUtils.isEmpty(saleDrugListSyncFieldList)){
-                                saleDrugList1=obtainSaleDrugListByDetailForUpdate(saleDrugList1,detail,config);
+                            if (CollectionUtils.isEmpty(saleDrugListSyncFieldList)) {
+                                saleDrugList1 = obtainSaleDrugListByDetailForUpdate(saleDrugList1, detail, config);
 
-                            }else{
-                                Map<String, SaleDrugListSyncField> saleDrugListSyncFieldMap =saleDrugListSyncFieldList.stream().collect(Collectors.toMap(SaleDrugListSyncField::getFieldCode, Function.identity()));
-                                for(int i=0;i<saleDrugListSyncFieldList.size();i++) {
+                            } else {
+                                Map<String, SaleDrugListSyncField> saleDrugListSyncFieldMap = saleDrugListSyncFieldList.stream().collect(Collectors.toMap(SaleDrugListSyncField::getFieldCode, Function.identity()));
+                                for (int i = 0; i < saleDrugListSyncFieldList.size(); i++) {
                                     SaleDrugListSyncField saleDrugListSyncField = saleDrugListSyncFieldList.get(i);
                                     //默认为同步（字段没勾选是否配置或者配置了同步或者表里不存在此跳配置）
                                     if (("price".equals(saleDrugListSyncField.getFieldCode()) && !"0".equals(saleDrugListSyncField.getIsSync()))
@@ -470,14 +471,15 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                                     }
 
                                     if (("saleName".equals(saleDrugListSyncField.getFieldCode()) && (!"0".equals(saleDrugListSyncField.getIsSync())))
-                                            || saleDrugListSyncFieldMap.get("saleName") == null ) {
+                                            || saleDrugListSyncFieldMap.get("saleName") == null) {
                                         saleDrugList1.setSaleName(detail.getSaleName());
                                     }
                                     if (("status".equals(saleDrugListSyncField.getFieldCode()) && !"0".equals(saleDrugListSyncField.getIsSync()))
                                             || saleDrugListSyncFieldMap.get("status") == null) {
                                         saleDrugList1.setStatus(detail.getStatus());//无效的药品不会变成有效的
                                     }
-                                };
+                                }
+                                ;
                                 saleDrugList1.setDrugId(detail.getDrugId());
                                 saleDrugList1.setLastModify(new Date());
                                 switch (config.getSyncSaleDrugCodeType()) {
@@ -502,44 +504,43 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                                 }
                             }
                             SaleDrugList update = saleDrugListDAO.update(saleDrugList1);
-                            DataSyncDTO dataSyncDTO = convertDataSyn(update, drugsEnterpriseId, 2, null, 2,detail);
+                            DataSyncDTO dataSyncDTO = convertDataSyn(update, drugsEnterpriseId, 2, null, 2, detail);
                             List<DataSyncDTO> syncDTOList = Lists.newArrayList();
                             syncDTOList.add(dataSyncDTO);
                             dataSyncLogService.addDataSyncLog("2", syncDTOList);
                             //dataSyncLog(drugsEnterpriseId,update,1,detail);
-                            LOGGER.info("syncOrganDrugDataToSaleDrugList 更新 " + update.getDrugName() + " 药企Id=[{}] 药企药品=[{}]  机构药品=[{}]", drugsEnterpriseId, JSONUtils.toString(update),JSONUtils.toString(detail));
+                            LOGGER.info("syncOrganDrugDataToSaleDrugList 更新 " + update.getDrugName() + " 药企Id=[{}] 药企药品=[{}]  机构药品=[{}]", drugsEnterpriseId, JSONUtils.toString(update), JSONUtils.toString(detail));
                             updateNum++;
                         }
                     }
                 }
-            }else if (byDrugIdAndOrganId == null) {
-                if (syncTypeList.indexOf("1")!=-1 &&detail.getStatus().equals(1)){
-                    boolean isAllow =isAllowDealBySyncDataRange(config.getAddSyncDataRange(),config.getAddSyncDrugType(),detail,drugsEnterpriseId);
+            } else if (byDrugIdAndOrganId == null) {
+                if (syncTypeList.indexOf("1") != -1 && detail.getStatus().equals(1)) {
+                    boolean isAllow = isAllowDealBySyncDataRange(config.getAddSyncDataRange(), config.getAddSyncDrugType(), detail, drugsEnterpriseId);
                     if (isAllow) {
-                        SaleDrugList saleDrugList=new SaleDrugList();
-                        map=obtainSaleDrugListByDetailForAdd(saleDrugList,detail,config,map);
+                        SaleDrugList saleDrugList = new SaleDrugList();
+                        map = obtainSaleDrugListByDetailForAdd(saleDrugList, detail, config, map);
                         SaleDrugList save = saleDrugListDAO.save(saleDrugList);
-                        DataSyncDTO dataSyncDTO = convertDataSyn(save, drugsEnterpriseId, 1, null, 1,detail);
+                        DataSyncDTO dataSyncDTO = convertDataSyn(save, drugsEnterpriseId, 1, null, 1, detail);
                         List<DataSyncDTO> syncDTOList = Lists.newArrayList();
                         syncDTOList.add(dataSyncDTO);
                         dataSyncLogService.addDataSyncLog("2", syncDTOList);
                         //dataSyncLog(drugsEnterpriseId,save,2,detail);
-                        LOGGER.info("syncOrganDrugDataToSaleDrugList 新增 " + save.getDrugName() + " 药企Id=[{}] 药企药品=[{}]  机构药品=[{}]", drugsEnterpriseId, JSONUtils.toString(save),JSONUtils.toString(detail));
+                        LOGGER.info("syncOrganDrugDataToSaleDrugList 新增 " + save.getDrugName() + " 药企Id=[{}] 药企药品=[{}]  机构药品=[{}]", drugsEnterpriseId, JSONUtils.toString(save), JSONUtils.toString(detail));
                         addNum++;
                     }
                 }
             }
         } catch (Exception e) {
-            LOGGER.info("syncOrganDrugDataToSaleDrugList error" ,e);
+            LOGGER.info("syncOrganDrugDataToSaleDrugList error", e);
         }
-        map.put("addNum",addNum);
-        map.put("updateNum",updateNum);
-        map.put("falseNum",falseNum);
+        map.put("addNum", addNum);
+        map.put("updateNum", updateNum);
+        map.put("falseNum", falseNum);
         return map;
     }
 
     /**
-     *
      * @param saleDrugList1
      * @param detail
      * @param config
@@ -575,15 +576,15 @@ public class SaleDrugToolService implements ISaleDrugToolService {
         }
         return saleDrugList1;
     }
+
     /**
-     *
      * @param saleDrugList1
      * @param detail
      * @param config
      * @param map
      * @return
      */
-    private Map<String, Integer>  obtainSaleDrugListByDetailForAdd(SaleDrugList saleDrugList, OrganDrugList detail, DrugsEnterpriseConfig config, Map<String, Integer> map) {
+    private Map<String, Integer> obtainSaleDrugListByDetailForAdd(SaleDrugList saleDrugList, OrganDrugList detail, DrugsEnterpriseConfig config, Map<String, Integer> map) {
 
         saleDrugList.setDrugId(detail.getDrugId());
         saleDrugList.setDrugName(detail.getDrugName());
@@ -600,22 +601,22 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                 saleDrugList.setOrganDrugCode(detail.getDrugId().toString());
                 break;
             case 3:
-                if (!ObjectUtils.isEmpty(detail.getMedicalDrugCode())){
+                if (!ObjectUtils.isEmpty(detail.getMedicalDrugCode())) {
                     saleDrugList.setOrganDrugCode(detail.getMedicalDrugCode());
-                }else {
-                    map.put("addNum",0);
-                    map.put("updateNum",0);
-                    map.put("falseNum",1);
+                } else {
+                    map.put("addNum", 0);
+                    map.put("updateNum", 0);
+                    map.put("falseNum", 1);
                     return map;
                 }
                 break;
             case 4:
-                if (!ObjectUtils.isEmpty(detail.getProducerCode())){
+                if (!ObjectUtils.isEmpty(detail.getProducerCode())) {
                     saleDrugList.setOrganDrugCode(detail.getProducerCode());
-                }else {
-                    map.put("addNum",0);
-                    map.put("updateNum",0);
-                    map.put("falseNum",1);
+                } else {
+                    map.put("addNum", 0);
+                    map.put("updateNum", 0);
+                    map.put("falseNum", 1);
                     return map;
                 }
                 break;
@@ -663,6 +664,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
 
     /**
      * 根据同步数据范围判断能否同步数据
+     *
      * @param syncDataRange
      * @param syncDrugType
      * @param detail
@@ -671,17 +673,17 @@ public class SaleDrugToolService implements ISaleDrugToolService {
      */
     @LogRecord
     private boolean isAllowDealBySyncDataRange(Integer syncDataRange, String syncDrugType, OrganDrugList detail, Integer drugsEnterpriseId) {
-        boolean isAllow=false;
+        boolean isAllow = false;
         if (syncDataRange == 1) {
             //同步数据范围 配送药企
             if (!ObjectUtils.isEmpty(detail.getDrugsEnterpriseIds())) {
                 String[] drugsEnterpriseIdsStr = detail.getDrugsEnterpriseIds().split(",");
                 List<String> drugsEnterpriseIdsList = new ArrayList<String>(Arrays.asList(drugsEnterpriseIdsStr));
                 if (drugsEnterpriseIdsList.indexOf(drugsEnterpriseId.toString()) != -1) {
-                    isAllow=true;
+                    isAllow = true;
                 }
             }
-        }else if (syncDataRange == 2) {
+        } else if (syncDataRange == 2) {
             //同步数据范围 药品类型
             if (ObjectUtils.isEmpty(syncDrugType)) {
                 throw new DAOException(DAOException.VALUE_NEEDED, "未找到该药企[同步药品类型]配置数据!");
@@ -689,16 +691,16 @@ public class SaleDrugToolService implements ISaleDrugToolService {
             String[] syncDrugTypeStr = syncDrugType.split(",");
             List<String> syncDrugTypeList = new ArrayList<String>(Arrays.asList(syncDrugTypeStr));
             //1西药 2中成药 3中药
-            if (syncDrugTypeList.indexOf("1") != -1&&drugListDAO.get(detail.getDrugId()).getDrugType() == 1
-                    ||syncDrugTypeList.indexOf("2") != -1 && drugListDAO.get(detail.getDrugId()).getDrugType() == 2
-                    ||syncDrugTypeList.indexOf("3") != -1 && drugListDAO.get(detail.getDrugId()).getDrugType() == 3) {
-                isAllow=true;
+            if (syncDrugTypeList.indexOf("1") != -1 && drugListDAO.get(detail.getDrugId()).getDrugType() == 1
+                    || syncDrugTypeList.indexOf("2") != -1 && drugListDAO.get(detail.getDrugId()).getDrugType() == 2
+                    || syncDrugTypeList.indexOf("3") != -1 && drugListDAO.get(detail.getDrugId()).getDrugType() == 3) {
+                isAllow = true;
             }
         }
         return isAllow;
     }
 
-    public DataSyncDTO convertDataSyn(SaleDrugList drug, Integer organId, Integer status, Exception e,  Integer operType,OrganDrugList detail ) {
+    public DataSyncDTO convertDataSyn(SaleDrugList drug, Integer organId, Integer status, Exception e, Integer operType, OrganDrugList detail) {
 
         DataSyncDTO dataSyncDTO = new DataSyncDTO();
         dataSyncDTO.setType(2);
@@ -709,10 +711,10 @@ public class SaleDrugToolService implements ISaleDrugToolService {
             DrugListDAO dao = getDAO(DrugListDAO.class);
             if (!ObjectUtils.isEmpty(drug.getDrugId())) {
                 DrugList drugList = dao.get(drug.getDrugId());
-                if (!ObjectUtils.isEmpty(drugList)){
+                if (!ObjectUtils.isEmpty(drugList)) {
                     param.put("drugType", drugList.getDrugType());
                     param.put("drugClass", drugList.getDrugClass());
-                    if (!ObjectUtils.isEmpty(detail)){
+                    if (!ObjectUtils.isEmpty(detail)) {
                         param.put("organId", detail.getOrganId());
                         param.put("SaleOrganId", drug.getOrganId());
                         param.put("organDrugId", detail.getOrganDrugId());
@@ -768,12 +770,11 @@ public class SaleDrugToolService implements ISaleDrugToolService {
      */
     @RpcService
     public Map<String, Object> getOrganDrugSyncDataRedis(Integer drugsEnterpriseId) throws ParseException {
-        Map<String, Object> maps=Maps.newHashMap();
+        Map<String, Object> maps = Maps.newHashMap();
         Map<String, Object> map = (Map<String, Object>) redisClient.get(KEY_THE_DRUG_SYNC + drugsEnterpriseId.toString());
         maps.put("Date", map.get("Date"));
         return maps;
     }
-
 
 
     /**
@@ -787,8 +788,6 @@ public class SaleDrugToolService implements ISaleDrugToolService {
     public void deleteOrganDrugSyncData(Integer drugsEnterpriseId) {
         redisClient.del(KEY_THE_DRUG_SYNC + drugsEnterpriseId.toString());
     }
-
-
 
 
     /**
@@ -811,9 +810,9 @@ public class SaleDrugToolService implements ISaleDrugToolService {
     }
 
     /**
-     *
      * 药企同步机构药品
      * organDrugSync saleDrugInfoSynMovement saleDrugInfoSynMovementT 整这么多相同的干啥
+     *
      * @param drugsEnterpriseId
      * @return
      * @throws ParseException
@@ -822,17 +821,17 @@ public class SaleDrugToolService implements ISaleDrugToolService {
     @LogRecord
     public Map<String, Object> saleDrugInfoSynMovement(Integer drugsEnterpriseId) throws ParseException {
 
-        if (ObjectUtils.isEmpty(drugsEnterpriseId)){
+        if (ObjectUtils.isEmpty(drugsEnterpriseId)) {
             throw new DAOException(DAOException.VALUE_NEEDED, "drugsenterpriseId is required!");
         }
         DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.get(drugsEnterpriseId);
-        if (ObjectUtils.isEmpty(drugsEnterprise)){
-            throw new DAOException(DAOException.VALUE_NEEDED, "未找到该药企"+drugsEnterpriseId);
+        if (ObjectUtils.isEmpty(drugsEnterprise)) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "未找到该药企" + drugsEnterpriseId);
         }
         UserRoleToken urt = UserRoleToken.getCurrent();
         IBusActionLogService busActionLogService = AppDomainContext.getBean("opbase.busActionLogService", IBusActionLogService.class);
         busActionLogService.recordBusinessLogRpcNew("药企药品管理", "", "SaleDrugList", "【" + urt.getUserName() + "】调用 药企药品目录-》手动同步【" + drugsEnterprise.getName()
-                +"】",drugsEnterprise.getName());
+                + "】", drugsEnterprise.getName());
         Map<String, Object> hget = (Map<String, Object>) redisClient.get(KEY_THE_DRUG_SYNC + drugsEnterpriseId.toString());
         if (hget != null) {
             Integer status = (Integer) hget.get("Status");
@@ -844,15 +843,15 @@ public class SaleDrugToolService implements ISaleDrugToolService {
         }
         DrugsEnterpriseConfigService bean = AppContextHolder.getBean("eh.drugsEnterpriseConfigService", DrugsEnterpriseConfigService.class);
         DrugsEnterpriseConfig config = bean.getConfigByDrugsenterpriseId(drugsEnterpriseId);
-        if (ObjectUtils.isEmpty(config)){
+        if (ObjectUtils.isEmpty(config)) {
             throw new DAOException(DAOException.VALUE_NEEDED, "未找到该药企配置数据!");
         }
-        if (config.getEnable_drug_sync()==0){
+        if (config.getEnable_drug_sync() == 0) {
             throw new DAOException(DAOException.VALUE_NEEDED, "请先确认 基础数据-药品目录-药企药品目录-同步设置-【药企药品是否支持同步】已开启，再尝试进行同步!");
         }
         String organIds = config.getOrganId();
-        if (ObjectUtils.isEmpty(organIds)){
-            throw new DAOException(DAOException.VALUE_NEEDED, "该药企["+drugsEnterprise.getName()+"]未找到关联机构!");
+        if (ObjectUtils.isEmpty(organIds)) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "该药企[" + drugsEnterprise.getName() + "]未找到关联机构!");
         }
         SimpleDateFormat myFmt2 = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         Map<String, Object> map = Maps.newHashMap();
@@ -870,10 +869,12 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                 Integer falseNum = 0;
                 Integer total = 0;
                 Integer deleteNum = 0;
-                String[] organIdArr=organIds.split(",");
-                for(int i=0;i<organIdArr.length;i++) {
-                    if (StringUtils.isEmpty(organIdArr[i])) {continue;}
-                    Integer organId=Integer.parseInt(organIdArr[i]);
+                String[] organIdArr = organIds.split(",");
+                for (int i = 0; i < organIdArr.length; i++) {
+                    if (StringUtils.isEmpty(organIdArr[i])) {
+                        continue;
+                    }
+                    Integer organId = Integer.parseInt(organIdArr[i]);
                     List<OrganDrugList> details = organDrugListDAO.findOrganDrugByOrganId(organId);
                     if (config.getSyncDataSource() == 1) {
                         //数据来源 关联管理机构
@@ -890,48 +891,48 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                         }
                     }
 
-                String[] strings = config.getEnable_drug_syncType().split(",");
-                List<String> syncTypeList = new ArrayList<String>(Arrays.asList(strings));
-                Map<Integer, OrganDrugList> drugMap = Maps.newHashMap();
-                //删除药品同步 （机构没有，药企有）
-                if (syncTypeList.indexOf("3")!=-1){
-                    if (config.getDelSyncDataRange()==1){
-                        String drugsEnterprise="%"+drugsEnterpriseId.toString()+"%";
-                        List<OrganDrugList> drugLists = organDrugListDAO.findOrganDrugByOrganIdAndDrugsEnterpriseId(organId, drugsEnterprise);
-                        drugMap = drugLists.stream().collect(Collectors.toMap(OrganDrugList::getDrugId, a -> a, (k1, k2) -> k1));
-                    }else {
-                        drugMap = details.stream().collect(Collectors.toMap(OrganDrugList::getDrugId, a -> a, (k1, k2) -> k1));
-                    }
-                    List<SaleDrugList> saleDrugListsByOrganId = saleDrugListDAO.findSaleDrugListsByOrganId(drugsEnterpriseId);
-                    String delSyncDrugType= config.getDelSyncDrugType();
-                    if (!ObjectUtils.isEmpty(saleDrugListsByOrganId) && !ObjectUtils.isEmpty(delSyncDrugType)){
-                        for (SaleDrugList saleDrugList : saleDrugListsByOrganId) {
-                            try{
-                                OrganDrugList organDrug = drugMap.get(saleDrugList.getDrugId());
-                                if (ObjectUtils.isEmpty(organDrug)) {
-                                    if(config.getDelSyncDataRange()==1){
-                                        saleDrugListDAO.remove(saleDrugList.getOrganDrugId());
-                                    }else{
-                                        //（还需判断药品类型）
-                                        String[] syncDrugTypeStr = delSyncDrugType.split(",");
-                                        List<String> syncDrugTypeList = new ArrayList<String>(Arrays.asList(syncDrugTypeStr));
-                                        //1西药 2中成药 3中药
-                                        if (syncDrugTypeList.indexOf("1") != -1&&drugListDAO.get(saleDrugList.getDrugId()).getDrugType() == 1
-                                                ||syncDrugTypeList.indexOf("2") != -1 && drugListDAO.get(saleDrugList.getDrugId()).getDrugType() == 2
-                                                ||syncDrugTypeList.indexOf("3") != -1 && drugListDAO.get(saleDrugList.getDrugId()).getDrugType() == 3) {
+                    String[] strings = config.getEnable_drug_syncType().split(",");
+                    List<String> syncTypeList = new ArrayList<String>(Arrays.asList(strings));
+                    Map<Integer, OrganDrugList> drugMap = Maps.newHashMap();
+                    //删除药品同步 （机构没有，药企有）
+                    if (syncTypeList.indexOf("3") != -1) {
+                        if (config.getDelSyncDataRange() == 1) {
+                            String drugsEnterprise = "%" + drugsEnterpriseId.toString() + "%";
+                            List<OrganDrugList> drugLists = organDrugListDAO.findOrganDrugByOrganIdAndDrugsEnterpriseId(organId, drugsEnterprise);
+                            drugMap = drugLists.stream().collect(Collectors.toMap(OrganDrugList::getDrugId, a -> a, (k1, k2) -> k1));
+                        } else {
+                            drugMap = details.stream().collect(Collectors.toMap(OrganDrugList::getDrugId, a -> a, (k1, k2) -> k1));
+                        }
+                        List<SaleDrugList> saleDrugListsByOrganId = saleDrugListDAO.findSaleDrugListsByOrganId(drugsEnterpriseId);
+                        String delSyncDrugType = config.getDelSyncDrugType();
+                        if (!ObjectUtils.isEmpty(saleDrugListsByOrganId) && !ObjectUtils.isEmpty(delSyncDrugType)) {
+                            for (SaleDrugList saleDrugList : saleDrugListsByOrganId) {
+                                try {
+                                    OrganDrugList organDrug = drugMap.get(saleDrugList.getDrugId());
+                                    if (ObjectUtils.isEmpty(organDrug)) {
+                                        if (config.getDelSyncDataRange() == 1) {
                                             saleDrugListDAO.remove(saleDrugList.getOrganDrugId());
+                                        } else {
+                                            //（还需判断药品类型）
+                                            String[] syncDrugTypeStr = delSyncDrugType.split(",");
+                                            List<String> syncDrugTypeList = new ArrayList<String>(Arrays.asList(syncDrugTypeStr));
+                                            //1西药 2中成药 3中药
+                                            if (syncDrugTypeList.indexOf("1") != -1 && drugListDAO.get(saleDrugList.getDrugId()).getDrugType() == 1
+                                                    || syncDrugTypeList.indexOf("2") != -1 && drugListDAO.get(saleDrugList.getDrugId()).getDrugType() == 2
+                                                    || syncDrugTypeList.indexOf("3") != -1 && drugListDAO.get(saleDrugList.getDrugId()).getDrugType() == 3) {
+                                                saleDrugListDAO.remove(saleDrugList.getOrganDrugId());
+                                            }
                                         }
+
+                                        deleteNum++;
                                     }
-
-                                    deleteNum++;
+                                } catch (Exception e) {
+                                    LOGGER.info("error", e);
                                 }
-                            }catch (Exception e){
-                                LOGGER.info("error",e);
-                            }
 
+                            }
                         }
                     }
-                }
                 }
 
 
@@ -955,18 +956,19 @@ public class SaleDrugToolService implements ISaleDrugToolService {
     /**
      * 药企药品手动同步
      * 前端说没有在调用 是不是以前的老方法 为啥要搞成这样。。。定时任务？
+     *
      * @param drugsEnterpriseId
      * @return
      */
     @RpcService(timeout = 6000)
     @LogRecord
     public Map<String, Object> saleDrugInfoSynMovementT(Integer drugsEnterpriseId) throws ParseException {
-        if (ObjectUtils.isEmpty(drugsEnterpriseId)){
+        if (ObjectUtils.isEmpty(drugsEnterpriseId)) {
             throw new DAOException(DAOException.VALUE_NEEDED, "drugsenterpriseId is required!");
         }
         DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.get(drugsEnterpriseId);
-        if (ObjectUtils.isEmpty(drugsEnterprise)){
-            throw new DAOException(DAOException.VALUE_NEEDED, "未找到该药企"+drugsEnterpriseId);
+        if (ObjectUtils.isEmpty(drugsEnterprise)) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "未找到该药企" + drugsEnterpriseId);
         }
         Map<String, Object> hget = (Map<String, Object>) redisClient.get(KEY_THE_DRUG_SYNC + drugsEnterpriseId.toString());
         if (hget != null) {
@@ -979,15 +981,15 @@ public class SaleDrugToolService implements ISaleDrugToolService {
         }
         DrugsEnterpriseConfigService bean = AppContextHolder.getBean("eh.drugsEnterpriseConfigService", DrugsEnterpriseConfigService.class);
         DrugsEnterpriseConfig config = bean.getConfigByDrugsenterpriseId(drugsEnterpriseId);
-        if (ObjectUtils.isEmpty(config)){
+        if (ObjectUtils.isEmpty(config)) {
             throw new DAOException(DAOException.VALUE_NEEDED, "未找到该药企配置数据!");
         }
-        if (config.getEnable_drug_sync()==0){
+        if (config.getEnable_drug_sync() == 0) {
             throw new DAOException(DAOException.VALUE_NEEDED, "请先确认 基础数据-药品目录-药企药品目录-同步设置-【药企药品是否支持同步】已开启，再尝试进行同步!");
         }
         String organIds = config.getOrganId();
-        if (ObjectUtils.isEmpty(organIds)){
-            throw new DAOException(DAOException.VALUE_NEEDED, "该药企["+drugsEnterprise.getName()+"]未找到关联机构!");
+        if (ObjectUtils.isEmpty(organIds)) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "该药企[" + drugsEnterprise.getName() + "]未找到关联机构!");
         }
         OrganService organService = AppDomainContext.getBean("basic.organService", OrganService.class);
 //        OrganDTO byOrganId = organService.getByOrganId(organId);
@@ -1001,22 +1003,24 @@ public class SaleDrugToolService implements ISaleDrugToolService {
         Integer total = 0;
         Map<String, Object> map = Maps.newHashMap();
         SimpleDateFormat myFmt2 = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-        String[] organIdArr=organIds.split(",");
-        for(int i=0;i<organIdArr.length;i++) {
-            if (StringUtils.isEmpty(organIdArr[i])) {continue;}
+        String[] organIdArr = organIds.split(",");
+        for (int i = 0; i < organIdArr.length; i++) {
+            if (StringUtils.isEmpty(organIdArr[i])) {
+                continue;
+            }
             Integer organId = Integer.parseInt(organIdArr[i]);
             List<OrganDrugList> details = organDrugListDAO.findOrganDrugByOrganId(organId);
             if (config.getSyncDataSource() == 1) {
                 //数据来源 关联管理机构
                 //获取药企关联机构药品目录
-                if (!ObjectUtils.isEmpty(details)){
-                    total=details.size();
+                if (!ObjectUtils.isEmpty(details)) {
+                    total = details.size();
                     try {
                         for (OrganDrugList detail : details) {
                             Map<String, Integer> stringIntegerMap = syncOrganDrugDataToSaleDrugList(detail, config, drugsEnterpriseId);
                         }
                     } catch (DAOException e) {
-                        LOGGER.info("syncSaleOrganDrug error" ,e);
+                        LOGGER.info("syncSaleOrganDrug error", e);
                     }
                 }
             }
@@ -1024,38 +1028,38 @@ public class SaleDrugToolService implements ISaleDrugToolService {
             List<String> syncTypeList = new ArrayList<String>(Arrays.asList(strings));
             Map<Integer, OrganDrugList> drugMap = Maps.newHashMap();
 
-            if (syncTypeList.indexOf("3")!=-1){
-                if (config.getDelSyncDataRange()==1){
-                    String drugsEnt="%"+drugsEnterpriseId.toString()+"%";
+            if (syncTypeList.indexOf("3") != -1) {
+                if (config.getDelSyncDataRange() == 1) {
+                    String drugsEnt = "%" + drugsEnterpriseId.toString() + "%";
                     List<OrganDrugList> drugLists = organDrugListDAO.findOrganDrugByOrganIdAndDrugsEnterpriseId(organId, drugsEnt);
                     drugMap = drugLists.stream().collect(Collectors.toMap(OrganDrugList::getDrugId, a -> a, (k1, k2) -> k1));
-                }else {
+                } else {
                     drugMap = details.stream().collect(Collectors.toMap(OrganDrugList::getDrugId, a -> a, (k1, k2) -> k1));
                 }
                 List<SaleDrugList> saleDrugListsByOrganId = saleDrugListDAO.findSaleDrugListsByOrganId(drugsEnterpriseId);
-                String delSyncDrugType= config.getDelSyncDrugType();
-                if (!ObjectUtils.isEmpty(saleDrugListsByOrganId)&&!ObjectUtils.isEmpty(delSyncDrugType)){
+                String delSyncDrugType = config.getDelSyncDrugType();
+                if (!ObjectUtils.isEmpty(saleDrugListsByOrganId) && !ObjectUtils.isEmpty(delSyncDrugType)) {
                     for (SaleDrugList saleDrugList : saleDrugListsByOrganId) {
-                        try{
+                        try {
                             OrganDrugList organDrug = drugMap.get(saleDrugList.getDrugId());
                             if (ObjectUtils.isEmpty(organDrug)) {
-                                if (config.getDelSyncDataRange()==1){
+                                if (config.getDelSyncDataRange() == 1) {
                                     saleDrugListDAO.remove(saleDrugList.getOrganDrugId());
-                                }else{
+                                } else {
                                     //（还需判断药品类型）
                                     String[] syncDrugTypeStr = delSyncDrugType.split(",");
                                     List<String> syncDrugTypeList = new ArrayList<String>(Arrays.asList(syncDrugTypeStr));
                                     //1西药 2中成药 3中药
-                                    if (syncDrugTypeList.indexOf("1") != -1&&drugListDAO.get(saleDrugList.getDrugId()).getDrugType() == 1
-                                            ||syncDrugTypeList.indexOf("2") != -1 && drugListDAO.get(saleDrugList.getDrugId()).getDrugType() == 2
-                                            ||syncDrugTypeList.indexOf("3") != -1 && drugListDAO.get(saleDrugList.getDrugId()).getDrugType() == 3) {
+                                    if (syncDrugTypeList.indexOf("1") != -1 && drugListDAO.get(saleDrugList.getDrugId()).getDrugType() == 1
+                                            || syncDrugTypeList.indexOf("2") != -1 && drugListDAO.get(saleDrugList.getDrugId()).getDrugType() == 2
+                                            || syncDrugTypeList.indexOf("3") != -1 && drugListDAO.get(saleDrugList.getDrugId()).getDrugType() == 3) {
                                         saleDrugListDAO.remove(saleDrugList.getOrganDrugId());
                                     }
                                 }
                                 deleteNum++;
                             }
-                        }catch (Exception e){
-                            LOGGER.info("error",e);
+                        } catch (Exception e) {
+                            LOGGER.info("error", e);
                         }
 
                     }
@@ -1075,7 +1079,6 @@ public class SaleDrugToolService implements ISaleDrugToolService {
         redisClient.set(KEY_THE_DRUG_SYNC + drugsEnterpriseId.toString(), map);
         return map;
     }
-
 
 
 }

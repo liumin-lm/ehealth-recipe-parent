@@ -60,6 +60,16 @@ public class InfraClient extends BaseClient {
     }
 
     /**
+     * 获取预估价格金额 新接口
+     * @param logisticsEmsPriceDto
+     * @return
+     */
+    @LogRecord
+    public LogisticsEmsPriceInfoDto getLogisticsEstimatedPrice(LogisticsEmsPriceDto logisticsEmsPriceDto) {
+        return logisticsOrderService.getLogisticsEstimatedPrice(logisticsEmsPriceDto);
+    }
+
+    /**
      * @param depId
      * @param logisticsCompany
      * @param type
@@ -83,13 +93,14 @@ public class InfraClient extends BaseClient {
         eventLog.setMilli_timestamp(String.valueOf(System.currentTimeMillis()));
         eventLog.setEvent_uuid(UUID.randomUUID().toString());
         eventLog.setSource(serviceLog.getSource());
-        eventLog.setName(serviceLog.getName());
+        eventLog.setName(serviceLog.getSubSource());
         ServiceLogDTO serviceLog1 = new ServiceLogDTO();
         serviceLog1.setId(serviceLog.getId());
         serviceLog1.setType(serviceLog.getType());
         serviceLog1.setCategory(serviceLog.getCategory());
         serviceLog1.setSize(serviceLog.getSize());
         serviceLog1.setTime(serviceLog.getTime());
+        serviceLog1.setName(serviceLog.getName());
         eventLog.setData(serviceLog1);
         try {
             eventLogService.serviceLog(Collections.singletonList(eventLog));
@@ -98,6 +109,14 @@ public class InfraClient extends BaseClient {
         }
     }
 
+    /**
+     * 增加日志分析
+     *
+     * @param name 业务类型
+     * @param id   id
+     * @param type id类型 1机构，2药企
+     * @param time 执行时间
+     */
     public void serviceTimeLog(String name, Integer id, Integer type, Integer size, Long time) {
         logger.info("InfraClient serviceLog name={},id={},type={},size={},time={},", name, id, type, size, time);
         super.serviceLog(name, id, type, size, time);

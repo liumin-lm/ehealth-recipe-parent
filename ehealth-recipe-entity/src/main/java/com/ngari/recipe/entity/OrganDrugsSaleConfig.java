@@ -84,7 +84,8 @@ public class OrganDrugsSaleConfig implements Serializable {
     @ItemProperty(alias = "退费审核通知电话")
     private String refundNotifyPhone;
 
-
+    @ItemProperty(alias = "是否走医院预结算：1是，0否")
+    private Integer isHosDep;
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
@@ -267,5 +268,14 @@ public class OrganDrugsSaleConfig implements Serializable {
 
     public void setInvoiceSupportFlag(Integer invoiceSupportFlag) {
         this.invoiceSupportFlag = invoiceSupportFlag;
+    }
+
+    @Column(name = "is_hos_dep")
+    public Integer getIsHosDep() {
+        return isHosDep;
+    }
+
+    public void setIsHosDep(Integer isHosDep) {
+        this.isHosDep = isHosDep;
     }
 }

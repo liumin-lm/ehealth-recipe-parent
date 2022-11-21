@@ -25,6 +25,7 @@ import com.ngari.recipe.recipe.constant.RecipeTypeEnum;
 import com.ngari.recipe.recipe.constant.RecipecCheckStatusConstant;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.vo.*;
+import com.ngari.validator.Grade;
 import coupon.api.service.ICouponBaseService;
 import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
@@ -37,6 +38,7 @@ import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import eh.cdr.api.vo.MedicalDetailBean;
 import eh.cdr.constant.RecipeConstant;
+import eh.utils.BeanCopyUtils;
 import eh.wxpay.constant.PayConstant;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
@@ -1323,6 +1325,45 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     @Override
     public List<PatientTabStatusMergeRecipeDTO> findRecipeListForPatientByTabStatus(FindRecipeListForPatientVO param) {
         return recipeListService.findRecipeListForPatientByTabStatus(param);
+    }
+
+    @Override
+    public List<RecipeToGuideResVO> findRecipeByClinicId(Integer clinicId) {
+        List<Recipe> recipes = recipeDAO.findByClinicId(clinicId);
+        if (CollectionUtils.isEmpty(recipes)) {
+            return Lists.newArrayList();
+        }
+        List<RecipeToGuideResVO> recipeToGuideResVOS = recipes.stream().map(recipe -> {
+            RecipeToGuideResVO recipeToGuideResVO = new RecipeToGuideResVO();
+            boolean isReturnRecipeDetail = recipeListService.isReturnRecipeDetail(recipe.getRecipeId());
+            recipeToGuideResVO.setIsHiddenRecipeDetail(!isReturnRecipeDetail);
+            recipeToGuideResVO.setRecipeId(recipe.getRecipeId());
+            recipeToGuideResVO.setClinicId(recipe.getClinicId());
+            recipeToGuideResVO.setProcessState(recipe.getProcessState());
+            recipeToGuideResVO.setRecipeType(recipe.getRecipeType());
+            recipeToGuideResVO.setMpiid(recipe.getMpiid());
+            recipeToGuideResVO.setSignDate(recipe.getSignDate());
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+            if (Objects.nonNull(recipeExtend) && StringUtils.isNotEmpty(recipeExtend.getPharmNo())) {
+                recipeToGuideResVO.setPharmNo(recipe.getOrganName() + recipeExtend.getPharmNo() + "窗口取药");
+            }
+            if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
+                RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+                if (Objects.nonNull(recipeOrder)) {
+                    recipeToGuideResVO.setDrugStoreAddr(recipeOrder.getDrugStoreAddr());
+                }
+            }
+            if (isReturnRecipeDetail) {
+                // 隐方不展示详情
+                List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
+                if (CollectionUtils.isNotEmpty(recipedetails)) {
+                    List<RecipeDetailToGuideResVO> recipeDetailToGuideResVOS = BeanCopyUtils.copyList(recipedetails, RecipeDetailToGuideResVO::new);
+                    recipeToGuideResVO.setRecipeDetailToGuideResVOList(recipeDetailToGuideResVOS);
+                }
+            }
+            return recipeToGuideResVO;
+        }).collect(Collectors.toList());
+        return recipeToGuideResVOS;
     }
 
 }

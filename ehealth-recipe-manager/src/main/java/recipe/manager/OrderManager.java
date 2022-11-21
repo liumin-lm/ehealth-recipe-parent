@@ -88,6 +88,8 @@ public class OrderManager extends BaseManager {
     private RecipeBeforeOrderDAO recipeBeforeOrderDAO;
     @Autowired
     private AddressService addressService;
+    @Autowired
+    private RecipeParameterDao parameterDao;
 
     /**
      * 合并预下单信息
@@ -347,6 +349,16 @@ public class OrderManager extends BaseManager {
             super.getAddressDic(address, order.getStreetAddress());
             address.append(StringUtils.isEmpty(order.getAddress4()) ? "" : order.getAddress4());
         }
+        return address.toString();
+    }
+
+    public String getCompleteAddress(String address1, String address2, String address3, String address4, String streetAddress) {
+        StringBuilder address = new StringBuilder();
+        super.getAddressDic(address, address1);
+        super.getAddressDic(address, address2);
+        super.getAddressDic(address, address3);
+        super.getAddressDic(address, streetAddress);
+        address.append(StringUtils.isEmpty(address4) ? "" : address4);
         return address.toString();
     }
 
@@ -663,10 +675,7 @@ public class OrderManager extends BaseManager {
      * @return
      */
     private Boolean checkExpressFeePayWay(Integer expressFeePayWay) {
-        if (new Integer(2).equals(expressFeePayWay) || new Integer(3).equals(expressFeePayWay) || new Integer(4).equals(expressFeePayWay)) {
-            return false;
-        }
-        return true;
+        return !new Integer(2).equals(expressFeePayWay) && !new Integer(3).equals(expressFeePayWay) && !new Integer(4).equals(expressFeePayWay);
     }
 
     private SkipThirdDTO getUrl(Recipe recipe, Integer giveMode) {
@@ -917,9 +926,7 @@ public class OrderManager extends BaseManager {
         logisticsDistanceDto.setBusinessType(1);
         Map<String, String> result = infraClient.controlLogisticsDistance(logisticsDistanceDto);
         if (result != null) {
-            if ("1".equals(result.get("distance"))) {
-                return false;
-            }
+            return !"1".equals(result.get("distance"));
         }
         return true;
     }
@@ -1016,5 +1023,16 @@ public class OrderManager extends BaseManager {
         recipeBeforeOrder1.setRecMobile(recipeBeforeOrder2.getRecMobile() != null ? recipeBeforeOrder2.getRecMobile() : recipeOrder.getRecMobile());
         recipeBeforeOrder1.setRecTel(recipeBeforeOrder2.getRecTel() != null ? recipeBeforeOrder2.getRecTel() : recipeOrder.getRecTel());
         recipeBeforeOrder1.setZipCode(recipeBeforeOrder2.getZipCode() != null ? recipeBeforeOrder2.getZipCode() : recipeOrder.getZipCode());
+    }
+
+    public void recordPayBackLog(Integer orderId, String orderLog){
+        try {
+            RecipeParameter recipeParameter = new RecipeParameter();
+            recipeParameter.setParamName(orderId + "_PayInfoCallBack");
+            recipeParameter.setParamValue(orderLog);
+            parameterDao.save(recipeParameter);
+        } catch (DAOException e) {
+            logger.error("OrderManager recordPayBackLog error", e);
+        }
     }
 }

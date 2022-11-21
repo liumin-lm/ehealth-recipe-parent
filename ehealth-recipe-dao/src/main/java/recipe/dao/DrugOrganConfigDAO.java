@@ -1,8 +1,6 @@
 package recipe.dao;
 
 import com.ngari.recipe.entity.DrugOrganConfig;
-import com.ngari.recipe.entity.RecipeOrder;
-import com.ngari.recipe.entity.SaleDrugListSyncField;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;
 import ctd.persistence.support.hibernate.HibernateSupportDelegateDAO;
@@ -34,24 +32,27 @@ public abstract class DrugOrganConfigDAO extends HibernateSupportDelegateDAO<Dru
         return updateNonNullFieldByPrimaryKey(obj, "id");
     }
 
-//    @Override
-//    public boolean updateNonNullFieldByOrganid(DrugOrganConfig obj) {
-//        return updateNonNullFieldByPrimaryKey(obj, "organId");
-//    }
+    public boolean updateNonNullFieldByOrganId(DrugOrganConfig obj) {
+        return updateNonNullFieldByPrimaryKey(obj, "organId");
+    }
+
+    @DAOMethod(sql = "update DrugOrganConfig set toOrganIds=:toOrganIds where organId =:organId")
+    public abstract void updateToOrganIdsByOrganId(@DAOParam("toOrganIds") String toOrganIds, @DAOParam("organId") Integer organId);
 
     @DAOMethod
     public abstract DrugOrganConfig getByOrganId(Integer organId);
 
     /**
      * 根据定时时间范围 查找 同步开关开启的 配置机构ID集合（药品同步调用）
+     *
      * @param startTime
      * @param endTime
      * @return
      */
-    @DAOMethod(sql="select organId  from DrugOrganConfig where enableDrugSync=1 and dockingMode=1 and regularTime >:startTime and  regularTime <=:endTime ",limit = 0)
-    public abstract List<Integer> findOrganIdByEnableDrugSyncAndTime(@DAOParam("startTime") Time startTime , @DAOParam("endTime") Time endTime  );
+    @DAOMethod(sql = "select organId  from DrugOrganConfig where enableDrugSync=1 and dockingMode=1 and regularTime >:startTime and  regularTime <=:endTime ", limit = 0)
+    public abstract List<Integer> findOrganIdByEnableDrugSyncAndTime(@DAOParam("startTime") Time startTime, @DAOParam("endTime") Time endTime);
 
-    @DAOMethod(sql="select organId from DrugOrganConfig where enable_drug_sync=1" ,limit=0)
+    @DAOMethod(sql = "select organId from DrugOrganConfig where enable_drug_sync=1", limit = 0)
     public abstract List<Integer> findEnableDrugSync();
 
 }

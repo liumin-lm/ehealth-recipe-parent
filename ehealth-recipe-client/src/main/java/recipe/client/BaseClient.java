@@ -164,7 +164,7 @@ public class BaseClient {
     protected void serviceLog(String name, Integer id, Integer type, Integer size, Long time) {
         EventLogDTO eventLog = new EventLogDTO();
         eventLog.setSource("recipe");
-        eventLog.setName(name);
+        eventLog.setName("recipe");
         eventLog.setMilli_timestamp(String.valueOf(System.currentTimeMillis()));
         eventLog.setEvent_uuid(UUID.randomUUID().toString());
         ServiceLogDTO serviceLog = new ServiceLogDTO();
@@ -172,6 +172,7 @@ public class BaseClient {
         serviceLog.setType(type);
         serviceLog.setSize(size);
         serviceLog.setTime(time);
+        serviceLog.setName(name);
         eventLog.setData(serviceLog);
         try {
             eventLogService.serviceLog(Collections.singletonList(eventLog));
