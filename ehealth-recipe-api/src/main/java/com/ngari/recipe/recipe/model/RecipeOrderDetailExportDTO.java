@@ -180,6 +180,8 @@ public class RecipeOrderDetailExportDTO implements Serializable {
         this.fastRecipeFlag = fastRecipeFlag;
     }
 
+    @Id
+    @GeneratedValue(strategy = IDENTITY)
     public String getOrderCode() {
         return orderCode;
     }
