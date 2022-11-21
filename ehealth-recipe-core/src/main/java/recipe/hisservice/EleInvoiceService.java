@@ -1,5 +1,6 @@
 package recipe.hisservice;
 
+import com.google.common.collect.Lists;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.EleInvoiceReqTo;
