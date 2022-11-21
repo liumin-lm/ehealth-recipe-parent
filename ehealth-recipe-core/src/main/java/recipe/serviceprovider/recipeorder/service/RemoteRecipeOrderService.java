@@ -490,20 +490,28 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
         List<RecipeOrderDetailExportBean> recipeOrderDetailExportBeanList = new ArrayList<>();
         for(RecipeOrderDetailExportDTO recipeOrderDetailExportDTO : recipeOrderDetailVOList){
             RecipeOrderDetailExportBean recipeOrderDetailExportBean = ObjectCopyUtils.convert(recipeOrderDetailExportDTO, RecipeOrderDetailExportBean.class);
-            if(Objects.nonNull(recipeOrderDetailExportBean)){
+            if(Objects.nonNull(recipeOrderDetailExportBean)) {
                 recipeOrderDetailExportBean.setProcessState(OrderStateEnum.getOrderStateEnum(recipeOrderDetailExportDTO.getProcessState()).getName());
                 recipeOrderDetailExportBean.setRefundNodeStatus(RefundNodeStatusEnum.getRefundStatus(recipeOrderDetailExportDTO.getRefundNodeStatus()));
                 recipeOrderDetailExportBean.setCompleteAddress(orderManager.getCompleteAddress(recipeOrderDetailExportBean.getAddress1(), recipeOrderDetailExportBean.getAddress2(),
                         recipeOrderDetailExportBean.getAddress3(), recipeOrderDetailExportBean.getAddress4(), recipeOrderDetailExportBean.getCompleteAddress()));
+
                 try {
+                    //单方
+                    if (Integer.valueOf("1").equals(recipeOrderDetailExportDTO.getSingleOrCompoundRecipe())) {
+                        recipeOrderDetailExportBean.setSingleRecipeFee(Objects.toString(recipeOrderDetailExportDTO.getRecipeFee(), ""));
+                        recipeOrderDetailExportBean.setSingleAuditFee(Objects.toString(recipeOrderDetailExportDTO.getAuditFee(), ""));
+                        recipeOrderDetailExportBean.setSingleDecoctionFee(Objects.toString(recipeOrderDetailExportDTO.getDecoctionFee(), ""));
+                    }
+
                     PatientService patientService = BasicAPI.getService(PatientService.class);
                     PatientDTO patientDTO = patientService.get(recipeOrderDetailExportBean.getRequestMpiId());
-                    if(Objects.nonNull(patientDTO)){
+                    if (Objects.nonNull(patientDTO)) {
                         recipeOrderDetailExportBean.setRequestPatientName(patientDTO.getPatientName());
                         recipeOrderDetailExportBean.setMobile(patientDTO.getMobile());
                     }
-                }catch (Exception e){
-                    LOGGER.error("getRecipeOrderDetail error",e);
+                } catch (Exception e) {
+                    LOGGER.error("getRecipeOrderDetail error", e);
                 }
             }
             recipeOrderDetailExportBeanList.add(recipeOrderDetailExportBean);

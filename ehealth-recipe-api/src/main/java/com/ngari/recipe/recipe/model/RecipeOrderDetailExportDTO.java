@@ -44,6 +44,33 @@ public class RecipeOrderDetailExportDTO implements Serializable {
     @ItemProperty(alias = "供药药店")
     private String drugStoreName;
 
+    @ItemProperty(alias = "收货人")
+    private String receiver;
+
+    @ItemProperty(alias = "联系方式")
+    private String recMobile;
+
+    @ItemProperty(alias = "省")
+    private String address1;
+
+    @ItemProperty(alias = "市")
+    private String address2;
+
+    @ItemProperty(alias = "区县")
+    private String address3;
+
+    @ItemProperty(alias = "街道")
+    private String streetAddress;
+
+    @ItemProperty(alias = "社区")
+    private String address5Text;
+
+    @ItemProperty(alias = "详细地址")
+    private String address4;
+
+    @ItemProperty(alias = "收货地址")
+    private String completeAddress;
+
     @ItemProperty(alias = "下单人")
     private String requestPatientName;
 
@@ -101,6 +128,12 @@ public class RecipeOrderDetailExportDTO implements Serializable {
     @ItemProperty(alias = "处方类型")
     private String recipeType;
 
+    @ItemProperty(alias = "帖数")
+    private String copyNum;
+
+    @ItemProperty(alias = "协定方名称")
+    private String offlineRecipeName;
+
     @ItemProperty(alias = "开方科室")
     private String appointDepartName;
 
@@ -113,20 +146,30 @@ public class RecipeOrderDetailExportDTO implements Serializable {
     @ItemProperty(alias = "开方时间")
     private Date createDate;
 
+    @ItemProperty(alias = "单方药品费")
+    private String singleRecipeFee;
+
+    @ItemProperty(alias = "单方药事服务费")
+    private String singleAuditFee;
+
     @ItemProperty(alias = "煎法")
     private String decoctionText;
 
     @ItemProperty(alias = "是否代煎")
     private String generationisOfDecoction;
 
-    @Id
-    @GeneratedValue(strategy = IDENTITY)
-    public String getOrderCode() {
-        return orderCode;
+    @ItemProperty(alias = "单方代煎费")
+    private String singleDecoctionFee;
+
+    @ItemProperty(alias = "单复方标识：0无状态，1单方，2复方")
+    private Integer singleOrCompoundRecipe;
+
+    public String getRequestMpiId() {
+        return requestMpiId;
     }
 
-    public void setOrderCode(String orderCode) {
-        this.orderCode = orderCode;
+    public void setRequestMpiId(String requestMpiId) {
+        this.requestMpiId = requestMpiId;
     }
 
     public String getFastRecipeFlag() {
@@ -135,6 +178,14 @@ public class RecipeOrderDetailExportDTO implements Serializable {
 
     public void setFastRecipeFlag(String fastRecipeFlag) {
         this.fastRecipeFlag = fastRecipeFlag;
+    }
+
+    public String getOrderCode() {
+        return orderCode;
+    }
+
+    public void setOrderCode(String orderCode) {
+        this.orderCode = orderCode;
     }
 
     public Integer getProcessState() {
@@ -153,14 +204,6 @@ public class RecipeOrderDetailExportDTO implements Serializable {
         this.refundNodeStatus = refundNodeStatus;
     }
 
-    public String getDecoctionText() {
-        return decoctionText;
-    }
-
-    public void setDecoctionText(String decoctionText) {
-        this.decoctionText = decoctionText;
-    }
-
     public String getGiveModeText() {
         return giveModeText;
     }
@@ -169,12 +212,108 @@ public class RecipeOrderDetailExportDTO implements Serializable {
         this.giveModeText = giveModeText;
     }
 
-    public String getPatientName() {
-        return patientName;
+    public String getName() {
+        return name;
     }
 
-    public void setPatientName(String patientName) {
-        this.patientName = patientName;
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getDrugStoreName() {
+        return drugStoreName;
+    }
+
+    public void setDrugStoreName(String drugStoreName) {
+        this.drugStoreName = drugStoreName;
+    }
+
+    public String getReceiver() {
+        return receiver;
+    }
+
+    public void setReceiver(String receiver) {
+        this.receiver = receiver;
+    }
+
+    public String getRecMobile() {
+        return recMobile;
+    }
+
+    public void setRecMobile(String recMobile) {
+        this.recMobile = recMobile;
+    }
+
+    public String getAddress1() {
+        return address1;
+    }
+
+    public void setAddress1(String address1) {
+        this.address1 = address1;
+    }
+
+    public String getAddress2() {
+        return address2;
+    }
+
+    public void setAddress2(String address2) {
+        this.address2 = address2;
+    }
+
+    public String getAddress3() {
+        return address3;
+    }
+
+    public void setAddress3(String address3) {
+        this.address3 = address3;
+    }
+
+    public String getStreetAddress() {
+        return streetAddress;
+    }
+
+    public void setStreetAddress(String streetAddress) {
+        this.streetAddress = streetAddress;
+    }
+
+    public String getAddress5Text() {
+        return address5Text;
+    }
+
+    public void setAddress5Text(String address5Text) {
+        this.address5Text = address5Text;
+    }
+
+    public String getAddress4() {
+        return address4;
+    }
+
+    public void setAddress4(String address4) {
+        this.address4 = address4;
+    }
+
+    public String getCompleteAddress() {
+        return completeAddress;
+    }
+
+    public void setCompleteAddress(String completeAddress) {
+        this.completeAddress = completeAddress;
+    }
+
+    public String getRequestPatientName() {
+        return requestPatientName;
+    }
+
+    public void setRequestPatientName(String requestPatientName) {
+        this.requestPatientName = requestPatientName;
+    }
+
+    public String getMobile() {
+        return mobile;
+    }
+
+    public void setMobile(String mobile) {
+        this.mobile = mobile;
     }
 
     public Date getOrderTime() {
@@ -209,6 +348,30 @@ public class RecipeOrderDetailExportDTO implements Serializable {
         this.totalFee = totalFee;
     }
 
+    public String getOrderTypeText() {
+        return orderTypeText;
+    }
+
+    public void setOrderTypeText(String orderTypeText) {
+        this.orderTypeText = orderTypeText;
+    }
+
+    public Double getFundAmount() {
+        return fundAmount;
+    }
+
+    public void setFundAmount(Double fundAmount) {
+        this.fundAmount = fundAmount;
+    }
+
+    public Double getCashAmount() {
+        return cashAmount;
+    }
+
+    public void setCashAmount(Double cashAmount) {
+        this.cashAmount = cashAmount;
+    }
+
     public BigDecimal getRecipeFee() {
         return recipeFee;
     }
@@ -223,6 +386,14 @@ public class RecipeOrderDetailExportDTO implements Serializable {
 
     public void setExpressFee(BigDecimal expressFee) {
         this.expressFee = expressFee;
+    }
+
+    public BigDecimal getCouponFee() {
+        return couponFee;
+    }
+
+    public void setCouponFee(BigDecimal couponFee) {
+        this.couponFee = couponFee;
     }
 
     public BigDecimal getDecoctionFee() {
@@ -281,6 +452,22 @@ public class RecipeOrderDetailExportDTO implements Serializable {
         this.recipeType = recipeType;
     }
 
+    public String getCopyNum() {
+        return copyNum;
+    }
+
+    public void setCopyNum(String copyNum) {
+        this.copyNum = copyNum;
+    }
+
+    public String getOfflineRecipeName() {
+        return offlineRecipeName;
+    }
+
+    public void setOfflineRecipeName(String offlineRecipeName) {
+        this.offlineRecipeName = offlineRecipeName;
+    }
+
     public String getAppointDepartName() {
         return appointDepartName;
     }
@@ -297,6 +484,14 @@ public class RecipeOrderDetailExportDTO implements Serializable {
         this.doctorName = doctorName;
     }
 
+    public String getPatientName() {
+        return patientName;
+    }
+
+    public void setPatientName(String patientName) {
+        this.patientName = patientName;
+    }
+
     public Date getCreateDate() {
         return createDate;
     }
@@ -305,29 +500,28 @@ public class RecipeOrderDetailExportDTO implements Serializable {
         this.createDate = createDate;
     }
 
-
-    public String getName() {
-        return name;
+    public String getSingleRecipeFee() {
+        return singleRecipeFee;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setSingleRecipeFee(String singleRecipeFee) {
+        this.singleRecipeFee = singleRecipeFee;
     }
 
-    public String getDrugStoreName() {
-        return drugStoreName;
+    public String getSingleAuditFee() {
+        return singleAuditFee;
     }
 
-    public void setDrugStoreName(String drugStoreName) {
-        this.drugStoreName = drugStoreName;
+    public void setSingleAuditFee(String singleAuditFee) {
+        this.singleAuditFee = singleAuditFee;
     }
 
-    public String getMobile() {
-        return mobile;
+    public String getDecoctionText() {
+        return decoctionText;
     }
 
-    public void setMobile(String mobile) {
-        this.mobile = mobile;
+    public void setDecoctionText(String decoctionText) {
+        this.decoctionText = decoctionText;
     }
 
     public String getGenerationisOfDecoction() {
@@ -338,51 +532,19 @@ public class RecipeOrderDetailExportDTO implements Serializable {
         this.generationisOfDecoction = generationisOfDecoction;
     }
 
-    public String getRequestMpiId() {
-        return requestMpiId;
+    public String getSingleDecoctionFee() {
+        return singleDecoctionFee;
     }
 
-    public void setRequestMpiId(String requestMpiId) {
-        this.requestMpiId = requestMpiId;
+    public void setSingleDecoctionFee(String singleDecoctionFee) {
+        this.singleDecoctionFee = singleDecoctionFee;
     }
 
-    public String getOrderTypeText() {
-        return orderTypeText;
+    public Integer getSingleOrCompoundRecipe() {
+        return singleOrCompoundRecipe;
     }
 
-    public void setOrderTypeText(String orderTypeText) {
-        this.orderTypeText = orderTypeText;
-    }
-
-    public Double getFundAmount() {
-        return fundAmount;
-    }
-
-    public void setFundAmount(Double fundAmount) {
-        this.fundAmount = fundAmount;
-    }
-
-    public Double getCashAmount() {
-        return cashAmount;
-    }
-
-    public void setCashAmount(Double cashAmount) {
-        this.cashAmount = cashAmount;
-    }
-
-    public String getRequestPatientName() {
-        return requestPatientName;
-    }
-
-    public void setRequestPatientName(String requestPatientName) {
-        this.requestPatientName = requestPatientName;
-    }
-
-    public BigDecimal getCouponFee() {
-        return couponFee;
-    }
-
-    public void setCouponFee(BigDecimal couponFee) {
-        this.couponFee = couponFee;
+    public void setSingleOrCompoundRecipe(Integer singleOrCompoundRecipe) {
+        this.singleOrCompoundRecipe = singleOrCompoundRecipe;
     }
 }
