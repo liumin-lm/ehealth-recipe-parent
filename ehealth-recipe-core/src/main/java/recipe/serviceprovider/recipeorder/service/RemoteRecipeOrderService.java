@@ -508,7 +508,7 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
                     recipeOrderDetailExportBean.setAddress1(LocalStringUtil.getAddressDic(recipeOrderDetailExportDTO.getAddress1()));
                     recipeOrderDetailExportBean.setAddress2(LocalStringUtil.getAddressDic(recipeOrderDetailExportDTO.getAddress2()));
                     recipeOrderDetailExportBean.setAddress3(LocalStringUtil.getAddressDic(recipeOrderDetailExportDTO.getAddress3()));
-                    recipeOrderDetailExportBean.setAddress4(LocalStringUtil.getAddressDic(recipeOrderDetailExportDTO.getAddress4()));
+                    recipeOrderDetailExportBean.setStreetAddress(LocalStringUtil.getAddressDic(recipeOrderDetailExportDTO.getStreetAddress()));
 
                     PatientService patientService = BasicAPI.getService(PatientService.class);
                     PatientDTO patientDTO = patientService.get(recipeOrderDetailExportBean.getRequestMpiId());
