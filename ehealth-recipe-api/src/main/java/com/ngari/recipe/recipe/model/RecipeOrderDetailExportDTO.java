@@ -501,7 +501,6 @@ public class RecipeOrderDetailExportDTO implements Serializable {
         this.createDate = createDate;
     }
 
-    @Transient
     public String getSingleRecipeFee() {
         return singleRecipeFee;
     }
