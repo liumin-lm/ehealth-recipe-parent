@@ -4,12 +4,13 @@ import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.ApplicationUtils;
 import recipe.constant.PayConstant;
-import recipe.enumerate.status.RecipeOrderStatusEnum;
-import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.status.*;
 import recipe.hisservice.syncdata.SyncExecutorService;
+import recipe.manager.StateManager;
 import recipe.purchase.CommonOrder;
 
 import java.util.Date;
@@ -21,6 +22,10 @@ import java.util.Date;
  */
 @Service
 public class StatusDoneImpl extends AbstractRecipeOrderStatus {
+
+    @Autowired
+    private StateManager stateManager;
+
     @Override
     public Integer getStatus() {
         return RecipeOrderStatusEnum.ORDER_STATUS_DONE.getType();
@@ -36,6 +41,20 @@ public class StatusDoneImpl extends AbstractRecipeOrderStatus {
         recipe.setGiveDate(date);
         recipe.setGiveFlag(1);
         recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_FINISH.getType());
+        recipe.setProcessState(RecipeStateEnum.PROCESS_STATE_DONE.getType());
+        if (GiveModeEnum.GIVE_MODE_HOME_DELIVERY.getType().equals(recipe.getGiveMode())) {
+            recipe.setSubState(RecipeStateEnum.SUB_DONE_SEND.getType());
+        } else {
+            recipe.setSubState(RecipeStateEnum.SUB_DONE_SELF_TAKE.getType());
+        }
+        stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.getRecipeStateEnum(recipe.getProcessState()), RecipeStateEnum.getRecipeStateEnum(recipe.getSubState()));
+        recipeOrder.setProcessState(OrderStateEnum.PROCESS_STATE_DISPENSING.getType());
+        if (GiveModeEnum.GIVE_MODE_HOME_DELIVERY.getType().equals(recipe.getGiveMode())) {
+            recipeOrder.setSubState(OrderStateEnum.SUB_DONE_SEND.getType());
+        } else {
+            recipeOrder.setSubState(OrderStateEnum.SUB_DONE_SELF_TAKE.getType());
+        }
+        stateManager.updateOrderState(recipeOrder.getOrderId(), OrderStateEnum.getOrderStateEnum(recipeOrder.getProcessState()), OrderStateEnum.getOrderStateEnum(recipeOrder.getSubState()));
         return recipe;
     }
 

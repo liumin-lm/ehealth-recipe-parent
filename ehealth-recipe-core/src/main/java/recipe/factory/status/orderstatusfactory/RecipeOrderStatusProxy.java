@@ -13,8 +13,6 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Service;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
-import recipe.enumerate.status.*;
-import recipe.manager.StateManager;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -36,8 +34,6 @@ public class RecipeOrderStatusProxy implements ApplicationContextAware {
     private RecipeOrderDAO recipeOrderDAO;
     @Autowired
     private RecipeDAO recipeDAO;
-    @Autowired
-    private StateManager stateManager;
 
     /**
      * 根据订单状态 更新处方状态
@@ -55,30 +51,14 @@ public class RecipeOrderStatusProxy implements ApplicationContextAware {
         //根据订单状态 设置处方状态
         factoryService.updateStatus(orderStatus, recipeOrder, recipe);
         orderStatus.setTargetRecipeStatus(recipe.getStatus());
-        if (RecipeStatusEnum.RECIPE_STATUS_FINISH.getType().equals(recipe.getStatus())) {
-            recipe.setProcessState(RecipeStateEnum.PROCESS_STATE_DONE.getType());
-            if (GiveModeEnum.GIVE_MODE_HOME_DELIVERY.getType().equals(recipe.getGiveMode())) {
-                recipe.setSubState(RecipeStateEnum.SUB_DONE_SEND.getType());
-            } else {
-                recipe.setSubState(RecipeStateEnum.SUB_DONE_SELF_TAKE.getType());
-            }
-        }
         //更新处方状态
         recipeDAO.updateNonNullFieldByPrimaryKey(recipe);
         //更新订单状态
         recipeOrder.setStatus(orderStatus.getTargetRecipeOrderStatus());
         //订单状态改变时间
         recipeOrder.setDispensingStatusAlterTime(new Date());
-        if (RecipeOrderStatusEnum.ORDER_STATUS_DONE.getType().equals(orderStatus.getTargetRecipeOrderStatus())) {
-            recipeOrder.setProcessState(OrderStateEnum.PROCESS_STATE_DISPENSING.getType());
-            if (GiveModeEnum.GIVE_MODE_HOME_DELIVERY.getType().equals(recipe.getGiveMode())) {
-                recipeOrder.setSubState(OrderStateEnum.SUB_DONE_SEND.getType());
-            } else {
-                recipeOrder.setSubState(OrderStateEnum.SUB_DONE_SELF_TAKE.getType());
-            }
-        }
+
         recipeOrderDAO.updateNonNullFieldByPrimaryKey(recipeOrder);
-        stateManager.updateOrderState(recipeOrder.getOrderId(),OrderStateEnum.getOrderStateEnum(recipeOrder.getProcessState()),OrderStateEnum.getOrderStateEnum(recipeOrder.getSubState()));
         //更新同组处方状态
         factoryService.updateGroupRecipe(recipe, recipeOrder.getOrderId());
         //异步处方信息处理

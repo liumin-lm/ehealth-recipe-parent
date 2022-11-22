@@ -67,6 +67,7 @@ public class StatusDrugWithdrawalImpl extends AbstractRecipeOrderStatus {
         recipe.setProcessState(RecipeStateEnum.PROCESS_STATE_CANCELLATION.getType());
         recipe.setSubState(RecipeStateEnum.SUB_CANCELLATION_RETURN_DRUG.getType());
         stateManager.updateOrderState(recipeOrder.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION, OrderStateEnum.SUB_CANCELLATION_RETURN_DRUG);
+        stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.getRecipeStateEnum(recipe.getProcessState()), RecipeStateEnum.getRecipeStateEnum(recipe.getSubState()));
         return recipe;
     }
 
