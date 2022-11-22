@@ -58,6 +58,7 @@ import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.kafka.common.protocol.types.Field;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -1634,6 +1635,108 @@ public class RecipeOrderService extends RecipeBaseService {
                             }
                         } else {
                             LOGGER.info("RecipeOrderService.cancelOrder 取消的订单处方id为空.");
+                        }
+                    }
+                }
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * 取消订单
+     *
+     * @param order canCancelOrderCode 能否将处方里的OrderCode设置成null
+     * @return
+     */
+    public RecipeResultBean cancelOrderWithRecipeId(RecipeOrder order, Integer status, Integer recipeId) {
+        LOGGER.info("RecipeOrderService cancelOrderWithRecipeId  order= {}，status= {}，recipeId= {}", JSON.toJSONString(order), status, recipeId);
+        RecipeResultBean result = RecipeResultBean.getSuccess();
+        if (null == order || null == status) {
+            result.setCode(RecipeResultBean.FAIL);
+            result.setError("缺少参数");
+        }
+
+        if (RecipeResultBean.SUCCESS.equals(result.getCode())) {
+            ICouponService couponService = ApplicationUtils.getBaseService(ICouponService.class);
+
+            Map<String, Object> orderAttrMap = Maps.newHashMap();
+            orderAttrMap.put("effective", 0);
+            orderAttrMap.put("status", status);
+//            orderAttrMap.put("finishTime", Calendar.getInstance().getTime());
+
+            if (null != order) {
+                //解锁优惠券
+                if (isUsefulCoupon(order.getCouponId())) {
+                    try {
+                        if(PayFlagEnum.NOPAY.getType().equals(order.getPayFlag())) {
+                            couponService.unlockCoupon(order.getCouponId());
+                        }
+//                        orderAttrMap.put("couponId", null);
+                    } catch (Exception e) {
+                        LOGGER.error("cancelOrder unlock coupon error. couponId={}, error={}", order.getCouponId(), e.getMessage(), e);
+                    }
+                }
+                this.updateOrderInfo(order.getOrderCode(), orderAttrMap, result);
+
+                //有可能自动取消的走到这里
+                //如果有正在进行中的合并处方单应该还原
+                RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
+                List<Integer> recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
+                //合并处方订单取消
+                List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIdList);
+                if (status.equals(OrderStatusConstant.CANCEL_MANUAL)) {
+
+                    // 邵逸夫手动取消要查看是否有支付审方费
+                    Boolean syfPayMode = configurationClient.getValueBooleanCatch(order.getOrganId(), "syfPayMode", false);
+                    if (syfPayMode) {
+                        //邵逸夫支付
+                        RecipeOrderPayFlow recipeOrderPayFlow = recipeOrderPayFlowManager.getByOrderIdAndType(order.getOrderId(), PayFlowTypeEnum.RECIPE_AUDIT.getType());
+                        if (null != recipeOrderPayFlow) {
+                            if (StringUtils.isEmpty(recipeOrderPayFlow.getOutTradeNo())) {
+                                //表示没有实际支付审方或者快递费,只需要更新状态
+                                recipeOrderPayFlow.setPayFlag(PayFlagEnum.REFUND_SUCCESS.getType());
+                                recipeOrderPayFlowManager.updateNonNullFieldByPrimaryKey(recipeOrderPayFlow);
+                            } else {
+                                //说明需要正常退审方费
+                                payClient.refund(order.getOrderId(), PayBusTypeEnum.OTHER_BUS_TYPE.getName());
+                            }
+                        }
+                    }
+                    //订单手动取消，处方单可以进行重新支付
+                    //更新处方的orderCode
+
+                    for (Recipe recipe : recipes) {
+                        if (recipe != null) {
+                            Boolean canCancelOrderCode = true;
+                            if(recipe.getRecipeId().equals(recipeId)){
+                                canCancelOrderCode = false;
+                            }
+                            recipeDAO.updateOrderCodeToNullByOrderCodeAndClearChoose(order.getOrderCode(), recipe, 1,canCancelOrderCode);
+                            String decoctionDeploy = ((String[]) configService.getConfiguration(recipe.getClinicOrgan(), "decoctionDeploy"))[0];
+                            if ("2".equals(decoctionDeploy)) {
+                                RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+                                if (recipeExtend != null) {
+                                    recipeExtend.setDecoctionText(null);
+                                    recipeExtend.setDecoctionPrice(null);
+                                    recipeExtend.setDecoctionId(null);
+                                    recipeExtendDAO.saveOrUpdateRecipeExtend(recipeExtend);
+                                }
+                            }
+                            stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_ORDER, RecipeStateEnum.SUB_ORDER_CANCEL_ORDER);
+                        }
+                        try {
+                            //对于来源于HIS的处方单更新hisRecipe的状态
+                            if (recipe != null) {
+                                HisRecipeDAO hisRecipeDAO = getDAO(HisRecipeDAO.class);
+                                HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(recipe.getClinicOrgan(), recipe.getRecipeCode());
+                                if (hisRecipe != null) {
+                                    hisRecipeDAO.updateHisRecieStatus(recipe.getClinicOrgan(), recipe.getRecipeCode(), 1);
+                                }
+                            }
+                        } catch (Exception e) {
+                            LOGGER.info("RecipeOrderService.cancelOrder 来源于HIS的处方单更新hisRecipe的状态失败,error:{}.", e.getMessage(), e);
                         }
                     }
                 }
