@@ -7,9 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.constant.RecipeStatusConstant;
 import recipe.enumerate.status.GiveModeEnum;
-import recipe.enumerate.status.OrderStateEnum;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
-import recipe.enumerate.status.RecipeStateEnum;
 import recipe.hisservice.syncdata.SyncExecutorService;
 import recipe.service.RecipeHisService;
 import recipe.service.RecipeMsgService;
@@ -36,12 +34,6 @@ public class PharmacyDrugImpl extends AbstractGiveMode {
         RecipeOrder recipeOrder = new RecipeOrder(orderStatus.getOrderId());
         recipeOrder.setPayTime(new Date());
         Recipe recipe = super.getRecipe(orderStatus.getRecipeId());
-        if (RecipeOrderStatusEnum.ORDER_STATUS_DONE_DISPENSING.getType().equals(orderStatus.getTargetRecipeOrderStatus())){
-            recipeOrder.setProcessState(OrderStateEnum.PROCESS_STATE_DISPENSING.getType());
-            recipeOrder.setSubState(OrderStateEnum.SUB_DONE_SELF_TAKE.getType());
-            recipe.setProcessState(RecipeStateEnum.PROCESS_STATE_DONE.getType());
-            recipe.setSubState(RecipeStateEnum.SUB_DONE_SELF_TAKE.getType());
-        }
         recipeOrderStatusProxy.updateOrderByStatus(orderStatus, recipeOrder, recipe);
     }
 

@@ -6,12 +6,12 @@ import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
 import org.springframework.stereotype.Service;
 import recipe.ApplicationUtils;
-import recipe.common.response.CommonResponse;
 import recipe.constant.RecipeStatusConstant;
+import recipe.enumerate.status.OrderStateEnum;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
+import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
-import recipe.service.RecipeLogService;
 import recipe.service.RecipeMsgService;
 import recipe.thread.RecipeBusiThreadPool;
 
@@ -38,6 +38,11 @@ public class StatusProceedShippingImpl extends AbstractRecipeOrderStatus {
         //以免进行处方失效前提醒
         recipe.setRemindFlag(1);
         recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_IN_SEND.getType());
+        recipeOrder.setProcessState(OrderStateEnum.PROCESS_STATE_ORDER.getType());
+        recipeOrder.setSubState(OrderStateEnum.SUB_ORDER_DELIVERED.getType());
+        recipeOrder.setSendTime(new Date());
+        recipe.setProcessState(RecipeStateEnum.PROCESS_STATE_DISTRIBUTION.getType());
+        recipe.setSubState(RecipeStateEnum.SUB_ORDER_DELIVERED.getType());
         recipeOrder.setSendTime(date);
         return recipe;
     }
