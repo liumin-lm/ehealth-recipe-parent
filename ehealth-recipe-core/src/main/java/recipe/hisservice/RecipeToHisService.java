@@ -87,10 +87,10 @@ public class RecipeToHisService {
 
     public Integer listSingleQuery(List<RecipeListQueryReqTO> request) {
         IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
-        LOGGER.info("listSingleQuery request={}", JSONUtils.toString(request));
+        LOGGER.info("listQuery request by listSingleQuery={}", JSONUtils.toString(request));
         try {
             RecipeListQueryResTO response = hisService.listQuery(request);
-            LOGGER.info("listSingleQuery response={}", JSONUtils.toString(response));
+            LOGGER.info("listQuery response by listSingleQuery={}", JSONUtils.toString(response));
             Integer busStatus = null;
             //有可能前置机没实现这个接口 返回null 保证流程走通
             if (null == response || CollectionUtils.isEmpty(response.getData())) {

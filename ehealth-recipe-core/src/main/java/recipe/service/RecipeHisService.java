@@ -649,10 +649,11 @@ public class RecipeHisService extends RecipeBaseService {
                 RecipeListQueryReqTO recipeListQueryReqTO = new RecipeListQueryReqTO();
                 PatientDTO patientDTO = patientService.getPatientBeanByMpiId(recipe.getMpiid());
                 if (patientDTO != null) {
-                    recipeListQueryReqTO.setCertID(patientDTO.getCardId());
+                    recipeListQueryReqTO.setCertID(patientDTO.getIdcard());
                     recipeListQueryReqTO.setCertificate(patientDTO.getCertificate());
                     recipeListQueryReqTO.setCertificateType(patientDTO.getCertificateType());
                 }
+                recipeListQueryReqTO.setSignDate(recipe.getSignDate());
                 recipeListQueryReqTO.setOrganID((null != organId) ? Integer.toString(organId) : null);
                 recipeListQueryReqTO.setCardNo(recipeExtend == null ? null : recipeExtend.getCardNo());
                 recipeListQueryReqTO.setCardType(recipeExtend == null ? null : recipeExtend.getCardType());
@@ -743,7 +744,6 @@ public class RecipeHisService extends RecipeBaseService {
             List<RecipeListQueryReqTO> requestList = new ArrayList<>();
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
             RecipeListQueryReqTO recipeListQueryReqTO = new RecipeListQueryReqTO();
-            recipeListQueryReqTO.setCertID(patientService.getPatientBeanByMpiId(recipe.getMpiid()).getCardId());
             recipeListQueryReqTO.setOrganID((null != recipe.getClinicOrgan()) ? Integer.toString(recipe.getClinicOrgan()) : null);
             recipeListQueryReqTO.setCardNo(recipeExtend.getCardNo());
             recipeListQueryReqTO.setCardType(recipeExtend.getCardType());
@@ -751,6 +751,13 @@ public class RecipeHisService extends RecipeBaseService {
             recipeListQueryReqTO.setPatientId(recipe.getPatientID());
             recipeListQueryReqTO.setRegisterId(recipeExtend.getRegisterID());
             recipeListQueryReqTO.setRecipeNo(recipe.getRecipeCode());
+            PatientDTO patientDTO = patientService.getPatientBeanByMpiId(recipe.getMpiid());
+            if (patientDTO != null) {
+                recipeListQueryReqTO.setCertID(patientDTO.getIdcard());
+                recipeListQueryReqTO.setCertificate(patientDTO.getCertificate());
+                recipeListQueryReqTO.setCertificateType(patientDTO.getCertificateType());
+            }
+            recipeListQueryReqTO.setSignDate(recipe.getSignDate());
             requestList.add(recipeListQueryReqTO);
             Integer status = service.listSingleQuery(requestList);
             if (status != null) {
@@ -797,7 +804,6 @@ public class RecipeHisService extends RecipeBaseService {
             List<RecipeListQueryReqTO> requestList = new ArrayList<>();
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
             RecipeListQueryReqTO recipeListQueryReqTO = new RecipeListQueryReqTO();
-            recipeListQueryReqTO.setCertID(patientService.getPatientBeanByMpiId(recipe.getMpiid()).getCardId());
             recipeListQueryReqTO.setOrganID((null != recipe.getClinicOrgan()) ? Integer.toString(recipe.getClinicOrgan()) : null);
             recipeListQueryReqTO.setCardNo(recipeExtend.getCardNo());
             recipeListQueryReqTO.setCardType(recipeExtend.getCardType());
@@ -805,6 +811,13 @@ public class RecipeHisService extends RecipeBaseService {
             recipeListQueryReqTO.setPatientId(recipe.getPatientID());
             recipeListQueryReqTO.setRegisterId(recipeExtend.getRegisterID());
             recipeListQueryReqTO.setRecipeNo(recipe.getRecipeCode());
+            PatientDTO patientDTO = patientService.getPatientBeanByMpiId(recipe.getMpiid());
+            if (patientDTO != null) {
+                recipeListQueryReqTO.setCertID(patientDTO.getIdcard());
+                recipeListQueryReqTO.setCertificate(patientDTO.getCertificate());
+                recipeListQueryReqTO.setCertificateType(patientDTO.getCertificateType());
+            }
+            recipeListQueryReqTO.setSignDate(recipe.getSignDate());
             requestList.add(recipeListQueryReqTO);
             Integer status = service.listSingleQuery(requestList);
             //审核通过的处方才能点击
