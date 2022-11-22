@@ -1943,12 +1943,12 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
 
     protected StringBuilder generateRecipeOrderDetailHQL(RecipeOrderRefundReqDTO recipeOrderRefundReqDTO){
         StringBuilder hql = new StringBuilder("select ");
-        hql.append("b.recipeId,b.CopyNum as copyNum,b.offline_recipe_name as offlineRecipeName,case when b.recipeType = 1 then '西药' when b.recipeType = 2 then '中成药' when b.recipeType = 3 then '中药' when b.recipeType = 4 then '膏方' else '其他' end as recipeType,");
+        hql.append("b.recipeId,b.CopyNum as copyNum,b.TotalMoney as singleRecipeFee,b.offline_recipe_name as offlineRecipeName,case when b.recipeType = 1 then '西药' when b.recipeType = 2 then '中成药' when b.recipeType = 3 then '中药' when b.recipeType = 4 then '膏方' else '其他' end as recipeType,");
         hql.append("b.recipeCode,b.appoint_depart_name as appointDepartName,b.doctorName,b.patientName,b.patientName as requestPatientName,b.CreateDate,b.requestMpiId,case when b.fast_recipe_flag = 1 then '快捷购药订单' else '普通订单' end as fastRecipeFlag, ");
         hql.append("a.OrderCode,a.process_state as processState,");
         hql.append("a.Receiver, a.recMobile, a.address1, a.address2, a.address3, a.address4, a.streetAddress, a.address5Text,");
         hql.append("case when a.orderType in (1,2,3,4) then '医保' else '自费' end as orderTypeText,a.fundAmount,a.cashAmount,");
-        hql.append("c.refundNodeStatus as refundNodeStatus, c.single_or_compound_recipe as singleOrCompoundRecipe, ");
+        hql.append("c.refundNodeStatus as refundNodeStatus,");
         hql.append("a.giveModeText,a.DrugStoreName,a.CreateTime as orderTime,a.PayTime,a.TotalFee,a.RecipeFee,a.ExpressFee,a.CouponFee,a.DecoctionFee,a.TCMFee,a.RegisterFee,a.AuditFee,a.TradeNo,a.RecMobile as mobile,");
         hql.append("c.decoctionText,");
         hql.append("cd.Name,if (b.recipeType = 3,case when a.patient_is_decoction = 0 then '否' when a.patient_is_decoction = 1 then '是' end,null) as generationisOfDecoction ");

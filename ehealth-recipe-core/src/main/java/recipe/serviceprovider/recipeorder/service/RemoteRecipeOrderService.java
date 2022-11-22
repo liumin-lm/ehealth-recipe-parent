@@ -478,7 +478,7 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
 
     @Override
     public List<RecipeOrderDetailExportBean> getRecipeOrderDetail(RecipeOrderRefundReqVO recipeOrderRefundReqVO) {
-        LOGGER.info("getRecipeOrderDetail recipeOrderRefundReqVO={}",JSONUtils.toString(recipeOrderRefundReqVO));
+        LOGGER.info("getRecipeOrderDetail recipeOrderRefundReqVO={}", JSONUtils.toString(recipeOrderRefundReqVO));
         if (null == recipeOrderRefundReqVO.getBeginTime()) {
             throw new DAOException(DAOException.VALUE_NEEDED, "统计开始时间不能为空");
         }
@@ -487,28 +487,20 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
         }
         List<RecipeOrderDetailExportDTO> recipeOrderDetailVOList =
                 recipeOrderDAO.getRecipeOrderDetail(ObjectCopyUtils.convert(recipeOrderRefundReqVO, RecipeOrderRefundReqDTO.class));
-        LOGGER.info("getRecipeOrderDetail recipeOrderDetailVOList={}",JSONUtils.toString(recipeOrderDetailVOList));
+        LOGGER.info("getRecipeOrderDetail recipeOrderDetailVOList={}", JSONUtils.toString(recipeOrderDetailVOList));
         List<RecipeOrderDetailExportBean> recipeOrderDetailExportBeanList = new ArrayList<>();
-        for(RecipeOrderDetailExportDTO recipeOrderDetailExportDTO : recipeOrderDetailVOList){
+        for (RecipeOrderDetailExportDTO recipeOrderDetailExportDTO : recipeOrderDetailVOList) {
             RecipeOrderDetailExportBean recipeOrderDetailExportBean = ObjectCopyUtils.convert(recipeOrderDetailExportDTO, RecipeOrderDetailExportBean.class);
-            if(Objects.nonNull(recipeOrderDetailExportBean)) {
+            if (Objects.nonNull(recipeOrderDetailExportBean)) {
                 recipeOrderDetailExportBean.setProcessState(OrderStateEnum.getOrderStateEnum(recipeOrderDetailExportDTO.getProcessState()).getName());
                 recipeOrderDetailExportBean.setRefundNodeStatus(RefundNodeStatusEnum.getRefundStatus(recipeOrderDetailExportDTO.getRefundNodeStatus()));
-                recipeOrderDetailExportBean.setCompleteAddress(orderManager.getCompleteAddress(recipeOrderDetailExportBean.getAddress1(), recipeOrderDetailExportBean.getAddress2(),
-                        recipeOrderDetailExportBean.getAddress3(), recipeOrderDetailExportBean.getAddress4(), recipeOrderDetailExportBean.getCompleteAddress()));
-
                 try {
-                    //单方
-                    if (Integer.valueOf("1").equals(recipeOrderDetailExportDTO.getSingleOrCompoundRecipe())) {
-                        recipeOrderDetailExportBean.setSingleRecipeFee(Objects.toString(recipeOrderDetailExportDTO.getRecipeFee(), ""));
-                        recipeOrderDetailExportBean.setSingleAuditFee(Objects.toString(recipeOrderDetailExportDTO.getAuditFee(), ""));
-                        recipeOrderDetailExportBean.setSingleDecoctionFee(Objects.toString(recipeOrderDetailExportDTO.getDecoctionFee(), ""));
-                    }
-
                     recipeOrderDetailExportBean.setAddress1(LocalStringUtil.getAddressDic(recipeOrderDetailExportDTO.getAddress1()));
                     recipeOrderDetailExportBean.setAddress2(LocalStringUtil.getAddressDic(recipeOrderDetailExportDTO.getAddress2()));
                     recipeOrderDetailExportBean.setAddress3(LocalStringUtil.getAddressDic(recipeOrderDetailExportDTO.getAddress3()));
                     recipeOrderDetailExportBean.setStreetAddress(LocalStringUtil.getAddressDic(recipeOrderDetailExportDTO.getStreetAddress()));
+                    recipeOrderDetailExportBean.setCompleteAddress(orderManager.getCompleteAddress(recipeOrderDetailExportBean.getAddress1(), recipeOrderDetailExportBean.getAddress2(),
+                            recipeOrderDetailExportBean.getAddress3(), recipeOrderDetailExportBean.getAddress4(), recipeOrderDetailExportBean.getCompleteAddress()));
 
                     PatientService patientService = BasicAPI.getService(PatientService.class);
                     PatientDTO patientDTO = patientService.get(recipeOrderDetailExportBean.getRequestMpiId());
