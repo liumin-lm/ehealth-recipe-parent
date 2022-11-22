@@ -55,14 +55,13 @@ public class RecipeOrderStatusProxy implements ApplicationContextAware {
         IRecipeOrderStatusService factoryService = getFactoryService(status);
         //根据订单状态 设置处方状态
         factoryService.updateStatus(orderStatus, recipeOrder, recipe);
+        orderStatus.setTargetRecipeStatus(recipe.getStatus());
         //更新处方状态
         stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.getRecipeStateEnum(recipe.getProcessState()), RecipeStateEnum.getRecipeStateEnum(recipe.getSubState()));
         recipeDAO.updateNonNullFieldByPrimaryKey(recipe);
-        stateManager.updateOrderState(recipeOrder.getOrderId(), OrderStateEnum.getOrderStateEnum(recipeOrder.getProcessState()), OrderStateEnum.getOrderStateEnum(recipeOrder.getSubState()));
-        orderStatus.setTargetRecipeStatus(recipe.getStatus());
         //更新订单状态
+        stateManager.updateOrderState(recipeOrder.getOrderId(), OrderStateEnum.getOrderStateEnum(recipeOrder.getProcessState()), OrderStateEnum.getOrderStateEnum(recipeOrder.getSubState()));
         recipeOrder.setStatus(orderStatus.getTargetRecipeOrderStatus());
-        //订单状态改变时间
         recipeOrder.setDispensingStatusAlterTime(new Date());
         recipeOrderDAO.updateNonNullFieldByPrimaryKey(recipeOrder);
         //更新同组处方状态
