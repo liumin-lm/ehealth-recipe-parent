@@ -161,8 +161,6 @@ public class RecipeOrderDetailExportDTO implements Serializable {
     @ItemProperty(alias = "单方代煎费")
     private String singleDecoctionFee;
 
-    @ItemProperty(alias = "单复方标识：0无状态，1单方，2复方")
-    private Integer singleOrCompoundRecipe;
 
     public String getRequestMpiId() {
         return requestMpiId;
@@ -546,11 +544,5 @@ public class RecipeOrderDetailExportDTO implements Serializable {
         this.singleDecoctionFee = singleDecoctionFee;
     }
 
-    public Integer getSingleOrCompoundRecipe() {
-        return singleOrCompoundRecipe;
-    }
 
-    public void setSingleOrCompoundRecipe(Integer singleOrCompoundRecipe) {
-        this.singleOrCompoundRecipe = singleOrCompoundRecipe;
-    }
 }
