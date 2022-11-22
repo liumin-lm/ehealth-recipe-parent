@@ -12,7 +12,9 @@ import org.springframework.stereotype.Service;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.DrugStockClient;
 import recipe.constant.ErrorCode;
+import recipe.enumerate.status.OrderStateEnum;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
+import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.manager.PharmacyManager;
 import recipe.service.OrganDrugListService;
@@ -68,6 +70,10 @@ public class StatusDoneDispensingImpl extends AbstractRecipeOrderStatus {
         }
         drugInventory(recipeIdList,recipeDetailList,recipe);
         recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_DONE_DISPENSING.getType());
+        recipeOrder.setProcessState(OrderStateEnum.PROCESS_STATE_DISPENSING.getType());
+        recipeOrder.setSubState(OrderStateEnum.SUB_DONE_SELF_TAKE.getType());
+        recipe.setProcessState(RecipeStateEnum.PROCESS_STATE_DONE.getType());
+        recipe.setSubState(RecipeStateEnum.SUB_DONE_SELF_TAKE.getType());
         return recipe;
     }
 

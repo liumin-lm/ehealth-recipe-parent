@@ -13,6 +13,8 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Service;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
+import recipe.enumerate.status.OrderStateEnum;
+import recipe.manager.StateManager;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -34,6 +36,8 @@ public class RecipeOrderStatusProxy implements ApplicationContextAware {
     private RecipeOrderDAO recipeOrderDAO;
     @Autowired
     private RecipeDAO recipeDAO;
+    @Autowired
+    private StateManager stateManager;
 
     /**
      * 根据订单状态 更新处方状态
@@ -50,6 +54,7 @@ public class RecipeOrderStatusProxy implements ApplicationContextAware {
         IRecipeOrderStatusService factoryService = getFactoryService(status);
         //根据订单状态 设置处方状态
         factoryService.updateStatus(orderStatus, recipeOrder, recipe);
+        stateManager.updateOrderState(recipeOrder.getOrderId(), OrderStateEnum.getOrderStateEnum(recipeOrder.getProcessState()), OrderStateEnum.getOrderStateEnum(recipeOrder.getSubState()));
         orderStatus.setTargetRecipeStatus(recipe.getStatus());
         //更新处方状态
         recipeDAO.updateNonNullFieldByPrimaryKey(recipe);
