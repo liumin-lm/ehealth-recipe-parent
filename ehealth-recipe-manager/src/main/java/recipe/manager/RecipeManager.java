@@ -41,10 +41,6 @@ import recipe.enumerate.status.WriteHisEnum;
 import recipe.enumerate.type.AppointEnterpriseTypeEnum;
 import recipe.enumerate.type.RecipeShowQrConfigEnum;
 import recipe.util.*;
-import recipe.util.DictionaryUtil;
-import recipe.util.LocalStringUtil;
-import recipe.util.ObjectCopyUtils;
-import recipe.util.ValidateUtil;
 
 import java.math.BigDecimal;
 import java.text.ParseException;
@@ -1142,5 +1138,18 @@ public class RecipeManager extends BaseManager {
             logger.error("RecipeManager getChargeItemCode error", e);
         }
         return new ArrayList<>();
+    }
+
+    /**
+     * 获取二方id下关联的处方
+     *
+     * @param clinicId   二方id
+     * @param bussSource 开处方来源 1问诊 2复诊(在线续方) 3网络门诊
+     * @return
+     */
+    public List<Recipe> findRecipeAllByBussSourceAndClinicId(Integer bussSource, Integer clinicId) {
+        List<Recipe> list = recipeDAO.findRecipeAllByBussSourceAndClinicId(bussSource, clinicId);
+        logger.info("RecipeManager findRecipeAllByBussSourceAndClinicId list :{}", JSON.toJSONString(list));
+        return list;
     }
 }

@@ -3409,7 +3409,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      * @param bussSource 开处方来源 1问诊 2复诊(在线续方) 3网络门诊
      * @return
      */
-    @DAOMethod(sql = "from Recipe where bussSource=:bussSource and clinicId=:clinicId")
+    @DAOMethod(sql = "from Recipe where bussSource=:bussSource and clinicId=:clinicId order by createDate desc")
     public abstract List<Recipe> findRecipeAllByBussSourceAndClinicId(@DAOParam("bussSource") Integer bussSource, @DAOParam("clinicId") Integer clinicId);
 
 

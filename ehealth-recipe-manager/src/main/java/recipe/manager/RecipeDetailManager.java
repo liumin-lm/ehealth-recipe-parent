@@ -282,9 +282,9 @@ public class RecipeDetailManager extends BaseManager {
     /**
      * 计算处方总金额
      *
-     * @param recipeType       处方类型
-     * @param detailList       处方明细
-     * @param organDrugCodeMap 机构药品数据
+     * @param recipeType 处方类型
+     * @param detailList 处方明细
+     * @param recipe     处方
      * @return 处方总金额
      */
     public BigDecimal totalMoney(Integer recipeType, List<Recipedetail> detailList, Recipe recipe) {
@@ -307,5 +307,15 @@ public class RecipeDetailManager extends BaseManager {
             totalMoney = totalMoney.add(drugCost);
         }
         return totalMoney;
+    }
+
+    /**
+     * 根据订单查询处方 详情
+     *
+     * @param orderCode
+     * @return
+     */
+    public List<Recipedetail> findDetailByOrderCode(String orderCode) {
+        return recipeDetailDAO.findDetailByOrderCode(orderCode);
     }
 }

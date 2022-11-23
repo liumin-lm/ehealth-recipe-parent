@@ -2,10 +2,8 @@ package recipe.atop.doctor;
 
 import com.ngari.patient.dto.HealthCardDTO;
 import com.ngari.patient.utils.ObjectCopyUtils;
-import com.ngari.recipe.drug.model.DecoctionWayBean;
 import com.ngari.recipe.dto.OutPatientRecordResDTO;
 import com.ngari.recipe.dto.WriteDrugRecipeDTO;
-import com.ngari.recipe.entity.DoctorCommonPharmacy;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.recipe.model.*;
 import ctd.util.annotation.RpcBean;
@@ -183,29 +181,5 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
     public List<RequirementsForTakingVO> getRequirementsForTakingByDecoctionId(Integer organId, Integer decoctionId) {
         validateAtop(organId);
         return recipeBusinessService.findRequirementsForTakingByDecoctionId(organId, decoctionId);
-    }
-
-    /**
-     * 查询医生选择的常用默认药房
-     *
-     * @param organId
-     * @return
-     */
-    @RpcService
-    @Deprecated
-    public DoctorCommonPharmacy findDoctorCommonPharmacyByOrganIdAndDoctorId(Integer organId,Integer doctorId ) {
-        validateAtop(organId, doctorId);
-        return recipeBusinessService.findDoctorCommonPharmacyByOrganIdAndDoctorId(organId,doctorId);
-    }
-
-    /**
-     * 保存医生选择的常用默认药房
-     * @param doctorCommonPharmacy
-     */
-    @RpcService
-    @Deprecated
-    public void saveDoctorCommonPharmacy(DoctorCommonPharmacy doctorCommonPharmacy) {
-        validateAtop(doctorCommonPharmacy);
-      //  recipeBusinessService.saveDoctorCommonPharmacy(doctorCommonPharmacy);
     }
 }
