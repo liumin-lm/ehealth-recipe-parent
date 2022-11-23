@@ -880,6 +880,9 @@ public class RecipeOrderService extends RecipeBaseService {
                         logisticsEmsPriceDto.setUserLat(address.getLatitude().toString());
                         logisticsEmsPriceDto.setUserLng(address.getLongitude().toString());
                         LogisticsEmsPriceInfoDto logisticsEstimatedPrice = infraClient.getLogisticsEstimatedPrice(logisticsEmsPriceDto);
+                        if(logisticsEstimatedPrice.getIsOverRange()){
+                            throw new DAOException(609,"超出配送范围");
+                        }
                         if (Objects.nonNull(logisticsCompany) && StringUtils.isNotEmpty(logisticsEstimatedPrice.getRealFee())) {
                             Map<String, Object> ext = result.getExt();
                             ext.put("collectPaymentExpressFee", logisticsEstimatedPrice.getRealFee());
