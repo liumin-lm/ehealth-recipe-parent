@@ -58,10 +58,7 @@ import recipe.service.RecipeMsgService;
 import recipe.service.RecipeOrderService;
 import recipe.service.RecipeRefundService;
 import recipe.serviceprovider.BaseService;
-import recipe.util.DateConversion;
-import recipe.util.LocalStringUtil;
-import recipe.util.MapValueUtil;
-import recipe.util.ObjectCopyUtils;
+import recipe.util.*;
 import recipe.vo.greenroom.RecipeOrderRefundReqVO;
 
 import java.math.BigDecimal;
@@ -494,6 +491,9 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
             if (Objects.nonNull(recipeOrderDetailExportBean)) {
                 recipeOrderDetailExportBean.setProcessState(OrderStateEnum.getOrderStateEnum(recipeOrderDetailExportDTO.getProcessState()).getName());
                 recipeOrderDetailExportBean.setRefundNodeStatus(RefundNodeStatusEnum.getRefundStatus(recipeOrderDetailExportDTO.getRefundNodeStatus()));
+                if (!("中药".equals(recipeOrderDetailExportDTO.getRecipeType()) || "膏方".equals(recipeOrderDetailExportDTO.getRecipeType()))) {
+                    recipeOrderDetailExportBean.setCopyNum(null);
+                }
                 try {
                     recipeOrderDetailExportBean.setAddress1(LocalStringUtil.getAddressDic(recipeOrderDetailExportDTO.getAddress1()));
                     recipeOrderDetailExportBean.setAddress2(LocalStringUtil.getAddressDic(recipeOrderDetailExportDTO.getAddress2()));
