@@ -1007,9 +1007,17 @@ public class PurchaseService {
         try {
             if (PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag) {
                 if (new Integer(1).equals(recipeOrder.getSettleMode())) {
+                    //收银台模式
                     recipeOrder.setPayMode(PayModeEnum.OFFLINE_PAY.getType());
                     recipeOrder.setSettleAmountState(SettleAmountStateEnum.SETTLE_SUCCESS.getType());
                     recipeOrderDAO.update(recipeOrder);
+                } else {
+                    //非收银台
+                    Boolean giveModeTfdsHisSettle = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "giveModeTfdsHisSettle", false);
+                    if (GiveModeEnum.GIVE_MODE_PHARMACY_DRUG.getType().equals(recipe.getGiveMode()) && !giveModeTfdsHisSettle) {
+                        recipeOrder.setSettleAmountState(SettleAmountStateEnum.SETTLE_SUCCESS.getType());
+                        recipeOrderDAO.update(recipeOrder);
+                    }
                 }
                 if (ReviewTypeConstant.Postposition_Check == recipe.getReviewType()) {
                     stateManager.updateOrderState(recipeOrder.getOrderId(), OrderStateEnum.PROCESS_STATE_ORDER_PLACED, OrderStateEnum.SUB_ORDER_PLACED_AUDIT);
