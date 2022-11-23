@@ -72,6 +72,7 @@ public class StatusDoneDispensingImpl extends AbstractRecipeOrderStatus {
         recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_DONE_DISPENSING.getType());
         recipeOrder.setProcessState(OrderStateEnum.PROCESS_STATE_ORDER.getType());
         recipeOrder.setSubState(OrderStateEnum.SUB_ORDER_DELIVERED.getType());
+        recipeOrder.setSendTime(new Date());
         recipe.setProcessState(RecipeStateEnum.PROCESS_STATE_DISTRIBUTION.getType());
         recipe.setSubState(RecipeStateEnum.SUB_ORDER_DELIVERED.getType());
         return recipe;
