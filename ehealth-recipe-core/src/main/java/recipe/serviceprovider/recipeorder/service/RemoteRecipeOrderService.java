@@ -491,7 +491,7 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
             if (Objects.nonNull(recipeOrderDetailExportBean)) {
                 recipeOrderDetailExportBean.setProcessState(OrderStateEnum.getOrderStateEnum(recipeOrderDetailExportDTO.getProcessState()).getName());
                 recipeOrderDetailExportBean.setRefundNodeStatus(RefundNodeStatusEnum.getRefundStatus(recipeOrderDetailExportDTO.getRefundNodeStatus()));
-                if (!RecipeUtil.isTcmType(Integer.parseInt(recipeOrderDetailExportDTO.getRecipeType()))) {
+                if (!("中药".equals(recipeOrderDetailExportDTO.getRecipeType()) || "膏方".equals(recipeOrderDetailExportDTO.getRecipeType()))) {
                     recipeOrderDetailExportBean.setCopyNum(null);
                 }
                 try {
