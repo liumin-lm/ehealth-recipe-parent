@@ -194,7 +194,13 @@ public class DocIndexClient extends BaseClient {
         saveEmrContractReq.setDocIndexId(docId);
         saveEmrContractReq.setRegisterNo(recipeExtend.getRegisterID());
         // 没有审核   1 显示 0 撤销
-        saveEmrContractReq.setDocindexExtStatus(DocIndexShowEnum.NO_AUDIT.getCode().equals(recipe.getReviewType()) ? DocIndexShowEnum.NORMAL.getCode() : DocIndexShowEnum.REVOKE.getCode());
+        List<String> hideRecipeDetail = configurationClient.getValueListCatch(recipe.getClinicOrgan(), "hideRecipeDetail", null);
+        logger.info("updateEmrStatus 药品类型：{} 需要隐方的类型:{}", recipe.getRecipeType(), hideRecipeDetail);
+        Integer code = 1;
+        if (org.apache.commons.collections.CollectionUtils.isNotEmpty(hideRecipeDetail) && hideRecipeDetail.contains(recipe.getRecipeType().toString())) {
+            code = 0;
+        }
+        saveEmrContractReq.setDocindexExtStatus(code);
         if (ValidateUtil.integerIsEmpty(clinicId)) {
             saveEmrContractReq.setDocStatus(DOC_STATUS_USE);
         }
