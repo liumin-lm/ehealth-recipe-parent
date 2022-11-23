@@ -1010,7 +1010,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 }
             }
             //顺丰
-            if(null!=logisticsCompany&&"1".equals(String.valueOf(logisticsCompany))){
+            if(null!=logisticsCompany&&("1".equals(String.valueOf(logisticsCompany))||"301".equals(String.valueOf(logisticsCompany)))){
                 List<OrganLogisticsManageDto>  organLogisticsManageDtos=infraClient.findLogisticsManageByOrganIdAndLogisticsCompanyIdAndAccount(enterpriseId,logisticsCompany+"",DrugEnterpriseConstant.BUSINESS_TYPE,0);
                 if(CollectionUtils.isEmpty(organLogisticsManageDtos)){
                     return organLogisticsManageDto;

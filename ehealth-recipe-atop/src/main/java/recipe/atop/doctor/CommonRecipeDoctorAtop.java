@@ -5,7 +5,6 @@ import com.google.common.collect.Lists;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.commonrecipe.model.CommonDTO;
 import com.ngari.recipe.commonrecipe.model.CommonRecipeDTO;
-import com.ngari.recipe.commonrecipe.model.CommonRecipeDrugDTO;
 import com.ngari.recipe.dto.HisRecipeDTO;
 import com.ngari.recipe.dto.HisRecipeInfoDTO;
 import com.ngari.recipe.entity.CommonRecipe;
@@ -132,18 +131,18 @@ public class CommonRecipeDoctorAtop extends BaseAtop {
         validateAtop("常用方必填参数为空", commonRecipe.getDoctorId(), commonRecipe.getRecipeType(), commonRecipe.getCommonRecipeType(), commonRecipe.getCommonRecipeName());
         commonRecipeService.saveCommonRecipe(common);
     }
-
-    /**
-     * 刷新常用方校验状态
-     *
-     * @param drugList 常用方药品
-     */
-    @RpcService
-    public void refreshCommonValidateStatus(List<CommonRecipeDrugDTO> drugList) {
-        validateAtop(drugList);
-        drugList.forEach(a -> validateAtop(a.getCommonRecipeId(), a.getId()));
-        commonRecipeService.refreshCommonValidateStatus(drugList);
-    }
+//
+//    /**
+//     * 刷新常用方校验状态
+//     *
+//     * @param drugList 常用方药品
+//     */
+//    @RpcService
+//    public void refreshCommonValidateStatus(List<CommonRecipeDrugDTO> drugList) {
+//        validateAtop(drugList);
+//        drugList.forEach(a -> validateAtop(a.getCommonRecipeId(), a.getId()));
+//        commonRecipeService.refreshCommonValidateStatus(drugList);
+//    }
 
     /**
      * 删除常用方
