@@ -879,6 +879,7 @@ public class RecipeOrderService extends RecipeBaseService {
                         logisticsEmsPriceDto.setDestAddress(address.getAddress4());
                         logisticsEmsPriceDto.setUserLat(address.getLatitude().toString());
                         logisticsEmsPriceDto.setUserLng(address.getLongitude().toString());
+                        logisticsEmsPriceDto.setBusinessType(1);
                         LogisticsEmsPriceInfoDto logisticsEstimatedPrice = infraClient.getLogisticsEstimatedPrice(logisticsEmsPriceDto);
                         if(logisticsEstimatedPrice.getIsOverRange()){
                             throw new DAOException(609,"超出配送范围");
