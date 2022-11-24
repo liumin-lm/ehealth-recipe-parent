@@ -58,7 +58,7 @@ public class ValidateDetailVO {
     private String pharmacyCode;
     private Integer pharmacyId;
     /**
-     * 处方剂型 1 饮片方 2 颗粒方
+     * 处方剂型 1 饮片方 2 颗粒方,3膏方
      */
     private Integer recipeDrugForm;
 }

@@ -75,7 +75,7 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
         List<String> organDrugCodeList = validateDetailVO.getRecipeDetails().stream().map(RecipeDetailBean::getOrganDrugCode).distinct().collect(Collectors.toList());
         Map<String, List<OrganDrugList>> organDrugGroup = organDrugListManager.getOrganDrugCode(organId, organDrugCodeList);
         //药房信息
-        PharmacyTcm pharmacy = pharmacyManager.organDrugPharmacyId(organId, recipeType, organDrugCodeList, validateDetailVO.getPharmacyCode(), validateDetailVO.getPharmacyId());
+        PharmacyTcm pharmacy = pharmacyManager.organDrugPharmacyId(organId, recipeType, organDrugCodeList, validateDetailVO.getPharmacyCode(), validateDetailVO.getPharmacyId(), validateDetailVO.getRecipeDrugForm());
         logger.info("RecipeDetailBusinessService continueRecipeValidateDrug pharmacy = {}", JSON.toJSONString(pharmacy));
         //药品名拼接配置
         Map<String, Integer> configDrugNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getDrugNameConfigByDrugType(organId, recipeType));
@@ -105,7 +105,7 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
                 return;
             }
             //校验药品药房是否变动
-            Boolean pharmacyBoolean = pharmacyManager.pharmacyVariationV1(pharmacy, organDrug.getPharmacy(), validateDetailVO.getRecipeDrugForm(), recipeType);
+            Boolean pharmacyBoolean = pharmacyManager.pharmacyVariationV1(pharmacy, organDrug.getPharmacy());
             if (pharmacyBoolean) {
                 a.setValidateStatusText("机构药品药房错误");
                 a.setValidateStatus(RecipeDetailValidateTool.VALIDATE_STATUS_FAILURE);
