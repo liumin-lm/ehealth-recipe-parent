@@ -68,10 +68,9 @@ public class PharmacyManager extends BaseManager {
      *
      * @param pharmacy      最优药房
      * @param organPharmacy 当前药品 机构药房id
-     * @param drugFormType  处方剂型 1 饮片方 2 颗粒方
      * @return true 不一致
      */
-    public Boolean pharmacyVariationV1(PharmacyTcm pharmacy, String organPharmacy, Integer drugFormType, Integer recipeType) {
+    public Boolean pharmacyVariationV1(PharmacyTcm pharmacy, String organPharmacy) {
         //机构没药房
         if (null == pharmacy) {
             return false;
@@ -86,15 +85,6 @@ public class PharmacyManager extends BaseManager {
         }
         //当前药品药房不包含最优药房
         if (!Arrays.asList(organPharmacy.split(ByteUtils.COMMA)).contains(String.valueOf(pharmacy.getPharmacyId()))) {
-            return true;
-        }
-        if (!RecipeUtil.isTcmType(recipeType)) {
-            return false;
-        }
-        //比对药房 剂型权限
-        String pharmacyDrugFormType = null == pharmacy.getDrugFormType() ? "" : pharmacy.getDrugFormType();
-        String drugForm = null == drugFormType ? "" : drugFormType.toString();
-        if (!pharmacyDrugFormType.contains(drugForm)) {
             return true;
         }
         return false;
@@ -158,7 +148,7 @@ public class PharmacyManager extends BaseManager {
      * @param pharmacy          前端指定药房id
      * @return 药房对象
      */
-    public PharmacyTcm organDrugPharmacyId(Integer organId, Integer recipeType, List<String> organDrugCodeList, String pharmacyCode, Integer pharmacy) {
+    public PharmacyTcm organDrugPharmacyId(Integer organId, Integer recipeType, List<String> organDrugCodeList, String pharmacyCode, Integer pharmacy, Integer recipeDrugForm) {
         //判断机构药房
         List<PharmacyTcm> pharmacys = pharmacyTcmDAO.findByOrganId(organId);
         logger.info("PharmacyManager organDrugPharmacyId pharmacys:{}，pharmacy:{}", JSON.toJSONString(pharmacys), pharmacyCode);
@@ -171,6 +161,14 @@ public class PharmacyManager extends BaseManager {
         if (CollectionUtils.isEmpty(pharmacyTypes)) {
             return null;
         }
+        //中药剂型过滤
+        if (RecipeUtil.isTcmType(recipeType)) {
+            pharmacyTypes = pharmacyTypes.stream().filter(a -> a.getDrugFormType().contains(recipeDrugForm.toString())).collect(Collectors.toList());
+            if (CollectionUtils.isEmpty(pharmacyTypes)) {
+                return new PharmacyTcm();
+            }
+        }
+
         Map<Integer, PharmacyTcm> pharmacyIdMap = pharmacyTypes.stream().collect(Collectors.toMap(PharmacyTcm::getPharmacyId, a -> a, (k1, k2) -> k1));
         //返回指定药房
         if (StringUtils.isNotEmpty(pharmacyCode)) {
