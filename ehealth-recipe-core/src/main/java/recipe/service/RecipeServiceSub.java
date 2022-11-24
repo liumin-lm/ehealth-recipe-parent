@@ -483,7 +483,7 @@ public class RecipeServiceSub {
                 LOGGER.info("setRecipeDetailsInfo drugUnitDoseAndUnitMap:{}", JSONUtils.writeValueAsString(drugUnitdoseAndUnitMap));
                 detail.setDrugUnitdoseAndUnit(JSONUtils.toString(drugUnitdoseAndUnitMap));
             }
-            if (StringUtils.isNotEmpty(recipeDrugForm)) {
+            if (StringUtils.isNotEmpty(recipeDrugForm) && ValidateUtil.integerIsEmpty(recipeBean.getRecipeDrugForm())) {
                 recipe.setRecipeDrugForm(RecipeDrugFormTypeEnum.getDrugFormType(recipeDrugForm));
             }
         }
