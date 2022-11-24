@@ -880,10 +880,8 @@ public class RecipeOrderService extends RecipeBaseService {
                         logisticsEmsPriceDto.setUserLng(address.getLongitude().toString());
                         logisticsEmsPriceDto.setBusinessType(1);
                         LogisticsEmsPriceInfoDto logisticsEstimatedPrice = infraClient.getLogisticsEstimatedPrice(logisticsEmsPriceDto);
-//                        if(logisticsEstimatedPrice.getIsOverRange()){
-//                            throw new DAOException(609,"超出配送范围");
-//                        }
-                        if (Objects.nonNull(logisticsCompany) && StringUtils.isNotEmpty(logisticsEstimatedPrice.getRealFee())) {
+                        LOGGER.info("setOrderAddress logisticsEstimatedPrice:{}", JSONUtils.toString(logisticsEstimatedPrice));
+                        if (Objects.nonNull(logisticsEstimatedPrice) && StringUtils.isNotEmpty(logisticsEstimatedPrice.getRealFee())) {
                             Map<String, Object> ext = result.getExt();
                             ext.put("collectPaymentExpressFee", logisticsEstimatedPrice.getRealFee());
                             result.setExt(ext);
@@ -894,6 +892,7 @@ public class RecipeOrderService extends RecipeBaseService {
                         ConsignmentPricingMethodEnum.LOGISTICS_COMPANY_PRICE.getType().equals(organLogisticsManageDto.getConsignmentPricingMethod())){
                     //取物流公司预估价格
                     expressFee=order.getExpressFee();
+                    order.setExpressFeePayWay(ExpressFeePayWayEnum.ONLINE.getType());
                 }else{
                     //取机构设置物流价格
                     //优化快递费用获取，当费用是从第三方获取需要取第三方接口返回的快递费用
