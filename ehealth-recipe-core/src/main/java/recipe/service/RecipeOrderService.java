@@ -653,7 +653,6 @@ public class RecipeOrderService extends RecipeBaseService {
         }
         //date 20200311
         //设置订单上的处方价格
-        RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
         DrugsEnterpriseDAO drugsEnterpriseDAO = getDAO(DrugsEnterpriseDAO.class);
         AccessDrugEnterpriseService remoteService = null;
         if (null != order.getEnterpriseId()) {
