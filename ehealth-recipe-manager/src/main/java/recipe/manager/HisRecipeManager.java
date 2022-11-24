@@ -100,7 +100,7 @@ public class HisRecipeManager extends BaseManager {
      */
     public HisResponseTO<List<QueryHisRecipResTO>> queryData(Integer organId, PatientDTO patientDTO, Integer timeQuantum, Integer flag, String recipeCode) {
         LOGGER.info("HisRecipeManager queryData param organId:{},patientDTO:{},timeQuantum:{},flag:{},recipeCode:{}", organId, JSONUtils.toString(patientDTO), timeQuantum, flag, recipeCode);
-        HisResponseTO<List<QueryHisRecipResTO>> responseTo = offlineRecipeClient.queryData(organId, patientDTO, timeQuantum, flag, recipeCode);
+        HisResponseTO<List<QueryHisRecipResTO>> responseTo = offlineRecipeClient.queryData(organId, patientDTO, timeQuantum, flag, recipeCode,null,null);
         //过滤数据
         HisResponseTO<List<QueryHisRecipResTO>> res = filterData(responseTo, recipeCode, flag);
         logger.info("HisRecipeManager res:{}.", JSONUtils.toString(res));
@@ -122,16 +122,16 @@ public class HisRecipeManager extends BaseManager {
         LOGGER.info("HisRecipeManager queryHisRecipeData param organId:{},patientDTO:{},timeQuantum:{},flag:{},recipeCode:{}", organId, JSONUtils.toString(patientDTO), timeQuantum, flag, recipeCode);
         HisResponseTO<List<QueryHisRecipResTO>> responseTo = new HisResponseTO<List<QueryHisRecipResTO>>();
         if (HisRecipeConstant.HISRECIPESTATUS_NOIDEAL.equals(flag)) {
-            responseTo = offlineRecipeClient.queryData(organId, patientDTO, timeQuantum, flag, recipeCode);
+            responseTo = offlineRecipeClient.queryData(organId, patientDTO, timeQuantum, flag, recipeCode,null,null);
             //过滤数据
             responseTo = filterData(responseTo, recipeCode, flag);
         } else if (HisRecipeConstant.HISRECIPESTATUS_ALREADYIDEAL.equals(flag)) {
             List<QueryHisRecipResTO> queryHisRecipResToList = new ArrayList<>();
             Future<HisResponseTO<List<QueryHisRecipResTO>>> hisTask1 = GlobalEventExecFactory.instance().getExecutor().submit(() -> {
-                return offlineRecipeClient.queryData(organId, patientDTO, timeQuantum, HisRecipeConstant.HISRECIPESTATUS_ALREADYIDEAL, recipeCode);
+                return offlineRecipeClient.queryData(organId, patientDTO, timeQuantum, HisRecipeConstant.HISRECIPESTATUS_ALREADYIDEAL, recipeCode,null,null);
             });
             Future<HisResponseTO<List<QueryHisRecipResTO>>> hisTask2 = GlobalEventExecFactory.instance().getExecutor().submit(() -> {
-                return offlineRecipeClient.queryData(organId, patientDTO, timeQuantum, HisRecipeConstant.HISRECIPESTATUS_EXPIRED, recipeCode);
+                return offlineRecipeClient.queryData(organId, patientDTO, timeQuantum, HisRecipeConstant.HISRECIPESTATUS_EXPIRED, recipeCode,null,null);
             });
             try {
                 HisResponseTO<List<QueryHisRecipResTO>> hisResponseTO1 = hisTask1.get(60000, TimeUnit.MILLISECONDS);

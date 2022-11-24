@@ -203,7 +203,7 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
      * @date 2021/8/06
      */
     @Override
-    public OffLineRecipeDetailVO getOffLineRecipeDetails(String mpiId, Integer clinicOrgan, String recipeCode) {
+    public OffLineRecipeDetailVO getHisRecipeDetail(String mpiId, Integer clinicOrgan, String recipeCode,String createDate) {
         logger.info("RecipeBusinessService getOffLineRecipeDetails mpiId={},clinicOrgan={},recipeCode={}", mpiId, clinicOrgan, recipeCode);
         PatientDTO patient = patientService.getPatientByMpiId(mpiId);
         if (ObjectUtils.isEmpty(patient)) {
@@ -211,7 +211,7 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
         }
 //        //获取线下处方信息
         OffLineRecipeDetailDTO offLineRecipeDetailDTO = new OffLineRecipeDetailDTO();
-        QueryHisRecipResTO queryHisRecipResTO = offlineRecipeClient.queryOffLineRecipeDetail(offLineRecipeDetailDTO, clinicOrgan, patient, 6, 2, recipeCode);
+        QueryHisRecipResTO queryHisRecipResTO = offlineRecipeClient.getHisRecipeDetail(offLineRecipeDetailDTO, clinicOrgan, patient, 6, 2, recipeCode,createDate);
 
         //判断是否为儿科 设置部门名称
         DepartmentDTO departmentDTO = departmentService.getByCodeAndOrgan(queryHisRecipResTO.getDepartCode(), queryHisRecipResTO.getClinicOrgan());
