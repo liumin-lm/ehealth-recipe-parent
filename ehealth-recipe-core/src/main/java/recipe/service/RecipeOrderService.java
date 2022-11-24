@@ -892,7 +892,6 @@ public class RecipeOrderService extends RecipeBaseService {
                         ConsignmentPricingMethodEnum.LOGISTICS_COMPANY_PRICE.getType().equals(organLogisticsManageDto.getConsignmentPricingMethod())){
                     //取物流公司预估价格
                     expressFee=order.getExpressFee();
-                    order.setExpressFeePayWay(ExpressFeePayWayEnum.ONLINE.getType());
                 }else{
                     //取机构设置物流价格
                     //优化快递费用获取，当费用是从第三方获取需要取第三方接口返回的快递费用
