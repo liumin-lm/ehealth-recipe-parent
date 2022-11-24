@@ -66,6 +66,7 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
                 recipeDrugForm = RecipeDrugFormTypeEnum.TCM_DECOCTION_PIECES.getType();
                 validateDetailVO.setRecipeDrugForm(RecipeDrugFormTypeEnum.TCM_DECOCTION_PIECES.getType());
             } else if (RecipeDrugFormTypeEnum.TCM_FORMULA_CREAM_FORMULA.getType().equals(validateDetailVO.getRecipeDrugForm())) {
+                //使用剂型是膏方类型必须把 药房权限同时勾选饮片类型 产品同意 人为控制
                 recipeDrugForm = RecipeDrugFormTypeEnum.TCM_FORMULA_CREAM_FORMULA.getType();
                 validateDetailVO.setRecipeDrugForm(RecipeDrugFormTypeEnum.TCM_DECOCTION_PIECES.getType());
             } else {
