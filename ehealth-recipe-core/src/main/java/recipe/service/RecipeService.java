@@ -880,6 +880,10 @@ public class RecipeService extends RecipeBaseService {
         Integer recipeId = resultVo.getRecipeId();
 
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        if (RecipeStateEnum.PROCESS_STATE_DELETED.getType().equals(recipe.getProcessState()) ||
+                RecipeStateEnum.PROCESS_STATE_CANCELLATION.getType().equals(recipe.getProcessState())) {
+            return;
+        }
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
         EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
 
