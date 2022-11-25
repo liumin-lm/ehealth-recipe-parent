@@ -39,7 +39,7 @@ public class HospitalSettleDepHandler implements IOrderTypeConditionHandler {
             } else {
                 isHosDep = organDrugsSaleConfig.getIsHosDep();
             }
-            if (Objects.nonNull(organDrugsSaleConfig) && Integer.valueOf("1").equals(isHosDep)) {
+            if (Integer.valueOf("1").equals(isHosDep)) {
                 return RecipeOrderTypeEnum.HOSPITAL_SELF.getType();
             }
         }
