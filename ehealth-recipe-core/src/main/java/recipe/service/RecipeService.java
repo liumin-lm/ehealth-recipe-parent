@@ -4210,29 +4210,46 @@ public class RecipeService extends RecipeBaseService {
             drugListMatch.setUseDoseSmallestUnit(drug.getUseDoseSmallestUnit());
         }
 
-        if (isAllowSyncField(organDrugListSyncFieldMap.get(SyncDrugConstant.pharmacy))) {
-            if (!ObjectUtils.isEmpty(drug.getPharmacyCode())) {
-                String pharmacyCode = drug.getPharmacyCode();
-                PharmacyTcm byPharmacyAndOrganId = pharmacyTcmDAO.getByPharmacyAndOrganId(pharmacyCode, organId);
-                if (byPharmacyAndOrganId != null) {
-                    drugListMatch.setPharmacy(byPharmacyAndOrganId.getPharmacyId().toString());
-                } else {
-                    if (!ObjectUtils.isEmpty(drug.getPharmacyName())) {
-                        PharmacyTcm pharmacyTcm = new PharmacyTcm();
-                        pharmacyTcm.setOrganId(organId);
-                        pharmacyTcm.setPharmacyCode(drug.getPharmacyCode());
-                        pharmacyTcm.setPharmacyName(drug.getPharmacyName());
-                        pharmacyTcm.setPharmacyCategray("中药,西药,中成药,膏方");
-                        pharmacyTcm.setWhDefault(false);
-                        pharmacyTcm.setSort(1000);
-                        boolean b = pharmacyTcmService.addPharmacyTcmForOrgan(pharmacyTcm);
-                        if (b) {
-                            PharmacyTcm pharmacyTcm1 = pharmacyTcmService.querPharmacyTcmByOrganIdAndName2(organId, drug.getPharmacyName());
-                            drugListMatch.setPharmacy(pharmacyTcm1.getPharmacyId().toString());
+        //药房
+        if (isAllowSyncField(organDrugListSyncFieldMap.get(SyncDrugConstant.pharmacy))
+            && !ObjectUtils.isEmpty(drug.getPharmacyCode())) {
+            StringBuilder pharmacys = new StringBuilder();
+            String[] pharmcyCodeArr = drug.getPharmacyCode().split(",");
+            String[] pharmcyNameArr = drug.getPharmacyName().split(",");
+            for (int i = 0; i < pharmcyCodeArr.length; i++) {
+                String pharmacyCode = pharmcyCodeArr[i];
+                if(StringUtils.isNotEmpty(pharmacyCode)){
+                    PharmacyTcm pharmacyTcmDb = pharmacyTcmDAO.getByPharmacyAndOrganId(pharmacyCode, organId);
+                    if(pharmacyTcmDb!=null){
+                        if (i != pharmcyCodeArr.length - 1) {
+                            pharmacys.append(pharmacyTcmDb.getPharmacyId() + ",");
+                        } else {
+                            pharmacys.append(pharmacyTcmDb.getPharmacyId());
                         }
+                    }else{
+                        if (!ObjectUtils.isEmpty(pharmcyNameArr[i])) {
+                            PharmacyTcm pharmacyTcm = new PharmacyTcm();
+                            pharmacyTcm.setOrganId(organId);
+                            pharmacyTcm.setPharmacyCode(pharmacyCode);
+                            pharmacyTcm.setPharmacyName(pharmcyNameArr[i]);
+                            pharmacyTcm.setPharmacyCategray("中药,西药,中成药,膏方");
+                            pharmacyTcm.setWhDefault(false);
+                            pharmacyTcm.setSort(1000);
+                            boolean b = pharmacyTcmService.addPharmacyTcmForOrgan(pharmacyTcm);
+                            if (b) {
+                                PharmacyTcm pharmacyTcm1 = pharmacyTcmService.querPharmacyTcmByOrganIdAndName2(organId, pharmcyNameArr[i]);
+                                if (i != pharmcyCodeArr.length - 1) {
+                                    pharmacys.append(pharmacyTcm1.getPharmacyId() + ",");
+                                } else {
+                                    pharmacys.append(pharmacyTcm1.getPharmacyId());
+                                }
+                            }
+                        }
+
                     }
                 }
             }
+            drugListMatch.setPharmacy(pharmacys.toString());
         }
         if (isAllowSyncField(organDrugListSyncFieldMap.get(SyncDrugConstant.drugsEnterpriseIds))) {
             if (!ObjectUtils.isEmpty(drug.getDrugsEnterpriseCode())) {
@@ -4558,30 +4575,49 @@ public class RecipeService extends RecipeBaseService {
         if (!ObjectUtils.isEmpty(drug.getUnilateralCompound())) {
             organDrug.setUnilateralCompound(drug.getUnilateralCompound());
         }
-        if (isAllowSyncField(organDrugListSyncFieldMap.get(SyncDrugConstant.pack))
-                && !ObjectUtils.isEmpty(drug.getPharmacyCode())) {
-            String pharmacyCode = drug.getPharmacyCode();
-            PharmacyTcm byPharmacyAndOrganId = pharmacyTcmDAO.getByPharmacyAndOrganId(pharmacyCode, organId);
-            if (byPharmacyAndOrganId != null) {
-                organDrug.setPharmacy(byPharmacyAndOrganId.getPharmacyId().toString());
-            } else {
-                if (!ObjectUtils.isEmpty(drug.getPharmacyName())) {
-                    PharmacyTcm pharmacyTcm = new PharmacyTcm();
-                    pharmacyTcm.setOrganId(organId);
-                    //告诉平台编码和名称，在平台创建一个
-                    pharmacyTcm.setPharmacyCode(drug.getPharmacyCode());
-                    pharmacyTcm.setPharmacyName(drug.getPharmacyName());
-                    pharmacyTcm.setPharmacyCategray("中药,西药,中成药,膏方");
-                    pharmacyTcm.setWhDefault(false);
-                    pharmacyTcm.setSort(1000);
-                    boolean b = pharmacyTcmService.addPharmacyTcmForOrgan(pharmacyTcm);
-                    if (b) {
-                        PharmacyTcm pharmacyTcm1 = pharmacyTcmService.querPharmacyTcmByOrganIdAndName2(organId, drug.getPharmacyName());
-                        organDrug.setPharmacy(pharmacyTcm1.getPharmacyId().toString());
+
+        //药房
+        if (isAllowSyncField(organDrugListSyncFieldMap.get(SyncDrugConstant.pharmacy))
+            &&!ObjectUtils.isEmpty(drug.getPharmacyCode())) {
+            StringBuilder pharmacys = new StringBuilder();
+            String[] pharmcyCodeArr = drug.getPharmacyCode().split(",");
+            String[] pharmcyNameArr = drug.getPharmacyName().split(",");
+            for (int i = 0; i < pharmcyCodeArr.length; i++) {
+                String pharmacyCode = pharmcyCodeArr[i];
+                if(StringUtils.isNotEmpty(pharmacyCode)){
+                    PharmacyTcm pharmacyTcmDb = pharmacyTcmDAO.getByPharmacyAndOrganId(pharmacyCode, organId);
+                    if(pharmacyTcmDb!=null){
+                        if (i != pharmcyCodeArr.length - 1) {
+                            pharmacys.append(pharmacyTcmDb.getPharmacyId() + ",");
+                        } else {
+                            pharmacys.append(pharmacyTcmDb.getPharmacyId());
+                        }
+                    }else{
+                        if (!ObjectUtils.isEmpty(pharmcyNameArr[i])) {
+                            PharmacyTcm pharmacyTcm = new PharmacyTcm();
+                            pharmacyTcm.setOrganId(organId);
+                            pharmacyTcm.setPharmacyCode(pharmacyCode);
+                            pharmacyTcm.setPharmacyName(pharmcyNameArr[i]);
+                            pharmacyTcm.setPharmacyCategray("中药,西药,中成药,膏方");
+                            pharmacyTcm.setWhDefault(false);
+                            pharmacyTcm.setSort(1000);
+                            boolean b = pharmacyTcmService.addPharmacyTcmForOrgan(pharmacyTcm);
+                            if (b) {
+                                PharmacyTcm pharmacyTcm1 = pharmacyTcmService.querPharmacyTcmByOrganIdAndName2(organId, pharmcyNameArr[i]);
+                                if (i != pharmcyCodeArr.length - 1) {
+                                    pharmacys.append(pharmacyTcm1.getPharmacyId() + ",");
+                                } else {
+                                    pharmacys.append(pharmacyTcm1.getPharmacyId());
+                                }
+                            }
+                        }
+
                     }
                 }
             }
+            organDrug.setPharmacy(pharmacys.toString());
         }
+
         //监管平台药品编码
         if (!ObjectUtils.isEmpty(drug.getRegulationDrugCode())) {
             organDrug.setRegulationDrugCode(drug.getRegulationDrugCode());
