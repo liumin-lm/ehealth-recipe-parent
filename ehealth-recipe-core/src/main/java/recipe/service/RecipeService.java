@@ -882,6 +882,7 @@ public class RecipeService extends RecipeBaseService {
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         if (RecipeStateEnum.PROCESS_STATE_DELETED.getType().equals(recipe.getProcessState()) ||
                 RecipeStateEnum.PROCESS_STATE_CANCELLATION.getType().equals(recipe.getProcessState())) {
+            LOGGER.info("retryCaPharmacistCallBackToRecipe 当前处方单已删除或作废");
             return;
         }
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
