@@ -1488,6 +1488,7 @@ public class RecipeServiceSub {
         r.setPayFlag(recipe.getPayFlag());
         r.setProcessState(recipe.getProcessState());
         r.setSubState(recipe.getSubState());
+        r.setAuditState(recipe.getAuditState());
         r.setOfflineRecipeName(recipe.getOfflineRecipeName());
         r.setSubStateText(RecipeStateEnum.getRecipeStateEnum(recipe.getSubState()).getName());
         return r;
