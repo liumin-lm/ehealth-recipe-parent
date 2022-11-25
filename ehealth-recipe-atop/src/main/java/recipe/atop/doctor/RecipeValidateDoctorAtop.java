@@ -17,6 +17,7 @@ import recipe.constant.ErrorCode;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.core.api.IRecipeDetailBusinessService;
 import recipe.core.api.IRevisitBusinessService;
+import recipe.enumerate.type.RecipeDrugFormTypeEnum;
 import recipe.util.ObjectCopyUtils;
 import recipe.util.RecipeUtil;
 import recipe.util.ValidateUtil;
@@ -58,6 +59,21 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
     public ValidateDetailVO validateDetailV1(ValidateDetailVO validateDetailVO) {
         validateAtop(validateDetailVO.getOrganId(), validateDetailVO.getRecipeType(), validateDetailVO.getRecipeExtendBean(), validateDetailVO.getRecipeDetails());
         validateDetailVO.setLongRecipe(!IS_LONG_RECIPE_FALSE.equals(validateDetailVO.getRecipeExtendBean().getIsLongRecipe()));
+        //剂型转换
+        Integer recipeDrugForm = null;
+        if (RecipeUtil.isTcmType(validateDetailVO.getRecipeType())) {
+            if (ValidateUtil.integerIsEmpty(validateDetailVO.getRecipeDrugForm())) {
+                recipeDrugForm = RecipeDrugFormTypeEnum.TCM_DECOCTION_PIECES.getType();
+                validateDetailVO.setRecipeDrugForm(RecipeDrugFormTypeEnum.TCM_DECOCTION_PIECES.getType());
+            } else if (RecipeDrugFormTypeEnum.TCM_FORMULA_CREAM_FORMULA.getType().equals(validateDetailVO.getRecipeDrugForm())) {
+                //使用剂型是膏方类型必须把 药房权限同时勾选饮片类型 产品同意 人为控制
+                recipeDrugForm = RecipeDrugFormTypeEnum.TCM_FORMULA_CREAM_FORMULA.getType();
+                validateDetailVO.setRecipeDrugForm(RecipeDrugFormTypeEnum.TCM_DECOCTION_PIECES.getType());
+            } else {
+                recipeDrugForm = validateDetailVO.getRecipeDrugForm();
+            }
+        }
+        //药房提取
         String pharmacyCode = validateDetailVO.getRecipeDetails().stream().filter(validateDetail -> StringUtils.isNotEmpty(validateDetail.getPharmacyCode()))
                 .findFirst().map(RecipeDetailBean::getPharmacyCode).orElse(null);
         validateDetailVO.setPharmacyCode(pharmacyCode);
@@ -69,10 +85,10 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
             a.setPharmacyName(null);
             a.setPharmacyCode(null);
         });
-        if (RecipeUtil.isTcmType(validateDetailVO.getRecipeType()) && ValidateUtil.integerIsEmpty(validateDetailVO.getRecipeDrugForm())) {
-            validateDetailVO.setRecipeDrugForm(1);
-        }
-        return recipeDetailService.continueRecipeValidateDrug(validateDetailVO);
+        //出参处理
+        ValidateDetailVO validateDetail = recipeDetailService.continueRecipeValidateDrug(validateDetailVO);
+        validateDetail.setRecipeDrugForm(recipeDrugForm);
+        return validateDetail;
     }
 
 

@@ -497,9 +497,6 @@ public class RecipeDetailValidateTool {
         if (RecipeDrugFormTypeEnum.getDrugForm(recipeDrugForm).equals(organDrug.getDrugForm())) {
             return false;
         }
-        a.setDrugForm(null);
-        //设置剂型
-        decoctionWay(null, recipeExtendBean);
         return true;
     }
 }

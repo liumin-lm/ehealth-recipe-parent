@@ -1,13 +1,16 @@
 package recipe.enumerate.type;
 
 import org.apache.commons.lang3.StringUtils;
+import recipe.util.ValidateUtil;
 
 /**
  * 处方剂型类型 1 中药饮片 2 配方颗粒
  */
 public enum RecipeDrugFormTypeEnum {
     TCM_DECOCTION_PIECES(1, "饮片方", "中药饮片"),
-    TCM_FORMULA_PIECES(2, "颗粒方", "配方颗粒");
+    TCM_FORMULA_PIECES(2, "颗粒方", "配方颗粒"),
+    TCM_FORMULA_CREAM_FORMULA(3, "膏方", "中药饮片"),
+    ;
 
     private Integer type;
     private String name;
@@ -32,6 +35,9 @@ public enum RecipeDrugFormTypeEnum {
     }
 
     public static String getDrugForm(Integer type) {
+        if (ValidateUtil.integerIsEmpty(type)) {
+            return TCM_DECOCTION_PIECES.desc;
+        }
         for (RecipeDrugFormTypeEnum e : RecipeDrugFormTypeEnum.values()) {
             if (e.type.equals(type)) {
                 return e.desc;

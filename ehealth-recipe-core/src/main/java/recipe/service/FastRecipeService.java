@@ -2,16 +2,14 @@ package recipe.service;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
-
 import com.alibaba.fastjson.JSONObject;
-import com.ngari.recipe.recipe.model.RecipeExtendBean;
-import com.ngari.recipe.vo.FastRecipeReq;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import com.ngari.recipe.vo.FastRecipeDetailVO;
+import com.ngari.recipe.vo.FastRecipeReq;
 import com.ngari.recipe.vo.FastRecipeVO;
-import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
@@ -20,15 +18,12 @@ import ctd.util.event.GlobalEventExecFactory;
 import eh.cdr.api.vo.MedicalDetailBean;
 import eh.utils.ValidateUtil;
 import org.apache.commons.collections.CollectionUtils;
-import org.checkerframework.checker.units.qual.A;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.business.BaseService;
 import recipe.client.DocIndexClient;
 import recipe.client.OperationClient;
-import recipe.constant.CaConstant;
-import recipe.constant.ErrorCode;
 import recipe.constant.RecipeBussConstant;
 import recipe.core.api.IFastRecipeBusinessService;
 import recipe.core.api.patient.IPatientBusinessService;
@@ -38,7 +33,6 @@ import recipe.enumerate.type.BussSourceTypeEnum;
 import recipe.enumerate.type.RecipeDrugFormTypeEnum;
 import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.hisservice.RecipeToHisCallbackService;
-import recipe.manager.CaManager;
 import recipe.vo.doctor.RecipeInfoVO;
 
 import java.math.BigDecimal;
@@ -245,11 +239,7 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
         if (CollectionUtils.isNotEmpty(recipeDetailList)) {
             for (Recipedetail recipedetail : recipeDetailList) {
                 if (RecipeTypeEnum.RECIPETYPE_TCM.getType().equals(recipe.getRecipeType())) {
-                    if (Objects.isNull(recipe.getRecipeDrugForm()) || RecipeDrugFormTypeEnum.TCM_DECOCTION_PIECES.getType().equals(recipe.getRecipeDrugForm())) {
-                        recipedetail.setDrugForm(RecipeDrugFormTypeEnum.getDrugForm(RecipeDrugFormTypeEnum.TCM_DECOCTION_PIECES.getType()));
-                    } else {
-                        recipedetail.setDrugForm(RecipeDrugFormTypeEnum.getDrugForm(RecipeDrugFormTypeEnum.TCM_FORMULA_PIECES.getType()));
-                    }
+                    recipedetail.setDrugForm(RecipeDrugFormTypeEnum.getDrugForm(recipe.getRecipeDrugForm()));
                 }
                 FastRecipeDetail fastRecipeDetail = BeanUtils.map(recipedetail, FastRecipeDetail.class);
                 fastRecipeDetail.setFastRecipeId(fastRecipeResult.getId());
