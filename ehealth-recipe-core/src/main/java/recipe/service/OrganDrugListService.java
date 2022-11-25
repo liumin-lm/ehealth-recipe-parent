@@ -1173,12 +1173,36 @@ public class OrganDrugListService implements IOrganDrugListService {
                         List<OrganDrugList> organDrugListsDb = organDrugListDAO.findByOrganDrugCodeAndOrganIdAndAllStatus(sourceOrganDrugList.getOrganDrugCode(), Integer.valueOf(organId));
                         if (CollectionUtils.isEmpty(organDrugListsDb)) {
                             organDrugListDAO.save(targetOrganDrugList);
+                            logger.info("copyOrganDrugByOrganId add 成功{}", JSONUtils.toString(targetOrganDrugList));
+                            try {
+                                DataSyncDTO dataSyncDTO = recipeService.convertDataSyn(ObjectCopyUtils.convert(targetOrganDrugList, OrganDrugInfoTO.class), Integer.valueOf(organId), 1, null, 1, null);
+                                List<DataSyncDTO> syncDTOList = Lists.newArrayList();
+                                syncDTOList.add(dataSyncDTO);
+                                dataSyncLogService.addDataSyncLog("1", syncDTOList);
+                            } catch (Exception e) {
+                                logger.info("copyOrganDrugByOrganId add error", e);
+                                e.printStackTrace();
+                            }
                         } else {
                             organDrugListsDb.forEach(organDrugListDb -> {
                                 targetOrganDrugList.setOrganDrugId(organDrugListDb.getOrganDrugId());
                                 organDrugListDAO.update(targetOrganDrugList);
+                                logger.info("copyOrganDrugByOrganId update 成功{}", JSONUtils.toString(targetOrganDrugList));
+                                try {
+                                    DataSyncDTO dataSyncDTO = recipeService.convertDataSyn(ObjectCopyUtils.convert(targetOrganDrugList, OrganDrugInfoTO.class), Integer.valueOf(organId), 2, null, 2, null);
+                                    List<DataSyncDTO> syncDTOList = Lists.newArrayList();
+                                    syncDTOList.add(dataSyncDTO);
+                                    dataSyncLogService.addDataSyncLog("1", syncDTOList);
+                                } catch (Exception e) {
+                                    logger.info("copyOrganDrugByOrganId update error", e);
+                                    e.printStackTrace();
+                                }
                             });
                         }
+                        //同步药品到监管备案
+                        RecipeBusiThreadPool.execute(() -> {
+                            uploadDrugToRegulation(targetOrganDrugList);
+                        });
                     });
                 });
 
