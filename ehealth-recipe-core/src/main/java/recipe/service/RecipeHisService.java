@@ -133,8 +133,6 @@ public class RecipeHisService extends RecipeBaseService {
     @Autowired
     private OrderManager orderManager;
     @Autowired
-    private RecipeParameterDao recipeParameterDao;
-    @Autowired
     private RecipeDAO recipeDAO;
     @Autowired
     private PayClient payClient;
@@ -548,8 +546,7 @@ public class RecipeHisService extends RecipeBaseService {
         if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(recipe.getGiveMode()) || RecipeBussConstant.GIVEMODE_TFDS.equals(recipe.getGiveMode())
                 || RecipeBussConstant.GIVEMODE_TO_HOS.equals(recipe.getGiveMode())) {
             LOGGER.info("doRecipeSettle recipeId={}", recipe.getRecipeId());
-            IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-            Boolean giveModeTfdsHisSettle = (Boolean) configurationService.getConfiguration(recipe.getClinicOrgan(), "giveModeTfdsHisSettle");
+            Boolean giveModeTfdsHisSettle = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "giveModeTfdsHisSettle", false);
             if (!giveModeTfdsHisSettle && RecipeBussConstant.GIVEMODE_TFDS.equals(recipe.getGiveMode())) {
                 return true;
             }
