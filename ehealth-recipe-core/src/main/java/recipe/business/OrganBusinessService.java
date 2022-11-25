@@ -5,6 +5,7 @@ import com.ngari.base.scratchable.model.ScratchableBean;
 import com.ngari.recipe.dto.GiveModeButtonDTO;
 import com.ngari.recipe.dto.OrganDTO;
 import com.ngari.recipe.dto.ServiceLogDTO;
+import com.ngari.recipe.entity.PharmacyTcm;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.recipe.model.GiveModeButtonBean;
 import ctd.persistence.exception.DAOException;
@@ -24,7 +25,13 @@ import recipe.vo.second.OrganVO;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
+/**
+ * 机构处理实现类
+ *
+ * @author fuzi
+ */
 @Service
 public class OrganBusinessService extends BaseService implements IOrganBusinessService {
     @Autowired
@@ -122,5 +129,10 @@ public class OrganBusinessService extends BaseService implements IOrganBusinessS
     @Override
     public void serviceTimeLog(ServiceLogDTO convert) {
         infraClient.serviceTimeLog(convert);
+    }
+
+    @Override
+    public Map<Integer, PharmacyTcm> pharmacy(Integer orderId) {
+        return pharmacyManager.pharmacyIdMap(orderId);
     }
 }

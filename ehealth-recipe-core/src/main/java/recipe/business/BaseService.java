@@ -6,10 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.client.DoctorClient;
 import recipe.client.IConfigurationClient;
-import recipe.manager.ButtonManager;
-import recipe.manager.OrganDrugListManager;
-import recipe.manager.OrganManager;
-import recipe.manager.RevisitManager;
+import recipe.manager.*;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -34,6 +31,9 @@ public class BaseService {
     protected OrganDrugListManager organDrugListManager;
     @Autowired
     protected ButtonManager buttonManager;
+    @Autowired
+    protected PharmacyManager pharmacyManager;
+
 
     protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 

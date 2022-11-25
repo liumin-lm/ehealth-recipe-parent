@@ -2,10 +2,12 @@ package recipe.core.api;
 
 import com.ngari.recipe.dto.GiveModeButtonDTO;
 import com.ngari.recipe.dto.ServiceLogDTO;
+import com.ngari.recipe.entity.PharmacyTcm;
 import com.ngari.recipe.recipe.model.GiveModeButtonBean;
 import recipe.vo.second.OrganVO;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 机构相关服务
@@ -88,4 +90,12 @@ public interface IOrganBusinessService {
      * @param serviceLog
      */
     void serviceTimeLog(ServiceLogDTO serviceLog);
+
+    /**
+     * 获取机构下的药房
+     *
+     * @param orderId
+     * @return
+     */
+    Map<Integer, PharmacyTcm> pharmacy(Integer orderId);
 }
