@@ -550,7 +550,7 @@ public class RecipeHisService extends RecipeBaseService {
             LOGGER.info("doRecipeSettle recipeId={}", recipe.getRecipeId());
             IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
             Boolean giveModeTfdsHisSettle = (Boolean) configurationService.getConfiguration(recipe.getClinicOrgan(), "giveModeTfdsHisSettle");
-            if (giveModeTfdsHisSettle && RecipeBussConstant.GIVEMODE_TFDS.equals(recipe.getGiveMode())) {
+            if (!giveModeTfdsHisSettle && RecipeBussConstant.GIVEMODE_TFDS.equals(recipe.getGiveMode())) {
                 return true;
             }
 
