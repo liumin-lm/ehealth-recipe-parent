@@ -84,6 +84,7 @@ public class PatientRecipeDTO implements Serializable {
     /**
      * 药师签名的处方PDF
      */
+    @FileToken(expires = 3600)
     private String chemistSignFile;
 
     /**
