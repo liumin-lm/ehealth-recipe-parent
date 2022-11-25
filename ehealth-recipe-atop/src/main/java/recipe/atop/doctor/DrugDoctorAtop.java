@@ -241,16 +241,18 @@ public class DrugDoctorAtop extends BaseAtop {
         drugInfoDTO.setDrugType(searchDrugReq.getDrugType());
         drugInfoDTO.setApplyBusiness(searchDrugReq.getApplyBusiness());
         drugInfoDTO.setPharmacyId(searchDrugReq.getPharmacyId());
-        drugInfoDTO.setDrugForm(RecipeDrugFormTypeEnum.getDrugForm(searchDrugReq.getRecipeDrugForm()));
+        if (RecipeUtil.isTcmType(searchDrugReq.getDrugType())) {
+            drugInfoDTO.setDrugForm(RecipeDrugFormTypeEnum.getDrugForm(searchDrugReq.getRecipeDrugForm()));
+        }
         List<SearchDrugDetailDTO> drugWithEsByPatient = drugBusinessService.searchOrganDrugEs(drugInfoDTO, searchDrugReq.getStart(), searchDrugReq.getLimit());
         List<Integer> drugIds = drugWithEsByPatient.stream().map(SearchDrugDetailDTO::getDrugId).distinct().collect(Collectors.toList());
         List<DrugList> drugs = drugBusinessService.drugList(drugIds);
         Map<Integer, DrugList> drugMap = drugs.stream().collect(Collectors.toMap(DrugList::getDrugId, a -> a, (k1, k2) -> k1));
         Map<String, OrganDrugList> organDrugMap = drugBusinessService.organDrugMap(searchDrugReq.getOrganId(), drugIds);
-        Boolean openRecipeHideDrugManufacturer = configStatusBusinessService.getOpenRecipeHideDrugManufacturer(searchDrugReq.getOrganId(),"openRecipeHideDrugManufacturer");
+        Boolean openRecipeHideDrugManufacturer = configStatusBusinessService.getOpenRecipeHideDrugManufacturer(searchDrugReq.getOrganId(), "openRecipeHideDrugManufacturer");
         drugWithEsByPatient.forEach(drugList -> {
             // 中药 药品信息里不能显示生产厂家
-            if(openRecipeHideDrugManufacturer  && RecipeTypeEnum.RECIPETYPE_TCM.getType().equals(drugList.getDrugType())){
+            if (openRecipeHideDrugManufacturer && RecipeTypeEnum.RECIPETYPE_TCM.getType().equals(drugList.getDrugType())) {
                 drugList.setProducer("****");
             }
             //添加es价格空填值逻辑
