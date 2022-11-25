@@ -1145,39 +1145,46 @@ public class OrganDrugListService implements IOrganDrugListService {
                 return;
             }
             OrganDrugListService.logger.info("copyOrganDrugByOrganId:{}同步到{}", organConfigVO.getOrganId(), JSONUtils.toString(organIdList));
+
+
             List<OrganDrugList> sourceOrganDrugLists = organDrugListDAO.findByOrganIdWithOutStatus(Integer.valueOf(organConfigVO.getOrganId()));
             organIdList.forEach(organId -> {
-                OrganDrugListService.logger.info("copyOrganDrugByOrganId:{}同步到{}start", organConfigVO.getOrganId(), organId);
-                targetOrganNames.set(targetOrganNames + "【" + organClient.organDTO(Integer.valueOf(organId)).getName() + "】");
-                drugListMatchDAO.deleteByOrganIdAndStatus(Integer.valueOf(organId));
-                if (CollectionUtils.isEmpty(sourceOrganDrugLists)) {
-                    return;
-                }
-                List<OrganDrugList> toOrganDrugLists = organDrugListDAO.findByOrganId(Integer.valueOf(organId));
-                toOrganDrugLists.forEach(organDrugList -> {
-                    if (organDrugList == null) {
+                 RecipeBusiThreadPool.execute(() -> {
+                    OrganDrugListService.logger.info("copyOrganDrugByOrganId:{}同步到{}start", organConfigVO.getOrganId(), organId);
+                    targetOrganNames.set(targetOrganNames + "【" + organClient.organDTO(Integer.valueOf(organId)).getName() + "】");
+                    drugListMatchDAO.deleteByOrganIdAndStatus(Integer.valueOf(organId));
+                    if (CollectionUtils.isEmpty(sourceOrganDrugLists)) {
                         return;
                     }
-                    deleteOrganDrug(Integer.valueOf(organId), organDrugList.getOrganDrugId());
+                    List<OrganDrugList> toOrganDrugLists = organDrugListDAO.findByOrganId(Integer.valueOf(organId));
+                    toOrganDrugLists.forEach(organDrugList -> {
+                        if (organDrugList == null) {
+                            return;
+                        }
+                        deleteOrganDrug(Integer.valueOf(organId), organDrugList.getOrganDrugId());
+                    });
+
+                    sourceOrganDrugLists.forEach(sourceOrganDrugList -> {
+                        OrganDrugListService.logger.info("copyOrganDrugByOrganId organId:{},organDrugCode:{}", organId, sourceOrganDrugList.getOrganDrugCode());
+                        OrganDrugList targetOrganDrugList = new OrganDrugList();
+                        org.springframework.beans.BeanUtils.copyProperties(sourceOrganDrugList, targetOrganDrugList);
+                        targetOrganDrugList.setOrganId(Integer.valueOf(organId));
+                        //如果有禁用的，设置为启用状态
+                        List<OrganDrugList> organDrugListsDb = organDrugListDAO.findByOrganDrugCodeAndOrganIdAndAllStatus(sourceOrganDrugList.getOrganDrugCode(), Integer.valueOf(organId));
+                        if (CollectionUtils.isEmpty(organDrugListsDb)) {
+                            organDrugListDAO.save(targetOrganDrugList);
+                        } else {
+                            organDrugListsDb.forEach(organDrugListDb -> {
+                                targetOrganDrugList.setOrganDrugId(organDrugListDb.getOrganDrugId());
+                                organDrugListDAO.update(targetOrganDrugList);
+                            });
+                        }
+                    });
                 });
 
-                sourceOrganDrugLists.forEach(sourceOrganDrugList -> {
-                    OrganDrugListService.logger.info("copyOrganDrugByOrganId organId:{},organDrugCode:{}", organId, sourceOrganDrugList.getOrganDrugCode());
-                    OrganDrugList targetOrganDrugList = new OrganDrugList();
-                    org.springframework.beans.BeanUtils.copyProperties(sourceOrganDrugList, targetOrganDrugList);
-                    targetOrganDrugList.setOrganId(Integer.valueOf(organId));
-                    //如果有禁用的，设置为启用状态
-                    List<OrganDrugList> organDrugListsDb = organDrugListDAO.findByOrganDrugCodeAndOrganIdAndAllStatus(sourceOrganDrugList.getOrganDrugCode(), Integer.valueOf(organId));
-                    if (CollectionUtils.isEmpty(organDrugListsDb)) {
-                        organDrugListDAO.save(targetOrganDrugList);
-                    } else {
-                        organDrugListsDb.forEach(organDrugListDb -> {
-                            targetOrganDrugList.setOrganDrugId(organDrugListDb.getOrganDrugId());
-                            organDrugListDAO.update(targetOrganDrugList);
-                        });
-                    }
-                });
             });
+
+
             OrganDrugListService.logger.info("copyOrganDrugByOrganId 保存同步日志");
             // 保存同步日志
             UserRoleToken urt = UserRoleToken.getCurrent();
