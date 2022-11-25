@@ -309,6 +309,19 @@ public class OrderFeeManager extends BaseManager {
             order.setTcmFee(recipePaymentFee.getTcmFee());
             order.setTcmFeeNo(recipePaymentFee.getTcmFeeNo());
         }
+        BigDecimal otherFee = Objects.isNull(order.getOtherFee())?BigDecimal.ZERO:order.getOtherFee();
+        if (Objects.nonNull(recipePaymentFee.getPackageFee()) && recipePaymentFee.getPackageFee().compareTo(BigDecimal.ZERO) > 0) {
+            //打包费
+            otherFee.add(recipePaymentFee.getPackageFee());
+        }
+        if (Objects.nonNull(recipePaymentFee.getYellowRiceFee()) && recipePaymentFee.getYellowRiceFee().compareTo(BigDecimal.ZERO) > 0) {
+            //黄酒费
+            otherFee.add(recipePaymentFee.getYellowRiceFee());
+        }
+        if (Objects.nonNull(recipePaymentFee.getProcessFee()) && recipePaymentFee.getProcessFee().compareTo(BigDecimal.ZERO) > 0) {
+            //制作费
+            otherFee.add(recipePaymentFee.getProcessFee());
+        }
     }
 
 
