@@ -235,6 +235,14 @@ public class DrugDoctorAtop extends BaseAtop {
     @RpcService
     public List<SearchDrugDetailDTO> searchOrganDrugEs(SearchDrugReqVO searchDrugReq) {
         validateAtop(searchDrugReq, searchDrugReq.getOrganId(), searchDrugReq.getDrugType(), searchDrugReq.getApplyBusiness());
+        if (!ValidateUtil.integerIsEmpty(searchDrugReq.getPharmacyId()) && !ValidateUtil.integerIsEmpty(searchDrugReq.getRecipeDrugForm())) {
+            PharmacyTcm pharmacy = organBusinessService.pharmacy(searchDrugReq.getOrganId()).get(searchDrugReq.getPharmacyId());
+            validateAtop(pharmacy);
+            if (!pharmacy.getDrugFormType().contains(searchDrugReq.getRecipeDrugForm().toString())) {
+                return Collections.emptyList();
+            }
+        }
+
         DrugInfoDTO drugInfoDTO = new DrugInfoDTO();
         drugInfoDTO.setOrganId(searchDrugReq.getOrganId());
         drugInfoDTO.setDrugName(searchDrugReq.getDrugName());
