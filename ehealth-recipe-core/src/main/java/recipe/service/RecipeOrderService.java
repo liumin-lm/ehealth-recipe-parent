@@ -1714,7 +1714,7 @@ public class RecipeOrderService extends RecipeBaseService {
                             if(recipe.getRecipeId().equals(recipeId)){
                                 canCancelOrderCode = false;
                             }
-                            recipeDAO.updateOrderCodeToNullByOrderCodeAndClearChoose(order.getOrderCode(), recipe, 1,canCancelOrderCode);
+                            recipeDAO.updateOrderCodeToNullByRecipeId( recipe, 1,canCancelOrderCode);
                             String decoctionDeploy = ((String[]) configService.getConfiguration(recipe.getClinicOrgan(), "decoctionDeploy"))[0];
                             if ("2".equals(decoctionDeploy)) {
                                 RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
