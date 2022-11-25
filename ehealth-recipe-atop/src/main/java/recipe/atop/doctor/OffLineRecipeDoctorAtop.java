@@ -4,14 +4,19 @@ import com.google.common.collect.Lists;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.dto.HisRecipeDTO;
 import com.ngari.recipe.dto.HisRecipeInfoDTO;
+import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.vo.OffLineRecipeDetailVO;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
+import recipe.core.api.IDrugBusinessService;
 import recipe.core.api.patient.IOfflineRecipeBusinessService;
+import recipe.enumerate.type.RecipeDrugFormTypeEnum;
+import recipe.enumerate.type.RecipeTypeEnum;
 
 import java.sql.Timestamp;
 import java.util.List;
@@ -26,6 +31,8 @@ import java.util.stream.Collectors;
 public class OffLineRecipeDoctorAtop extends BaseAtop {
     @Autowired
     private IOfflineRecipeBusinessService offlineRecipeBusinessService;
+    @Autowired
+    private IDrugBusinessService drugBusinessService;
 
     /**
      * 获取线下处方详情
@@ -78,6 +85,14 @@ public class OffLineRecipeDoctorAtop extends BaseAtop {
         List<String> organDrugCodeList = recipeDetails.stream().map(RecipeDetailBean::getOrganDrugCode).distinct().collect(Collectors.toList());
         List<HisRecipeDetailBean> recipeDetailBeans = hisRecipeDetailBeans.stream().filter(a -> organDrugCodeList.contains(a.getDrugCode())).collect(Collectors.toList());
         recipeBean.setDetailData(recipeDetailBeans);
+        if (RecipeTypeEnum.RECIPETYPE_TCM.getType().toString().equals(recipeBean.getRecipeType()) && CollectionUtils.isNotEmpty(recipeDetailBeans)) {
+            List<String> drugCodeList = recipeDetailBeans.stream().map(HisRecipeDetailBean::getDrugCode).filter(StringUtils::isNotEmpty).collect(Collectors.toList());
+            List<OrganDrugList> organDrugLists = drugBusinessService.organDrugList(recipe.getClinicOrgan(), drugCodeList);
+            List<String> organDrugFormLists = organDrugLists.stream().map(OrganDrugList::getDrugForm).filter(StringUtils::isNotEmpty).collect(Collectors.toList());
+            if (CollectionUtils.isNotEmpty(organDrugFormLists)) {
+                recipeBean.setRecipeDrugForm(RecipeDrugFormTypeEnum.getDrugFormType(organDrugFormLists.get(0)));
+            }
+        }
         return recipeBean;
     }
 }
