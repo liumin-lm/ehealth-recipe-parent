@@ -2,6 +2,7 @@ package com.ngari.recipe.recipe.model;
 
 
 import com.ngari.patient.dto.PatientDTO;
+import ctd.schema.annotation.FileToken;
 import ctd.schema.annotation.Schema;
 
 import java.io.Serializable;
@@ -73,6 +74,7 @@ public class PatientRecipeDTO implements Serializable {
 
     private Integer giveMode;
 
+    @FileToken(expires = 3600)
     private String signFile;
 
     private List<RecipeDetailBean> recipeDetail;
