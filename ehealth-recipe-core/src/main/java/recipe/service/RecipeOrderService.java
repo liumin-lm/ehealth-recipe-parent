@@ -1858,8 +1858,10 @@ public class RecipeOrderService extends RecipeBaseService {
                         prb.setSpecialNeedClinicFlag(revisitExDTO.getSpecialNeedClinicFlag());
                     }
 
-                    Integer payModeNew = PayModeGiveModeUtil.getPayMode(order.getPayMode(), recipe.getGiveMode());
-                    prb.setPayMode(payModeNew);
+                    if (Objects.nonNull(recipe.getGiveMode()) && Objects.nonNull(order.getPayMode())) {
+                        Integer payModeNew = PayModeGiveModeUtil.getPayMode(order.getPayMode(), recipe.getGiveMode());
+                        prb.setPayMode(payModeNew);
+                    }
                     prb.setRecipeType(recipe.getRecipeType());
                     prb.setRecipeMode(recipe.getRecipeMode());
                     prb.setChemistSignFile(recipe.getChemistSignFile());
