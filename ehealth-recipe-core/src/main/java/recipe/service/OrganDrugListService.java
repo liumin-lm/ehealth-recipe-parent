@@ -1149,9 +1149,9 @@ public class OrganDrugListService implements IOrganDrugListService {
 
             List<OrganDrugList> sourceOrganDrugLists = organDrugListDAO.findByOrganIdWithOutStatus(Integer.valueOf(organConfigVO.getOrganId()));
             organIdList.forEach(organId -> {
+                 targetOrganNames.set(targetOrganNames + "【" + organClient.organDTO(Integer.valueOf(organId)).getName() + "】");
                  RecipeBusiThreadPool.execute(() -> {
                     OrganDrugListService.logger.info("copyOrganDrugByOrganId:{}同步到{}start", organConfigVO.getOrganId(), organId);
-                    targetOrganNames.set(targetOrganNames + "【" + organClient.organDTO(Integer.valueOf(organId)).getName() + "】");
                     drugListMatchDAO.deleteByOrganIdAndStatus(Integer.valueOf(organId));
                     if (CollectionUtils.isEmpty(sourceOrganDrugLists)) {
                         return;
