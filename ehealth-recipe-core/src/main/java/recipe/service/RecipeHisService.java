@@ -66,6 +66,7 @@ import recipe.client.DocIndexClient;
 import recipe.client.IConfigurationClient;
 import recipe.client.OfflineRecipeClient;
 import recipe.client.PayClient;
+import recipe.common.CommonConstant;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.dao.bean.DrugInfoHisBean;
@@ -345,6 +346,16 @@ public class RecipeHisService extends RecipeBaseService {
         return flag;
     }
 
+    /**
+     * 撤销接口测试
+     *
+     * @param recipeId
+     * @return
+     */
+    @RpcService
+    public void cancelRecipeImplTest(Integer recipeId) {
+        this.cancelRecipeImpl(recipeId, null, CommonConstant.RECIPE_CANCEL_TYPE.toString());
+    }
 
     /**
      * 发送指定HIS修改处方状态
