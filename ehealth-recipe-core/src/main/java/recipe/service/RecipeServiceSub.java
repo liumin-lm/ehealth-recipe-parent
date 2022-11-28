@@ -1723,7 +1723,7 @@ public class RecipeServiceSub {
             //审核不通过处方单详情增加二次签名标记
             //date 20191011
             //添加一次审核不通过标志位,取消之前通过订单是否有效的判断
-            boolean b = RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus() && (recipe.canMedicalPay() || (RecipecCheckStatusConstant.First_Check_No_Pass == recipe.getCheckStatus()));
+            boolean b = RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus() && (recipe.canMedicalPay() || (RecipecCheckStatusConstant.First_Check_No_Pass.equals(recipe.getCheckStatus())));
             if (b) {
                 map.put("secondSignFlag", canSecondAudit(recipe.getClinicOrgan()));
             }
@@ -1821,14 +1821,14 @@ public class RecipeServiceSub {
             map.put("mergeRecipeFlag", mergeRecipeFlag);
             //Explain:审核是否通过
             boolean isOptional = !(RecipeStatusEnum.getCheckShowFlag(recipe.getStatus()) ||
-                    RecipecCheckStatusConstant.First_Check_No_Pass.equals(recipe.getCheckStatus()) && ReviewTypeConstant.Preposition_Check == recipe.getReviewType());
+                    RecipecCheckStatusConstant.First_Check_No_Pass.equals(recipe.getCheckStatus()) && ReviewTypeConstant.Preposition_Check.equals(recipe.getReviewType()));
             map.put("optional", isOptional);
 
             //date 2190929
             //添加处方详情上提示信息的展示颜色类型
             //添加一次审核不通过，状态待审核
             Integer recipestatus = recipe.getStatus();
-            if (RecipecCheckStatusConstant.First_Check_No_Pass == recipe.getCheckStatus()) {
+            if (RecipecCheckStatusConstant.First_Check_No_Pass.equals(recipe.getCheckStatus())) {
                 recipestatus = RecipeStatusConstant.READY_CHECK_YS;
             }
             RecipeTipesColorTypeEnum colorType = RecipeTipesColorTypeEnum.fromRecipeStatus(recipestatus);

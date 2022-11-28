@@ -190,7 +190,7 @@ public class RecipeAuditClient extends BaseClient {
             return false;
         }
         //判断有没有不通过的记录，没有就说明是直接审核通过的
-        return null != recipeCheckBean.getCheckStatus() && 1 == recipeCheckBean.getCheckStatus() && CollectionUtils.isEmpty(recipeLogs);
+        return Integer.valueOf("1").equals(recipeCheckBean.getCheckStatus()) && CollectionUtils.isEmpty(recipeLogs);
     }
 
     /**

@@ -525,9 +525,9 @@ public class OperationPlatformRecipeService {
             }
             if (Objects.isNull(nowRecipeCheck.getCheckStatus())) {
                 checkResult = RecipePharmacistCheckConstant.Already_Check;
-            } else if (1 == nowRecipeCheck.getCheckStatus()) {
+            } else if (new Integer(1).equals(nowRecipeCheck.getCheckStatus())) {
                 checkResult = RecipePharmacistCheckConstant.Check_Pass;
-            } else if (0 == nowRecipeCheck.getCheckStatus() && null != nowRecipeCheck.getChecker()) {
+            } else if (new Integer(0).equals(nowRecipeCheck.getCheckStatus()) && null != nowRecipeCheck.getChecker()) {
                 checkResult = RecipePharmacistCheckConstant.Check_Failure;
             }
             return checkResult;
@@ -549,9 +549,9 @@ public class OperationPlatformRecipeService {
                 RecipeCheckBean recipeCheck = recipeCheckService.getByRecipeId(recipe.getRecipeId());
                 //有审核记录就展示
                 if (recipeCheck != null) {
-                    if (null != recipeCheck.getChecker() && RecipecCheckStatusConstant.First_Check_No_Pass == recipeCheck.getCheckStatus()) {
+                    if (null != recipeCheck.getChecker() && RecipecCheckStatusConstant.First_Check_No_Pass.equals(recipeCheck.getCheckStatus())) {
                         checkResult = RecipePharmacistCheckConstant.Check_Pass;
-                    } else if (null != recipeCheck.getChecker() && RecipecCheckStatusConstant.Check_Normal == recipeCheck.getCheckStatus()) {
+                    } else if (null != recipeCheck.getChecker() && RecipecCheckStatusConstant.Check_Normal.equals(recipeCheck.getCheckStatus())) {
                         checkResult = RecipePharmacistCheckConstant.Check_No_Pass;
                     }
                 }
