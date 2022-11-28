@@ -1512,7 +1512,7 @@ public class RecipeServiceSub {
         r.setProcessState(recipe.getProcessState());
         r.setSubState(recipe.getSubState());
         r.setSubStateText(RecipeStateEnum.getRecipeStateEnum(recipe.getSubState()).getName());
-        r.setAuditState(recipe.getAuditState());
+        //r.setAuditState(recipe.getAuditState());
         r.setDoctorName(recipe.getDoctorName());
         r.setDepart(recipe.getDepart());
         r.setOfflineRecipeName(recipe.getOfflineRecipeName());
