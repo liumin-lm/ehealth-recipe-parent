@@ -239,6 +239,7 @@ public class DrugDoctorAtop extends BaseAtop {
             PharmacyTcm pharmacy = organBusinessService.pharmacy(searchDrugReq.getOrganId()).get(searchDrugReq.getPharmacyId());
             validateAtop(pharmacy);
             if (!pharmacy.getDrugFormType().contains(searchDrugReq.getRecipeDrugForm().toString())) {
+                logger.info("DrugDoctorAtop searchOrganDrugEs DrugFormType ={}", JSON.toJSONString(pharmacy));
                 return Collections.emptyList();
             }
         }
