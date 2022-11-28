@@ -436,20 +436,20 @@ public class RecipeTestService {
                     }
                     if (item.getChecker() != null) {
                         // 审核未通过
-                        if (item.getCheckStatus() == 0) {
+                        if (new Integer(0).equals(item.getCheckStatus())) {
                             stateManager.updateAuditState(item.getRecipeId(), RecipeAuditStateEnum.FAIL);
                         }
                         // 审核通过
-                        if (item.getCheckStatus() == 1) {
+                        if (new Integer(1).equals(item.getCheckStatus())) {
                             stateManager.updateAuditState(item.getRecipeId(), RecipeAuditStateEnum.PASS);
                         }
                     }
                     // 医生确认中
-                    if (recipe.getCheckStatus() == 1) {
+                    if (new Integer(1).equals(recipe.getCheckStatus())) {
                         stateManager.updateAuditState(item.getRecipeId(), RecipeAuditStateEnum.FAIL_DOC_CONFIRMING);
                     }
                     // 医生强制通过
-                    if (recipe.getCheckStatus() == 0 && StringUtils.isNoneBlank(recipe.getSupplementaryMemo()) && recipe.getCheckFlag() == 1) {
+                    if (new Integer(0).equals(recipe.getCheckStatus()) && StringUtils.isNoneBlank(recipe.getSupplementaryMemo()) && recipe.getCheckFlag() == 1) {
                         stateManager.updateAuditState(item.getRecipeId(), RecipeAuditStateEnum.DOC_FORCED_PASS);
                     }
                     // 取消

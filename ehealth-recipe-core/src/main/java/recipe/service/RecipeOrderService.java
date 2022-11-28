@@ -2237,7 +2237,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 //设置页面上提示文案的颜色信息
                 //添加一次审核不通过的判断，等价于待审核
                 Integer recipestatus = nowRecipe.getStatus();
-                if (RecipecCheckStatusConstant.First_Check_No_Pass == nowRecipe.getCheckStatus()) {
+                if (RecipecCheckStatusConstant.First_Check_No_Pass.equals(nowRecipe.getCheckStatus())) {
                     recipestatus = RecipeStatusConstant.READY_CHECK_YS;
                 }
                 RecipeTipesColorTypeEnum colorType = RecipeTipesColorTypeEnum.fromRecipeStatus(recipestatus);

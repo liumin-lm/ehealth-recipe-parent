@@ -169,9 +169,9 @@ public class RevisitRecipeTraceVo implements Serializable {
         private String memo;
 
         public String getCheckStatusText() {
-            if (0 == checkStatus) {
+            if (Integer.valueOf("0").equals(checkStatus)) {
                 this.checkStatusText = "审核未通过";
-            } else if (1 == checkStatus) {
+            } else if (Integer.valueOf("1").equals(checkStatus)) {
                 this.checkStatusText = "审核通过";
             }
             return this.checkStatusText;
