@@ -4233,6 +4233,7 @@ public class RecipeService extends RecipeBaseService {
                             pharmacyTcm.setPharmacyCode(pharmacyCode);
                             pharmacyTcm.setPharmacyName(pharmcyNameArr[i]);
                             pharmacyTcm.setPharmacyCategray("中药,西药,中成药,膏方");
+                            pharmacyTcm.setDrugFormType(RecipeDrugFormTypeEnum.TCM_DECOCTION_PIECES.getType().toString());
                             pharmacyTcm.setWhDefault(false);
                             pharmacyTcm.setSort(1000);
                             boolean b = pharmacyTcmService.addPharmacyTcmForOrgan(pharmacyTcm);
@@ -4599,6 +4600,7 @@ public class RecipeService extends RecipeBaseService {
                             pharmacyTcm.setPharmacyCode(pharmacyCode);
                             pharmacyTcm.setPharmacyName(pharmcyNameArr[i]);
                             pharmacyTcm.setPharmacyCategray("中药,西药,中成药,膏方");
+                            pharmacyTcm.setDrugFormType(RecipeDrugFormTypeEnum.TCM_DECOCTION_PIECES.getType().toString());
                             pharmacyTcm.setWhDefault(false);
                             pharmacyTcm.setSort(1000);
                             boolean b = pharmacyTcmService.addPharmacyTcmForOrgan(pharmacyTcm);
