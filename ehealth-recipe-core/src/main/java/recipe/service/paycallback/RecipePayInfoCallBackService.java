@@ -289,6 +289,7 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
             if (ysbody != null) {
                 //总金额
                 Double zje = attr.get("zje") != null ? ConversionUtils.convert(attr.get("zje"), Double.class) : ConversionUtils.convert(ysbody.get("zje"), Double.class);
+                Double actualZje;
                 //舍入金额
                 Double abandonAmount = ysbody.get("srje") != null ? ConversionUtils.convert(ysbody.get("srje"), Double.class) : 0.0;
                 logger.info("收银台返回的总金额:{},舍入金额:{}", zje, abandonAmount);
@@ -328,35 +329,27 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
                                 double recipeFee = zje - order.getExpressFee().doubleValue();
                                 if (recipeFee >= 0) {
                                     attr.put("RecipeFee", new BigDecimal(recipeFee));
+                                    attr.put("TotalFee", new BigDecimal(zje));
+                                    attr.put("ActualPrice", new BigDecimal(zje));
                                 }
                             } else {
                                 attr.put("RecipeFee", new BigDecimal(zje));
+                                attr.put("TotalFee", new BigDecimal(zje));
+                                attr.put("ActualPrice", new BigDecimal(zje));
                             }
                         } else {
                             //表示快递费线下支付
                             if (null != order.getExpressFee() && order.getExpressFee().compareTo(BigDecimal.ZERO) > 0) {
                                 double totalFee = zje + order.getExpressFee().doubleValue();
                                 attr.put("TotalFee", new BigDecimal(totalFee));
+                                attr.put("RecipeFee", new BigDecimal(zje));
+                                attr.put("ActualPrice", new BigDecimal(zje));
                             } else {
                                 attr.put("RecipeFee", new BigDecimal(zje));
+                                attr.put("TotalFee", new BigDecimal(zje));
+                                attr.put("ActualPrice", new BigDecimal(zje));
                             }
                         }
-                        if (Objects.nonNull(order.getTcmFee()) && order.getTcmFee().compareTo(BigDecimal.ZERO) > 0) {
-                            //中医辨证论证费
-                            double recipeFee = zje - order.getTcmFee().doubleValue();
-                            if (recipeFee >= 0) {
-                                attr.put("RecipeFee", new BigDecimal(recipeFee));
-                            }
-                        }
-                        if (Objects.nonNull(order.getOtherFee()) && order.getOtherFee().compareTo(BigDecimal.ZERO) > 0) {
-                            //包含其他费用
-                            double recipeFee = zje - order.getOtherFee().doubleValue();
-                            if (recipeFee >= 0) {
-                                attr.put("RecipeFee", new BigDecimal(recipeFee));
-                            }
-                        }
-                        attr.put("TotalFee", new BigDecimal(zje));
-                        attr.put("ActualPrice", new BigDecimal(zje));
                     }
                 } catch (Exception e) {
                     logger.error("设置订单金额失败", e);
