@@ -34,5 +34,6 @@ public interface IRecipeLogService extends IBaseService<RecipeLogBean> {
     List<RecipeLogBean> findByRecipeId(Integer recipeId);
 
     @RpcService
+    @Deprecated
     List<RecipeLogBean> findByRecipeIdAndAfterStatus(Integer recipeId, Integer afterStatus);
 }

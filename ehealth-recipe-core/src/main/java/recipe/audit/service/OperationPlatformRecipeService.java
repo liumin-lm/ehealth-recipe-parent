@@ -50,7 +50,6 @@ import recipe.client.DrugClient;
 import recipe.client.RecipeAuditClient;
 import recipe.constant.*;
 import recipe.dao.*;
-import recipe.enumerate.status.YesOrNoEnum;
 import recipe.enumerate.type.TakeMedicineWayEnum;
 import recipe.manager.ButtonManager;
 import recipe.manager.DepartManager;
@@ -480,14 +479,14 @@ public class OperationPlatformRecipeService {
 
     private String getSignReasonForChecker(Integer recipeId, Integer status) {
         RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
-        List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatusDesc(recipeId, RecipeStatusConstant.SIGN_ERROR_CODE_PHA);
+      //  List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatusDesc(recipeId, RecipeStatusConstant.SIGN_ERROR_CODE_PHA);
         String signReason = "";
         if (RecipeStatusConstant.SIGN_ERROR_CODE_PHA == status) {
-            if (CollectionUtils.isNotEmpty(recipeLogs)) {
-                signReason = "审方签名失败：" + recipeLogs.get(0).getMemo();
-            } else {
-                signReason = "审方签名失败!";
-            }
+//            if (CollectionUtils.isNotEmpty(recipeLogs)) {
+//                signReason = "审方签名失败：" + recipeLogs.get(0).getMemo();
+//            } else {
+//            }
+            signReason = "审方签名失败!";
         }
         if (RecipeStatusConstant.SIGN_ING_CODE_PHA == status) {
             signReason = "审方签名中";
@@ -580,11 +579,11 @@ public class OperationPlatformRecipeService {
             if (StringUtils.isNotEmpty(recipeExtend.getCancellation())) {
                 cancelReason = "开方医生已撤销处方,撤销原因:" + recipeExtend.getCancellation();
             } else {
-                RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
-                List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatusDesc(recipeId, RecipeStatusConstant.REVOKE);
-                if (CollectionUtils.isNotEmpty(recipeLogs)) {
-                    cancelReason = "开方医生已撤销处方,撤销原因:" + recipeLogs.get(0).getMemo();
-                }
+//                RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
+//                List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatusDesc(recipeId, RecipeStatusConstant.REVOKE);
+//                if (CollectionUtils.isNotEmpty(recipeLogs)) {
+//                    cancelReason = "开方医生已撤销处方,撤销原因:" + recipeLogs.get(0).getMemo();
+//                }
             }
         }
         return cancelReason;
