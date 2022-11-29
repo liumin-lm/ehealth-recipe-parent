@@ -39,11 +39,35 @@ public class RecipeLog implements java.io.Serializable{
     @Dictionary(id = "eh.cdr.dictionary.RecipeStatus")
     private Integer afterStatus;
 
-    @ItemProperty(alias="备注信息")
+    @ItemProperty(alias = "备注信息")
     private String memo;
 
-    @ItemProperty(alias="预留")
+    @ItemProperty(alias = "预留")
     private String expand;
+
+    @ItemProperty(alias = "处方父状态：0：默认 ， 1：待提交，2：待审核，3：待够药，4：待发药，5：配送中，6：待取药，7：已完成，8：已删除 ，9：已作废")
+    private Integer processState;
+    @ItemProperty(alias = "处方子状态")
+    private Integer subState;
+
+    @Column(name = "process_state")
+    public Integer getProcessState() {
+        return processState;
+    }
+
+    public void setProcessState(Integer processState) {
+        this.processState = processState;
+    }
+
+    @Column(name = "sub_state")
+    public Integer getSubState() {
+        return subState;
+    }
+
+    public void setSubState(Integer subState) {
+        this.subState = subState;
+    }
+
 
     public RecipeLog() {
     }
