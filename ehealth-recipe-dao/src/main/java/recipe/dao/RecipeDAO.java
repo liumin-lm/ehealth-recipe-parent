@@ -129,6 +129,8 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 q.setParameter("organId", organId);
                 q.setParameter("start", start);
                 q.setParameter("end", end);
+                q.setFirstResult(0);
+                q.setMaxResults(100);
                 setResult(q.list());
             }
         };

@@ -485,16 +485,16 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         if (null != recipe) {
             return ObjectCopyUtils.convert(recipe, RecipeBean.class);
         }
-        List<Recipe> recipeList;
+        List<Recipe> recipeList = new ArrayList<>();
         if (StringUtils.isNotEmpty(registerId)) {
             //根据挂号序号查询处方列表
             recipeList = recipeDAO.findByRecipeCodeAndRegisterIdAndOrganId(registerId, organId);
         } else {
             //获取当前一个月的时间段
-            Date lastMonthDate = DateConversion.getMonthsAgo(1);
+            Date lastMonthDate = DateConversion.getDateTimeDaysAgo(10);
             recipeList = recipeDAO.findRecipeCodesByOrderIdAndTime(organId, lastMonthDate, new Date());
         }
-        logger.info("RecipeBusinessService getByRecipeCodeAndRegisterIdAndOrganId recipeList:{}", JSON.toJSONString(recipeList));
+        logger.info("RecipeBusinessService getByRecipeCodeAndRegisterIdAndOrganId recipeList:{}", recipeList.size());
         //查看recipeCode是否在recipeCodeList中，这里可能存在这种数据["1212","1222,1211","2312"]
         List<Recipe> result = new ArrayList<>();
         recipeList.forEach(a -> {
