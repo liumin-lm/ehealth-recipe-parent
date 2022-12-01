@@ -15,6 +15,7 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.dto.*;
 import com.ngari.patient.service.IUsePathwaysService;
 import com.ngari.patient.service.IUsingRateService;
+import com.ngari.patient.service.PatientService;
 import com.ngari.platform.recipe.mode.OutpatientPaymentRecipeDTO;
 import com.ngari.platform.recipe.mode.QueryRecipeInfoHisDTO;
 import com.ngari.recipe.dto.*;
@@ -171,6 +172,10 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     private RecipeListService recipeListService;
     @Autowired
     private DrugClient drugClient;
+    @Autowired
+    private PatientService patientService;
+    @Autowired
+    private RevisitManager revisitManager;
 
 
     /**
@@ -1365,6 +1370,36 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             return recipeToGuideResVO;
         }).collect(Collectors.toList());
         return recipeToGuideResVOS;
+    }
+
+    @Override
+    public Integer stagingRecipe(StagingRecipeReq stagingRecipeReq) {
+        RecipeBean recipeBean = stagingRecipeReq.getRecipeBean();
+        PatientDTO patient = patientService.get(recipeBean.getMpiid());
+        //解决旧版本因为wx2.6患者身份证为null，而业务申请不成功
+        if (patient == null || StringUtils.isEmpty(patient.getCertificate())) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "该患者还未填写身份证信息，不能开处方");
+        }
+        boolean optimize = revisitManager.openRecipeOptimize(recipeBean.getClinicOrgan(), recipeBean.getBussSource(), recipeBean.getClinicId());
+        //配置开启，根据有效的挂号序号进行判断
+        if (!optimize) {
+            logger.error("ErrorCode.SERVICE_ERROR:erroCode={}", ErrorCode.SERVICE_ERROR);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "当前患者就诊信息已失效，无法进行开方。");
+        }
+        Recipe recipe = null;
+        if (Objects.nonNull(recipeBean.getRecipeId())) {
+             recipe = recipeDAO.get(recipeBean.getRecipeId());
+            // 只有暂存状态才可以修改
+            if (!(WriteHisEnum.NONE.getType().equals(recipe.getWriteHisState()) && SignEnum.NONE.getType().equals(recipe.getDoctorSignState()))) {
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "当前处方不是暂存状态,不能操作");
+            }
+        }
+        // recipe 信息
+        Recipe recipeVo = com.ngari.patient.utils.ObjectCopyUtils.convert(recipeBean, Recipe.class);
+        recipeManager.saveStagingRecipe(recipeVo,recipe);
+        // recipe ext信息
+        // recipe detail信息
+        return null;
     }
 
 }

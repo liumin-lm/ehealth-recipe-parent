@@ -399,4 +399,10 @@ public interface IRecipeBusinessService {
      * @return
      */
     List<RecipeToGuideResVO> findRecipeByClinicId(Integer clinicId);
+
+    /**
+     * 暂存处方接口
+     * @param stagingRecipeReq
+     */
+    Integer stagingRecipe(StagingRecipeReq stagingRecipeReq);
 }

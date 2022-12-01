@@ -208,4 +208,14 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
         validateAtop(doctorCommonPharmacy);
       //  recipeBusinessService.saveDoctorCommonPharmacy(doctorCommonPharmacy);
     }
+
+    /**
+     * 暂存处方接口
+     * @param stagingRecipeReq
+     */
+    @RpcService
+    public void stagingRecipe(StagingRecipeReq stagingRecipeReq) {
+        validateAtop(stagingRecipeReq,stagingRecipeReq.getRecipeBean(),stagingRecipeReq.getDetailBeanList());
+        recipeBusinessService.stagingRecipe(stagingRecipeReq);
+    }
 }

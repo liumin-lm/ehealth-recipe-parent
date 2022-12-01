@@ -4,19 +4,30 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.dto.UsingRateDTO;
+import com.ngari.base.organconfig.model.OrganConfigBean;
+import com.ngari.consult.ConsultAPI;
+import com.ngari.consult.ConsultBean;
 import com.ngari.consult.common.model.ConsultExDTO;
+import com.ngari.consult.common.model.ConsultRegistrationNumberResultVO;
+import com.ngari.consult.common.service.IConsultService;
 import com.ngari.follow.utils.ObjectCopyUtil;
 import com.ngari.his.visit.mode.RecipeChargeItemCodeReqTo;
 import com.ngari.his.visit.mode.RecipeChargeItemCodeResTo;
+import com.ngari.patient.dto.AppointDepartDTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.platform.recipe.mode.*;
 import com.ngari.recipe.dto.EmrDetailDTO;
 import com.ngari.recipe.dto.RecipeDTO;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
+import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.RevisitBean;
 import com.ngari.revisit.common.model.RevisitExDTO;
+import com.ngari.revisit.common.service.IRevisitExService;
+import com.ngari.revisit.common.service.IRevisitService;
+import com.ngari.revisit.dto.response.RevisitBeanVO;
 import ctd.persistence.exception.DAOException;
+import ctd.util.AppContextHolder;
 import ctd.util.FileAuth;
 import ctd.util.JSONUtils;
 import eh.base.constant.ErrorCode;
@@ -24,21 +35,20 @@ import eh.recipeaudit.api.IRecipeCheckService;
 import eh.recipeaudit.model.RecipeCheckBean;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.client.DocIndexClient;
+import recipe.client.IConfigurationClient;
 import recipe.client.RecipeAuditClient;
 import recipe.common.CommonConstant;
 import recipe.common.UrlConfig;
-import recipe.constant.RecipeBussConstant;
-import recipe.constant.RecipeStatusConstant;
+import recipe.constant.*;
 import recipe.dao.RequirementsForTakingDao;
-import recipe.enumerate.status.RecipeAuditStateEnum;
-import recipe.enumerate.status.RecipeStateEnum;
-import recipe.enumerate.status.RecipeStatusEnum;
-import recipe.enumerate.status.WriteHisEnum;
+import recipe.enumerate.status.*;
 import recipe.enumerate.type.AppointEnterpriseTypeEnum;
+import recipe.enumerate.type.BussSourceTypeEnum;
 import recipe.enumerate.type.RecipeShowQrConfigEnum;
 import recipe.util.*;
 import recipe.util.DictionaryUtil;
@@ -1142,5 +1152,263 @@ public class RecipeManager extends BaseManager {
             logger.error("RecipeManager getChargeItemCode error", e);
         }
         return new ArrayList<>();
+    }
+
+    /**
+     * 保存处方信息
+     * @param recipeBean 前端传入的处方对象
+     * @param recipe 数据库查询到的处方对象
+     */
+    public void saveStagingRecipe(Recipe recipeBean, Recipe recipe) {
+        validateRecipe(recipeBean);
+
+    }
+
+    /**
+     * 保存处方默认数据
+     * @param recipe
+     */
+    private void setRecipeDefaultData(Recipe recipe){
+        // 不用审核
+        recipe.setStatus(RecipeStatusConstant.UNSIGN);
+        recipe.setSignDate(DateTime.now().toDate());
+        recipe.setProcessState(RecipeStateEnum.PROCESS_STATE_SUBMIT.getType());
+        recipe.setSubState(RecipeStateEnum.SUB_SUBMIT_TEMPORARY.getType());
+        recipe.setAuditState(RecipeAuditStateEnum.DEFAULT.getType());
+        recipe.setWriteHisState(WriteHisEnum.NONE.getType());
+        recipe.setDoctorSignState(SignEnum.NONE.getType());
+        recipe.setCheckerSignState(SignEnum.NONE.getType());
+        recipe.setMedicalFlag(0);
+        //默认为西药
+        if (null == recipe.getRecipeType()) {
+            recipe.setRecipeType(RecipeBussConstant.RECIPETYPE_WM);
+        }
+
+        //默认业务来源为无
+        if (null == recipe.getBussSource()) {
+            recipe.setBussSource(RecipeBussConstant.BUSS_SOURCE_NONE);
+        }
+
+        //默认流转模式为平台模式
+        if (null == recipe.getRecipeMode()) {
+            recipe.setRecipeMode(RecipeBussConstant.RECIPEMODE_NGARIHEALTH);
+        }
+        IConfigurationClient configurationClient = AppContextHolder.getBean("IConfigurationClient", IConfigurationClient.class);
+        //互联网模式默认为审方前置
+        if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())) {
+            recipe.setReviewType(ReviewTypeConstant.Preposition_Check);
+        } else {
+            //设置运营平台设置的审方模式
+            //互联网设置了默认值，平台没有设置默认值从运营平台取
+            if (recipe.getReviewType() == null) {
+                Integer reviewType = configurationClient.getValueCatchReturnInteger(recipe.getClinicOrgan(), "reviewType", ReviewTypeConstant.Postposition_Check);
+                logger.info("运营平台获取审方方式配置 organId:{}, reviewType[{}]", recipe.getClinicOrgan(), reviewType);
+                recipe.setReviewType(reviewType);
+            }
+        }
+        //设置运营平台设置的审方途径
+        if (recipe.getCheckMode() == null) {
+            Integer checkMode = configurationClient.getValueCatchReturnInteger(recipe.getClinicOrgan(), "isOpenHisCheckRecipeFlag", 1);
+            recipe.setCheckMode(checkMode);
+        }
+        //设置接方模式
+        boolean supportMode = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(),"supportReciveRecipe", false);
+        logger.info("supportMode 接方模式:{}", supportMode);
+        if (supportMode) {
+            recipe.setSupportMode(1);
+        } else {
+            recipe.setSupportMode(2);
+        }
+        //默认剂数为1
+        if (recipe.getRecipeType() == 1 || recipe.getRecipeType() == 2) {
+            recipe.setCopyNum(0);
+        } else {
+            if (null == recipe.getCopyNum() || recipe.getCopyNum() < 1) {
+                recipe.setCopyNum(1);
+            }
+        }
+
+        //默认无法医保支付
+        if (null == recipe.getMedicalPayFlag()) {
+            recipe.setMedicalPayFlag(0);
+        }
+
+        //默认可以医院，药企发药
+        if (null == recipe.getDistributionFlag()) {
+            recipe.setDistributionFlag(0);
+        }
+
+        //设置处方来源类型
+        recipe.setRecipeSourceType(1);
+
+        //设置处方支付类型 0 普通支付 1 不选择购药方式直接去支付
+        recipe.setRecipePayType(0);
+
+        //默认非外带处方
+        recipe.setTakeMedicine(0);
+        //监管同步标记
+        recipe.setSyncFlag(0);
+
+        //默认来源为纳里APP处方
+        if (null == recipe.getFromflag()) {
+            recipe.setFromflag(1);
+        }
+
+        if (null == recipe.getCreateDate()) {
+            Date now = new Date();
+            recipe.setCreateDate(now);
+            recipe.setLastModify(now);
+        }
+
+        //默认有效天数
+        if (null == recipe.getValueDays()) {
+            recipe.setValueDays(3);
+        }
+
+        if (null == recipe.getPayFlag()) {
+            recipe.setPayFlag(PayConstant.PAY_FLAG_NOT_PAY);
+        }
+
+        if (null == recipe.getChooseFlag()) {
+            recipe.setChooseFlag(0);
+        }
+
+        if (null == recipe.getGiveFlag()) {
+            recipe.setGiveFlag(0);
+        }
+
+        if (null == recipe.getRemindFlag()) {
+            recipe.setRemindFlag(0);
+        }
+
+        if (null == recipe.getPushFlag()) {
+            recipe.setPushFlag(0);
+        }
+
+        if (null == recipe.getPatientStatus()) {
+            recipe.setPatientStatus(1);
+        }
+
+        //date 20191011
+        //设置处方审核状态默认值
+        if (null == recipe.getCheckStatus()) {
+            recipe.setCheckStatus(0);
+        }
+
+        //设置抢单的默认状态
+        recipe.setGrabOrderStatus(0);
+
+        //设置为非快捷购药处方
+        recipe.setFastRecipeFlag(0);
+
+        //门诊处方从线下获取挂号科室的编码和名称
+        if (!BussSourceTypeEnum.BUSSSOURCE_OUTPATIENT.getType().equals(recipe.getBussSource())) {
+            //如果没有传入挂号科室，需要手动获取
+            IRevisitService revisitService = RevisitAPI.getService(IRevisitService.class);
+            DepartManager departManager = AppContextHolder.getBean("departManager", DepartManager.class);
+            RevisitBeanVO revisitBeanVO = revisitService.getRevisitBeanVOByConsultId(recipe.getClinicId());
+            logger.info("RecipeUtil setDefaultData revisitBeanVO:{}.", JSONUtils.toString(revisitBeanVO));
+            if (null != revisitBeanVO && null != revisitBeanVO.getAppointDepartId()) {
+                AppointDepartDTO appointDepartDTO = departManager.getAppointDepartById(revisitBeanVO.getAppointDepartId());
+                recipe.setAppointDepart(appointDepartDTO.getAppointDepartCode());
+                recipe.setAppointDepartName(null!=appointDepartDTO?appointDepartDTO.getAppointDepartName():"");
+            } else {
+                AppointDepartDTO appointDepartDTO = departManager.getAppointByOrganIdAndDepart(recipe.getClinicOrgan(), recipe.getDepart());
+                if (null != appointDepartDTO) {
+                    recipe.setAppointDepart(appointDepartDTO.getAppointDepartCode());
+                    recipe.setAppointDepartName(appointDepartDTO.getAppointDepartName());
+                }
+            }
+        }
+        Boolean isDefaultGiveModeToHos = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "isDefaultGiveModeToHos", false);
+        logger.info("setGiveMode isDefaultGiveModeToHos：{} ", isDefaultGiveModeToHos);
+        if (isDefaultGiveModeToHos) {
+            //默认到院取药
+            if (null == recipe.getGiveMode()) {
+                recipe.setGiveMode(RecipeBussConstant.GIVEMODE_TO_HOS);
+            }
+        }
+        //患者数据前面已校验--设置患者姓名医生姓名机构名
+        PatientDTO patientDTO = patientClient.getPatientDTO(recipe.getMpiid());
+        recipe.setPatientName(patientDTO.getPatientName());
+        DoctorDTO doctor = doctorClient.getDoctor(recipe.getDoctor());
+        recipe.setDoctorName(doctor.getName());
+        OrganDTO organDTO = organClient.organDTO(recipe.getClinicOrgan());
+        recipe.setOrganName(organDTO.getShortName());
+
+        //武昌机构recipeCode平台生成
+        RedisClient redisClient = RedisClient.instance();
+        Set<String> organIdList = redisClient.sMembers(CacheConstant.KEY_WUCHANG_ORGAN_LIST);
+        //武昌机构recipeCode平台生成
+        if (RecipeBussConstant.FROMFLAG_HIS_USE.equals(recipe.getFromflag()) || (CollectionUtils.isNotEmpty(organIdList) && organIdList.contains(recipe.getClinicOrgan().toString()))) {
+            //在 doSignRecipe 生成的一些数据在此生成
+            PatientDTO requestPatient = patientClient.getPatientDTO(patientDTO.getLoginId());
+            if (null != requestPatient && null != requestPatient.getMpiId()) {
+                recipe.setRequestMpiId(requestPatient.getMpiId());
+                // urt用于系统消息推送
+                recipe.setRequestUrt(requestPatient.getUrt());
+            }
+            //生成处方编号，不需要通过HIS去产生
+            String recipeCodeStr = "ngari" + DigestUtil.md5For16(recipe.getClinicOrgan() + recipe.getMpiid() + Calendar.getInstance().getTimeInMillis());
+            recipe.setRecipeCode(recipeCodeStr);
+        }
+        // 根据咨询单特殊来源标识设置处方单特殊来源标识
+        if (null != recipe.getClinicId()) {
+            if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipe.getBussSource())) {
+                IRevisitExService exService = RevisitAPI.getService(IRevisitExService.class);
+                RevisitExDTO revisitExDTO = exService.getByConsultId(recipe.getClinicId());
+                logger.info("setRecipeMoreInfo revisitExDTO = {},clinicId = {}", JSON.toJSONString(revisitExDTO), recipe.getClinicId());
+                if (null != revisitExDTO) {
+                    recipe.setPatientID(revisitExDTO.getPatId());
+                    recipe.setMedicalFlag(revisitExDTO.getMedicalFlag());
+                }
+                IRevisitService iRevisitService = RevisitAPI.getService(IRevisitService.class);
+                RevisitBean consultBean = iRevisitService.getById(recipe.getClinicId());
+                if ((null != consultBean) && (Integer.valueOf(1).equals(consultBean.getConsultSource()))) {
+                    recipe.setRecipeSource(consultBean.getConsultSource());
+                }
+            } else if (RecipeBussConstant.BUSS_SOURCE_WZ.equals(recipe.getBussSource())) {
+                IConsultService consultService = ConsultAPI.getService(IConsultService.class);
+                ConsultBean consultBean = consultService.getById(recipe.getClinicId());
+                if ((null != consultBean) && (Integer.valueOf(1).equals(consultBean.getConsultSource()))) {
+                    recipe.setRecipeSource(consultBean.getConsultSource());
+                }
+                ConsultRegistrationNumberResultVO consult = consultClient.getConsult(recipe.getClinicId());
+                if (null != consult) {
+                    recipe.setPatientID(consult.getPatientId());
+                }
+            }
+        }
+        logger.info("result recipe:{}", JSONUtils.toString(recipe));
+    }
+
+    /**
+     * 校验处方信息
+     * @param recipeBean
+     */
+    private void validateRecipe(Recipe recipeBean){
+        if (Objects.isNull(recipeBean)) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "recipe is required!");
+        }
+        if (StringUtils.isEmpty(recipeBean.getMpiid())) {
+            throw new DAOException(DAOException.VALUE_NEEDED,
+                    "mpiid is required!");
+        }
+
+        if (recipeBean.getClinicOrgan() == null) {
+            throw new DAOException(DAOException.VALUE_NEEDED,
+                    "clinicOrgan is required!");
+        }
+
+        if (recipeBean.getDepart() == null) {
+            throw new DAOException(DAOException.VALUE_NEEDED,
+                    "depart is required!");
+        }
+
+        if (recipeBean.getDoctor() == null) {
+            throw new DAOException(DAOException.VALUE_NEEDED,
+                    "doctor is required!");
+        }
+
     }
 }
