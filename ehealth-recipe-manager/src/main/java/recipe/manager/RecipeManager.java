@@ -1161,7 +1161,15 @@ public class RecipeManager extends BaseManager {
      */
     public void saveStagingRecipe(Recipe recipeBean, Recipe recipe) {
         validateRecipe(recipeBean);
-
+        if (StringUtils.isEmpty(recipeBean.getRecipeSupportGiveMode()) && Objects.nonNull(recipe)) {
+            recipeBean.setRecipeSupportGiveMode(recipe.getRecipeSupportGiveMode());
+        }
+        setRecipeDefaultData(recipeBean);
+        if (Objects.nonNull(recipe)) {
+            recipeDAO.update(recipeBean);
+        } else {
+            recipeDAO.save(recipeBean);
+        }
     }
 
     /**
