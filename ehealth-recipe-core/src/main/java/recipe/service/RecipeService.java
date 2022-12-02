@@ -607,6 +607,7 @@ public class RecipeService extends RecipeBaseService {
     @RpcService
     @Deprecated
     public List<RecipeDetailBean> reCreatedRecipe(Integer recipeId) {
+        LOGGER.info("recipeService reCreatedRecipe recipeId = {}", JSON.toJSONString(recipeId));
         RecipeResultBean resultBean = RecipeResultBean.getSuccess();
         //查询现有（原来）处方数据信息
         Recipe dbRecipe = RecipeValidateUtil.checkRecipeCommonInfo(recipeId, resultBean);
@@ -800,6 +801,7 @@ public class RecipeService extends RecipeBaseService {
     //重试二次医生审核不通过签名
     @Deprecated
     public void retryDoctorSecondCheckNoPass(Recipe dbRecipe) {
+        LOGGER.info("retryDoctorSecondCheckNoPass recipeId = {}", dbRecipe.getRecipeId());
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         //date 2020/1/2
         //发送二次不通过消息判断是否是二次审核不通过
