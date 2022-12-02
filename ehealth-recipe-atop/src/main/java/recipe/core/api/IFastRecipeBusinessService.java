@@ -7,6 +7,7 @@ import com.ngari.recipe.vo.FastRecipeVO;
 import ctd.util.annotation.RpcService;
 import recipe.vo.doctor.RecipeInfoVO;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 便捷购药
@@ -68,4 +69,6 @@ public interface IFastRecipeBusinessService {
      * @param paramName
      */
     void handleFastRecipeOldData(String paramName);
+
+    Map<String, Object> findRecipeAndDetailsByRecipeIdAndOrgan(Integer recipeId, Integer organId);
 }

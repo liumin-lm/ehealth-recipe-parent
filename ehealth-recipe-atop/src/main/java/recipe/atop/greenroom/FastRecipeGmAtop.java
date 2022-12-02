@@ -19,6 +19,7 @@ import recipe.core.api.IFastRecipeBusinessService;
 import recipe.vo.doctor.RecipeInfoVO;
 
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -93,6 +94,11 @@ public class FastRecipeGmAtop extends BaseAtop {
             isAuthorisedOrgan(fastRecipeVO.getClinicOrgan());
             List<FastRecipeDetail> fastRecipeDetailList = fastRecipeService.findFastRecipeDetailsByFastRecipeId(fastRecipeList.get(0).getId());
             fastRecipeVO.setFastRecipeDetailList(BeanCopyUtils.copyList(fastRecipeDetailList, FastRecipeDetailVO::new));
+            if (Integer.valueOf(3).equals(fastRecipeDetailList.get(0).getType())) {
+                fastRecipeVO.setSecrecyFlag(1);
+            } else {
+                fastRecipeVO.setSecrecyFlag(0);
+            }
             return fastRecipeVO;
         } else {
             return null;
@@ -194,5 +200,10 @@ public class FastRecipeGmAtop extends BaseAtop {
     @RpcService
     public void handleFastRecipeOldData(String paramName) {
         fastRecipeService.handleFastRecipeOldData(paramName);
+    }
+
+    @RpcService
+    public Map<String, Object> findRecipeAndDetailsByRecipeIdAndOrgan(Integer recipeId, Integer organId) {
+        return fastRecipeService.findRecipeAndDetailsByRecipeIdAndOrgan(recipeId, organId);
     }
 }
