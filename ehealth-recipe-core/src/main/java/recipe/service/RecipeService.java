@@ -598,14 +598,13 @@ public class RecipeService extends RecipeBaseService {
 
 
     /**
-     * 药师审核不通过的情况下，医生重新开处方   审核不通过的时候，重新开具处方按钮
-     * 以替换为续方操作，二次审核操作替换为confirmAgain方法
+     * 医生端处方重新编辑功能, 返回处方药品信息
+     * 详情页reOpenRecipeEditorFlag=true时，前端展示重新编辑按钮
      *
      * @param recipeId
      * @return
      */
     @RpcService
-    @Deprecated
     public List<RecipeDetailBean> reCreatedRecipe(Integer recipeId) {
         LOGGER.info("recipeService reCreatedRecipe recipeId = {}", JSON.toJSONString(recipeId));
         RecipeResultBean resultBean = RecipeResultBean.getSuccess();
@@ -615,39 +614,12 @@ public class RecipeService extends RecipeBaseService {
             LOGGER.error("reCreatedRecipe 平台无该处方对象. recipeId=[{}] error={}", recipeId, JSONUtils.toString(resultBean));
             return Lists.newArrayList();
         }
-        Integer status = dbRecipe.getStatus();
-        //重新编辑（His写入失败）  重新开具（药师审核未通过）
-        if (null == status || (status != RecipeStatusConstant.CHECK_NOT_PASS_YS && status != RecipeStatusConstant.HIS_FAIL)) {
+
+        if (null == dbRecipe.getStatus() || dbRecipe.getStatus() != RecipeStatusConstant.HIS_FAIL) {
             LOGGER.error("reCreatedRecipe 该处方不是审核未通过的处方或者His写入失败的处方. recipeId=[{}]", recipeId);
             return Lists.newArrayList();
         }
-        //date 2020/1/2
-        //发送二次不通过消息判断是否是二次审核不通过  运营平台存在一个开关（二次审核，药师审核不通过，医生再次进行审核的时候可强制通过）
-        if (!RecipecCheckStatusConstant.Check_Normal.equals(dbRecipe.getCheckStatus())) {
-            //添加发送不通过消息
-            RecipeMsgService.batchSendMsg(dbRecipe, RecipeStatusConstant.CHECK_NOT_PASSYS_REACHPAY);
-            //更新处方一次审核不通过标记
-            RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
-            Map<String, Object> updateMap = new HashMap<>();
-            updateMap.put("checkStatus", RecipecCheckStatusConstant.Check_Normal);
-            recipeDAO.updateRecipeInfoByRecipeId(recipeId, updateMap);
-            //HIS消息发送
-            //审核不通过 往his更新状态（已取消）
-            Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-            RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
-            hisService.recipeStatusUpdate(recipe.getRecipeId());
-            //记录日志
-            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "审核不通过处理完成");
-        }
-
-        //患者如果使用优惠券将优惠券解锁
-        RecipeCouponService recipeCouponService = ApplicationUtils.getRecipeService(RecipeCouponService.class);
-        recipeCouponService.unuseCouponByRecipeId(recipeId);
-
-        //根据审方模式改变--审核未通过处理
-        auditModeContext.getAuditModes(dbRecipe.getReviewType()).afterCheckNotPassYs(dbRecipe);
-        List<RecipeDetailBean> detailBeanList = RecipeValidateUtil.validateDrugsImpl(dbRecipe);
-        return detailBeanList;
+        return RecipeValidateUtil.validateDrugsImpl(dbRecipe);
     }
 
     /**
