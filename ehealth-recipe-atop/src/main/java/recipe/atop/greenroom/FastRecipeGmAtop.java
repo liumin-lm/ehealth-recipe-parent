@@ -97,7 +97,7 @@ public class FastRecipeGmAtop extends BaseAtop {
             if (Integer.valueOf(3).equals(fastRecipeDetailList.get(0).getType())) {
                 fastRecipeVO.setSecrecyFlag(1);
             } else {
-                fastRecipeVO.setSecrecyFlag(0);
+                fastRecipeVO.setSecrecyFlag(2);
             }
             return fastRecipeVO;
         } else {
