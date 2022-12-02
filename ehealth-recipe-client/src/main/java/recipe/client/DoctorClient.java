@@ -175,12 +175,27 @@ public class DoctorClient extends BaseClient {
     }
 
     public DoctorExtendDTO getDoctorExtendDTO(Integer doctorId) {
-        logger.info("SignRecipeInfoService getOfflineCaPictureByDocId doctorId=[{}]", doctorId);
+        logger.info("DoctorClient getDoctorExtendDTO doctorId=[{}]", doctorId);
         if (null == doctorId) {
             return null;
         }
         DoctorExtendDTO doctorExtend = doctorExtendService.getByDoctorId(doctorId);
+        logger.info("DoctorClient getDoctorExtendDTO doctorExtend=[{}]", JSON.toJSONString(doctorExtend));
         return doctorExtend;
+    }
+
+    public DoctorExtendDTO getDoctorExtendDTO(Recipe recipe, boolean isDoctor) {
+        logger.info("DoctorClient getDoctorExtendDTO recipe=[{}]", JSON.toJSONString(recipe));
+        if (null == recipe) {
+            return null;
+        }
+        Integer doctorId;
+        if (isDoctor) {
+            doctorId = recipe.getDoctor();
+        } else {
+            doctorId = recipe.getChecker();
+        }
+        return this.getDoctorExtendDTO(doctorId);
     }
 
 
