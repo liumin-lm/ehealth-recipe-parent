@@ -672,6 +672,7 @@ public class RecipeTestService {
         });
     }
 
+    @RpcService
     public void handlePushFlag(Integer organId, Integer depId, String beginTime, String endTime){
         recipeDAO.updateRecipeByOrganIdAndPushFlag(organId, depId, beginTime, endTime);
     }
