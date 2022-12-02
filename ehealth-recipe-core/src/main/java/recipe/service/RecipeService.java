@@ -4396,6 +4396,26 @@ public class RecipeService extends RecipeBaseService {
             drugListMatch.setUseDoseSmallestUnitHisCode(drug.getUseDoseSmallestUnitHisCode());
         }
 
+        if(drug.getSkinTestDrugFlag() != null){
+            drugListMatch.setSkinTestDrugFlag(drug.getSkinTestDrugFlag());
+        }
+
+        if(drug.getNationalStandardDrugFlag() != null){
+            drugListMatch.setNationalStandardDrugFlag(drug.getNationalStandardDrugFlag());
+        }
+
+        if(StringUtils.isNotEmpty(drug.getHisDrugClassCode())){
+            drugListMatch.setHisDrugClassCode(drug.getHisDrugClassCode());
+        }
+
+        if(StringUtils.isNotEmpty(drug.getHisDrugClassName())){
+            drugListMatch.setHisDrugClassName(drug.getHisDrugClassName());
+        }
+
+//        if(drug.getColdChainTransportationFlag() != null){
+//            drugListMatch.setColdChainTransportationFlag(drug.getColdChainTransportationFlag());
+//        }
+
         LOGGER.info("drugInfoSynMovementaddHisDrug" + drug.getDrugName() + "organId=[{}] drug=[{}]", organId, JSONUtils.toString(drug));
         List<DrugListMatch> dataByOrganDrugCode = drugListMatchDAO.findDataByOrganDrugCode(drugListMatch.getOrganDrugCode(), drugListMatch.getSourceOrgan());
         if (ObjectUtils.isEmpty(dataByOrganDrugCode)) {
@@ -4675,6 +4695,27 @@ public class RecipeService extends RecipeBaseService {
         if (StringUtils.isNotEmpty(drug.getUseDoseSmallestUnit())) {
             organDrug.setUseDoseSmallestUnit(drug.getUseDoseSmallestUnit());
         }
+
+        if(drug.getSkinTestDrugFlag() != null){
+            organDrug.setSkinTestDrugFlag(drug.getSkinTestDrugFlag());
+        }
+
+        if(drug.getNationalStandardDrugFlag() != null){
+            organDrug.setNationalStandardDrugFlag(drug.getNationalStandardDrugFlag());
+        }
+
+        if(StringUtils.isNotEmpty(drug.getHisDrugClassCode())){
+            organDrug.setHisDrugClassCode(drug.getHisDrugClassCode());
+        }
+
+        if(StringUtils.isNotEmpty(drug.getHisDrugClassName())){
+            organDrug.setHisDrugClassName(drug.getHisDrugClassName());
+        }
+
+//        if(drug.getColdChainTransportationFlag() != null){
+//            organDrug.setColdChainTransportationFlag(drug.getColdChainTransportationFlag());
+//        }
+
         if (isAllowSyncField(organDrugListSyncFieldMap.get(SyncDrugConstant.drugsEnterpriseIds))
                 && !ObjectUtils.isEmpty(drug.getDrugsEnterpriseCode())) {
             String drugsEnterpriseCodeHis = drug.getDrugsEnterpriseCode();
@@ -4992,6 +5033,27 @@ public class RecipeService extends RecipeBaseService {
         if (!ObjectUtils.isEmpty(drug.getUseDoseSmallestUnitHisCode())) {
             organDrug.setUseDoseSmallestUnitHisCode(drug.getUseDoseSmallestUnitHisCode());
         }
+
+        if(drug.getSkinTestDrugFlag() != null){
+            organDrug.setSkinTestDrugFlag(drug.getSkinTestDrugFlag());
+        }
+
+        if(drug.getNationalStandardDrugFlag() != null){
+            organDrug.setNationalStandardDrugFlag(drug.getNationalStandardDrugFlag());
+        }
+
+        if(StringUtils.isNotEmpty(drug.getHisDrugClassCode())){
+            organDrug.setHisDrugClassCode(drug.getHisDrugClassCode());
+        }
+
+        if(StringUtils.isNotEmpty(drug.getHisDrugClassName())){
+            organDrug.setHisDrugClassName(drug.getHisDrugClassName());
+        }
+
+//        if(drug.getColdChainTransportationFlag() != null){
+//            organDrug.setColdChainTransportationFlag(drug.getColdChainTransportationFlag());
+//        }
+
         //医院药房名字
         if (!ObjectUtils.isEmpty(drug.getPharmacy())) {
             organDrug.setPharmacyName(drug.getPharmacy());
