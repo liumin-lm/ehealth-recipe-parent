@@ -537,7 +537,7 @@ public class RecipeListService extends RecipeBaseService {
 
     /**
      * 获取历史处方
-     * 电子病例还在用
+     * 电子病例还在用(医生端和患者端都用findHistoryRecipeListV2)
      * new method:findHistoryRecipeListV2
      *
      * @param consultId
