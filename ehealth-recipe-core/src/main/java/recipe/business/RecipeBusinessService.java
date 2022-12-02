@@ -1154,23 +1154,33 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         if (Objects.nonNull(recipePayHISCallbackReq.getSettleMode())) {
             order.setSettleMode(recipePayHISCallbackReq.getSettleMode());
         }
+        //处方预结算返回支付总金额
         if (Objects.nonNull(recipePayHISCallbackReq.getPreSettleTotalAmount())) {
             order.setPreSettletotalAmount(recipePayHISCallbackReq.getPreSettleTotalAmount().doubleValue());
         }
+        //处方预结算返回自费金额
         if (Objects.nonNull(recipePayHISCallbackReq.getCashAmount())) {
             order.setCashAmount(recipePayHISCallbackReq.getCashAmount().doubleValue());
         }
+        //处方预结算返回医保支付金额
         if (Objects.nonNull(recipePayHISCallbackReq.getFundAmount())) {
             order.setFundAmount(recipePayHISCallbackReq.getFundAmount().doubleValue());
         }
+        //处方预结算返回HIS收据号
         if (StringUtils.isNotEmpty(recipePayHISCallbackReq.getHisSettlementNo())) {
             order.setHisSettlementNo(recipePayHISCallbackReq.getHisSettlementNo());
         }
+        //商户订单号
         if (StringUtils.isNotEmpty(recipePayHISCallbackReq.getOutTradeNo())) {
             order.setOutTradeNo(recipePayHISCallbackReq.getOutTradeNo());
         }
+        //交易流水号
         if (StringUtils.isNotEmpty(recipePayHISCallbackReq.getTradeNo())) {
             order.setTradeNo(recipePayHISCallbackReq.getTradeNo());
+        }
+        //是否医保
+        if (StringUtils.isNotEmpty(recipePayHISCallbackReq.getOrderType())) {
+            order.setOrderType(recipePayHISCallbackReq.getOrderType());
         }
         recipeOrderDAO.update(order);
     }
