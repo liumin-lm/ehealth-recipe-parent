@@ -224,6 +224,9 @@ public class OrganDrugList implements java.io.Serializable {
     @ItemProperty(alias = "是否皮试药品 0 否 1 是")
     private Integer skinTestDrugFlag;
 
+    @ItemProperty(alias = "是否国家标准药品 0 否 1 是")
+    private Integer nationalStandardDrugFlag;
+
     @ItemProperty(alias = "是否冷链运输 0 否 1 是")
     private Integer coldChainTransportationFlag;
 
@@ -243,6 +246,15 @@ public class OrganDrugList implements java.io.Serializable {
 
     public void setSkinTestDrugFlag(Integer skinTestDrugFlag) {
         this.skinTestDrugFlag = skinTestDrugFlag;
+    }
+
+    @Column(name = "national_standard_drug_flag")
+    public Integer getNationalStandardDrugFlag() {
+        return nationalStandardDrugFlag;
+    }
+
+    public void setNationalStandardDrugFlag(Integer nationalStandardDrugFlag) {
+        this.nationalStandardDrugFlag = nationalStandardDrugFlag;
     }
 
     @Column(name = "national_medical_code")
