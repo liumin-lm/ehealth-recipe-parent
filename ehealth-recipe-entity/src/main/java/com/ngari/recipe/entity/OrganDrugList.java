@@ -221,6 +221,18 @@ public class OrganDrugList implements java.io.Serializable {
     @ItemProperty(alias = "国家医保代码")
     private String nationalMedicalCode;
 
+    @ItemProperty(alias = "是否冷链运输 0 否 1 是")
+    private Integer coldChainTransportationFlag;
+
+    @Column(name = "cold_chain_transportation_flag")
+    public Integer getColdChainTransportationFlag() {
+        return coldChainTransportationFlag;
+    }
+
+    public void setColdChainTransportationFlag(Integer coldChainTransportationFlag) {
+        this.coldChainTransportationFlag = coldChainTransportationFlag;
+    }
+
     @Column(name = "national_medical_code")
     public String getNationalMedicalCode() {
         return nationalMedicalCode;
