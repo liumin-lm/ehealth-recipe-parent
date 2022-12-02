@@ -537,6 +537,7 @@ public class RecipeListService extends RecipeBaseService {
 
     /**
      * 获取历史处方
+     * 电子病例还在用
      * new method:findHistoryRecipeListV2
      *
      * @param consultId
@@ -600,8 +601,8 @@ public class RecipeListService extends RecipeBaseService {
     }
 
     /**
-     * 患者端在线续方-获取历史处理记录列表
-     *
+     * 获取历史处理记录列表
+     * 患者端在线续方，医生端续方
      * @param param
      * @return
      */

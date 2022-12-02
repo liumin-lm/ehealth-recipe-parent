@@ -36,18 +36,24 @@ public class OffLineRecipeDoctorAtop extends BaseAtop {
 
     /**
      * 获取线下处方详情
-     *
+     * new method getHisRecipeDetail
      * @param mpiId       患者ID
      * @param clinicOrgan 机构ID
      * @param recipeCode  处方号码
      * @date 2021/8/06
      */
     @RpcService
+    @Deprecated
     public OffLineRecipeDetailVO getOffLineRecipeDetails(String mpiId, Integer clinicOrgan, String recipeCode) {
         validateAtop(mpiId, clinicOrgan, recipeCode);
-        return offlineRecipeBusinessService.getOffLineRecipeDetails(mpiId, clinicOrgan, recipeCode);
+        return offlineRecipeBusinessService.getHisRecipeDetail(mpiId, clinicOrgan, recipeCode,null);
     }
 
+    @RpcService
+    public OffLineRecipeDetailVO getHisRecipeDetail(String mpiId, Integer clinicOrgan, String recipeCode,String createDate) {
+        validateAtop(mpiId, clinicOrgan, recipeCode);
+        return offlineRecipeBusinessService.getHisRecipeDetail(mpiId, clinicOrgan, recipeCode ,createDate);
+    }
     /**
      * 根据处方code 获取线下处方详情
      *

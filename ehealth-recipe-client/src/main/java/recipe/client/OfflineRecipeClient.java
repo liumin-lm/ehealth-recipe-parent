@@ -261,8 +261,8 @@ public class OfflineRecipeClient extends BaseClient {
      * @Author liumin
      * @Desciption 从 his查询待缴费已缴费的处方信息
      */
-    public HisResponseTO<List<QueryHisRecipResTO>> queryData(Integer organId, PatientDTO patientDTO, Integer timeQuantum, Integer flag, String recipeCode) {
-        logger.info("OfflineRecipeClient queryData param organId:{},patientDTO:{},timeQuantum:{},flag:{},recipeCode:{}", organId, JSONUtils.toString(patientDTO), timeQuantum, flag, recipeCode);
+    public HisResponseTO<List<QueryHisRecipResTO>> queryData(Integer organId, PatientDTO patientDTO, Integer timeQuantum, Integer flag, String recipeCode,Date startDate,Date endDate) {
+        logger.info("OfflineRecipeClient queryData param organId:{},patientDTO:{},timeQuantum:{},flag:{},recipeCode:{},startDate:{},endDate:{}", organId, JSONUtils.toString(patientDTO), timeQuantum, flag, recipeCode,startDate,endDate);
         PatientBaseInfo patientBaseInfo = new PatientBaseInfo();
         patientBaseInfo.setBirthday(patientDTO.getBirthday());
         patientBaseInfo.setPatientID(patientDTO.getPatId());
@@ -286,7 +286,14 @@ public class OfflineRecipeClient extends BaseClient {
                 queryRecipeRequestTo.setStartDate(DateConversion.getMonthsAgo(timeQuantum));
             }
         }
-        queryRecipeRequestTo.setEndDate(new Date());
+        if(null!=startDate){
+            queryRecipeRequestTo.setStartDate(startDate);
+        }
+        if(null!=endDate){
+            queryRecipeRequestTo.setEndDate(endDate);
+        }else{
+            queryRecipeRequestTo.setEndDate(new Date());
+        }
         queryRecipeRequestTo.setOrgan(organId);
         queryRecipeRequestTo.setQueryType(flag);
         if (StringUtils.isNotEmpty(recipeCode)) {
@@ -335,12 +342,27 @@ public class OfflineRecipeClient extends BaseClient {
      * @param recipeCode
      * @return
      */
-    public QueryHisRecipResTO queryOffLineRecipeDetail(OffLineRecipeDetailDTO offLineRecipeDetailDTO, Integer organId, PatientDTO patientDTO, Integer timeQuantum, Integer flag, String recipeCode) {
-        logger.info("OfflineRecipeClient queryOffLineRecipeDetail param organId:{},patientDTO:{},timeQuantum:{},flag:{},recipeCode:{}", organId, JSONUtils.toString(patientDTO), timeQuantum, flag, recipeCode);
+    public QueryHisRecipResTO getHisRecipeDetail(OffLineRecipeDetailDTO offLineRecipeDetailDTO, Integer organId, PatientDTO patientDTO, Integer timeQuantum, Integer flag, String recipeCode,String createDate) {
+        logger.info("OfflineRecipeClient queryOffLineRecipeDetail param organId:{},patientDTO:{},timeQuantum:{},flag:{},recipeCode:{},createDate:{}", organId, JSONUtils.toString(patientDTO), timeQuantum, flag, recipeCode,createDate);
         List<QueryHisRecipResTO> response = null;
         HisResponseTO<List<QueryHisRecipResTO>> responseTo = null;
         try {
-            responseTo = queryData(organId, patientDTO, timeQuantum, flag, recipeCode);
+            Date startDate=null;
+            Date endDate=null;
+            String year=null;
+            String month=null;
+            try {
+                if(StringUtils.isNotEmpty(createDate)){
+                    year=createDate.split("-")[0];
+                    month=createDate.split("-")[1];
+                    startDate=DateConversion.parseDate(DateConversion.getFirstDateOfMonth(year,month),DateConversion.DEFAULT_DATE_TIME);
+                    endDate=DateConversion.parseDate(DateConversion.getEndDayOfMonth(year,month),DateConversion.DEFAULT_DATE_TIME);
+                }
+            } catch (Exception e) {
+                logger.error("getHisRecipeDetail error",e);
+                e.printStackTrace();
+            }
+            responseTo = queryData(organId, patientDTO, timeQuantum, flag, recipeCode,startDate,endDate);
             //过滤数据
             HisResponseTO<List<QueryHisRecipResTO>> res = filterData(responseTo, recipeCode, flag);
             response = getResponse(res);
