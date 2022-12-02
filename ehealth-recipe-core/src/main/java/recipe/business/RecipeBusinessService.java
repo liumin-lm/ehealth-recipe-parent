@@ -1179,7 +1179,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             order.setTradeNo(recipePayHISCallbackReq.getTradeNo());
         }
         //是否医保
-        if (StringUtils.isNotEmpty(recipePayHISCallbackReq.getOrderType())) {
+        if (null != recipePayHISCallbackReq.getOrderType()) {
             order.setOrderType(recipePayHISCallbackReq.getOrderType());
         }
         recipeOrderDAO.update(order);
