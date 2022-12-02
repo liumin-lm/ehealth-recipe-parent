@@ -400,25 +400,25 @@ public class RecipeOrderService extends RecipeBaseService {
             order.setOrderCode(this.getOrderCode(order.getMpiId()));
             order.setStatus(OrderStatusConstant.READY_PAY);
             //设置订单是否冷链运输
-            try {
-                List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeIds(recipeIds);
-                if(recipeDetailList.size() > 0){
-                    List<String> organDrugCodeList = recipeDetailList.stream().map(Recipedetail::getOrganDrugCode).collect(Collectors.toList());
-                    List<OrganDrugList> organDrugListList = organDrugListDAO.findByOrganIdAndDrugCodes(firstRecipe.getClinicOrgan(), organDrugCodeList);
-                    LOGGER.info("处理是否冷链运输标志 organDrugListList={}",JSONUtils.toString(organDrugListList));
-                    if(organDrugListList.size() > 0){
-                        List<Integer> coldChainTransportationFlags = organDrugListList.stream().map(OrganDrugList::getColdChainTransportationFlag).collect(Collectors.toList());
-                        LOGGER.info("处理是否冷链运输标志 coldChainTransportationFlags={}",JSONUtils.toString(coldChainTransportationFlags));
-                        if(coldChainTransportationFlags.contains(1)){
-                            order.setColdChainTransportationFlag(1);
-                        }else {
-                            order.setColdChainTransportationFlag(0);
-                        }
-                    }
-                }
-            }catch (Exception e){
-                LOGGER.error("处理是否冷链运输标志出错", e);
-            }
+//            try {
+//                List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeIds(recipeIds);
+//                if(recipeDetailList.size() > 0){
+//                    List<String> organDrugCodeList = recipeDetailList.stream().map(Recipedetail::getOrganDrugCode).collect(Collectors.toList());
+//                    List<OrganDrugList> organDrugListList = organDrugListDAO.findByOrganIdAndDrugCodes(firstRecipe.getClinicOrgan(), organDrugCodeList);
+//                    LOGGER.info("处理是否冷链运输标志 organDrugListList={}",JSONUtils.toString(organDrugListList));
+//                    if(organDrugListList.size() > 0){
+//                        List<Integer> coldChainTransportationFlags = organDrugListList.stream().map(OrganDrugList::getColdChainTransportationFlag).collect(Collectors.toList());
+//                        LOGGER.info("处理是否冷链运输标志 coldChainTransportationFlags={}",JSONUtils.toString(coldChainTransportationFlags));
+//                        if(coldChainTransportationFlags.contains(1)){
+//                            order.setColdChainTransportationFlag(1);
+//                        }else {
+//                            order.setColdChainTransportationFlag(0);
+//                        }
+//                    }
+//                }
+//            }catch (Exception e){
+//                LOGGER.error("处理是否冷链运输标志出错", e);
+//            }
 
             //设置中药代建费
             Integer decoctionId = MapValueUtil.getInteger(extInfo, "decoctionId");
