@@ -277,6 +277,7 @@ public class DrugDoctorAtop extends BaseAtop {
                 drugList.setSmallestSaleMultiple(organDrug.getSmallestSaleMultiple());
                 drugList.setTargetedDrugType(organDrug.getTargetedDrugType());
                 drugList.setSalePrice(organDrug.getSalePrice());
+                drugList.setNationalStandardDrugFlag(organDrug.getNationalStandardDrugFlag());
             }
             //该高亮字段给微信端使用:highlightedField
             drugList.setHospitalPrice(drugList.getSalePrice());
