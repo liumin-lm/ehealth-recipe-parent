@@ -61,6 +61,12 @@ public class OperationConstant {
      * 处方-医生
      */
     public static final String OP_RECIPE_DOCTOR = "doctor";
+
+    /**
+     * 处方-医生
+     */
+    public static final String OP_RECIPE_DOCTOR_TCM_CONTRAINDICATION = "doctorContraindication";
+
     /**
      * 处方-审方药师
      */
