@@ -1769,6 +1769,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
     @Override
     public void doAfterCheckNotPassYs(RecipeBean recipeBean) {
+        LOGGER.info("remoteRecipeService doAfterCheckNotPassYs recipeId={}", recipeBean.getRecipeId());
         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
         Recipe recipe = ObjectCopyUtils.convert(recipeBean, Recipe.class);
         recipeService.doAfterCheckNotPassYs(recipe);

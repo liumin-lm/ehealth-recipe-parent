@@ -147,4 +147,7 @@ public class FastRecipeVO implements Serializable {
 
     @ItemProperty(alias = "代煎帖数")
     private Integer decoctionNum;
+
+    @ItemProperty(alias = "是否保密， 1:保密，2:非保密")
+    private Integer secrecyFlag;
 }
