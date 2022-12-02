@@ -228,10 +228,10 @@ public class OrganDrugList implements java.io.Serializable {
     private Integer nationalStandardDrugFlag;
 
     @ItemProperty(alias = "his药品分类名称 0 否 1 是")
-    private Integer hisDrugClassName;
+    private String hisDrugClassName;
 
     @ItemProperty(alias = "his药品分类编码 0 否 1 是")
-    private Integer hisDrugClassCode;
+    private String hisDrugClassCode;
 
     @ItemProperty(alias = "是否冷链运输 0 否 1 是")
     private Integer coldChainTransportationFlag;
@@ -255,20 +255,20 @@ public class OrganDrugList implements java.io.Serializable {
     }
 
     @Column(name = "his_drug_class_name")
-    public Integer getHisDrugClassName() {
+    public String getHisDrugClassName() {
         return hisDrugClassName;
     }
 
-    public void setHisDrugClassName(Integer hisDrugClassName) {
+    public void setHisDrugClassName(String hisDrugClassName) {
         this.hisDrugClassName = hisDrugClassName;
     }
 
     @Column(name = "his_drug_class_code")
-    public Integer getHisDrugClassCode() {
+    public String getHisDrugClassCode() {
         return hisDrugClassCode;
     }
 
-    public void setHisDrugClassCode(Integer hisDrugClassCode) {
+    public void setHisDrugClassCode(String hisDrugClassCode) {
         this.hisDrugClassCode = hisDrugClassCode;
     }
 
