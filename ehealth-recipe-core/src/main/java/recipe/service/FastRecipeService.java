@@ -379,12 +379,12 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
                 fastRecipeDetailDAO.updateStatusById(fastRecipeDetail.getId(), 0);
             }
         }
-        //更新保密方标识
-        if (Integer.valueOf(1).equals(fastRecipeVO.getSecrecyFlag())) {
-            fastRecipeDetailDAO.updateTypeByFastRecipeId(fastRecipe.getId(), 3);
-        } else {
-            fastRecipeDetailDAO.updateTypeByFastRecipeId(fastRecipe.getId(), 1);
-        }
+        ////更新保密方标识
+        //if (Integer.valueOf(1).equals(fastRecipeVO.getSecrecyFlag())) {
+        //    fastRecipeDetailDAO.updateTypeByFastRecipeId(fastRecipe.getId(), 3);
+        //} else {
+        //    fastRecipeDetailDAO.updateTypeByFastRecipeId(fastRecipe.getId(), 1);
+        //}
 
         return true;
     }
