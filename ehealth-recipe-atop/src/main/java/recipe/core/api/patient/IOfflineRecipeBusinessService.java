@@ -64,7 +64,7 @@ public interface IOfflineRecipeBusinessService {
      * @param recipeCode  处方号码
      * @date 2021/8/06
      */
-    OffLineRecipeDetailVO getOffLineRecipeDetails(String mpiId, Integer clinicOrgan, String recipeCode);
+    OffLineRecipeDetailVO getHisRecipeDetail(String mpiId, Integer clinicOrgan, String recipeCode,String createDate);
 
 
     /**

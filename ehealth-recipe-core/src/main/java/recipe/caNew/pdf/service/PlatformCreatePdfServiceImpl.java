@@ -116,6 +116,11 @@ public class PlatformCreatePdfServiceImpl extends BaseCreatePdf implements Creat
     }
 
     @Override
+    public byte[] tcmContraindicationTypePdf(byte[] data, Recipe recipe) throws Exception {
+        return data;
+    }
+
+    @Override
     public CaSealRequestTO queryCheckPdfByte(Recipe recipe) {
         logger.info("PlatformCreatePdfServiceImpl queryCheckPdfByte recipe:{}", JSON.toJSONString(recipe));
         return caSealRequestTO(190, 76, "check" + recipe.getRecipeId(), CreateRecipePdfUtil.signFileBase64(recipe.getSignFile()));
