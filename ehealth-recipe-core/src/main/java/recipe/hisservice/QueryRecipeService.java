@@ -56,10 +56,13 @@ import recipe.bussutil.UsePathwaysFilter;
 import recipe.bussutil.UsingRateFilter;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.DocIndexClient;
+import recipe.constant.SyncDrugConstant;
 import recipe.dao.*;
+import recipe.enumerate.type.RecipeDrugFormTypeEnum;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.manager.DepartManager;
 import recipe.service.OrganDrugListService;
+import recipe.service.PharmacyTcmService;
 import recipe.service.RecipeServiceSub;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.ByteUtils;
@@ -107,6 +110,12 @@ public class QueryRecipeService implements IQueryRecipeService {
 
     @Autowired
     private IAuditMedicinesService iAuditMedicinesService;
+
+    @Autowired
+    private PharmacyTcmDAO pharmacyTcmDAO;
+
+    @Autowired
+    private PharmacyTcmService pharmacyTcmService;
 
     /**
      * 用于sendRecipeToHIS 推送处方mq后 查询接口
@@ -1092,6 +1101,47 @@ public class QueryRecipeService implements IQueryRecipeService {
             request.setMedicalDrugFormCode(organDrugChangeBean.getMedicalDrugFormCode());
             request.setDrugFormCode(organDrugChangeBean.getDrugFormCode());
             request.setDrugForm(organDrugChangeBean.getDrugForm());
+            //药房
+            if ( !ObjectUtils.isEmpty(organDrugChangeBean.getPharmacyCode())) {
+                StringBuilder pharmacys = new StringBuilder();
+                String[] pharmcyCodeArr = organDrugChangeBean.getPharmacyCode().split(",");
+                String[] pharmcyNameArr = organDrugChangeBean.getPharmacyName().split(",");
+                for (int i = 0; i < pharmcyCodeArr.length; i++) {
+                    String pharmacyCode = pharmcyCodeArr[i];
+                    if(StringUtils.isNotEmpty(pharmacyCode)){
+                        PharmacyTcm pharmacyTcmDb = pharmacyTcmDAO.getByPharmacyAndOrganId(pharmacyCode, organDrugChangeBean.getOrganId());
+                        if(pharmacyTcmDb!=null){
+                            if (i != pharmcyCodeArr.length - 1) {
+                                pharmacys.append(pharmacyTcmDb.getPharmacyId() + ",");
+                            } else {
+                                pharmacys.append(pharmacyTcmDb.getPharmacyId());
+                            }
+                        }else{
+                            if (!ObjectUtils.isEmpty(pharmcyNameArr[i])) {
+                                PharmacyTcm pharmacyTcm = new PharmacyTcm();
+                                pharmacyTcm.setOrganId(organDrugChangeBean.getOrganId());
+                                pharmacyTcm.setPharmacyCode(pharmacyCode);
+                                pharmacyTcm.setPharmacyName(pharmcyNameArr[i]);
+                                pharmacyTcm.setPharmacyCategray("中药,西药,中成药,膏方");
+                                pharmacyTcm.setDrugFormType(RecipeDrugFormTypeEnum.TCM_DECOCTION_PIECES.getType().toString());
+                                pharmacyTcm.setWhDefault(false);
+                                pharmacyTcm.setSort(1000);
+                                boolean b = pharmacyTcmService.addPharmacyTcmForOrgan(pharmacyTcm);
+                                if (b) {
+                                    PharmacyTcm pharmacyTcm1 = pharmacyTcmService.querPharmacyTcmByOrganIdAndName2(organDrugChangeBean.getOrganId(), pharmcyNameArr[i]);
+                                    if (i != pharmcyCodeArr.length - 1) {
+                                        pharmacys.append(pharmacyTcm1.getPharmacyId() + ",");
+                                    } else {
+                                        pharmacys.append(pharmacyTcm1.getPharmacyId());
+                                    }
+                                }
+                            }
+
+                        }
+                    }
+                }
+                request.setPharmacy(pharmacys.toString());
+            }
 
         } catch (Exception e) {
             //抛出异常信息，返回空数组

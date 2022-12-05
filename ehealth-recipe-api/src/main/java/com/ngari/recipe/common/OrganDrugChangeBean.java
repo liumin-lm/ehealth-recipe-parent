@@ -107,6 +107,17 @@ public class OrganDrugChangeBean implements Serializable {
     @ItemProperty(alias = "剂型名称")
     private String drugForm;
 
+    @ItemProperty(alias = "开方药房，主键(一个药品多个药房：325,324)")
+    private String pharmacy;
+
+    public String getPharmacy() {
+        return pharmacy;
+    }
+
+    public void setPharmacy(String pharmacy) {
+        this.pharmacy = pharmacy;
+    }
+
     public String getDrugForm() {
         return drugForm;
     }
