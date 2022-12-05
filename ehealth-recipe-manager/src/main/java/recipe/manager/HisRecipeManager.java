@@ -241,8 +241,15 @@ public class HisRecipeManager extends BaseManager {
                 RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
                 EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
                 recipeExtendDAO.saveOrUpdateRecipeExtend(recipeExtend);
-
-                emrRecipeManager.saveMedicalInfo(recipe, recipeExtend);
+                try {
+                    if (null != recipeExtend.getDocIndexId()) {
+                        return;
+                    }
+                    String doctorName = doctorClient.getDoctor(recipe.getDoctor()).getName();
+                    docIndexClient.addMedicalInfo(recipe, recipeExtend, doctorName);
+                } catch (Exception e) {
+                    logger.error("HisRecipeManager updateHisRecipe 电子病历保存失败", e);
+                }
             }
         });
         LOGGER.info("HisRecipeManager updateHisRecipe response hisRecipeMap:{}", JSONUtils.toString(hisRecipeMap));
