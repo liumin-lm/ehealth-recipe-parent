@@ -128,12 +128,22 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
     private EnterpriseClient enterpriseClient;
     @Resource
     private StateManager stateManager;
+    @Resource
+    private OrganAndDrugsepRelationDAO drugsDepRelationDAO;
 
 
     @Override
     public Boolean existEnterpriseByName(String name) {
         List<DrugsEnterprise> drugsEnterprises = enterpriseManager.findAllDrugsEnterpriseByName(name);
         return CollectionUtils.isNotEmpty(drugsEnterprises);
+    }
+
+    public Boolean existEnterpriseByOrganIdAndDepId(Integer organId, Integer depId){
+        OrganAndDrugsepRelation drugsDepRelation = drugsDepRelationDAO.getOrganAndDrugsepByOrganIdAndEntId(organId, depId);
+        if (Objects.nonNull(drugsDepRelation)) {
+            return true;
+        }
+        return false;
     }
 
     @Override
@@ -857,6 +867,11 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
             list.add(enterpriseStock);
         });
         return list;
+    }
+
+    public List<DrugsEnterpriseVO> findDrugEnterprise(){
+        List<DrugsEnterprise> drugsEnterprises = drugsEnterpriseDAO.findAllDrugsEnterpriseByStatus(1);
+        return ObjectCopyUtils.convert(drugsEnterprises, DrugsEnterpriseVO.class);
     }
 
     private Integer getEnterpriseSendFlag(DrugsEnterprise enterprise, CheckOrderAddressVo checkOrderAddressVo) {

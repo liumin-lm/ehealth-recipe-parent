@@ -1,12 +1,13 @@
 package recipe.vo.second;
 
-import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
+import java.util.Date;
 
 /**
  * @description： 端用处方信息
@@ -32,4 +33,22 @@ public class RecipeVo implements Serializable {
 
     @ItemProperty(alias = "机构疾病名称")
     private String organDiseaseName;
+
+    @ItemProperty(alias = "签名时间")
+    private Date signDate;
+
+    @ItemProperty(alias = "处方金额")
+    private BigDecimal totalMoney;
+
+    @ItemProperty(alias = "处方父状态：0：默认 ， 1：待提交，2：待审核，3：待够药，4：待发药，5：配送中，6：待取药，7：已完成，8：已删除 ，9：已作废")
+    private Integer processState;
+
+    @ItemProperty(alias = "处方父状态text")
+    private String processStateText;
+
+    @ItemProperty(alias = "主索引（患者编号）")
+    private String mpiid;
+
+    @ItemProperty(alias = "最后修改时间")
+    private Date lastModify;
 }

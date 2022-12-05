@@ -13,6 +13,7 @@ import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.dto.*;
+import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.IUsePathwaysService;
 import com.ngari.patient.service.IUsingRateService;
 import com.ngari.platform.recipe.mode.OutpatientPaymentRecipeDTO;
@@ -171,6 +172,8 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     private RecipeListService recipeListService;
     @Autowired
     private DrugClient drugClient;
+    @Autowired
+    private DoctorService doctorService;
 
 
     /**
@@ -1375,6 +1378,30 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             return recipeToGuideResVO;
         }).collect(Collectors.toList());
         return recipeToGuideResVOS;
+    }
+
+    @Override
+    public RecipeVo getRecipeByBusId(Integer recipeId) {
+        Recipe recipe = recipeDAO.get(recipeId);
+        if (Objects.isNull(recipe)) {
+            return null;
+        }
+        RecipeVo recipeVo = new RecipeVo();
+        recipeVo.setOrganDiseaseName(recipe.getOrganDiseaseName());
+        recipeVo.setOrganName(recipe.getOrganName());
+        recipeVo.setRecipeId(recipe.getRecipeId());
+        recipeVo.setDepart(DictionaryUtil.getDictionary("eh.base.dictionary.Depart", recipe.getDepart()));
+        if (null != recipe.getDoctor()) {
+            DoctorDTO doctorDTO = doctorService.get(recipe.getDoctor());
+            recipeVo.setDoctor(doctorDTO.getName());
+        }
+        recipeVo.setSignDate(recipe.getSignDate());
+        recipeVo.setTotalMoney(recipe.getTotalMoney());
+        recipeVo.setProcessState(recipe.getProcessState());
+        recipeVo.setProcessStateText(RecipeStateEnum.getRecipeStateEnum(recipe.getProcessState()).getName());
+        recipeVo.setMpiid(recipe.getMpiid());
+        recipeVo.setLastModify(recipe.getLastModify());
+        return recipeVo;
     }
 
 }
