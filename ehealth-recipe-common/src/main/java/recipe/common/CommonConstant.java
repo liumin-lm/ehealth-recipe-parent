@@ -20,7 +20,7 @@ public class CommonConstant {
     public static final Integer RECIPE_CANCEL_TYPE = 2;
 
     /**
-     * 处方推送类型类型 1 医生端 2患者端 3。。。
+     * 处方推送类型类型 1 医生端（目前只用于诊疗处方，打算后续替换sendRecipe接口但遥遥无期） 2患者端 3。。。
      */
     public static final Integer RECIPE_DOCTOR_TYPE = 1;
     public static final Integer RECIPE_PATIENT_TYPE = 2;
