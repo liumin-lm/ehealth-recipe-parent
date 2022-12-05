@@ -255,6 +255,7 @@ public class RecipeValidateUtil {
                     useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getDefaultSmallestUnitUseDose(), organDrug.getUseDoseSmallestUnit(), organDrug.getSmallestUnitUseDose()));
                 }
                 recipeDetail.setUseDoseAndUnitRelation(useDoseAndUnitRelationList);
+                recipeDetail.setSkinTestDrugFlag(organDrug.getSkinTestDrugFlag());
 
                 try {
                     //暂存也会走这里但是 暂存要用药品名实时配置
@@ -358,7 +359,7 @@ public class RecipeValidateUtil {
      * @param organId
      * @return
      */
-    public static List<RecipeDetailBean> covertDrugUnitdoseAndUnit(List<RecipeDetailBean> recipeDetailBeans,boolean isDoctor,Integer organId) {
+    public static List<RecipeDetailBean> covertDrugUnitdoseAndUnit(List<RecipeDetailBean> recipeDetailBeans, boolean isDoctor, Integer organId) {
         LOGGER.info("covertDrugUnitdoseAndUnit 参数 recipeDetailBeans:{}isDoctor:{}organId:{}", JSONUtils.toString(recipeDetailBeans), isDoctor, organId);
         if (recipeDetailBeans != null && recipeDetailBeans.size() > 0) {
             if (isDoctor) {
@@ -371,13 +372,13 @@ public class RecipeValidateUtil {
                 return recipeDetailBeans;
             }
             //患者端一次剂量和剂量单位（若医生添加药品使用的是规格单位，患者端展示的处方单和电子处方笺都需要根据以下公式进行转化,显示最小单位。每次剂量(最小单位)/单位剂量(最小单位)=每次剂量(规格单位)/单位剂量(规格单位)）
-            for (int i = 0; i < recipeDetailBeans.size(); i++) {
+            for (RecipeDetailBean recipeDetailBean : recipeDetailBeans) {
                 try{
-                    String drugUnitdoseAndUnit = recipeDetailBeans.get(i).getDrugUnitdoseAndUnit();
+                    String drugUnitdoseAndUnit = recipeDetailBean.getDrugUnitdoseAndUnit();
                     if (StringUtils.isEmpty(drugUnitdoseAndUnit)) {
                         continue;
                     }
-                    LOGGER.info("covertDrugUnitdoseAndUnit recipeid:{} drugUnitdoseAndUnit:{}", recipeDetailBeans.get(i).getRecipeId(), drugUnitdoseAndUnit);
+                    LOGGER.info("covertDrugUnitdoseAndUnit recipeid:{} drugUnitdoseAndUnit:{}", recipeDetailBean.getRecipeId(), drugUnitdoseAndUnit);
                     //单位剂量【规格单位】,单位【规格单位】,单位剂量【最小单位】,单位【最小单位】
                     Map drugUnitdoseAndUnitMap = JSONUtils.parse(drugUnitdoseAndUnit,Map.class);
                     String unitDoseForSpecificationUnit = drugUnitdoseAndUnitMap.get("unitDoseForSpecificationUnit")==null?"":drugUnitdoseAndUnitMap.get("unitDoseForSpecificationUnit").toString();
@@ -391,19 +392,19 @@ public class RecipeValidateUtil {
                         continue;
                     }
                     //如果单位【最小单位】eq 处方详情的剂量单位useDoseUnit 或者单位【规格单位】！eq 处方详情的剂量单位useDoseUnit
-                    if (StringUtils.isEmpty(recipeDetailBeans.get(i).getUseDoseUnit()) || unitForSmallUnit.equals(recipeDetailBeans.get(i).getUseDoseUnit())
-                            || !unitForSpecificationUnit.equals(recipeDetailBeans.get(i).getUseDoseUnit())) {
+                    if (StringUtils.isEmpty(recipeDetailBean.getUseDoseUnit()) || unitForSmallUnit.equals(recipeDetailBean.getUseDoseUnit())
+                            || !unitForSpecificationUnit.equals(recipeDetailBean.getUseDoseUnit())) {
                         continue;
                     }
                     //转换
                     try {
-                        Double useDose = Double.parseDouble(unitDoseForSmallUnit) * recipeDetailBeans.get(i).getUseDose() / Double.parseDouble(unitDoseForSpecificationUnit);
+                        Double useDose = Double.parseDouble(unitDoseForSmallUnit) * recipeDetailBean.getUseDose() / Double.parseDouble(unitDoseForSpecificationUnit);
                         BigDecimal useDoseBigDecimal = new BigDecimal(useDose);
                         useDose = useDoseBigDecimal.setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue();
-                        LOGGER.info("covertDrugUnitdoseAndUnit i:{} ,useDose:{} ,计算公式Double.parseDouble(unitDoseForSmallUnit){},*recipeDetailBeans.get(i).getUseDose(){},/Double.parseDouble(unitDoseForSpecificationUnit){} ", i, useDose, Double.parseDouble(unitDoseForSmallUnit), recipeDetailBeans.get(i).getUseDose(), Double.parseDouble(unitDoseForSpecificationUnit));
-                        recipeDetailBeans.get(i).setUseDose(useDose);
-                        recipeDetailBeans.get(i).setUseDoseUnit(unitForSmallUnit);
-
+                        LOGGER.info("covertDrugUnitdoseAndUnit , useDose:{} ,计算公式Double.parseDouble(unitDoseForSmallUnit){}, *recipeDetailBean.getUseDose(){}, /Double.parseDouble(unitDoseForSpecificationUnit){} ",
+                                useDose, Double.parseDouble(unitDoseForSmallUnit), recipeDetailBean.getUseDose(), Double.parseDouble(unitDoseForSpecificationUnit));
+                        recipeDetailBean.setUseDose(useDose);
+                        recipeDetailBean.setUseDoseUnit(unitForSmallUnit);
                     } catch (Exception e) {
                         LOGGER.error("method covertDrugUnitdoseAndUnit 转换 error " + e.getMessage());
                     }
@@ -412,7 +413,6 @@ public class RecipeValidateUtil {
                 }
             }
         }
-
         return recipeDetailBeans;
     }
 }
