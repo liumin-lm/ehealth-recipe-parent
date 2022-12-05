@@ -1092,6 +1092,10 @@ public class QueryRecipeService implements IQueryRecipeService {
             request.setMedicalDrugFormCode(organDrugChangeBean.getMedicalDrugFormCode());
             request.setDrugFormCode(organDrugChangeBean.getDrugFormCode());
             request.setDrugForm(organDrugChangeBean.getDrugForm());
+            request.setSkinTestDrugFlag(organDrugChangeBean.getSkinTestDrugFlag());
+            request.setNationalStandardDrugFlag(organDrugChangeBean.getNationalStandardDrugFlag());
+            request.setHisDrugClassCode(organDrugChangeBean.getHisDrugClassCode());
+            request.setHisDrugClassName(organDrugChangeBean.getHisDrugClassName());
 
         } catch (Exception e) {
             //抛出异常信息，返回空数组

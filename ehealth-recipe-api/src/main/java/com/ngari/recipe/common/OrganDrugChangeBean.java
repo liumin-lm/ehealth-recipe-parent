@@ -107,6 +107,50 @@ public class OrganDrugChangeBean implements Serializable {
     @ItemProperty(alias = "剂型名称")
     private String drugForm;
 
+    @ItemProperty(alias = "是否皮试药品 0 否 1 是")
+    private Integer skinTestDrugFlag;
+
+    @ItemProperty(alias = "是否国家标准药品 0 否 1 是")
+    private Integer nationalStandardDrugFlag;
+
+    @ItemProperty(alias = "his药品分类名称 0 否 1 是")
+    private String hisDrugClassName;
+
+    @ItemProperty(alias = "his药品分类编码 0 否 1 是")
+    private String hisDrugClassCode;
+
+    public Integer getSkinTestDrugFlag() {
+        return skinTestDrugFlag;
+    }
+
+    public void setSkinTestDrugFlag(Integer skinTestDrugFlag) {
+        this.skinTestDrugFlag = skinTestDrugFlag;
+    }
+
+    public Integer getNationalStandardDrugFlag() {
+        return nationalStandardDrugFlag;
+    }
+
+    public void setNationalStandardDrugFlag(Integer nationalStandardDrugFlag) {
+        this.nationalStandardDrugFlag = nationalStandardDrugFlag;
+    }
+
+    public String getHisDrugClassName() {
+        return hisDrugClassName;
+    }
+
+    public void setHisDrugClassName(String hisDrugClassName) {
+        this.hisDrugClassName = hisDrugClassName;
+    }
+
+    public String getHisDrugClassCode() {
+        return hisDrugClassCode;
+    }
+
+    public void setHisDrugClassCode(String hisDrugClassCode) {
+        this.hisDrugClassCode = hisDrugClassCode;
+    }
+
     public String getDrugForm() {
         return drugForm;
     }
