@@ -313,6 +313,8 @@ public class QueryRecipeService implements IQueryRecipeService {
                 RevisitExDTO consultExDTO = iRevisitExService.getByConsultId(recipe.getClinicId());
                 if (consultExDTO != null) {
                     recipeDTO.setRegisterId(consultExDTO.getRegisterNo());
+                    recipeDTO.setTreatmentId(consultExDTO.getTreatmentId());
+                    recipeDTO.setSerialNumberOfReception(consultExDTO.getSerialNumberOfReception());
                 }
             }
             recipeDTO.setCopyNum(recipe.getCopyNum());
