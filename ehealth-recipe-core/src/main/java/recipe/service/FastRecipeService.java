@@ -33,13 +33,11 @@ import recipe.enumerate.type.BussSourceTypeEnum;
 import recipe.enumerate.type.RecipeDrugFormTypeEnum;
 import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.hisservice.RecipeToHisCallbackService;
+import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.vo.doctor.RecipeInfoVO;
 
 import java.math.BigDecimal;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
@@ -78,6 +76,9 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
 
     @Autowired
     private OperationClient operationClient;
+
+    @Autowired
+    private RemoteRecipeService remoteRecipeService;
 
 
     @Override
@@ -354,6 +355,8 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
             if (!operationClient.isAuthorisedOrgan(fastRecipe.getClinicOrgan())) {
                 throw new DAOException("您没有修改该药方的权限！");
             }
+            fastRecipe.setTitle(fastRecipeVO.getTitle());
+            fastRecipe.setOfflineRecipeName(fastRecipeVO.getTitle());
             fastRecipe.setBackgroundImg(fastRecipeVO.getBackgroundImg());
             fastRecipe.setIntroduce(fastRecipeVO.getIntroduce());
             fastRecipe.setNeedQuestionnaire(fastRecipeVO.getNeedQuestionnaire());
@@ -376,6 +379,13 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
                 fastRecipeDetailDAO.updateStatusById(fastRecipeDetail.getId(), 0);
             }
         }
+        ////更新保密方标识
+        //if (Integer.valueOf(1).equals(fastRecipeVO.getSecrecyFlag())) {
+        //    fastRecipeDetailDAO.updateTypeByFastRecipeId(fastRecipe.getId(), 3);
+        //} else {
+        //    fastRecipeDetailDAO.updateTypeByFastRecipeId(fastRecipe.getId(), 1);
+        //}
+
         return true;
     }
 
@@ -471,6 +481,16 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
                     fastRecipeDetailDAO.save(fastRecipeDetail);
                 }
             }
+        }
+    }
+
+    @Override
+    public Map<String, Object> findRecipeAndDetailsByRecipeIdAndOrgan(Integer recipeId, Integer organId) {
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        if (Objects.nonNull(recipe) && organId.equals(recipe.getClinicOrgan())) {
+            return remoteRecipeService.findRecipeAndDetailsAndCheckById(recipeId);
+        } else {
+            throw new DAOException("无法找到该处方单");
         }
     }
 

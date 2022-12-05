@@ -396,6 +396,9 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "订单新支付状态 0 未支付 1 已支付")
     private Integer orderPayFlag;
 
+    @ItemProperty(alias = "是否冷链运输 0 否 1 是")
+    private Integer coldChainTransportationFlag;
+
     //todo 默认构造器不要给init默认值啊 此方法慎用
     @Deprecated
     public RecipeOrder() {
@@ -1510,5 +1513,14 @@ public class RecipeOrder implements Serializable {
 
     public void setOrderPayFlag(Integer orderPayFlag) {
         this.orderPayFlag = orderPayFlag;
+    }
+
+    @Column(name = "cold_chain_transportation_flag")
+    public Integer getColdChainTransportationFlag() {
+        return coldChainTransportationFlag;
+    }
+
+    public void setColdChainTransportationFlag(Integer coldChainTransportationFlag) {
+        this.coldChainTransportationFlag = coldChainTransportationFlag;
     }
 }

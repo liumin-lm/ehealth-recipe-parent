@@ -996,6 +996,69 @@ public class OrganDrugToolService implements IOrganDrugToolService {
                 validMsg.append("通用开方单位HIS编码有误").append(";");
             }
 
+            try {
+                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(52)))) {
+                    if (("是").equals(getStrFromCell(cells.get(52)))) {
+                        drug.setSkinTestDrugFlag(1);
+                    } else if (("否").equals(getStrFromCell(cells.get(52)))) {
+                        drug.setSkinTestDrugFlag(0);
+                    } else {
+                        validMsg.append("是否皮试格式错误").append(";");
+                    }
+                }
+            } catch (Exception e) {
+                LOGGER.error("是否皮试有误 ," + e.getMessage(), e);
+                validMsg.append("是否皮试有误").append(";");
+            }
+
+            try {
+                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(53)))) {
+                    drug.setHisDrugClassName(getStrFromCell(cells.get(53)));
+                }
+            } catch (Exception e) {
+                LOGGER.error("his药品分类有误 ," + e.getMessage(), e);
+                validMsg.append("his药品分类有误").append(";");
+            }
+
+            try {
+                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(54)))) {
+                    drug.setHisDrugClassCode(getStrFromCell(cells.get(54)));
+                }
+            } catch (Exception e) {
+                LOGGER.error("his药品分类编码有误 ," + e.getMessage(), e);
+                validMsg.append("his药品分类编码有误").append(";");
+            }
+
+//            try {
+//                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(55)))) {
+//                    if (("是").equals(getStrFromCell(cells.get(55)))) {
+//                        drug.setColdChainTransportationFlag(1);
+//                    } else if (("否").equals(getStrFromCell(cells.get(55)))) {
+//                        drug.setColdChainTransportationFlag(0);
+//                    } else {
+//                        validMsg.append("冷链运输格式错误").append(";");
+//                    }
+//                }
+//            } catch (Exception e) {
+//                LOGGER.error("冷链运输有误 ," + e.getMessage(), e);
+//                validMsg.append("冷链运输有误").append(";");
+//            }
+
+            try {
+                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(56)))) {
+                    if (("是").equals(getStrFromCell(cells.get(56)))) {
+                        drug.setNationalStandardDrugFlag(1);
+                    } else if (("否").equals(getStrFromCell(cells.get(56)))) {
+                        drug.setNationalStandardDrugFlag(0);
+                    } else {
+                        validMsg.append("国家标准药品格式错误").append(";");
+                    }
+                }
+            } catch (Exception e) {
+                LOGGER.error("国家标准药品有误 ," + e.getMessage(), e);
+                validMsg.append("国家标准药品有误").append(";");
+            }
+
             if (!ObjectUtils.isEmpty(organId)) {
                 DrugSourcesDAO dao = DAOFactory.getDAO(DrugSourcesDAO.class);
                 List<DrugSources> byDrugSourcesId = dao.findByDrugSourcesId(organId);

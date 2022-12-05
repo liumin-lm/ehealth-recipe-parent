@@ -279,6 +279,10 @@ public class RecipeDetailBean implements java.io.Serializable {
     @ItemProperty(alias = "剩余天数")
     private Integer residueDay;
 
+    @ItemProperty(alias = "皮试药品标识： 0-非皮试药品， 1-皮试药品且需要皮试，2-皮试药品免试")
+    private Integer skinTestDrugFlag;
+
+
     public Integer getResidueDay() {
         return residueDay;
     }
@@ -939,5 +943,13 @@ public class RecipeDetailBean implements java.io.Serializable {
 
     public void setDrugType(Integer drugType) {
         this.drugType = drugType;
+    }
+
+    public Integer getSkinTestDrugFlag() {
+        return skinTestDrugFlag;
+    }
+
+    public void setSkinTestDrugFlag(Integer skinTestDrugFlag) {
+        this.skinTestDrugFlag = skinTestDrugFlag;
     }
 }

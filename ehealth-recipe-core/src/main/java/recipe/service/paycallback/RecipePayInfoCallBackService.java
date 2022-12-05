@@ -416,8 +416,8 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
 
     @Override
     @RpcService
-    public boolean doHandleAfterRefund(Order order, int targetPayflag, Map<String, String> refundResult) {
-        logger.info("doHandleAfterRefund order={},targetPayflag={},refundResult={}",JSONArray.toJSONString(order),targetPayflag, JSONArray.toJSONString(refundResult));
+    public boolean doHandleAfterRefund(Order order, int targetPayFlag, Map<String, String> refundResult) {
+        logger.info("doHandleAfterRefund order={},targetPayFlag={},refundResult={}",JSONArray.toJSONString(order), targetPayFlag, JSONArray.toJSONString(refundResult));
         // 处方
         RecipeOrderBean recipeOrderBean = recipeOrderService.getByOutTradeNo(order.getOutTradeNo());
 
@@ -430,7 +430,7 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
             boolean unlock = lock(lockKey);
             if (unlock) {
                 //加锁成功：根据数据库查询到的信息做幂等
-                if(new Integer(3).equals(payFlag) || new Integer(4).equals(payFlag)){
+                if(new Integer(3).equals(payFlag)){
                     return true;
                 }
             } else {
@@ -439,9 +439,9 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
             }
         }
 
-        recipeOrderService.finishOrderPayByRefund(recipeOrderBean.getOrderCode(), targetPayflag, RecipeConstant.PAYMODE_ONLINE,order.getRefundNo());
+        recipeOrderService.finishOrderPayByRefund(recipeOrderBean.getOrderCode(), targetPayFlag, RecipeConstant.PAYMODE_ONLINE,order.getRefundNo());
         StringBuilder memo = new StringBuilder("订单=" + recipeOrderBean.getOrderCode() + " ");
-        switch (targetPayflag) {
+        switch (targetPayFlag) {
             case 3:
                 memo.append("退款成功");
                 break;
@@ -449,7 +449,7 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
                 memo.append("退款失败");
                 break;
             default:
-                memo.append("支付 未知状态，payflag:" + targetPayflag);
+                memo.append("支付 未知状态，payFlag:" + targetPayFlag);
                 break;
         }
         if (StringUtils.isNotEmpty(recipeOrderBean.getRecipeIdList())) {
@@ -457,7 +457,7 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
             if (CollectionUtils.isNotEmpty(recipeIdList)) {
                 Integer recipeId = recipeIdList.get(0);
                 //调用回调处方退费
-                recipeOrderService.refundCallback(recipeId, targetPayflag, order.getBusId(), PayBusTypeEnum.RECIPE_BUS_TYPE.getType());
+                recipeOrderService.refundCallback(recipeId, targetPayFlag, order.getBusId(), PayBusTypeEnum.RECIPE_BUS_TYPE.getType());
             }
         }
         //更新处方日志
