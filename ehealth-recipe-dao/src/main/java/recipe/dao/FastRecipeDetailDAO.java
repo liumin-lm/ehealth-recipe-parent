@@ -28,4 +28,8 @@ public abstract class FastRecipeDetailDAO extends HibernateSupportDelegateDAO<Fa
     @DAOMethod(sql = "UPDATE FastRecipeDetail SET status = :status  WHERE id = :id")
     public abstract void updateStatusById(@DAOParam("id") Integer id,
                                           @DAOParam("status") int status);
+
+    @DAOMethod(sql = "UPDATE FastRecipeDetail SET type = :type WHERE fastRecipeId = :fastRecipeId AND status = 1")
+    public abstract void updateTypeByFastRecipeId(@DAOParam("fastRecipeId") Integer fastRecipeId,
+                                                  @DAOParam("type") int type);
 }

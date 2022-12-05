@@ -63,7 +63,7 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
      */
     private final String RECIPE = OP_RECIPE + DOT_EN;
     private final String EXTEND = OP_RECIPE_EXTEND + DOT_EN;
-    private final List<String> ADDITIONAL_FIELDS = Arrays.asList(RECIPE + OP_RECIPE_DOCTOR, RECIPE + OP_RECIPE_CHECKER,
+    private final List<String> ADDITIONAL_FIELDS = Arrays.asList(RECIPE + OP_RECIPE_DOCTOR, RECIPE + OP_RECIPE_DOCTOR_TCM_CONTRAINDICATION, RECIPE + OP_RECIPE_CHECKER,
             RECIPE + OP_RECIPE_GIVE_USER, RECIPE + OP_RECIPE_ACTUAL_PRICE, OP_BARCODE_ALL, EXTEND + OP_RECIPE_EXTEND_SUPERVISE
             , "recipe.patientID", "recipe.recipeCode", "address", "recipeExtend.decoctionText", "recipe.organName", "recipeOrder.dispensingTime", "recipeExtend.medicalRecordNumber");
     @Autowired

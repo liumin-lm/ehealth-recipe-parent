@@ -341,4 +341,13 @@ public interface IRecipeAtopService {
      */
     @RpcService(mvcDisabled = true)
     List<RecipeToGuideResVO> findRecipeByClinicId(Integer clinicId);
+
+    /**
+     * 订单中心--根据处方id查询处方信息
+     *
+     * @param recipeId 处方id
+     * @return
+     */
+    @RpcService(mvcDisabled = true)
+    RecipeVo getRecipeByBusId(Integer recipeId);
 }

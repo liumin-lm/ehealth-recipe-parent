@@ -187,6 +187,28 @@ public class QueryRecipeInfoDTO implements Serializable {
     @ItemProperty(alias = "智能预审是否需要医生二次确认 0:不需要，1：需要")
     private Integer needTwoConfirmFlag;
 
+    @ItemProperty(alias = "his就诊id")
+    private String treatmentId;
+
+    @ItemProperty(alias = "接诊流水号")
+    private String serialNumberOfReception;
+
+    public String getTreatmentId() {
+        return treatmentId;
+    }
+
+    public void setTreatmentId(String treatmentId) {
+        this.treatmentId = treatmentId;
+    }
+
+    public String getSerialNumberOfReception() {
+        return serialNumberOfReception;
+    }
+
+    public void setSerialNumberOfReception(String serialNumberOfReception) {
+        this.serialNumberOfReception = serialNumberOfReception;
+    }
+
     public Map<String, Object> getMedicalInfoBean() {
         return medicalInfoBean;
     }

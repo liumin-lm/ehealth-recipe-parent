@@ -208,8 +208,8 @@ public class OrganDrugListDTO implements java.io.Serializable {
     @ItemProperty(alias = "his药品分类编码 0 否 1 是")
     private String hisDrugClassCode;
 
-    @ItemProperty(alias = "是否冷链运输 0 否 1 是")
-    private Integer coldChainTransportationFlag;
+//    @ItemProperty(alias = "是否冷链运输 0 否 1 是")
+//    private Integer coldChainTransportationFlag;
 
     public Integer getSkinTestDrugFlag() {
         return skinTestDrugFlag;
@@ -243,13 +243,13 @@ public class OrganDrugListDTO implements java.io.Serializable {
         this.hisDrugClassCode = hisDrugClassCode;
     }
 
-    public Integer getColdChainTransportationFlag() {
-        return coldChainTransportationFlag;
-    }
-
-    public void setColdChainTransportationFlag(Integer coldChainTransportationFlag) {
-        this.coldChainTransportationFlag = coldChainTransportationFlag;
-    }
+//    public Integer getColdChainTransportationFlag() {
+//        return coldChainTransportationFlag;
+//    }
+//
+//    public void setColdChainTransportationFlag(Integer coldChainTransportationFlag) {
+//        this.coldChainTransportationFlag = coldChainTransportationFlag;
+//    }
 
     public String getNationalMedicalCode() {
         return nationalMedicalCode;

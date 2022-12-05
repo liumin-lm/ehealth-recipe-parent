@@ -417,4 +417,9 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
     public List<RecipeToGuideResVO> findRecipeByClinicId(Integer clinicId) {
         return recipeBusinessService.findRecipeByClinicId(clinicId);
     }
+
+    @Override
+    public RecipeVo getRecipeByBusId(Integer recipeId) {
+        return recipeBusinessService.getRecipeByBusId(recipeId);
+    }
 }

@@ -420,4 +420,11 @@ public interface IRecipeBusinessService {
      * @return
      */
     List<AutomatonCountVO> findRecipeEveryDayForAutomaton(AutomatonVO automatonVO);
+
+    /**
+     * 订单中心--根据处方id查询处方信息
+     * @param recipeId
+     * @return
+     */
+    RecipeVo getRecipeByBusId(Integer recipeId);
 }

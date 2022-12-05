@@ -229,6 +229,26 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
     }
 
     /**
+     * 查询药企
+     * @return
+     */
+    @RpcService
+    public List<DrugsEnterpriseVO> findDrugEnterprise(){
+        return enterpriseBusinessService.findDrugEnterprise();
+    }
+
+    /**
+     * 查询药企是否存在于流转药企中
+     * @param organId
+     * @param depId
+     * @return
+     */
+    @RpcService
+    public Boolean existEnterpriseByOrganIdAndDepId(Integer organId, Integer depId){
+        return enterpriseBusinessService.existEnterpriseByOrganIdAndDepId(organId, depId);
+    }
+
+    /**
      * 保存机构药企关联关系
      *
      * @param organEnterpriseRelationVo

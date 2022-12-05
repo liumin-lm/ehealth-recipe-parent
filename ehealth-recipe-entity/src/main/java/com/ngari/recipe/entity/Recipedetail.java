@@ -288,6 +288,9 @@ public class Recipedetail implements java.io.Serializable {
 	@ItemProperty(alias = "单位剂量单位（最小单位）/单位his编码")
 	private String useDoseSmallestUnitHisCode;
 
+	@ItemProperty(alias = "皮试药品标识： 0-非皮试药品， 1-皮试药品且需要皮试，2-皮试药品免试")
+	private Integer skinTestFlag;
+
 	@Transient
 	public String getUnitHisCode() {
 		return unitHisCode;
@@ -979,5 +982,14 @@ public class Recipedetail implements java.io.Serializable {
 
 	public void setDrugItemCode(String drugItemCode) {
 		this.drugItemCode = drugItemCode;
+	}
+
+	@Column(name = "skin_test_flag")
+	public Integer getSkinTestFlag() {
+		return skinTestFlag;
+	}
+
+	public void setSkinTestFlag(Integer skinTestFlag) {
+		this.skinTestFlag = skinTestFlag;
 	}
 }

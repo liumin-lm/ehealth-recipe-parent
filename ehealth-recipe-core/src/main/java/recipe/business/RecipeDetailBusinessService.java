@@ -98,7 +98,7 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
                 a.setValidateStatusText(text);
                 return;
             }
-            boolean validateDrugForm = recipeDetailValidateTool.validateDrugForm(recipeType, validateDetailVO.getRecipeDrugForm(), organDrug, a, validateDetailVO.getRecipeExtendBean());
+            boolean validateDrugForm = recipeDetailValidateTool.validateDrugForm(recipeType, validateDetailVO.getRecipeDrugForm(), organDrug, a);
             if (validateDrugForm) {
                 a.setValidateStatusText("处方剂型错误");
                 a.setValidateStatus(RecipeDetailValidateTool.VALIDATE_STATUS_FAILURE);

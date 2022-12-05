@@ -99,4 +99,7 @@ public class OrganDrugsSaleConfigVo implements Serializable {
     @ItemProperty(alias = "是否走医院预结算：1是，0否")
     private Integer isHosDep;
 
+    @ItemProperty(alias = "标准的收款方式  1 在线支付 2 货到付款 ")
+    private Integer standardPaymentWay;
+
 }
