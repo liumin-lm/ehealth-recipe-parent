@@ -10,6 +10,7 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.recipe.dto.EmrDetailDTO;
 import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.entity.*;
+import com.ngari.revisit.common.model.RevisitExDTO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
@@ -64,8 +65,6 @@ public class HisRecipeManager extends BaseManager {
     @Autowired
     private HisRecipeDetailDAO hisRecipeDetailDAO;
     @Autowired
-    private EmrRecipeManager emrRecipeManager;
-    @Autowired
     private HisRecipeDataDelDAO hisRecipeDataDelDAO;
     @Autowired
     private StateManager stateManager;
@@ -75,8 +74,6 @@ public class HisRecipeManager extends BaseManager {
     private PayClient payClient;
     @Autowired
     private RecipeBeforeOrderDAO recipeBeforeOrderDAO;
-    @Autowired
-    private OrganDrugListDAO organDrugListDAO;
 
     /**
      * 获取患者信息
@@ -672,7 +669,9 @@ public class HisRecipeManager extends BaseManager {
         if (CommonConstant.RECIPE_DOCTOR_TYPE.equals(sysType)) {
             return offlineRecipeClient.pushRecipe(pushType, recipePdfDTO, emrDetail, pharmacyIdMap, giveModeKey);
         } else {
-            return offlineRecipeClient.patientPushRecipe(pushType, recipePdfDTO, emrDetail, pharmacyIdMap, giveModeKey);
+            Integer clinicId = recipePdfDTO.getRecipe().getClinicId();
+            RevisitExDTO revisitEx = revisitClient.getByClinicId(clinicId);
+            return offlineRecipeClient.patientPushRecipe(pushType, recipePdfDTO, emrDetail, pharmacyIdMap, giveModeKey, revisitEx);
         }
     }
 

@@ -29,7 +29,6 @@ import ctd.controller.exception.ControllerException;
 import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
-import ctd.schema.annotation.ItemProperty;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import eh.cdr.api.service.IDocIndexService;
@@ -407,6 +406,7 @@ public class HisRequestInit {
                     requestTO.setRegisteredId(revisitExDTO.getRegisterNo());
                     requestTO.setCardType(revisitExDTO.getCardType());
                     requestTO.setCardNo(revisitExDTO.getCardId());
+                    requestTO.setSerialNumberOfReception(revisitExDTO.getSerialNumberOfReception());
                 }
             }
         } catch (Exception e) {
