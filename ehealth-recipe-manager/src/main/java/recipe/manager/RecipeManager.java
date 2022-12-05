@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.dto.UsingRateDTO;
 import com.ngari.base.organconfig.model.OrganConfigBean;
+import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.consult.ConsultAPI;
 import com.ngari.consult.ConsultBean;
 import com.ngari.consult.common.model.ConsultExDTO;
@@ -26,6 +27,7 @@ import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.service.IRevisitExService;
 import com.ngari.revisit.common.service.IRevisitService;
 import com.ngari.revisit.dto.response.RevisitBeanVO;
+import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.FileAuth;
@@ -45,6 +47,7 @@ import recipe.client.RecipeAuditClient;
 import recipe.common.CommonConstant;
 import recipe.common.UrlConfig;
 import recipe.constant.*;
+import recipe.dao.DrugDecoctionWayDao;
 import recipe.dao.RequirementsForTakingDao;
 import recipe.enumerate.status.*;
 import recipe.enumerate.type.AppointEnterpriseTypeEnum;
@@ -1169,6 +1172,70 @@ public class RecipeManager extends BaseManager {
             recipeDAO.update(recipeBean);
         } else {
             recipeDAO.save(recipeBean);
+        }
+    }
+
+
+    /**
+     * 保存处方扩展信息
+     * @param extend 扩展信息
+     * @param recipeVo 处方信息
+     */
+    public void saveStagingRecipeExt(RecipeExtend extend, Recipe recipeVo) {
+        if(Objects.isNull(recipeVo.getRecipeId())){
+            throw new DAOException("处方id不能为空");
+        }
+        extend.setRecipeId(recipeVo.getRecipeId());
+        //老的字段兼容处理
+        if (StringUtils.isNotEmpty(extend.getPatientType())) {
+            extend.setMedicalType(extend.getPatientType());
+            switch (extend.getPatientType()) {
+                case "2":
+                    extend.setMedicalTypeText(("普通医保"));
+                    break;
+                case "3":
+                    extend.setMedicalTypeText(("慢病医保"));
+                    break;
+                default:
+            }
+        }
+        Integer recipeChooseChronicDisease = configurationClient.getValueCatch(recipeVo.getClinicOrgan(), "recipeChooseChronicDisease", 1);
+        if (extend.getRecipeChooseChronicDisease() == null) {
+            extend.setRecipeChooseChronicDisease(recipeChooseChronicDisease);
+        }
+        if (!RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipeVo.getBussSource()) && new Integer(6).equals(recipeChooseChronicDisease)) {
+            extend.setRecipeChooseChronicDisease(null);
+            extend.setChronicDiseaseCode("");
+            extend.setChronicDiseaseName("");
+        }
+        String cardNo = getCardNoByRecipe(recipeVo);
+        if (StringUtils.isNotEmpty(cardNo)) {
+            extend.setCardNo(cardNo);
+        }
+        DrugDecoctionWayDao drugDecoctionWayDao = DAOFactory.getDAO(DrugDecoctionWayDao.class);
+        if (null == extend.getDoctorIsDecoction()) {
+            extend.setDoctorIsDecoction("0");
+            if (StringUtils.isNotEmpty(extend.getDecoctionId())) {
+                DecoctionWay decoctionWay = drugDecoctionWayDao.get(Integer.parseInt(extend.getDecoctionId()));
+                if (decoctionWay.getGenerationisOfDecoction()) {
+                    extend.setDoctorIsDecoction("1");
+                } else {
+                    extend.setDoctorIsDecoction("0");
+                }
+            }
+        }
+        if (extend.getCanUrgentAuditRecipe() == null) {
+            extend.setCanUrgentAuditRecipe(0);
+        }
+        if (extend.getAppointEnterpriseType() == null) {
+            extend.setAppointEnterpriseType(0);
+        }
+
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeVo.getRecipeId());
+        if(Objects.isNull(recipeExtend)){
+            recipeExtendDAO.save(recipeExtend);
+        }else {
+            recipeExtendDAO.updateNonNullFieldByPrimaryKey(recipeExtend);
         }
     }
 
