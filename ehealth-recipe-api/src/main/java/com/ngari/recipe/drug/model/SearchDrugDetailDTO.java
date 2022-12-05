@@ -188,6 +188,17 @@ public class SearchDrugDetailDTO implements IDrugInventory, Serializable {
     @ItemProperty(alias = "是否国家标准药品 0 否 1 是")
     private Integer nationalStandardDrugFlag;
 
+    @ItemProperty(alias = "是否皮试药品 0 否 1 是")
+    private Integer skinTestDrugFlag;
+
+    public Integer getSkinTestDrugFlag() {
+        return skinTestDrugFlag;
+    }
+
+    public void setSkinTestDrugFlag(Integer skinTestDrugFlag) {
+        this.skinTestDrugFlag = skinTestDrugFlag;
+    }
+
     public Integer getNationalStandardDrugFlag() {
         return nationalStandardDrugFlag;
     }
