@@ -312,10 +312,28 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
     }
 
     @Override
-    @LogRecord
     public List<RecipeBean> findRecipeByMpiidAndrecipeStatus(String mpiid, List<Integer> recipeStatus,Integer terminalType,Integer organId) {
         return com.ngari.patient.utils.ObjectCopyUtils.convert(recipeBusinessService.findRecipeByMpiidAndrecipeStatus(mpiid, recipeStatus, terminalType, organId), RecipeBean.class);
     }
+
+    @Override
+    public AutomatonCountVO findRecipeCountForAutomaton(AutomatonVO automatonVO) {
+        AutomatonCountVO automatonCountVO=new AutomatonCountVO();
+        automatonCountVO.setCount(recipeBusinessService.findRecipeCountForAutomaton(automatonVO));
+        return automatonCountVO;
+    }
+
+    @Override
+    public List<AutomatonCountVO> findRecipeEveryDayForAutomaton(AutomatonVO automatonVO) {
+        List<AutomatonCountVO> automatonCountVOS=recipeBusinessService.findRecipeEveryDayForAutomaton(automatonVO);
+        return automatonCountVOS;
+    }
+
+    @Override
+    public List<AutomatonCountVO> findRecipeTop5ForAutomaton(AutomatonVO automatonVO) {
+        return recipeBusinessService.findRecipeTop5ForAutomaton(automatonVO);
+    }
+
 
     @Override
     public HisResponseTO recipePayHISCallback(RecipePayHISCallbackReq recipePayHISCallbackReq) {

@@ -32,4 +32,8 @@ public class AutomatonVO extends PageVO {
     private List<String> terminalIds;
     @ItemProperty(alias = "处方父状态：0：默认 ， 1：待提交，2：待审核，3：待下单，4：待发药，5：配送中，6：待取药，7：已完成，8：已删除 ，9：已作废")
     private List<Integer> processStateList;
+    @ItemProperty(alias = "申请量处方父状态：0：默认 ， 1：待提交，2：待审核，3：待下单，4：待发药，5：配送中，6：待取药，7：已完成，8：已删除 ，9：已作废")
+    private List<Integer> applyProcessStateList;
+    @ItemProperty(alias = "完成量处方父状态：0：默认 ， 1：待提交，2：待审核，3：待下单，4：待发药，5：配送中，6：待取药，7：已完成，8：已删除 ，9：已作废")
+    private List<Integer> finishProcessStateList;
 }

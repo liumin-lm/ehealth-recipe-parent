@@ -1496,6 +1496,7 @@ public class RecipeServiceSub {
 
     public static RecipeBean convertRecipeForRAPNew(Recipe recipe, List<HisRecipeDetailBean> recipeDetailBeans, RecipeExtend recipeExtend) {
         RecipeBean r = new RecipeBean();
+        r.setDoctor(recipe.getDoctor());
         r.setRecipeId(recipe.getRecipeId());
         r.setCreateDate(recipe.getCreateDate());
         r.setRecipeType(recipe.getRecipeType());

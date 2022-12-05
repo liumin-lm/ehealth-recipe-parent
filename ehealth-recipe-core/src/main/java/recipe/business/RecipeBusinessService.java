@@ -1377,5 +1377,54 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         return recipeToGuideResVOS;
     }
 
+
+    @Override
+    public Integer findRecipeCountForAutomaton(AutomatonVO findRecipeCountForAutomaton) {
+        return recipeDAO.getRecipeCountForAutomaton(findRecipeCountForAutomaton);
+    }
+
+
+    @Override
+    public List<AutomatonCountVO> findRecipeTop5ForAutomaton(AutomatonVO automatonVO) {
+        return recipeDAO.findRecipeTop5ForAutomaton(automatonVO);
+    }
+
+
+    @Override
+    public List<AutomatonCountVO> findRecipeEveryDayForAutomaton(AutomatonVO automatonVO) {
+        List<AutomatonCountVO> automatonCountVOs=new ArrayList<>();
+        Map<String,AutomatonCountVO> resultMap=new HashMap<>();
+        AutomatonVO applyAutomatonVO=new AutomatonVO();
+        AutomatonVO finishAutomatonVO=new AutomatonVO();
+        org.springframework.beans.BeanUtils.copyProperties(automatonVO, applyAutomatonVO);
+        org.springframework.beans.BeanUtils.copyProperties(automatonVO, finishAutomatonVO);
+        applyAutomatonVO.setProcessStateList(automatonVO.getApplyProcessStateList());
+        finishAutomatonVO.setProcessStateList(automatonVO.getFinishProcessStateList());
+        Map<String,Integer> applyMap=recipeDAO.findRecipeEveryDayForAutomaton(applyAutomatonVO);
+        Map<String,Integer> finishMap=recipeDAO.findRecipeEveryDayForAutomaton(finishAutomatonVO);
+
+        applyMap.forEach((key,value) -> {
+            AutomatonCountVO automatonCountVO=new AutomatonCountVO();
+            automatonCountVO.setApplyAount(value);
+            automatonCountVO.setTime(key);
+            resultMap.put(key,automatonCountVO);
+        });
+        finishMap.forEach((key,value) -> {
+            AutomatonCountVO automatonCountVO=new AutomatonCountVO();
+            if(resultMap.containsKey(key)){
+                automatonCountVO=resultMap.get(key);
+            }else{
+                automatonCountVO.setTime(key);
+            }
+            automatonCountVO.setFinishAount(value);
+            resultMap.put(key,automatonCountVO);
+        });
+        automatonCountVOs = resultMap.values().stream().collect(Collectors.toList());
+        if(CollectionUtils.isNotEmpty(automatonCountVOs)){
+            automatonCountVOs = automatonCountVOs.stream().sorted(Comparator.comparing(AutomatonCountVO::getTime)).collect(Collectors.toList());
+        }
+        return automatonCountVOs;
+    }
+
 }
 

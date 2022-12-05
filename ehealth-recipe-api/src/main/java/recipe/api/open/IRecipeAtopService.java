@@ -235,10 +235,30 @@ public interface IRecipeAtopService {
 
 
     /**
-     * 根据mpiid,recipeStatus获取处方  自助机用
+     * 自助机——根据mpiid,recipeStatus获取处方
      */
     @RpcService
     List<RecipeBean> findRecipeByMpiidAndrecipeStatus(String mpiid, List<Integer> recipeStatus,Integer terminalType,Integer organId);
+
+    /**
+     * 自助机——工作台大盘数据 根据时间等查询处方申请量/完成量
+     */
+    @RpcService
+    AutomatonCountVO findRecipeCountForAutomaton(AutomatonVO automatonVO);
+
+    /**
+     * 自助机——工作台大盘数据 处方订单趋势 根据时间等查询每一天的申请量/完成量
+     */
+    @RpcService
+    List<AutomatonCountVO> findRecipeEveryDayForAutomaton(AutomatonVO automatonVO);
+
+    /**
+     * 自助机——工作台大盘数据 根据时间等查询电子处方机构top5
+     */
+    @RpcService
+    List<AutomatonCountVO> findRecipeTop5ForAutomaton(AutomatonVO automatonVO);
+
+
 
     /**
      * his支付回调

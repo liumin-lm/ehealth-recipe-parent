@@ -45,6 +45,8 @@ import recipe.dao.bean.RecipeRollingInfo;
 import recipe.dao.comment.ExtendDao;
 import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
+import recipe.vo.second.AutomatonCountVO;
+import recipe.vo.second.AutomatonVO;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -4575,6 +4577,80 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     @DAOMethod(sql = "update Recipe set pushFlag = 1 where clinicOrgan=:organId and pushFlag = 0 and enterpriseId=:depId and signDate :startDt and :endDt ", limit = 0)
     public abstract void updateRecipeByOrganIdAndPushFlag(@DAOParam("organId") Integer organId, @DAOParam("depId") Integer depId,
                                                           @DAOParam("startDt") String startDt, @DAOParam("endDt") String endDt);
+
+    public  Integer getRecipeCountForAutomaton(AutomatonVO param){
+        HibernateStatelessResultAction<Integer> action = new AbstractHibernateStatelessResultAction<Integer>() {
+            @Override
+            public void execute(StatelessSession ss) {
+                String sql = createHqlForAutomaton( param.getTerminalType(), param.getTerminalIds(), param.getProcessStateList(), param.getStartTime(), param.getEndTime());
+                Query query = ss.createSQLQuery("select count(1) " + sql);
+                createQueryBySearch(query, new Recipe(), param.getTerminalType(), param.getTerminalIds(), param.getProcessStateList(), param.getStartTime(), param.getEndTime());
+                setResult(null == query.uniqueResult() ? 0 : ((Number) query.uniqueResult()).intValue());
+            }
+        };
+        HibernateSessionTemplate.instance().executeReadOnly(action);
+        return action.getResult();
+    }
+
+    private String createHqlForAutomaton(Integer terminalType, List<String> terminalIds, List<Integer> processState, String startTime, String endTime) {
+        StringBuilder hql = new StringBuilder(" from cdr_recipe r INNER JOIN cdr_recipe_ext re ON r.RecipeID = re.recipeId  WHERE 1=1 ");
+        if (CollectionUtils.isNotEmpty(terminalIds)) {
+            hql.append(" and re.terminal_id in(:terminalIds)");
+        }
+        if (CollectionUtils.isNotEmpty(processState)) {
+            hql.append(" and r.process_state in(:processState)");
+        }
+
+        if (StringUtils.isNotEmpty(startTime) && StringUtils.isNotEmpty(endTime)) {
+            hql.append(" and date(createDate)  between :startTime and :endTime   ");
+        }
+        return hql.toString();
+    }
+
+
+    public  List<AutomatonCountVO> findRecipeTop5ForAutomaton(AutomatonVO param){
+        HibernateStatelessResultAction<List<AutomatonCountVO>> action = new AbstractHibernateStatelessResultAction<List<AutomatonCountVO>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                String sql = createHqlForAutomaton( param.getTerminalType(), param.getTerminalIds(), param.getProcessStateList(), param.getStartTime(), param.getEndTime());
+                Query query = ss.createSQLQuery("select clinicOrgan, count(1) " + sql+" group by r.clinicOrgan order by count(1) desc limit 5");
+                createQueryBySearch(query, new Recipe(), param.getTerminalType(), param.getTerminalIds(), param.getProcessStateList(), param.getStartTime(), param.getEndTime());
+                List<Object[]> oList = query.list();
+                List<AutomatonCountVO> automatonCountVOS=new ArrayList<>();
+                for (Object[] co : oList) {
+                    AutomatonCountVO automatonCountVO=new AutomatonCountVO();
+                    automatonCountVO.setOrganId(null==co[0]?null:Integer.valueOf(String.valueOf(co[0]) ));
+                    automatonCountVO.setCount(null==co[1]?0:Integer.valueOf(String.valueOf(co[1]) ));
+                    automatonCountVOS.add(automatonCountVO);
+                }
+                setResult(automatonCountVOS);
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
+    public  HashMap<String, Integer> findRecipeEveryDayForAutomaton(AutomatonVO param){
+        HibernateStatelessResultAction<HashMap<String, Integer>> action = new AbstractHibernateStatelessResultAction<HashMap<String, Integer>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                //select date(createDate) time ,count(1) count from cdr_recipe where date(createDate)  between '2022-11-28' and '2022-12-02'  group by date(createDate)  order by createdate desc
+                String sql = createHqlForAutomaton( param.getTerminalType(), param.getTerminalIds(), param.getProcessStateList(), param.getStartTime(), param.getEndTime());
+                Query query = ss.createSQLQuery("select date(createDate) time ,count(1) count  " + sql+"  group by date(createDate)  order by createdate desc ");
+                createQueryBySearch(query, new Recipe(), param.getTerminalType(), param.getTerminalIds(), param.getProcessStateList(), param.getStartTime(), param.getEndTime());
+                List<Object[]> oList = query.list();
+                HashMap<String, Integer> timeCount = new HashMap<String, Integer>();
+                SimpleDateFormat sformat = new SimpleDateFormat(DateConversion.YYYY_MM_DD);
+                for (Object[] co : oList) {
+                    timeCount.put( null== co[0] ? null: sformat.format(co[0]), null==co[1]?0:Integer.valueOf(String.valueOf(co[1]) ));
+                }
+                setResult(timeCount);
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
 }
 
 

@@ -399,4 +399,25 @@ public interface IRecipeBusinessService {
      * @return
      */
     List<RecipeToGuideResVO> findRecipeByClinicId(Integer clinicId);
+
+    /**
+     * 根据时间等查询处方申请量/完成量
+     * @param automatonVO
+     * @return
+     */
+    Integer findRecipeCountForAutomaton(AutomatonVO automatonVO);
+
+    /**
+     * 根据时间等查询电子处方机构top5
+     * @param automatonVO
+     * @return
+     */
+    List<AutomatonCountVO> findRecipeTop5ForAutomaton(AutomatonVO automatonVO);
+
+    /**
+     * 根据时间等查询每一天的申请量/完成量
+     * @param automatonVO
+     * @return
+     */
+    List<AutomatonCountVO> findRecipeEveryDayForAutomaton(AutomatonVO automatonVO);
 }
