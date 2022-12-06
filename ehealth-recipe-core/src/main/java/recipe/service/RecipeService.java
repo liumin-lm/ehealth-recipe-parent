@@ -3403,7 +3403,7 @@ public class RecipeService extends RecipeBaseService {
                     }
 
                     //筛选出来的数据已经去掉不支持任何方式配送的药企
-                    drugsEnterpriseList = drugsEnterpriseDAO.findByOrganIdAndPayModeSupport(organId, "%" + recipeSupportGiveModeEnum.getType() +"%");
+                    drugsEnterpriseList = drugsEnterpriseDAO.findByOrganIdAndPayModeSupport(organId, recipeSupportGiveModeEnum.getType());
                     if (CollectionUtils.isEmpty(drugsEnterpriseList)) {
                         LOGGER.error("findSupportDepList 处方[{}]没有任何药企可以进行配送！", recipeId);
                         break;
@@ -5284,12 +5284,10 @@ public class RecipeService extends RecipeBaseService {
         if (checkEnterprise) {
             //药企库存实时查询
             //首先获取机构匹配支持配送的药企列表
-            String supportGiveModeHos = "%" + RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType().toString() + "%";
-            String supportGiveModeEnt = "%" + RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType().toString() + "%";
             DrugsEnterpriseDAO drugsEnterpriseDAO = getDAO(DrugsEnterpriseDAO.class);
             //筛选出来的数据已经去掉不支持任何方式配送的药企
-            List<DrugsEnterprise> drugsEnterprisesHos = drugsEnterpriseDAO.findByOrganIdAndPayModeSupport(recipe.getClinicOrgan(), supportGiveModeHos);
-            List<DrugsEnterprise> drugsEnterprisesEnt = drugsEnterpriseDAO.findByOrganIdAndPayModeSupport(recipe.getClinicOrgan(), supportGiveModeEnt);
+            List<DrugsEnterprise> drugsEnterprisesHos = drugsEnterpriseDAO.findByOrganIdAndPayModeSupport(recipe.getClinicOrgan(), RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType());
+            List<DrugsEnterprise> drugsEnterprisesEnt = drugsEnterpriseDAO.findByOrganIdAndPayModeSupport(recipe.getClinicOrgan(), RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType());
             List<DrugsEnterprise> drugsEnterprises = new ArrayList<>();
             drugsEnterprises.addAll(drugsEnterprisesHos);
             drugsEnterprises.addAll(drugsEnterprisesEnt);

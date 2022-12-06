@@ -603,7 +603,7 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         RecipeOrder order = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
         Integer type = RecipeSupportGiveModeEnum.getGiveModeType(order.getGiveModeKey());
-        List<DrugsEnterprise> enterpriseList = enterpriseDAO.findByOrganIdAndPayModeSupport(organId, "%" + type.toString() + "%");
+        List<DrugsEnterprise> enterpriseList = enterpriseDAO.findByOrganIdAndPayModeSupport(organId, type);
         if (CollectionUtils.isNotEmpty(enterpriseList)) {
             RemoteDrugEnterpriseService service = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
             for (DrugsEnterprise dep : enterpriseList) {
