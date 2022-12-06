@@ -688,9 +688,12 @@ public class RecipeTestService {
     @RpcService
     public void handleGiveModeEnt(){
         List<OrganAndDrugsepRelation> organAndDrugsDepRelationList = organAndDrugsepRelationDAO.findAllData();
+        LOGGER.info("handleGiveModeEnt organAndDrugsDepRelationList:{}", JSON.toJSONString(organAndDrugsDepRelationList));
         organAndDrugsDepRelationList.forEach(organAndDrugsDepRelation -> {
             DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(organAndDrugsDepRelation.getDrugsEnterpriseId());
+            LOGGER.info("handleGiveModeEnt drugsEnterprise:{}", JSON.toJSONString(drugsEnterprise));
             OrganDrugsSaleConfig organDrugsSaleConfig = drugsSaleConfigDAO.getOrganDrugsSaleConfigByOrganIdAndDepId(organAndDrugsDepRelation.getDrugsEnterpriseId(), organAndDrugsDepRelation.getOrganId());
+            LOGGER.info("handleGiveModeEnt organDrugsSaleConfig:{}", JSON.toJSONString(organDrugsSaleConfig));
             Integer payModeSupport = drugsEnterprise.getPayModeSupport();
             List<Integer> supportGiveModeList = new ArrayList<>();
             switch (payModeSupport) {
