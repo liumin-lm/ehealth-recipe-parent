@@ -115,6 +115,7 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
                 SQLQuery query = ss.createSQLQuery(String.valueOf(sql));
                 query.setParameter("organId", organId);
                 query.setParameter("payModeSupport", "%" + payModeSupport + "%");
+                query.addEntity(DrugsEnterprise.class);
                 setResult(query.list());
             }
         };
@@ -182,6 +183,7 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
                 query.setParameter("organId", organId);
                 query.setParameter("sendType", sendType);
                 query.setParameter("payModeSupport", "%" + payModeSupport + "%");
+                query.addEntity(DrugsEnterprise.class);
                 setResult(query.list());
             }
         };
@@ -211,6 +213,7 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
                 query.setParameter("organId", organId);
                 query.setParameter("sendType", sendType);
                 query.setParameter("payModeSupport", "%" + payModeSupport + "%");
+                query.addEntity(DrugsEnterprise.class);
                 setResult(query.list());
             }
         };
