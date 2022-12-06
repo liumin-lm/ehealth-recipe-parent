@@ -131,7 +131,7 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
             "and s.organId=:organId and t.drugsEnterpriseSupportGiveMode like :payModeSupport and t.sendType = :sendType")
     public abstract Long getCountByOrganIdAndPayModeSupportAndSendType(@DAOParam("organId") Integer organId, @DAOParam("payModeSupport") String payModeSupport, @DAOParam("sendType") Integer sendType);
 */
-    public Long getCountByOrganIdAndPayModeSupportAndSendType(@DAOParam("organId") Integer organId,
+    public long getCountByOrganIdAndPayModeSupportAndSendType(@DAOParam("organId") Integer organId,
                                                               @DAOParam("payModeSupport") Integer payModeSupport,
                                                               @DAOParam("sendType") Integer sendType) {
         HibernateStatelessResultAction<Long> action = new AbstractHibernateStatelessResultAction<Long>() {
