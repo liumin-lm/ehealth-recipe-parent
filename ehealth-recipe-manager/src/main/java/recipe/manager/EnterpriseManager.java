@@ -277,7 +277,7 @@ public class EnterpriseManager extends BaseManager {
                 break;
             case DEFAULT:
             default:
-                drugsEnterpriseList = drugsEnterpriseDAO.findByOrganIdAndPayModeSupport(recipe.getClinicOrgan(), "%"+recipeSupportGiveModeEnum.getType()+"%");
+                drugsEnterpriseList = drugsEnterpriseDAO.findByOrganIdAndPayModeSupport(recipe.getClinicOrgan(), recipeSupportGiveModeEnum.getType());
                 break;
         }
         logger.info("EnterpriseManager findEnterpriseByTFDS  res={}", JSONUtils.toString(drugsEnterpriseList));
@@ -333,13 +333,13 @@ public class EnterpriseManager extends BaseManager {
             default:
                 if (StringUtils.isNotEmpty(sendType)) {
                     if (Integer.valueOf(1).equals(recipe.getRecipeSource())) {
-                        drugsEnterpriseList = drugsEnterpriseDAO.findByOrganIdAndOtherAndSendType(recipe.getClinicOrgan(), "%"+recipeSupportGiveModeEnum.getType()+"%", Integer.parseInt(sendType));
+                        drugsEnterpriseList = drugsEnterpriseDAO.findByOrganIdAndOtherAndSendType(recipe.getClinicOrgan(), recipeSupportGiveModeEnum.getType(), Integer.parseInt(sendType));
                     } else {
-                        drugsEnterpriseList = drugsEnterpriseDAO.findByOrganIdAndPayModeSupportAndSendType(recipe.getClinicOrgan(), "%"+recipeSupportGiveModeEnum.getType()+"%", Integer.parseInt(sendType));
+                        drugsEnterpriseList = drugsEnterpriseDAO.findByOrganIdAndPayModeSupportAndSendType(recipe.getClinicOrgan(), recipeSupportGiveModeEnum.getType(), Integer.parseInt(sendType));
                     }
                 } else {
                     //考虑到浙江省互联网项目的药店取药也会走这里,sendType是"" 还是需要查询一下支持的药企
-                    drugsEnterpriseList = drugsEnterpriseDAO.findByOrganIdAndPayModeSupport(recipe.getClinicOrgan(), "%"+recipeSupportGiveModeEnum.getType()+"%");
+                    drugsEnterpriseList = drugsEnterpriseDAO.findByOrganIdAndPayModeSupport(recipe.getClinicOrgan(), recipeSupportGiveModeEnum.getType());
                 }
                 break;
         }
