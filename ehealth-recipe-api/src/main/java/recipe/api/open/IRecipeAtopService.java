@@ -359,4 +359,15 @@ public interface IRecipeAtopService {
      */
     @RpcService(mvcDisabled = true)
     RecipeVo getRecipeByBusId(Integer recipeId);
+
+    /**
+     * 查询超时未审核的处方单（10分钟未审核定义为超时）
+     *
+     * @param startTime
+     * @param endTime
+     * @param organIds
+     * @return
+     */
+    List<Integer> findAuditOverTimeRecipeList(Date startTime, Date endTime, List<Integer> organIds);
+
 }

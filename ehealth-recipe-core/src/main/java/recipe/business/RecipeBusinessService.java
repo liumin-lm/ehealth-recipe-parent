@@ -1494,5 +1494,9 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         return pageDTO;
     }
 
+    @Override
+    public List<Integer> findAuditOverTimeRecipeList(Date startTime, Date endTime, List<Integer> organIds) {
+        return recipeDAO.findAuditOverTimeRecipeList(startTime, endTime, organIds);
+    }
 }
 

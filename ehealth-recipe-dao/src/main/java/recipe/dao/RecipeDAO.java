@@ -4688,6 +4688,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
 
     }
 
+    @DAOMethod(sql = "SELECT count(1) FROM Recipe where clinicOrgan IN :organIds AND auditState = 1 AND createDate > :startTime and createDate < :endTime")
+    public abstract List<Integer> findAuditOverTimeRecipeList(@DAOParam("startTime") Date startTime,
+                                                              @DAOParam("endTime") Date endTime,
+                                                              @DAOParam("organIds") List<Integer> organIds);
 }
 
 
