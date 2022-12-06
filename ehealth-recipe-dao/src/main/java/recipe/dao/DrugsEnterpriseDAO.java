@@ -138,7 +138,7 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder sql = new StringBuilder("select count(*) from cdr_drugsenterprise t, cdr_organ_drugsep_relation s where t.id=s.DrugsEnterpriseId and t.status=1 ");
-                sql.append(" and s.OrganId=:organId and t.drug_enterprise_support_give_mode like :payModeSupport and t.sendType = :sendType ");
+                sql.append(" and s.OrganId=:organId and s.drug_enterprise_support_give_mode like :payModeSupport and t.sendType = :sendType ");
                 SQLQuery query = ss.createSQLQuery(String.valueOf(sql));
                 query.setParameter("organId", organId);
                 query.setParameter("sendType", sendType);
