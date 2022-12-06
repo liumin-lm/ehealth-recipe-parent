@@ -180,7 +180,7 @@ public class RecipeAuditClient extends BaseClient {
      * @return
      */
     public boolean isShowChecker(Recipe recipe, List<RecipeLog> recipeLogs) {
-        logger.info("RecipeAuditClient isShowChecker recipe:{}, recipeLogs:{}", JSON.toJSONString(recipe), JSON.toJSONString(recipeLogs));
+        logger.info("RecipeAuditClient isShowChecker recipe:{}", JSON.toJSONString(recipe));
         RecipeCheckBean recipeCheckBean = getNowCheckResultByRecipeId(recipe.getRecipeId());
         if (recipe.getCheckMode() != null && recipe.getCheckMode() == 2) {
             return false;
@@ -190,7 +190,7 @@ public class RecipeAuditClient extends BaseClient {
             return false;
         }
         //判断有没有不通过的记录，没有就说明是直接审核通过的
-        return Integer.valueOf("1").equals(recipeCheckBean.getCheckStatus()) && CollectionUtils.isEmpty(recipeLogs);
+        return Integer.valueOf("1").equals(recipeCheckBean.getCheckStatus());
     }
 
     /**

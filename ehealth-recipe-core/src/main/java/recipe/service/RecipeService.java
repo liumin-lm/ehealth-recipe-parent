@@ -1067,7 +1067,7 @@ public class RecipeService extends RecipeBaseService {
         LOGGER.info("RecipeService.doSignRecipeNew param: recipeBean={} detailBean={} continueFlag={}", JSONUtils.toString(recipeBean), JSONUtils.toString(detailBeanList), continueFlag);
         recipeDetailValidateTool.validateMedicalChineDrugNumber(recipeBean, detailBeanList);
         caManager.setCaPassWord(recipeBean.getClinicOrgan(), recipeBean.getDoctor(), recipeBean.getCaPassword());
-        Map<String, Object> rMap = new HashMap<String, Object>();
+        Map<String, Object> rMap = new HashMap<>();
         rMap.put("signResult", true);
         try {
             recipeBean.setDistributionFlag(continueFlag);
@@ -3396,13 +3396,14 @@ public class RecipeService extends RecipeBaseService {
             } else {
                 if (null != payMode) {
                     List<Integer> payModeSupport = RecipeServiceSub.getDepSupportMode(payMode);
+                    RecipeSupportGiveModeEnum recipeSupportGiveModeEnum = enterpriseManager.getDepSupportModeByPayMode(payMode);
                     if (CollectionUtils.isEmpty(payModeSupport)) {
                         LOGGER.error("findSupportDepList 处方[{}]无法匹配配送方式. payMode=[{}]", recipeId, payMode);
                         break;
                     }
 
                     //筛选出来的数据已经去掉不支持任何方式配送的药企
-                    drugsEnterpriseList = drugsEnterpriseDAO.findByOrganIdAndPayModeSupport(organId, payModeSupport);
+                    drugsEnterpriseList = drugsEnterpriseDAO.findByOrganIdAndPayModeSupport(organId, "%" + recipeSupportGiveModeEnum.getType() +"%");
                     if (CollectionUtils.isEmpty(drugsEnterpriseList)) {
                         LOGGER.error("findSupportDepList 处方[{}]没有任何药企可以进行配送！", recipeId);
                         break;
@@ -5283,19 +5284,16 @@ public class RecipeService extends RecipeBaseService {
         if (checkEnterprise) {
             //药企库存实时查询
             //首先获取机构匹配支持配送的药企列表
-            List<Integer> payModeSupport = RecipeServiceSub.getDepSupportMode(RecipeBussConstant.PAYMODE_ONLINE);
-            payModeSupport.addAll(RecipeServiceSub.getDepSupportMode(RecipeBussConstant.PAYMODE_COD));
-
+            String supportGiveModeHos = "%" + RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType().toString() + "%";
+            String supportGiveModeEnt = "%" + RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType().toString() + "%";
             DrugsEnterpriseDAO drugsEnterpriseDAO = getDAO(DrugsEnterpriseDAO.class);
             //筛选出来的数据已经去掉不支持任何方式配送的药企
-            List<DrugsEnterprise> drugsEnterprises = drugsEnterpriseDAO.findByOrganIdAndPayModeSupport(recipe.getClinicOrgan(), payModeSupport);
-            if (CollectionUtils.isEmpty(payModeSupport)) {
-                LOGGER.error("recipeCanDelivery 处方[{}]的开方机构{}没有配置配送药企.", recipeId, recipe.getClinicOrgan());
-                return false;
-            } else {
-                LOGGER.error("recipeCanDelivery 处方[{}]的开方机构{}获取到配置配送药企：{}.", recipeId, recipe.getClinicOrgan(), JSON.toJSONString(drugsEnterprises));
-            }
-            RemoteDrugEnterpriseService service = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+            List<DrugsEnterprise> drugsEnterprisesHos = drugsEnterpriseDAO.findByOrganIdAndPayModeSupport(recipe.getClinicOrgan(), supportGiveModeHos);
+            List<DrugsEnterprise> drugsEnterprisesEnt = drugsEnterpriseDAO.findByOrganIdAndPayModeSupport(recipe.getClinicOrgan(), supportGiveModeEnt);
+            List<DrugsEnterprise> drugsEnterprises = new ArrayList<>();
+            drugsEnterprises.addAll(drugsEnterprisesHos);
+            drugsEnterprises.addAll(drugsEnterprisesEnt);
+
             YtRemoteService ytRemoteService;
             HdRemoteService hdRemoteService;
             for (DrugsEnterprise drugsEnterprise : drugsEnterprises) {

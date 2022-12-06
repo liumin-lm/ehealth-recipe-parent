@@ -99,8 +99,8 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
      * @return
      */
     @DAOMethod(sql = "select t from DrugsEnterprise t, OrganAndDrugsepRelation s where t.id=s.drugsEnterpriseId and t.status=1 " +
-            "and s.organId=:organId and t.payModeSupport in :payModeSupport order by t.sort, t.id")
-    public abstract List<DrugsEnterprise> findByOrganIdAndPayModeSupport(@DAOParam("organId") Integer organId, @DAOParam("payModeSupport") List<Integer> payModeSupport);
+            "and s.organId=:organId and s.drugsEnterpriseSupportGiveMode like :payModeSupport order by t.sort, t.id")
+    public abstract List<DrugsEnterprise> findByOrganIdAndPayModeSupport(@DAOParam("organId") Integer organId, @DAOParam("payModeSupport") String payModeSupport);
 
     /**
      * 根据机构id及配送模式支持获取
@@ -109,8 +109,8 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
      * @return
      */
     @DAOMethod(sql = "select count(*) from DrugsEnterprise t, OrganAndDrugsepRelation s where t.id=s.drugsEnterpriseId and t.status=1 " +
-            "and s.organId=:organId and t.payModeSupport in :payModeSupport and t.sendType = :sendType")
-    public abstract Long getCountByOrganIdAndPayModeSupportAndSendType(@DAOParam("organId") Integer organId, @DAOParam("payModeSupport") List<Integer> payModeSupport, @DAOParam("sendType") Integer sendType);
+            "and s.organId=:organId and t.drugsEnterpriseSupportGiveMode like :payModeSupport and t.sendType = :sendType")
+    public abstract Long getCountByOrganIdAndPayModeSupportAndSendType(@DAOParam("organId") Integer organId, @DAOParam("payModeSupport") String payModeSupport, @DAOParam("sendType") Integer sendType);
 
     /**
      * 根据机构ID获取存在补充库存的药企机构
@@ -128,18 +128,18 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
      * @return
      */
     @DAOMethod(sql = "select t from DrugsEnterprise t, OrganAndDrugsepRelation s where t.id=s.drugsEnterpriseId and t.status=1 " +
-            "and s.organId=:organId and t.payModeSupport in :payModeSupport and t.sendType = :sendType order by t.sort, t.id")
-    public abstract List<DrugsEnterprise> findByOrganIdAndPayModeSupportAndSendType(@DAOParam("organId") Integer organId, @DAOParam("payModeSupport") List<Integer> payModeSupport, @DAOParam("sendType") Integer sendType);
+            "and s.organId=:organId and s.drugsEnterpriseSupportGiveMode like :payModeSupport and t.sendType = :sendType order by t.sort, t.id")
+    public abstract List<DrugsEnterprise> findByOrganIdAndPayModeSupportAndSendType(@DAOParam("organId") Integer organId, @DAOParam("payModeSupport") String payModeSupport, @DAOParam("sendType") Integer sendType);
 
     /**
      * 根据机构id，配送模式支持，省直医保支持获取
      * @param organId
-     * @param payModeSuppor
+     * @param payModeSupport
      * @return
      */
     @DAOMethod(sql = "select t from DrugsEnterprise t, OrganAndDrugsepRelation s where t.id=s.drugsEnterpriseId and t.status=1 and t.medicalInsuranceSupport=1 " +
-            "and s.organId=:organId and t.payModeSupport in :payModeSupport and t.sendType = :sendType order by t.sort, t.id")
-    public abstract List<DrugsEnterprise> findByOrganIdAndOtherAndSendType(@DAOParam("organId") Integer organId, @DAOParam("payModeSupport") List<Integer> payModeSuppor, @DAOParam("sendType") Integer sendType);
+            "and s.organId=:organId and s.drugsEnterpriseSupportGiveMode like :payModeSupport and t.sendType = :sendType order by t.sort, t.id")
+    public abstract List<DrugsEnterprise> findByOrganIdAndOtherAndSendType(@DAOParam("organId") Integer organId, @DAOParam("payModeSupport") String payModeSupport, @DAOParam("sendType") Integer sendType);
 
 
     /**

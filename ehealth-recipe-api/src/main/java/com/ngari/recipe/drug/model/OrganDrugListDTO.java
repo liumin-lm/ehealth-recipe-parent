@@ -202,10 +202,10 @@ public class OrganDrugListDTO implements java.io.Serializable {
     @ItemProperty(alias = "是否国家标准药品 0 否 1 是")
     private Integer nationalStandardDrugFlag;
 
-    @ItemProperty(alias = "his药品分类名称 0 否 1 是")
+    @ItemProperty(alias = "his药品分类名称")
     private String hisDrugClassName;
 
-    @ItemProperty(alias = "his药品分类编码 0 否 1 是")
+    @ItemProperty(alias = "his药品分类编码")
     private String hisDrugClassCode;
 
 //    @ItemProperty(alias = "是否冷链运输 0 否 1 是")

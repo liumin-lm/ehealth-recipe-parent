@@ -27,7 +27,6 @@ import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.RecipeDistributionFlagEnum;
 import recipe.enumerate.type.RecipeSupportGiveModeEnum;
-import recipe.manager.RecipeManager;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -58,10 +57,10 @@ public abstract class GiveModeManager implements IGiveModeBase {
         boolean showSendToEnterprises = result.containsKey("showSendToEnterprises");
         boolean showSendToHos = result.containsKey("showSendToHos");
         //如果运营平台没有配置药企配送或者医院配送，则可不用继续处理
-        List<Integer> payModeSupport = RecipeBussConstant.getDepSupportMode(RecipeBussConstant.PAYMODE_ONLINE);
-        payModeSupport.addAll(RecipeBussConstant.getDepSupportMode(RecipeBussConstant.PAYMODE_COD));
-        Long enterprisesSend = drugsEnterpriseDAO.getCountByOrganIdAndPayModeSupportAndSendType(recipe.getClinicOrgan(), payModeSupport, EnterpriseSendConstant.Enterprise_Send);
-        Long hosSend = drugsEnterpriseDAO.getCountByOrganIdAndPayModeSupportAndSendType(recipe.getClinicOrgan(), payModeSupport, EnterpriseSendConstant.Hos_Send);
+        String supportGiveModeEnt = "%" + RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType().toString() + "%";
+        String supportGiveModeHos = "%" + RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType().toString() + "%";
+        Long enterprisesSend = drugsEnterpriseDAO.getCountByOrganIdAndPayModeSupportAndSendType(recipe.getClinicOrgan(), supportGiveModeEnt, EnterpriseSendConstant.Enterprise_Send);
+        Long hosSend = drugsEnterpriseDAO.getCountByOrganIdAndPayModeSupportAndSendType(recipe.getClinicOrgan(), supportGiveModeHos, EnterpriseSendConstant.Hos_Send);
         if (showSendToEnterprises && enterprisesSend == 0L) {
             //表示运营平台虽然配置了药企配送但是该机构没有配置可配送的药企
             removeGiveModeData(giveModeShowButtonVO.getGiveModeButtons(), "showSendToEnterprises");

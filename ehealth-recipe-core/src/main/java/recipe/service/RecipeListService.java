@@ -60,6 +60,7 @@ import recipe.dao.bean.RecipeRollingInfo;
 import recipe.enumerate.status.*;
 import recipe.enumerate.type.MedicalTypeEnum;
 import recipe.enumerate.type.RecipeDistributionFlagEnum;
+import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.manager.ButtonManager;
 import recipe.manager.EmrRecipeManager;
@@ -1953,10 +1954,10 @@ public class RecipeListService extends RecipeBaseService {
         if (!payModeShowButtonBean.getSupportOnline()) {
             return payModeShowButtonBean;
         }
-        List<Integer> payModeSupport = RecipeServiceSub.getDepSupportMode(RecipeBussConstant.PAYMODE_ONLINE);
-        payModeSupport.addAll(RecipeServiceSub.getDepSupportMode(RecipeBussConstant.PAYMODE_COD));
-        Long enterprisesSend = drugsEnterpriseDAO.getCountByOrganIdAndPayModeSupportAndSendType(recipe.getClinicOrgan(), payModeSupport, EnterpriseSendConstant.Enterprise_Send);
-        Long hosSend = drugsEnterpriseDAO.getCountByOrganIdAndPayModeSupportAndSendType(recipe.getClinicOrgan(), payModeSupport, EnterpriseSendConstant.Hos_Send);
+        String supportGiveModeEnt = "%" + RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType().toString() + "%";
+        String supportGiveModeHos = "%" + RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType().toString() + "%";
+        Long enterprisesSend = drugsEnterpriseDAO.getCountByOrganIdAndPayModeSupportAndSendType(recipe.getClinicOrgan(), supportGiveModeEnt, EnterpriseSendConstant.Enterprise_Send);
+        Long hosSend = drugsEnterpriseDAO.getCountByOrganIdAndPayModeSupportAndSendType(recipe.getClinicOrgan(), supportGiveModeHos, EnterpriseSendConstant.Hos_Send);
         if (null != enterprisesSend && 0 < enterprisesSend) {
 
             payModeShowButtonBean.setShowSendToEnterprises(true);

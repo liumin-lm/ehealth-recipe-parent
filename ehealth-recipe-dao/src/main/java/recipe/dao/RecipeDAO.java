@@ -4651,6 +4651,47 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         return action.getResult();
     }
 
+    public QueryResult<Recipe> queryPageForCommonOrder(Date startDate, Date endDate, Integer start, Integer limit) {
+        HibernateStatelessResultAction<QueryResult<Recipe>> action = new AbstractHibernateStatelessResultAction<QueryResult<Recipe>>() {
+            @Override
+            @SuppressWarnings("unchecked")
+            public void execute(StatelessSession ss) throws DAOException {
+                int total = 0;
+                StringBuilder hql = new StringBuilder(" from Recipe");
+                if (startDate != null) {
+
+                    hql.append(" where signDate >= :startTime ");
+                }
+                if (endDate != null) {
+                    hql.append(" AND signDate <= :endTime ");
+                }
+                Query countQuery = ss.createQuery("select count(*) " + hql.toString());
+                countQuery.setParameter("endTime", endDate);
+                countQuery.setParameter("startTime", startDate);
+                total = ((Long) countQuery.uniqueResult()).intValue();// 获取总条数
+
+                hql.append(" order by recipeId desc");
+                Query query = ss.createQuery(hql.toString());
+                query.setParameter("endTime", endDate);
+                query.setParameter("startTime", startDate);
+                query.setFirstResult(start);
+                query.setMaxResults(limit);
+                List<Recipe> resList = query.list();
+                QueryResult<Recipe> qResult = new QueryResult<Recipe>(total, query.getFirstResult(),
+                        query.getMaxResults(), resList);
+                setResult(qResult);
+            }
+        };
+        HibernateSessionTemplate.instance().executeReadOnly(action);
+        QueryResult<Recipe> result = action.getResult();
+        return result;
+
+    }
+
+    @DAOMethod(sql = "FROM Recipe where clinicOrgan IN :organIds AND auditState = 1 AND createDate > :startTime and createDate < :endTime")
+    public abstract List<Recipe> findAuditOverTimeRecipeList(@DAOParam("startTime") Date startTime,
+                                                              @DAOParam("endTime") Date endTime,
+                                                              @DAOParam("organIds") List<Integer> organIds);
 }
 
 
