@@ -234,7 +234,15 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
      */
     @RpcService
     public List<DrugsEnterpriseVO> findDrugEnterprise(){
-        return enterpriseBusinessService.findDrugEnterprise();
+        List<DrugsEnterpriseVO> drugsEnterpriseVOList = enterpriseBusinessService.findDrugEnterprise();
+        List<DrugsEnterpriseVO> result = new ArrayList<>();
+        drugsEnterpriseVOList.forEach(drugsEnterpriseVO -> {
+            DrugsEnterpriseVO drugsEnterprise = new DrugsEnterpriseVO();
+            drugsEnterprise.setId(drugsEnterpriseVO.getId());
+            drugsEnterprise.setName(drugsEnterpriseVO.getName());
+            result.add(drugsEnterprise);
+        });
+        return result;
     }
 
     /**
