@@ -4594,6 +4594,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
 
     private String createHqlForAutomaton(Integer terminalType, List<String> terminalIds, List<Integer> processState, String startTime, String endTime) {
         StringBuilder hql = new StringBuilder(" from cdr_recipe r INNER JOIN cdr_recipe_ext re ON r.RecipeID = re.recipeId  WHERE 1=1 ");
+        if (terminalType!=null) {
+            hql.append(" and  re.terminal_type= :terminalType");
+        }
         if (CollectionUtils.isNotEmpty(terminalIds)) {
             hql.append(" and re.terminal_id in(:terminalIds)");
         }
