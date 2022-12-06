@@ -1067,7 +1067,7 @@ public class RecipeService extends RecipeBaseService {
         LOGGER.info("RecipeService.doSignRecipeNew param: recipeBean={} detailBean={} continueFlag={}", JSONUtils.toString(recipeBean), JSONUtils.toString(detailBeanList), continueFlag);
         recipeDetailValidateTool.validateMedicalChineDrugNumber(recipeBean, detailBeanList);
         caManager.setCaPassWord(recipeBean.getClinicOrgan(), recipeBean.getDoctor(), recipeBean.getCaPassword());
-        Map<String, Object> rMap = new HashMap<String, Object>();
+        Map<String, Object> rMap = new HashMap<>();
         rMap.put("signResult", true);
         try {
             recipeBean.setDistributionFlag(continueFlag);

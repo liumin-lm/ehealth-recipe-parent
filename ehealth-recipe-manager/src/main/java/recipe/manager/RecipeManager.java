@@ -32,7 +32,6 @@ import recipe.client.RecipeAuditClient;
 import recipe.common.CommonConstant;
 import recipe.common.UrlConfig;
 import recipe.constant.RecipeBussConstant;
-import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RequirementsForTakingDao;
 import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.enumerate.status.RecipeStateEnum;
@@ -41,10 +40,6 @@ import recipe.enumerate.status.WriteHisEnum;
 import recipe.enumerate.type.AppointEnterpriseTypeEnum;
 import recipe.enumerate.type.RecipeShowQrConfigEnum;
 import recipe.util.*;
-import recipe.util.DictionaryUtil;
-import recipe.util.LocalStringUtil;
-import recipe.util.ObjectCopyUtils;
-import recipe.util.ValidateUtil;
 
 import java.math.BigDecimal;
 import java.text.ParseException;
@@ -385,12 +380,12 @@ public class RecipeManager extends BaseManager {
             recipeCancel.setCancelReason(recipeExtend.getCancellation());
             return recipeCancel;
         }
-        List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatus(recipeId, RecipeStatusConstant.REVOKE);
-        if (CollectionUtils.isNotEmpty(recipeLogs)) {
-            cancelReason = recipeLogs.get(0).getMemo();
-            cancelDate = recipeLogs.get(0).getModifyDate();
-        }
-        recipeCancel.setCancelDate(cancelDate);
+//        List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatus(recipeId, RecipeStatusConstant.REVOKE);
+//        if (CollectionUtils.isNotEmpty(recipeLogs)) {
+//            cancelReason = recipeLogs.get(0).getMemo();
+//            cancelDate = recipeLogs.get(0).getModifyDate();
+//        }
+//        recipeCancel.setCancelDate(cancelDate);
         recipeCancel.setCancelReason(cancelReason);
         logger.info("getCancelReasonForPatient recipeCancel:{}", JSONUtils.toString(recipeCancel));
         return recipeCancel;

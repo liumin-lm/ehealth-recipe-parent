@@ -1221,10 +1221,10 @@ public class RecipeServiceSub {
                         if (null != recipeExtend && StringUtils.isNotEmpty(recipeExtend.getCancellation())) {
                             cancelReason = recipeExtend.getCancellation();
                         } else {
-                            List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatus(recipe.getRecipeId(), status);
-                            if (CollectionUtils.isNotEmpty(recipeLogs)) {
-                                cancelReason = recipeLogs.get(0).getMemo();
-                            }
+//                            List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatus(recipe.getRecipeId(), status);
+//                            if (CollectionUtils.isNotEmpty(recipeLogs)) {
+//                                cancelReason = recipeLogs.get(0).getMemo();
+//                            }
                         }
                     }
                     break;
@@ -1246,10 +1246,10 @@ public class RecipeServiceSub {
                     if (null != recipeExtend && StringUtils.isNotEmpty(recipeExtend.getCancellation())) {
                         cancelReason = recipeExtend.getCancellation();
                     } else {
-                        List<RecipeLog> recipeFailLogs = recipeLogDAO.findByRecipeIdAndAfterStatusDesc(recipe.getRecipeId(), RecipeStatusConstant.HIS_FAIL);
-                        if (CollectionUtils.isNotEmpty(recipeFailLogs)) {
-                            cancelReason = recipeFailLogs.get(0).getMemo().substring(recipeFailLogs.get(0).getMemo().indexOf("|") + 1, recipeFailLogs.get(0).getMemo().length() - 1);
-                        }
+//                        List<RecipeLog> recipeFailLogs = recipeLogDAO.findByRecipeIdAndAfterStatusDesc(recipe.getRecipeId(), RecipeStatusConstant.HIS_FAIL);
+//                        if (CollectionUtils.isNotEmpty(recipeFailLogs)) {
+//                            cancelReason = recipeFailLogs.get(0).getMemo().substring(recipeFailLogs.get(0).getMemo().indexOf("|") + 1, recipeFailLogs.get(0).getMemo().length() - 1);
+//                        }
                     }
                     break;
                 case RecipeStatusConstant.NO_DRUG:
@@ -1909,8 +1909,8 @@ public class RecipeServiceSub {
         //2.设置二次审核，一次通过展示（没有审核不通过日志的且审核通过的）
         //总结的来说就是只要审核通过的并且没有不通过记录就展示
         RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
-        List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatus(recipe.getRecipeId(), RecipeStatusConstant.CHECK_NOT_PASS_YS);
-        boolean showChecker = recipeAuditClient.isShowChecker(recipe, recipeLogs);
+        //  List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatus(recipe.getRecipeId(), RecipeStatusConstant.CHECK_NOT_PASS_YS);
+        boolean showChecker = recipeAuditClient.isShowChecker(recipe, null);
         map.put("showChecker", showChecker);
         //兼容老版本（此版本暂时不做删除）
         Boolean childRecipeFlag = false;
@@ -2281,11 +2281,11 @@ public class RecipeServiceSub {
             if (StringUtils.isNotEmpty(recipeExtend.getCancellation())) {
                 cancelReason = "开方医生已撤销处方,撤销原因:" + recipeExtend.getCancellation();
             } else {
-                RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
-                List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatusDesc(recipeId, RecipeStatusConstant.REVOKE);
-                if (CollectionUtils.isNotEmpty(recipeLogs)) {
-                    cancelReason = "开方医生已撤销处方,撤销原因:" + recipeLogs.get(0).getMemo();
-                }
+//                RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
+//                List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatusDesc(recipeId, RecipeStatusConstant.REVOKE);
+//                if (CollectionUtils.isNotEmpty(recipeLogs)) {
+//                    cancelReason = "开方医生已撤销处方,撤销原因:" + recipeLogs.get(0).getMemo();
+//                }
             }
         }
         return cancelReason;
