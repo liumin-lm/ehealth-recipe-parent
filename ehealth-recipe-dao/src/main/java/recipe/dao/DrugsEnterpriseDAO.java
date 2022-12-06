@@ -109,8 +109,8 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
         HibernateStatelessResultAction<List<DrugsEnterprise>> action = new AbstractHibernateStatelessResultAction<List<DrugsEnterprise>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                StringBuilder sql = new StringBuilder("select t from DrugsEnterprise t, OrganAndDrugsepRelation s where t.id=s.drugsEnterpriseId and t.status=1 ");
-                sql.append(" and s.organId=:organId and s.drugsEnterpriseSupportGiveMode like :payModeSupport order by t.sort, t.id ");
+                StringBuilder sql = new StringBuilder("select t from cdr_drugsenterprise t, cdr_organ_drugsep_relation s where t.id=s.DrugsEnterpriseId and t.status=1 ");
+                sql.append(" and s.OrganId=:organId and s.drug_enterprise_support_give_mode like :payModeSupport order by t.sort, t.id ");
                 SQLQuery query = ss.createSQLQuery(String.valueOf(sql));
                 query.setParameter("organId", organId);
                 query.setParameter("payModeSupport", "%" + payModeSupport + "%");
@@ -137,8 +137,8 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
         HibernateStatelessResultAction<Long> action = new AbstractHibernateStatelessResultAction<Long>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                StringBuilder sql = new StringBuilder("select count(*) from DrugsEnterprise t, OrganAndDrugsepRelation s where t.id=s.drugsEnterpriseId and t.status=1 ");
-                sql.append(" and s.organId=:organId and t.drugsEnterpriseSupportGiveMode like :payModeSupport and t.sendType = :sendType ");
+                StringBuilder sql = new StringBuilder("select count(*) from cdr_drugsenterprise t, cdr_organ_drugsep_relation s where t.id=s.DrugsEnterpriseId and t.status=1 ");
+                sql.append(" and s.OrganId=:organId and t.drug_enterprise_support_give_mode like :payModeSupport and t.sendType = :sendType ");
                 SQLQuery query = ss.createSQLQuery(String.valueOf(sql));
                 query.setParameter("organId", organId);
                 query.setParameter("sendType", sendType);
@@ -175,8 +175,8 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
         HibernateStatelessResultAction<List<DrugsEnterprise>> action = new AbstractHibernateStatelessResultAction<List<DrugsEnterprise>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                StringBuilder sql = new StringBuilder("select t from DrugsEnterprise t, OrganAndDrugsepRelation s where t.id=s.drugsEnterpriseId and t.status=1 ");
-                sql.append(" and s.organId=:organId and s.drugsEnterpriseSupportGiveMode like :payModeSupport and t.sendType = :sendType order by t.sort, t.id ");
+                StringBuilder sql = new StringBuilder("select t from cdr_drugsenterprise t, cdr_organ_drugsep_relation s where t.id=s.DrugsEnterpriseId and t.status=1 ");
+                sql.append(" and s.OrganId=:organId and s.drug_enterprise_support_give_mode like :payModeSupport and t.sendType = :sendType order by t.sort, t.id ");
                 SQLQuery query = ss.createSQLQuery(String.valueOf(sql));
                 query.setParameter("organId", organId);
                 query.setParameter("sendType", sendType);
@@ -204,8 +204,8 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
         HibernateStatelessResultAction<List<DrugsEnterprise>> action = new AbstractHibernateStatelessResultAction<List<DrugsEnterprise>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                StringBuilder sql = new StringBuilder("select t from DrugsEnterprise t, OrganAndDrugsepRelation s where t.id=s.drugsEnterpriseId and t.status=1 and t.medicalInsuranceSupport=1 ");
-                sql.append(" and s.organId=:organId and s.drugsEnterpriseSupportGiveMode like :payModeSupport and t.sendType = :sendType order by t.sort, t.id ");
+                StringBuilder sql = new StringBuilder("select t from cdr_drugsenterprise t, cdr_organ_drugsep_relation s where t.id=s.DrugsEnterpriseId and t.status=1 and t.medicalInsuranceSupport=1 ");
+                sql.append(" and s.OrganId=:organId and s.drug_enterprise_support_give_mode like :payModeSupport and t.sendType = :sendType order by t.sort, t.id ");
                 SQLQuery query = ss.createSQLQuery(String.valueOf(sql));
                 query.setParameter("organId", organId);
                 query.setParameter("sendType", sendType);
