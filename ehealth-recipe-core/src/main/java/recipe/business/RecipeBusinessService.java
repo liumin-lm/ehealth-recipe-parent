@@ -6,6 +6,9 @@ import com.google.common.collect.Lists;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.common.dto.Buss2SessionMsg;
+import com.ngari.common.dto.CheckRequestCommonOrderItemDTO;
+import com.ngari.common.dto.CheckRequestCommonOrderPageDTO;
+import com.ngari.common.dto.SyncOrderVO;
 import com.ngari.follow.utils.ObjectCopyUtil;
 import com.ngari.his.recipe.mode.OutPatientRecipeReq;
 import com.ngari.his.recipe.mode.OutRecipeDetailReq;
@@ -13,9 +16,7 @@ import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.dto.*;
-import com.ngari.patient.service.DoctorService;
-import com.ngari.patient.service.IUsePathwaysService;
-import com.ngari.patient.service.IUsingRateService;
+import com.ngari.patient.service.*;
 import com.ngari.platform.recipe.mode.OutpatientPaymentRecipeDTO;
 import com.ngari.platform.recipe.mode.QueryRecipeInfoHisDTO;
 import com.ngari.recipe.dto.*;
@@ -1451,6 +1452,46 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         recipeVo.setMpiid(recipe.getMpiid());
         recipeVo.setLastModify(recipe.getLastModify());
         return recipeVo;
+    }
+
+    public CheckRequestCommonOrderPageDTO findRecipePageForCommonOrder(SyncOrderVO request) {
+        logger.info("findRecipePageForCommonOrder param ={}", JSON.toJSONString(request));
+        CheckRequestCommonOrderPageDTO pageDTO = new CheckRequestCommonOrderPageDTO();
+        if (request.getPage() == null || request.getSize() == null) {
+            return pageDTO;
+        }
+        Integer start = (request.getPage() - 1) * request.getSize();
+        Integer limit = request.getSize();
+
+        QueryResult<Recipe> queryResult = recipeDAO.queryPageForCommonOrder(request.getStartDate(),
+                request.getEndDate(), start, limit);
+        if (queryResult == null) {
+            return pageDTO;
+        }
+        if (CollectionUtils.isEmpty(queryResult.getItems())) {
+            return pageDTO;
+        }
+        pageDTO.setTotal(Integer.parseInt(String.valueOf(queryResult.getTotal())));
+        pageDTO.setPage(request.getPage());
+        pageDTO.setSize(request.getSize());
+        List<CheckRequestCommonOrderItemDTO> order = new ArrayList<>();
+        PatientService patientService = BasicAPI.getService(PatientService.class);
+        for (Recipe recipe : queryResult.getItems()) {
+            CheckRequestCommonOrderItemDTO orderItem = new CheckRequestCommonOrderItemDTO();
+            String userId = patientService.getLoginIdByMpiId(recipe.getMpiid());
+            orderItem.setUserId(userId);
+            orderItem.setMpiId(recipe.getMpiid());
+            orderItem.setBusType("recipeInfo");
+            orderItem.setBusId(recipe.getRecipeId());
+            orderItem.setBusStatus(recipe.getProcessState());
+            orderItem.setBusDate(recipe.getSignDate());
+            orderItem.setCreateDate(recipe.getSignDate());
+            orderItem.setLastModify(recipe.getLastModify());
+            order.add(orderItem);
+        }
+        pageDTO.setOrder(order);
+        logger.info("findRecipePageForCommonOrder result ={}", JSON.toJSONString(pageDTO));
+        return pageDTO;
     }
 
 }

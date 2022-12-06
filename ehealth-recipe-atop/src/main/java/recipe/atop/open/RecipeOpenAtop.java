@@ -1,6 +1,8 @@
 package recipe.atop.open;
 
 import com.alibaba.fastjson.JSONArray;
+import com.ngari.common.dto.CheckRequestCommonOrderPageDTO;
+import com.ngari.common.dto.SyncOrderVO;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.RecipeInfoTO;
 import com.ngari.patient.dto.DoctorDTO;
@@ -421,5 +423,15 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
     @Override
     public RecipeVo getRecipeByBusId(Integer recipeId) {
         return recipeBusinessService.getRecipeByBusId(recipeId);
+    }
+
+    @Override
+    public CheckRequestCommonOrderPageDTO findRecipePageForCommonOrder(SyncOrderVO request) {
+        CheckRequestCommonOrderPageDTO checkRequestCommonOrderPageDTO = new CheckRequestCommonOrderPageDTO();
+        if (request.getPage() == null || request.getSize() == null) {
+            return checkRequestCommonOrderPageDTO;
+        }
+        checkRequestCommonOrderPageDTO = recipeBusinessService.findRecipePageForCommonOrder(request);
+        return checkRequestCommonOrderPageDTO;
     }
 }

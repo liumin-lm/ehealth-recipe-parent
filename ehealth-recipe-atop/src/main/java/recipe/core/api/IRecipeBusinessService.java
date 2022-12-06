@@ -1,5 +1,7 @@
 package recipe.core.api;
 
+import com.ngari.common.dto.CheckRequestCommonOrderPageDTO;
+import com.ngari.common.dto.SyncOrderVO;
 import com.ngari.patient.dto.HealthCardDTO;
 import com.ngari.platform.recipe.mode.OutpatientPaymentRecipeDTO;
 import com.ngari.platform.recipe.mode.QueryRecipeInfoHisDTO;
@@ -427,4 +429,11 @@ public interface IRecipeBusinessService {
      * @return
      */
     RecipeVo getRecipeByBusId(Integer recipeId);
+
+    /**
+     * 端 药品处方 历史数据同步使用
+     * @param request
+     * @return
+     */
+    CheckRequestCommonOrderPageDTO findRecipePageForCommonOrder(SyncOrderVO request);
 }

@@ -1,5 +1,7 @@
 package recipe.api.open;
 
+import com.ngari.common.dto.CheckRequestCommonOrderPageDTO;
+import com.ngari.common.dto.SyncOrderVO;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.RecipeInfoTO;
 import com.ngari.platform.recipe.mode.OutpatientPaymentRecipeDTO;
@@ -324,6 +326,13 @@ public interface IRecipeAtopService {
      */
     @RpcService(mvcDisabled = true)
     List<RecipeInfoTO> patientOfflineRecipe(Integer organId, String patientId, String patientName, Date startTime, Date endTime);
+    /**
+     *  端 药品处方 历史数据同步使用
+     * @param request
+     * @return
+     */
+    @RpcService(mvcDisabled = true)
+    CheckRequestCommonOrderPageDTO findRecipePageForCommonOrder(SyncOrderVO request);
 
     /**
      * 日志分析接口
