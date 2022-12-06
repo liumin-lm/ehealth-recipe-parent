@@ -47,6 +47,8 @@ import recipe.core.api.IDrugBusinessService;
 import recipe.dao.*;
 import recipe.drugTool.service.DrugToolService;
 import recipe.enumerate.status.RecipeAuditStateEnum;
+import recipe.enumerate.type.RecipeSendTypeEnum;
+import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.manager.EnterpriseManager;
 import recipe.manager.OrderManager;
@@ -95,7 +97,10 @@ public class RecipeTestService {
     private RevisitClient revisitClient;
     @Autowired
     private RecipeParameterDao recipeParameterDao;
-
+    @Autowired
+    private OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO;
+    @Autowired
+    private OrganDrugsSaleConfigDAO drugsSaleConfigDAO;
 
 
     @RpcService
@@ -675,5 +680,157 @@ public class RecipeTestService {
     @RpcService
     public void handlePushFlag(Integer organId, Integer depId, String beginTime, String endTime){
         recipeDAO.updateRecipeByOrganIdAndPushFlag(organId, depId, beginTime, endTime);
+    }
+
+    /**
+     * 处理购药方式历史数据
+     */
+    @RpcService
+    public void handleGiveModeEnt(){
+        List<OrganAndDrugsepRelation> organAndDrugsDepRelationList = organAndDrugsepRelationDAO.findAllData();
+        organAndDrugsDepRelationList.forEach(organAndDrugsDepRelation -> {
+            DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(organAndDrugsDepRelation.getDrugsEnterpriseId());
+            OrganDrugsSaleConfig organDrugsSaleConfig = drugsSaleConfigDAO.getOrganDrugsSaleConfigByOrganIdAndDepId(organAndDrugsDepRelation.getDrugsEnterpriseId(), organAndDrugsDepRelation.getOrganId());
+            Integer payModeSupport = drugsEnterprise.getPayModeSupport();
+            List<Integer> supportGiveModeList = new ArrayList<>();
+            switch (payModeSupport) {
+                case 1:
+                    //在线支付
+                    if (RecipeSendTypeEnum.ALRAEDY_PAY.getSendType().equals(drugsEnterprise.getSendType())) {
+                        //医院配送
+                        supportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType());
+                    } else {
+                        //药企配送
+                        supportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType());
+                    }
+                    organAndDrugsDepRelation.setDrugsEnterpriseSupportGiveMode(StringUtils.join(supportGiveModeList,","));
+                    organAndDrugsepRelationDAO.updateNonNullFieldByPrimaryKey(organAndDrugsDepRelation);
+                    if (Objects.nonNull(organDrugsSaleConfig)) {
+                        if (StringUtils.isEmpty(organDrugsSaleConfig.getStandardPaymentWay())) {
+                            organDrugsSaleConfig.setStandardPaymentWay("1");
+                            drugsSaleConfigDAO.updateNonNullFieldByPrimaryKey(organDrugsSaleConfig);
+                        }
+                    } else {
+                        saveDrugSaleConfig(organAndDrugsDepRelation, "1");
+                    }
+                    break;
+                case 2:
+                    //货到付款
+                    if (RecipeSendTypeEnum.ALRAEDY_PAY.getSendType().equals(drugsEnterprise.getSendType())) {
+                        //医院配送
+                        supportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType());
+                    } else {
+                        //药企配送
+                        supportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType());
+                    }
+                    organAndDrugsDepRelation.setDrugsEnterpriseSupportGiveMode(StringUtils.join(supportGiveModeList,","));
+                    organAndDrugsepRelationDAO.updateNonNullFieldByPrimaryKey(organAndDrugsDepRelation);
+                    if (Objects.nonNull(organDrugsSaleConfig)) {
+                        if (StringUtils.isEmpty(organDrugsSaleConfig.getStandardPaymentWay())) {
+                            organDrugsSaleConfig.setStandardPaymentWay("2");
+                            drugsSaleConfigDAO.updateNonNullFieldByPrimaryKey(organDrugsSaleConfig);
+                        }
+                    } else {
+                        saveDrugSaleConfig(organAndDrugsDepRelation, "2");
+                    }
+                    break;
+                case 3:
+                    //药店取药
+                    supportGiveModeList.add(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getType());
+                    organAndDrugsDepRelation.setDrugsEnterpriseSupportGiveMode(StringUtils.join(supportGiveModeList,","));
+                    organAndDrugsepRelationDAO.updateNonNullFieldByPrimaryKey(organAndDrugsDepRelation);
+                    break;
+                case 4:
+                    //例外支付
+                    supportGiveModeList.add(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getType());
+                    organAndDrugsDepRelation.setDrugsEnterpriseSupportGiveMode(StringUtils.join(supportGiveModeList,","));
+                    organAndDrugsepRelationDAO.updateNonNullFieldByPrimaryKey(organAndDrugsDepRelation);
+                    break;
+                case 7:
+                    //配送到家+药店取药
+                    //在线支付
+                    if (RecipeSendTypeEnum.ALRAEDY_PAY.getSendType().equals(drugsEnterprise.getSendType())) {
+                        //医院配送
+                        supportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType());
+                    } else {
+                        //药企配送
+                        supportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType());
+                    }
+                    supportGiveModeList.add(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getType());
+                    organAndDrugsDepRelation.setDrugsEnterpriseSupportGiveMode(StringUtils.join(supportGiveModeList,","));
+                    organAndDrugsepRelationDAO.updateNonNullFieldByPrimaryKey(organAndDrugsDepRelation);
+                    if (Objects.nonNull(organDrugsSaleConfig)) {
+                        if (StringUtils.isEmpty(organDrugsSaleConfig.getStandardPaymentWay())) {
+                            organDrugsSaleConfig.setStandardPaymentWay("1");
+                            drugsSaleConfigDAO.updateNonNullFieldByPrimaryKey(organDrugsSaleConfig);
+                        }
+                    } else {
+                        saveDrugSaleConfig(organAndDrugsDepRelation, "1");
+                    }
+                    break;
+                case 8:
+                    //货到付款+药店取药
+                    if (RecipeSendTypeEnum.ALRAEDY_PAY.getSendType().equals(drugsEnterprise.getSendType())) {
+                        //医院配送
+                        supportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType());
+                    } else {
+                        //药企配送
+                        supportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType());
+                    }
+                    supportGiveModeList.add(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getType());
+                    organAndDrugsDepRelation.setDrugsEnterpriseSupportGiveMode(StringUtils.join(supportGiveModeList,","));
+                    organAndDrugsepRelationDAO.updateNonNullFieldByPrimaryKey(organAndDrugsDepRelation);
+                    if (Objects.nonNull(organDrugsSaleConfig)) {
+                        if (StringUtils.isEmpty(organDrugsSaleConfig.getStandardPaymentWay())) {
+                            organDrugsSaleConfig.setStandardPaymentWay("2");
+                            drugsSaleConfigDAO.updateNonNullFieldByPrimaryKey(organDrugsSaleConfig);
+                        }
+                    } else {
+                        saveDrugSaleConfig(organAndDrugsDepRelation, "2");
+                    }
+                    break;
+                case 9:
+                    //都支持
+                    if (RecipeSendTypeEnum.ALRAEDY_PAY.getSendType().equals(drugsEnterprise.getSendType())) {
+                        //医院配送
+                        supportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType());
+                    } else {
+                        //药企配送
+                        supportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType());
+                    }
+                    supportGiveModeList.add(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getType());
+                    supportGiveModeList.add(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getType());
+                    organAndDrugsDepRelation.setDrugsEnterpriseSupportGiveMode(StringUtils.join(supportGiveModeList,","));
+                    organAndDrugsepRelationDAO.updateNonNullFieldByPrimaryKey(organAndDrugsDepRelation);
+                    if (Objects.nonNull(organDrugsSaleConfig)) {
+                        if (StringUtils.isEmpty(organDrugsSaleConfig.getStandardPaymentWay())) {
+                            organDrugsSaleConfig.setStandardPaymentWay("1,2");
+                            drugsSaleConfigDAO.updateNonNullFieldByPrimaryKey(organDrugsSaleConfig);
+                        }
+                    } else {
+                        saveDrugSaleConfig(organAndDrugsDepRelation, "1,2");
+                    }
+                    break;
+            }
+        });
+    }
+
+    private void saveDrugSaleConfig(OrganAndDrugsepRelation organAndDrugsDepRelation, String standardPaymentWay) {
+        OrganDrugsSaleConfig drugsSaleConfig = new OrganDrugsSaleConfig();
+        drugsSaleConfig.setStandardPaymentWay(standardPaymentWay);
+        drugsSaleConfig.setCreateTime(new Date());
+        drugsSaleConfig.setOrganId(organAndDrugsDepRelation.getOrganId());
+        drugsSaleConfig.setDrugsEnterpriseId(organAndDrugsDepRelation.getDrugsEnterpriseId());
+        drugsSaleConfig.setIsSupportSendToStation(0);
+        drugsSaleConfig.setTakeOneselfPayment(1);
+        drugsSaleConfig.setTakeOneselfPaymentChannel(1);
+        drugsSaleConfig.setTakeOneselfPlanDate(0);
+        drugsSaleConfig.setTakeOneselfPlanAmTime("08:00:00,12:00:00");
+        drugsSaleConfig.setTakeOneselfPlanPmTime("15:00:00,17:00:00");
+        drugsSaleConfig.setUseDrugDispenserFlag(0);
+        drugsSaleConfig.setPrintUsageLabelFlag(0);
+        drugsSaleConfig.setInvoiceRequestFlag(0);
+        drugsSaleConfig.setInvoiceSupportFlag(0);
+        drugsSaleConfigDAO.save(drugsSaleConfig);
     }
 }
