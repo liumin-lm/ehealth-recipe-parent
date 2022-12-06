@@ -20,6 +20,7 @@ import org.hibernate.Query;
 import org.hibernate.SQLQuery;
 import org.hibernate.StatelessSession;
 
+import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.List;
 
@@ -134,7 +135,7 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
     public Integer getCountByOrganIdAndPayModeSupportAndSendType(@DAOParam("organId") Integer organId,
                                                               @DAOParam("payModeSupport") Integer payModeSupport,
                                                               @DAOParam("sendType") Integer sendType) {
-        HibernateStatelessResultAction<Integer> action = new AbstractHibernateStatelessResultAction<Integer>() {
+        HibernateStatelessResultAction<BigInteger> action = new AbstractHibernateStatelessResultAction<BigInteger>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder sql = new StringBuilder("select count(*) from cdr_drugsenterprise t, cdr_organ_drugsep_relation s where t.id=s.DrugsEnterpriseId and t.status=1 ");
@@ -143,11 +144,11 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
                 query.setParameter("organId", organId);
                 query.setParameter("sendType", sendType);
                 query.setParameter("payModeSupport", "%" + payModeSupport + "%");
-                setResult((Integer) query.uniqueResult());
+                setResult((BigInteger) query.uniqueResult());
             }
         };
         HibernateSessionTemplate.instance().executeReadOnly(action);
-        return action.getResult();
+        return  action.getResult().intValue();
     }
 
     /**
