@@ -1045,10 +1045,10 @@ public class OrganDrugToolService implements IOrganDrugToolService {
 //            }
 
             try {
-                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(56)))) {
-                    if (("是").equals(getStrFromCell(cells.get(56)))) {
+                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(55)))) {
+                    if (("是").equals(getStrFromCell(cells.get(55)))) {
                         drug.setNationalStandardDrugFlag(1);
-                    } else if (("否").equals(getStrFromCell(cells.get(56)))) {
+                    } else if (("否").equals(getStrFromCell(cells.get(55)))) {
                         drug.setNationalStandardDrugFlag(0);
                     } else {
                         validMsg.append("国家标准药品格式错误").append(";");
