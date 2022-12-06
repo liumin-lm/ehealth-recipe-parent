@@ -1495,8 +1495,13 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     }
 
     @Override
-    public List<Integer> findAuditOverTimeRecipeList(Date startTime, Date endTime, List<Integer> organIds) {
-        return recipeDAO.findAuditOverTimeRecipeList(startTime, endTime, organIds);
+    public List<RecipeBean> findAuditOverTimeRecipeList(Date startTime, Date endTime, List<Integer> organIds) {
+        List<Recipe> result = recipeDAO.findAuditOverTimeRecipeList(startTime, endTime, organIds);
+        if (CollectionUtils.isEmpty(result)) {
+            return Lists.newArrayList();
+        } else {
+            return BeanCopyUtils.copyList(result, RecipeBean::new);
+        }
     }
 }
 

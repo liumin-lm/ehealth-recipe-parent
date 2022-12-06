@@ -368,6 +368,6 @@ public interface IRecipeAtopService {
      * @param organIds
      * @return
      */
-    List<Integer> findAuditOverTimeRecipeList(Date startTime, Date endTime, List<Integer> organIds);
+    List<RecipeBean> findAuditOverTimeRecipeList(Date startTime, Date endTime, List<Integer> organIds);
 
 }
