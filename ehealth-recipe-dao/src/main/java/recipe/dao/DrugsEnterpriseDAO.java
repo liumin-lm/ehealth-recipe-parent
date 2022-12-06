@@ -109,7 +109,7 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
      * @return
      */
     @DAOMethod(sql = "select count(*) from DrugsEnterprise t, OrganAndDrugsepRelation s where t.id=s.drugsEnterpriseId and t.status=1 " +
-            "and s.organId=:organId and t.payModeSupport like :payModeSupport and t.sendType = :sendType")
+            "and s.organId=:organId and t.drugsEnterpriseSupportGiveMode like :payModeSupport and t.sendType = :sendType")
     public abstract Long getCountByOrganIdAndPayModeSupportAndSendType(@DAOParam("organId") Integer organId, @DAOParam("payModeSupport") String payModeSupport, @DAOParam("sendType") Integer sendType);
 
     /**

@@ -434,4 +434,9 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
         checkRequestCommonOrderPageDTO = recipeBusinessService.findRecipePageForCommonOrder(request);
         return checkRequestCommonOrderPageDTO;
     }
+
+    @Override
+    public List<RecipeBean> findAuditOverTimeRecipeList(Date startTime, Date endTime, List<Integer> organIds) {
+        return recipeBusinessService.findAuditOverTimeRecipeList(startTime, endTime, organIds);
+    }
 }
