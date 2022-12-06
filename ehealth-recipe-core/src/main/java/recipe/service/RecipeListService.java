@@ -1954,8 +1954,8 @@ public class RecipeListService extends RecipeBaseService {
         if (!payModeShowButtonBean.getSupportOnline()) {
             return payModeShowButtonBean;
         }
-        Long enterprisesSend = drugsEnterpriseDAO.getCountByOrganIdAndPayModeSupportAndSendType(recipe.getClinicOrgan(), RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType(), EnterpriseSendConstant.Enterprise_Send);
-        Long hosSend = drugsEnterpriseDAO.getCountByOrganIdAndPayModeSupportAndSendType(recipe.getClinicOrgan(), RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType(), EnterpriseSendConstant.Hos_Send);
+        Integer enterprisesSend = drugsEnterpriseDAO.getCountByOrganIdAndPayModeSupportAndSendType(recipe.getClinicOrgan(), RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType(), EnterpriseSendConstant.Enterprise_Send);
+        Integer hosSend = drugsEnterpriseDAO.getCountByOrganIdAndPayModeSupportAndSendType(recipe.getClinicOrgan(), RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType(), EnterpriseSendConstant.Hos_Send);
         if (null != enterprisesSend && 0 < enterprisesSend) {
 
             payModeShowButtonBean.setShowSendToEnterprises(true);
