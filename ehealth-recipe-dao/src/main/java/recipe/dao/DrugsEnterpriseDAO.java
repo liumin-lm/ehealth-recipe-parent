@@ -131,10 +131,10 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
             "and s.organId=:organId and t.drugsEnterpriseSupportGiveMode like :payModeSupport and t.sendType = :sendType")
     public abstract Long getCountByOrganIdAndPayModeSupportAndSendType(@DAOParam("organId") Integer organId, @DAOParam("payModeSupport") String payModeSupport, @DAOParam("sendType") Integer sendType);
 */
-    public long getCountByOrganIdAndPayModeSupportAndSendType(@DAOParam("organId") Integer organId,
+    public Integer getCountByOrganIdAndPayModeSupportAndSendType(@DAOParam("organId") Integer organId,
                                                               @DAOParam("payModeSupport") Integer payModeSupport,
                                                               @DAOParam("sendType") Integer sendType) {
-        HibernateStatelessResultAction<Long> action = new AbstractHibernateStatelessResultAction<Long>() {
+        HibernateStatelessResultAction<Integer> action = new AbstractHibernateStatelessResultAction<Integer>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder sql = new StringBuilder("select count(*) from cdr_drugsenterprise t, cdr_organ_drugsep_relation s where t.id=s.DrugsEnterpriseId and t.status=1 ");
@@ -143,7 +143,7 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
                 query.setParameter("organId", organId);
                 query.setParameter("sendType", sendType);
                 query.setParameter("payModeSupport", "%" + payModeSupport + "%");
-                setResult((Long) query.uniqueResult());
+                setResult((Integer) query.uniqueResult());
             }
         };
         HibernateSessionTemplate.instance().executeReadOnly(action);
