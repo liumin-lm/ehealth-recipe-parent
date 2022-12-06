@@ -23,10 +23,14 @@ public abstract class OrganDrugsSaleConfigDAO extends HibernateSupportDelegateDA
         return updateNonNullFieldByPrimaryKey(config, SQL_KEY_ID);
     }
 
-     @DAOMethod(sql = "from OrganDrugsSaleConfig where drugsEnterpriseId=:drugsEnterpriseId")
+    @DAOMethod(sql = "from OrganDrugsSaleConfig where drugsEnterpriseId=:drugsEnterpriseId")
     public abstract OrganDrugsSaleConfig getOrganDrugsSaleConfig(@DAOParam("drugsEnterpriseId")Integer drugsEnterpriseId);
 
     @DAOMethod(sql = "from OrganDrugsSaleConfig where drugsEnterpriseId in (:saleDepIds)", limit = 0)
     public abstract List<OrganDrugsSaleConfig> findSaleConfigs(@DAOParam("saleDepIds")List<Integer> saleDepIds);
+
+    @DAOMethod(sql = "from OrganDrugsSaleConfig where drugsEnterpriseId=:drugsEnterpriseId and organId=:organId")
+    public abstract OrganDrugsSaleConfig getOrganDrugsSaleConfigByOrganIdAndDepId(@DAOParam("drugsEnterpriseId")Integer drugsEnterpriseId,
+                                                                                  @DAOParam("organId")Integer organId);
 
 }

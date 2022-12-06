@@ -44,18 +44,15 @@ import recipe.drugsenterprise.AccessDrugEnterpriseService;
 import recipe.drugsenterprise.CommonRemoteService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.drugsenterprise.paymodeonlineshowdep.PayModeOnlineShowDepServiceProducer;
-import recipe.enumerate.status.OrderStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.status.SettleAmountStateEnum;
-import recipe.enumerate.status.YesOrNoEnum;
+import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.hisservice.RecipeToHisService;
 import recipe.manager.EnterpriseManager;
 import recipe.manager.OrderManager;
-import recipe.manager.StateManager;
 import recipe.presettle.factory.OrderTypeFactory;
 import recipe.presettle.model.OrderTypeCreateConditionRequest;
 import recipe.service.RecipeOrderService;
-import recipe.service.RecipeServiceSub;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 
@@ -86,8 +83,6 @@ public class PayModeOnline implements IPurchaseService {
     @Autowired
     private PatientClient patientClient;
     @Autowired
-    private StateManager stateManager;
-    @Autowired
     private OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO;
 
     @Override
@@ -96,7 +91,7 @@ public class PayModeOnline implements IPurchaseService {
         DepListBean depListBean = new DepListBean();
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
-
+        String sendType = extInfo.get("sendType");
         Integer recipeId = dbRecipe.getRecipeId();
         //判断是否是慢病医保患者------郑州人民医院
         if (purchaseService.isMedicareSlowDiseasePatient(recipeId)) {
@@ -107,13 +102,16 @@ public class PayModeOnline implements IPurchaseService {
         //药企列表
         List<DepDetailBean> depDetailList = new ArrayList<>();
 
-        //获取购药方式查询列表
-        List<Integer> payModeSupport = RecipeServiceSub.getDepSupportMode(getPayMode());
-        List<Integer> payModeSupportDoc = RecipeServiceSub.getDepSupportMode(RecipeBussConstant.PAYMODE_COD);
-        payModeSupport.addAll(payModeSupportDoc);
-        LOG.info("drugsEnterpriseList organId:{}, payModeSupport:{}", dbRecipe.getClinicOrgan(), payModeSupport);
+        //获取患者选择的购药方式
+        Integer selectBuyMedicineWay = null;
+        if (StringUtils.isNotEmpty(sendType)) {
+            selectBuyMedicineWay = Integer.parseInt(sendType);
+        }
+        RecipeSupportGiveModeEnum recipeSupportGiveModeEnum = enterpriseManager.getDepSupportMode(selectBuyMedicineWay);
+
+        LOG.info("drugsEnterpriseList organId:{}, payModeSupport:{}", dbRecipe.getClinicOrgan(), recipeSupportGiveModeEnum.getName());
         // 获取药企
-        List<DrugsEnterprise> drugsEnterpriseList = enterpriseManager.findEnterpriseByOnLine(extInfo.get("sendType"), payModeSupport, dbRecipe);
+        List<DrugsEnterprise> drugsEnterpriseList = enterpriseManager.findEnterpriseByOnLine(sendType, recipeSupportGiveModeEnum, dbRecipe);
         if (CollectionUtils.isEmpty(drugsEnterpriseList)) {
             LOG.warn("findSupportDepList 处方[{}]没有任何药企可以进行配送！", recipeId);
             resultBean.setCode(5);

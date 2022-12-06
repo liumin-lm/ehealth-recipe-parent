@@ -17,10 +17,7 @@ import recipe.constant.RecipeStatusConstant;
 import recipe.constant.ReviewTypeConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
-import recipe.enumerate.status.OrderStateEnum;
-import recipe.enumerate.status.RecipeStateEnum;
 import recipe.manager.OrderManager;
-import recipe.manager.StateManager;
 import recipe.service.RecipeOrderService;
 import recipe.util.MapValueUtil;
 
@@ -37,9 +34,6 @@ public class PayModeDownload implements IPurchaseService {
 
     @Autowired
     private OrderManager orderManager;
-
-    @Autowired
-    private StateManager stateManager;
 
     @Override
     public RecipeResultBean findSupportDepList(Recipe dbRecipe, Map<String, String> extInfo) {

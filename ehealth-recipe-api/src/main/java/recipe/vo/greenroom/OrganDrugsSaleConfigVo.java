@@ -100,6 +100,6 @@ public class OrganDrugsSaleConfigVo implements Serializable {
     private Integer isHosDep;
 
     @ItemProperty(alias = "标准的收款方式  1 在线支付 2 货到付款 ")
-    private Integer standardPaymentWay;
+    private String standardPaymentWay;
 
 }
