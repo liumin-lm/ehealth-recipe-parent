@@ -110,7 +110,7 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
         HibernateStatelessResultAction<List<DrugsEnterprise>> action = new AbstractHibernateStatelessResultAction<List<DrugsEnterprise>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                StringBuilder sql = new StringBuilder("select t from cdr_drugsenterprise t, cdr_organ_drugsep_relation s where t.id=s.DrugsEnterpriseId and t.status=1 ");
+                StringBuilder sql = new StringBuilder("select t.* from cdr_drugsenterprise t, cdr_organ_drugsep_relation s where t.id=s.DrugsEnterpriseId and t.status=1 ");
                 sql.append(" and s.OrganId=:organId and s.drug_enterprise_support_give_mode like :payModeSupport order by t.sort, t.id ");
                 SQLQuery query = ss.createSQLQuery(String.valueOf(sql));
                 query.setParameter("organId", organId);
@@ -176,7 +176,7 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
         HibernateStatelessResultAction<List<DrugsEnterprise>> action = new AbstractHibernateStatelessResultAction<List<DrugsEnterprise>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                StringBuilder sql = new StringBuilder("select t from cdr_drugsenterprise t, cdr_organ_drugsep_relation s where t.id=s.DrugsEnterpriseId and t.status=1 ");
+                StringBuilder sql = new StringBuilder("select t.* from cdr_drugsenterprise t, cdr_organ_drugsep_relation s where t.id=s.DrugsEnterpriseId and t.status=1 ");
                 sql.append(" and s.OrganId=:organId and s.drug_enterprise_support_give_mode like :payModeSupport and t.sendType = :sendType order by t.sort, t.id ");
                 SQLQuery query = ss.createSQLQuery(String.valueOf(sql));
                 query.setParameter("organId", organId);
@@ -205,7 +205,7 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
         HibernateStatelessResultAction<List<DrugsEnterprise>> action = new AbstractHibernateStatelessResultAction<List<DrugsEnterprise>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                StringBuilder sql = new StringBuilder("select t from cdr_drugsenterprise t, cdr_organ_drugsep_relation s where t.id=s.DrugsEnterpriseId and t.status=1 and t.medicalInsuranceSupport=1 ");
+                StringBuilder sql = new StringBuilder("select t.* from cdr_drugsenterprise t, cdr_organ_drugsep_relation s where t.id=s.DrugsEnterpriseId and t.status=1 and t.medicalInsuranceSupport=1 ");
                 sql.append(" and s.OrganId=:organId and s.drug_enterprise_support_give_mode like :payModeSupport and t.sendType = :sendType order by t.sort, t.id ");
                 SQLQuery query = ss.createSQLQuery(String.valueOf(sql));
                 query.setParameter("organId", organId);
