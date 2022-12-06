@@ -711,7 +711,7 @@ public class RecipeTestService {
                             drugsSaleConfigDAO.updateNonNullFieldByPrimaryKey(organDrugsSaleConfig);
                         }
                     } else {
-                        saveDrugSaleConfig(organAndDrugsDepRelation, "1");
+                        saveDrugSaleConfig(organAndDrugsDepRelation, "1", drugsEnterprise.getIsHosDep());
                     }
                     break;
                 case 2:
@@ -731,7 +731,7 @@ public class RecipeTestService {
                             drugsSaleConfigDAO.updateNonNullFieldByPrimaryKey(organDrugsSaleConfig);
                         }
                     } else {
-                        saveDrugSaleConfig(organAndDrugsDepRelation, "2");
+                        saveDrugSaleConfig(organAndDrugsDepRelation, "2", drugsEnterprise.getIsHosDep());
                     }
                     break;
                 case 3:
@@ -765,7 +765,7 @@ public class RecipeTestService {
                             drugsSaleConfigDAO.updateNonNullFieldByPrimaryKey(organDrugsSaleConfig);
                         }
                     } else {
-                        saveDrugSaleConfig(organAndDrugsDepRelation, "1");
+                        saveDrugSaleConfig(organAndDrugsDepRelation, "1", drugsEnterprise.getIsHosDep());
                     }
                     break;
                 case 8:
@@ -786,7 +786,7 @@ public class RecipeTestService {
                             drugsSaleConfigDAO.updateNonNullFieldByPrimaryKey(organDrugsSaleConfig);
                         }
                     } else {
-                        saveDrugSaleConfig(organAndDrugsDepRelation, "2");
+                        saveDrugSaleConfig(organAndDrugsDepRelation, "2", drugsEnterprise.getIsHosDep());
                     }
                     break;
                 case 9:
@@ -808,14 +808,14 @@ public class RecipeTestService {
                             drugsSaleConfigDAO.updateNonNullFieldByPrimaryKey(organDrugsSaleConfig);
                         }
                     } else {
-                        saveDrugSaleConfig(organAndDrugsDepRelation, "1,2");
+                        saveDrugSaleConfig(organAndDrugsDepRelation, "1,2", drugsEnterprise.getIsHosDep());
                     }
                     break;
             }
         });
     }
 
-    private void saveDrugSaleConfig(OrganAndDrugsepRelation organAndDrugsDepRelation, String standardPaymentWay) {
+    private void saveDrugSaleConfig(OrganAndDrugsepRelation organAndDrugsDepRelation, String standardPaymentWay, Integer isHosDep) {
         OrganDrugsSaleConfig drugsSaleConfig = new OrganDrugsSaleConfig();
         drugsSaleConfig.setStandardPaymentWay(standardPaymentWay);
         drugsSaleConfig.setCreateTime(new Date());
@@ -831,6 +831,7 @@ public class RecipeTestService {
         drugsSaleConfig.setPrintUsageLabelFlag(0);
         drugsSaleConfig.setInvoiceRequestFlag(0);
         drugsSaleConfig.setInvoiceSupportFlag(0);
+        drugsSaleConfig.setIsHosDep(isHosDep);
         drugsSaleConfigDAO.save(drugsSaleConfig);
     }
 }
