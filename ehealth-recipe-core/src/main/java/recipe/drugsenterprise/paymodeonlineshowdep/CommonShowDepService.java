@@ -1,5 +1,6 @@
 package recipe.drugsenterprise.paymodeonlineshowdep;
 
+import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
@@ -38,10 +39,7 @@ public class CommonShowDepService implements PayModeOnlineShowDepInterface {
             depDetailBean.setPayModeText(StandardPaymentWayEnum.PAYMENT_WAY_ONLINE.getName());
             depDetailBean.setPayMode(StandardPaymentWayEnum.PAYMENT_WAY_ONLINE.getType());
         }
-
-        depDetailBean.setPayModeText(StandardPaymentWayEnum.PAYMENT_WAY_ONLINE.getName());
-        depDetailBean.setPayMode(StandardPaymentWayEnum.PAYMENT_WAY_ONLINE.getType());
-
+        LOG.info("getPayModeOnlineShowDep depDetailBean:{}", JSON.toJSONString(depDetailBean));
         RecipeOrderService recipeOrderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
         //重置药企处方价格
         depDetailBean.setRecipeFee(recipeOrderService.reCalculateRecipeFee(dep.getId(), recipeIdList, null));
