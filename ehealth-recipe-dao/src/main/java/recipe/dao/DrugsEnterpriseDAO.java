@@ -3,7 +3,6 @@ package recipe.dao;
 import com.google.common.collect.Maps;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.entity.DrugsEnterprise;
-import com.ngari.recipe.entity.OrganAndDrugsepRelation;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;
 import ctd.persistence.bean.QueryResult;
@@ -14,8 +13,6 @@ import ctd.persistence.support.hibernate.template.HibernateSessionTemplate;
 import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction;
 import ctd.util.annotation.RpcSupportDAO;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hibernate.Query;
 import org.hibernate.SQLQuery;
 import org.hibernate.StatelessSession;
@@ -31,8 +28,6 @@ import java.util.List;
  */
 @RpcSupportDAO
 public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<DrugsEnterprise> {
-
-    private static final Log LOGGER = LogFactory.getLog(DrugsEnterpriseDAO.class);
 
     public DrugsEnterpriseDAO() {
         super();
@@ -101,10 +96,6 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
      * @param payModeSupport
      * @return
      */
-    /*@DAOMethod(sql = "select t from DrugsEnterprise t, OrganAndDrugsepRelation s where t.id=s.drugsEnterpriseId and t.status=1 " +
-            "and s.organId=:organId and s.drugsEnterpriseSupportGiveMode like :payModeSupport order by t.sort, t.id")
-    public abstract List<DrugsEnterprise> findByOrganIdAndPayModeSupport(@DAOParam("organId") Integer organId, @DAOParam("payModeSupport") String payModeSupport);*/
-
     public List<DrugsEnterprise> findByOrganIdAndPayModeSupport(@DAOParam("organId") Integer organId,
                                                                 @DAOParam("payModeSupport") Integer payModeSupport) {
         HibernateStatelessResultAction<List<DrugsEnterprise>> action = new AbstractHibernateStatelessResultAction<List<DrugsEnterprise>>() {
@@ -129,10 +120,6 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
      * @param payModeSupport
      * @return
      */
-    /*@DAOMethod(sql = "select count(*) from DrugsEnterprise t, OrganAndDrugsepRelation s where t.id=s.drugsEnterpriseId and t.status=1 " +
-            "and s.organId=:organId and t.drugsEnterpriseSupportGiveMode like :payModeSupport and t.sendType = :sendType")
-    public abstract Long getCountByOrganIdAndPayModeSupportAndSendType(@DAOParam("organId") Integer organId, @DAOParam("payModeSupport") String payModeSupport, @DAOParam("sendType") Integer sendType);
-*/
     public Integer getCountByOrganIdAndPayModeSupportAndSendType(@DAOParam("organId") Integer organId,
                                                               @DAOParam("payModeSupport") Integer payModeSupport,
                                                               @DAOParam("sendType") Integer sendType) {
@@ -167,10 +154,6 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
      * @param payModeSupport
      * @return
      */
-    /*@DAOMethod(sql = "select t from DrugsEnterprise t, OrganAndDrugsepRelation s where t.id=s.drugsEnterpriseId and t.status=1 " +
-            "and s.organId=:organId and s.drugsEnterpriseSupportGiveMode like :payModeSupport and t.sendType = :sendType order by t.sort, t.id")
-    public abstract List<DrugsEnterprise> findByOrganIdAndPayModeSupportAndSendType(@DAOParam("organId") Integer organId, @DAOParam("payModeSupport") String payModeSupport, @DAOParam("sendType") Integer sendType);
-*/
     public List<DrugsEnterprise> findByOrganIdAndPayModeSupportAndSendType(@DAOParam("organId") Integer organId,
                                                                            @DAOParam("payModeSupport") Integer payModeSupport,
                                                                            @DAOParam("sendType") Integer sendType) {
@@ -197,10 +180,6 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
      * @param payModeSupport
      * @return
      */
-    /*@DAOMethod(sql = "select t from DrugsEnterprise t, OrganAndDrugsepRelation s where t.id=s.drugsEnterpriseId and t.status=1 and t.medicalInsuranceSupport=1 " +
-            "and s.organId=:organId and s.drugsEnterpriseSupportGiveMode like :payModeSupport and t.sendType = :sendType order by t.sort, t.id")
-    public abstract List<DrugsEnterprise> findByOrganIdAndOtherAndSendType(@DAOParam("organId") Integer organId, @DAOParam("payModeSupport") String payModeSupport, @DAOParam("sendType") Integer sendType);
-*/
     public List<DrugsEnterprise> findByOrganIdAndOtherAndSendType(@DAOParam("organId") Integer organId,
                                                                   @DAOParam("payModeSupport") Integer payModeSupport,
                                                                   @DAOParam("sendType") Integer sendType) {
