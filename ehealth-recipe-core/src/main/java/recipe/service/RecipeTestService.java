@@ -695,16 +695,20 @@ public class RecipeTestService {
             OrganDrugsSaleConfig organDrugsSaleConfig = drugsSaleConfigDAO.getOrganDrugsSaleConfig(organAndDrugsDepRelation.getDrugsEnterpriseId());
             LOGGER.info("handleGiveModeEnt organDrugsSaleConfig:{}", JSON.toJSONString(organDrugsSaleConfig));
             Integer payModeSupport = drugsEnterprise.getPayModeSupport();
-            List<Integer> supportGiveModeList = new ArrayList<>();
+            Set<String> supportGiveModeList = new HashSet<>();
             switch (payModeSupport) {
                 case 1:
                     //在线支付
                     if (RecipeSendTypeEnum.ALRAEDY_PAY.getSendType().equals(drugsEnterprise.getSendType())) {
                         //医院配送
-                        supportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType());
+                        supportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType().toString());
                     } else {
                         //药企配送
-                        supportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType());
+                        supportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType().toString());
+                    }
+                    if (StringUtils.isNotEmpty(organAndDrugsDepRelation.getDrugsEnterpriseSupportGiveMode())) {
+                        String[] giveMode = organAndDrugsDepRelation.getDrugsEnterpriseSupportGiveMode().split(",");
+                        supportGiveModeList.addAll(Arrays.asList(giveMode));
                     }
                     organAndDrugsDepRelation.setDrugsEnterpriseSupportGiveMode(StringUtils.join(supportGiveModeList,","));
                     organAndDrugsepRelationDAO.updateNonNullFieldByPrimaryKey(organAndDrugsDepRelation);
@@ -721,10 +725,14 @@ public class RecipeTestService {
                     //货到付款
                     if (RecipeSendTypeEnum.ALRAEDY_PAY.getSendType().equals(drugsEnterprise.getSendType())) {
                         //医院配送
-                        supportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType());
+                        supportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType().toString());
                     } else {
                         //药企配送
-                        supportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType());
+                        supportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType().toString());
+                    }
+                    if (StringUtils.isNotEmpty(organAndDrugsDepRelation.getDrugsEnterpriseSupportGiveMode())) {
+                        String[] giveMode = organAndDrugsDepRelation.getDrugsEnterpriseSupportGiveMode().split(",");
+                        supportGiveModeList.addAll(Arrays.asList(giveMode));
                     }
                     organAndDrugsDepRelation.setDrugsEnterpriseSupportGiveMode(StringUtils.join(supportGiveModeList,","));
                     organAndDrugsepRelationDAO.updateNonNullFieldByPrimaryKey(organAndDrugsDepRelation);
@@ -739,13 +747,13 @@ public class RecipeTestService {
                     break;
                 case 3:
                     //药店取药
-                    supportGiveModeList.add(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getType());
+                    supportGiveModeList.add(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getType().toString());
                     organAndDrugsDepRelation.setDrugsEnterpriseSupportGiveMode(StringUtils.join(supportGiveModeList,","));
                     organAndDrugsepRelationDAO.updateNonNullFieldByPrimaryKey(organAndDrugsDepRelation);
                     break;
                 case 4:
                     //例外支付
-                    supportGiveModeList.add(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getType());
+                    supportGiveModeList.add(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getType().toString());
                     organAndDrugsDepRelation.setDrugsEnterpriseSupportGiveMode(StringUtils.join(supportGiveModeList,","));
                     organAndDrugsepRelationDAO.updateNonNullFieldByPrimaryKey(organAndDrugsDepRelation);
                     break;
@@ -754,12 +762,16 @@ public class RecipeTestService {
                     //在线支付
                     if (RecipeSendTypeEnum.ALRAEDY_PAY.getSendType().equals(drugsEnterprise.getSendType())) {
                         //医院配送
-                        supportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType());
+                        supportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType().toString());
                     } else {
                         //药企配送
-                        supportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType());
+                        supportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType().toString());
                     }
-                    supportGiveModeList.add(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getType());
+                    supportGiveModeList.add(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getType().toString());
+                    if (StringUtils.isNotEmpty(organAndDrugsDepRelation.getDrugsEnterpriseSupportGiveMode())) {
+                        String[] giveMode = organAndDrugsDepRelation.getDrugsEnterpriseSupportGiveMode().split(",");
+                        supportGiveModeList.addAll(Arrays.asList(giveMode));
+                    }
                     organAndDrugsDepRelation.setDrugsEnterpriseSupportGiveMode(StringUtils.join(supportGiveModeList,","));
                     organAndDrugsepRelationDAO.updateNonNullFieldByPrimaryKey(organAndDrugsDepRelation);
                     if (Objects.nonNull(organDrugsSaleConfig)) {
@@ -775,12 +787,16 @@ public class RecipeTestService {
                     //货到付款+药店取药
                     if (RecipeSendTypeEnum.ALRAEDY_PAY.getSendType().equals(drugsEnterprise.getSendType())) {
                         //医院配送
-                        supportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType());
+                        supportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType().toString());
                     } else {
                         //药企配送
-                        supportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType());
+                        supportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType().toString());
                     }
-                    supportGiveModeList.add(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getType());
+                    supportGiveModeList.add(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getType().toString());
+                    if (StringUtils.isNotEmpty(organAndDrugsDepRelation.getDrugsEnterpriseSupportGiveMode())) {
+                        String[] giveMode = organAndDrugsDepRelation.getDrugsEnterpriseSupportGiveMode().split(",");
+                        supportGiveModeList.addAll(Arrays.asList(giveMode));
+                    }
                     organAndDrugsDepRelation.setDrugsEnterpriseSupportGiveMode(StringUtils.join(supportGiveModeList,","));
                     organAndDrugsepRelationDAO.updateNonNullFieldByPrimaryKey(organAndDrugsDepRelation);
                     if (Objects.nonNull(organDrugsSaleConfig)) {
@@ -796,13 +812,17 @@ public class RecipeTestService {
                     //都支持
                     if (RecipeSendTypeEnum.ALRAEDY_PAY.getSendType().equals(drugsEnterprise.getSendType())) {
                         //医院配送
-                        supportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType());
+                        supportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType().toString());
                     } else {
                         //药企配送
-                        supportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType());
+                        supportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType().toString());
                     }
-                    supportGiveModeList.add(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getType());
-                    supportGiveModeList.add(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getType());
+                    supportGiveModeList.add(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getType().toString());
+                    supportGiveModeList.add(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getType().toString());
+                    if (StringUtils.isNotEmpty(organAndDrugsDepRelation.getDrugsEnterpriseSupportGiveMode())) {
+                        String[] giveMode = organAndDrugsDepRelation.getDrugsEnterpriseSupportGiveMode().split(",");
+                        supportGiveModeList.addAll(Arrays.asList(giveMode));
+                    }
                     organAndDrugsDepRelation.setDrugsEnterpriseSupportGiveMode(StringUtils.join(supportGiveModeList,","));
                     organAndDrugsepRelationDAO.updateNonNullFieldByPrimaryKey(organAndDrugsDepRelation);
                     if (Objects.nonNull(organDrugsSaleConfig)) {
