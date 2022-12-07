@@ -936,8 +936,8 @@ public class EnterpriseManager extends BaseManager {
                 // 药企支付到店取药
                 drugsEnterpriseList.add(drugsEnterprise);
             }
-            if ((enterpriseSetGiveModeList.contains(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType())
-                    || enterpriseSetGiveModeList.contains(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType()))
+            if ((enterpriseSetGiveModeList.contains(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType().toString())
+                    || enterpriseSetGiveModeList.contains(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType().toString()))
                     && RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType().equals(type)) {
 
                 if (RecipeSendTypeEnum.ALRAEDY_PAY.getSendType().equals(drugsEnterprise.getSendType()) &&
