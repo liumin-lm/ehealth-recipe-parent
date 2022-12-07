@@ -13,6 +13,7 @@ import recipe.dao.OrganDrugsSaleConfigDAO;
 import recipe.enumerate.type.StandardPaymentWayEnum;
 import recipe.service.RecipeOrderService;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -36,12 +37,12 @@ public class CommonShowDepService implements PayModeOnlineShowDepInterface {
         depDetailBean.setBelongDepName(dep.getName());
         depDetailBean.setOrderType(dep.getOrderType());
         depDetailBean.setMemo(dep.getMemo());
-        if (StandardPaymentWayEnum.PAYMENT_WAY_ONLINE.getType().equals(organDrugsSaleConfig.getStandardPaymentWay())) {
-            depDetailBean.setPayModeText(StandardPaymentWayEnum.PAYMENT_WAY_ONLINE.getName());
-            depDetailBean.setPayMode(StandardPaymentWayEnum.PAYMENT_WAY_ONLINE.getType());
-        } else {
+        if (StandardPaymentWayEnum.PAYMENT_WAY_COD.getType().toString().equals(dep.getPayMode())) {
             depDetailBean.setPayModeText(StandardPaymentWayEnum.PAYMENT_WAY_COD.getName());
             depDetailBean.setPayMode(StandardPaymentWayEnum.PAYMENT_WAY_COD.getType());
+        } else {
+            depDetailBean.setPayModeText(StandardPaymentWayEnum.PAYMENT_WAY_ONLINE.getName());
+            depDetailBean.setPayMode(StandardPaymentWayEnum.PAYMENT_WAY_ONLINE.getType());
         }
 
         RecipeOrderService recipeOrderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
