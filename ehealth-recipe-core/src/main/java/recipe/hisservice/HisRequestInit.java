@@ -407,6 +407,7 @@ public class HisRequestInit {
                     requestTO.setCardType(revisitExDTO.getCardType());
                     requestTO.setCardNo(revisitExDTO.getCardId());
                     requestTO.setTreatmentId(revisitExDTO.getTreatmentId());
+                    requestTO.setSerialNumberOfReception(revisitExDTO.getSerialNumberOfReception());
                 }
             }
         } catch (Exception e) {
@@ -817,8 +818,6 @@ public class HisRequestInit {
                     requestTO.setThirdEnterpriseCode(drugsEnterprise.getThirdEnterpriseCode());
                     requestTO.setEnterpriseCode(drugsEnterprise.getEnterpriseCode());
                 }
-                requestTO.setOrderId(order.getOrderId());
-                requestTO.setOrderCode(order.getOrderCode());
             }
 
             //此处就行改造
