@@ -1453,7 +1453,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         recipeVo.setLastModify(recipe.getLastModify());
         return recipeVo;
     }
-
+    @Override
     public CheckRequestCommonOrderPageDTO findRecipePageForCommonOrder(SyncOrderVO request) {
         logger.info("findRecipePageForCommonOrder param ={}", JSON.toJSONString(request));
         CheckRequestCommonOrderPageDTO pageDTO = new CheckRequestCommonOrderPageDTO();
@@ -1496,6 +1496,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
 
     @Override
     public List<RecipeBean> findAuditOverTimeRecipeList(Date startTime, Date endTime, List<Integer> organIds) {
+        logger.info("findAuditOverTimeRecipeList startTime={}, endTime={}, organIds={}", startTime, endTime, JSON.toJSONString(organIds));
         List<Recipe> result = recipeDAO.findAuditOverTimeRecipeList(startTime, endTime, organIds);
         if (CollectionUtils.isEmpty(result)) {
             return Lists.newArrayList();
