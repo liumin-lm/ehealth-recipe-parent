@@ -368,6 +368,7 @@ public interface IRecipeAtopService {
      * @param organIds
      * @return
      */
+    @RpcService(mvcDisabled = true)
     List<RecipeBean> findAuditOverTimeRecipeList(Date startTime, Date endTime, List<Integer> organIds);
 
 }
