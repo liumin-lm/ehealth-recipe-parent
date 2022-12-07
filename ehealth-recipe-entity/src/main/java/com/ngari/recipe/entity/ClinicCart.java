@@ -5,6 +5,7 @@ import ctd.schema.annotation.Schema;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 import static javax.persistence.GenerationType.IDENTITY;
 
@@ -53,6 +54,9 @@ public class ClinicCart implements Serializable {
 
     @ItemProperty(alias = "业务场景, 方便门诊:1, 便捷购药:2")
     private Integer workType;
+
+    @ItemProperty(alias = "项目价格")
+    private BigDecimal itemPrice;
 
 
     @Id
@@ -154,5 +158,14 @@ public class ClinicCart implements Serializable {
 
     public void setWorkType(Integer workType) {
         this.workType = workType;
+    }
+
+    @Column(name = "item_price")
+    public BigDecimal getItemPrice() {
+        return itemPrice;
+    }
+
+    public void setItemPrice(BigDecimal itemPrice) {
+        this.itemPrice = itemPrice;
     }
 }
