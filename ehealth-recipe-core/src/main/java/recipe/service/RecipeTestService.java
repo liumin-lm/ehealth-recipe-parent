@@ -835,6 +835,7 @@ public class RecipeTestService {
         drugsSaleConfig.setInvoiceRequestFlag(0);
         drugsSaleConfig.setInvoiceSupportFlag(0);
         drugsSaleConfig.setIsHosDep(isHosDep);
+        drugsSaleConfig.setTakeDrugsVoucher(1);
         drugsSaleConfigDAO.save(drugsSaleConfig);
     }
 }
