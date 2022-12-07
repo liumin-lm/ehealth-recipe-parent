@@ -322,7 +322,7 @@ public class QueryRecipeService implements IQueryRecipeService {
                 if (consultExDTO != null) {
                     recipeDTO.setRegisterId(consultExDTO.getRegisterNo());
                     recipeDTO.setTreatmentId(consultExDTO.getTreatmentId());
-                    //recipeDTO.setSerialNumberOfReception(consultExDTO.getSerialNumberOfReception());
+                    recipeDTO.setSerialNumberOfReception(consultExDTO.getSerialNumberOfReception());
                 }
             }
             recipeDTO.setCopyNum(recipe.getCopyNum());
