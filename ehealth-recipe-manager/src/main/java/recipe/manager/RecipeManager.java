@@ -372,12 +372,12 @@ public class RecipeManager extends BaseManager {
      * @return
      */
     public RecipeCancelDTO getCancelReasonForPatient(int recipeId) {
+        logger.info("getCancelReasonForPatient recipeCancel recipeId:{}", recipeId);
         RecipeCancelDTO recipeCancel = new RecipeCancelDTO();
-        String cancelReason = "";
-        Date cancelDate = null;
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
         if (StringUtils.isNotEmpty(recipeExtend.getCancellation())) {
             recipeCancel.setCancelReason(recipeExtend.getCancellation());
+            recipeCancel.setCancelDate(new Date());
             return recipeCancel;
         }
 //        List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatus(recipeId, RecipeStatusConstant.REVOKE);
@@ -386,8 +386,7 @@ public class RecipeManager extends BaseManager {
 //            cancelDate = recipeLogs.get(0).getModifyDate();
 //        }
 //        recipeCancel.setCancelDate(cancelDate);
-        recipeCancel.setCancelReason(cancelReason);
-        logger.info("getCancelReasonForPatient recipeCancel:{}", JSONUtils.toString(recipeCancel));
+//        recipeCancel.setCancelReason("");
         return recipeCancel;
     }
 
