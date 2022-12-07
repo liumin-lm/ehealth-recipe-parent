@@ -84,6 +84,8 @@ public class PayModeOnline implements IPurchaseService {
     private PatientClient patientClient;
     @Autowired
     private OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO;
+    @Autowired
+    private OrganDrugsSaleConfigDAO organDrugsSaleConfigDAO;
 
     @Override
     public RecipeResultBean findSupportDepList(Recipe dbRecipe, Map<String, String> extInfo) {
@@ -624,8 +626,6 @@ public class PayModeOnline implements IPurchaseService {
 
     @Override
     public void setRecipePayWay(RecipeOrder recipeOrder) {
-//        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-//        Recipe recipe = recipeDAO.findRecipeListByOrderCode(recipeOrder.getOrderCode()).get(0);
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         if (new Integer(2).equals(recipeOrder.getPayMode())) {
             recipeOrder.setPayMode(0);
@@ -638,31 +638,20 @@ public class PayModeOnline implements IPurchaseService {
     private List<DrugsEnterprise> getAllSubDepList(List<DrugsEnterprise> subDepList) {
         List<DrugsEnterprise> returnSubDepList = new ArrayList<>();
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        List<Integer> depIdList = subDepList.stream().map(DrugsEnterprise::getId).collect(Collectors.toList());
+        List<OrganDrugsSaleConfig> organDrugsSaleConfigList = organDrugsSaleConfigDAO.findSaleConfigs(depIdList);
+        Map<Integer, OrganDrugsSaleConfig> organDrugsSaleConfigMap = organDrugsSaleConfigList.stream().collect(Collectors.toMap(OrganDrugsSaleConfig::getDrugsEnterpriseId, a -> a, (k1, k2) -> k1));
         for (DrugsEnterprise drugsEnterprise : subDepList) {
             returnSubDepList.add(drugsEnterprise);
-            if (drugsEnterprise.getPayModeSupport() == 9) {
+            OrganDrugsSaleConfig organDrugsSaleConfig = organDrugsSaleConfigMap.get(drugsEnterprise.getId());
+            if (Objects.nonNull(organDrugsSaleConfig)
+                    && StringUtils.isNotEmpty(organDrugsSaleConfig.getStandardPaymentWay())
+                    && organDrugsSaleConfig.getStandardPaymentWay().split(",").length == 2) {
                 DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(drugsEnterprise.getId());
-                enterprise.setPayModeSupport(1);
                 returnSubDepList.add(enterprise);
             }
         }
-        //对货到付款和在线支付进行排序
-        Collections.sort(returnSubDepList, new SubDepListComparator());
         return returnSubDepList;
-    }
-
-    class SubDepListComparator implements Comparator<DrugsEnterprise> {
-        int cp = 0;
-
-        @Override
-        public int compare(DrugsEnterprise drugsEnterpriseOne, DrugsEnterprise drugsEnterpriseTwo) {
-            int compare = drugsEnterpriseOne.getPayModeSupport() - drugsEnterpriseTwo.getPayModeSupport();
-            if (compare != 0) {
-
-                cp = compare > 0 ? 1 : -1;
-            }
-            return cp;
-        }
     }
 
 }
