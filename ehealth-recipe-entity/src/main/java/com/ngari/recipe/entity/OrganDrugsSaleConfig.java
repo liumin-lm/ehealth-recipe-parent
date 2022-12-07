@@ -27,7 +27,7 @@ public class OrganDrugsSaleConfig implements Serializable {
     @ItemProperty(alias = "自增主键")
     private Integer id;
 
-    @ItemProperty(alias = "机构id")
+    @ItemProperty(alias = "机构id 此字段无任何意义 不表示与机构存在关联关系")
     private Integer organId;
 
     @ItemProperty(alias = "药企id")

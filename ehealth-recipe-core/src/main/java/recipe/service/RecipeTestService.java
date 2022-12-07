@@ -692,7 +692,7 @@ public class RecipeTestService {
         organAndDrugsDepRelationList.forEach(organAndDrugsDepRelation -> {
             DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(organAndDrugsDepRelation.getDrugsEnterpriseId());
             LOGGER.info("handleGiveModeEnt drugsEnterprise:{}", JSON.toJSONString(drugsEnterprise));
-            OrganDrugsSaleConfig organDrugsSaleConfig = drugsSaleConfigDAO.getOrganDrugsSaleConfigByOrganIdAndDepId(organAndDrugsDepRelation.getDrugsEnterpriseId(), organAndDrugsDepRelation.getOrganId());
+            OrganDrugsSaleConfig organDrugsSaleConfig = drugsSaleConfigDAO.getOrganDrugsSaleConfig(organAndDrugsDepRelation.getDrugsEnterpriseId());
             LOGGER.info("handleGiveModeEnt organDrugsSaleConfig:{}", JSON.toJSONString(organDrugsSaleConfig));
             Integer payModeSupport = drugsEnterprise.getPayModeSupport();
             List<Integer> supportGiveModeList = new ArrayList<>();
@@ -822,7 +822,7 @@ public class RecipeTestService {
         OrganDrugsSaleConfig drugsSaleConfig = new OrganDrugsSaleConfig();
         drugsSaleConfig.setStandardPaymentWay(standardPaymentWay);
         drugsSaleConfig.setCreateTime(new Date());
-        drugsSaleConfig.setOrganId(organAndDrugsDepRelation.getOrganId());
+        drugsSaleConfig.setOrganId(0);
         drugsSaleConfig.setDrugsEnterpriseId(organAndDrugsDepRelation.getDrugsEnterpriseId());
         drugsSaleConfig.setIsSupportSendToStation(0);
         drugsSaleConfig.setTakeOneselfPayment(1);
