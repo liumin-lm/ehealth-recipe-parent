@@ -47,6 +47,7 @@ import recipe.drugsenterprise.paymodeonlineshowdep.PayModeOnlineShowDepServicePr
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.status.SettleAmountStateEnum;
 import recipe.enumerate.type.RecipeSupportGiveModeEnum;
+import recipe.enumerate.type.StandardPaymentWayEnum;
 import recipe.hisservice.RecipeToHisService;
 import recipe.manager.EnterpriseManager;
 import recipe.manager.OrderManager;
@@ -638,7 +639,6 @@ public class PayModeOnline implements IPurchaseService {
 
     private List<DrugsEnterprise> getAllSubDepList(List<DrugsEnterprise> subDepList) {
         List<DrugsEnterprise> returnSubDepList = new ArrayList<>();
-        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         List<Integer> depIdList = subDepList.stream().map(DrugsEnterprise::getId).collect(Collectors.toList());
         List<OrganDrugsSaleConfig> organDrugsSaleConfigList = organDrugsSaleConfigDAO.findSaleConfigs(depIdList);
         Map<Integer, OrganDrugsSaleConfig> organDrugsSaleConfigMap = organDrugsSaleConfigList.stream().collect(Collectors.toMap(OrganDrugsSaleConfig::getDrugsEnterpriseId, a -> a, (k1, k2) -> k1));
@@ -646,10 +646,15 @@ public class PayModeOnline implements IPurchaseService {
             returnSubDepList.add(drugsEnterprise);
             OrganDrugsSaleConfig organDrugsSaleConfig = organDrugsSaleConfigMap.get(drugsEnterprise.getId());
             if (Objects.nonNull(organDrugsSaleConfig)
-                    && StringUtils.isNotEmpty(organDrugsSaleConfig.getStandardPaymentWay())
-                    && organDrugsSaleConfig.getStandardPaymentWay().split(",").length == 2) {
-                DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(drugsEnterprise.getId());
-                returnSubDepList.add(enterprise);
+                    && StringUtils.isNotEmpty(organDrugsSaleConfig.getStandardPaymentWay())) {
+                String[] standardPaymentWay = organDrugsSaleConfig.getStandardPaymentWay().split(",");
+                List<String> standardPaymentWayList = Arrays.asList(standardPaymentWay);
+                if (standardPaymentWayList.size() == 2) {
+                    drugsEnterprise.setPayMode(StandardPaymentWayEnum.PAYMENT_WAY_COD.getType().toString());
+                    returnSubDepList.add(drugsEnterprise);
+                } else if (standardPaymentWayList.size() == 1) {
+                    drugsEnterprise.setPayMode(organDrugsSaleConfig.getStandardPaymentWay());
+                }
             }
         }
         return returnSubDepList;
