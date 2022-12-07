@@ -26,7 +26,6 @@ import com.ngari.recipe.recipe.constant.RecipeTypeEnum;
 import com.ngari.recipe.recipe.constant.RecipecCheckStatusConstant;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.vo.*;
-import com.ngari.validator.Grade;
 import coupon.api.service.ICouponBaseService;
 import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
@@ -1373,22 +1372,22 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     }
 
     @Override
-    public Integer stagingRecipe(StagingRecipeReq stagingRecipeReq) {
-        RecipeBean recipeBean = stagingRecipeReq.getRecipeBean();
-        PatientDTO patient = patientService.get(recipeBean.getMpiid());
-        //解决旧版本因为wx2.6患者身份证为null，而业务申请不成功
-        if (patient == null || StringUtils.isEmpty(patient.getCertificate())) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "该患者还未填写身份证信息，不能开处方");
-        }
-        boolean optimize = revisitManager.openRecipeOptimize(recipeBean.getClinicOrgan(), recipeBean.getBussSource(), recipeBean.getClinicId());
-        //配置开启，根据有效的挂号序号进行判断
-        if (!optimize) {
-            logger.error("ErrorCode.SERVICE_ERROR:erroCode={}", ErrorCode.SERVICE_ERROR);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "当前患者就诊信息已失效，无法进行开方。");
-        }
+    public Integer stagingRecipe(RecipeInfoVO recipeInfoVO) {
+        RecipeBean recipeBean = recipeInfoVO.getRecipeBean();
+//        PatientDTO patient = patientService.get(recipeBean.getMpiid());
+//        //解决旧版本因为wx2.6患者身份证为null，而业务申请不成功
+//        if (patient == null || StringUtils.isEmpty(patient.getCertificate())) {
+//            throw new DAOException(ErrorCode.SERVICE_ERROR, "该患者还未填写身份证信息，不能开处方");
+//        }
+//        boolean optimize = revisitManager.openRecipeOptimize(recipeBean.getClinicOrgan(), recipeBean.getBussSource(), recipeBean.getClinicId());
+//        //配置开启，根据有效的挂号序号进行判断
+//        if (!optimize) {
+//            logger.error("ErrorCode.SERVICE_ERROR:erroCode={}", ErrorCode.SERVICE_ERROR);
+//            throw new DAOException(ErrorCode.SERVICE_ERROR, "当前患者就诊信息已失效，无法进行开方。");
+//        }
         Recipe recipe = null;
         if (Objects.nonNull(recipeBean.getRecipeId())) {
-             recipe = recipeDAO.get(recipeBean.getRecipeId());
+            recipe = recipeDAO.get(recipeBean.getRecipeId());
             // 只有暂存状态才可以修改
             if (!(WriteHisEnum.NONE.getType().equals(recipe.getWriteHisState()) && SignEnum.NONE.getType().equals(recipe.getDoctorSignState()))) {
                 throw new DAOException(ErrorCode.SERVICE_ERROR, "当前处方不是暂存状态,不能操作");
@@ -1404,7 +1403,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             recipeManager.saveStagingRecipeExt(extend,recipeVo);
         }
         // recipe detail信息
-        List<RecipeDetailBean> detailBeanList = stagingRecipeReq.getDetailBeanList();
+        List<RecipeDetailBean> detailBeanList = recipeInfoVO.getRecipeDetails();
         if (CollectionUtils.isNotEmpty(detailBeanList)) {
             List<Recipedetail> recipedetails = com.ngari.patient.utils.ObjectCopyUtils.convert(detailBeanList, Recipedetail.class);
             recipeManager.saveStagingRecipeDetail(recipeVo,recipedetails);

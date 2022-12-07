@@ -402,7 +402,8 @@ public interface IRecipeBusinessService {
 
     /**
      * 暂存处方接口
-     * @param stagingRecipeReq
+     *
+     * @param recipeInfoVO
      */
-    Integer stagingRecipe(StagingRecipeReq stagingRecipeReq);
+    Integer stagingRecipe(RecipeInfoVO recipeInfoVO);
 }

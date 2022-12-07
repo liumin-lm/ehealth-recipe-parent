@@ -2,7 +2,6 @@ package recipe.atop.doctor;
 
 import com.ngari.patient.dto.HealthCardDTO;
 import com.ngari.patient.utils.ObjectCopyUtils;
-import com.ngari.recipe.drug.model.DecoctionWayBean;
 import com.ngari.recipe.dto.OutPatientRecordResDTO;
 import com.ngari.recipe.dto.WriteDrugRecipeDTO;
 import com.ngari.recipe.entity.DoctorCommonPharmacy;
@@ -17,6 +16,7 @@ import recipe.core.api.IRecipeBusinessService;
 import recipe.core.api.IRevisitBusinessService;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.util.ValidateUtil;
+import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.doctor.ValidateDetailVO;
 
 import java.util.List;
@@ -211,11 +211,12 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
 
     /**
      * 暂存处方接口
-     * @param stagingRecipeReq
+     *
+     * @param recipeInfoVO
      */
     @RpcService
-    public void stagingRecipe(StagingRecipeReq stagingRecipeReq) {
-        validateAtop(stagingRecipeReq,stagingRecipeReq.getRecipeBean(),stagingRecipeReq.getDetailBeanList());
-        recipeBusinessService.stagingRecipe(stagingRecipeReq);
+    public void stagingRecipe(RecipeInfoVO recipeInfoVO) {
+        validateAtop(recipeInfoVO, recipeInfoVO.getRecipeBean(), recipeInfoVO.getRecipeDetails());
+        recipeBusinessService.stagingRecipe(recipeInfoVO);
     }
 }
