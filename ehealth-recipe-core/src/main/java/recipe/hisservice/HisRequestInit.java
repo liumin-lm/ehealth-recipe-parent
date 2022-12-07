@@ -818,6 +818,8 @@ public class HisRequestInit {
                     requestTO.setThirdEnterpriseCode(drugsEnterprise.getThirdEnterpriseCode());
                     requestTO.setEnterpriseCode(drugsEnterprise.getEnterpriseCode());
                 }
+                requestTO.setOrderId(order.getOrderId());
+                requestTO.setOrderCode(order.getOrderCode());
             }
 
             //此处就行改造
