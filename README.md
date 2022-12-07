@@ -27,6 +27,7 @@ base_drug_decoctionway 煎法表
 cancelRecipe 处方撤销
 submitRecipeHis 患者创建订单 根据配送方式上传处方给his  配置项  patientRecipeUploadHis 患者提交订单需要回写his的购药方式
 cancelOrder 订单取消
+cancelRecipeHis 患者端提交订单取消订单时取药his处方
 updateRecipeOrderStatus 运营平台订单编辑接口
 updateRecipeTrannckingInfo 基础服务更新处方物流状态
 updateRecipeStatus 浙江省互联网定时将确认中处方修改为审核中或者待处理(根据机构配置项noNeedNoticeOrganFlag过滤) 
