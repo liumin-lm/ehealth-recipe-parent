@@ -454,7 +454,7 @@ public class RecipeBean implements Serializable {
     @ItemProperty(alias = "线下常用方/协定方编码")
     private String commonRecipeCode;
 
-    @ItemProperty(alias = "处方剂型类型 1 饮片方 2 颗粒方")
+    @ItemProperty(alias = "处方剂型类型 1 饮片方 2 颗粒方,3膏方")
     @Dictionary(id = "eh.cdr.dictionary.RecipeDrugForm")
     private Integer recipeDrugForm;
 
