@@ -173,6 +173,9 @@ public class RecipeServiceSub {
     @Autowired
     private RevisitClient revisitClient;
 
+    private static EmploymentService employmentService = ApplicationUtils.getBasicService(EmploymentService.class);
+
+
     /**
      * @param recipeBean
      * @param detailBeanList
@@ -1580,6 +1583,14 @@ public class RecipeServiceSub {
         if (appointDepartDTO != null) {
             r.setDepart(appointDepartDTO.getDepartId());
         }
+        //医生
+        if (StringUtils.isNotEmpty(recipe.getDoctorCode())) {
+            EmploymentDTO employmentDTO = employmentService.getEmploymentByJobNumberAndOrganId(recipe.getDoctorCode(), recipe.getClinicOrgan());
+            if (employmentDTO != null && employmentDTO.getDoctorId() != null) {
+                r.setDoctor(employmentDTO.getDoctorId());
+            }
+        }
+
         r.setRecipeFlag(0);
         LOGGER.info("convertHisRecipeForRAP res:{}", JSONUtils.toString(r));
         return r;
