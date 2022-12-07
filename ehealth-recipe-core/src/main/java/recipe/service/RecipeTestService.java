@@ -822,7 +822,7 @@ public class RecipeTestService {
         OrganDrugsSaleConfig drugsSaleConfig = new OrganDrugsSaleConfig();
         drugsSaleConfig.setStandardPaymentWay(standardPaymentWay);
         drugsSaleConfig.setCreateTime(new Date());
-        drugsSaleConfig.setOrganId(organAndDrugsDepRelation.getOrganId());
+        drugsSaleConfig.setOrganId(0);
         drugsSaleConfig.setDrugsEnterpriseId(organAndDrugsDepRelation.getDrugsEnterpriseId());
         drugsSaleConfig.setIsSupportSendToStation(0);
         drugsSaleConfig.setTakeOneselfPayment(1);
