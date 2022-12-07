@@ -1487,6 +1487,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             orderItem.setBusDate(recipe.getSignDate());
             orderItem.setCreateDate(recipe.getSignDate());
             orderItem.setLastModify(recipe.getLastModify());
+            orderItem.setDbData(recipe);
             order.add(orderItem);
         }
         pageDTO.setOrder(order);
