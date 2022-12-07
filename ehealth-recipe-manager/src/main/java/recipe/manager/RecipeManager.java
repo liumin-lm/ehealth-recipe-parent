@@ -1240,6 +1240,15 @@ public class RecipeManager extends BaseManager {
     }
 
     /**
+     * 保存处方药品信息
+     * @param recipeVo 处方信息
+     * @param recipedetails 药品信息
+     */
+    public void saveStagingRecipeDetail(Recipe recipeVo, List<Recipedetail> recipedetails) {
+
+    }
+
+    /**
      * 保存处方默认数据
      * @param recipe
      */
@@ -1486,4 +1495,6 @@ public class RecipeManager extends BaseManager {
         }
 
     }
+
+
 }

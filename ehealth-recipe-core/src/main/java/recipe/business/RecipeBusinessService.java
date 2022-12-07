@@ -1407,7 +1407,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         List<RecipeDetailBean> detailBeanList = stagingRecipeReq.getDetailBeanList();
         if (CollectionUtils.isNotEmpty(detailBeanList)) {
             List<Recipedetail> recipedetails = com.ngari.patient.utils.ObjectCopyUtils.convert(detailBeanList, Recipedetail.class);
-//            recipeManager.saveStagingRecipeDetail(recipeVo,recipedetails);
+            recipeManager.saveStagingRecipeDetail(recipeVo,recipedetails);
         }
         // 日志打印
         RecipeLogService.saveRecipeLog(recipeVo.getRecipeId(), 0, 0, "暂存处方单");
