@@ -2,18 +2,14 @@ package recipe.drugsenterprise.paymodeonlineshowdep;
 
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.entity.DrugsEnterprise;
-import com.ngari.recipe.entity.OrganDrugsSaleConfig;
 import com.ngari.recipe.entity.Recipe;
-import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
-import recipe.dao.OrganDrugsSaleConfigDAO;
 import recipe.enumerate.type.StandardPaymentWayEnum;
 import recipe.service.RecipeOrderService;
 
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -28,8 +24,6 @@ public class CommonShowDepService implements PayModeOnlineShowDepInterface {
 
     @Override
     public void getPayModeOnlineShowDep(DrugsEnterprise dep, List<DepDetailBean> depDetailList, Recipe dbRecipe, List<Integer> recipeIdList) {
-        OrganDrugsSaleConfigDAO organDrugsSaleConfigDAO = DAOFactory.getDAO(OrganDrugsSaleConfigDAO.class);
-        OrganDrugsSaleConfig organDrugsSaleConfig = organDrugsSaleConfigDAO.getOrganDrugsSaleConfig(dep.getId());
         DepDetailBean depDetailBean = new DepDetailBean();
         depDetailBean.setDepId(dep.getId());
         depDetailBean.setDepName(dep.getName());
