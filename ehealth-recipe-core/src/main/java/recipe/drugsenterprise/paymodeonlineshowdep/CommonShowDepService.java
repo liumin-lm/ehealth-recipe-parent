@@ -39,6 +39,9 @@ public class CommonShowDepService implements PayModeOnlineShowDepInterface {
             depDetailBean.setPayMode(StandardPaymentWayEnum.PAYMENT_WAY_ONLINE.getType());
         }
 
+        depDetailBean.setPayModeText(StandardPaymentWayEnum.PAYMENT_WAY_ONLINE.getName());
+        depDetailBean.setPayMode(StandardPaymentWayEnum.PAYMENT_WAY_ONLINE.getType());
+
         RecipeOrderService recipeOrderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
         //重置药企处方价格
         depDetailBean.setRecipeFee(recipeOrderService.reCalculateRecipeFee(dep.getId(), recipeIdList, null));
