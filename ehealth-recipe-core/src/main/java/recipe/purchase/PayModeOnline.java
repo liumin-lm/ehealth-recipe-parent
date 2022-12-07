@@ -1,5 +1,6 @@
 package recipe.purchase;
 
+import com.alibaba.fastjson.JSON;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.ngari.base.employment.model.EmploymentBean;
@@ -56,6 +57,7 @@ import recipe.presettle.model.OrderTypeCreateConditionRequest;
 import recipe.service.RecipeOrderService;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
+import recipe.util.ObjectCopyUtils;
 
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
@@ -650,13 +652,16 @@ public class PayModeOnline implements IPurchaseService {
                 String[] standardPaymentWay = organDrugsSaleConfig.getStandardPaymentWay().split(",");
                 List<String> standardPaymentWayList = Arrays.asList(standardPaymentWay);
                 if (standardPaymentWayList.size() == 2) {
-                    drugsEnterprise.setPayMode(StandardPaymentWayEnum.PAYMENT_WAY_COD.getType().toString());
-                    returnSubDepList.add(drugsEnterprise);
+                    DrugsEnterprise drugsEnterpriseCod = new DrugsEnterprise();
+                    ObjectCopyUtils.copyProperties(drugsEnterpriseCod, drugsEnterprise);
+                    drugsEnterpriseCod.setPayMode(StandardPaymentWayEnum.PAYMENT_WAY_COD.getType().toString());
+                    returnSubDepList.add(drugsEnterpriseCod);
                 } else if (standardPaymentWayList.size() == 1) {
                     drugsEnterprise.setPayMode(organDrugsSaleConfig.getStandardPaymentWay());
                 }
             }
         }
+        LOG.info("getAllSubDepList returnSubDepList:{}", JSON.toJSONString(returnSubDepList));
         return returnSubDepList;
     }
 
