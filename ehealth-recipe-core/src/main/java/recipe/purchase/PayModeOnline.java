@@ -158,6 +158,7 @@ public class PayModeOnline implements IPurchaseService {
         if (CollectionUtils.isNotEmpty(depDetailList) && depDetailList.size() == 1) {
             depListBean.setSigle(true);
         }
+        depDetailList = depDetailList.stream().sorted(Comparator.comparingInt(DepDetailBean::getPayMode)).collect(Collectors.toList());
         //去重---有可能getAllSubDepList接口返回两个相同的药企但是在北京互联网的模式过滤下会出现两个一模一样的药企
         //暂时先放这去重
         depListBean.setList(depDetailList.stream().distinct().collect(Collectors.toList()));
