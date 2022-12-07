@@ -11,6 +11,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.joda.time.DateTime;
+import recipe.enumerate.status.RecipeStateEnum;
 
 import java.util.List;
 
@@ -39,6 +40,9 @@ public abstract class RecipeLogDAO extends HibernateSupportDelegateDAO<RecipeLog
         Recipe recipe = recipeDAO.getByRecipeId(log.getRecipeId());
         log.setProcessState(recipe.getProcessState());
         log.setSubState(recipe.getSubState());
+        if (StringUtils.isEmpty(log.getMemo())) {
+            log.setMemo(RecipeStateEnum.getRecipeStateEnum(recipe.getSubState()).getName());
+        }
         log.setMemo(StringUtils.defaultString(log.getMemo(), ""));
         log.setExpand(StringUtils.defaultString(log.getExpand(), ""));
         log.setModifyDate(DateTime.now().toDate());
