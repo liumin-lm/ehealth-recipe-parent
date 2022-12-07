@@ -43,6 +43,9 @@ public class RecipeVo implements Serializable {
     @ItemProperty(alias = "处方父状态：0：默认 ， 1：待提交，2：待审核，3：待够药，4：待发药，5：配送中，6：待取药，7：已完成，8：已删除 ，9：已作废")
     private Integer processState;
 
+    @ItemProperty(alias = "处方子状态")
+    private Integer subState;
+
     @ItemProperty(alias = "处方父状态text")
     private String processStateText;
 
