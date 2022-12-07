@@ -56,7 +56,6 @@ import recipe.bussutil.UsePathwaysFilter;
 import recipe.bussutil.UsingRateFilter;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.DocIndexClient;
-import recipe.constant.SyncDrugConstant;
 import recipe.dao.*;
 import recipe.enumerate.type.RecipeDrugFormTypeEnum;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;

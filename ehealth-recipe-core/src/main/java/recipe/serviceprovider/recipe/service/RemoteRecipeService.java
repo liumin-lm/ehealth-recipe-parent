@@ -96,7 +96,10 @@ import recipe.business.CaBusinessService;
 import recipe.bussutil.RecipeUtil;
 import recipe.caNew.AbstractCaProcessType;
 import recipe.caNew.pdf.CreatePdfFactory;
-import recipe.client.*;
+import recipe.client.DoctorClient;
+import recipe.client.PatientClient;
+import recipe.client.RevisitClient;
+import recipe.client.SmsClient;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.dao.sign.SignDoctorRecipeInfoDAO;
@@ -2140,11 +2143,11 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @RpcService
     @Override
     public void retryCaDoctorCallBackToRecipe(CaSignResultUpgradeBean caSignResultVo) {
-        LOGGER.info("当前医生ca异步接口返回：{}", JSONUtils.toString(caSignResultVo));
         if (null == caSignResultVo) {
             return;
         }
         CaSignResultVo resultVo = makeCaSignResultVoFromCABean(caSignResultVo);
+        LOGGER.info("RemoteRecipeService retryCaDoctorCallBackToRecipe resultVo：{}", JSON.toJSONString(resultVo));
         resultVo.setPdfBase64(caSignResultVo.getPdfBase64());
         Integer recipeId = resultVo.getRecipeId();
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);

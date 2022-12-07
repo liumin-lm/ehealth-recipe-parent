@@ -21,6 +21,7 @@ import com.ngari.recipe.dto.DrugSpecificationInfoDTO;
 import com.ngari.recipe.dto.EmrDetailDTO;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
+import com.ngari.revisit.common.model.RevisitExDTO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
@@ -154,8 +155,9 @@ public class OfflineRecipeClient extends BaseClient {
      * @throws Exception
      */
     public RecipeInfoDTO pushRecipe(Integer pushType, RecipeInfoDTO recipePdfDTO, EmrDetailDTO emrDetail,
-                                    Map<Integer, PharmacyTcm> pharmacyIdMap, String giveModeKey) throws Exception {
+                                    Map<Integer, PharmacyTcm> pharmacyIdMap, String giveModeKey, RevisitExDTO revisitEx) throws Exception {
         com.ngari.platform.recipe.mode.RecipeDTO recipeDTO = packageRecipeDTO(pushType, recipePdfDTO, emrDetail, pharmacyIdMap, giveModeKey);
+        recipeDTO.setRevisitEx(ObjectCopyUtils.convert(revisitEx, com.ngari.platform.revisit.model.RevisitExDTO.class));
         logger.info("OfflineRecipeClient patientPushRecipe recipeDTO：{}", JSON.toJSONString(recipeDTO));
         try {
             HisResponseTO<com.ngari.platform.recipe.mode.RecipeDTO> hisResponse = recipeHisService.pushRecipe(recipeDTO);
@@ -177,8 +179,9 @@ public class OfflineRecipeClient extends BaseClient {
      * @throws Exception
      */
     public RecipeInfoDTO patientPushRecipe(Integer pushType, RecipeInfoDTO recipePdfDTO, EmrDetailDTO emrDetail,
-                                           Map<Integer, PharmacyTcm> pharmacyIdMap, String giveModeKey) throws Exception {
+                                           Map<Integer, PharmacyTcm> pharmacyIdMap, String giveModeKey, RevisitExDTO revisitBean) throws Exception {
         com.ngari.platform.recipe.mode.RecipeDTO recipeDTO = packageRecipeDTO(pushType, recipePdfDTO, emrDetail, pharmacyIdMap, giveModeKey);
+        recipeDTO.setRevisitEx(ObjectCopyUtils.convert(revisitBean, com.ngari.platform.revisit.model.RevisitExDTO.class));
         logger.info("OfflineRecipeClient patientPushRecipe recipeDTO：{}", JSON.toJSONString(recipeDTO));
         try {
             HisResponseTO<com.ngari.platform.recipe.mode.RecipeDTO> hisResponse = recipeHisService.patientPushRecipe(recipeDTO);

@@ -10,6 +10,7 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.recipe.dto.EmrDetailDTO;
 import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.entity.*;
+import com.ngari.revisit.common.model.RevisitExDTO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
@@ -64,8 +65,6 @@ public class HisRecipeManager extends BaseManager {
     @Autowired
     private HisRecipeDetailDAO hisRecipeDetailDAO;
     @Autowired
-    private EmrRecipeManager emrRecipeManager;
-    @Autowired
     private HisRecipeDataDelDAO hisRecipeDataDelDAO;
     @Autowired
     private StateManager stateManager;
@@ -75,8 +74,6 @@ public class HisRecipeManager extends BaseManager {
     private PayClient payClient;
     @Autowired
     private RecipeBeforeOrderDAO recipeBeforeOrderDAO;
-    @Autowired
-    private OrganDrugListDAO organDrugListDAO;
 
     /**
      * 获取患者信息
@@ -244,8 +241,15 @@ public class HisRecipeManager extends BaseManager {
                 RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
                 EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
                 recipeExtendDAO.saveOrUpdateRecipeExtend(recipeExtend);
-
-                emrRecipeManager.saveMedicalInfo(recipe, recipeExtend);
+                try {
+                    if (null != recipeExtend.getDocIndexId()) {
+                        return;
+                    }
+                    String doctorName = doctorClient.getDoctor(recipe.getDoctor()).getName();
+                    docIndexClient.addMedicalInfo(recipe, recipeExtend, doctorName);
+                } catch (Exception e) {
+                    logger.error("HisRecipeManager updateHisRecipe 电子病历保存失败", e);
+                }
             }
         });
         LOGGER.info("HisRecipeManager updateHisRecipe response hisRecipeMap:{}", JSONUtils.toString(hisRecipeMap));
@@ -669,10 +673,12 @@ public class HisRecipeManager extends BaseManager {
     public RecipeInfoDTO pushRecipe(RecipeInfoDTO recipePdfDTO, Integer pushType, Map<Integer, PharmacyTcm> pharmacyIdMap,
                                     Integer sysType, String giveModeKey) throws Exception {
         EmrDetailDTO emrDetail = emrDetail(recipePdfDTO);
+        Integer clinicId = recipePdfDTO.getRecipe().getClinicId();
+        RevisitExDTO revisitEx = revisitClient.getByClinicId(clinicId);
         if (CommonConstant.RECIPE_DOCTOR_TYPE.equals(sysType)) {
-            return offlineRecipeClient.pushRecipe(pushType, recipePdfDTO, emrDetail, pharmacyIdMap, giveModeKey);
+            return offlineRecipeClient.pushRecipe(pushType, recipePdfDTO, emrDetail, pharmacyIdMap, giveModeKey, revisitEx);
         } else {
-            return offlineRecipeClient.patientPushRecipe(pushType, recipePdfDTO, emrDetail, pharmacyIdMap, giveModeKey);
+            return offlineRecipeClient.patientPushRecipe(pushType, recipePdfDTO, emrDetail, pharmacyIdMap, giveModeKey, revisitEx);
         }
     }
 
