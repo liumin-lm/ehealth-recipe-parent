@@ -233,6 +233,9 @@ public class OrganDrugList implements java.io.Serializable {
     @ItemProperty(alias = "his药品分类编码")
     private String hisDrugClassCode;
 
+    @ItemProperty(alias = "中药国标编码")
+    private String tcmNationalStandardCode;
+
 //    @ItemProperty(alias = "是否冷链运输 0 否 1 是")
 //    private Integer coldChainTransportationFlag;
 //
@@ -244,6 +247,15 @@ public class OrganDrugList implements java.io.Serializable {
 //    public void setColdChainTransportationFlag(Integer coldChainTransportationFlag) {
 //        this.coldChainTransportationFlag = coldChainTransportationFlag;
 //    }
+
+    @Column(name = "tcm_national_standard_code")
+    public String getTcmNationalStandardCode() {
+        return tcmNationalStandardCode;
+    }
+
+    public void setTcmNationalStandardCode(String tcmNationalStandardCode) {
+        this.tcmNationalStandardCode = tcmNationalStandardCode;
+    }
 
     @Column(name = "skin_test_drug_flag")
     public Integer getSkinTestDrugFlag() {
