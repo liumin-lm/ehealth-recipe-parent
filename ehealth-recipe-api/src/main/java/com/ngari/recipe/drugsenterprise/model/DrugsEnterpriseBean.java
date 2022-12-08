@@ -206,7 +206,7 @@ public class DrugsEnterpriseBean implements Serializable {
     @ItemProperty(alias = "优先级")
     private Integer priorityLevel;
 
-    private List<String> drugsEnterpriseSupportGiveModeName;
+    private List<String> supportGiveModeNameList;
 
     private PharmacyVO pharmacy;
 
@@ -699,11 +699,11 @@ public class DrugsEnterpriseBean implements Serializable {
         this.priorityLevel = priorityLevel;
     }
 
-    public List<String> getDrugsEnterpriseSupportGiveModeName() {
-        return drugsEnterpriseSupportGiveModeName;
+    public List<String> getSupportGiveModeNameList() {
+        return supportGiveModeNameList;
     }
 
-    public void setDrugsEnterpriseSupportGiveModeName(List<String> drugsEnterpriseSupportGiveModeName) {
-        this.drugsEnterpriseSupportGiveModeName = drugsEnterpriseSupportGiveModeName;
+    public void setSupportGiveModeNameList(List<String> supportGiveModeNameList) {
+        this.supportGiveModeNameList = supportGiveModeNameList;
     }
 }
