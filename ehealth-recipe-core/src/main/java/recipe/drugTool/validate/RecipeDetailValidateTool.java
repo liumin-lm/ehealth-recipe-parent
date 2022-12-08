@@ -135,10 +135,14 @@ public class RecipeDetailValidateTool {
         //校验皮试属性
         Integer skinTestDrugFlag = organDrug.getSkinTestDrugFlag();
         if (Integer.valueOf("1").equals(skinTestDrugFlag) && Integer.valueOf("0").equals(recipeDetail.getSkinTestFlag())) {
+            recipeDetail.setSkinTestFlag(0);
+            recipeDetail.setSkinTestDrugFlag(skinTestDrugFlag);
             recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
             recipeDetail.setValidateStatusText("机构药品【" + organDrug.getDrugName() + "】为皮试药品");
         }
         if (Integer.valueOf("0").equals(skinTestDrugFlag) && Integer.valueOf("1").equals(recipeDetail.getSkinTestFlag())) {
+            recipeDetail.setSkinTestFlag(0);
+            recipeDetail.setSkinTestDrugFlag(skinTestDrugFlag);
             recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
             recipeDetail.setValidateStatusText("机构药品【" + organDrug.getDrugName() + "】为非皮试药品");
         }
