@@ -3395,9 +3395,8 @@ public class RecipeService extends RecipeBaseService {
                 }
             } else {
                 if (null != payMode) {
-                    List<Integer> payModeSupport = RecipeServiceSub.getDepSupportMode(payMode);
                     RecipeSupportGiveModeEnum recipeSupportGiveModeEnum = enterpriseManager.getDepSupportModeByPayMode(payMode);
-                    if (CollectionUtils.isEmpty(payModeSupport)) {
+                    if (Objects.isNull(recipeSupportGiveModeEnum)) {
                         LOGGER.error("findSupportDepList 处方[{}]无法匹配配送方式. payMode=[{}]", recipeId, payMode);
                         break;
                     }

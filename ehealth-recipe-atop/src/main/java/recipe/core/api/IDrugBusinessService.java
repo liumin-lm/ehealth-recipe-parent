@@ -5,6 +5,7 @@ import com.ngari.his.recipe.mode.MedicationInfoResTO;
 import com.ngari.platform.recipe.mode.ListOrganDrugReq;
 import com.ngari.recipe.drug.model.CommonDrugListDTO;
 import com.ngari.recipe.drug.model.DispensatoryDTO;
+import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
 import com.ngari.recipe.dto.DrugInfoDTO;
 import com.ngari.recipe.dto.DrugSpecificationInfoDTO;
@@ -253,4 +254,11 @@ public interface IDrugBusinessService {
      * @return
      */
     HisResponseTO medicationInfoSyncTaskForHis(List<MedicationInfoResTO> medicationInfoResTOList);
+
+    /**
+     * 根据药品名称、规格、生产厂家、药品单位、包装数量查询平台药品目录
+     * @param drugListBean
+     * @return
+     */
+    List<DrugList> findDrugListByInfo(DrugListBean drugListBean);
 }

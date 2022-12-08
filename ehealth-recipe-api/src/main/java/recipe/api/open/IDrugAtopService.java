@@ -4,6 +4,7 @@ import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.MedicationInfoResTO;
 import com.ngari.platform.recipe.mode.ListOrganDrugReq;
 import com.ngari.platform.recipe.mode.ListOrganDrugRes;
+import com.ngari.recipe.drug.model.DrugListBean;
 import ctd.util.annotation.RpcService;
 import recipe.vo.doctor.DrugBookVo;
 import recipe.vo.second.RecipeRulesDrugCorrelationVO;
@@ -75,6 +76,14 @@ public interface IDrugAtopService {
      */
     @RpcService
     HisResponseTO medicationInfoSyncTaskForHis(List<MedicationInfoResTO> medicationInfoResTOList);
+
+    /**
+     * 根据药品名称、规格、生产厂家、药品单位、包装数量查询平台药品目录
+     * @param drugListBean
+     * @return
+     */
+    @RpcService
+    List<DrugListBean> findDrugListByInfo(DrugListBean drugListBean);
 
 
 }

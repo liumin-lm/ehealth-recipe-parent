@@ -208,8 +208,20 @@ public class OrganDrugListDTO implements java.io.Serializable {
     @ItemProperty(alias = "his药品分类编码")
     private String hisDrugClassCode;
 
+    @ItemProperty(alias = "中药国标编码")
+    private String tcmNationalStandardCode;
+
 //    @ItemProperty(alias = "是否冷链运输 0 否 1 是")
 //    private Integer coldChainTransportationFlag;
+
+
+    public String getTcmNationalStandardCode() {
+        return tcmNationalStandardCode;
+    }
+
+    public void setTcmNationalStandardCode(String tcmNationalStandardCode) {
+        this.tcmNationalStandardCode = tcmNationalStandardCode;
+    }
 
     public Integer getSkinTestDrugFlag() {
         return skinTestDrugFlag;
