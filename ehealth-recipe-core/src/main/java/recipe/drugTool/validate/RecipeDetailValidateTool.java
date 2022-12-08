@@ -134,7 +134,7 @@ public class RecipeDetailValidateTool {
         }
         //校验皮试属性
         Integer skinTestDrugFlag = organDrug.getSkinTestDrugFlag();
-        if (Integer.valueOf("1").equals(skinTestDrugFlag) && Integer.valueOf("0").equals(recipeDetail.getSkinTestFlag())) {
+        if (Integer.valueOf("1").equals(skinTestDrugFlag) && eh.utils.ValidateUtil.nullOrZeroInteger(recipeDetail.getSkinTestFlag())) {
             recipeDetail.setSkinTestFlag(0);
             recipeDetail.setSkinTestDrugFlag(skinTestDrugFlag);
             recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
