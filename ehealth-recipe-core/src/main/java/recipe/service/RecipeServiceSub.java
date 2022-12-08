@@ -334,7 +334,7 @@ public class RecipeServiceSub {
             }
             try {
                 DrugDecoctionWayDao drugDecoctionWayDao = DAOFactory.getDAO(DrugDecoctionWayDao.class);
-                if (null == recipeExtend.getDoctorIsDecoction() && !Integer.valueOf(3).equals(recipeBean.getRecipeDrugForm())) {
+                if (null == recipeExtend.getDoctorIsDecoction()) {
                     recipeExtend.setDoctorIsDecoction("0");
                     if (StringUtils.isNotEmpty(recipeExtend.getDecoctionId())) {
                         DecoctionWay decoctionWay = drugDecoctionWayDao.get(Integer.parseInt(recipeExtend.getDecoctionId()));
