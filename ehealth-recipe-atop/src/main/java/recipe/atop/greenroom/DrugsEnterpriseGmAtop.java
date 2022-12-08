@@ -216,7 +216,7 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
                 Arrays.asList(drugsEnterpriseSupportGiveMode.split(",")).forEach(giveMode->{
                     drugsEnterpriseSupportGiveModeName.add(RecipeSupportGiveModeEnum.getNameByType(Integer.parseInt(giveMode)));
                 });
-                a.setDrugsEnterpriseSupportGiveModeName(drugsEnterpriseSupportGiveModeName);
+                a.setSupportGiveModeNameList(drugsEnterpriseSupportGiveModeName);
             }
         });
         drugsEnterpriseList = drugsEnterpriseList.stream().sorted(Comparator.comparing(drugsEnterpriseBean -> Optional.ofNullable(drugsEnterpriseBean.getPriorityLevel()).orElse(0),Comparator.reverseOrder())).collect(Collectors.toList());
