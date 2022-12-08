@@ -34,6 +34,7 @@ import org.springframework.util.ObjectUtils;
 import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.client.OfflineRecipeClient;
+import recipe.common.CommonConstant;
 import recipe.constant.ErrorCode;
 import recipe.core.api.patient.IOfflineRecipeBusinessService;
 import recipe.dao.RecipeDAO;
@@ -321,7 +322,7 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
             logger.info("RecipeBusinessService pushRecipe 当前处方已撤销 recipeId:{}", recipeId);
             return recipePdfDTO;
         }
-        if (WriteHisEnum.WRITE_HIS_STATE_ORDER.getType().equals(recipe.getWriteHisState())) {
+        if (CommonConstant.RECIPE_PUSH_TYPE.equals(pushType) && WriteHisEnum.WRITE_HIS_STATE_ORDER.getType().equals(recipe.getWriteHisState())) {
             logger.info("RecipeBusinessService pushRecipe 当前处方已写入his成功 recipeId:{}", recipeId);
             return recipePdfDTO;
         }
