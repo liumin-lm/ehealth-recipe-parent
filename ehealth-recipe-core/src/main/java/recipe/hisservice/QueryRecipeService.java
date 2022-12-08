@@ -1105,7 +1105,10 @@ public class QueryRecipeService implements IQueryRecipeService {
             if ( !ObjectUtils.isEmpty(organDrugChangeBean.getPharmacyCode())) {
                 StringBuilder pharmacys = new StringBuilder();
                 String[] pharmcyCodeArr = organDrugChangeBean.getPharmacyCode().split(",");
-                String[] pharmcyNameArr = organDrugChangeBean.getPharmacyName().split(",");
+                String[] pharmcyNameArr = null;
+                if (StringUtils.isNotEmpty(organDrugChangeBean.getPharmacyName())) {
+                    pharmcyNameArr = organDrugChangeBean.getPharmacyName().split(",");
+                }
                 for (int i = 0; i < pharmcyCodeArr.length; i++) {
                     String pharmacyCode = pharmcyCodeArr[i];
                     if(StringUtils.isNotEmpty(pharmacyCode)){
@@ -1117,7 +1120,7 @@ public class QueryRecipeService implements IQueryRecipeService {
                                 pharmacys.append(pharmacyTcmDb.getPharmacyId());
                             }
                         }else{
-                            if (!ObjectUtils.isEmpty(pharmcyNameArr[i])) {
+                            if (Objects.nonNull(pharmcyNameArr) && !ObjectUtils.isEmpty(pharmcyNameArr[i])) {
                                 PharmacyTcm pharmacyTcm = new PharmacyTcm();
                                 pharmacyTcm.setOrganId(organDrugChangeBean.getOrganId());
                                 pharmacyTcm.setPharmacyCode(pharmacyCode);

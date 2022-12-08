@@ -3396,13 +3396,14 @@ public class RecipeService extends RecipeBaseService {
             } else {
                 if (null != payMode) {
                     List<Integer> payModeSupport = RecipeServiceSub.getDepSupportMode(payMode);
+                    RecipeSupportGiveModeEnum recipeSupportGiveModeEnum = enterpriseManager.getDepSupportModeByPayMode(payMode);
                     if (CollectionUtils.isEmpty(payModeSupport)) {
                         LOGGER.error("findSupportDepList 处方[{}]无法匹配配送方式. payMode=[{}]", recipeId, payMode);
                         break;
                     }
 
                     //筛选出来的数据已经去掉不支持任何方式配送的药企
-                    drugsEnterpriseList = drugsEnterpriseDAO.findByOrganIdAndPayModeSupport(organId, payModeSupport);
+                    drugsEnterpriseList = drugsEnterpriseDAO.findByOrganIdAndPayModeSupport(organId, recipeSupportGiveModeEnum.getType());
                     if (CollectionUtils.isEmpty(drugsEnterpriseList)) {
                         LOGGER.error("findSupportDepList 处方[{}]没有任何药企可以进行配送！", recipeId);
                         break;
@@ -4189,7 +4190,10 @@ public class RecipeService extends RecipeBaseService {
             && !ObjectUtils.isEmpty(drug.getPharmacyCode())) {
             StringBuilder pharmacys = new StringBuilder();
             String[] pharmcyCodeArr = drug.getPharmacyCode().split(",");
-            String[] pharmcyNameArr = drug.getPharmacyName().split(",");
+            String[] pharmcyNameArr = null;
+            if (StringUtils.isNotEmpty(drug.getPharmacyName())) {
+                pharmcyNameArr = drug.getPharmacyName().split(",");
+            }
             for (int i = 0; i < pharmcyCodeArr.length; i++) {
                 String pharmacyCode = pharmcyCodeArr[i];
                 if(StringUtils.isNotEmpty(pharmacyCode)){
@@ -4201,7 +4205,7 @@ public class RecipeService extends RecipeBaseService {
                             pharmacys.append(pharmacyTcmDb.getPharmacyId());
                         }
                     }else{
-                        if (!ObjectUtils.isEmpty(pharmcyNameArr[i])) {
+                        if (Objects.nonNull(pharmcyNameArr) && !ObjectUtils.isEmpty(pharmcyNameArr[i])) {
                             PharmacyTcm pharmacyTcm = new PharmacyTcm();
                             pharmacyTcm.setOrganId(organId);
                             pharmacyTcm.setPharmacyCode(pharmacyCode);
@@ -5283,19 +5287,14 @@ public class RecipeService extends RecipeBaseService {
         if (checkEnterprise) {
             //药企库存实时查询
             //首先获取机构匹配支持配送的药企列表
-            List<Integer> payModeSupport = RecipeServiceSub.getDepSupportMode(RecipeBussConstant.PAYMODE_ONLINE);
-            payModeSupport.addAll(RecipeServiceSub.getDepSupportMode(RecipeBussConstant.PAYMODE_COD));
-
             DrugsEnterpriseDAO drugsEnterpriseDAO = getDAO(DrugsEnterpriseDAO.class);
             //筛选出来的数据已经去掉不支持任何方式配送的药企
-            List<DrugsEnterprise> drugsEnterprises = drugsEnterpriseDAO.findByOrganIdAndPayModeSupport(recipe.getClinicOrgan(), payModeSupport);
-            if (CollectionUtils.isEmpty(payModeSupport)) {
-                LOGGER.error("recipeCanDelivery 处方[{}]的开方机构{}没有配置配送药企.", recipeId, recipe.getClinicOrgan());
-                return false;
-            } else {
-                LOGGER.error("recipeCanDelivery 处方[{}]的开方机构{}获取到配置配送药企：{}.", recipeId, recipe.getClinicOrgan(), JSON.toJSONString(drugsEnterprises));
-            }
-            RemoteDrugEnterpriseService service = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+            List<DrugsEnterprise> drugsEnterprisesHos = drugsEnterpriseDAO.findByOrganIdAndPayModeSupport(recipe.getClinicOrgan(), RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType());
+            List<DrugsEnterprise> drugsEnterprisesEnt = drugsEnterpriseDAO.findByOrganIdAndPayModeSupport(recipe.getClinicOrgan(), RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType());
+            List<DrugsEnterprise> drugsEnterprises = new ArrayList<>();
+            drugsEnterprises.addAll(drugsEnterprisesHos);
+            drugsEnterprises.addAll(drugsEnterprisesEnt);
+
             YtRemoteService ytRemoteService;
             HdRemoteService hdRemoteService;
             for (DrugsEnterprise drugsEnterprise : drugsEnterprises) {

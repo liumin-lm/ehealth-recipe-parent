@@ -1,7 +1,6 @@
 package recipe.purchase;
 
 import com.google.common.base.Splitter;
-import com.google.common.collect.ImmutableMap;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.DepListBean;
@@ -27,11 +26,11 @@ import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.status.YesOrNoEnum;
+import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.enumerate.type.TakeMedicineWayEnum;
 import recipe.manager.EnterpriseManager;
 import recipe.manager.OrderManager;
 import recipe.service.RecipeOrderService;
-import recipe.service.RecipeServiceSub;
 import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
@@ -80,9 +79,10 @@ public class PayModeTFDS implements IPurchaseService {
             range = "10";
         }
         //获取购药方式查询列表
-        List<Integer> payModeSupport = RecipeServiceSub.getDepSupportMode(getPayMode());
+        RecipeSupportGiveModeEnum recipeSupportGiveModeEnum = RecipeSupportGiveModeEnum.SUPPORT_TFDS;
+
         // 获取药企
-        List<DrugsEnterprise> drugsEnterprises = enterpriseManager.findEnterpriseByTFDS(recipe, payModeSupport);
+        List<DrugsEnterprise> drugsEnterprises = enterpriseManager.findEnterpriseByTFDS(recipe, recipeSupportGiveModeEnum);
         if (CollectionUtils.isEmpty(drugsEnterprises)) {
             //该机构没有对应可药店取药的药企
             resultBean.setCode(RecipeResultBean.FAIL);

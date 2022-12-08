@@ -3,6 +3,8 @@ package recipe.vo.second;
 import ctd.schema.annotation.ItemProperty;
 import lombok.Data;
 
+import java.math.BigDecimal;
+
 /**
  * @Description
  * @Author yzl
@@ -43,4 +45,7 @@ public class ClinicCartVO {
 
     @ItemProperty(alias = "业务场景, 方便门诊:1, 便捷购药:2")
     private Integer workType;
+
+    @ItemProperty(alias = "项目价格")
+    private BigDecimal itemPrice;
 }

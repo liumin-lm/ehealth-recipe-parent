@@ -1,5 +1,6 @@
 package recipe.purchase;
 
+import com.alibaba.fastjson.JSON;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.ngari.base.employment.model.EmploymentBean;
@@ -44,20 +45,19 @@ import recipe.drugsenterprise.AccessDrugEnterpriseService;
 import recipe.drugsenterprise.CommonRemoteService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.drugsenterprise.paymodeonlineshowdep.PayModeOnlineShowDepServiceProducer;
-import recipe.enumerate.status.OrderStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.status.SettleAmountStateEnum;
-import recipe.enumerate.status.YesOrNoEnum;
+import recipe.enumerate.type.RecipeSupportGiveModeEnum;
+import recipe.enumerate.type.StandardPaymentWayEnum;
 import recipe.hisservice.RecipeToHisService;
 import recipe.manager.EnterpriseManager;
 import recipe.manager.OrderManager;
-import recipe.manager.StateManager;
 import recipe.presettle.factory.OrderTypeFactory;
 import recipe.presettle.model.OrderTypeCreateConditionRequest;
 import recipe.service.RecipeOrderService;
-import recipe.service.RecipeServiceSub;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
+import recipe.util.ObjectCopyUtils;
 
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
@@ -86,9 +86,9 @@ public class PayModeOnline implements IPurchaseService {
     @Autowired
     private PatientClient patientClient;
     @Autowired
-    private StateManager stateManager;
-    @Autowired
     private OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO;
+    @Autowired
+    private OrganDrugsSaleConfigDAO organDrugsSaleConfigDAO;
 
     @Override
     public RecipeResultBean findSupportDepList(Recipe dbRecipe, Map<String, String> extInfo) {
@@ -96,7 +96,7 @@ public class PayModeOnline implements IPurchaseService {
         DepListBean depListBean = new DepListBean();
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
-
+        String sendType = extInfo.get("sendType");
         Integer recipeId = dbRecipe.getRecipeId();
         //判断是否是慢病医保患者------郑州人民医院
         if (purchaseService.isMedicareSlowDiseasePatient(recipeId)) {
@@ -107,13 +107,16 @@ public class PayModeOnline implements IPurchaseService {
         //药企列表
         List<DepDetailBean> depDetailList = new ArrayList<>();
 
-        //获取购药方式查询列表
-        List<Integer> payModeSupport = RecipeServiceSub.getDepSupportMode(getPayMode());
-        List<Integer> payModeSupportDoc = RecipeServiceSub.getDepSupportMode(RecipeBussConstant.PAYMODE_COD);
-        payModeSupport.addAll(payModeSupportDoc);
-        LOG.info("drugsEnterpriseList organId:{}, payModeSupport:{}", dbRecipe.getClinicOrgan(), payModeSupport);
+        //获取患者选择的购药方式
+        Integer selectBuyMedicineWay = null;
+        if (StringUtils.isNotEmpty(sendType)) {
+            selectBuyMedicineWay = Integer.parseInt(sendType);
+        }
+        RecipeSupportGiveModeEnum recipeSupportGiveModeEnum = enterpriseManager.getDepSupportMode(selectBuyMedicineWay);
+
+        LOG.info("drugsEnterpriseList organId:{}, payModeSupport:{}", dbRecipe.getClinicOrgan(), recipeSupportGiveModeEnum.getName());
         // 获取药企
-        List<DrugsEnterprise> drugsEnterpriseList = enterpriseManager.findEnterpriseByOnLine(extInfo.get("sendType"), payModeSupport, dbRecipe);
+        List<DrugsEnterprise> drugsEnterpriseList = enterpriseManager.findEnterpriseByOnLine(sendType, recipeSupportGiveModeEnum, dbRecipe);
         if (CollectionUtils.isEmpty(drugsEnterpriseList)) {
             LOG.warn("findSupportDepList 处方[{}]没有任何药企可以进行配送！", recipeId);
             resultBean.setCode(5);
@@ -158,6 +161,7 @@ public class PayModeOnline implements IPurchaseService {
         if (CollectionUtils.isNotEmpty(depDetailList) && depDetailList.size() == 1) {
             depListBean.setSigle(true);
         }
+        depDetailList = depDetailList.stream().sorted(Comparator.comparingInt(DepDetailBean::getPayMode)).collect(Collectors.toList());
         //去重---有可能getAllSubDepList接口返回两个相同的药企但是在北京互联网的模式过滤下会出现两个一模一样的药企
         //暂时先放这去重
         depListBean.setList(depDetailList.stream().distinct().collect(Collectors.toList()));
@@ -626,8 +630,6 @@ public class PayModeOnline implements IPurchaseService {
 
     @Override
     public void setRecipePayWay(RecipeOrder recipeOrder) {
-//        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-//        Recipe recipe = recipeDAO.findRecipeListByOrderCode(recipeOrder.getOrderCode()).get(0);
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         if (new Integer(2).equals(recipeOrder.getPayMode())) {
             recipeOrder.setPayMode(0);
@@ -639,32 +641,28 @@ public class PayModeOnline implements IPurchaseService {
 
     private List<DrugsEnterprise> getAllSubDepList(List<DrugsEnterprise> subDepList) {
         List<DrugsEnterprise> returnSubDepList = new ArrayList<>();
-        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        List<Integer> depIdList = subDepList.stream().map(DrugsEnterprise::getId).collect(Collectors.toList());
+        List<OrganDrugsSaleConfig> organDrugsSaleConfigList = organDrugsSaleConfigDAO.findSaleConfigs(depIdList);
+        Map<Integer, OrganDrugsSaleConfig> organDrugsSaleConfigMap = organDrugsSaleConfigList.stream().collect(Collectors.toMap(OrganDrugsSaleConfig::getDrugsEnterpriseId, a -> a, (k1, k2) -> k1));
         for (DrugsEnterprise drugsEnterprise : subDepList) {
             returnSubDepList.add(drugsEnterprise);
-            if (drugsEnterprise.getPayModeSupport() == 9) {
-                DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(drugsEnterprise.getId());
-                enterprise.setPayModeSupport(1);
-                returnSubDepList.add(enterprise);
+            OrganDrugsSaleConfig organDrugsSaleConfig = organDrugsSaleConfigMap.get(drugsEnterprise.getId());
+            if (Objects.nonNull(organDrugsSaleConfig)
+                    && StringUtils.isNotEmpty(organDrugsSaleConfig.getStandardPaymentWay())) {
+                String[] standardPaymentWay = organDrugsSaleConfig.getStandardPaymentWay().split(",");
+                List<String> standardPaymentWayList = Arrays.asList(standardPaymentWay);
+                if (standardPaymentWayList.size() == 2) {
+                    DrugsEnterprise drugsEnterpriseCod = new DrugsEnterprise();
+                    ObjectCopyUtils.copyProperties(drugsEnterpriseCod, drugsEnterprise);
+                    drugsEnterpriseCod.setPayMode(StandardPaymentWayEnum.PAYMENT_WAY_COD.getType().toString());
+                    returnSubDepList.add(drugsEnterpriseCod);
+                } else if (standardPaymentWayList.size() == 1) {
+                    drugsEnterprise.setPayMode(organDrugsSaleConfig.getStandardPaymentWay());
+                }
             }
         }
-        //对货到付款和在线支付进行排序
-        Collections.sort(returnSubDepList, new SubDepListComparator());
+        LOG.info("getAllSubDepList returnSubDepList:{}", JSON.toJSONString(returnSubDepList));
         return returnSubDepList;
-    }
-
-    class SubDepListComparator implements Comparator<DrugsEnterprise> {
-        int cp = 0;
-
-        @Override
-        public int compare(DrugsEnterprise drugsEnterpriseOne, DrugsEnterprise drugsEnterpriseTwo) {
-            int compare = drugsEnterpriseOne.getPayModeSupport() - drugsEnterpriseTwo.getPayModeSupport();
-            if (compare != 0) {
-
-                cp = compare > 0 ? 1 : -1;
-            }
-            return cp;
-        }
     }
 
 }

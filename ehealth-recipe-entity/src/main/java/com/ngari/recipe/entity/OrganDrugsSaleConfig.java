@@ -27,7 +27,7 @@ public class OrganDrugsSaleConfig implements Serializable {
     @ItemProperty(alias = "自增主键")
     private Integer id;
 
-    @ItemProperty(alias = "机构id")
+    @ItemProperty(alias = "机构id 此字段无任何意义 不表示与机构存在关联关系")
     private Integer organId;
 
     @ItemProperty(alias = "药企id")
@@ -88,7 +88,7 @@ public class OrganDrugsSaleConfig implements Serializable {
     private Integer isHosDep;
 
     @ItemProperty(alias = "标准的收款方式  1 在线支付 2 货到付款 ")
-    private Integer standardPaymentWay;
+    private String standardPaymentWay;
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
@@ -282,13 +282,12 @@ public class OrganDrugsSaleConfig implements Serializable {
         this.isHosDep = isHosDep;
     }
 
-
     @Column(name = "standard_payment_way")
-    public Integer getStandardPaymentWay() {
+    public String getStandardPaymentWay() {
         return standardPaymentWay;
     }
 
-    public void setStandardPaymentWay(Integer standardPaymentWay) {
+    public void setStandardPaymentWay(String standardPaymentWay) {
         this.standardPaymentWay = standardPaymentWay;
     }
 }

@@ -60,6 +60,7 @@ import recipe.dao.bean.RecipeRollingInfo;
 import recipe.enumerate.status.*;
 import recipe.enumerate.type.MedicalTypeEnum;
 import recipe.enumerate.type.RecipeDistributionFlagEnum;
+import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.manager.ButtonManager;
 import recipe.manager.EmrRecipeManager;
@@ -609,7 +610,7 @@ public class RecipeListService extends RecipeBaseService {
     @RpcService
     @LogRecord
     public List<Map<String, Object>> findHistoryRecipeListV2(FindHistoryRecipeListBean param) {
-        LOGGER.info("findHistoryRecipeList param", JSONUtils.toString(param));
+        LOGGER.info("findHistoryRecipeList param:{}", JSONUtils.toString(param));
         obtainFindHistoryRecipeListV2Param(param);
         Integer organId = param.getOrganId();
         String mpiId = param.getMpiId();
@@ -1953,10 +1954,8 @@ public class RecipeListService extends RecipeBaseService {
         if (!payModeShowButtonBean.getSupportOnline()) {
             return payModeShowButtonBean;
         }
-        List<Integer> payModeSupport = RecipeServiceSub.getDepSupportMode(RecipeBussConstant.PAYMODE_ONLINE);
-        payModeSupport.addAll(RecipeServiceSub.getDepSupportMode(RecipeBussConstant.PAYMODE_COD));
-        Long enterprisesSend = drugsEnterpriseDAO.getCountByOrganIdAndPayModeSupportAndSendType(recipe.getClinicOrgan(), payModeSupport, EnterpriseSendConstant.Enterprise_Send);
-        Long hosSend = drugsEnterpriseDAO.getCountByOrganIdAndPayModeSupportAndSendType(recipe.getClinicOrgan(), payModeSupport, EnterpriseSendConstant.Hos_Send);
+        Integer enterprisesSend = drugsEnterpriseDAO.getCountByOrganIdAndPayModeSupportAndSendType(recipe.getClinicOrgan(), RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType(), EnterpriseSendConstant.Enterprise_Send);
+        Integer hosSend = drugsEnterpriseDAO.getCountByOrganIdAndPayModeSupportAndSendType(recipe.getClinicOrgan(), RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType(), EnterpriseSendConstant.Hos_Send);
         if (null != enterprisesSend && 0 < enterprisesSend) {
 
             payModeShowButtonBean.setShowSendToEnterprises(true);

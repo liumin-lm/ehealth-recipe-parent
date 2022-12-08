@@ -13,11 +13,11 @@ import ctd.persistence.support.hibernate.template.HibernateSessionTemplate;
 import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction;
 import ctd.util.annotation.RpcSupportDAO;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hibernate.Query;
+import org.hibernate.SQLQuery;
 import org.hibernate.StatelessSession;
 
+import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.List;
 
@@ -28,8 +28,6 @@ import java.util.List;
  */
 @RpcSupportDAO
 public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<DrugsEnterprise> {
-
-    private static final Log LOGGER = LogFactory.getLog(DrugsEnterpriseDAO.class);
 
     public DrugsEnterpriseDAO() {
         super();
@@ -98,9 +96,23 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
      * @param payModeSupport
      * @return
      */
-    @DAOMethod(sql = "select t from DrugsEnterprise t, OrganAndDrugsepRelation s where t.id=s.drugsEnterpriseId and t.status=1 " +
-            "and s.organId=:organId and t.payModeSupport in :payModeSupport order by t.sort, t.id")
-    public abstract List<DrugsEnterprise> findByOrganIdAndPayModeSupport(@DAOParam("organId") Integer organId, @DAOParam("payModeSupport") List<Integer> payModeSupport);
+    public List<DrugsEnterprise> findByOrganIdAndPayModeSupport(@DAOParam("organId") Integer organId,
+                                                                @DAOParam("payModeSupport") Integer payModeSupport) {
+        HibernateStatelessResultAction<List<DrugsEnterprise>> action = new AbstractHibernateStatelessResultAction<List<DrugsEnterprise>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder sql = new StringBuilder("select t.* from cdr_drugsenterprise t, cdr_organ_drugsep_relation s where t.id=s.DrugsEnterpriseId and t.status=1 ");
+                sql.append(" and s.OrganId=:organId and s.drug_enterprise_support_give_mode like :payModeSupport order by t.sort, t.id ");
+                SQLQuery query = ss.createSQLQuery(String.valueOf(sql));
+                query.setParameter("organId", organId);
+                query.setParameter("payModeSupport", "%" + payModeSupport + "%");
+                query.addEntity(DrugsEnterprise.class);
+                setResult(query.list());
+            }
+        };
+        HibernateSessionTemplate.instance().executeReadOnly(action);
+        return action.getResult();
+    }
 
     /**
      * 根据机构id及配送模式支持获取
@@ -108,9 +120,24 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
      * @param payModeSupport
      * @return
      */
-    @DAOMethod(sql = "select count(*) from DrugsEnterprise t, OrganAndDrugsepRelation s where t.id=s.drugsEnterpriseId and t.status=1 " +
-            "and s.organId=:organId and t.payModeSupport in :payModeSupport and t.sendType = :sendType")
-    public abstract Long getCountByOrganIdAndPayModeSupportAndSendType(@DAOParam("organId") Integer organId, @DAOParam("payModeSupport") List<Integer> payModeSupport, @DAOParam("sendType") Integer sendType);
+    public Integer getCountByOrganIdAndPayModeSupportAndSendType(@DAOParam("organId") Integer organId,
+                                                              @DAOParam("payModeSupport") Integer payModeSupport,
+                                                              @DAOParam("sendType") Integer sendType) {
+        HibernateStatelessResultAction<BigInteger> action = new AbstractHibernateStatelessResultAction<BigInteger>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder sql = new StringBuilder("select count(*) from cdr_drugsenterprise t, cdr_organ_drugsep_relation s where t.id=s.DrugsEnterpriseId and t.status=1 ");
+                sql.append(" and s.OrganId=:organId and s.drug_enterprise_support_give_mode like :payModeSupport and t.sendType = :sendType ");
+                SQLQuery query = ss.createSQLQuery(String.valueOf(sql));
+                query.setParameter("organId", organId);
+                query.setParameter("sendType", sendType);
+                query.setParameter("payModeSupport", "%" + payModeSupport + "%");
+                setResult((BigInteger) query.uniqueResult());
+            }
+        };
+        HibernateSessionTemplate.instance().executeReadOnly(action);
+        return  action.getResult().intValue();
+    }
 
     /**
      * 根据机构ID获取存在补充库存的药企机构
@@ -127,20 +154,51 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
      * @param payModeSupport
      * @return
      */
-    @DAOMethod(sql = "select t from DrugsEnterprise t, OrganAndDrugsepRelation s where t.id=s.drugsEnterpriseId and t.status=1 " +
-            "and s.organId=:organId and t.payModeSupport in :payModeSupport and t.sendType = :sendType order by t.sort, t.id")
-    public abstract List<DrugsEnterprise> findByOrganIdAndPayModeSupportAndSendType(@DAOParam("organId") Integer organId, @DAOParam("payModeSupport") List<Integer> payModeSupport, @DAOParam("sendType") Integer sendType);
+    public List<DrugsEnterprise> findByOrganIdAndPayModeSupportAndSendType(@DAOParam("organId") Integer organId,
+                                                                           @DAOParam("payModeSupport") Integer payModeSupport,
+                                                                           @DAOParam("sendType") Integer sendType) {
+        HibernateStatelessResultAction<List<DrugsEnterprise>> action = new AbstractHibernateStatelessResultAction<List<DrugsEnterprise>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder sql = new StringBuilder("select t.* from cdr_drugsenterprise t, cdr_organ_drugsep_relation s where t.id=s.DrugsEnterpriseId and t.status=1 ");
+                sql.append(" and s.OrganId=:organId and s.drug_enterprise_support_give_mode like :payModeSupport and t.sendType = :sendType order by t.sort, t.id ");
+                SQLQuery query = ss.createSQLQuery(String.valueOf(sql));
+                query.setParameter("organId", organId);
+                query.setParameter("sendType", sendType);
+                query.setParameter("payModeSupport", "%" + payModeSupport + "%");
+                query.addEntity(DrugsEnterprise.class);
+                setResult(query.list());
+            }
+        };
+        HibernateSessionTemplate.instance().executeReadOnly(action);
+        return action.getResult();
+    }
 
     /**
      * 根据机构id，配送模式支持，省直医保支持获取
      * @param organId
-     * @param payModeSuppor
+     * @param payModeSupport
      * @return
      */
-    @DAOMethod(sql = "select t from DrugsEnterprise t, OrganAndDrugsepRelation s where t.id=s.drugsEnterpriseId and t.status=1 and t.medicalInsuranceSupport=1 " +
-            "and s.organId=:organId and t.payModeSupport in :payModeSupport and t.sendType = :sendType order by t.sort, t.id")
-    public abstract List<DrugsEnterprise> findByOrganIdAndOtherAndSendType(@DAOParam("organId") Integer organId, @DAOParam("payModeSupport") List<Integer> payModeSuppor, @DAOParam("sendType") Integer sendType);
-
+    public List<DrugsEnterprise> findByOrganIdAndOtherAndSendType(@DAOParam("organId") Integer organId,
+                                                                  @DAOParam("payModeSupport") Integer payModeSupport,
+                                                                  @DAOParam("sendType") Integer sendType) {
+        HibernateStatelessResultAction<List<DrugsEnterprise>> action = new AbstractHibernateStatelessResultAction<List<DrugsEnterprise>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder sql = new StringBuilder("select t.* from cdr_drugsenterprise t, cdr_organ_drugsep_relation s where t.id=s.DrugsEnterpriseId and t.status=1 and t.medicalInsuranceSupport=1 ");
+                sql.append(" and s.OrganId=:organId and s.drug_enterprise_support_give_mode like :payModeSupport and t.sendType = :sendType order by t.sort, t.id ");
+                SQLQuery query = ss.createSQLQuery(String.valueOf(sql));
+                query.setParameter("organId", organId);
+                query.setParameter("sendType", sendType);
+                query.setParameter("payModeSupport", "%" + payModeSupport + "%");
+                query.addEntity(DrugsEnterprise.class);
+                setResult(query.list());
+            }
+        };
+        HibernateSessionTemplate.instance().executeReadOnly(action);
+        return action.getResult();
+    }
 
     /**
      * 根据id设置调用接口标识

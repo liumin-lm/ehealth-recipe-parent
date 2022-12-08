@@ -173,6 +173,9 @@ public class RecipeServiceSub {
     @Autowired
     private RevisitClient revisitClient;
 
+    private static EmploymentService employmentService = ApplicationUtils.getBasicService(EmploymentService.class);
+
+
     /**
      * @param recipeBean
      * @param detailBeanList
@@ -331,7 +334,7 @@ public class RecipeServiceSub {
             }
             try {
                 DrugDecoctionWayDao drugDecoctionWayDao = DAOFactory.getDAO(DrugDecoctionWayDao.class);
-                if (null == recipeExtend.getDoctorIsDecoction()) {
+                if (null == recipeExtend.getDoctorIsDecoction() && !Integer.valueOf(3).equals(recipeBean.getRecipeDrugForm())) {
                     recipeExtend.setDoctorIsDecoction("0");
                     if (StringUtils.isNotEmpty(recipeExtend.getDecoctionId())) {
                         DecoctionWay decoctionWay = drugDecoctionWayDao.get(Integer.parseInt(recipeExtend.getDecoctionId()));
@@ -1580,6 +1583,14 @@ public class RecipeServiceSub {
         if (appointDepartDTO != null) {
             r.setDepart(appointDepartDTO.getDepartId());
         }
+        //医生
+        if (StringUtils.isNotEmpty(recipe.getDoctorCode())) {
+            EmploymentDTO employmentDTO = employmentService.getEmploymentByJobNumberAndOrganId(recipe.getDoctorCode(), recipe.getClinicOrgan());
+            if (employmentDTO != null && employmentDTO.getDoctorId() != null) {
+                r.setDoctor(employmentDTO.getDoctorId());
+            }
+        }
+
         r.setRecipeFlag(0);
         LOGGER.info("convertHisRecipeForRAP res:{}", JSONUtils.toString(r));
         return r;
@@ -2174,10 +2185,8 @@ public class RecipeServiceSub {
         //显示配送才判断具体显示哪个配送按钮
         if (showSend) {
             DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-            List<Integer> payModeSupport = RecipeServiceSub.getDepSupportMode(RecipeBussConstant.PAYMODE_ONLINE);
-            payModeSupport.addAll(RecipeServiceSub.getDepSupportMode(RecipeBussConstant.PAYMODE_COD));
-            Long enterprisesSend = drugsEnterpriseDAO.getCountByOrganIdAndPayModeSupportAndSendType(recipe.getClinicOrgan(), payModeSupport, EnterpriseSendConstant.Enterprise_Send);
-            Long hosSend = drugsEnterpriseDAO.getCountByOrganIdAndPayModeSupportAndSendType(recipe.getClinicOrgan(), payModeSupport, EnterpriseSendConstant.Hos_Send);
+            Integer enterprisesSend = drugsEnterpriseDAO.getCountByOrganIdAndPayModeSupportAndSendType(recipe.getClinicOrgan(), RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType(), EnterpriseSendConstant.Enterprise_Send);
+            Integer hosSend = drugsEnterpriseDAO.getCountByOrganIdAndPayModeSupportAndSendType(recipe.getClinicOrgan(), RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType(), EnterpriseSendConstant.Hos_Send);
             if (null != enterprisesSend && 0 < enterprisesSend) {
                 map.put("showSendToEnterprises", 1);
             }

@@ -1,5 +1,7 @@
 package recipe.api.open;
 
+import com.ngari.common.dto.CheckRequestCommonOrderPageDTO;
+import com.ngari.common.dto.SyncOrderVO;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.RecipeInfoTO;
 import com.ngari.platform.recipe.mode.OutpatientPaymentRecipeDTO;
@@ -324,6 +326,13 @@ public interface IRecipeAtopService {
      */
     @RpcService(mvcDisabled = true)
     List<RecipeInfoTO> patientOfflineRecipe(Integer organId, String patientId, String patientName, Date startTime, Date endTime);
+    /**
+     *  端 药品处方 历史数据同步使用
+     * @param request
+     * @return
+     */
+    @RpcService(mvcDisabled = true)
+    CheckRequestCommonOrderPageDTO findRecipePageForCommonOrder(SyncOrderVO request);
 
     /**
      * 日志分析接口
@@ -350,4 +359,16 @@ public interface IRecipeAtopService {
      */
     @RpcService(mvcDisabled = true)
     RecipeVo getRecipeByBusId(Integer recipeId);
+
+    /**
+     * 查询超时未审核的处方单（10分钟未审核定义为超时）
+     *
+     * @param startTime
+     * @param endTime
+     * @param organIds
+     * @return
+     */
+    @RpcService(mvcDisabled = true)
+    List<RecipeBean> findAuditOverTimeRecipeList(Date startTime, Date endTime, List<Integer> organIds);
+
 }
