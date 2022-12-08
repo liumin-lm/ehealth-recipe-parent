@@ -842,7 +842,9 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                     DateConversion.parseDate(sendDateStr, DateConversion.DEFAULT_DATE_TIME));
             attrMap.put("giveFlag", 1);
             attrMap.put("payFlag", 1);
-            attrMap.put("payDate", attrMap.get("giveDate"));
+            if (Objects.isNull(recipe.getPayDate())) {
+                attrMap.put("payDate", attrMap.get("giveDate"));
+            }
             String recipeFeeStr = MapValueUtil.getString(paramMap, "recipeFee");
             if (StringUtils.isNotEmpty(recipeFeeStr)) {
                 attrMap.put("totalMoney", new BigDecimal(recipeFeeStr));
