@@ -172,6 +172,21 @@ public enum RecipeSupportGiveModeEnum {
     }
 
     /**
+     * 根据 type 名称
+     *
+     * @param type key
+     * @return 名称
+     */
+    public static String getNameByType(Integer type) {
+        for (RecipeSupportGiveModeEnum e : RecipeSupportGiveModeEnum.values()) {
+            if (e.type.equals(type)) {
+                return e.name;
+            }
+        }
+        return null;
+    }
+
+    /**
      *
      * @param textList
      * @return

@@ -209,6 +209,15 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
                 return;
             }
             a.setPriorityLevel(organAndDrugsDepRelationMap.get(a.getId()).getPriorityLevel());
+            OrganAndDrugsepRelation organAndDrugsepRelation = organAndDrugsDepRelationMap.get(a.getId());
+            String drugsEnterpriseSupportGiveMode = organAndDrugsepRelation.getDrugsEnterpriseSupportGiveMode();
+            List<String> drugsEnterpriseSupportGiveModeName = new ArrayList<>();
+            if (StringUtils.isNotEmpty(drugsEnterpriseSupportGiveMode)) {
+                Arrays.asList(drugsEnterpriseSupportGiveMode.split(",")).forEach(giveMode->{
+                    drugsEnterpriseSupportGiveModeName.add(RecipeSupportGiveModeEnum.getNameByType(Integer.parseInt(giveMode)));
+                });
+                a.setDrugsEnterpriseSupportGiveModeName(drugsEnterpriseSupportGiveModeName);
+            }
         });
         drugsEnterpriseList = drugsEnterpriseList.stream().sorted(Comparator.comparing(drugsEnterpriseBean -> Optional.ofNullable(drugsEnterpriseBean.getPriorityLevel()).orElse(0),Comparator.reverseOrder())).collect(Collectors.toList());
         organEnterpriseRelationVo.setDrugsEnterpriseList(drugsEnterpriseList);
