@@ -411,11 +411,15 @@ public class RecipeManager extends BaseManager {
         if (null == recipeResult) {
             return;
         }
-        if (!CommonConstant.RECIPE_PUSH_TYPE.equals(pushType)) {
-            return;
-        }
         Recipe updateRecipe = new Recipe();
         updateRecipe.setRecipeId(recipeId);
+        if (!CommonConstant.RECIPE_PUSH_TYPE.equals(pushType)) {
+            //表示为撤销处方
+            updateRecipe.setWriteHisState(WriteHisEnum.NONE.getType());
+            recipeDAO.updateNonNullFieldByPrimaryKey(updateRecipe);
+            return;
+        }
+
         //如果处方来源是复诊，则patientID取复诊的
         updateRecipe.setPatientID(recipeResult.getPatientID());
         if (new Integer(2).equals(recipeResult.getBussSource())) {
