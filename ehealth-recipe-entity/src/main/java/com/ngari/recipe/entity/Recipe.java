@@ -270,7 +270,7 @@ public class Recipe implements Serializable {
     @ItemProperty(alias = "审核途径 1平台审核 2his审核")
     private Integer checkMode;
 
-    @ItemProperty(alias = "处方来源类型 1 平台处方 2 线下转线上的处方 3诊疗处方")
+    @ItemProperty(alias = "处方来源类型 1 平台处方 2 线下转线上的处方 3诊疗处方 4常用方")
     private Integer recipeSourceType;
 
 
