@@ -1,6 +1,5 @@
 package recipe.purchase;
 
-import com.alibaba.fastjson.JSON;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.ngari.base.employment.model.EmploymentBean;
@@ -73,10 +72,9 @@ import static ctd.persistence.DAOFactory.getDAO;
  * @version： 1.0
  */
 public class PayModeOnline implements IPurchaseService {
-    /**
-     * logger
-     */
+
     private static final Logger LOG = LoggerFactory.getLogger(PayModeOnline.class);
+
     @Autowired
     private IStockBusinessService stockBusinessService;
     @Autowired
@@ -661,7 +659,7 @@ public class PayModeOnline implements IPurchaseService {
                 }
             }
         }
-        LOG.info("getAllSubDepList returnSubDepList:{}", JSON.toJSONString(returnSubDepList));
+        LOG.info("getAllSubDepList returnSubDepList:{}", returnSubDepList.size());
         return returnSubDepList;
     }
 

@@ -1115,7 +1115,7 @@ public class EnterpriseManager extends BaseManager {
     }
 
     public RecipeSupportGiveModeEnum getDepSupportModeByPayMode(Integer payMode){
-        RecipeSupportGiveModeEnum supportGiveModeEnum = RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES;
+        RecipeSupportGiveModeEnum supportGiveModeEnum = null;
         switch (payMode) {
             case 1:
             case 2:

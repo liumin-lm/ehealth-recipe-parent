@@ -2587,16 +2587,6 @@ public class RecipeServiceSub {
     }
 
     /**
-     * 配送模式选择
-     *
-     * @param payMode
-     * @return
-     */
-    public static List<Integer> getDepSupportMode(Integer payMode) {
-        return RecipeBussConstant.getDepSupportMode(payMode);
-    }
-
-    /**
      * 往咨询界面发送处方卡片
      *
      * @param recipe
