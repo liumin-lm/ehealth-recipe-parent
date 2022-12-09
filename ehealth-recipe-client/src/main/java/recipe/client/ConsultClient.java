@@ -2,21 +2,26 @@ package recipe.client;
 
 import com.alibaba.fastjson.JSON;
 import com.ngari.common.mode.HisResponseTO;
+import com.ngari.consult.ConsultBean;
 import com.ngari.consult.common.model.ConsultExDTO;
 import com.ngari.consult.common.model.ConsultRegistrationNumberResultVO;
 import com.ngari.consult.common.service.IConsultExService;
 import com.ngari.consult.common.service.IConsultRedisService;
+import com.ngari.consult.common.service.IConsultService;
 import com.ngari.his.recipe.mode.OutPatientRecordResTO;
 import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.his.visit.mode.*;
 import com.ngari.patient.dto.ConsultSetDTO;
 import com.ngari.patient.service.ConsultSetService;
 import com.ngari.recipe.dto.DoctorPermissionDTO;
+import com.ngari.recipe.entity.Recipe;
 import ctd.util.JSONUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.enumerate.type.BussSourceTypeEnum;
 import recipe.util.ValidateUtil;
 
+import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,6 +45,9 @@ public class ConsultClient extends BaseClient {
     private ConsultSetService consultSetService;
     @Autowired
     private IConsultRedisService iConsultRedisService;
+    @Resource
+    private IConsultService consultService;
+
 
     public ConsultRegistrationNumberResultVO getConsult(Integer consultId) {
         logger.info("ConsultClient getConsult consultId={}", consultId);
@@ -225,4 +233,25 @@ public class ConsultClient extends BaseClient {
         return doctorPermission;
     }
 
+    /**
+     * 设置处方默认数据
+     *
+     * @param recipe 处方头对象
+     */
+    public void setRecipe(Recipe recipe) {
+        if (ValidateUtil.integerIsEmpty(recipe.getClinicId())) {
+            return;
+        }
+        if (!BussSourceTypeEnum.BUSSSOURCE_CONSULT.getType().equals(recipe.getBussSource())) {
+            return;
+        }
+        ConsultBean consultBean = consultService.getById(recipe.getClinicId());
+        if (null != consultBean && Integer.valueOf(1).equals(consultBean.getConsultSource())) {
+            recipe.setRecipeSource(1);
+        }
+        ConsultRegistrationNumberResultVO consult = this.getConsult(recipe.getClinicId());
+        if (null != consult) {
+            recipe.setPatientID(consult.getPatientId());
+        }
+    }
 }

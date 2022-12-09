@@ -1,7 +1,10 @@
 package recipe.manager;
 
 import com.ngari.recipe.dto.RecipeDTO;
-import com.ngari.recipe.entity.*;
+import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeExtend;
+import com.ngari.recipe.entity.RecipeLog;
+import com.ngari.recipe.entity.Recipedetail;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;

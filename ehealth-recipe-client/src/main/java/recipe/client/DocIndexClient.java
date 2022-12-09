@@ -1,6 +1,7 @@
 package recipe.client;
 
 import com.alibaba.fastjson.JSON;
+import com.ngari.base.patient.service.IPatientService;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.service.DepartmentService;
 import com.ngari.patient.utils.ObjectCopyUtils;
@@ -52,7 +53,8 @@ public class DocIndexClient extends BaseClient {
     private DepartmentService departmentService;
     @Resource
     private IConfigurationClient configurationClient;
-
+    @Resource
+    private IPatientService iPatientService;
 
     /**
      * 根据病历id 获取 电子病例明细对象

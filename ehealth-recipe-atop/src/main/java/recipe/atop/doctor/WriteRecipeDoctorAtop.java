@@ -216,7 +216,8 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
      */
     @RpcService
     public void stagingRecipe(RecipeInfoVO recipeInfoVO) {
-        validateAtop(recipeInfoVO, recipeInfoVO.getRecipeBean(), recipeInfoVO.getRecipeDetails());
+        validateAtop(recipeInfoVO, recipeInfoVO.getRecipeBean());
+        validateAtop(recipeInfoVO.getRecipeBean().getDoctor(), recipeInfoVO.getRecipeBean().getClinicOrgan());
         recipeBusinessService.stagingRecipe(recipeInfoVO);
     }
 }

@@ -2,12 +2,9 @@ package recipe.client;
 
 import com.alibaba.fastjson.JSON;
 import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
-import com.ngari.base.patient.service.IPatientService;
 import com.ngari.common.mode.HisResponseTO;
-import com.ngari.his.patient.service.IPatientHisService;
 import com.ngari.his.recipe.mode.DrugInfoTO;
 import com.ngari.his.recipe.service.IRecipeHisService;
-import com.ngari.his.recipe.service.IRecipeToTestService;
 import com.ngari.infra.statistics.IEventLogService;
 import com.ngari.infra.statistics.dto.EventLogDTO;
 import com.ngari.patient.service.DoctorService;
@@ -37,15 +34,9 @@ public class BaseClient {
     @Autowired
     protected IRecipeHisService recipeHisService;
     @Autowired
-    protected IPatientHisService patientHisService;
-    @Autowired
     protected ICurrentUserInfoService currentUserInfoService;
     @Autowired
-    protected IRecipeToTestService recipeToTestService;
-    @Autowired
     protected DoctorService doctorService;
-    @Resource
-    protected IPatientService iPatientService;
     @Resource
     protected IEventLogService eventLogService;
 

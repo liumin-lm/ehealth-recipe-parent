@@ -207,4 +207,17 @@ public class DoctorClient extends BaseClient {
         return Optional.ofNullable(doctorList).orElseGet(Collections::emptyList)
                 .stream().collect(Collectors.toMap(DoctorDTO::getDoctorId, a -> a, (k1, k2) -> k1));
     }
+
+    /**
+     * 设置处方默认数据
+     *
+     * @param recipe 处方头对象
+     */
+    public void setRecipe(Recipe recipe) {
+        if (ValidateUtil.integerIsEmpty(recipe.getDoctor())) {
+            return;
+        }
+        DoctorDTO doctor = this.getDoctor(recipe.getDoctor());
+        recipe.setDoctorName(doctor.getName());
+    }
 }
