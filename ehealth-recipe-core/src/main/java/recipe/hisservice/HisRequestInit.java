@@ -29,7 +29,6 @@ import ctd.controller.exception.ControllerException;
 import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
-import ctd.schema.annotation.ItemProperty;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import eh.cdr.api.service.IDocIndexService;
@@ -55,6 +54,7 @@ import recipe.enumerate.type.RecipeDistributionFlagEnum;
 import recipe.enumerate.type.RecipeSendTypeEnum;
 import recipe.manager.DepartManager;
 import recipe.manager.EmrRecipeManager;
+import recipe.manager.EnterpriseManager;
 import recipe.util.ByteUtils;
 import recipe.util.DateConversion;
 import recipe.util.ValidateUtil;
@@ -407,6 +407,8 @@ public class HisRequestInit {
                     requestTO.setRegisteredId(revisitExDTO.getRegisterNo());
                     requestTO.setCardType(revisitExDTO.getCardType());
                     requestTO.setCardNo(revisitExDTO.getCardId());
+                    requestTO.setTreatmentId(revisitExDTO.getTreatmentId());
+                    requestTO.setSerialNumberOfReception(revisitExDTO.getSerialNumberOfReception());
                 }
             }
         } catch (Exception e) {
@@ -817,6 +819,8 @@ public class HisRequestInit {
                     requestTO.setThirdEnterpriseCode(drugsEnterprise.getThirdEnterpriseCode());
                     requestTO.setEnterpriseCode(drugsEnterprise.getEnterpriseCode());
                 }
+                requestTO.setOrderId(order.getOrderId());
+                requestTO.setOrderCode(order.getOrderCode());
             }
 
             //此处就行改造
@@ -830,7 +834,9 @@ public class HisRequestInit {
                         if (depId != null) {
                             DrugsEnterpriseDAO enterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
                             DrugsEnterprise drugsEnterprise = enterpriseDAO.getById(depId);
-                            if (drugsEnterprise != null && drugsEnterprise.getSendType() == RecipeSendTypeEnum.NO_PAY.getSendType()) {
+                            EnterpriseManager enterpriseManager = DAOFactory.getDAO(EnterpriseManager.class);
+                            Integer sendType = enterpriseManager.getEnterpriseSendType(order.getOrganId(), depId);
+                            if (drugsEnterprise != null && sendType == RecipeSendTypeEnum.NO_PAY.getSendType()) {
                                 //药企配送
                                 requestTO.setTakeDrugsType("2");
                             } else {

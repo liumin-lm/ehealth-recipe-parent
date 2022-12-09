@@ -447,22 +447,21 @@ public class RecipeManager extends BaseManager {
      * @return
      */
     public RecipeCancelDTO getCancelReasonForPatient(int recipeId) {
+        logger.info("getCancelReasonForPatient recipeCancel recipeId:{}", recipeId);
         RecipeCancelDTO recipeCancel = new RecipeCancelDTO();
-        String cancelReason = "";
-        Date cancelDate = null;
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
         if (StringUtils.isNotEmpty(recipeExtend.getCancellation())) {
             recipeCancel.setCancelReason(recipeExtend.getCancellation());
+            recipeCancel.setCancelDate(new Date());
             return recipeCancel;
         }
-        List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatus(recipeId, RecipeStatusConstant.REVOKE);
-        if (CollectionUtils.isNotEmpty(recipeLogs)) {
-            cancelReason = recipeLogs.get(0).getMemo();
-            cancelDate = recipeLogs.get(0).getModifyDate();
-        }
-        recipeCancel.setCancelDate(cancelDate);
-        recipeCancel.setCancelReason(cancelReason);
-        logger.info("getCancelReasonForPatient recipeCancel:{}", JSONUtils.toString(recipeCancel));
+//        List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatus(recipeId, RecipeStatusConstant.REVOKE);
+//        if (CollectionUtils.isNotEmpty(recipeLogs)) {
+//            cancelReason = recipeLogs.get(0).getMemo();
+//            cancelDate = recipeLogs.get(0).getModifyDate();
+//        }
+//        recipeCancel.setCancelDate(cancelDate);
+//        recipeCancel.setCancelReason("");
         return recipeCancel;
     }
 
@@ -487,11 +486,15 @@ public class RecipeManager extends BaseManager {
         if (null == recipeResult) {
             return;
         }
-        if (!CommonConstant.RECIPE_PUSH_TYPE.equals(pushType)) {
-            return;
-        }
         Recipe updateRecipe = new Recipe();
         updateRecipe.setRecipeId(recipeId);
+        if (!CommonConstant.RECIPE_PUSH_TYPE.equals(pushType)) {
+            //表示为撤销处方
+            updateRecipe.setWriteHisState(WriteHisEnum.NONE.getType());
+            recipeDAO.updateNonNullFieldByPrimaryKey(updateRecipe);
+            return;
+        }
+
         //如果处方来源是复诊，则patientID取复诊的
         updateRecipe.setPatientID(recipeResult.getPatientID());
         if (new Integer(2).equals(recipeResult.getBussSource())) {

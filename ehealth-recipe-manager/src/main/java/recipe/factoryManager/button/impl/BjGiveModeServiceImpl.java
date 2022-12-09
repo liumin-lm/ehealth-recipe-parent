@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.HisRecipeDAO;
 import recipe.factoryManager.button.GiveModeManager;
+import recipe.manager.EnterpriseManager;
 
 import java.util.List;
 
@@ -25,6 +26,8 @@ public class BjGiveModeServiceImpl extends GiveModeManager {
     protected HisRecipeDAO hisRecipeDAO;
     @Autowired
     protected DrugsEnterpriseDAO drugsEnterpriseDAO;
+    @Autowired
+    private EnterpriseManager enterpriseManager;
 
     @Override
     public void setSpecialItem(GiveModeShowButtonDTO giveModeShowButtonVO, Recipe recipe, RecipeExtend recipeExtend) {
@@ -36,7 +39,7 @@ public class BjGiveModeServiceImpl extends GiveModeManager {
         if (new Integer(1).equals(recipe.getGiveMode())) {
             //表示配送到家,需要判断是药企配送还是医院配送
             DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getByAccount(hisRecipe.getDeliveryCode());
-            if (drugsEnterprise != null && new Integer(1).equals(drugsEnterprise.getSendType())) {
+            if (drugsEnterprise != null && new Integer(1).equals(enterpriseManager.getEnterpriseSendType(recipe.getClinicOrgan(), drugsEnterprise.getId()))) {
                 //表示为医院配送
                 saveGiveModeData(giveModeButtonBeans, "showSendToHos");
             } else {

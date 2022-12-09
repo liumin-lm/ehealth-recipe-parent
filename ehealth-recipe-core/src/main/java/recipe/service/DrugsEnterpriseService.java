@@ -38,6 +38,7 @@ import recipe.constant.ErrorCode;
 import recipe.core.api.IEnterpriseBusinessService;
 import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
+import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.manager.ButtonManager;
 import recipe.manager.EnterpriseManager;
 import recipe.serviceprovider.BaseService;
@@ -45,8 +46,6 @@ import recipe.serviceprovider.BaseService;
 import javax.annotation.Resource;
 import java.util.*;
 import java.util.stream.Collectors;
-
-//import recipe.service.drugs.IDrugEnterpriseLogisticsService;
 
 /**
  * 药企相关接口
@@ -63,18 +62,8 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
      */
     private static final Logger LOGGER = LoggerFactory.getLogger(DrugsEnterpriseService.class);
 
-//    @Autowired
-//    private IDrugEnterpriseLogisticsService drugEnterpriseLogisticsService;
-//    @Autowired
-//    private DrugEnterpriseLogisticsDAO drugEnterpriseLogisticsDAO;
-    @Resource
-    private OrganDrugListDAO organDrugListDAO;
-    @Resource
-    private RecipeService recipeService;
     @Autowired
     private EnterpriseManager enterpriseManager;
-    @Autowired
-    private ButtonManager buttonManager;
     @Autowired
     private DrugsEnterpriseConfigService drugsEnterpriseConfigService;
     @Autowired
@@ -188,8 +177,6 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
             dao.save(config);
             drugsEnterpriseConfigService.addSaleDrugListSyncFieldForEnterprise(config.getDrugsenterpriseId());
         }
-        // 写入药企关联物流公司信息
-//        drugEnterpriseLogisticsService.saveDrugEnterpriseLogistics(drugsEnterpriseBean.getDrugEnterpriseLogisticsBeans(), newDrugsEnterprise.getId());
         //更新管理单元
         String manageUnit = "yq" + newDrugsEnterprise.getId();
         drugsEnterpriseDAO.updateManageUnitById(newDrugsEnterprise.getId(), manageUnit);
@@ -269,8 +256,6 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
             target.setFreeDeliveryMoney(null);
         }
         target = drugsEnterpriseDAO.update(target);
-        // 写入药企关联物流公司信息
-//        drugEnterpriseLogisticsService.saveDrugEnterpriseLogistics(drugsEnterpriseBean.getDrugEnterpriseLogisticsBeans(), target.getId());
 
         if (null != drugsEnterpriseBean.getCreateType() && 0 == drugsEnterpriseBean.getCreateType()) {
             //自建药企要存储药店信息
@@ -617,12 +602,8 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         RecipeOrder order = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
-        // paymode 转老一套
-
-        Integer payMode = PayModeGiveModeUtil.getPayMode(order.getPayMode(), recipe.getGiveMode());
-
-        List<Integer> payModeSupport = RecipeServiceSub.getDepSupportMode(payMode);
-        List<DrugsEnterprise> enterpriseList = enterpriseDAO.findByOrganIdAndPayModeSupport(organId, payModeSupport);
+        Integer type = RecipeSupportGiveModeEnum.getGiveModeType(order.getGiveModeKey());
+        List<DrugsEnterprise> enterpriseList = enterpriseDAO.findByOrganIdAndPayModeSupport(organId, type);
         if (CollectionUtils.isNotEmpty(enterpriseList)) {
             RemoteDrugEnterpriseService service = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
             for (DrugsEnterprise dep : enterpriseList) {
@@ -644,12 +625,17 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
             SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
             OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
             List<DrugsEnterprise> drugsEnterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(organId, 1);
+            List<OrganAndDrugsepRelation> organAndDrugsDepRelationList = organAndDrugsepRelationDAO.findByOrganId(organId);
+            Map<Integer, OrganAndDrugsepRelation> drugsDepRelationMap = organAndDrugsDepRelationList.stream().collect(Collectors.toMap(OrganAndDrugsepRelation::getDrugsEnterpriseId, a -> a, (k1, k2) -> k1));
             if (CollectionUtils.isEmpty(drugsEnterprises)) {
                 return false;
             }
             List<DrugsEnterprise> drugsEnterpriseList = new ArrayList<>();
             for (DrugsEnterprise drugsEnterprise : drugsEnterprises) {
-                if (drugsEnterprise.getPayModeSupport() == 1 || drugsEnterprise.getPayModeSupport() == 7 || drugsEnterprise.getPayModeSupport() == 9) {
+                OrganAndDrugsepRelation drugsDepRelation = drugsDepRelationMap.get(drugsEnterprise.getId());
+                String giveModeSupport = drugsDepRelation.getDrugsEnterpriseSupportGiveMode();
+                if (giveModeSupport.contains(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType().toString()) ||
+                        giveModeSupport.contains(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType().toString())) {
                     drugsEnterpriseList.add(drugsEnterprise);
                 }
             }

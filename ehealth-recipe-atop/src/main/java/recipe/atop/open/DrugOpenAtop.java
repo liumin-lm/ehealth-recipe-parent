@@ -4,7 +4,9 @@ import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.MedicationInfoResTO;
 import com.ngari.platform.recipe.mode.ListOrganDrugReq;
 import com.ngari.platform.recipe.mode.ListOrganDrugRes;
+import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.entity.Dispensatory;
+import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.RecipeRulesDrugCorrelation;
 import ctd.persistence.exception.DAOException;
@@ -79,6 +81,13 @@ public class DrugOpenAtop extends BaseAtop implements IDrugAtopService {
     @Override
     public HisResponseTO medicationInfoSyncTaskForHis(List<MedicationInfoResTO> medicationInfoResTOList) {
         return drugBusinessService.medicationInfoSyncTaskForHis(medicationInfoResTOList);
+    }
+
+    @Override
+    public List<DrugListBean> findDrugListByInfo(DrugListBean drugListBean) {
+        validateAtop(drugListBean.getDrugName(),drugListBean.getDrugSpec(),drugListBean.getProducer(),drugListBean.getPack(),drugListBean.getUnit());
+        List<DrugList> drugLists = drugBusinessService.findDrugListByInfo(drugListBean);
+        return ObjectCopyUtils.convert(drugLists,DrugListBean.class);
     }
 
     /**

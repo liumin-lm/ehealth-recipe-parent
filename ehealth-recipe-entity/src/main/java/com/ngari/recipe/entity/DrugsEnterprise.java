@@ -184,6 +184,9 @@ public class DrugsEnterprise implements java.io.Serializable {
     @ItemProperty(alias = "优先级")
     private Integer priorityLevel;
 
+    @ItemProperty(alias = "支付方式 1 线上支付 2 货到付款")
+    private String payMode;
+
     @Column(name = "enterprise_phone")
     public String getEnterprisePhone() {
         return enterprisePhone;
@@ -650,5 +653,14 @@ public class DrugsEnterprise implements java.io.Serializable {
 
     public void setPriorityLevel(Integer priorityLevel) {
         this.priorityLevel = priorityLevel;
+    }
+
+    @Transient
+    public String getPayMode() {
+        return payMode;
+    }
+
+    public void setPayMode(String payMode) {
+        this.payMode = payMode;
     }
 }

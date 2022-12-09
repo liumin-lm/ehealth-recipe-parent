@@ -492,7 +492,7 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
         if (configurations.containsKey("showSendToEnterprises") || configurations.containsKey("supportTFDS") || configurations.containsKey("showSendToHos")) {
             for (DrugsEnterprise drugsEnterprise : drugsEnterprises) {
                 //药企配送
-                if (new Integer(2).equals(drugsEnterprise.getSendType())) {
+                if (new Integer(2).equals(enterpriseManager.getEnterpriseSendType(organDTO.getOrganId(), drugsEnterprise.getId()))) {
                     supportOnlineMap = new LinkedHashMap<>();
                     drugEnterpriseResult.setAccessDrugEnterpriseService(getServiceByDep(drugsEnterprise));
                     if (payModeSupport(drugsEnterprise, 1) && configurations.containsKey("showSendToEnterprises")) {

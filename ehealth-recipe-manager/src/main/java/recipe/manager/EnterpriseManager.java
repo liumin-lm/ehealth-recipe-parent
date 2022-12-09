@@ -254,11 +254,11 @@ public class EnterpriseManager extends BaseManager {
      * 到店取药 药企获取
      *
      * @param recipe
-     * @param payModeSupport
+     * @param recipeSupportGiveModeEnum
      * @return
      */
-    public List<DrugsEnterprise> findEnterpriseByTFDS(Recipe recipe, List<Integer> payModeSupport) {
-        logger.info("EnterpriseManager findEnterpriseByTFDS req payModeSupport:{},recipe:{}", JSONUtils.toString(payModeSupport), JSONUtils.toString(recipe));
+    public List<DrugsEnterprise> findEnterpriseByTFDS(Recipe recipe, RecipeSupportGiveModeEnum recipeSupportGiveModeEnum) {
+        logger.info("EnterpriseManager findEnterpriseByTFDS req payModeSupport:{},recipe:{}", recipeSupportGiveModeEnum.getName(), JSONUtils.toString(recipe));
 
         List<DrugsEnterprise> drugsEnterpriseList = new ArrayList<>();
         Integer recipeId = recipe.getRecipeId();
@@ -277,7 +277,7 @@ public class EnterpriseManager extends BaseManager {
                 break;
             case DEFAULT:
             default:
-                drugsEnterpriseList = drugsEnterpriseDAO.findByOrganIdAndPayModeSupport(recipe.getClinicOrgan(), payModeSupport);
+                drugsEnterpriseList = drugsEnterpriseDAO.findByOrganIdAndPayModeSupport(recipe.getClinicOrgan(), recipeSupportGiveModeEnum.getType());
                 break;
         }
         logger.info("EnterpriseManager findEnterpriseByTFDS  res={}", JSONUtils.toString(drugsEnterpriseList));
@@ -289,12 +289,12 @@ public class EnterpriseManager extends BaseManager {
      * 配送到家模式下获取药企
      *
      * @param sendType
-     * @param payModeSupport
+     * @param recipeSupportGiveModeEnum
      * @param recipe
      * @return
      */
-    public List<DrugsEnterprise> findEnterpriseByOnLine(String sendType, List<Integer> payModeSupport, Recipe recipe) {
-        logger.info("EnterpriseManager findEnterpriseByOnLine req sendType:{},payModeSupport:{},recipe:{}", sendType, JSONUtils.toString(payModeSupport), JSONUtils.toString(recipe));
+    public List<DrugsEnterprise> findEnterpriseByOnLine(String sendType, RecipeSupportGiveModeEnum recipeSupportGiveModeEnum, Recipe recipe) {
+        logger.info("EnterpriseManager findEnterpriseByOnLine req sendType:{},recipeSupportGiveModeEnum:{},recipe:{}", sendType, recipeSupportGiveModeEnum.getName(), JSONUtils.toString(recipe));
         List<DrugsEnterprise> drugsEnterpriseList = new ArrayList<>();
         if (new Integer(2).equals(recipe.getRecipeSource())) {
             //北京互联网根据HIS传过来的药企进行展示
@@ -333,13 +333,13 @@ public class EnterpriseManager extends BaseManager {
             default:
                 if (StringUtils.isNotEmpty(sendType)) {
                     if (Integer.valueOf(1).equals(recipe.getRecipeSource())) {
-                        drugsEnterpriseList = drugsEnterpriseDAO.findByOrganIdAndOtherAndSendType(recipe.getClinicOrgan(), payModeSupport, Integer.parseInt(sendType));
+                        drugsEnterpriseList = drugsEnterpriseDAO.findByOrganIdAndOtherAndSendType(recipe.getClinicOrgan(), recipeSupportGiveModeEnum.getType(), Integer.parseInt(sendType));
                     } else {
-                        drugsEnterpriseList = drugsEnterpriseDAO.findByOrganIdAndPayModeSupportAndSendType(recipe.getClinicOrgan(), payModeSupport, Integer.parseInt(sendType));
+                        drugsEnterpriseList = drugsEnterpriseDAO.findByOrganIdAndPayModeSupportAndSendType(recipe.getClinicOrgan(), recipeSupportGiveModeEnum.getType(), Integer.parseInt(sendType));
                     }
                 } else {
                     //考虑到浙江省互联网项目的药店取药也会走这里,sendType是"" 还是需要查询一下支持的药企
-                    drugsEnterpriseList = drugsEnterpriseDAO.findByOrganIdAndPayModeSupport(recipe.getClinicOrgan(), payModeSupport);
+                    drugsEnterpriseList = drugsEnterpriseDAO.findByOrganIdAndPayModeSupport(recipe.getClinicOrgan(), recipeSupportGiveModeEnum.getType());
                 }
                 break;
         }
@@ -914,29 +914,38 @@ public class EnterpriseManager extends BaseManager {
             return Integer.valueOf(id);
         }).collect(Collectors.toList());
         List<DrugsEnterprise> drugsEnterprises = drugsEnterpriseDAO.findByIds(collect);
+        List<OrganAndDrugsepRelation> drugsDepRelationList = organAndDrugsepRelationDAO.findByOrganIdEntId(recipe.getClinicOrgan(), collect);
+        Map<Integer, OrganAndDrugsepRelation> drugsDepRelationMap = drugsDepRelationList.stream().collect(Collectors.toMap(OrganAndDrugsepRelation::getDrugsEnterpriseId, a -> a, (k1, k2) -> k1));
 
         // 根据 药企的购药方式 过滤信息
         String[] recipeSupportGiveMode = recipe.getRecipeSupportGiveMode().split(",");
-        List<String> strings = Arrays.asList(recipeSupportGiveMode);
+        List<String> recipeSupportGiveModeList = Arrays.asList(recipeSupportGiveMode);
         logger.info("EnterpriseManager findEnterpriseListByAppoint  drugsEnterprises={},recipeSupportGiveMode={}", JSONUtils.toString(drugsEnterprises), JSONUtils.toString(recipeSupportGiveMode));
         drugsEnterprises.forEach(drugsEnterprise -> {
-            if (RecipeDistributionFlagEnum.drugsEnterpriseAll.contains(drugsEnterprise.getPayModeSupport())) {
-                drugsEnterpriseList.add(drugsEnterprise);
-            } else if (RecipeDistributionFlagEnum.drugsEnterpriseTo.contains(drugsEnterprise.getPayModeSupport())
-                    && strings.contains(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getType().toString())
+            OrganAndDrugsepRelation drugsDepRelation = drugsDepRelationMap.get(drugsEnterprise.getId());
+            //药企设置支持的购药方式
+            String enterpriseSetGiveMode = drugsDepRelation.getDrugsEnterpriseSupportGiveMode();
+            if (StringUtils.isEmpty(enterpriseSetGiveMode)) {
+                return;
+            }
+            String[] enterpriseSetGiveModeStr = enterpriseSetGiveMode.split(",");
+            List<String> enterpriseSetGiveModeList = Arrays.asList(enterpriseSetGiveModeStr);
+            if (enterpriseSetGiveModeList.contains(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getType().toString())
+                    && recipeSupportGiveModeList.contains(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getType().toString())
                     && RecipeSupportGiveModeEnum.SUPPORT_TFDS.getType().equals(type)) {
-
                 // 药企支付到店取药
                 drugsEnterpriseList.add(drugsEnterprise);
-            } else if (RecipeDistributionFlagEnum.drugsEnterpriseSend.contains(drugsEnterprise.getPayModeSupport())
+            }
+            if ((enterpriseSetGiveModeList.contains(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType().toString())
+                    || enterpriseSetGiveModeList.contains(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType().toString()))
                     && RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType().equals(type)) {
-
-                if (RecipeSendTypeEnum.ALRAEDY_PAY.getSendType().equals(drugsEnterprise.getSendType()) &&
-                        strings.contains(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType().toString())) {
+                Integer sendType = getEnterpriseSendType(recipe.getClinicOrgan(), drugsEnterprise.getId());
+                if (RecipeSendTypeEnum.ALRAEDY_PAY.getSendType().equals(sendType) &&
+                        recipeSupportGiveModeList.contains(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType().toString())) {
                     // 医院配送
                     drugsEnterpriseList.add(drugsEnterprise);
-                } else if (RecipeSendTypeEnum.NO_PAY.getSendType().equals(drugsEnterprise.getSendType()) &&
-                        strings.contains(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType().toString())) {
+                } else if (RecipeSendTypeEnum.NO_PAY.getSendType().equals(sendType) &&
+                        recipeSupportGiveModeList.contains(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType().toString())) {
                     // 药企配送
                     drugsEnterpriseList.add(drugsEnterprise);
                 }
@@ -1076,6 +1085,81 @@ public class EnterpriseManager extends BaseManager {
     public OrganDrugsSaleConfig getOrganDrugsSaleConfigOfPatient(Integer organId, Integer drugsEnterpriseId) {
         logger.info("getOrganDrugsSaleConfigOfPatient organId:{},drugsEnterpriseId:{} ",organId,drugsEnterpriseId );
         return organDrugsSaleConfigDAO.getOrganDrugsSaleConfig(drugsEnterpriseId);
+    }
+
+    /**
+     * 获取药企配送主体
+     * @param organId
+     * @param drugsEnterpriseId
+     * @return
+     */
+    @LogRecord
+    public Integer getEnterpriseSendType(Integer organId, Integer drugsEnterpriseId) {
+        if (Objects.isNull(organId) || Objects.isNull(drugsEnterpriseId)){
+            throw new DAOException("入参错误");
+        }
+        OrganAndDrugsepRelation relation = organAndDrugsepRelationDAO.getOrganAndDrugsepByOrganIdAndEntId(organId, drugsEnterpriseId);
+        String drugsEnterpriseSupportGiveMode = relation.getDrugsEnterpriseSupportGiveMode();
+        if (StringUtils.isEmpty(drugsEnterpriseSupportGiveMode)) {
+            return null;
+        }
+        String[] split = drugsEnterpriseSupportGiveMode.split(",");
+        List<String> list = Arrays.asList(split);
+        Integer sendType = null;
+        if (list.contains(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType().toString())) {
+            sendType = RecipeSendTypeEnum.ALRAEDY_PAY.getSendType();
+        } else if (list.contains(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType().toString())) {
+            sendType = RecipeSendTypeEnum.NO_PAY.getSendType();
+        }
+        return sendType;
+    }
+
+    /**
+     * 将患者选择的购药方式转化为药企对应支持的方式
+     * @param selectBuyMedicineWay 患者选择的购药方式
+     * @return
+     */
+    public RecipeSupportGiveModeEnum getDepSupportMode(Integer selectBuyMedicineWay) {
+        RecipeSupportGiveModeEnum supportGiveModeEnum = RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS;
+        switch (selectBuyMedicineWay) {
+            case 1:
+                supportGiveModeEnum = RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS;
+                break;
+            case 2:
+                supportGiveModeEnum = RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES;
+                break;
+            case 3:
+                supportGiveModeEnum = RecipeSupportGiveModeEnum.SUPPORT_TO_HOS;
+                break;
+            case 4:
+                supportGiveModeEnum = RecipeSupportGiveModeEnum.SUPPORT_TFDS;
+                break;
+            case 6:
+                supportGiveModeEnum = RecipeSupportGiveModeEnum.DOWNLOAD_RECIPE;
+                break;
+        }
+        return supportGiveModeEnum;
+    }
+
+    public RecipeSupportGiveModeEnum getDepSupportModeByPayMode(Integer payMode){
+        RecipeSupportGiveModeEnum supportGiveModeEnum = null;
+        switch (payMode) {
+            case 1:
+            case 2:
+            case 5:
+                supportGiveModeEnum = RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS;
+                break;
+            case 3:
+                supportGiveModeEnum = RecipeSupportGiveModeEnum.SUPPORT_TO_HOS;
+                break;
+            case 4:
+                supportGiveModeEnum = RecipeSupportGiveModeEnum.SUPPORT_TFDS;
+                break;
+            case 6:
+                supportGiveModeEnum = RecipeSupportGiveModeEnum.DOWNLOAD_RECIPE;
+                break;
+        }
+        return supportGiveModeEnum;
     }
 }
 

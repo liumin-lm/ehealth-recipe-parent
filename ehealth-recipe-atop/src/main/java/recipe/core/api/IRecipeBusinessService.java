@@ -1,5 +1,7 @@
 package recipe.core.api;
 
+import com.ngari.common.dto.CheckRequestCommonOrderPageDTO;
+import com.ngari.common.dto.SyncOrderVO;
 import com.ngari.patient.dto.HealthCardDTO;
 import com.ngari.platform.recipe.mode.OutpatientPaymentRecipeDTO;
 import com.ngari.platform.recipe.mode.QueryRecipeInfoHisDTO;
@@ -277,6 +279,11 @@ public interface IRecipeBusinessService {
 
     AdvanceWarningResVO getAdvanceWarning(AdvanceWarningReqVO advanceWarningReqDTO);
 
+    /**
+     * 医生端开方获取患者卡信息
+     * @param mpiId
+     * @return
+     */
     List<HealthCardDTO> findByCardOrganAndMpiId(String mpiId);
 
     /**
@@ -399,6 +406,51 @@ public interface IRecipeBusinessService {
      * @return
      */
     List<RecipeToGuideResVO> findRecipeByClinicId(Integer clinicId);
+
+    /**
+     * 根据时间等查询处方申请量/完成量
+     * @param automatonVO
+     * @return
+     */
+    Integer findRecipeCountForAutomaton(AutomatonVO automatonVO);
+
+    /**
+     * 根据时间等查询电子处方机构top5
+     * @param automatonVO
+     * @return
+     */
+    List<AutomatonCountVO> findRecipeTop5ForAutomaton(AutomatonVO automatonVO);
+
+    /**
+     * 根据时间等查询每一天的申请量/完成量
+     * @param automatonVO
+     * @return
+     */
+    List<AutomatonCountVO> findRecipeEveryDayForAutomaton(AutomatonVO automatonVO);
+
+    /**
+     * 订单中心--根据处方id查询处方信息
+     * @param recipeId
+     * @return
+     */
+    RecipeVo getRecipeByBusId(Integer recipeId);
+
+    /**
+     * 端 药品处方 历史数据同步使用
+     * @param request
+     * @return
+     */
+    CheckRequestCommonOrderPageDTO findRecipePageForCommonOrder(SyncOrderVO request);
+
+    /**
+     * 查询超时未审核的处方单（10分钟未审核定义为超时）
+     *
+     * @param startTime
+     * @param endTime
+     * @param organIds
+     * @return
+     */
+    List<RecipeBean> findAuditOverTimeRecipeList(Date startTime, Date endTime, List<Integer> organIds);
 
     /**
      * 暂存处方接口

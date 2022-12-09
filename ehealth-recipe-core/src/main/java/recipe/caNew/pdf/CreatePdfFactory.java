@@ -33,7 +33,6 @@ import recipe.service.RecipeLogService;
 import recipe.service.RecipeServiceEsignExt;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.ByteUtils;
-import recipe.util.JsonUtil;
 import recipe.util.ValidateUtil;
 
 import javax.annotation.Resource;
@@ -120,12 +119,13 @@ public class CreatePdfFactory {
                 RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "获取pdf_oss_id格式生成null");
                 return;
             }
+            data = createPdfService.tcmContraindicationTypePdf(data, recipe);
             String fileId = CreateRecipePdfUtil.signFileByte(data, "recipe_" + recipe.getRecipeId() + ".pdf");
             Recipe recipeUpdate = new Recipe();
             recipeUpdate.setRecipeId(recipe.getRecipeId());
             recipeUpdate.setSignFile(fileId);
             recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
-            caManager.saveESignResult(recipe,true);
+            caManager.saveESignResult(recipe, true);
             logger.info("CreatePdfFactory queryPdfOssId recipeUpdate ={}", JSON.toJSONString(recipeUpdate));
         } catch (Exception e) {
             logger.error("CreatePdfFactory queryPdfOssId 使用平台医生部分pdf的,生成失败 recipe:{}", recipe.getRecipeId(), e);
@@ -141,28 +141,23 @@ public class CreatePdfFactory {
      */
     public CaSealRequestTO queryPdfByte(Integer recipeId,boolean isDoctor) {
         logger.info("CreatePdfFactory queryPdfByte recipe:{}", recipeId);
-        Integer doctor;
         Recipe recipe = validate(recipeId);
         CreatePdfService createPdfService = createPdfService(recipe);
         try {
             byte[] data = createPdfService.queryPdfByte(recipe);
+            data = createPdfService.tcmContraindicationTypePdf(data, recipe);
             CaSealRequestTO caSealRequest = createPdfService.queryPdfBase64(data, recipe.getRecipeId());
             if (null == caSealRequest) {
                 RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "获取pdf_byte格式生成null");
-            }else{
+            } else {
                 caSealRequest.setSealBase64Str("");
-                if (isDoctor) {
-                    doctor=recipe.getDoctor();
-                }else{
-                    doctor=recipe.getChecker();
-                }
                 //获取签章图片
-                DoctorExtendDTO doctorExtendDTO = doctorClient.getDoctorExtendDTO(doctor);
+                DoctorExtendDTO doctorExtendDTO = doctorClient.getDoctorExtendDTO(recipe, isDoctor);
                 if (null != doctorExtendDTO && null != doctorExtendDTO.getSealData()) {
                     caSealRequest.setSealBase64Str(doctorExtendDTO.getSealData());
                 }
-                logger.info("caSealRequest:{}", JsonUtil.toString(caSealRequest));
             }
+            logger.info("CreatePdfFactory queryPdfByte  caSealRequest:{}", JSON.toJSONString(caSealRequest));
             return caSealRequest;
         } catch (Exception e) {
             logger.error("CreatePdfFactory queryPdfByte 使用平台医生部分pdf的,生成失败 recipe:{}", recipe.getRecipeId(), e);
@@ -170,28 +165,28 @@ public class CreatePdfFactory {
             return null;
         }
     }
-
-    /**
-     * 医生签名 标准对接CA方式 并返回CA对象
-     *
-     * @param recipe
-     * @return
-     * @throws Exception
-     */
-    public CaSealRequestTO updateDoctorNamePdfV1(Recipe recipe) throws Exception {
-        logger.info("CreatePdfFactory updateDoctorNamePdfV1 recipe:{}", recipe.getRecipeId());
-        CreatePdfService createPdfService = createPdfService(recipe);
-        byte[] data = createPdfService.queryPdfByte(recipe);
-        updateDoctorNamePdf(recipe, data, createPdfService);
-        CaSealRequestTO requestSealTO = createPdfService.queryPdfBase64(data, recipe.getRecipeId());
-        requestSealTO.setSealBase64Str("");
-        //获取签章图片
-        DoctorExtendDTO doctorExtendDTO = doctorClient.getDoctorExtendDTO(recipe.getDoctor());
-        if (null != doctorExtendDTO && null != doctorExtendDTO.getSealData()) {
-            requestSealTO.setSealBase64Str(doctorExtendDTO.getSealData());
-        }
-        return requestSealTO;
-    }
+//
+//    /**
+//     * 医生签名 标准对接CA方式 并返回CA对象
+//     *
+//     * @param recipe
+//     * @return
+//     * @throws Exception
+//     */
+//    public CaSealRequestTO updateDoctorNamePdfV1(Recipe recipe) throws Exception {
+//        logger.info("CreatePdfFactory updateDoctorNamePdfV1 recipe:{}", recipe.getRecipeId());
+//        CreatePdfService createPdfService = createPdfService(recipe);
+//        byte[] data = createPdfService.queryPdfByte(recipe);
+//        updateDoctorNamePdf(recipe, data, createPdfService);
+//        CaSealRequestTO requestSealTO = createPdfService.queryPdfBase64(data, recipe.getRecipeId());
+//        requestSealTO.setSealBase64Str("");
+//        //获取签章图片
+//        DoctorExtendDTO doctorExtendDTO = doctorClient.getDoctorExtendDTO(recipe.getDoctor());
+//        if (null != doctorExtendDTO && null != doctorExtendDTO.getSealData()) {
+//            requestSealTO.setSealBase64Str(doctorExtendDTO.getSealData());
+//        }
+//        return requestSealTO;
+//    }
 
     /**
      * 医生签名
@@ -212,7 +207,8 @@ public class CreatePdfFactory {
             }
             CreatePdfService createPdfService = createPdfService(recipe);
             byte[] data = createPdfService.queryPdfByte(recipe);
-            updateDoctorNamePdf(recipe, data, createPdfService);
+            data = createPdfService.tcmContraindicationTypePdf(data, recipe);
+            this.updateDoctorNamePdf(recipe, data, createPdfService);
         } catch (Exception e) {
             logger.error("CreatePdfFactory updateDoctorNamePdf 使用平台医生部分pdf的,生成失败 recipe:{}", recipe.getRecipeId(), e);
             RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "医生部分pdf的生成失败");

@@ -170,8 +170,13 @@ public class RecipeServiceSub {
 
     private static IConfigurationClient configurationClient = AppContextHolder.getBean("IConfigurationClient", IConfigurationClient.class);
 
+    private static EnterpriseManager enterpriseManager = AppContextHolder.getBean("enterpriseManager", EnterpriseManager.class);
+
     @Autowired
     private RevisitClient revisitClient;
+
+    private static EmploymentService employmentService = ApplicationUtils.getBasicService(EmploymentService.class);
+
 
     /**
      * @param recipeBean
@@ -1221,10 +1226,10 @@ public class RecipeServiceSub {
                         if (null != recipeExtend && StringUtils.isNotEmpty(recipeExtend.getCancellation())) {
                             cancelReason = recipeExtend.getCancellation();
                         } else {
-                            List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatus(recipe.getRecipeId(), status);
-                            if (CollectionUtils.isNotEmpty(recipeLogs)) {
-                                cancelReason = recipeLogs.get(0).getMemo();
-                            }
+//                            List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatus(recipe.getRecipeId(), status);
+//                            if (CollectionUtils.isNotEmpty(recipeLogs)) {
+//                                cancelReason = recipeLogs.get(0).getMemo();
+//                            }
                         }
                     }
                     break;
@@ -1246,10 +1251,10 @@ public class RecipeServiceSub {
                     if (null != recipeExtend && StringUtils.isNotEmpty(recipeExtend.getCancellation())) {
                         cancelReason = recipeExtend.getCancellation();
                     } else {
-                        List<RecipeLog> recipeFailLogs = recipeLogDAO.findByRecipeIdAndAfterStatusDesc(recipe.getRecipeId(), RecipeStatusConstant.HIS_FAIL);
-                        if (CollectionUtils.isNotEmpty(recipeFailLogs)) {
-                            cancelReason = recipeFailLogs.get(0).getMemo().substring(recipeFailLogs.get(0).getMemo().indexOf("|") + 1, recipeFailLogs.get(0).getMemo().length() - 1);
-                        }
+//                        List<RecipeLog> recipeFailLogs = recipeLogDAO.findByRecipeIdAndAfterStatusDesc(recipe.getRecipeId(), RecipeStatusConstant.HIS_FAIL);
+//                        if (CollectionUtils.isNotEmpty(recipeFailLogs)) {
+//                            cancelReason = recipeFailLogs.get(0).getMemo().substring(recipeFailLogs.get(0).getMemo().indexOf("|") + 1, recipeFailLogs.get(0).getMemo().length() - 1);
+//                        }
                     }
                     break;
                 case RecipeStatusConstant.NO_DRUG:
@@ -1496,6 +1501,7 @@ public class RecipeServiceSub {
 
     public static RecipeBean convertRecipeForRAPNew(Recipe recipe, List<HisRecipeDetailBean> recipeDetailBeans, RecipeExtend recipeExtend) {
         RecipeBean r = new RecipeBean();
+        r.setDoctor(recipe.getDoctor());
         r.setRecipeId(recipe.getRecipeId());
         r.setCreateDate(recipe.getCreateDate());
         r.setRecipeType(recipe.getRecipeType());
@@ -1579,6 +1585,14 @@ public class RecipeServiceSub {
         if (appointDepartDTO != null) {
             r.setDepart(appointDepartDTO.getDepartId());
         }
+        //医生
+        if (StringUtils.isNotEmpty(recipe.getDoctorCode())) {
+            EmploymentDTO employmentDTO = employmentService.getEmploymentByJobNumberAndOrganId(recipe.getDoctorCode(), recipe.getClinicOrgan());
+            if (employmentDTO != null && employmentDTO.getDoctorId() != null) {
+                r.setDoctor(employmentDTO.getDoctorId());
+            }
+        }
+
         r.setRecipeFlag(0);
         LOGGER.info("convertHisRecipeForRAP res:{}", JSONUtils.toString(r));
         return r;
@@ -1908,8 +1922,8 @@ public class RecipeServiceSub {
         //2.设置二次审核，一次通过展示（没有审核不通过日志的且审核通过的）
         //总结的来说就是只要审核通过的并且没有不通过记录就展示
         RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
-        List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatus(recipe.getRecipeId(), RecipeStatusConstant.CHECK_NOT_PASS_YS);
-        boolean showChecker = recipeAuditClient.isShowChecker(recipe, recipeLogs);
+        //  List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatus(recipe.getRecipeId(), RecipeStatusConstant.CHECK_NOT_PASS_YS);
+        boolean showChecker = recipeAuditClient.isShowChecker(recipe, null);
         map.put("showChecker", showChecker);
         //兼容老版本（此版本暂时不做删除）
         Boolean childRecipeFlag = false;
@@ -2035,8 +2049,9 @@ public class RecipeServiceSub {
         if (recipe.getEnterpriseId() != null) {
             DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
             DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipe.getEnterpriseId());
-            if (drugsEnterprise != null && drugsEnterprise.getSendType() != null) {
-                map.put("sendType", drugsEnterprise.getSendType());
+            Integer sendType = enterpriseManager.getEnterpriseSendType(recipe.getClinicOrgan(), recipe.getEnterpriseId());
+            if (drugsEnterprise != null && Objects.nonNull(sendType)) {
+                map.put("sendType", sendType);
             }
         }
         LOGGER.info("getRecipeAndDetailByIdImpl map : {}", JSON.toJSONString(map));
@@ -2173,10 +2188,8 @@ public class RecipeServiceSub {
         //显示配送才判断具体显示哪个配送按钮
         if (showSend) {
             DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-            List<Integer> payModeSupport = RecipeServiceSub.getDepSupportMode(RecipeBussConstant.PAYMODE_ONLINE);
-            payModeSupport.addAll(RecipeServiceSub.getDepSupportMode(RecipeBussConstant.PAYMODE_COD));
-            Long enterprisesSend = drugsEnterpriseDAO.getCountByOrganIdAndPayModeSupportAndSendType(recipe.getClinicOrgan(), payModeSupport, EnterpriseSendConstant.Enterprise_Send);
-            Long hosSend = drugsEnterpriseDAO.getCountByOrganIdAndPayModeSupportAndSendType(recipe.getClinicOrgan(), payModeSupport, EnterpriseSendConstant.Hos_Send);
+            Integer enterprisesSend = drugsEnterpriseDAO.getCountByOrganIdAndPayModeSupportAndSendType(recipe.getClinicOrgan(), RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType(), EnterpriseSendConstant.Enterprise_Send);
+            Integer hosSend = drugsEnterpriseDAO.getCountByOrganIdAndPayModeSupportAndSendType(recipe.getClinicOrgan(), RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType(), EnterpriseSendConstant.Hos_Send);
             if (null != enterprisesSend && 0 < enterprisesSend) {
                 map.put("showSendToEnterprises", 1);
             }
@@ -2210,7 +2223,7 @@ public class RecipeServiceSub {
                     //表示配送到家,需要判断是药企配送还是医院配送
                     DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
                     DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getByAccount(hisRecipe.getDeliveryCode());
-                    if (drugsEnterprise != null && new Integer(1).equals(drugsEnterprise.getSendType())) {
+                    if (drugsEnterprise != null && new Integer(1).equals(enterpriseManager.getEnterpriseSendType(hisRecipe.getClinicOrgan(), drugsEnterprise.getId()))) {
                         //表示为医院配送
                         map.put("showSendToHos", 1);
                     } else {
@@ -2280,11 +2293,11 @@ public class RecipeServiceSub {
             if (StringUtils.isNotEmpty(recipeExtend.getCancellation())) {
                 cancelReason = "开方医生已撤销处方,撤销原因:" + recipeExtend.getCancellation();
             } else {
-                RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
-                List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatusDesc(recipeId, RecipeStatusConstant.REVOKE);
-                if (CollectionUtils.isNotEmpty(recipeLogs)) {
-                    cancelReason = "开方医生已撤销处方,撤销原因:" + recipeLogs.get(0).getMemo();
-                }
+//                RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
+//                List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatusDesc(recipeId, RecipeStatusConstant.REVOKE);
+//                if (CollectionUtils.isNotEmpty(recipeLogs)) {
+//                    cancelReason = "开方医生已撤销处方,撤销原因:" + recipeLogs.get(0).getMemo();
+//                }
             }
         }
         return cancelReason;
@@ -2574,16 +2587,6 @@ public class RecipeServiceSub {
         }
 
         return recipeSurplusHours;
-    }
-
-    /**
-     * 配送模式选择
-     *
-     * @param payMode
-     * @return
-     */
-    public static List<Integer> getDepSupportMode(Integer payMode) {
-        return RecipeBussConstant.getDepSupportMode(payMode);
     }
 
     /**

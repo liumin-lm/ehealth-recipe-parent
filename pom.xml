@@ -6,7 +6,7 @@
     <parent>
         <groupId>ngari</groupId>
         <artifactId>ehealth-parent</artifactId>
-        <version>4.11.2.8.master-SNAPSHOT</version>
+        <version>4.12.1.3.master-SNAPSHOT</version>
     </parent>
     <artifactId>ehealth-recipe-parent</artifactId>
 
@@ -37,7 +37,7 @@
         <ngari.recipeaudit.version>4.9.2.8.master-SNAPSHOT</ngari.recipeaudit.version>
         <ngari.consult.version>4.4.2.7.master-SNAPSHOT</ngari.consult.version>
         <ngari.networkclinic.version>4.1.1.9.master-SNAPSHOT</ngari.networkclinic.version>
-        <ngari.hisapi.version>4.11.2.8.master-SNAPSHOT</ngari.hisapi.version>
+        <ngari.hisapi.version>4.12.1.3.master-SNAPSHOT</ngari.hisapi.version>
         <ngari.baseapi.version>4.9.1.5.master-SNAPSHOT</ngari.baseapi.version>
         <ngari.opbase.version>4.1.1.9.master-SNAPSHOT</ngari.opbase.version>
         <ngari.utils.version>4.6.2.0.master-SNAPSHOT</ngari.utils.version>
@@ -48,7 +48,7 @@
         <ngari.message.version>4.8.3.0.master-SNAPSHOT</ngari.message.version>
         <ngari.bill.version>4.1.1.9.master-SNAPSHOT</ngari.bill.version>
         <ngari.account.version>4.1.1.9.master-SNAPSHOT</ngari.account.version>
-        <ngari.revisit.version>4.11.2.8.master-SNAPSHOT</ngari.revisit.version>
+        <ngari.revisit.version>4.12.1.3.master-SNAPSHOT</ngari.revisit.version>
         <ngari.entity.version>4.9.1.5.master-SNAPSHOT</ngari.entity.version>
     </properties>
 

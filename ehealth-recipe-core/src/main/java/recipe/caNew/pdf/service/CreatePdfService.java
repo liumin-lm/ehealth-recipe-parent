@@ -55,6 +55,15 @@ public interface CreatePdfService {
     String updateDoctorNamePdf(byte[] data, Integer recipeId, SignImgNode signImgNode) throws Exception;
 
     /**
+     * 个性化处方笺配置的填充字段中新增“异常用药签名”，在存在超量，十八反，十九畏的情况下需要将医生的签名图片展示在异常用药签名字段上
+     *
+     * @param data
+     * @param recipe
+     * @return
+     */
+    byte[] tcmContraindicationTypePdf(byte[] data, Recipe recipe) throws Exception;
+
+    /**
      * 获取药师签名 pdf Byte字节 给前端SDK
      *
      * @param recipe 处方信息

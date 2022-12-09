@@ -19,6 +19,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
@@ -26,6 +27,7 @@ import recipe.bean.RecipePayModeSupportBean;
 import recipe.constant.RecipeBussConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.AccessDrugEnterpriseService;
+import recipe.manager.EnterpriseManager;
 import recipe.service.DrugListExtService;
 import recipe.service.RecipeHisService;
 import recipe.util.DistanceUtil;
@@ -44,6 +46,9 @@ public class CommonSelfEnterprisesType implements CommonExtendEnterprisesInterfa
     private static final String searchMapLongitude = "longitude";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CommonSelfEnterprisesType.class);
+
+    @Autowired
+    private EnterpriseManager enterpriseManager;
 
     @Override
     public DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, DrugsEnterprise enterprise) {
@@ -265,7 +270,10 @@ public class CommonSelfEnterprisesType implements CommonExtendEnterprisesInterfa
         //自建药企查询医院库存
         //医院配送查医院库存
         //药企配送则默认有库存
-        if (new Integer(1).equals(drugsEnterprise.getSendType())&&drugsEnterprise.getCheckInventoryFlag()==3){
+        if (null == organId) {
+            organId = drugsEnterprise.getOrganId();
+        }
+        if (new Integer(1).equals(enterpriseManager.getEnterpriseSendType(organId, drugsEnterprise.getId()))&&drugsEnterprise.getCheckInventoryFlag()==3){
             DrugListExtService drugListExtService = AppContextHolder.getBean("eh.drugList", DrugListExtService.class);
             OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
             List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugIds(organId, Arrays.asList(drugId));

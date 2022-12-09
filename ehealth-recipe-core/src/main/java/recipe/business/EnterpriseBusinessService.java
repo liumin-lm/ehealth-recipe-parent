@@ -128,12 +128,22 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
     private EnterpriseClient enterpriseClient;
     @Resource
     private StateManager stateManager;
+    @Resource
+    private OrganAndDrugsepRelationDAO drugsDepRelationDAO;
 
 
     @Override
     public Boolean existEnterpriseByName(String name) {
         List<DrugsEnterprise> drugsEnterprises = enterpriseManager.findAllDrugsEnterpriseByName(name);
         return CollectionUtils.isNotEmpty(drugsEnterprises);
+    }
+
+    public Boolean existEnterpriseByOrganIdAndDepId(Integer organId, Integer depId){
+        OrganAndDrugsepRelation drugsDepRelation = drugsDepRelationDAO.getOrganAndDrugsepByOrganIdAndEntId(organId, depId);
+        if (Objects.nonNull(drugsDepRelation)) {
+            return true;
+        }
+        return false;
     }
 
     @Override
@@ -143,19 +153,27 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
         if(organEnterpriseRelationVo.getEnterpriseDrugForm().size() > 20){
             throw new DAOException("最多支持20种剂型配置");
         }
-        if (Objects.isNull(relation)) {
-            throw new DAOException("机构药企关联关系不存在");
-        }
         String giveModeTypes = StringUtils.join(organEnterpriseRelationVo.getGiveModeTypes(), ByteUtils.COMMA);
-        relation.setDrugsEnterpriseSupportGiveMode(giveModeTypes);
         String recipeTypes = StringUtils.join(organEnterpriseRelationVo.getRecipeTypes(), ByteUtils.COMMA);
-        relation.setEnterpriseRecipeTypes(recipeTypes);
         String decoctionIds = StringUtils.join(organEnterpriseRelationVo.getDecoctionIds(), ByteUtils.COMMA);
-        relation.setEnterpriseDecoctionIds(decoctionIds);
-
-        relation.setEnterpriseDrugForm(JSONArray.toJSONString(organEnterpriseRelationVo.getEnterpriseDrugForm()));
-        relation.setSupportDecoctionState(JSONArray.toJSONString(organEnterpriseRelationVo.getSupportDecoctionType()));
-        organAndDrugsepRelationDAO.updateNonNullFieldByPrimaryKey(relation);
+        if (Objects.isNull(relation)) {
+            OrganAndDrugsepRelation newRelation = new OrganAndDrugsepRelation();
+            newRelation.setDrugsEnterpriseSupportGiveMode(giveModeTypes);
+            newRelation.setDrugsEnterpriseId(organEnterpriseRelationVo.getDrugsEnterpriseId());
+            newRelation.setEnterpriseRecipeTypes(recipeTypes);
+            newRelation.setEnterpriseDecoctionIds(decoctionIds);
+            newRelation.setEnterpriseDrugForm(JSONArray.toJSONString(organEnterpriseRelationVo.getEnterpriseDrugForm()));
+            newRelation.setSupportDecoctionState(JSONArray.toJSONString(organEnterpriseRelationVo.getSupportDecoctionType()));
+            newRelation.setOrganId(organEnterpriseRelationVo.getOrganId());
+            organAndDrugsepRelationDAO.save(newRelation);
+        } else {
+            relation.setDrugsEnterpriseSupportGiveMode(giveModeTypes);
+            relation.setEnterpriseRecipeTypes(recipeTypes);
+            relation.setEnterpriseDecoctionIds(decoctionIds);
+            relation.setEnterpriseDrugForm(JSONArray.toJSONString(organEnterpriseRelationVo.getEnterpriseDrugForm()));
+            relation.setSupportDecoctionState(JSONArray.toJSONString(organEnterpriseRelationVo.getSupportDecoctionType()));
+            organAndDrugsepRelationDAO.updateNonNullFieldByPrimaryKey(relation);
+        }
     }
 
 
@@ -857,6 +875,11 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
             list.add(enterpriseStock);
         });
         return list;
+    }
+
+    public List<DrugsEnterpriseVO> findDrugEnterprise(){
+        List<DrugsEnterprise> drugsEnterprises = drugsEnterpriseDAO.findAllDrugsEnterpriseByStatus(1);
+        return ObjectCopyUtils.convert(drugsEnterprises, DrugsEnterpriseVO.class);
     }
 
     private Integer getEnterpriseSendFlag(DrugsEnterprise enterprise, CheckOrderAddressVo checkOrderAddressVo) {

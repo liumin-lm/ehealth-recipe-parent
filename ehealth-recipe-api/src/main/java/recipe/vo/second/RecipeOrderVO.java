@@ -45,4 +45,7 @@ public class RecipeOrderVO implements Serializable {
 
     @ItemProperty(alias = "订单下处方信息")
     private List<RecipeVo> recipeVos;
+
+    @ItemProperty(alias = "是否失效订单 1 是")
+    private Integer isInvalidOrder;
 }

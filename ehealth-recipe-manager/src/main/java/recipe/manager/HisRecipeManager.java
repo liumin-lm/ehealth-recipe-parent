@@ -10,6 +10,7 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.recipe.dto.EmrDetailDTO;
 import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.entity.*;
+import com.ngari.revisit.common.model.RevisitExDTO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
@@ -64,8 +65,6 @@ public class HisRecipeManager extends BaseManager {
     @Autowired
     private HisRecipeDetailDAO hisRecipeDetailDAO;
     @Autowired
-    private EmrRecipeManager emrRecipeManager;
-    @Autowired
     private HisRecipeDataDelDAO hisRecipeDataDelDAO;
     @Autowired
     private StateManager stateManager;
@@ -75,8 +74,6 @@ public class HisRecipeManager extends BaseManager {
     private PayClient payClient;
     @Autowired
     private RecipeBeforeOrderDAO recipeBeforeOrderDAO;
-    @Autowired
-    private OrganDrugListDAO organDrugListDAO;
 
     /**
      * 获取患者信息
@@ -100,7 +97,7 @@ public class HisRecipeManager extends BaseManager {
      */
     public HisResponseTO<List<QueryHisRecipResTO>> queryData(Integer organId, PatientDTO patientDTO, Integer timeQuantum, Integer flag, String recipeCode) {
         LOGGER.info("HisRecipeManager queryData param organId:{},patientDTO:{},timeQuantum:{},flag:{},recipeCode:{}", organId, JSONUtils.toString(patientDTO), timeQuantum, flag, recipeCode);
-        HisResponseTO<List<QueryHisRecipResTO>> responseTo = offlineRecipeClient.queryData(organId, patientDTO, timeQuantum, flag, recipeCode);
+        HisResponseTO<List<QueryHisRecipResTO>> responseTo = offlineRecipeClient.queryData(organId, patientDTO, timeQuantum, flag, recipeCode,null,null);
         //过滤数据
         HisResponseTO<List<QueryHisRecipResTO>> res = filterData(responseTo, recipeCode, flag);
         logger.info("HisRecipeManager res:{}.", JSONUtils.toString(res));
@@ -122,16 +119,16 @@ public class HisRecipeManager extends BaseManager {
         LOGGER.info("HisRecipeManager queryHisRecipeData param organId:{},patientDTO:{},timeQuantum:{},flag:{},recipeCode:{}", organId, JSONUtils.toString(patientDTO), timeQuantum, flag, recipeCode);
         HisResponseTO<List<QueryHisRecipResTO>> responseTo = new HisResponseTO<List<QueryHisRecipResTO>>();
         if (HisRecipeConstant.HISRECIPESTATUS_NOIDEAL.equals(flag)) {
-            responseTo = offlineRecipeClient.queryData(organId, patientDTO, timeQuantum, flag, recipeCode);
+            responseTo = offlineRecipeClient.queryData(organId, patientDTO, timeQuantum, flag, recipeCode,null,null);
             //过滤数据
             responseTo = filterData(responseTo, recipeCode, flag);
         } else if (HisRecipeConstant.HISRECIPESTATUS_ALREADYIDEAL.equals(flag)) {
             List<QueryHisRecipResTO> queryHisRecipResToList = new ArrayList<>();
             Future<HisResponseTO<List<QueryHisRecipResTO>>> hisTask1 = GlobalEventExecFactory.instance().getExecutor().submit(() -> {
-                return offlineRecipeClient.queryData(organId, patientDTO, timeQuantum, HisRecipeConstant.HISRECIPESTATUS_ALREADYIDEAL, recipeCode);
+                return offlineRecipeClient.queryData(organId, patientDTO, timeQuantum, HisRecipeConstant.HISRECIPESTATUS_ALREADYIDEAL, recipeCode,null,null);
             });
             Future<HisResponseTO<List<QueryHisRecipResTO>>> hisTask2 = GlobalEventExecFactory.instance().getExecutor().submit(() -> {
-                return offlineRecipeClient.queryData(organId, patientDTO, timeQuantum, HisRecipeConstant.HISRECIPESTATUS_EXPIRED, recipeCode);
+                return offlineRecipeClient.queryData(organId, patientDTO, timeQuantum, HisRecipeConstant.HISRECIPESTATUS_EXPIRED, recipeCode,null,null);
             });
             try {
                 HisResponseTO<List<QueryHisRecipResTO>> hisResponseTO1 = hisTask1.get(60000, TimeUnit.MILLISECONDS);
@@ -244,8 +241,15 @@ public class HisRecipeManager extends BaseManager {
                 RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
                 EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
                 recipeExtendDAO.saveOrUpdateRecipeExtend(recipeExtend);
-
-                emrRecipeManager.saveMedicalInfo(recipe, recipeExtend);
+                try {
+                    if (null != recipeExtend.getDocIndexId()) {
+                        return;
+                    }
+                    String doctorName = doctorClient.getDoctor(recipe.getDoctor()).getName();
+                    docIndexClient.addMedicalInfo(recipe, recipeExtend, doctorName);
+                } catch (Exception e) {
+                    logger.error("HisRecipeManager updateHisRecipe 电子病历保存失败", e);
+                }
             }
         });
         LOGGER.info("HisRecipeManager updateHisRecipe response hisRecipeMap:{}", JSONUtils.toString(hisRecipeMap));
@@ -669,10 +673,12 @@ public class HisRecipeManager extends BaseManager {
     public RecipeInfoDTO pushRecipe(RecipeInfoDTO recipePdfDTO, Integer pushType, Map<Integer, PharmacyTcm> pharmacyIdMap,
                                     Integer sysType, String giveModeKey) throws Exception {
         EmrDetailDTO emrDetail = emrDetail(recipePdfDTO);
+        Integer clinicId = recipePdfDTO.getRecipe().getClinicId();
+        RevisitExDTO revisitEx = revisitClient.getByClinicId(clinicId);
         if (CommonConstant.RECIPE_DOCTOR_TYPE.equals(sysType)) {
-            return offlineRecipeClient.pushRecipe(pushType, recipePdfDTO, emrDetail, pharmacyIdMap, giveModeKey);
+            return offlineRecipeClient.pushRecipe(pushType, recipePdfDTO, emrDetail, pharmacyIdMap, giveModeKey, revisitEx);
         } else {
-            return offlineRecipeClient.patientPushRecipe(pushType, recipePdfDTO, emrDetail, pharmacyIdMap, giveModeKey);
+            return offlineRecipeClient.patientPushRecipe(pushType, recipePdfDTO, emrDetail, pharmacyIdMap, giveModeKey, revisitEx);
         }
     }
 

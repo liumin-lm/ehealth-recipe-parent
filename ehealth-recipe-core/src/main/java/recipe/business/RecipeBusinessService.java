@@ -6,6 +6,9 @@ import com.google.common.collect.Lists;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.common.dto.Buss2SessionMsg;
+import com.ngari.common.dto.CheckRequestCommonOrderItemDTO;
+import com.ngari.common.dto.CheckRequestCommonOrderPageDTO;
+import com.ngari.common.dto.SyncOrderVO;
 import com.ngari.follow.utils.ObjectCopyUtil;
 import com.ngari.his.recipe.mode.OutPatientRecipeReq;
 import com.ngari.his.recipe.mode.OutRecipeDetailReq;
@@ -13,6 +16,7 @@ import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.dto.*;
+import com.ngari.patient.service.*;
 import com.ngari.patient.service.IUsePathwaysService;
 import com.ngari.patient.service.IUsingRateService;
 import com.ngari.patient.service.PatientService;
@@ -60,9 +64,7 @@ import recipe.constant.ReviewTypeConstant;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.dao.*;
 import recipe.enumerate.status.*;
-import recipe.enumerate.type.BussSourceTypeEnum;
-import recipe.enumerate.type.PayFlagEnum;
-import recipe.enumerate.type.PayFlowTypeEnum;
+import recipe.enumerate.type.*;
 import recipe.hisservice.QueryRecipeService;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.manager.*;
@@ -70,7 +72,6 @@ import recipe.presettle.RecipeOrderTypeEnum;
 import recipe.purchase.CommonOrder;
 import recipe.service.*;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
-import recipe.serviceprovider.recipelog.service.RemoteRecipeLogService;
 import recipe.serviceprovider.recipeorder.service.RemoteRecipeOrderService;
 import recipe.util.*;
 import recipe.vo.PageGenericsVO;
@@ -148,15 +149,9 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     @Autowired
     private OrganClient organClient;
     @Autowired
-    private IUsingRateService usingRateService;
-    @Autowired
-    private IUsePathwaysService usePathwaysService;
-    @Autowired
     private DrugDecoctionWayDao drugDecoctionWayDAO;
     @Autowired
     private OrderManager orderManager;
-    @Autowired
-    private RemoteRecipeLogService recipeLogService;
     @Autowired
     private RemoteRecipeOrderService recipeOrderService;
     @Autowired
@@ -171,6 +166,8 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     private RecipeListService recipeListService;
     @Autowired
     private DrugClient drugClient;
+    @Autowired
+    private OrganAndDrugsepRelationDAO drugsDepRelationDAO;
     @Autowired
     private PatientService patientService;
     @Autowired
@@ -495,10 +492,10 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             recipeList = recipeDAO.findByRecipeCodeAndRegisterIdAndOrganId(registerId, organId);
         } else {
             //获取当前一个月的时间段
-            Date lastMonthDate = DateConversion.getMonthsAgo(1);
+            Date lastMonthDate = DateConversion.getDateTimeDaysAgo(10);
             recipeList = recipeDAO.findRecipeCodesByOrderIdAndTime(organId, lastMonthDate, new Date());
         }
-        logger.info("RecipeBusinessService getByRecipeCodeAndRegisterIdAndOrganId recipeList:{}", JSON.toJSONString(recipeList));
+        logger.info("RecipeBusinessService getByRecipeCodeAndRegisterIdAndOrganId recipeList size:{}", recipeList.size());
         //查看recipeCode是否在recipeCodeList中，这里可能存在这种数据["1212","1222,1211","2312"]
         List<Recipe> result = new ArrayList<>();
         recipeList.forEach(a -> {
@@ -872,7 +869,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         if (StringUtils.isNotBlank(usingRateStr)) {
             String[] usingRateArray = usingRateStr.split(",");
             for (String singleUsingRateId : usingRateArray) {
-                UsingRateDTO usingRateDTO = usingRateService.getById(Integer.parseInt(singleUsingRateId));
+                UsingRateDTO usingRateDTO = drugClient.getUsingRateById(Integer.parseInt(singleUsingRateId));
                 if (Objects.nonNull(usingRateDTO)) {
                     usingRateDTOList.add(usingRateDTO);
                 }
@@ -885,7 +882,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         if (StringUtils.isNotBlank(usePathwayStr)) {
             String[] usePathwayArray = usePathwayStr.split(",");
             for (String singleUsePathwayId : usePathwayArray) {
-                UsePathwaysDTO usePathwaysDTO = usePathwaysService.getById(Integer.parseInt(singleUsePathwayId));
+                UsePathwaysDTO usePathwaysDTO = drugClient.getUsePathwaysById(Integer.parseInt(singleUsePathwayId));
                 if (Objects.nonNull(usePathwaysDTO)) {
                     usePathwayDTOList.add(usePathwaysDTO);
                 }
@@ -1067,11 +1064,18 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             order.setSettleAmountState(SettleAmountStateEnum.SETTLE_SUCCESS.getType());
             order.setEnterpriseId(recipeBeforeOrder.getEnterpriseId());
             DrugsEnterprise dep = drugsEnterpriseDAO.get(recipeBeforeOrder.getEnterpriseId());
+            OrganAndDrugsepRelation drugsDepRelation = drugsDepRelationDAO.getOrganAndDrugsepByOrganIdAndEntId(order.getOrganId(), dep.getId());
             if (dep != null) {
                 order.setEnterpriseName(dep.getName());
                 //设置配送费支付方式
                 order.setExpressFeePayWay(dep.getExpressFeePayWay());
-                order.setSendType(dep.getSendType());
+                String giveModeSupport = drugsDepRelation.getDrugsEnterpriseSupportGiveMode();
+                if (giveModeSupport.contains(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType().toString())) {
+                    order.setSendType(RecipeSendTypeEnum.ALRAEDY_PAY.getSendType());
+                }
+                if (giveModeSupport.contains(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType().toString())) {
+                    order.setSendType(RecipeSendTypeEnum.NO_PAY.getSendType());
+                }
                 //设置是否显示期望配送时间,默认否 0:否,1:是
                 order.setIsShowExpectSendDate(dep.getIsShowExpectSendDate());
             }
@@ -1157,23 +1161,33 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         if (Objects.nonNull(recipePayHISCallbackReq.getSettleMode())) {
             order.setSettleMode(recipePayHISCallbackReq.getSettleMode());
         }
+        //处方预结算返回支付总金额
         if (Objects.nonNull(recipePayHISCallbackReq.getPreSettleTotalAmount())) {
             order.setPreSettletotalAmount(recipePayHISCallbackReq.getPreSettleTotalAmount().doubleValue());
         }
+        //处方预结算返回自费金额
         if (Objects.nonNull(recipePayHISCallbackReq.getCashAmount())) {
             order.setCashAmount(recipePayHISCallbackReq.getCashAmount().doubleValue());
         }
+        //处方预结算返回医保支付金额
         if (Objects.nonNull(recipePayHISCallbackReq.getFundAmount())) {
             order.setFundAmount(recipePayHISCallbackReq.getFundAmount().doubleValue());
         }
+        //处方预结算返回HIS收据号
         if (StringUtils.isNotEmpty(recipePayHISCallbackReq.getHisSettlementNo())) {
             order.setHisSettlementNo(recipePayHISCallbackReq.getHisSettlementNo());
         }
+        //商户订单号
         if (StringUtils.isNotEmpty(recipePayHISCallbackReq.getOutTradeNo())) {
             order.setOutTradeNo(recipePayHISCallbackReq.getOutTradeNo());
         }
+        //交易流水号
         if (StringUtils.isNotEmpty(recipePayHISCallbackReq.getTradeNo())) {
             order.setTradeNo(recipePayHISCallbackReq.getTradeNo());
+        }
+        //是否医保
+        if (null != recipePayHISCallbackReq.getOrderType()) {
+            order.setOrderType(recipePayHISCallbackReq.getOrderType());
         }
         recipeOrderDAO.update(order);
     }
@@ -1190,7 +1204,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         }
         if (CollectionUtils.isNotEmpty(recipeIdList)) {
             for (int i = 0; i < recipeIdList.size(); i++) {
-                recipeLogService.saveRecipeLog(recipeIdList.get(i), eh.cdr.constant.RecipeStatusConstant.UNKNOW, eh.cdr.constant.RecipeStatusConstant.UNKNOW, memo);
+                RecipeLogService.saveRecipeLog(recipeIdList.get(i), eh.cdr.constant.RecipeStatusConstant.UNKNOW, eh.cdr.constant.RecipeStatusConstant.UNKNOW, memo);
             }
         }
     }
@@ -1370,6 +1384,130 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         return recipeToGuideResVOS;
     }
 
+
+    @Override
+    public Integer findRecipeCountForAutomaton(AutomatonVO findRecipeCountForAutomaton) {
+        return recipeDAO.getRecipeCountForAutomaton(findRecipeCountForAutomaton);
+    }
+
+
+    @Override
+    public List<AutomatonCountVO> findRecipeTop5ForAutomaton(AutomatonVO automatonVO) {
+        return recipeDAO.findRecipeTop5ForAutomaton(automatonVO);
+    }
+
+
+    @Override
+    public List<AutomatonCountVO> findRecipeEveryDayForAutomaton(AutomatonVO automatonVO) {
+        List<AutomatonCountVO> automatonCountVOs=new ArrayList<>();
+        Map<String,AutomatonCountVO> resultMap=new HashMap<>();
+        AutomatonVO applyAutomatonVO=new AutomatonVO();
+        AutomatonVO finishAutomatonVO=new AutomatonVO();
+        org.springframework.beans.BeanUtils.copyProperties(automatonVO, applyAutomatonVO);
+        org.springframework.beans.BeanUtils.copyProperties(automatonVO, finishAutomatonVO);
+        applyAutomatonVO.setProcessStateList(automatonVO.getApplyProcessStateList());
+        finishAutomatonVO.setProcessStateList(automatonVO.getFinishProcessStateList());
+        Map<String,Integer> applyMap=recipeDAO.findRecipeEveryDayForAutomaton(applyAutomatonVO);
+        Map<String,Integer> finishMap=recipeDAO.findRecipeEveryDayForAutomaton(finishAutomatonVO);
+
+        applyMap.forEach((key,value) -> {
+            AutomatonCountVO automatonCountVO=new AutomatonCountVO();
+            automatonCountVO.setApplyAount(value);
+            automatonCountVO.setTime(key);
+            resultMap.put(key,automatonCountVO);
+        });
+        finishMap.forEach((key,value) -> {
+            AutomatonCountVO automatonCountVO=new AutomatonCountVO();
+            if(resultMap.containsKey(key)){
+                automatonCountVO=resultMap.get(key);
+            }else{
+                automatonCountVO.setTime(key);
+            }
+            automatonCountVO.setFinishAount(value);
+            resultMap.put(key,automatonCountVO);
+        });
+        automatonCountVOs = resultMap.values().stream().collect(Collectors.toList());
+        if(CollectionUtils.isNotEmpty(automatonCountVOs)){
+            automatonCountVOs = automatonCountVOs.stream().sorted(Comparator.comparing(AutomatonCountVO::getTime)).collect(Collectors.toList());
+        }
+        return automatonCountVOs;
+    }
+
+    @Override
+    public RecipeVo getRecipeByBusId(Integer recipeId) {
+        Recipe recipe = recipeDAO.get(recipeId);
+        if (Objects.isNull(recipe)) {
+            return null;
+        }
+        RecipeVo recipeVo = new RecipeVo();
+        recipeVo.setOrganDiseaseName(recipe.getOrganDiseaseName());
+        recipeVo.setOrganName(recipe.getOrganName());
+        recipeVo.setRecipeId(recipe.getRecipeId());
+        recipeVo.setDepart(DictionaryUtil.getDictionary("eh.base.dictionary.Depart", recipe.getDepart()));
+        if (null != recipe.getDoctor()) {
+            DoctorDTO doctorDTO = doctorClient.getDoctor(recipe.getDoctor());
+            recipeVo.setDoctor(doctorDTO.getName());
+        }
+        recipeVo.setSignDate(recipe.getSignDate());
+        recipeVo.setTotalMoney(recipe.getTotalMoney());
+        recipeVo.setProcessState(recipe.getProcessState());
+        recipeVo.setProcessStateText(RecipeStateEnum.getRecipeStateEnum(recipe.getProcessState()).getName());
+        recipeVo.setMpiid(recipe.getMpiid());
+        recipeVo.setLastModify(recipe.getLastModify());
+        return recipeVo;
+    }
+    @Override
+    public CheckRequestCommonOrderPageDTO findRecipePageForCommonOrder(SyncOrderVO request) {
+        logger.info("findRecipePageForCommonOrder param ={}", JSON.toJSONString(request));
+        CheckRequestCommonOrderPageDTO pageDTO = new CheckRequestCommonOrderPageDTO();
+        if (request.getPage() == null || request.getSize() == null) {
+            return pageDTO;
+        }
+        Integer start = (request.getPage() - 1) * request.getSize();
+        Integer limit = request.getSize();
+
+        QueryResult<Recipe> queryResult = recipeDAO.queryPageForCommonOrder(request.getStartDate(),
+                request.getEndDate(), start, limit);
+        if (queryResult == null) {
+            return pageDTO;
+        }
+        if (CollectionUtils.isEmpty(queryResult.getItems())) {
+            return pageDTO;
+        }
+        pageDTO.setTotal(Integer.parseInt(String.valueOf(queryResult.getTotal())));
+        pageDTO.setPage(request.getPage());
+        pageDTO.setSize(request.getSize());
+        List<CheckRequestCommonOrderItemDTO> order = new ArrayList<>();
+        PatientService patientService = BasicAPI.getService(PatientService.class);
+        for (Recipe recipe : queryResult.getItems()) {
+            CheckRequestCommonOrderItemDTO orderItem = new CheckRequestCommonOrderItemDTO();
+            String userId = patientService.getLoginIdByMpiId(recipe.getMpiid());
+            orderItem.setUserId(userId);
+            orderItem.setMpiId(recipe.getMpiid());
+            orderItem.setBusType("recipeInfo");
+            orderItem.setBusId(recipe.getRecipeId());
+            orderItem.setBusStatus(recipe.getProcessState());
+            orderItem.setBusDate(recipe.getSignDate());
+            orderItem.setCreateDate(recipe.getSignDate());
+            orderItem.setLastModify(recipe.getLastModify());
+            orderItem.setDbData(recipe);
+            order.add(orderItem);
+        }
+        pageDTO.setOrder(order);
+        logger.info("findRecipePageForCommonOrder result ={}", JSON.toJSONString(pageDTO));
+        return pageDTO;
+    }
+
+    @Override
+    public List<RecipeBean> findAuditOverTimeRecipeList(Date startTime, Date endTime, List<Integer> organIds) {
+        logger.info("findAuditOverTimeRecipeList startTime={}, endTime={}, organIds={}", startTime, endTime, JSON.toJSONString(organIds));
+        List<Recipe> result = recipeDAO.findAuditOverTimeRecipeList(startTime, endTime, organIds);
+        if (CollectionUtils.isEmpty(result)) {
+            return Lists.newArrayList();
+        } else {
+            return BeanCopyUtils.copyList(result, RecipeBean::new);
+        }
+    }
     @Override
     public Integer stagingRecipe(RecipeInfoVO recipeInfoVO) {
         RecipeBean recipeBean = recipeInfoVO.getRecipeBean();

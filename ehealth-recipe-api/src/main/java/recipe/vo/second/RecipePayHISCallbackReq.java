@@ -49,4 +49,7 @@ public class RecipePayHISCallbackReq implements Serializable {
 
     @ItemProperty(alias = "结算模式 1 不走结算 ")
     private Integer settleMode;
+
+    @ItemProperty(alias = "订单类型 1表示医保 其他自费")
+    private Integer orderType;
 }

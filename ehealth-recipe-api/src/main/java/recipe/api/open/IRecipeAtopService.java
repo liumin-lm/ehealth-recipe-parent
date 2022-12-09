@@ -1,5 +1,7 @@
 package recipe.api.open;
 
+import com.ngari.common.dto.CheckRequestCommonOrderPageDTO;
+import com.ngari.common.dto.SyncOrderVO;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.RecipeInfoTO;
 import com.ngari.platform.recipe.mode.OutpatientPaymentRecipeDTO;
@@ -235,10 +237,30 @@ public interface IRecipeAtopService {
 
 
     /**
-     * 根据mpiid,recipeStatus获取处方  自助机用
+     * 自助机——根据mpiid,recipeStatus获取处方
      */
     @RpcService
     List<RecipeBean> findRecipeByMpiidAndrecipeStatus(String mpiid, List<Integer> recipeStatus,Integer terminalType,Integer organId);
+
+    /**
+     * 自助机——工作台大盘数据 根据时间等查询处方申请量/完成量
+     */
+    @RpcService
+    AutomatonCountVO findRecipeCountForAutomaton(AutomatonVO automatonVO);
+
+    /**
+     * 自助机——工作台大盘数据 处方订单趋势 根据时间等查询每一天的申请量/完成量
+     */
+    @RpcService
+    List<AutomatonCountVO> findRecipeEveryDayForAutomaton(AutomatonVO automatonVO);
+
+    /**
+     * 自助机——工作台大盘数据 根据时间等查询电子处方机构top5
+     */
+    @RpcService
+    List<AutomatonCountVO> findRecipeTop5ForAutomaton(AutomatonVO automatonVO);
+
+
 
     /**
      * his支付回调
@@ -304,6 +326,13 @@ public interface IRecipeAtopService {
      */
     @RpcService(mvcDisabled = true)
     List<RecipeInfoTO> patientOfflineRecipe(Integer organId, String patientId, String patientName, Date startTime, Date endTime);
+    /**
+     *  端 药品处方 历史数据同步使用
+     * @param request
+     * @return
+     */
+    @RpcService(mvcDisabled = true)
+    CheckRequestCommonOrderPageDTO findRecipePageForCommonOrder(SyncOrderVO request);
 
     /**
      * 日志分析接口
@@ -321,4 +350,25 @@ public interface IRecipeAtopService {
      */
     @RpcService(mvcDisabled = true)
     List<RecipeToGuideResVO> findRecipeByClinicId(Integer clinicId);
+
+    /**
+     * 订单中心--根据处方id查询处方信息
+     *
+     * @param recipeId 处方id
+     * @return
+     */
+    @RpcService(mvcDisabled = true)
+    RecipeVo getRecipeByBusId(Integer recipeId);
+
+    /**
+     * 查询超时未审核的处方单（10分钟未审核定义为超时）
+     *
+     * @param startTime
+     * @param endTime
+     * @param organIds
+     * @return
+     */
+    @RpcService(mvcDisabled = true)
+    List<RecipeBean> findAuditOverTimeRecipeList(Date startTime, Date endTime, List<Integer> organIds);
+
 }

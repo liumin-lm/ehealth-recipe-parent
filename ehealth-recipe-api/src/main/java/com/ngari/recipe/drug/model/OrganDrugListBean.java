@@ -220,6 +220,73 @@ public class OrganDrugListBean implements java.io.Serializable {
     @ItemProperty(alias = "国家医保代码")
     private String nationalMedicalCode;
 
+    @ItemProperty(alias = "是否皮试药品 0 否 1 是")
+    private Integer skinTestDrugFlag;
+
+    @ItemProperty(alias = "是否国家标准药品 0 否 1 是")
+    private Integer nationalStandardDrugFlag;
+
+    @ItemProperty(alias = "his药品分类名称")
+    private String hisDrugClassName;
+
+    @ItemProperty(alias = "his药品分类编码")
+    private String hisDrugClassCode;
+
+    @ItemProperty(alias = "中药国标编码")
+    private String tcmNationalStandardCode;
+
+//    @ItemProperty(alias = "是否冷链运输 0 否 1 是")
+//    private Integer coldChainTransportationFlag;
+
+
+    public String getTcmNationalStandardCode() {
+        return tcmNationalStandardCode;
+    }
+
+    public void setTcmNationalStandardCode(String tcmNationalStandardCode) {
+        this.tcmNationalStandardCode = tcmNationalStandardCode;
+    }
+
+    public Integer getSkinTestDrugFlag() {
+        return skinTestDrugFlag;
+    }
+
+    public void setSkinTestDrugFlag(Integer skinTestDrugFlag) {
+        this.skinTestDrugFlag = skinTestDrugFlag;
+    }
+
+    public Integer getNationalStandardDrugFlag() {
+        return nationalStandardDrugFlag;
+    }
+
+    public void setNationalStandardDrugFlag(Integer nationalStandardDrugFlag) {
+        this.nationalStandardDrugFlag = nationalStandardDrugFlag;
+    }
+
+    public String getHisDrugClassName() {
+        return hisDrugClassName;
+    }
+
+    public void setHisDrugClassName(String hisDrugClassName) {
+        this.hisDrugClassName = hisDrugClassName;
+    }
+
+    public String getHisDrugClassCode() {
+        return hisDrugClassCode;
+    }
+
+    public void setHisDrugClassCode(String hisDrugClassCode) {
+        this.hisDrugClassCode = hisDrugClassCode;
+    }
+
+//    public Integer getColdChainTransportationFlag() {
+//        return coldChainTransportationFlag;
+//    }
+//
+//    public void setColdChainTransportationFlag(Integer coldChainTransportationFlag) {
+//        this.coldChainTransportationFlag = coldChainTransportationFlag;
+//    }
+
     public String getNationalMedicalCode() {
         return nationalMedicalCode;
     }

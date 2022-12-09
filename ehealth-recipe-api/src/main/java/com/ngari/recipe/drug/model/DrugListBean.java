@@ -209,6 +209,17 @@ public class DrugListBean implements IDrugInventory, Serializable {
     @ItemProperty(alias = "国家医保代码")
     private String nationalMedicalCode;
 
+    @ItemProperty(alias = "中药国标编码")
+    private String tcmNationalStandardCode;
+
+    public String getTcmNationalStandardCode() {
+        return tcmNationalStandardCode;
+    }
+
+    public void setTcmNationalStandardCode(String tcmNationalStandardCode) {
+        this.tcmNationalStandardCode = tcmNationalStandardCode;
+    }
+
     public Integer getUnilateralCompound() {
         return unilateralCompound;
     }

@@ -1,5 +1,6 @@
 package recipe.dao;
 
+import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeLog;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;
@@ -10,8 +11,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.joda.time.DateTime;
+import recipe.enumerate.status.RecipeStateEnum;
 
 import java.util.List;
+
+import static ctd.persistence.DAOFactory.getDAO;
 
 /**
  * 处方流程记录
@@ -32,6 +36,13 @@ public abstract class RecipeLogDAO extends HibernateSupportDelegateDAO<RecipeLog
     }
 
     public boolean saveRecipeLog(RecipeLog log) {
+        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
+        Recipe recipe = recipeDAO.getByRecipeId(log.getRecipeId());
+        log.setProcessState(recipe.getProcessState());
+        log.setSubState(recipe.getSubState());
+        if (StringUtils.isEmpty(log.getMemo())) {
+            log.setMemo(RecipeStateEnum.getRecipeStateEnum(recipe.getSubState()).getName());
+        }
         log.setMemo(StringUtils.defaultString(log.getMemo(), ""));
         log.setExpand(StringUtils.defaultString(log.getExpand(), ""));
         log.setModifyDate(DateTime.now().toDate());
@@ -47,7 +58,7 @@ public abstract class RecipeLogDAO extends HibernateSupportDelegateDAO<RecipeLog
         recipeLog.setBeforeStatus(beforeStatus);
         recipeLog.setAfterStatus(afterStatus);
         recipeLog.setMemo(memo);
-        saveRecipeLog(recipeLog);
+        this.saveRecipeLog(recipeLog);
     }
 
     /**

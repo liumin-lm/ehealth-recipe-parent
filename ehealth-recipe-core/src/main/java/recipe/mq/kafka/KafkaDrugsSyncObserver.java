@@ -72,14 +72,17 @@ public class KafkaDrugsSyncObserver implements Observer<String> {
                 // 武昌药品数据变更要同步his
                 List<DrugList> finalDrugList = drugLists;
                 try {
-                    RecipeBusiThreadPool.submit(() -> {
-                        RecipeHisService recipeHisService = RecipeAPI.getService(RecipeHisService.class);
-                        recipeHisService.syncDrugListToHis(finalDrugList);
-                        return null;
-                    });
+                    if (drugLists.get(0).getSourceOrgan() == 1001780) {
+                        RecipeBusiThreadPool.submit(() -> {
+                            RecipeHisService recipeHisService = RecipeAPI.getService(RecipeHisService.class);
+                            recipeHisService.syncDrugListToHis(finalDrugList);
+                            return null;
+                        });
+                    }
                 } catch (Exception e) {
                     LOG.error("武昌药品数据变更要同步his error", e);
                 }
+
                 // 先更新 drugList
                 drugManager.updateDrugListToEs(drugLists, deleteFlag);
                 // 再处理OrganDrugList信息

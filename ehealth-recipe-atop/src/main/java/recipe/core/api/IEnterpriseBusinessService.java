@@ -42,6 +42,14 @@ public interface IEnterpriseBusinessService {
     Boolean existEnterpriseByName(String name);
 
     /**
+     * 查询药企是否存在于流转药企中
+     * @param organId
+     * @param depId
+     * @return
+     */
+    Boolean existEnterpriseByOrganIdAndDepId(Integer organId, Integer depId);
+
+    /**
      * 保存机构药企关联关系
      * @param organEnterpriseRelationVo
      */
@@ -299,5 +307,11 @@ public interface IEnterpriseBusinessService {
      * @return
      */
     List<EnterpriseStock> enterprisesList(Integer organId);
+
+    /**
+     * 查询药企
+     * @return
+     */
+    List<DrugsEnterpriseVO> findDrugEnterprise();
 
 }

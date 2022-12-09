@@ -8,6 +8,7 @@ import com.ngari.base.esign.model.CoOrdinateVO;
 import com.ngari.base.esign.model.SignRecipePdfVO;
 import com.ngari.base.esign.service.IESignBaseService;
 import com.ngari.his.ca.model.CaSealRequestTO;
+import com.ngari.recipe.dto.AttachSealPicDTO;
 import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.dto.RecipeLabelDTO;
 import com.ngari.recipe.dto.SignImgNode;
@@ -29,8 +30,10 @@ import recipe.bussutil.WordToPdfBean;
 import recipe.constant.ErrorCode;
 import recipe.constant.OperationConstant;
 import recipe.constant.birthdayToAgeConstant;
+import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.enumerate.type.DrugBelongTypeEnum;
+import recipe.manager.CaManager;
 import recipe.manager.RecipeDetailManager;
 import recipe.manager.RedisManager;
 import recipe.util.*;
@@ -60,7 +63,7 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
      */
     private final String RECIPE = OP_RECIPE + DOT_EN;
     private final String EXTEND = OP_RECIPE_EXTEND + DOT_EN;
-    private final List<String> ADDITIONAL_FIELDS = Arrays.asList(RECIPE + OP_RECIPE_DOCTOR, RECIPE + OP_RECIPE_CHECKER,
+    private final List<String> ADDITIONAL_FIELDS = Arrays.asList(RECIPE + OP_RECIPE_DOCTOR, RECIPE + OP_RECIPE_DOCTOR_TCM_CONTRAINDICATION, RECIPE + OP_RECIPE_CHECKER,
             RECIPE + OP_RECIPE_GIVE_USER, RECIPE + OP_RECIPE_ACTUAL_PRICE, OP_BARCODE_ALL, EXTEND + OP_RECIPE_EXTEND_SUPERVISE
             , "recipe.patientID", "recipe.recipeCode", "address", "recipeExtend.decoctionText", "recipe.organName", "recipeOrder.dispensingTime", "recipeExtend.medicalRecordNumber");
     @Autowired
@@ -71,7 +74,10 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
     private IESignBaseService esignService;
     @Autowired
     private RecipeDetailManager recipeDetailManager;
-
+    @Resource
+    private CaManager caManager;
+    @Autowired
+    private RecipeDetailDAO recipeDetailDAO;
 
     @Override
     public byte[] queryPdfByte(Recipe recipe) throws Exception {
@@ -135,6 +141,32 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
         signImgNode.setX(ordinateVO.getX().floatValue());
         signImgNode.setY(ordinateVO.getY().floatValue());
         return CreateRecipePdfUtil.generateSignImgNode(signImgNode);
+    }
+
+    @Override
+    public byte[] tcmContraindicationTypePdf(byte[] data, Recipe recipe) throws Exception {
+        List<Recipedetail> recipedetail = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
+        boolean tcmContraindicationType = recipedetail.stream().allMatch(a -> ValidateUtil.integerIsEmpty(a.getTcmContraindicationType()));
+        if (tcmContraindicationType) {
+            return data;
+        }
+        logger.info("CustomCreatePdfServiceImpl tcmContraindicationTypePdf recipe = {}", JSON.toJSONString(recipe));
+        CoOrdinateVO ordinateVO = redisManager.getPdfCoords(recipe.getRecipeId(), RECIPE + OP_RECIPE_DOCTOR_TCM_CONTRAINDICATION);
+        if (null == ordinateVO) {
+            return data;
+        }
+        AttachSealPicDTO sttachSealPicDTO = caManager.attachSealPic(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getChecker(), recipe.getRecipeId());
+        SignImgNode signImgNode = new SignImgNode();
+        signImgNode.setRecipeId(recipe.getRecipeId().toString());
+        signImgNode.setSignImgFileId(sttachSealPicDTO.getDoctorSignImg());
+        signImgNode.setHeight(20f);
+        signImgNode.setWidth(40f);
+        signImgNode.setRepeatWrite(false);
+        signImgNode.setSignFileData(data);
+        signImgNode.setX(ordinateVO.getX().floatValue());
+        signImgNode.setY(ordinateVO.getY().floatValue());
+        String signFileId = CreateRecipePdfUtil.generateSignImgNode(signImgNode);
+        return CreateRecipePdfUtil.signFileByte(signFileId);
     }
 
     @Override

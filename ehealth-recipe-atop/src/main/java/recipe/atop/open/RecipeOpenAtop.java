@@ -1,6 +1,8 @@
 package recipe.atop.open;
 
 import com.alibaba.fastjson.JSONArray;
+import com.ngari.common.dto.CheckRequestCommonOrderPageDTO;
+import com.ngari.common.dto.SyncOrderVO;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.RecipeInfoTO;
 import com.ngari.patient.dto.DoctorDTO;
@@ -312,10 +314,28 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
     }
 
     @Override
-    @LogRecord
     public List<RecipeBean> findRecipeByMpiidAndrecipeStatus(String mpiid, List<Integer> recipeStatus,Integer terminalType,Integer organId) {
         return com.ngari.patient.utils.ObjectCopyUtils.convert(recipeBusinessService.findRecipeByMpiidAndrecipeStatus(mpiid, recipeStatus, terminalType, organId), RecipeBean.class);
     }
+
+    @Override
+    public AutomatonCountVO findRecipeCountForAutomaton(AutomatonVO automatonVO) {
+        AutomatonCountVO automatonCountVO=new AutomatonCountVO();
+        automatonCountVO.setCount(recipeBusinessService.findRecipeCountForAutomaton(automatonVO));
+        return automatonCountVO;
+    }
+
+    @Override
+    public List<AutomatonCountVO> findRecipeEveryDayForAutomaton(AutomatonVO automatonVO) {
+        List<AutomatonCountVO> automatonCountVOS=recipeBusinessService.findRecipeEveryDayForAutomaton(automatonVO);
+        return automatonCountVOS;
+    }
+
+    @Override
+    public List<AutomatonCountVO> findRecipeTop5ForAutomaton(AutomatonVO automatonVO) {
+        return recipeBusinessService.findRecipeTop5ForAutomaton(automatonVO);
+    }
+
 
     @Override
     public HisResponseTO recipePayHISCallback(RecipePayHISCallbackReq recipePayHISCallbackReq) {
@@ -398,5 +418,25 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
     @Override
     public List<RecipeToGuideResVO> findRecipeByClinicId(Integer clinicId) {
         return recipeBusinessService.findRecipeByClinicId(clinicId);
+    }
+
+    @Override
+    public RecipeVo getRecipeByBusId(Integer recipeId) {
+        return recipeBusinessService.getRecipeByBusId(recipeId);
+    }
+
+    @Override
+    public CheckRequestCommonOrderPageDTO findRecipePageForCommonOrder(SyncOrderVO request) {
+        CheckRequestCommonOrderPageDTO checkRequestCommonOrderPageDTO = new CheckRequestCommonOrderPageDTO();
+        if (request.getPage() == null || request.getSize() == null) {
+            return checkRequestCommonOrderPageDTO;
+        }
+        checkRequestCommonOrderPageDTO = recipeBusinessService.findRecipePageForCommonOrder(request);
+        return checkRequestCommonOrderPageDTO;
+    }
+
+    @Override
+    public List<RecipeBean> findAuditOverTimeRecipeList(Date startTime, Date endTime, List<Integer> organIds) {
+        return recipeBusinessService.findAuditOverTimeRecipeList(startTime, endTime, organIds);
     }
 }

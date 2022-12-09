@@ -12,6 +12,7 @@ import com.ngari.platform.recipe.mode.HospitalDrugListDTO;
 import com.ngari.platform.recipe.mode.HospitalDrugListReqDTO;
 import com.ngari.recipe.drug.model.CommonDrugListDTO;
 import com.ngari.recipe.drug.model.DispensatoryDTO;
+import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
 import com.ngari.recipe.dto.DrugInfoDTO;
 import com.ngari.recipe.dto.DrugSpecificationInfoDTO;
@@ -617,6 +618,14 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
         hisResponseTO.setMsgCode("200");
         hisResponseTO.setMsg("success");
         return hisResponseTO;
+    }
+
+    @Override
+    public List<DrugList> findDrugListByInfo(DrugListBean drugListBean) {
+        logger.info("findDrugListByInfo drugListBean={}", JSONUtils.toString(drugListBean));
+        List<DrugList> drugLists = drugListDAO.findDrugListByInfo(drugListBean.getDrugName(), drugListBean.getProducer(), drugListBean.getDrugSpec(), drugListBean.getPack(), drugListBean.getUnit());
+        logger.info("findDrugListByInfo drugLists={}", JSONUtils.toString(drugLists));
+        return drugLists;
     }
 
     /**

@@ -34,12 +34,14 @@ import org.springframework.util.ObjectUtils;
 import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.client.OfflineRecipeClient;
+import recipe.common.CommonConstant;
 import recipe.constant.ErrorCode;
 import recipe.core.api.patient.IOfflineRecipeBusinessService;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.enumerate.status.OfflineToOnlineEnum;
 import recipe.enumerate.status.RecipeStateEnum;
+import recipe.enumerate.status.WriteHisEnum;
 import recipe.factory.offlinetoonline.IOfflineToOnlineStrategy;
 import recipe.factory.offlinetoonline.OfflineToOnlineFactory;
 import recipe.manager.*;
@@ -203,7 +205,7 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
      * @date 2021/8/06
      */
     @Override
-    public OffLineRecipeDetailVO getOffLineRecipeDetails(String mpiId, Integer clinicOrgan, String recipeCode) {
+    public OffLineRecipeDetailVO getHisRecipeDetail(String mpiId, Integer clinicOrgan, String recipeCode,String createDate) {
         logger.info("RecipeBusinessService getOffLineRecipeDetails mpiId={},clinicOrgan={},recipeCode={}", mpiId, clinicOrgan, recipeCode);
         PatientDTO patient = patientService.getPatientByMpiId(mpiId);
         if (ObjectUtils.isEmpty(patient)) {
@@ -211,7 +213,7 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
         }
 //        //获取线下处方信息
         OffLineRecipeDetailDTO offLineRecipeDetailDTO = new OffLineRecipeDetailDTO();
-        QueryHisRecipResTO queryHisRecipResTO = offlineRecipeClient.queryOffLineRecipeDetail(offLineRecipeDetailDTO, clinicOrgan, patient, 6, 2, recipeCode);
+        QueryHisRecipResTO queryHisRecipResTO = offlineRecipeClient.getHisRecipeDetail(offLineRecipeDetailDTO, clinicOrgan, patient, 6, 2, recipeCode,createDate);
 
         //判断是否为儿科 设置部门名称
         DepartmentDTO departmentDTO = departmentService.getByCodeAndOrgan(queryHisRecipResTO.getDepartCode(), queryHisRecipResTO.getClinicOrgan());
@@ -317,7 +319,11 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
         recipePdfDTO.setChargeItemDTO(chargeItemDTO);
         Recipe recipe = recipePdfDTO.getRecipe();
         if (RecipeStateEnum.PROCESS_STATE_CANCELLATION.getType().equals(recipe.getProcessState())) {
-            logger.info("RecipeBusinessService pushRecipe 当前处方已撤销");
+            logger.info("RecipeBusinessService pushRecipe 当前处方已撤销 recipeId:{}", recipeId);
+            return recipePdfDTO;
+        }
+        if (CommonConstant.RECIPE_PUSH_TYPE.equals(pushType) && WriteHisEnum.WRITE_HIS_STATE_ORDER.getType().equals(recipe.getWriteHisState())) {
+            logger.info("RecipeBusinessService pushRecipe 当前处方已写入his成功 recipeId:{}", recipeId);
             return recipePdfDTO;
         }
         //同时set最小售卖单位/单位HIS编码等

@@ -1657,6 +1657,10 @@ public class DrugToolService implements IDrugToolService {
                         organDrugList.setUnitHisCode(drugListMatch.getUnitHisCode());
                         organDrugList.setUseDoseUnitHisCode(drugListMatch.getUseDoseUnitHisCode());
                         organDrugList.setUseDoseSmallestUnitHisCode(drugListMatch.getUseDoseSmallestUnitHisCode());
+                        organDrugList.setSkinTestDrugFlag(drugListMatch.getSkinTestDrugFlag());
+                        organDrugList.setHisDrugClassName(drugListMatch.getHisDrugClassName());
+                        organDrugList.setHisDrugClassCode(drugListMatch.getHisDrugClassCode());
+                        organDrugList.setNationalStandardDrugFlag(drugListMatch.getNationalStandardDrugFlag());
 //                        organDrugList.setUnavailable(drugListMatch.getUnavailable());
                         //updateFlag为1时更新药品信息，否则不更新
                         //防止既更新又新增的时候把更新的数据又保存一编

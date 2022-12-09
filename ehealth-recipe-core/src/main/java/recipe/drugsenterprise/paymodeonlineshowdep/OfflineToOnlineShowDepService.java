@@ -3,6 +3,7 @@ package recipe.drugsenterprise.paymodeonlineshowdep;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.HisRecipe;
+import com.ngari.recipe.entity.OrganDrugsSaleConfig;
 import com.ngari.recipe.entity.Recipe;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
@@ -12,6 +13,8 @@ import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.constant.RecipeBussConstant;
 import recipe.dao.HisRecipeDAO;
+import recipe.dao.OrganDrugsSaleConfigDAO;
+import recipe.enumerate.type.StandardPaymentWayEnum;
 import recipe.service.RecipeOrderService;
 
 import java.util.List;
@@ -30,17 +33,19 @@ public class OfflineToOnlineShowDepService implements PayModeOnlineShowDepInterf
     @Override
     public void getPayModeOnlineShowDep(DrugsEnterprise dep, List<DepDetailBean> depDetailList, Recipe dbRecipe, List<Integer> recipeIdList) {
         DepDetailBean depDetailBean = new DepDetailBean();
+        OrganDrugsSaleConfigDAO organDrugsSaleConfigDAO = DAOFactory.getDAO(OrganDrugsSaleConfigDAO.class);
         depDetailBean.setDepId(dep.getId());
         depDetailBean.setDepName(dep.getName());
         depDetailBean.setBelongDepName(dep.getName());
         depDetailBean.setOrderType(dep.getOrderType());
         depDetailBean.setMemo(dep.getMemo());
-        if (RecipeBussConstant.PAYMODE_ONLINE.equals(dep.getPayModeSupport()) || RecipeBussConstant.DEP_SUPPORT_ONLINE_TFDS.equals(dep.getPayModeSupport())) {
-            depDetailBean.setPayModeText("在线支付");
-            depDetailBean.setPayMode(RecipeBussConstant.PAYMODE_ONLINE);
+        OrganDrugsSaleConfig organDrugsSaleConfig = organDrugsSaleConfigDAO.getOrganDrugsSaleConfig(dep.getId());
+        if (StandardPaymentWayEnum.PAYMENT_WAY_ONLINE.getType().equals(organDrugsSaleConfig.getStandardPaymentWay())) {
+            depDetailBean.setPayModeText(StandardPaymentWayEnum.PAYMENT_WAY_ONLINE.getName());
+            depDetailBean.setPayMode(StandardPaymentWayEnum.PAYMENT_WAY_ONLINE.getType());
         } else {
-            depDetailBean.setPayModeText("货到付款");
-            depDetailBean.setPayMode(RecipeBussConstant.PAYMODE_COD);
+            depDetailBean.setPayModeText(StandardPaymentWayEnum.PAYMENT_WAY_COD.getName());
+            depDetailBean.setPayMode(StandardPaymentWayEnum.PAYMENT_WAY_COD.getType());
         }
         HisRecipeDAO hisRecipeDAO = DAOFactory.getDAO(HisRecipeDAO.class);
         HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(dbRecipe.getClinicOrgan(), dbRecipe.getRecipeCode());

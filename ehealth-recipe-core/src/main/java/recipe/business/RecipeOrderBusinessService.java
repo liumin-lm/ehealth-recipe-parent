@@ -299,6 +299,7 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
             orderItem.setBusDate(recipeOrder.getCreateTime());
             orderItem.setCreateDate(recipeOrder.getCreateTime());
             orderItem.setLastModify(recipeOrder.getLastModifyTime());
+            orderItem.setDbData(recipeOrder);
             order.add(orderItem);
         }
         pageDTO.setOrder(order);
