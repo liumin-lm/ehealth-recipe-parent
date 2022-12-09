@@ -1093,8 +1093,11 @@ public class EnterpriseManager extends BaseManager {
      * @param drugsEnterpriseId
      * @return
      */
+    @LogRecord
     public Integer getEnterpriseSendType(Integer organId, Integer drugsEnterpriseId) {
-        logger.info("getEnterpriseSendType organId:{},drugsEnterpriseId:{} ", organId, drugsEnterpriseId);
+        if (Objects.isNull(organId) || Objects.isNull(drugsEnterpriseId)){
+            throw new DAOException("入参错误");
+        }
         OrganAndDrugsepRelation relation = organAndDrugsepRelationDAO.getOrganAndDrugsepByOrganIdAndEntId(organId, drugsEnterpriseId);
         String drugsEnterpriseSupportGiveMode = relation.getDrugsEnterpriseSupportGiveMode();
         if (StringUtils.isEmpty(drugsEnterpriseSupportGiveMode)) {
