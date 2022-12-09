@@ -150,10 +150,6 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     @Autowired
     private OrganClient organClient;
     @Autowired
-    private IUsingRateService usingRateService;
-    @Autowired
-    private IUsePathwaysService usePathwaysService;
-    @Autowired
     private DrugDecoctionWayDao drugDecoctionWayDAO;
     @Autowired
     private OrderManager orderManager;
@@ -873,7 +869,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         if (StringUtils.isNotBlank(usingRateStr)) {
             String[] usingRateArray = usingRateStr.split(",");
             for (String singleUsingRateId : usingRateArray) {
-                UsingRateDTO usingRateDTO = usingRateService.getById(Integer.parseInt(singleUsingRateId));
+                UsingRateDTO usingRateDTO = drugClient.getUsingRateById(Integer.parseInt(singleUsingRateId));
                 if (Objects.nonNull(usingRateDTO)) {
                     usingRateDTOList.add(usingRateDTO);
                 }
@@ -886,7 +882,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         if (StringUtils.isNotBlank(usePathwayStr)) {
             String[] usePathwayArray = usePathwayStr.split(",");
             for (String singleUsePathwayId : usePathwayArray) {
-                UsePathwaysDTO usePathwaysDTO = usePathwaysService.getById(Integer.parseInt(singleUsePathwayId));
+                UsePathwaysDTO usePathwaysDTO = drugClient.getUsePathwaysById(Integer.parseInt(singleUsePathwayId));
                 if (Objects.nonNull(usePathwaysDTO)) {
                     usePathwayDTOList.add(usePathwaysDTO);
                 }

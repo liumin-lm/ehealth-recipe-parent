@@ -302,4 +302,12 @@ public class DrugClient extends BaseClient {
         }
         return new ArrayList<>();
     }
+
+    public com.ngari.patient.dto.UsingRateDTO getUsingRateById(Integer usingRateId) {
+        return usingRateService.getById(usingRateId);
+    }
+
+    public com.ngari.patient.dto.UsePathwaysDTO getUsePathwaysById(int usePathwaysId) {
+        return ObjectCopyUtils.convert(usePathwaysService.getById(usePathwaysId), com.ngari.patient.dto.UsePathwaysDTO.class);
+    }
 }
