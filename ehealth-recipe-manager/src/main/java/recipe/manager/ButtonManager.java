@@ -116,6 +116,7 @@ public class ButtonManager extends BaseManager {
             relation = organAndDrugsepRelationDAO.getRelationByOrganIdAndGiveMode(organId, RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getType());
         }
         Map<Integer, List<OrganAndDrugsepRelation>> relationMap = relation.stream().collect(Collectors.groupingBy(OrganAndDrugsepRelation::getDrugsEnterpriseId));
+        Map<String, OrganAndDrugsepRelation> drugsDepRelationMap = relation.stream().collect(Collectors.toMap(drugsDepRelation -> drugsDepRelation.getOrganId()+"_"+drugsDepRelation.getDrugsEnterpriseId(), a -> a, (k1, k2) -> k1));
         List<EnterpriseStock> list = new ArrayList<>();
         for (DrugsEnterprise drugsEnterprise : enterprises) {
             EnterpriseStock enterpriseStock = new EnterpriseStock();
@@ -124,9 +125,9 @@ public class ButtonManager extends BaseManager {
             enterpriseStock.setDeliveryName(drugsEnterprise.getName());
             enterpriseStock.setDeliveryCode(drugsEnterprise.getId().toString());
             enterpriseStock.setAppointEnterpriseType(AppointEnterpriseTypeEnum.ENTERPRISE_APPOINT.getType());
-            List<GiveModeButtonDTO> giveModeButton = RecipeSupportGiveModeEnum.giveModeButtonList(drugsEnterprise, configGiveMode, configGiveModeMap, drugToHosByEnterprise, relationMap);
+            OrganAndDrugsepRelation drugsDepRelation = drugsDepRelationMap.get(organId + "_" + drugsEnterprise.getId());
+            List<GiveModeButtonDTO> giveModeButton = RecipeSupportGiveModeEnum.giveModeButtonList(drugsEnterprise, configGiveMode, configGiveModeMap, drugToHosByEnterprise, relationMap, drugsDepRelation);
             if (!checkSendGiveMode(organId, drugsEnterprise.getId(), drugLists) && CollectionUtils.isNotEmpty(giveModeButton)) {
-
                 giveModeButton = giveModeButton.stream().filter(a -> !RecipeSupportGiveModeEnum.enterpriseSendList.contains(a.getShowButtonKey())).collect(Collectors.toList());
                 enterpriseStock.setSendFlag(false);
             }

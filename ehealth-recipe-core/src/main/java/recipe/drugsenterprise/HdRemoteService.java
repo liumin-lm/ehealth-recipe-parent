@@ -123,6 +123,8 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
     private RecipeDetailDAO detailDAO;
     @Resource
     private SaleDrugListDAO saleDrugListDAO;
+    @Resource
+    private OrganAndDrugsepRelationDAO drugsDepRelationDAO;
 
 
     public HdRemoteService() {
@@ -1336,8 +1338,10 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
                 hdDrugCodes.add(drug);
             });
             map.put("drugList", hdDrugCodes);
+            OrganAndDrugsepRelation organAndDrugsepRelation = drugsDepRelationDAO.getOrganAndDrugsepByOrganIdAndEntId(recipe.getClinicOrgan(), drugsEnterprise.getId());
+            String supportGiveMode = organAndDrugsepRelation.getDrugsEnterpriseSupportGiveMode();
             List result = new ArrayList();
-            if (drugsEnterprise.getPayModeSupport() == 3) {
+            if (supportGiveMode.contains("1")) {
                 result = checkStoreInventory(recipe, recipeDetails, saleDrugListMap, drugsEnterprise);
             } else {
                 result = getInventoryResult(map, recipe.getClinicOrgan(), drugsEnterprise);

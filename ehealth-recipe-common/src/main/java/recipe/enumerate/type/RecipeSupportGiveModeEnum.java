@@ -269,6 +269,27 @@ public enum RecipeSupportGiveModeEnum {
         return giveModeButtonList;
     }
 
+    public static List<GiveModeButtonDTO> enterpriseEnumNew(String giveModeSupport) {
+        if (StringUtils.isEmpty(giveModeSupport)) {
+            return null;
+        }
+        List<String> giveModeSupportList = Arrays.asList(giveModeSupport.split(","));
+        List<GiveModeButtonDTO> giveModeButtonList = new LinkedList<>();
+        if (giveModeSupportList.contains(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType().toString())) {
+            giveModeButtonList.add(giveModeButtonDTO(SHOW_SEND_TO_HOS));
+        }
+        if (giveModeSupportList.contains(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType().toString())) {
+            giveModeButtonList.add(giveModeButtonDTO(SHOW_SEND_TO_ENTERPRISES));
+        }
+        if (giveModeSupportList.contains(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getType().toString())) {
+            giveModeButtonList.add(giveModeButtonDTO(SUPPORT_TFDS));
+        }
+        if (giveModeSupportList.contains(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getType().toString())) {
+            giveModeButtonList.add(giveModeButtonDTO(SUPPORT_MEDICAL_PAYMENT));
+        }
+        return giveModeButtonList;
+    }
+
     public static GiveModeButtonDTO giveModeButtonDTO(RecipeSupportGiveModeEnum recipeSupportGiveModeEnum) {
         GiveModeButtonDTO giveModeButtonDTO = new GiveModeButtonDTO();
         giveModeButtonDTO.setShowButtonKey(recipeSupportGiveModeEnum.getText());
@@ -286,8 +307,8 @@ public enum RecipeSupportGiveModeEnum {
      */
     public static List<GiveModeButtonDTO> giveModeButtonList(DrugsEnterprise drugsEnterprise, List<String> configGiveMode,
                                                              Map<String, String> configGiveModeMap, Boolean drugToHosByEnterprise,
-                                                             Map<Integer, List<OrganAndDrugsepRelation>> relationMap) {
-        List<GiveModeButtonDTO> enterpriseGiveMode = enterpriseEnum(drugsEnterprise.getPayModeSupport(), drugsEnterprise.getSendType());
+                                                             Map<Integer, List<OrganAndDrugsepRelation>> relationMap, OrganAndDrugsepRelation drugsDepRelation) {
+        List<GiveModeButtonDTO> enterpriseGiveMode =enterpriseEnumNew(drugsDepRelation.getDrugsEnterpriseSupportGiveMode());
         if (null == enterpriseGiveMode || null == configGiveMode) {
             return null;
         }
