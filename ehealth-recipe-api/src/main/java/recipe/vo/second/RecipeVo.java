@@ -54,4 +54,7 @@ public class RecipeVo implements Serializable {
 
     @ItemProperty(alias = "最后修改时间")
     private Date lastModify;
+
+    @ItemProperty(alias = "处方来源类型 1 平台处方 2 线下转线上的处方 3诊疗处方")
+    private Integer recipeSourceType;
 }
