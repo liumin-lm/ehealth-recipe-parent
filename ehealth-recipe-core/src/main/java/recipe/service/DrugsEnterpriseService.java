@@ -625,12 +625,17 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
             SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
             OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
             List<DrugsEnterprise> drugsEnterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(organId, 1);
+            List<OrganAndDrugsepRelation> organAndDrugsDepRelationList = organAndDrugsepRelationDAO.findByOrganId(organId);
+            Map<Integer, OrganAndDrugsepRelation> drugsDepRelationMap = organAndDrugsDepRelationList.stream().collect(Collectors.toMap(OrganAndDrugsepRelation::getDrugsEnterpriseId, a -> a, (k1, k2) -> k1));
             if (CollectionUtils.isEmpty(drugsEnterprises)) {
                 return false;
             }
             List<DrugsEnterprise> drugsEnterpriseList = new ArrayList<>();
             for (DrugsEnterprise drugsEnterprise : drugsEnterprises) {
-                if (drugsEnterprise.getPayModeSupport() == 1 || drugsEnterprise.getPayModeSupport() == 7 || drugsEnterprise.getPayModeSupport() == 9) {
+                OrganAndDrugsepRelation drugsDepRelation = drugsDepRelationMap.get(drugsEnterprise.getId());
+                String giveModeSupport = drugsDepRelation.getDrugsEnterpriseSupportGiveMode();
+                if (giveModeSupport.contains(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType().toString()) ||
+                        giveModeSupport.contains(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType().toString())) {
                     drugsEnterpriseList.add(drugsEnterprise);
                 }
             }
