@@ -1088,6 +1088,30 @@ public class EnterpriseManager extends BaseManager {
     }
 
     /**
+     * 获取药企配送主体
+     * @param organId
+     * @param drugsEnterpriseId
+     * @return
+     */
+    public Integer getEnterpriseSendType(Integer organId, Integer drugsEnterpriseId) {
+        logger.info("getEnterpriseSendType organId:{},drugsEnterpriseId:{} ", organId, drugsEnterpriseId);
+        OrganAndDrugsepRelation relation = organAndDrugsepRelationDAO.getOrganAndDrugsepByOrganIdAndEntId(organId, drugsEnterpriseId);
+        String drugsEnterpriseSupportGiveMode = relation.getDrugsEnterpriseSupportGiveMode();
+        if (StringUtils.isEmpty(drugsEnterpriseSupportGiveMode)) {
+            return null;
+        }
+        String[] split = drugsEnterpriseSupportGiveMode.split(",");
+        List<String> list = Arrays.asList(split);
+        Integer sendType = null;
+        if (list.contains(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType().toString())) {
+            sendType = RecipeSendTypeEnum.ALRAEDY_PAY.getSendType();
+        } else if (list.contains(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType().toString())) {
+            sendType = RecipeSendTypeEnum.NO_PAY.getSendType();
+        }
+        return sendType;
+    }
+
+    /**
      * 将患者选择的购药方式转化为药企对应支持的方式
      * @param selectBuyMedicineWay 患者选择的购药方式
      * @return
