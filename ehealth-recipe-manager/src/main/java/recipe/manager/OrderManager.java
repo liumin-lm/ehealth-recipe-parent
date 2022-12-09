@@ -408,10 +408,10 @@ public class OrderManager extends BaseManager {
             return null;
         }
         // 如果处方中的订单编号与处方中保存的订单编号不一致,则视为订单失效
-        if (!recipeOrder.getOrderCode().equals(recipeList.get(0).getOrderCode())) {
-            return null;
-        }
         RecipeOrderDto recipeOrderDto = new RecipeOrderDto();
+        if (!recipeOrder.getOrderCode().equals(recipeList.get(0).getOrderCode())) {
+            recipeOrderDto.setIsInvalidOrder(YesOrNoEnum.YES.getType());
+        }
         BeanCopyUtils.copy(recipeOrder, recipeOrderDto);
         recipeOrderDto.setStatusText(getStatusText(recipeOrderDto.getStatus()));
         List<RecipeBeanDTO> recipeBeanDTOS = recipeList.stream().map(recipe -> {

@@ -49,4 +49,7 @@ public class RecipeOrderDto implements Serializable {
     @ItemProperty(alias = "订单下处方信息")
     private List<RecipeBeanDTO> recipeList;
 
+    @ItemProperty(alias = "是否失效订单 1 是")
+    private Integer isInvalidOrder;
+
 }
