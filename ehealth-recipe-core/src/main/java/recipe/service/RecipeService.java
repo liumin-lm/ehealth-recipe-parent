@@ -3411,12 +3411,17 @@ public class RecipeService extends RecipeBaseService {
                     drugsEnterpriseList = drugsEnterpriseDAO.findByOrganId(organId);
                 }
             }
-
+            List<OrganAndDrugsepRelation> organAndDrugsDepRelationList = organAndDrugsepRelationDAO.findByOrganId(organId);
+            Map<Integer, OrganAndDrugsepRelation> drugsDepRelationMap = organAndDrugsDepRelationList.stream().collect(Collectors.toMap(OrganAndDrugsepRelation::getDrugsEnterpriseId, a -> a, (k1, k2) -> k1));
             for (DrugsEnterprise dep : drugsEnterpriseList) {
                 //根据药企是否能满足所有配送的药品优先
                 Integer depId = dep.getId();
+                OrganAndDrugsepRelation drugsDepRelation = drugsDepRelationMap.get(dep.getId());
                 //不支持在线支付跳过该药企
-                if (Integer.valueOf(1).equals(dep.getPayModeSupport()) && !onlinePay) {
+                String giveModeSupport = drugsDepRelation.getDrugsEnterpriseSupportGiveMode();
+                if ((giveModeSupport.contains(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType().toString()) ||
+                        giveModeSupport.contains(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType().toString()))
+                        && !onlinePay) {
                     continue;
                 }
                 //药品匹配成功标识
@@ -3509,11 +3514,17 @@ public class RecipeService extends RecipeBaseService {
             return backList;
         }
         List<DrugsEnterprise> drugsEnterpriseList = drugsEnterpriseDAO.findByOrganId(organId);
+        List<OrganAndDrugsepRelation> organAndDrugsDepRelationList = organAndDrugsepRelationDAO.findByOrganId(organId);
+        Map<Integer, OrganAndDrugsepRelation> drugsDepRelationMap = organAndDrugsDepRelationList.stream().collect(Collectors.toMap(OrganAndDrugsepRelation::getDrugsEnterpriseId, a -> a, (k1, k2) -> k1));
         for (DrugsEnterprise dep : drugsEnterpriseList) {
             //根据药企是否能满足所有配送的药品优先
             Integer depId = dep.getId();
+            OrganAndDrugsepRelation drugsDepRelation = drugsDepRelationMap.get(dep.getId());
             //不支持在线支付跳过该药企
-            if (Integer.valueOf(1).equals(dep.getPayModeSupport()) && !onlinePay) {
+            String giveModeSupport = drugsDepRelation.getDrugsEnterpriseSupportGiveMode();
+            if ((giveModeSupport.contains(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType().toString()) ||
+                    giveModeSupport.contains(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType().toString()))
+                            && !onlinePay) {
                 DrugEnterpriseResult result = new DrugEnterpriseResult(RecipeResultBean.FAIL);
                 result.setObject(null);
                 backList.add(result);
