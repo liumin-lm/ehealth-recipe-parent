@@ -279,6 +279,11 @@ public interface IRecipeBusinessService {
 
     AdvanceWarningResVO getAdvanceWarning(AdvanceWarningReqVO advanceWarningReqDTO);
 
+    /**
+     * 医生端开方获取患者卡信息
+     * @param mpiId
+     * @return
+     */
     List<HealthCardDTO> findByCardOrganAndMpiId(String mpiId);
 
     /**

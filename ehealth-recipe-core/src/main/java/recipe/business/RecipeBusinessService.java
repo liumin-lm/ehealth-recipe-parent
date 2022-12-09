@@ -150,15 +150,9 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     @Autowired
     private OrganClient organClient;
     @Autowired
-    private IUsingRateService usingRateService;
-    @Autowired
-    private IUsePathwaysService usePathwaysService;
-    @Autowired
     private DrugDecoctionWayDao drugDecoctionWayDAO;
     @Autowired
     private OrderManager orderManager;
-    @Autowired
-    private RemoteRecipeLogService recipeLogService;
     @Autowired
     private RemoteRecipeOrderService recipeOrderService;
     @Autowired
@@ -173,8 +167,6 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     private RecipeListService recipeListService;
     @Autowired
     private DrugClient drugClient;
-    @Autowired
-    private DoctorService doctorService;
 
 
     /**
@@ -873,7 +865,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         if (StringUtils.isNotBlank(usingRateStr)) {
             String[] usingRateArray = usingRateStr.split(",");
             for (String singleUsingRateId : usingRateArray) {
-                UsingRateDTO usingRateDTO = usingRateService.getById(Integer.parseInt(singleUsingRateId));
+                UsingRateDTO usingRateDTO = drugClient.getUsingRateById(Integer.parseInt(singleUsingRateId));
                 if (Objects.nonNull(usingRateDTO)) {
                     usingRateDTOList.add(usingRateDTO);
                 }
@@ -886,7 +878,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         if (StringUtils.isNotBlank(usePathwayStr)) {
             String[] usePathwayArray = usePathwayStr.split(",");
             for (String singleUsePathwayId : usePathwayArray) {
-                UsePathwaysDTO usePathwaysDTO = usePathwaysService.getById(Integer.parseInt(singleUsePathwayId));
+                UsePathwaysDTO usePathwaysDTO = drugClient.getUsePathwaysById(Integer.parseInt(singleUsePathwayId));
                 if (Objects.nonNull(usePathwaysDTO)) {
                     usePathwayDTOList.add(usePathwaysDTO);
                 }
@@ -1201,7 +1193,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         }
         if (CollectionUtils.isNotEmpty(recipeIdList)) {
             for (int i = 0; i < recipeIdList.size(); i++) {
-                recipeLogService.saveRecipeLog(recipeIdList.get(i), eh.cdr.constant.RecipeStatusConstant.UNKNOW, eh.cdr.constant.RecipeStatusConstant.UNKNOW, memo);
+                RecipeLogService.saveRecipeLog(recipeIdList.get(i), eh.cdr.constant.RecipeStatusConstant.UNKNOW, eh.cdr.constant.RecipeStatusConstant.UNKNOW, memo);
             }
         }
     }
@@ -1442,7 +1434,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         recipeVo.setRecipeId(recipe.getRecipeId());
         recipeVo.setDepart(DictionaryUtil.getDictionary("eh.base.dictionary.Depart", recipe.getDepart()));
         if (null != recipe.getDoctor()) {
-            DoctorDTO doctorDTO = doctorService.get(recipe.getDoctor());
+            DoctorDTO doctorDTO = doctorClient.getDoctor(recipe.getDoctor());
             recipeVo.setDoctor(doctorDTO.getName());
         }
         recipeVo.setSignDate(recipe.getSignDate());

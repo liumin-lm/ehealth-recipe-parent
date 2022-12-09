@@ -187,6 +187,9 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
         Integer organId = organEnterpriseRelationVo.getOrganId();
         //越权校验
         if(organId !=null){
+            if (organId == 0) {
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "纳里健康下无法添加流转药企");
+            }
             isAuthorisedOrgan(organEnterpriseRelationVo.getOrganId());
         }
 
@@ -209,6 +212,15 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
                 return;
             }
             a.setPriorityLevel(organAndDrugsDepRelationMap.get(a.getId()).getPriorityLevel());
+            OrganAndDrugsepRelation organAndDrugsepRelation = organAndDrugsDepRelationMap.get(a.getId());
+            String drugsEnterpriseSupportGiveMode = organAndDrugsepRelation.getDrugsEnterpriseSupportGiveMode();
+            List<String> drugsEnterpriseSupportGiveModeName = new ArrayList<>();
+            if (StringUtils.isNotEmpty(drugsEnterpriseSupportGiveMode)) {
+                Arrays.asList(drugsEnterpriseSupportGiveMode.split(",")).forEach(giveMode->{
+                    drugsEnterpriseSupportGiveModeName.add(RecipeSupportGiveModeEnum.getNameByType(Integer.parseInt(giveMode)));
+                });
+                a.setSupportGiveModeNameList(drugsEnterpriseSupportGiveModeName);
+            }
         });
         drugsEnterpriseList = drugsEnterpriseList.stream().sorted(Comparator.comparing(drugsEnterpriseBean -> Optional.ofNullable(drugsEnterpriseBean.getPriorityLevel()).orElse(0),Comparator.reverseOrder())).collect(Collectors.toList());
         organEnterpriseRelationVo.setDrugsEnterpriseList(drugsEnterpriseList);
