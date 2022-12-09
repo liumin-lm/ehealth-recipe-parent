@@ -187,6 +187,9 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
         Integer organId = organEnterpriseRelationVo.getOrganId();
         //越权校验
         if(organId !=null){
+            if (organId == 0) {
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "纳里健康下无法添加流转药企");
+            }
             isAuthorisedOrgan(organEnterpriseRelationVo.getOrganId());
         }
 
