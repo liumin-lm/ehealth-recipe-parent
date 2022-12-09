@@ -2083,7 +2083,7 @@ public class RecipeOrderService extends RecipeBaseService {
                     orderBean.setTel(drugsEnterprise.getTel());
                     // 药企物流对接方式
                     orderBean.setLogisticsType(drugsEnterprise.getLogisticsType());
-                    orderBean.setSendType(drugsEnterprise.getSendType());
+                    orderBean.setSendType(enterpriseManager.getEnterpriseSendType(order.getOrganId(), order.getEnterpriseId()));
                     //药企定义的订单备注
                     orderBean.setOrderMemo(drugsEnterprise.getOrderMemo());
                 }

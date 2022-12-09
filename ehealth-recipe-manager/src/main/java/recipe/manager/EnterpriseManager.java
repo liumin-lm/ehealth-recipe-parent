@@ -939,12 +939,12 @@ public class EnterpriseManager extends BaseManager {
             if ((enterpriseSetGiveModeList.contains(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType().toString())
                     || enterpriseSetGiveModeList.contains(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType().toString()))
                     && RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType().equals(type)) {
-
-                if (RecipeSendTypeEnum.ALRAEDY_PAY.getSendType().equals(drugsEnterprise.getSendType()) &&
+                Integer sendType = getEnterpriseSendType(recipe.getClinicOrgan(), drugsEnterprise.getId());
+                if (RecipeSendTypeEnum.ALRAEDY_PAY.getSendType().equals(sendType) &&
                         recipeSupportGiveModeList.contains(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType().toString())) {
                     // 医院配送
                     drugsEnterpriseList.add(drugsEnterprise);
-                } else if (RecipeSendTypeEnum.NO_PAY.getSendType().equals(drugsEnterprise.getSendType()) &&
+                } else if (RecipeSendTypeEnum.NO_PAY.getSendType().equals(sendType) &&
                         recipeSupportGiveModeList.contains(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType().toString())) {
                     // 药企配送
                     drugsEnterpriseList.add(drugsEnterprise);

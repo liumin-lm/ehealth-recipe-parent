@@ -748,7 +748,7 @@ public class RecipeRefundService extends RecipeBaseService {
         if (new Integer(1).equals(recipe.getGiveMode()) || new Integer(3).equals(recipe.getGiveMode())) {
             //当处方的购药方式为配送到家和药店取药时
             DrugsEnterprise drugsEnterprise = enterpriseDAO.getById(recipeOrder.getEnterpriseId());
-            if (new Integer(1).equals(drugsEnterprise.getSendType())) {
+            if (new Integer(1).equals(enterpriseManager.getEnterpriseSendType(recipeOrder.getOrganId(), recipeOrder.getEnterpriseId()))) {
                 //表示为医院自建药企，退费流程应该走院内的退费流程
                 return 3;
             } else {

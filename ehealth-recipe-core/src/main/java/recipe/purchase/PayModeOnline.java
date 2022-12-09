@@ -273,7 +273,7 @@ public class PayModeOnline implements IPurchaseService {
         if (dep != null) {
             //设置配送费支付方式
             order.setExpressFeePayWay(dep.getExpressFeePayWay());
-            order.setSendType(dep.getSendType());
+            order.setSendType(enterpriseManager.getEnterpriseSendType(recipeList.get(0).getClinicOrgan(), depId));
             //设置是否显示期望配送时间,默认否 0:否,1:是
             order.setIsShowExpectSendDate(dep.getIsShowExpectSendDate());
         }

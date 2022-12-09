@@ -10,7 +10,6 @@ import ctd.util.JSONUtils;
 import eh.base.constant.CardTypeEnum;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.curator.shaded.com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.client.OperationClient;
@@ -111,11 +110,8 @@ public class ButtonManager extends BaseManager {
         List<String> configGiveMode = RecipeSupportGiveModeEnum.checkEnterprise(giveModeButtonBeans);
         // 到院取药是否采用药企管理模式
         Boolean drugToHosByEnterprise = configurationClient.getValueBooleanCatch(organId, "drugToHosByEnterprise", false);
-        List<OrganAndDrugsepRelation> relation = Lists.newArrayList();
-        if(drugToHosByEnterprise){
-            relation = organAndDrugsepRelationDAO.getRelationByOrganIdAndGiveMode(organId, RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getType());
-        }
-        Map<Integer, List<OrganAndDrugsepRelation>> relationMap = relation.stream().collect(Collectors.groupingBy(OrganAndDrugsepRelation::getDrugsEnterpriseId));
+        List<OrganAndDrugsepRelation> relation = organAndDrugsepRelationDAO.findByOrganId(organId);
+
         Map<String, OrganAndDrugsepRelation> drugsDepRelationMap = relation.stream().collect(Collectors.toMap(drugsDepRelation -> drugsDepRelation.getOrganId()+"_"+drugsDepRelation.getDrugsEnterpriseId(), a -> a, (k1, k2) -> k1));
         List<EnterpriseStock> list = new ArrayList<>();
         for (DrugsEnterprise drugsEnterprise : enterprises) {
@@ -126,7 +122,7 @@ public class ButtonManager extends BaseManager {
             enterpriseStock.setDeliveryCode(drugsEnterprise.getId().toString());
             enterpriseStock.setAppointEnterpriseType(AppointEnterpriseTypeEnum.ENTERPRISE_APPOINT.getType());
             OrganAndDrugsepRelation drugsDepRelation = drugsDepRelationMap.get(organId + "_" + drugsEnterprise.getId());
-            List<GiveModeButtonDTO> giveModeButton = RecipeSupportGiveModeEnum.giveModeButtonList(drugsEnterprise, configGiveMode, configGiveModeMap, drugToHosByEnterprise, relationMap);
+            List<GiveModeButtonDTO> giveModeButton = RecipeSupportGiveModeEnum.giveModeButtonList(configGiveMode, configGiveModeMap, drugToHosByEnterprise, drugsDepRelation);
             if (!checkSendGiveMode(organId, drugsEnterprise.getId(), drugLists) && CollectionUtils.isNotEmpty(giveModeButton)) {
                 giveModeButton = giveModeButton.stream().filter(a -> !RecipeSupportGiveModeEnum.enterpriseSendList.contains(a.getShowButtonKey())).collect(Collectors.toList());
                 enterpriseStock.setSendFlag(false);

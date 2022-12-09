@@ -54,6 +54,7 @@ import recipe.enumerate.type.RecipeDistributionFlagEnum;
 import recipe.enumerate.type.RecipeSendTypeEnum;
 import recipe.manager.DepartManager;
 import recipe.manager.EmrRecipeManager;
+import recipe.manager.EnterpriseManager;
 import recipe.util.ByteUtils;
 import recipe.util.DateConversion;
 import recipe.util.ValidateUtil;
@@ -833,7 +834,9 @@ public class HisRequestInit {
                         if (depId != null) {
                             DrugsEnterpriseDAO enterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
                             DrugsEnterprise drugsEnterprise = enterpriseDAO.getById(depId);
-                            if (drugsEnterprise != null && drugsEnterprise.getSendType() == RecipeSendTypeEnum.NO_PAY.getSendType()) {
+                            EnterpriseManager enterpriseManager = DAOFactory.getDAO(EnterpriseManager.class);
+                            Integer sendType = enterpriseManager.getEnterpriseSendType(order.getOrganId(), depId);
+                            if (drugsEnterprise != null && sendType == RecipeSendTypeEnum.NO_PAY.getSendType()) {
                                 //药企配送
                                 requestTO.setTakeDrugsType("2");
                             } else {
