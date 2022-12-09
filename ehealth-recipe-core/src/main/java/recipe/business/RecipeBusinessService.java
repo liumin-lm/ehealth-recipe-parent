@@ -158,8 +158,6 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     @Autowired
     private OrderManager orderManager;
     @Autowired
-    private RemoteRecipeLogService recipeLogService;
-    @Autowired
     private RemoteRecipeOrderService recipeOrderService;
     @Autowired
     private RecipeOrderPayFlowManager recipeOrderPayFlowManager;
@@ -173,8 +171,6 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     private RecipeListService recipeListService;
     @Autowired
     private DrugClient drugClient;
-    @Autowired
-    private DoctorService doctorService;
 
 
     /**
@@ -1201,7 +1197,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         }
         if (CollectionUtils.isNotEmpty(recipeIdList)) {
             for (int i = 0; i < recipeIdList.size(); i++) {
-                recipeLogService.saveRecipeLog(recipeIdList.get(i), eh.cdr.constant.RecipeStatusConstant.UNKNOW, eh.cdr.constant.RecipeStatusConstant.UNKNOW, memo);
+                RecipeLogService.saveRecipeLog(recipeIdList.get(i), eh.cdr.constant.RecipeStatusConstant.UNKNOW, eh.cdr.constant.RecipeStatusConstant.UNKNOW, memo);
             }
         }
     }
@@ -1442,7 +1438,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         recipeVo.setRecipeId(recipe.getRecipeId());
         recipeVo.setDepart(DictionaryUtil.getDictionary("eh.base.dictionary.Depart", recipe.getDepart()));
         if (null != recipe.getDoctor()) {
-            DoctorDTO doctorDTO = doctorService.get(recipe.getDoctor());
+            DoctorDTO doctorDTO = doctorClient.getDoctor(recipe.getDoctor());
             recipeVo.setDoctor(doctorDTO.getName());
         }
         recipeVo.setSignDate(recipe.getSignDate());
