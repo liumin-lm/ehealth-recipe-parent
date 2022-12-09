@@ -307,8 +307,8 @@ public enum RecipeSupportGiveModeEnum {
      */
     public static List<GiveModeButtonDTO> giveModeButtonList(DrugsEnterprise drugsEnterprise, List<String> configGiveMode,
                                                              Map<String, String> configGiveModeMap, Boolean drugToHosByEnterprise,
-                                                             Map<Integer, List<OrganAndDrugsepRelation>> relationMap, OrganAndDrugsepRelation drugsDepRelation) {
-        List<GiveModeButtonDTO> enterpriseGiveMode =enterpriseEnumNew(drugsDepRelation.getDrugsEnterpriseSupportGiveMode());
+                                                             Map<Integer, List<OrganAndDrugsepRelation>> relationMap) {
+        List<GiveModeButtonDTO> enterpriseGiveMode = enterpriseEnum(drugsEnterprise.getPayModeSupport(), drugsEnterprise.getSendType());
         if (null == enterpriseGiveMode || null == configGiveMode) {
             return null;
         }

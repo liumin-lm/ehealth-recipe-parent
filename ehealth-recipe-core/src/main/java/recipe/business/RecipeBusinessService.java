@@ -61,9 +61,7 @@ import recipe.constant.ReviewTypeConstant;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.dao.*;
 import recipe.enumerate.status.*;
-import recipe.enumerate.type.BussSourceTypeEnum;
-import recipe.enumerate.type.PayFlagEnum;
-import recipe.enumerate.type.PayFlowTypeEnum;
+import recipe.enumerate.type.*;
 import recipe.hisservice.QueryRecipeService;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.manager.*;
@@ -165,6 +163,8 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     private RecipeListService recipeListService;
     @Autowired
     private DrugClient drugClient;
+    @Autowired
+    private OrganAndDrugsepRelationDAO drugsDepRelationDAO;
 
 
     /**
@@ -1058,11 +1058,18 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             order.setSettleAmountState(SettleAmountStateEnum.SETTLE_SUCCESS.getType());
             order.setEnterpriseId(recipeBeforeOrder.getEnterpriseId());
             DrugsEnterprise dep = drugsEnterpriseDAO.get(recipeBeforeOrder.getEnterpriseId());
+            OrganAndDrugsepRelation drugsDepRelation = drugsDepRelationDAO.getOrganAndDrugsepByOrganIdAndEntId(order.getOrganId(), dep.getId());
             if (dep != null) {
                 order.setEnterpriseName(dep.getName());
                 //设置配送费支付方式
                 order.setExpressFeePayWay(dep.getExpressFeePayWay());
-                order.setSendType(dep.getSendType());
+                String giveModeSupport = drugsDepRelation.getDrugsEnterpriseSupportGiveMode();
+                if (giveModeSupport.contains(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType().toString())) {
+                    order.setSendType(RecipeSendTypeEnum.ALRAEDY_PAY.getSendType());
+                }
+                if (giveModeSupport.contains(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType().toString())) {
+                    order.setSendType(RecipeSendTypeEnum.NO_PAY.getSendType());
+                }
                 //设置是否显示期望配送时间,默认否 0:否,1:是
                 order.setIsShowExpectSendDate(dep.getIsShowExpectSendDate());
             }
