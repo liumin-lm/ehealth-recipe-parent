@@ -49,6 +49,7 @@ import recipe.constant.RecipeBussConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.manager.ButtonManager;
+import recipe.manager.EnterpriseManager;
 import recipe.serviceprovider.BaseService;
 import recipe.util.ByteUtils;
 import recipe.util.MapValueUtil;
@@ -96,9 +97,9 @@ public class DrugListExtService extends BaseService<DrugListBean> {
     @Autowired
     private ButtonManager buttonManager;
     @Autowired
-    private OrganDrugListDAO organDrugListDAO;
-    @Autowired
     private DrugSearchService drugSearchService;
+    @Autowired
+    private EnterpriseManager enterpriseManager;
 
     @RpcService
     public DrugListBean getById(int drugId) {
@@ -1373,7 +1374,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                             //库存数量or有无库存
                             pharmacyInventory.setAmount(inventory);
                             //设置药企类型
-                            setPharmacyInventoryType(drugsEnterprise, pharmacyInventory);
+                            setPharmacyInventoryType(drugsEnterprise, pharmacyInventory, organId);
                             pharmacyInventories.add(pharmacyInventory);
                         } catch (Exception e){
                             LOGGER.error("setDrugsEnterpriseInventories error", e);
@@ -1394,8 +1395,8 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         return drugListBeans;
     }
 
-    private void setPharmacyInventoryType(DrugsEnterprise drugsEnterprise, DrugPharmacyInventoryInfo pharmacyInventory){
-        if (new Integer(1).equals(drugsEnterprise.getSendType())) {
+    private void setPharmacyInventoryType(DrugsEnterprise drugsEnterprise, DrugPharmacyInventoryInfo pharmacyInventory, Integer organId){
+        if (new Integer(1).equals(enterpriseManager.getEnterpriseSendType(organId, drugsEnterprise.getId()))) {
             pharmacyInventory.setType(1);
         } else {
             //需要根据药企支持的配送类型设置药企配送或者药店取药或者两个都支持

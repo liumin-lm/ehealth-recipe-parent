@@ -170,6 +170,8 @@ public class RecipeServiceSub {
 
     private static IConfigurationClient configurationClient = AppContextHolder.getBean("IConfigurationClient", IConfigurationClient.class);
 
+    private static EnterpriseManager enterpriseManager = AppContextHolder.getBean("enterpriseManager", EnterpriseManager.class);
+
     @Autowired
     private RevisitClient revisitClient;
 
@@ -2047,8 +2049,9 @@ public class RecipeServiceSub {
         if (recipe.getEnterpriseId() != null) {
             DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
             DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipe.getEnterpriseId());
-            if (drugsEnterprise != null && drugsEnterprise.getSendType() != null) {
-                map.put("sendType", drugsEnterprise.getSendType());
+            Integer sendType = enterpriseManager.getEnterpriseSendType(recipe.getClinicOrgan(), recipe.getEnterpriseId());
+            if (drugsEnterprise != null && Objects.nonNull(sendType)) {
+                map.put("sendType", sendType);
             }
         }
         LOGGER.info("getRecipeAndDetailByIdImpl map : {}", JSON.toJSONString(map));
@@ -2220,7 +2223,7 @@ public class RecipeServiceSub {
                     //表示配送到家,需要判断是药企配送还是医院配送
                     DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
                     DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getByAccount(hisRecipe.getDeliveryCode());
-                    if (drugsEnterprise != null && new Integer(1).equals(drugsEnterprise.getSendType())) {
+                    if (drugsEnterprise != null && new Integer(1).equals(enterpriseManager.getEnterpriseSendType(hisRecipe.getClinicOrgan(), drugsEnterprise.getId()))) {
                         //表示为医院配送
                         map.put("showSendToHos", 1);
                     } else {
