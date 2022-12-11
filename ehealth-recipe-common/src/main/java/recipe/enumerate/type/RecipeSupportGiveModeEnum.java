@@ -287,7 +287,7 @@ public enum RecipeSupportGiveModeEnum {
         if (giveModeSupportList.contains(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getType().toString())) {
             giveModeButtonList.add(giveModeButtonDTO(SUPPORT_MEDICAL_PAYMENT));
         }
-        if (drugToHosByEnterprise && giveModeButtonList.contains(RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getType().toString())) {
+        if (drugToHosByEnterprise && giveModeSupportList.contains(RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getType().toString())) {
             giveModeButtonList.add(giveModeButtonDTO(SUPPORT_TO_HOS));
         }
         return giveModeButtonList;
