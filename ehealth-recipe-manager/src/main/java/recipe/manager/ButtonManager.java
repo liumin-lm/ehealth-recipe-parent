@@ -122,6 +122,7 @@ public class ButtonManager extends BaseManager {
             enterpriseStock.setDeliveryCode(drugsEnterprise.getId().toString());
             enterpriseStock.setAppointEnterpriseType(AppointEnterpriseTypeEnum.ENTERPRISE_APPOINT.getType());
             OrganAndDrugsepRelation drugsDepRelation = drugsDepRelationMap.get(organId + "_" + drugsEnterprise.getId());
+            logger.info("ButtonManager enterpriseStockCheck configGiveMode:{},configGiveModeMap:{},drugToHosByEnterprise:{},drugsDepRelation:{}", JSON.toJSONString(configGiveMode), JSON.toJSONString(configGiveModeMap),drugToHosByEnterprise,JSON.toJSONString(drugsDepRelation));
             List<GiveModeButtonDTO> giveModeButton = RecipeSupportGiveModeEnum.giveModeButtonList(configGiveMode, configGiveModeMap, drugToHosByEnterprise, drugsDepRelation);
             if (!checkSendGiveMode(organId, drugsEnterprise.getId(), drugLists) && CollectionUtils.isNotEmpty(giveModeButton)) {
                 giveModeButton = giveModeButton.stream().filter(a -> !RecipeSupportGiveModeEnum.enterpriseSendList.contains(a.getShowButtonKey())).collect(Collectors.toList());
