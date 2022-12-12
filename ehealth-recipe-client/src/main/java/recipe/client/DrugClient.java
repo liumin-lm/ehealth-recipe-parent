@@ -13,8 +13,7 @@ import com.ngari.platform.recipe.mode.HospitalDrugListDTO;
 import com.ngari.platform.recipe.mode.HospitalDrugListReqDTO;
 import com.ngari.recipe.dto.DrugInfoDTO;
 import com.ngari.recipe.dto.PatientDrugWithEsDTO;
-import com.ngari.recipe.entity.DecoctionWay;
-import com.ngari.recipe.entity.DrugMakingMethod;
+import com.ngari.recipe.entity.*;
 import ctd.spring.AppDomainContext;
 import eh.entity.base.UsePathways;
 import eh.entity.base.UsingRate;
@@ -29,6 +28,8 @@ import recipe.util.ObjectCopyUtils;
 import recipe.util.RecipeUtil;
 import recipe.util.ValidateUtil;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -309,5 +310,59 @@ public class DrugClient extends BaseClient {
 
     public com.ngari.patient.dto.UsePathwaysDTO getUsePathwaysById(int usePathwaysId) {
         return ObjectCopyUtils.convert(usePathwaysService.getById(usePathwaysId), com.ngari.patient.dto.UsePathwaysDTO.class);
+    }
+
+
+    /**
+     * 设置处方默认数据
+     *
+     * @param recipe 处方头对象
+     */
+    public Recipe setRecipe(Recipe recipe, List<Recipedetail> recipeDetails, List<OrganDrugList> organDrugList) {
+        Recipe recipeUpdate = new Recipe();
+        recipeUpdate.setRecipeId(recipe.getRecipeId());
+        //外带处方， 同时也设置成只能配送处方
+        boolean takeMedicine = organDrugList.stream().allMatch(a -> Integer.valueOf(1).equals(a.getTakeMedicine()));
+        if (takeMedicine) {
+            recipeUpdate.setTakeMedicine(1);
+            recipeUpdate.setDistributionFlag(1);
+        }
+        //药品总金额
+        BigDecimal totalMoney = new BigDecimal(0);
+        for (Recipedetail detail : recipeDetails) {
+            totalMoney = totalMoney.add(detail.getDrugCost());
+        }
+        totalMoney = totalMoney.setScale(2, RoundingMode.HALF_UP);
+        recipeUpdate.setTotalMoney(totalMoney);
+        recipeUpdate.setActualPrice(totalMoney);
+        return recipeUpdate;
+    }
+
+    /**
+     * 设置处方默认数据
+     *
+     * @param detail
+     * @param usePathwaysMap
+     * @param usingRateMap
+     */
+    public void setRecipeDetail(Recipedetail detail, Map<Integer, UsePathways> usePathwaysMap, Map<Integer, UsingRate> usingRateMap) {
+        //频次处理
+        if (StringUtils.isNotEmpty(detail.getUsingRateId())) {
+            UsingRate usingRate = usingRateMap.get(Integer.valueOf(detail.getUsingRateId()));
+            if (usingRate != null) {
+                detail.setUsingRateTextFromHis(usingRate.getText());
+                detail.setOrganUsingRate(usingRate.getUsingRateKey());
+                detail.setUsingRate(usingRate.getRelatedPlatformKey());
+            }
+        }
+        //用法处理
+        if (StringUtils.isNotEmpty(detail.getUsePathwaysId())) {
+            UsePathways usePathways = usePathwaysMap.get(Integer.valueOf(detail.getUsePathwaysId()));
+            if (usePathways != null) {
+                detail.setUsePathwaysTextFromHis(usePathways.getText());
+                detail.setOrganUsePathways(usePathways.getPathwaysKey());
+                detail.setUsePathways(usePathways.getRelatedPlatformKey());
+            }
+        }
     }
 }
