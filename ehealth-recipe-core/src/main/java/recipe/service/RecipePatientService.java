@@ -68,7 +68,6 @@ import recipe.hisservice.RecipeToHisService;
 import recipe.manager.*;
 import recipe.service.common.RecipeCacheService;
 import recipe.util.RedisClient;
-import recipe.vo.doctor.ConfigOptionsVO;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.patient.ReadyRecipeVO;
 
@@ -76,7 +75,6 @@ import javax.annotation.Nullable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 /**
@@ -96,8 +94,6 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
     private PatientClient patientClient;
     @Autowired
     private RevisitClient revisitClient;
-    @Autowired
-    private RecipeParameterDao recipeParameterDao;
     @Autowired
     private RecipeManager recipeManager;
     @Autowired
@@ -251,7 +247,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
                     //如果是价格自定义的药企，则需要设置单独价格
                     SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
                     List<Integer> drugIds = Lists.newArrayList(drugIdCountRel.keySet());
-                    if (Integer.valueOf(0).equals(dep.getSettlementMode()) && (RecipeBussConstant.DEP_SUPPORT_ONLINE.equals(dep.getPayModeSupport()) || RecipeBussConstant.DEP_SUPPORT_ALL.equals(dep.getPayModeSupport()))) {
+                    if (Integer.valueOf(0).equals(dep.getSettlementMode())) {
                         List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIds(dep.getId(), drugIds);
                         if (CollectionUtils.isNotEmpty(saleDrugLists)) {
                             BigDecimal total = BigDecimal.ZERO;

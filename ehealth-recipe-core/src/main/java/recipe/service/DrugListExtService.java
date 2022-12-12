@@ -48,6 +48,7 @@ import recipe.constant.PageInfoConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
+import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.manager.ButtonManager;
 import recipe.manager.EnterpriseManager;
 import recipe.serviceprovider.BaseService;
@@ -1396,19 +1397,24 @@ public class DrugListExtService extends BaseService<DrugListBean> {
     }
 
     private void setPharmacyInventoryType(DrugsEnterprise drugsEnterprise, DrugPharmacyInventoryInfo pharmacyInventory, Integer organId){
+        OrganAndDrugsepRelationDAO drugsDepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
+        OrganAndDrugsepRelation drugsDepRelation = drugsDepRelationDAO.getOrganAndDrugsepByOrganIdAndEntId(organId, drugsEnterprise.getId());
         if (new Integer(1).equals(enterpriseManager.getEnterpriseSendType(organId, drugsEnterprise.getId()))) {
             pharmacyInventory.setType(1);
         } else {
+            String supportGiveMode = drugsDepRelation.getDrugsEnterpriseSupportGiveMode();
             //需要根据药企支持的配送类型设置药企配送或者药店取药或者两个都支持
-            if (RecipeBussConstant.DEP_SUPPORT_ONLINE.equals(drugsEnterprise.getPayModeSupport()) || RecipeBussConstant.DEP_SUPPORT_COD.equals(drugsEnterprise.getPayModeSupport())) {
+            if (supportGiveMode.contains(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType().toString())) {
+                pharmacyInventory.setType(1);
+            }
+            if (supportGiveMode.contains(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType().toString())) {
                 pharmacyInventory.setType(2);
-            } else if (RecipeBussConstant.DEP_SUPPORT_TFDS.equals(drugsEnterprise.getPayModeSupport())) {
+            }
+            if (supportGiveMode.contains(RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getType().toString())) {
+                pharmacyInventory.setType(3);
+            }
+            if (supportGiveMode.contains(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getType().toString())) {
                 pharmacyInventory.setType(4);
-            } else if (RecipeBussConstant.DEP_SUPPORT_ONLINE_TFDS.equals(drugsEnterprise.getPayModeSupport()) || RecipeBussConstant.DEP_SUPPORT_COD_TFDS.equals(drugsEnterprise.getPayModeSupport())
-                    || RecipeBussConstant.DEP_SUPPORT_ALL.equals(drugsEnterprise.getPayModeSupport())){
-                pharmacyInventory.setType(5);
-            } else if (RecipeBussConstant.DEP_SUPPORT_UNKNOW.equals(drugsEnterprise.getPayModeSupport())) {
-                pharmacyInventory.setType(0);
             }
         }
     }
