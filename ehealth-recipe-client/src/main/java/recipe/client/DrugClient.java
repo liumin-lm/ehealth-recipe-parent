@@ -318,7 +318,7 @@ public class DrugClient extends BaseClient {
      *
      * @param recipe 处方头对象
      */
-    public Recipe setRecipe(Recipe recipe, List<Recipedetail> recipeDetails, List<OrganDrugList> organDrugList) {
+    public Recipe updateRecipe(Recipe recipe, List<Recipedetail> recipeDetails, List<OrganDrugList> organDrugList) {
         Recipe recipeUpdate = new Recipe();
         recipeUpdate.setRecipeId(recipe.getRecipeId());
         //外带处方， 同时也设置成只能配送处方

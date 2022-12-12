@@ -5,8 +5,6 @@ import com.ngari.his.recipe.mode.DrugInfoRequestTO;
 import com.ngari.his.recipe.mode.RecipePreSettleDrugFeeDTO;
 import com.ngari.patient.dto.AppointDepartDTO;
 import com.ngari.patient.dto.DoctorDTO;
-import com.ngari.patient.service.IUsePathwaysService;
-import com.ngari.patient.service.IUsingRateService;
 import com.ngari.recipe.dto.PatientDTO;
 import com.ngari.recipe.dto.RecipeDetailDTO;
 import com.ngari.recipe.dto.RecipeInfoDTO;
@@ -15,7 +13,7 @@ import com.ngari.recipe.entity.PharmacyTcm;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.revisit.common.model.RevisitExDTO;
-import ctd.spring.AppDomainContext;
+import ctd.util.JSONUtils;
 import eh.entity.base.UsePathways;
 import eh.entity.base.UsingRate;
 import org.apache.commons.collections.CollectionUtils;
@@ -317,9 +315,6 @@ public class RecipeDetailManager extends BaseManager {
         return totalMoney;
     }
 
-    private com.ngari.patient.service.IUsingRateService usingRateService = AppDomainContext.getBean("basic.usingRateService", IUsingRateService.class);
-    private com.ngari.patient.service.IUsePathwaysService usePathwaysService = AppDomainContext.getBean("basic.usePathwaysService", IUsePathwaysService.class);
-
     /**
      * 保存处方药品信息
      *
@@ -381,11 +376,23 @@ public class RecipeDetailManager extends BaseManager {
                 BigDecimal drugCost = price.multiply(BigDecimal.valueOf(detail.getUseTotalDose())).setScale(4, RoundingMode.HALF_UP);
                 detail.setDrugCost(drugCost);
             }
+
+            Map<String, String> drugUnitdoseAndUnitMap = new HashMap<>();
+            String unitDoseForSpecificationUnit = null == organDrug.getUseDose() ? "" : organDrug.getUseDose().toString();
+            String unitForSpecificationUnit = null == organDrug.getUseDoseUnit() ? "" : organDrug.getUseDoseUnit();
+            String unitDoseForSmallUnit = null == organDrug.getSmallestUnitUseDose() ? "" : organDrug.getSmallestUnitUseDose().toString();
+            String unitForSmallUnit = null == organDrug.getUseDoseSmallestUnit() ? "" : organDrug.getUseDoseSmallestUnit();
+            drugUnitdoseAndUnitMap.put("unitDoseForSpecificationUnit", unitDoseForSpecificationUnit);
+            drugUnitdoseAndUnitMap.put("unitForSpecificationUnit", unitForSpecificationUnit);
+            drugUnitdoseAndUnitMap.put("unitDoseForSmallUnit", unitDoseForSmallUnit);
+            drugUnitdoseAndUnitMap.put("unitForSmallUnit", unitForSmallUnit);
+            detail.setDrugUnitdoseAndUnit(JSONUtils.toString(drugUnitdoseAndUnitMap));
+
             //设置药品-处方药品默认数据
             drugClient.setRecipeDetail(detail, usePathwaysMap, usingRateMap);
         }
         //设置药品-处方默认数据
-        Recipe recipeUpdate = drugClient.setRecipe(recipe, recipeDetails, organDrugList);
+        Recipe recipeUpdate = drugClient.updateRecipe(recipe, recipeDetails, organDrugList);
         recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
     }
 }
