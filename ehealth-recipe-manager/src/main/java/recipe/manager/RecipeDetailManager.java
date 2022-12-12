@@ -137,6 +137,21 @@ public class RecipeDetailManager extends BaseManager {
         return details;
     }
 
+    public List<Recipedetail> saveRecipeDetails(Recipe recipe, List<Recipedetail> details) {
+        logger.info("RecipeDetailManager saveRecipeDetails  recipe = {},  details = {}", JSON.toJSONString(recipe), JSON.toJSONString(details));
+        recipeDetailDAO.updateDetailInvalidByRecipeId(recipe.getRecipeId());
+        for (Recipedetail detail : details) {
+            if (ValidateUtil.integerIsEmpty(detail.getRecipeDetailId())) {
+                recipeDetailDAO.save(detail);
+            } else {
+                recipeDetailDAO.update(detail);
+            }
+        }
+        logger.info("RecipeDetailManager saveRecipeDetails details:{}", JSON.toJSONString(details));
+        return details;
+    }
+
+
     /**
      * 批量查询处方明细
      *
@@ -390,7 +405,9 @@ public class RecipeDetailManager extends BaseManager {
 
             //设置药品-处方药品默认数据
             drugClient.setRecipeDetail(detail, usePathwaysMap, usingRateMap);
+
         }
+        this.saveRecipeDetails(recipe, recipeDetails);
         //设置药品-处方默认数据
         Recipe recipeUpdate = drugClient.updateRecipe(recipe, recipeDetails, organDrugList);
         recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
