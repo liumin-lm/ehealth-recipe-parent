@@ -1099,6 +1099,9 @@ public class EnterpriseManager extends BaseManager {
             throw new DAOException("入参错误");
         }
         OrganAndDrugsepRelation relation = organAndDrugsepRelationDAO.getOrganAndDrugsepByOrganIdAndEntId(organId, drugsEnterpriseId);
+        if (Objects.isNull(relation)) {
+            return null;
+        }
         String drugsEnterpriseSupportGiveMode = relation.getDrugsEnterpriseSupportGiveMode();
         if (StringUtils.isEmpty(drugsEnterpriseSupportGiveMode)) {
             return null;
