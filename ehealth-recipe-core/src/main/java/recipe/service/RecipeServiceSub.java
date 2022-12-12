@@ -1495,6 +1495,7 @@ public class RecipeServiceSub {
         r.setSubState(recipe.getSubState());
         r.setAuditState(recipe.getAuditState());
         r.setOfflineRecipeName(recipe.getOfflineRecipeName());
+        r.setFastRecipeFlag(recipe.getFastRecipeFlag());
         r.setSubStateText(RecipeStateEnum.getRecipeStateEnum(recipe.getSubState()).getName());
         return r;
     }
