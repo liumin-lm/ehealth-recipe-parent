@@ -16,9 +16,7 @@ import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.dto.*;
-import com.ngari.patient.service.*;
-import com.ngari.patient.service.IUsePathwaysService;
-import com.ngari.patient.service.IUsingRateService;
+import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.PatientService;
 import com.ngari.platform.recipe.mode.OutpatientPaymentRecipeDTO;
 import com.ngari.platform.recipe.mode.QueryRecipeInfoHisDTO;
@@ -168,10 +166,6 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     private DrugClient drugClient;
     @Autowired
     private OrganAndDrugsepRelationDAO drugsDepRelationDAO;
-    @Autowired
-    private PatientService patientService;
-    @Autowired
-    private RevisitManager revisitManager;
 
 
     /**
@@ -1519,7 +1513,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             }
         }
         // recipe 信息
-        Recipe recipeVo = com.ngari.patient.utils.ObjectCopyUtils.convert(recipeBean, Recipe.class);
+        Recipe recipeVo = ObjectCopyUtils.convert(recipeBean, Recipe.class);
         Recipe recipe = recipeManager.saveStagingRecipe(recipeVo);
 
 
