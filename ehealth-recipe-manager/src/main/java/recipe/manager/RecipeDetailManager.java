@@ -102,6 +102,7 @@ public class RecipeDetailManager extends BaseManager {
             logger.error("saveRecipePreSettleDrugFeeDTOS recipeIds={} error", JsonUtil.toString(recipeId), e);
         }
     }
+
     /**
      * 保存处方明细
      *
@@ -282,9 +283,9 @@ public class RecipeDetailManager extends BaseManager {
     /**
      * 计算处方总金额
      *
-     * @param recipeType       处方类型
-     * @param detailList       处方明细
-     * @param organDrugCodeMap 机构药品数据
+     * @param recipeType 处方类型
+     * @param detailList 处方明细
+     * @param recipe     处方数据
      * @return 处方总金额
      */
     public BigDecimal totalMoney(Integer recipeType, List<Recipedetail> detailList, Recipe recipe) {
@@ -307,5 +308,17 @@ public class RecipeDetailManager extends BaseManager {
             totalMoney = totalMoney.add(drugCost);
         }
         return totalMoney;
+    }
+
+    /**
+     * 保存处方药品信息
+     *
+     * @param recipeDetails 药品信息
+     * @param recipe        处方信息
+     */
+    public void saveStagingRecipeDetail(List<Recipedetail> recipeDetails, Recipe recipe) {
+        if (CollectionUtils.isEmpty(recipeDetails)) {
+            return;
+        }
     }
 }

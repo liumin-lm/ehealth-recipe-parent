@@ -15,7 +15,9 @@ import com.ngari.patient.dto.ConsultSetDTO;
 import com.ngari.patient.service.ConsultSetService;
 import com.ngari.recipe.dto.DoctorPermissionDTO;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeExtend;
 import ctd.util.JSONUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.enumerate.type.BussSourceTypeEnum;
@@ -252,6 +254,27 @@ public class ConsultClient extends BaseClient {
         ConsultRegistrationNumberResultVO consult = this.getConsult(recipe.getClinicId());
         if (null != consult) {
             recipe.setPatientID(consult.getPatientId());
+        }
+    }
+
+    /**
+     * 设置处方默认数据
+     *
+     * @param recipe 处方头对象
+     */
+    public void setRecipeExt(Recipe recipe, RecipeExtend extend) {
+        if (!BussSourceTypeEnum.BUSSSOURCE_CONSULT.getType().equals(recipe.getBussSource())) {
+            if (Integer.valueOf(6).equals(extend.getRecipeChooseChronicDisease())) {
+                extend.setRecipeChooseChronicDisease(null);
+                extend.setChronicDiseaseCode("");
+                extend.setChronicDiseaseName("");
+            }
+            return;
+        }
+
+        ConsultExDTO consultExDTO = this.getConsultExByClinicId(recipe.getClinicId());
+        if (null != consultExDTO && StringUtils.isNotEmpty(consultExDTO.getCardId())) {
+            extend.setCardNo(consultExDTO.getCardId());
         }
     }
 }

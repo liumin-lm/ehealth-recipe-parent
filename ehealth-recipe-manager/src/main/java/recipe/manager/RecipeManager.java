@@ -16,7 +16,6 @@ import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import com.ngari.revisit.RevisitBean;
 import com.ngari.revisit.common.model.RevisitExDTO;
-import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.FileAuth;
 import ctd.util.JSONUtils;
@@ -36,10 +35,10 @@ import recipe.common.UrlConfig;
 import recipe.constant.PayConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
-import recipe.dao.DrugDecoctionWayDao;
 import recipe.dao.RequirementsForTakingDao;
 import recipe.enumerate.status.*;
 import recipe.enumerate.type.AppointEnterpriseTypeEnum;
+import recipe.enumerate.type.MedicalTypeEnum;
 import recipe.enumerate.type.RecipeShowQrConfigEnum;
 import recipe.util.*;
 
@@ -97,11 +96,13 @@ public class RecipeManager extends BaseManager {
     /**
      * 保存处方信息
      *
-     * @param recipeBean 前端传入的处方对象
+     * @param recipe 前端传入的处方对象
      */
     public Recipe saveStagingRecipe(Recipe recipe) {
         // 不用审核
         recipe.setStatus(RecipeStatusConstant.UNSIGN);
+        recipe.setProcessState(RecipeStateEnum.NONE.getType());
+        recipe.setSubState(RecipeStateEnum.NONE.getType());
         recipe.setSignDate(DateTime.now().toDate());
         recipe.setAuditState(RecipeAuditStateEnum.DEFAULT.getType());
         recipe.setWriteHisState(WriteHisEnum.NONE.getType());
@@ -148,14 +149,14 @@ public class RecipeManager extends BaseManager {
         } else {
             recipe.setCopyNum(ValidateUtil.integerIsEmpty(recipe.getCopyNum()) ? 1 : recipe.getCopyNum());
         }
-        //设置医生-处方默认数据
-        doctorClient.setRecipe(recipe);
         //设置机构-处方默认数据
         organClient.setRecipe(recipe);
-        //根据配置项-设置处方默认数据
-        configurationClient.setRecipe(recipe);
+        //设置医生-处方默认数据
+        doctorClient.setRecipe(recipe);
         //设置患者-处方默认数据
         patientClient.setRecipe(recipe);
+        //根据配置项-设置处方默认数据
+        configurationClient.setRecipe(recipe);
         //设置复诊-处方默认数据
         revisitClient.setRecipe(recipe);
         //设置咨询-处方默认数据
@@ -179,8 +180,47 @@ public class RecipeManager extends BaseManager {
             RevisitExDTO revisitExDTO = revisitClient.getByClinicId(recipe.getClinicId());
             recipeExtend.setCardNo(revisitExDTO.getCardId());
         }
+        recipeExtend.setRecipeId(recipe.getRecipeId());
+        return this.saveRecipeExtend(recipeExtend);
+    }
+
+
+    /**
+     * 保存处方扩展信息
+     *
+     * @param extend 扩展信息
+     * @param recipe 处方信息
+     */
+    public void saveStagingRecipeExt(RecipeExtend extend, Recipe recipe) {
+        if (null == extend) {
+            return;
+        }
+
+        if (Objects.isNull(recipe.getRecipeId())) {
+            throw new DAOException("处方id不能为空");
+        }
+
+        extend.setRecipeId(recipe.getRecipeId());
+        extend.setCanUrgentAuditRecipe(null == extend.getCanUrgentAuditRecipe() ? 0 : extend.getCanUrgentAuditRecipe());
+        extend.setAppointEnterpriseType(null == extend.getAppointEnterpriseType() ? 0 : extend.getAppointEnterpriseType());
+        //老的字段兼容处理
+        extend.setMedicalType(null != extend.getPatientType() ? extend.getPatientType() : extend.getMedicalType());
+        String medicalTypeText = MedicalTypeEnum.getOldMedicalTypeText(extend.getPatientType());
+        extend.setMedicalTypeText(null != medicalTypeText ? medicalTypeText : extend.getMedicalTypeText());
+
+        //根据配置项-设置处方默认数据
+        configurationClient.setRecipeExt(recipe, extend);
+        //设置复诊-处方默认数据
+        revisitClient.setRecipeExt(recipe, extend);
+        //设置咨询-处方默认数据
+        consultClient.setRecipeExt(recipe, extend);
+
+
+        this.saveRecipeExtend(extend);
+    }
+
+    private RecipeExtend saveRecipeExtend(RecipeExtend recipeExtend) {
         if (ValidateUtil.integerIsEmpty(recipeExtend.getRecipeId())) {
-            recipeExtend.setRecipeId(recipe.getRecipeId());
             recipeExtend = recipeExtendDAO.save(recipeExtend);
         } else {
             recipeExtend = recipeExtendDAO.update(recipeExtend);
@@ -1218,75 +1258,4 @@ public class RecipeManager extends BaseManager {
     }
 
 
-    /**
-     * 保存处方扩展信息
-     * @param extend 扩展信息
-     * @param recipeVo 处方信息
-     */
-    public void saveStagingRecipeExt(RecipeExtend extend, Recipe recipeVo) {
-        if(Objects.isNull(recipeVo.getRecipeId())){
-            throw new DAOException("处方id不能为空");
-        }
-        extend.setRecipeId(recipeVo.getRecipeId());
-        //老的字段兼容处理
-        if (StringUtils.isNotEmpty(extend.getPatientType())) {
-            extend.setMedicalType(extend.getPatientType());
-            switch (extend.getPatientType()) {
-                case "2":
-                    extend.setMedicalTypeText(("普通医保"));
-                    break;
-                case "3":
-                    extend.setMedicalTypeText(("慢病医保"));
-                    break;
-                default:
-            }
-        }
-        Integer recipeChooseChronicDisease = configurationClient.getValueCatch(recipeVo.getClinicOrgan(), "recipeChooseChronicDisease", 1);
-        if (extend.getRecipeChooseChronicDisease() == null) {
-            extend.setRecipeChooseChronicDisease(recipeChooseChronicDisease);
-        }
-        if (!RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipeVo.getBussSource()) && new Integer(6).equals(recipeChooseChronicDisease)) {
-            extend.setRecipeChooseChronicDisease(null);
-            extend.setChronicDiseaseCode("");
-            extend.setChronicDiseaseName("");
-        }
-        String cardNo = getCardNoByRecipe(recipeVo);
-        if (StringUtils.isNotEmpty(cardNo)) {
-            extend.setCardNo(cardNo);
-        }
-        DrugDecoctionWayDao drugDecoctionWayDao = DAOFactory.getDAO(DrugDecoctionWayDao.class);
-        if (null == extend.getDoctorIsDecoction()) {
-            extend.setDoctorIsDecoction("0");
-            if (StringUtils.isNotEmpty(extend.getDecoctionId())) {
-                DecoctionWay decoctionWay = drugDecoctionWayDao.get(Integer.parseInt(extend.getDecoctionId()));
-                if (decoctionWay.getGenerationisOfDecoction()) {
-                    extend.setDoctorIsDecoction("1");
-                } else {
-                    extend.setDoctorIsDecoction("0");
-                }
-            }
-        }
-        if (extend.getCanUrgentAuditRecipe() == null) {
-            extend.setCanUrgentAuditRecipe(0);
-        }
-        if (extend.getAppointEnterpriseType() == null) {
-            extend.setAppointEnterpriseType(0);
-        }
-
-        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeVo.getRecipeId());
-        if(Objects.isNull(recipeExtend)){
-            recipeExtendDAO.save(recipeExtend);
-        }else {
-            recipeExtendDAO.updateNonNullFieldByPrimaryKey(recipeExtend);
-        }
-    }
-
-    /**
-     * 保存处方药品信息
-     * @param recipeVo 处方信息
-     * @param recipedetails 药品信息
-     */
-    public void saveStagingRecipeDetail(Recipe recipeVo, List<Recipedetail> recipedetails) {
-
-    }
 }

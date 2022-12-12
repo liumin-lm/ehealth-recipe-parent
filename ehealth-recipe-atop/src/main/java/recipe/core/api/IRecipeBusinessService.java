@@ -452,6 +452,8 @@ public interface IRecipeBusinessService {
      */
     List<RecipeBean> findAuditOverTimeRecipeList(Date startTime, Date endTime, List<Integer> organIds);
 
+    Recipe getRecipe(Integer recipeId);
+
     /**
      * 暂存处方接口
      *

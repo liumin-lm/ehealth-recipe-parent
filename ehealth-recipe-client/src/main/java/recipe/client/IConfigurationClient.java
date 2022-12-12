@@ -9,6 +9,7 @@ import com.ngari.base.scratchable.model.ScratchableBean;
 import com.ngari.base.scratchable.service.IScratchableService;
 import com.ngari.patient.service.OrganConfigService;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeExtend;
 import ctd.account.Client;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
@@ -453,6 +454,18 @@ public class IConfigurationClient extends BaseClient {
         } else {
             recipe.setSupportMode(2);
         }
+    }
+
+
+    /**
+     * 设置处方默认数据
+     *
+     * @param recipe 处方头对象
+     */
+    public void setRecipeExt(Recipe recipe, RecipeExtend extend) {
+        Integer recipeChooseChronicDisease = this.getValueCatch(recipe.getClinicOrgan(), "recipeChooseChronicDisease", 1);
+        extend.setRecipeChooseChronicDisease(null == extend.getRecipeChooseChronicDisease() ? recipeChooseChronicDisease : extend.getRecipeChooseChronicDisease());
+
     }
 
     /**

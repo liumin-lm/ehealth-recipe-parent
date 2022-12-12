@@ -271,5 +271,21 @@ public class RevisitClient extends BaseClient {
             recipe.setRecipeSource(1);
         }
     }
+
+    /**
+     * 设置处方默认数据
+     *
+     * @param recipe 处方头对象
+     */
+    public void setRecipeExt(Recipe recipe, RecipeExtend extend) {
+        if (!BussSourceTypeEnum.BUSSSOURCE_REVISIT.getType().equals(recipe.getBussSource())) {
+            return;
+        }
+
+        RevisitExDTO revisitExDTO = this.getByClinicId(recipe.getClinicId());
+        if (null != revisitExDTO && StringUtils.isNotEmpty(revisitExDTO.getCardId())) {
+            extend.setCardNo(revisitExDTO.getCardId());
+        }
+    }
 }
 

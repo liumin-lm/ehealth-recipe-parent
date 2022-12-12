@@ -107,6 +107,8 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     @Autowired
     private RecipeManager recipeManager;
     @Autowired
+    private RecipeDetailManager recipeDetailManager;
+    @Autowired
     private OfflineRecipeClient offlineRecipeClient;
     @Autowired
     private RemoteRecipeService remoteRecipeService;
@@ -1502,36 +1504,27 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             return BeanCopyUtils.copyList(result, RecipeBean::new);
         }
     }
+
+    @Override
+    public Recipe getRecipe(Integer recipeId) {
+        return recipeDAO.get(recipeId);
+    }
+
     @Override
     public Integer stagingRecipe(RecipeInfoVO recipeInfoVO) {
-        RecipeBean recipeBean = recipeInfoVO.getRecipeBean();
-        if (!ValidateUtil.integerIsEmpty(recipeBean.getRecipeId())) {
-            Recipe recipe = recipeDAO.get(recipeBean.getRecipeId());
-            // 只有暂存状态才可以修改
-            if (!WriteHisEnum.NONE.getType().equals(recipe.getWriteHisState()) || !SignEnum.NONE.getType().equals(recipe.getDoctorSignState())) {
-                throw new DAOException(ErrorCode.SERVICE_ERROR, "当前处方不是暂存状态,不能操作");
-            }
-        }
         // recipe 信息
-        Recipe recipeVo = ObjectCopyUtils.convert(recipeBean, Recipe.class);
-        Recipe recipe = recipeManager.saveStagingRecipe(recipeVo);
-
-
+        Recipe recipe = recipeManager.saveStagingRecipe(ObjectCopyUtils.convert(recipeInfoVO.getRecipeBean(), Recipe.class));
         // recipe ext信息
-        RecipeExtendBean recipeExtend = recipeBean.getRecipeExtend();
-        if (Objects.nonNull(recipeExtend) && Objects.nonNull(recipeVo.getRecipeId())) {
-            RecipeExtend extend = BeanCopyUtils.copyProperties(recipeExtend, RecipeExtend::new);
-            recipeManager.saveStagingRecipeExt(extend, recipeVo);
-        }
+        RecipeExtend recipeExt = ObjectCopyUtils.convert(recipeInfoVO.getRecipeExtendBean(), RecipeExtend.class);
+        recipeManager.saveStagingRecipeExt(recipeExt, recipe);
+
         // recipe detail信息
-        List<RecipeDetailBean> detailBeanList = recipeInfoVO.getRecipeDetails();
-        if (CollectionUtils.isNotEmpty(detailBeanList)) {
-            List<Recipedetail> recipedetails = com.ngari.patient.utils.ObjectCopyUtils.convert(detailBeanList, Recipedetail.class);
-            recipeManager.saveStagingRecipeDetail(recipeVo,recipedetails);
-        }
-        // 日志打印
+        List<Recipedetail> recipeDetails = ObjectCopyUtils.convert(recipeInfoVO.getRecipeDetails(), Recipedetail.class);
+        recipeDetailManager.saveStagingRecipeDetail(recipeDetails, recipe);
+
+        // 修改状态
         stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_SUBMIT, RecipeStateEnum.SUB_SUBMIT_TEMPORARY);
-        return recipeVo.getRecipeId();
+        return recipe.getRecipeId();
     }
 
 }
