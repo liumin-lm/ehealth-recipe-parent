@@ -121,8 +121,7 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
      * @return
      */
     public Integer getCountByOrganIdAndPayModeSupportAndSendType(@DAOParam("organId") Integer organId,
-                                                              @DAOParam("payModeSupport") Integer payModeSupport,
-                                                              @DAOParam("sendType") Integer sendType) {
+                                                              @DAOParam("payModeSupport") Integer payModeSupport) {
         HibernateStatelessResultAction<BigInteger> action = new AbstractHibernateStatelessResultAction<BigInteger>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
