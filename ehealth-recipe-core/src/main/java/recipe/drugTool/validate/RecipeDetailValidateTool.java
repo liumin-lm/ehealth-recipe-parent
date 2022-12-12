@@ -140,7 +140,7 @@ public class RecipeDetailValidateTool {
             recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
             recipeDetail.setValidateStatusText("机构药品【" + organDrug.getDrugName() + "】为皮试药品");
         }
-        if (Integer.valueOf("0").equals(skinTestDrugFlag) && Integer.valueOf("1").equals(recipeDetail.getSkinTestFlag())) {
+        if (Integer.valueOf("0").equals(skinTestDrugFlag) && !Integer.valueOf("0").equals(recipeDetail.getSkinTestFlag())) {
             recipeDetail.setSkinTestFlag(0);
             recipeDetail.setSkinTestDrugFlag(skinTestDrugFlag);
             recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);

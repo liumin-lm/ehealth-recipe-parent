@@ -197,11 +197,13 @@ public class FastRecipeGmAtop extends BaseAtop {
         return fastRecipeVOList;
     }
 
-    @RpcService
-    public void handleFastRecipeOldData(String paramName) {
-        fastRecipeService.handleFastRecipeOldData(paramName);
-    }
-
+    /**
+     * 便捷购药运营平台查询处方单
+     *
+     * @param recipeId
+     * @param organId
+     * @return
+     */
     @RpcService
     public Map<String, Object> findRecipeAndDetailsByRecipeIdAndOrgan(Integer recipeId, Integer organId) {
         return fastRecipeService.findRecipeAndDetailsByRecipeIdAndOrgan(recipeId, organId);
