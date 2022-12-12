@@ -1517,11 +1517,9 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         // recipe ext信息
         RecipeExtend recipeExt = ObjectCopyUtils.convert(recipeInfoVO.getRecipeExtendBean(), RecipeExtend.class);
         recipeManager.saveStagingRecipeExt(recipeExt, recipe);
-
         // recipe detail信息
         List<Recipedetail> recipeDetails = ObjectCopyUtils.convert(recipeInfoVO.getRecipeDetails(), Recipedetail.class);
         recipeDetailManager.saveStagingRecipeDetail(recipeDetails, recipe);
-
         // 修改状态
         stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_SUBMIT, RecipeStateEnum.SUB_SUBMIT_TEMPORARY);
         return recipe.getRecipeId();

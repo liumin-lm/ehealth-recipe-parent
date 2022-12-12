@@ -13,11 +13,13 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.revisit.RevisitBean;
 import com.ngari.revisit.common.model.DrugFaileToRevisitDTO;
+import com.ngari.revisit.common.model.HosRecordDTO;
 import com.ngari.revisit.common.model.RevisitBussNoticeDTO;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.request.ValidRevisitRequest;
 import com.ngari.revisit.common.service.IRevisitBusNoticeService;
 import com.ngari.revisit.common.service.IRevisitExService;
+import com.ngari.revisit.common.service.IRevisitHosRecordService;
 import com.ngari.revisit.common.service.IRevisitService;
 import com.ngari.revisit.process.service.IRecipeOnLineRevisitService;
 import com.ngari.revisit.traces.service.IRevisitTracesSortService;
@@ -26,6 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.enumerate.type.BussSourceTypeEnum;
+import recipe.enumerate.type.FastRecipeFlagEnum;
 import recipe.util.ValidateUtil;
 
 import java.util.List;
@@ -57,6 +60,9 @@ public class RevisitClient extends BaseClient {
     private IRevisitBusNoticeService revisitBusNoticeService;
     @Autowired
     private IRecipeOnLineRevisitService recipeOnLineRevisitService;
+    @Autowired
+    private IRevisitHosRecordService iRevisitHosRecordService;
+
 
     /**
      * 根据挂号序号获取复诊信息
@@ -266,9 +272,12 @@ public class RevisitClient extends BaseClient {
             recipe.setPatientID(revisitExDTO.getPatId());
             recipe.setMedicalFlag(revisitExDTO.getMedicalFlag());
         }
-        RevisitBean consultBean = getRevisitByClinicId(recipe.getClinicId());
-        if (null != consultBean && Integer.valueOf(1).equals(consultBean.getConsultSource())) {
-            recipe.setRecipeSource(1);
+        RevisitBean revisitBean = getRevisitByClinicId(recipe.getClinicId());
+        if (null != revisitBean) {
+            recipe.setFastRecipeFlag(FastRecipeFlagEnum.getFastRecipeFlag(revisitBean.getSourceTag()));
+            if (Integer.valueOf(1).equals(revisitBean.getConsultSource())) {
+                recipe.setRecipeSource(1);
+            }
         }
     }
 
@@ -279,12 +288,35 @@ public class RevisitClient extends BaseClient {
      */
     public void setRecipeExt(Recipe recipe, RecipeExtend extend) {
         if (!BussSourceTypeEnum.BUSSSOURCE_REVISIT.getType().equals(recipe.getBussSource())) {
+            if (Integer.valueOf(6).equals(extend.getRecipeChooseChronicDisease())) {
+                extend.setRecipeChooseChronicDisease(null);
+                extend.setChronicDiseaseCode("");
+                extend.setChronicDiseaseName("");
+            }
             return;
         }
 
         RevisitExDTO revisitExDTO = this.getByClinicId(recipe.getClinicId());
-        if (null != revisitExDTO && StringUtils.isNotEmpty(revisitExDTO.getCardId())) {
+        if (null != revisitExDTO) {
             extend.setCardNo(revisitExDTO.getCardId());
+            extend.setCardType(revisitExDTO.getCardType());
+            extend.setRegisterID(revisitExDTO.getRegisterNo());
+            extend.setWeight(revisitExDTO.getWeight());
+            extend.setMedicalRecordNumber(revisitExDTO.getMedicalRecordNo());
+            extend.setIllnessType(revisitExDTO.getDbType());
+            extend.setIllnessName(revisitExDTO.getDbTypeName());
+            extend.setTerminalId(revisitExDTO.getSelfServiceMachineNo());
+            extend.setCardNo(StringUtils.isNotEmpty(revisitExDTO.getCardId()) ? revisitExDTO.getCardId() : extend.getCardNo());
+            extend.setTerminalType(StringUtils.isNotEmpty(extend.getTerminalId()) ? 1 : extend.getTerminalType());
+            //从复诊获取病种编码和名称
+            if (Integer.valueOf(6).equals(extend.getRecipeChooseChronicDisease()) && "4".equals(revisitExDTO.getInsureTypeCode())) {
+                extend.setChronicDiseaseCode(revisitExDTO.getMtTypeCode());
+                extend.setChronicDiseaseName(revisitExDTO.getMtTypeName());
+            }
+        }
+        HosRecordDTO hosRecord = iRevisitHosRecordService.getByConsultId(recipe.getClinicId());
+        if (null != hosRecord) {
+            extend.setSideCourtYardType(hosRecord.getType());
         }
     }
 }

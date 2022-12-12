@@ -27,6 +27,7 @@ import com.ngari.platform.recipe.mode.MedicalInsuranceAuthInfoBean;
 import com.ngari.recipe.dto.PatientDTO;
 import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.Recipedetail;
 import ctd.account.Client;
 import ctd.persistence.exception.DAOException;
@@ -40,6 +41,7 @@ import recipe.constant.ErrorCode;
 import recipe.util.ChinaIDNumberUtil;
 import recipe.util.DateConversion;
 import recipe.util.DictionaryUtil;
+import recipe.util.ValidateUtil;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -466,6 +468,18 @@ public class PatientClient extends BaseClient {
         recipe.setRequestMpiId(requestPatient.getMpiId());
         // urt用于系统消息推送
         recipe.setRequestUrt(requestPatient.getUrt());
+    }
+
+    public void setRecipeExt(Recipe recipe, RecipeExtend extend) {
+        PatientDTO patient = this.getPatientDTO(recipe.getMpiid());
+        extend.setGuardianName(patient.getGuardianName());
+        extend.setGuardianCertificate(patient.getGuardianCertificate());
+        extend.setGuardianMobile(patient.getMobile());
+        if (ValidateUtil.integerIsEmpty(patient.getPatientUserType())) {
+            extend.setRecipeFlag(0);
+        } else {
+            extend.setRecipeFlag(1);
+        }
     }
 
     /**

@@ -364,6 +364,21 @@ public class DocIndexClient extends BaseClient {
         return true;
     }
 
+
+    /**
+     * 设置处方默认数据
+     *
+     * @param recipe 处方头对象
+     */
+    public void setRecipeExt(Recipe recipe, RecipeExtend extend) {
+        if (null == extend || ValidateUtil.integerIsEmpty(extend.getDocIndexId())) {
+            return;
+        }
+        EmrDetailDTO emrDetailDTO = this.getEmrDetailsV1(extend.getDocIndexId());
+        recipe.setOrganDiseaseName(emrDetailDTO.getOrganDiseaseName());
+        recipe.setOrganDiseaseId(emrDetailDTO.getOrganDiseaseId());
+    }
+
     private MedicalInfoBean getEmrMedicalInfoBean(Integer docIndexId) {
         if (ValidateUtil.integerIsEmpty(docIndexId)) {
             return null;

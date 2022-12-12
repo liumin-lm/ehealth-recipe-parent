@@ -264,17 +264,19 @@ public class ConsultClient extends BaseClient {
      */
     public void setRecipeExt(Recipe recipe, RecipeExtend extend) {
         if (!BussSourceTypeEnum.BUSSSOURCE_CONSULT.getType().equals(recipe.getBussSource())) {
-            if (Integer.valueOf(6).equals(extend.getRecipeChooseChronicDisease())) {
-                extend.setRecipeChooseChronicDisease(null);
-                extend.setChronicDiseaseCode("");
-                extend.setChronicDiseaseName("");
-            }
             return;
         }
-
         ConsultExDTO consultExDTO = this.getConsultExByClinicId(recipe.getClinicId());
-        if (null != consultExDTO && StringUtils.isNotEmpty(consultExDTO.getCardId())) {
+        if (null != consultExDTO) {
             extend.setCardNo(consultExDTO.getCardId());
+            extend.setCardType(consultExDTO.getCardType());
+            extend.setRegisterID(consultExDTO.getRegisterNo());
+            extend.setWeight(consultExDTO.getWeight());
+        }
+        ConsultRegistrationNumberResultVO consult = this.getConsult(recipe.getClinicId());
+        if (null != consult) {
+            extend.setRegisterID(StringUtils.isNotEmpty(consult.getRegistrationNumber()) ? consult.getRegistrationNumber() : extend.getRegisterID());
+            extend.setSeries(consult.getSeries());
         }
     }
 }

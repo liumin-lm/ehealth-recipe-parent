@@ -39,6 +39,7 @@ import recipe.dao.RequirementsForTakingDao;
 import recipe.enumerate.status.*;
 import recipe.enumerate.type.AppointEnterpriseTypeEnum;
 import recipe.enumerate.type.MedicalTypeEnum;
+import recipe.enumerate.type.RecipeBusinessTypeEnum;
 import recipe.enumerate.type.RecipeShowQrConfigEnum;
 import recipe.util.*;
 
@@ -195,27 +196,28 @@ public class RecipeManager extends BaseManager {
         if (null == extend) {
             return;
         }
-
         if (Objects.isNull(recipe.getRecipeId())) {
             throw new DAOException("处方id不能为空");
         }
-
         extend.setRecipeId(recipe.getRecipeId());
+        extend.setCancellation("");
         extend.setCanUrgentAuditRecipe(null == extend.getCanUrgentAuditRecipe() ? 0 : extend.getCanUrgentAuditRecipe());
         extend.setAppointEnterpriseType(null == extend.getAppointEnterpriseType() ? 0 : extend.getAppointEnterpriseType());
         //老的字段兼容处理
         extend.setMedicalType(null != extend.getPatientType() ? extend.getPatientType() : extend.getMedicalType());
         String medicalTypeText = MedicalTypeEnum.getOldMedicalTypeText(extend.getPatientType());
         extend.setMedicalTypeText(null != medicalTypeText ? medicalTypeText : extend.getMedicalTypeText());
-
+        extend.setRecipeBusinessType(RecipeBusinessTypeEnum.getRecipeBusinessType(recipe.getBussSource()));
+        //根据患者-设置处方默认数据
+        patientClient.setRecipeExt(recipe, extend);
         //根据配置项-设置处方默认数据
         configurationClient.setRecipeExt(recipe, extend);
+        //设置电子病例-处方默认数据
+        docIndexClient.setRecipeExt(recipe, extend);
         //设置复诊-处方默认数据
         revisitClient.setRecipeExt(recipe, extend);
         //设置咨询-处方默认数据
         consultClient.setRecipeExt(recipe, extend);
-
-
         this.saveRecipeExtend(extend);
     }
 

@@ -546,10 +546,6 @@ public class RecipeServiceSub {
                 for (DrugList drugList : drugLists) {
                     delDrugName.add(drugList.getDrugName());
                 }
-                if (CollectionUtils.isNotEmpty(delDrugName)) {
-                    String errorDrugName = Joiner.on(",").join(delDrugName);
-                //    throw new DAOException(ErrorCode.SERVICE_ERROR, errorDrugName + "药品已失效，请重新选择药品");
-                }
             }
             //是否为老的药品兼容方式，老的药品传入方式没有organDrugCode
             boolean oldFlag = organDrugCodes.isEmpty();
@@ -665,20 +661,10 @@ public class RecipeServiceSub {
                             if (StringUtils.isBlank(detail.getUsingRate())) {
                                 detail.setUsingRate(recipe.getTcmUsingRate());
                             }
-
-//                            if (detail.getUseDays() == null) {
-//                                detail.setUseDays(recipe.getCopyNum());
-//                            }
                             if (detail.getUseDose() != null) {
                                 detail.setUseTotalDose(BigDecimal.valueOf(recipe.getCopyNum()).multiply(BigDecimal.valueOf(detail.getUseDose())).doubleValue());
                             }
-                            //中药药品显示名称处理---固定--中药药品名暂时前端拼接写死
-                            //detail.setDrugDisplaySplicedName(DrugNameDisplayUtil.dealwithRecipedetailName(null, detail,RecipeBussConstant.RECIPETYPE_TCM));
                         } else if (RecipeBussConstant.RECIPETYPE_HP.equals(recipe.getRecipeType())) {
-
-//                            if (detail.getUseDays() == null) {
-//                                detail.setUseDays(recipe.getCopyNum());
-//                            }
                             if (detail.getUseDose() != null) {
                                 detail.setUseTotalDose(BigDecimal.valueOf(recipe.getCopyNum()).multiply(BigDecimal.valueOf(detail.getUseDose())).doubleValue());
                             }
@@ -729,14 +715,6 @@ public class RecipeServiceSub {
                         detail.setUseDaysB(detail.getUseDays().toString());
                     }
                 }
-                if (CollectionUtils.isNotEmpty(delOrganDrugName)) {
-                    String errorDrugName = Joiner.on(",").join(delOrganDrugName);
-                    //  throw new DAOException(ErrorCode.SERVICE_ERROR, errorDrugName + "药品已失效，请重新选择药品");
-                }
-                //success = true;
-            } else {
-                LOGGER.warn("setDetailsInfo organDrugList. recipeId=[{}], drugIds={}", recipe.getRecipeId(), JSONUtils.toString(drugIds));
-                //  throw new DAOException(ErrorCode.SERVICE_ERROR, "药品已失效，请重新选择药品");
             }
         } else {
             LOGGER.warn("setDetailsInfo 详情里没有药品ID. recipeId=[{}]", recipe.getRecipeId());

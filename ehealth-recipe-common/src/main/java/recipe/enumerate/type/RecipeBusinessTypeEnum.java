@@ -39,4 +39,22 @@ public enum RecipeBusinessTypeEnum {
     public String getName() {
         return name;
     }
+
+    public static Integer getRecipeBusinessType(Integer bussSource) {
+        if (null == bussSource) {
+            return 3;
+        }
+        switch (bussSource) {
+            case 1:
+            case 5:
+                //门诊处方
+                return 1;
+            case 2:
+                //复诊处方
+                return 2;
+            default:
+                //其他处方
+                return 3;
+        }
+    }
 }

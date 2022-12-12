@@ -465,7 +465,6 @@ public class IConfigurationClient extends BaseClient {
     public void setRecipeExt(Recipe recipe, RecipeExtend extend) {
         Integer recipeChooseChronicDisease = this.getValueCatch(recipe.getClinicOrgan(), "recipeChooseChronicDisease", 1);
         extend.setRecipeChooseChronicDisease(null == extend.getRecipeChooseChronicDisease() ? recipeChooseChronicDisease : extend.getRecipeChooseChronicDisease());
-
     }
 
     /**
