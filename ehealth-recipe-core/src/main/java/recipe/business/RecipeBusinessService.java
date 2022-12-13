@@ -74,7 +74,10 @@ import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.serviceprovider.recipeorder.service.RemoteRecipeOrderService;
 import recipe.util.*;
 import recipe.vo.PageGenericsVO;
-import recipe.vo.doctor.*;
+import recipe.vo.doctor.DoctorRecipeListReqVO;
+import recipe.vo.doctor.PatientOptionalDrugVO;
+import recipe.vo.doctor.PharmacyTcmVO;
+import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.greenroom.DrugUsageLabelResp;
 import recipe.vo.greenroom.FindRecipeListForPatientVO;
 import recipe.vo.greenroom.RecipeRefundInfoReqVO;
@@ -1518,7 +1521,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         recipeManager.saveStagingRecipeExt(recipeExt, recipe);
         // recipe detail信息
         List<Recipedetail> recipeDetails = ObjectCopyUtils.convert(recipeInfoVO.getRecipeDetails(), Recipedetail.class);
-        recipeDetailManager.saveStagingRecipeDetail(recipeDetails, recipe);
+        recipeDetailManager.saveRecipeDetails(recipeDetails, recipe);
         // 修改状态
         stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_SUBMIT, RecipeStateEnum.SUB_SUBMIT_TEMPORARY);
         return recipe.getRecipeId();

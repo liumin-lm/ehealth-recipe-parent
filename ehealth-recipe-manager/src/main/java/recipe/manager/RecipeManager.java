@@ -129,7 +129,6 @@ public class RecipeManager extends BaseManager {
         recipe.setTakeMedicine(ValidateUtil.integerIsEmpty(recipe.getTakeMedicine()) ? 0 : recipe.getTakeMedicine());
         //默认有效天数
         recipe.setValueDays(ValidateUtil.integerIsEmpty(recipe.getValueDays()) ? 3 : recipe.getValueDays());
-        //todo ？
         //默认来源为纳里APP处方
         recipe.setFromflag(ValidateUtil.integerIsEmpty(recipe.getFromflag()) ? 1 : recipe.getFromflag());
         recipe.setChooseFlag(ValidateUtil.integerIsEmpty(recipe.getChooseFlag()) ? 0 : recipe.getChooseFlag());

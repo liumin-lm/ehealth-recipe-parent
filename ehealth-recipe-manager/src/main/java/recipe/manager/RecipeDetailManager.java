@@ -114,22 +114,20 @@ public class RecipeDetailManager extends BaseManager {
         if (CollectionUtils.isEmpty(recipeDetails)) {
             return;
         }
+        Integer organId = recipe.getClinicOrgan();
+        Integer recipeId = recipe.getRecipeId();
         List<String> organDrugCodes = recipeDetails.stream().map(Recipedetail::getOrganDrugCode).distinct().collect(Collectors.toList());
-        List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugCodes(recipe.getClinicOrgan(), organDrugCodes);
+        List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugCodes(organId, organDrugCodes);
         if (CollectionUtils.isNotEmpty(organDrugList)) {
             return;
         }
         Map<String, OrganDrugList> organDrugListMap = organDrugList.stream().collect(Collectors.toMap(k -> k.getOrganDrugCode() + k.getDrugId(), a -> a, (k1, k2) -> k1));
         //用药途径 用药频次
-        Map<Integer, UsePathways> usePathwaysMap = drugClient.usePathwaysMap(recipe.getClinicOrgan());
-        Map<Integer, UsingRate> usingRateMap = drugClient.usingRateMap(recipe.getClinicOrgan());
-        recipeDetails.forEach(a -> {
-            //设置药品默认字段-处方药品默认数据
-            this.setRecipeDetail(a, recipe, organDrugListMap);
-            //设置药品频次途径-处方药品默认数据
-            drugClient.setRecipeDetail(a, usePathwaysMap, usingRateMap);
-        });
-        //设置药品金额-处方默认数据
+        Map<Integer, UsePathways> usePathwaysMap = drugClient.usePathwaysMap(organId);
+        Map<Integer, UsingRate> usingRateMap = drugClient.usingRateMap(organId);
+        //设置药品默认字段-处方药品默认数据
+        recipeDetails.forEach(a -> this.setRecipeDetail(a, recipeId, organDrugListMap, usePathwaysMap, usingRateMap));
+        //设置药品金额等-处方默认数据
         Recipe recipeUpdate = drugClient.updateRecipe(recipe, recipeDetails, organDrugList);
         recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
         //保存处方明细
@@ -283,18 +281,19 @@ public class RecipeDetailManager extends BaseManager {
     }
 
     /**
-     * 写入明细字段
+     * 设置药品默认字段-处方药品默认数据
      *
      * @param detail           处方明细
-     * @param recipe           处方
+     * @param recipeId         处方
      * @param organDrugListMap 机构药品
      * @return
      */
-    private void setRecipeDetail(Recipedetail detail, Recipe recipe, Map<String, OrganDrugList> organDrugListMap) {
+    private void setRecipeDetail(Recipedetail detail, Integer recipeId, Map<String, OrganDrugList> organDrugListMap,
+                                 Map<Integer, UsePathways> usePathwaysMap, Map<Integer, UsingRate> usingRateMap) {
         //设置药品详情基础数据
         detail.setStatus(1);
         detail.setHisReturnSalePrice(null);
-        detail.setRecipeId(recipe.getRecipeId());
+        detail.setRecipeId(recipeId);
         detail.setCreateDt(DateTime.now().toDate());
         detail.setLastModify(DateTime.now().toDate());
         detail.setUseDays(null == detail.getUseDays() ? 0 : detail.getUseDays());
@@ -331,6 +330,8 @@ public class RecipeDetailManager extends BaseManager {
         drugUnitdoseAndUnitMap.put("unitDoseForSmallUnit", unitDoseForSmallUnit);
         drugUnitdoseAndUnitMap.put("unitForSmallUnit", unitForSmallUnit);
         detail.setDrugUnitdoseAndUnit(JSONUtils.toString(drugUnitdoseAndUnitMap));
+        //设置药品频次途径-处方药品默认数据
+        drugClient.setRecipeDetail(detail, usePathwaysMap, usingRateMap);
     }
 
 }
