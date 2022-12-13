@@ -69,6 +69,7 @@ public class FindRecipeDoctorAtop extends BaseAtop {
      * @param bussSource 开处方来源 1问诊 2复诊(在线续方) 3网络门诊
      * @return
      */
+    @RpcService
     public List<RecipeInfoVO> recipeAllByClinicId(Integer clinicId, Integer bussSource) {
         return recipeDetailBusinessService.recipeAllByClinicId(clinicId, bussSource);
 
