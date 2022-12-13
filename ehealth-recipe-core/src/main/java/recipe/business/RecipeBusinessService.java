@@ -29,6 +29,7 @@ import com.ngari.recipe.recipe.constant.RecipecCheckStatusConstant;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.vo.*;
 import coupon.api.service.ICouponBaseService;
+import ctd.account.UserRoleToken;
 import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
 import ctd.net.broadcast.MQHelper;
@@ -73,9 +74,7 @@ import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.serviceprovider.recipeorder.service.RemoteRecipeOrderService;
 import recipe.util.*;
 import recipe.vo.PageGenericsVO;
-import recipe.vo.doctor.PatientOptionalDrugVO;
-import recipe.vo.doctor.PharmacyTcmVO;
-import recipe.vo.doctor.RecipeInfoVO;
+import recipe.vo.doctor.*;
 import recipe.vo.greenroom.DrugUsageLabelResp;
 import recipe.vo.greenroom.FindRecipeListForPatientVO;
 import recipe.vo.greenroom.RecipeRefundInfoReqVO;
@@ -1523,6 +1522,28 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         // 修改状态
         stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_SUBMIT, RecipeStateEnum.SUB_SUBMIT_TEMPORARY);
         return recipe.getRecipeId();
+    }
+
+    @Override
+    public List<RecipeInfoVO> findDoctorRecipeList(DoctorRecipeListReqVO doctorRecipeListReqVO) {
+        // 校验医生权限
+        checkUserHasPermissionByDoctorId(doctorRecipeListReqVO.getDoctorId());
+        // 这个版本只查询常用方
+        if (!RecipeSourceTypeEnum.COMMON_RECIPE.getType().equals(doctorRecipeListReqVO.getRecipeType())) {
+            return null;
+        }
+        List<Recipe> list = recipeDAO.findDoctorRecipeList(doctorRecipeListReqVO.getDoctorId(),doctorRecipeListReqVO.getStart(),doctorRecipeListReqVO.getLimit());
+
+        return null;
+    }
+
+    public void checkUserHasPermissionByDoctorId(Integer doctorId){
+        UserRoleToken urt = UserRoleToken.getCurrent();
+        String methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
+        if (!(urt.isSelfDoctor(doctorId))){
+            logger.error("当前用户没有权限调用doctorId[{}],methodName[{}]", doctorId ,methodName);
+            throw new DAOException("当前登录用户没有权限");
+        }
     }
 
 }
