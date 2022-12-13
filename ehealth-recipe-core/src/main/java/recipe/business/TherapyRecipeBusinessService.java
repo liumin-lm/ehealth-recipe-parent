@@ -76,9 +76,7 @@ public class TherapyRecipeBusinessService extends BaseService implements ITherap
         //保存处方明细
         if (!CollectionUtils.isEmpty(recipeInfoVO.getRecipeDetails())) {
             List<Recipedetail> details = ObjectCopyUtils.convert(recipeInfoVO.getRecipeDetails(), Recipedetail.class);
-            List<Integer> drugIds = details.stream().filter(a -> !a.getType().equals(2)).map(Recipedetail::getDrugId).collect(Collectors.toList());
-            Map<String, OrganDrugList> organDrugListMap = organDrugListManager.getOrganDrugByIdAndCode(recipe.getClinicOrgan(), drugIds);
-            recipeDetailManager.saveRecipeDetails(recipe, details, organDrugListMap);
+            recipeDetailManager.saveRecipeDetails(details, recipe);
         }
         //保存诊疗
         RecipeTherapy recipeTherapy = ObjectCopyUtils.convert(recipeInfoVO.getRecipeTherapyVO(), RecipeTherapy.class);
@@ -87,8 +85,6 @@ public class TherapyRecipeBusinessService extends BaseService implements ITherap
         }
         recipeTherapy.setStatus(TherapyStatusEnum.READYSUBMIT.getType());
         recipeTherapyManager.saveRecipeTherapy(recipeTherapy, recipe);
-        //更新处方
-        recipe = recipeManager.saveRecipe(recipe);
         return recipe.getRecipeId();
     }
 

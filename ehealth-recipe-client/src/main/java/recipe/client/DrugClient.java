@@ -23,6 +23,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import recipe.constant.RecipeBussConstant;
 import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.util.ObjectCopyUtils;
 import recipe.util.RecipeUtil;
@@ -314,7 +315,7 @@ public class DrugClient extends BaseClient {
 
 
     /**
-     * 设置处方默认数据
+     * 设置处方默认数据-金额计算
      *
      * @param recipe 处方头对象
      */
@@ -328,18 +329,44 @@ public class DrugClient extends BaseClient {
             recipeUpdate.setDistributionFlag(1);
         }
         //药品总金额
-        BigDecimal totalMoney = new BigDecimal(0);
-        for (Recipedetail detail : recipeDetails) {
-            totalMoney = totalMoney.add(detail.getDrugCost());
-        }
-        totalMoney = totalMoney.setScale(2, RoundingMode.HALF_UP);
+        BigDecimal totalMoney = this.totalMoney(recipe.getRecipeType(), recipeDetails, recipe);
         recipeUpdate.setTotalMoney(totalMoney);
         recipeUpdate.setActualPrice(totalMoney);
         return recipeUpdate;
     }
 
     /**
-     * 设置处方默认数据
+     * 计算处方总金额
+     *
+     * @param recipeType 处方类型
+     * @param detailList 处方明细
+     * @param recipe     处方数据
+     * @return 处方总金额
+     */
+    public BigDecimal totalMoney(Integer recipeType, List<Recipedetail> detailList, Recipe recipe) {
+        BigDecimal totalMoney = new BigDecimal(0d);
+        if (org.apache.commons.collections.CollectionUtils.isEmpty(detailList)) {
+            return totalMoney;
+        }
+        for (Recipedetail detail : detailList) {
+            BigDecimal price = detail.getSalePrice();
+            BigDecimal drugCost;
+            if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipeType)) {
+                detail.setUseTotalDose(BigDecimal.valueOf(recipe.getCopyNum()).multiply(BigDecimal.valueOf(detail.getUseDose())).doubleValue());
+                //保留3位小数
+                drugCost = price.multiply(BigDecimal.valueOf(detail.getUseTotalDose())).divide(BigDecimal.valueOf(detail.getPack()), 4, RoundingMode.HALF_UP).setScale(4, RoundingMode.HALF_UP);
+            } else {
+                //保留3位小数
+                drugCost = price.multiply(BigDecimal.valueOf(detail.getUseTotalDose())).setScale(4, RoundingMode.HALF_UP);
+            }
+            detail.setDrugCost(drugCost);
+            totalMoney = totalMoney.add(drugCost);
+        }
+        return totalMoney.setScale(2, RoundingMode.HALF_UP);
+    }
+
+    /**
+     * 设置处方药品默认数据
      *
      * @param detail
      * @param usePathwaysMap
@@ -347,7 +374,7 @@ public class DrugClient extends BaseClient {
      */
     public void setRecipeDetail(Recipedetail detail, Map<Integer, UsePathways> usePathwaysMap, Map<Integer, UsingRate> usingRateMap) {
         //频次处理
-        if (StringUtils.isNotEmpty(detail.getUsingRateId())) {
+        if (StringUtils.isNotEmpty(detail.getUsingRateId()) && !usingRateMap.isEmpty()) {
             UsingRate usingRate = usingRateMap.get(Integer.valueOf(detail.getUsingRateId()));
             if (usingRate != null) {
                 detail.setUsingRateTextFromHis(usingRate.getText());
@@ -356,7 +383,7 @@ public class DrugClient extends BaseClient {
             }
         }
         //用法处理
-        if (StringUtils.isNotEmpty(detail.getUsePathwaysId())) {
+        if (StringUtils.isNotEmpty(detail.getUsePathwaysId()) && !usePathwaysMap.isEmpty()) {
             UsePathways usePathways = usePathwaysMap.get(Integer.valueOf(detail.getUsePathwaysId()));
             if (usePathways != null) {
                 detail.setUsePathwaysTextFromHis(usePathways.getText());
