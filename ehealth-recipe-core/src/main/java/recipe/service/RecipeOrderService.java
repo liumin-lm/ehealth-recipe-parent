@@ -2086,7 +2086,12 @@ public class RecipeOrderService extends RecipeBaseService {
                     orderBean.setTel(drugsEnterprise.getTel());
                     // 药企物流对接方式
                     orderBean.setLogisticsType(drugsEnterprise.getLogisticsType());
-                    orderBean.setSendType(enterpriseManager.getEnterpriseSendType(order.getOrganId(), order.getEnterpriseId()));
+                    if (RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getText().equals(order.getGiveModeKey())) {
+                        orderBean.setSendType(RecipeSendTypeEnum.ALRAEDY_PAY.getSendType());
+                    }
+                    if (RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getText().equals(order.getGiveModeKey())) {
+                        orderBean.setSendType(RecipeSendTypeEnum.NO_PAY.getSendType());
+                    }
                     //药企定义的订单备注
                     orderBean.setOrderMemo(drugsEnterprise.getOrderMemo());
                 }
