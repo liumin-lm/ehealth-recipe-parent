@@ -881,7 +881,6 @@ public class RecipeOrderService extends RecipeBaseService {
                 Integer enterpriseId = MapValueUtil.getInteger(extInfo, "depId");
                 //TODO 这两个需要前端在切换地址或者物流公司的时候需要给
                 Integer logisticsCompany = MapValueUtil.getInteger(extInfo, "logisticsCompany");
-                Integer addressId = MapValueUtil.getInteger(extInfo, "addressId");
                 OrganLogisticsManageDto organLogisticsManageDto=null;
                 organLogisticsManageDto=obtainExpressFee(order,enterpriseId,logisticsCompany,address,organLogisticsManageDto);
                 if(ExpressFeePayMethodEnum.CASHONDELIVERYOFFLINE.getType().equals(order.getExpressFeePayMethod())){
@@ -899,8 +898,12 @@ public class RecipeOrderService extends RecipeBaseService {
                         logisticsEmsPriceDto.setDestCity(getAddressDic(address.getAddress2()));
                         logisticsEmsPriceDto.setDestDistrict(getAddressDic(address.getAddress3()));
                         logisticsEmsPriceDto.setDestAddress(address.getAddress4());
-                        logisticsEmsPriceDto.setUserLat(address.getLatitude().toString());
-                        logisticsEmsPriceDto.setUserLng(address.getLongitude().toString());
+                        if (Objects.nonNull(address.getLatitude())) {
+                            logisticsEmsPriceDto.setUserLat(address.getLatitude().toString());
+                        }
+                        if (Objects.nonNull(address.getLongitude())) {
+                            logisticsEmsPriceDto.setUserLng(address.getLongitude().toString());
+                        }
                         logisticsEmsPriceDto.setBusinessType(1);
                         LogisticsEmsPriceInfoDto logisticsEstimatedPrice = infraClient.getLogisticsEstimatedPrice(logisticsEmsPriceDto);
                         LOGGER.info("setOrderAddress logisticsEstimatedPrice:{}", JSONUtils.toString(logisticsEstimatedPrice));
@@ -2083,7 +2086,12 @@ public class RecipeOrderService extends RecipeBaseService {
                     orderBean.setTel(drugsEnterprise.getTel());
                     // 药企物流对接方式
                     orderBean.setLogisticsType(drugsEnterprise.getLogisticsType());
-                    orderBean.setSendType(enterpriseManager.getEnterpriseSendType(order.getOrganId(), order.getEnterpriseId()));
+                    if (RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getText().equals(order.getGiveModeKey())) {
+                        orderBean.setSendType(RecipeSendTypeEnum.ALRAEDY_PAY.getSendType());
+                    }
+                    if (RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getText().equals(order.getGiveModeKey())) {
+                        orderBean.setSendType(RecipeSendTypeEnum.NO_PAY.getSendType());
+                    }
                     //药企定义的订单备注
                     orderBean.setOrderMemo(drugsEnterprise.getOrderMemo());
                 }

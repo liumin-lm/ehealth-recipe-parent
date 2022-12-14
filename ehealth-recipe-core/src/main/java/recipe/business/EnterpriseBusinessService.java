@@ -629,12 +629,14 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
     @Override
     public List<EnterpriseAddressAndPrice> findEnterpriseAddressProvince(Integer enterpriseId) {
         List<EnterpriseAddress> enterpriseAddresses = enterpriseAddressDAO.findByEnterPriseId(enterpriseId);
+        enterpriseAddresses = enterpriseAddresses.stream().filter(x -> StringUtils.isNotEmpty(x.getAddress()) && x.getAddress().length() > 1).collect(Collectors.toList());
         if (CollectionUtils.isEmpty(enterpriseAddresses)) {
             return Lists.newArrayList();
         }
 
         //每个省配置的街道数量map
-        Map<String, Long> map = enterpriseAddresses.stream().peek(e -> e.setAddress(e.getAddress().substring(0, 2)))
+        Map<String, Long> map = enterpriseAddresses.stream()
+                .peek(e -> e.setAddress(e.getAddress().substring(0, 2)))
                 .collect(Collectors.groupingBy(EnterpriseAddress::getAddress, Collectors.counting()));
         logger.info("findEnterpriseAddressProvince map={}", JSON.toJSONString(map));
 

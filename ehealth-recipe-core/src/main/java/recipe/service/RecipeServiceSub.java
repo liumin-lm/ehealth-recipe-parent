@@ -1473,6 +1473,7 @@ public class RecipeServiceSub {
         r.setSubState(recipe.getSubState());
         r.setAuditState(recipe.getAuditState());
         r.setOfflineRecipeName(recipe.getOfflineRecipeName());
+        r.setFastRecipeFlag(recipe.getFastRecipeFlag());
         r.setSubStateText(RecipeStateEnum.getRecipeStateEnum(recipe.getSubState()).getName());
         return r;
     }
@@ -2166,8 +2167,8 @@ public class RecipeServiceSub {
         //显示配送才判断具体显示哪个配送按钮
         if (showSend) {
             DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-            Integer enterprisesSend = drugsEnterpriseDAO.getCountByOrganIdAndPayModeSupportAndSendType(recipe.getClinicOrgan(), RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType(), EnterpriseSendConstant.Enterprise_Send);
-            Integer hosSend = drugsEnterpriseDAO.getCountByOrganIdAndPayModeSupportAndSendType(recipe.getClinicOrgan(), RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType(), EnterpriseSendConstant.Hos_Send);
+            Integer enterprisesSend = drugsEnterpriseDAO.getCountByOrganIdAndPayModeSupportAndSendType(recipe.getClinicOrgan(), RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType());
+            Integer hosSend = drugsEnterpriseDAO.getCountByOrganIdAndPayModeSupportAndSendType(recipe.getClinicOrgan(), RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType());
             if (null != enterprisesSend && 0 < enterprisesSend) {
                 map.put("showSendToEnterprises", 1);
             }

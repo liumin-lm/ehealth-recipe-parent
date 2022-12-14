@@ -117,13 +117,17 @@ public class AldyfRemoteService extends AccessDrugEnterpriseService {
         DrugEnterpriseResult result = queryPrescription(recipe.getRecipeCode(), true);
         if (null == result.getObject()) {
             //没有处方进行处方推送
-            pushRecipeInfo(Collections.singletonList(recipe.getRecipeId()), drugsEnterprise);
+            DrugEnterpriseResult drugEnterpriseResult = pushRecipeInfo(Collections.singletonList(recipe.getRecipeId()), drugsEnterprise);
+            if (drugEnterpriseResult.getCode() == 1) {
+                DrugEnterpriseResult uploadResult = queryPrescription(recipe.getRecipeCode(), true);
+                jumpOrderPage(response, recipe, drugsEnterprise, uploadResult);
+            }
+        } else {
+            jumpOrderPage(response, recipe, drugsEnterprise, result);
         }
-        try {
-            Thread.sleep(2000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+    }
+
+    private void jumpOrderPage(PurchaseResponse response, Recipe recipe, DrugsEnterprise drugsEnterprise, DrugEnterpriseResult result) {
         AlibabaAlihealthRxPrescriptionGetResponse aliResponse = (AlibabaAlihealthRxPrescriptionGetResponse) result.getObject();
         AlibabaAlihealthRxPrescriptionGetResponse.RxPrescription rxPrescription = aliResponse.getModel();
         if (null != rxPrescription) {

@@ -114,6 +114,7 @@ public class StateManager extends BaseManager {
         return result;
     }
 
+
     /**
      * 待购药
      * @param recipe
@@ -184,6 +185,13 @@ public class StateManager extends BaseManager {
         return true;
     }
 
+    @LogRecord
+    public void updateWriteHisState(Integer recipeId, WriteHisEnum writeHisEnum) {
+        Recipe updateRecipe = new Recipe();
+        updateRecipe.setRecipeId(recipeId);
+        updateRecipe.setWriteHisState(writeHisEnum.getType());
+        recipeDAO.updateNonNullFieldByPrimaryKey(updateRecipe);
+    }
 
     /**
      * 更新审核状态
