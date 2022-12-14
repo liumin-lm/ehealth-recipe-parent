@@ -1530,14 +1530,46 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     @Override
     public List<RecipeInfoVO> findDoctorRecipeList(DoctorRecipeListReqVO doctorRecipeListReqVO) {
         // 校验医生权限
-        checkUserHasPermissionByDoctorId(doctorRecipeListReqVO.getDoctorId());
+//        checkUserHasPermissionByDoctorId(doctorRecipeListReqVO.getDoctorId());
         // 这个版本只查询常用方
         if (!RecipeSourceTypeEnum.COMMON_RECIPE.getType().equals(doctorRecipeListReqVO.getRecipeType())) {
             return null;
         }
-        List<Recipe> list = recipeDAO.findDoctorRecipeList(doctorRecipeListReqVO.getDoctorId(),doctorRecipeListReqVO.getStart(),doctorRecipeListReqVO.getLimit());
+        List<Recipe> recipeList = recipeDAO.findDoctorRecipeList(doctorRecipeListReqVO.getDoctorId(), doctorRecipeListReqVO.getStart(), doctorRecipeListReqVO.getLimit());
+        if (CollectionUtils.isEmpty(recipeList)) {
+            return null;
+        }
+        List<Integer> recipeIds = recipeList.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
+        List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeIdList(recipeIds);
+        List<RecipeExtend> recipeExtends = recipeExtendDAO.queryRecipeExtendByRecipeIds(recipeIds);
+        Map<Integer, List<Recipedetail>> recipeDetailMap = null;
+        Map<Integer, List<RecipeExtend>> recipeExtMap = null;
+        if (CollectionUtils.isNotEmpty(recipeDetailList)) {
+            recipeDetailMap = recipeDetailList.stream().collect(Collectors.groupingBy(Recipedetail::getRecipeId));
+        }
+        if (CollectionUtils.isNotEmpty(recipeExtends)) {
+            recipeExtMap = recipeExtends.stream().collect(Collectors.groupingBy(RecipeExtend::getRecipeId));
+        }
+        Map<Integer, List<Recipedetail>> finalRecipeDetailMap = recipeDetailMap;
+        Map<Integer, List<RecipeExtend>> finalRecipeExtMap = recipeExtMap;
+        List<RecipeInfoVO> recipeInfoVOS = recipeList.stream().map(recipe -> {
+            RecipeInfoVO recipeInfoVO = new RecipeInfoVO();
+            RecipeBean recipeBean = BeanCopyUtils.copyProperties(recipe, RecipeBean::new);
+            recipeInfoVO.setRecipeBean(recipeBean);
+            if (MapUtils.isNotEmpty(finalRecipeDetailMap) && CollectionUtils.isNotEmpty(finalRecipeDetailMap.get(recipe.getRecipeId()))) {
+                List<Recipedetail> recipeDetails = finalRecipeDetailMap.get(recipe.getRecipeId());
+                List<RecipeDetailBean> recipeDetailBeans = BeanCopyUtils.copyList(recipeDetails, RecipeDetailBean::new);
+                recipeInfoVO.setRecipeDetails(recipeDetailBeans);
+            }
+            if (MapUtils.isNotEmpty(finalRecipeExtMap) && CollectionUtils.isNotEmpty(finalRecipeExtMap.get(recipe.getRecipeId()))) {
+                RecipeExtend extend = finalRecipeExtMap.get(recipe.getRecipeId()).get(0);
+                RecipeExtendBean recipeExtendBean = BeanCopyUtils.copyProperties(extend, RecipeExtendBean::new);
+                recipeInfoVO.setRecipeExtendBean(recipeExtendBean);
+            }
+            return recipeInfoVO;
+        }).collect(Collectors.toList());
 
-        return null;
+        return recipeInfoVOS;
     }
 
     public void checkUserHasPermissionByDoctorId(Integer doctorId){
