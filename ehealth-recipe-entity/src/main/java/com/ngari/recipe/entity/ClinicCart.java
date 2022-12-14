@@ -58,6 +58,9 @@ public class ClinicCart implements Serializable {
     @ItemProperty(alias = "项目价格")
     private BigDecimal itemPrice;
 
+    @ItemProperty(alias = "贴数")
+    private Integer copyNum;
+
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
@@ -167,5 +170,14 @@ public class ClinicCart implements Serializable {
 
     public void setItemPrice(BigDecimal itemPrice) {
         this.itemPrice = itemPrice;
+    }
+
+    @Column(name = "copy_num")
+    public Integer getCopyNum() {
+        return copyNum;
+    }
+
+    public void setCopyNum(Integer copyNum) {
+        this.copyNum = copyNum;
     }
 }

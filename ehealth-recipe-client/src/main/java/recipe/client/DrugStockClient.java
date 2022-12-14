@@ -138,7 +138,7 @@ public class DrugStockClient extends BaseClient {
             return drugStockAmountDTO;
         } catch (Exception e) {
             logger.error("DrugStockClient scanDrugStock error ", e);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, " recipeHisService.scanDrugStock error");
+            throw new DAOException(ErrorCode.SERVICE_ERROR, " DrugStockClient.scanDrugStock error");
         } finally {
             Long end = System.currentTimeMillis() - start;
             super.serviceLog("ScanDrugStock", organId, 1, data.size(), end);

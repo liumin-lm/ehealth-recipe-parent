@@ -48,4 +48,7 @@ public class ClinicCartVO {
 
     @ItemProperty(alias = "项目价格")
     private BigDecimal itemPrice;
+
+    @ItemProperty(alias = "贴数")
+    private Integer copyNum;
 }

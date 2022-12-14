@@ -46,6 +46,7 @@ import recipe.constant.RecipeStatusConstant;
 import recipe.core.api.IStockBusinessService;
 import recipe.dao.*;
 import recipe.enumerate.type.PayFlagEnum;
+import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.manager.ButtonManager;
 import recipe.manager.EnterpriseManager;
 import recipe.service.DrugListExtService;
@@ -102,6 +103,8 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
     private RecipeDetailDAO recipeDetailDAO;
     @Autowired
     private PharmacyTcmDAO pharmacyTcmDAO;
+    @Autowired
+    private OrganAndDrugsepRelationDAO drugsDepRelationDAO;
 
     //手动推送给第三方
     @RpcService
@@ -474,8 +477,7 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
             throw new DAOException("没有查询到机构信息");
         }
         //根据机构获取该机构配置的药企,需要查出药企支持的类型
-        OrganAndDrugsepRelationDAO drugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
-        List<DrugsEnterprise> drugsEnterprises = drugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(drugsDataBean.getOrganId(), 1);
+        List<DrugsEnterprise> drugsEnterprises = drugsDepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(drugsDataBean.getOrganId(), 1);
 
         GiveModeShowButtonDTO giveModeShowButtonVO = buttonManager.getGiveModeSettingFromYypt(drugsDataBean.getOrganId());
         Map configurations = giveModeShowButtonVO.getGiveModeButtons().stream().collect(Collectors.toMap(GiveModeButtonDTO::getShowButtonKey, GiveModeButtonDTO::getShowButtonName));
@@ -495,7 +497,7 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
                 if (new Integer(2).equals(enterpriseManager.getEnterpriseSendType(organDTO.getOrganId(), drugsEnterprise.getId()))) {
                     supportOnlineMap = new LinkedHashMap<>();
                     drugEnterpriseResult.setAccessDrugEnterpriseService(getServiceByDep(drugsEnterprise));
-                    if (payModeSupport(drugsEnterprise, 1) && configurations.containsKey("showSendToEnterprises")) {
+                    if (payModeSupport(drugsEnterprise, 1, organDTO.getOrganId()) && configurations.containsKey("showSendToEnterprises")) {
                         //获取医院或者药企库存（看配置）
                         DrugsDataBean drugsData = getDrugsDataBean(drugsDataBean, drugsEnterprise);
                         if (CollectionUtils.isEmpty(drugsData.getRecipeDetailBeans())) {
@@ -512,7 +514,7 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
                     //医院配送
                     supportSendToHosMap = new LinkedHashMap<>();
                     drugEnterpriseResult.setAccessDrugEnterpriseService(getServiceByDep(drugsEnterprise));
-                    if (payModeSupport(drugsEnterprise, 1) && configurations.containsKey("showSendToHos")) {
+                    if (payModeSupport(drugsEnterprise, 1, organDTO.getOrganId()) && configurations.containsKey("showSendToHos")) {
                         //获取医院或者药企库存（看配置）
                         DrugsDataBean drugsData = getDrugsDataBean(drugsDataBean, drugsEnterprise);
                         if (CollectionUtils.isEmpty(drugsData.getRecipeDetailBeans())) {
@@ -527,7 +529,7 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
                 }
 
                 toStoreMap = new LinkedHashMap<>();
-                if (payModeSupport(drugsEnterprise, 3) && configurations.containsKey("supportTFDS")) {
+                if (payModeSupport(drugsEnterprise, 3, organDTO.getOrganId()) && configurations.containsKey("supportTFDS")) {
                     //该药企配置了这个药品,可以查询该药品在药企是否有库存了
                     //获取医院或者药企库存（看配置）
                     DrugsDataBean drugsData = getDrugsDataBean(drugsDataBean, drugsEnterprise);
@@ -762,25 +764,25 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
      * @param type            支持类型
      * @return 是否支持
      */
-    public static boolean payModeSupport(DrugsEnterprise drugsEnterprise, Integer type) {
-        Integer[] online_pay = {RecipeBussConstant.DEP_SUPPORT_ONLINE, RecipeBussConstant.DEP_SUPPORT_COD, RecipeBussConstant.DEP_SUPPORT_ONLINE_TFDS,
-                RecipeBussConstant.DEP_SUPPORT_COD_TFDS, RecipeBussConstant.DEP_SUPPORT_COD, RecipeBussConstant.DEP_SUPPORT_ALL};
-        List<Integer> online_pay_list = Arrays.asList(online_pay);
-        Integer[] to_tfds = {RecipeBussConstant.DEP_SUPPORT_TFDS, RecipeBussConstant.DEP_SUPPORT_ONLINE_TFDS, RecipeBussConstant.DEP_SUPPORT_COD_TFDS,
-                RecipeBussConstant.DEP_SUPPORT_ALL};
-        List<Integer> to_tfds_list = Arrays.asList(to_tfds);
+    public boolean payModeSupport(DrugsEnterprise drugsEnterprise, Integer type, Integer organId) {
+        OrganAndDrugsepRelation drugsDepRelation = drugsDepRelationDAO.getOrganAndDrugsepByOrganIdAndEntId(organId, drugsEnterprise.getId());
+        String supportGiveMode = drugsDepRelation.getDrugsEnterpriseSupportGiveMode();
         if (new Integer(1).equals(type)) {
-            //支持配送
-            return online_pay_list.contains(drugsEnterprise.getPayModeSupport());
+            if (supportGiveMode.contains(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType().toString())
+                    || supportGiveMode.contains(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType().toString())) {
+                return true;
+            }
         } else if (new Integer(2).equals(type)) {
             //支持到院取药
             return "commonSelf".equals(drugsEnterprise.getCallSys());
         } else if (new Integer(3).equals(type)) {
-            //支持药店取药
-            return to_tfds_list.contains(drugsEnterprise.getPayModeSupport());
+            if (supportGiveMode.contains(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getType().toString())) {
+                return true;
+            }
         } else {
             return true;
         }
+        return false;
     }
 
     @RpcService

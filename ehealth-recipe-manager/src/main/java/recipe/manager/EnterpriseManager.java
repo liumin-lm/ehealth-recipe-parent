@@ -333,9 +333,9 @@ public class EnterpriseManager extends BaseManager {
             default:
                 if (StringUtils.isNotEmpty(sendType)) {
                     if (Integer.valueOf(1).equals(recipe.getRecipeSource())) {
-                        drugsEnterpriseList = drugsEnterpriseDAO.findByOrganIdAndOtherAndSendType(recipe.getClinicOrgan(), recipeSupportGiveModeEnum.getType(), Integer.parseInt(sendType));
+                        drugsEnterpriseList = drugsEnterpriseDAO.findByOrganIdAndOtherAndSendType(recipe.getClinicOrgan(), recipeSupportGiveModeEnum.getType());
                     } else {
-                        drugsEnterpriseList = drugsEnterpriseDAO.findByOrganIdAndPayModeSupportAndSendType(recipe.getClinicOrgan(), recipeSupportGiveModeEnum.getType(), Integer.parseInt(sendType));
+                        drugsEnterpriseList = drugsEnterpriseDAO.findByOrganIdAndPayModeSupportAndSendType(recipe.getClinicOrgan(), recipeSupportGiveModeEnum.getType());
                     }
                 } else {
                     //考虑到浙江省互联网项目的药店取药也会走这里,sendType是"" 还是需要查询一下支持的药企
@@ -1099,6 +1099,9 @@ public class EnterpriseManager extends BaseManager {
             throw new DAOException("入参错误");
         }
         OrganAndDrugsepRelation relation = organAndDrugsepRelationDAO.getOrganAndDrugsepByOrganIdAndEntId(organId, drugsEnterpriseId);
+        if (Objects.isNull(relation)) {
+            return null;
+        }
         String drugsEnterpriseSupportGiveMode = relation.getDrugsEnterpriseSupportGiveMode();
         if (StringUtils.isEmpty(drugsEnterpriseSupportGiveMode)) {
             return null;

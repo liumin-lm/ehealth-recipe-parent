@@ -64,11 +64,11 @@ public interface IFastRecipeBusinessService {
     Boolean fullUpdateFastRecipe(FastRecipeVO fastRecipeVO);
 
     /**
-     * 便捷购药处理老数据
+     * 便捷购药运营平台查询处方单
      *
-     * @param paramName
+     * @param recipeId
+     * @param organId
+     * @return
      */
-    void handleFastRecipeOldData(String paramName);
-
     Map<String, Object> findRecipeAndDetailsByRecipeIdAndOrgan(Integer recipeId, Integer organId);
 }
