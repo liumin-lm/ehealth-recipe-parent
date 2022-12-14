@@ -502,6 +502,29 @@ public class RecipeHisService extends RecipeBaseService {
         return result;
     }
 
+    @RpcService
+    public void drugTakeChangeForHis(List<Integer> recipeIdList){
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIdList);
+        RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+        RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
+        recipeList.forEach(recipe->{
+            List<Recipedetail> details = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
+            PatientBean patientBean = iPatientService.get(recipe.getMpiid());
+            HealthCardBean cardBean = null;
+            try {
+                cardBean = iPatientService.getHealthCard(recipe.getMpiid(), recipe.getClinicOrgan(), "2");
+            } catch (Exception e) {
+                //打印日志，程序继续执行，不影响支付回调
+                LOGGER.error("recipeDrugTake 获取健康卡失败:{},recipeId:{}.", e.getCause().getMessage(), recipe.getRecipeId(), e);
+            }
+            DrugTakeChangeReqTO request = HisRequestInit.initDrugTakeChangeReqTO(recipe, details, patientBean, cardBean);
+            LOGGER.info("drugTakeChange 请求参数:{}.", JSONUtils.toString(request));
+            Boolean success = service.drugTakeChange(request);
+            LOGGER.info("drugTakeChangeForHis recipeID:{},success:{}", recipe.getRecipeId(), success);
+        });
+    }
+
     /**
      * 修改处方订单 新状态
      *

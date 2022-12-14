@@ -834,7 +834,7 @@ public class HisRequestInit {
                         if (depId != null) {
                             DrugsEnterpriseDAO enterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
                             DrugsEnterprise drugsEnterprise = enterpriseDAO.getById(depId);
-                            EnterpriseManager enterpriseManager = DAOFactory.getDAO(EnterpriseManager.class);
+                            EnterpriseManager enterpriseManager = AppContextHolder.getBean("enterpriseManager", EnterpriseManager.class);
                             Integer sendType = enterpriseManager.getEnterpriseSendType(order.getOrganId(), depId);
                             if (drugsEnterprise != null && sendType == RecipeSendTypeEnum.NO_PAY.getSendType()) {
                                 //药企配送

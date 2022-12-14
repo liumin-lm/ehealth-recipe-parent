@@ -838,6 +838,12 @@ public class RecipeTestService {
         });
     }
 
+    @RpcService
+    public void drugTakeChangeForHis(List<Integer> recipeIdList){
+        RecipeHisService recipeHisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
+        recipeHisService.drugTakeChangeForHis(recipeIdList);
+    }
+
     private void saveDrugSaleConfig(OrganAndDrugsepRelation organAndDrugsDepRelation, String standardPaymentWay, Integer isHosDep) {
         OrganDrugsSaleConfig drugsSaleConfig = new OrganDrugsSaleConfig();
         drugsSaleConfig.setStandardPaymentWay(standardPaymentWay);
