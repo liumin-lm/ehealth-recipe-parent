@@ -470,6 +470,12 @@ public class PatientClient extends BaseClient {
         recipe.setRequestUrt(requestPatient.getUrt());
     }
 
+    /**
+     * 设置处方默认数据
+     *
+     * @param recipe 处方头对象
+     * @param extend 处方头扩展
+     */
     public void setRecipeExt(Recipe recipe, RecipeExtend extend) {
         PatientDTO patient = this.getPatientDTO(recipe.getMpiid());
         extend.setGuardianName(patient.getGuardianName());

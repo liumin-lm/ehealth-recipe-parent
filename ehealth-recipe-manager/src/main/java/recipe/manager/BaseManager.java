@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.client.*;
 import recipe.dao.*;
 import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.util.DefaultValueClientUtil;
 import recipe.util.DictionaryUtil;
 import recipe.util.ValidateUtil;
 
@@ -65,7 +66,7 @@ public class BaseManager {
     @Resource
     protected OfflineRecipeClient offlineRecipeClient;
     @Autowired
-    DrugDecoctionWayDao drugDecoctionWayDao;
+    protected DrugDecoctionWayDao drugDecoctionWayDao;
     @Autowired
     protected DrugListDAO drugListDAO;
     @Autowired
@@ -76,6 +77,9 @@ public class BaseManager {
     protected MedicationSyncConfigDAO medicationSyncConfigDAO;
     @Autowired
     protected RecipeBeforeOrderDAO recipeBeforeOrderDAO;
+    @Autowired
+    protected DefaultValueClientUtil defaultValueClientUtil;
+
     /**
      * 获取处方相关信息
      *
