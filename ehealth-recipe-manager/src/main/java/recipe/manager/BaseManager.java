@@ -11,9 +11,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.client.*;
+import recipe.client.factory.recipedate.DefaultValueClient;
 import recipe.dao.*;
 import recipe.enumerate.status.RecipeStatusEnum;
-import recipe.util.DefaultValueClientUtil;
 import recipe.util.DictionaryUtil;
 import recipe.util.ValidateUtil;
 
@@ -78,7 +78,7 @@ public class BaseManager {
     @Autowired
     protected RecipeBeforeOrderDAO recipeBeforeOrderDAO;
     @Autowired
-    protected DefaultValueClientUtil defaultValueClientUtil;
+    protected DefaultValueClient defaultValueClientUtil;
 
     /**
      * 获取处方相关信息

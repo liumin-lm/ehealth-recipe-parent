@@ -1,4 +1,4 @@
-package recipe.factory;
+package recipe.client.factory.recipedate;
 
 import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.entity.Recipe;
