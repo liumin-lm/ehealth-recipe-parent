@@ -115,7 +115,6 @@ public class RecipeDetailManager extends BaseManager {
             return;
         }
         Integer organId = recipe.getClinicOrgan();
-        Integer recipeId = recipe.getRecipeId();
         List<String> organDrugCodes = recipeDetails.stream().map(Recipedetail::getOrganDrugCode).distinct().collect(Collectors.toList());
         List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugCodes(organId, organDrugCodes);
         if (CollectionUtils.isNotEmpty(organDrugList)) {
@@ -126,7 +125,7 @@ public class RecipeDetailManager extends BaseManager {
         Map<Integer, UsePathways> usePathwaysMap = drugClient.usePathwaysMap(organId);
         Map<Integer, UsingRate> usingRateMap = drugClient.usingRateMap(organId);
         //设置药品默认字段-处方药品默认数据
-        recipeDetails.forEach(a -> this.setRecipeDetail(a, recipeId, organDrugListMap, usePathwaysMap, usingRateMap));
+        recipeDetails.forEach(a -> this.setRecipeDetail(a, recipe.getRecipeId(), organDrugListMap, usePathwaysMap, usingRateMap));
         //设置药品金额等-处方默认数据
         Recipe recipeUpdate = drugClient.updateRecipe(recipe, recipeDetails, organDrugList);
         recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
