@@ -3,9 +3,8 @@ package recipe.util;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import ctd.persistence.exception.DAOException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import recipe.client.BaseClient;
 import recipe.constant.PayConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
@@ -21,19 +20,27 @@ import java.util.Objects;
 
 /**
  * 默认值设置工具类
+ *
  * @author fuzi
  */
 @Service
-public class DefaultValueClientUtil {
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
-
-
+public class DefaultValueClientUtil extends BaseClient {
+    /**
+     * 类加载排序
+     *
+     * @return
+     */
+    @Override
+    public Integer getSort() {
+        return 0;
+    }
 
     /**
      * 设置处方默认数据
      *
      * @param recipe 处方头对象
      */
+    @Override
     public void setRecipe(Recipe recipe) {
         recipe.setStatus(RecipeStatusConstant.UNSIGN);
         recipe.setProcessState(RecipeStateEnum.NONE.getType());
@@ -89,6 +96,7 @@ public class DefaultValueClientUtil {
      * @param recipe
      * @param extend
      */
+    @Override
     public void setRecipeExt(Recipe recipe, RecipeExtend extend) {
         if (Objects.isNull(recipe.getRecipeId())) {
             throw new DAOException("处方id不能为空");

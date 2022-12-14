@@ -57,6 +57,16 @@ public class DocIndexClient extends BaseClient {
     private IPatientService iPatientService;
 
     /**
+     * 类加载排序
+     *
+     * @return
+     */
+    @Override
+    public Integer getSort() {
+        return 10;
+    }
+
+    /**
      * 根据病历id 获取 电子病例明细对象
      *
      * @param docIndexId 电子病历id
@@ -370,6 +380,7 @@ public class DocIndexClient extends BaseClient {
      *
      * @param recipe 处方头对象
      */
+    @Override
     public void setRecipeExt(Recipe recipe, RecipeExtend extend) {
         if (null == extend || ValidateUtil.integerIsEmpty(extend.getDocIndexId())) {
             return;

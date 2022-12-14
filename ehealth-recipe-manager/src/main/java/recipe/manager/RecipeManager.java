@@ -39,6 +39,7 @@ import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.status.WriteHisEnum;
 import recipe.enumerate.type.AppointEnterpriseTypeEnum;
 import recipe.enumerate.type.RecipeShowQrConfigEnum;
+import recipe.factory.RecipeDataSaveFactory;
 import recipe.util.*;
 
 import java.math.BigDecimal;
@@ -74,6 +75,8 @@ public class RecipeManager extends BaseManager {
     private IRecipeCheckService iRecipeCheckService;
     @Autowired
     private RequirementsForTakingDao requirementsForTakingDao;
+    @Autowired
+    private RecipeDataSaveFactory recipeDataSaveFactory;
 
     /**
      * 保存处方信息
@@ -94,27 +97,30 @@ public class RecipeManager extends BaseManager {
 
     /**
      * 保存处方信息
+     * 设置处方默认数据
      *
      * @param recipe 前端传入的处方对象
      */
     public Recipe saveStagingRecipe(Recipe recipe) {
-        //根据默认值-设置处方默认数据
-        defaultValueClientUtil.setRecipe(recipe);
-        //设置机构-处方默认数据
-        organClient.setRecipe(recipe);
-        //设置医生-处方默认数据
-        doctorClient.setRecipe(recipe);
-        //设置患者-处方默认数据
-        patientClient.setRecipe(recipe);
-        //根据配置项-设置处方默认数据
-        configurationClient.setRecipe(recipe);
-        //设置复诊-处方默认数据
-        revisitClient.setRecipe(recipe);
-        //设置咨询-处方默认数据
-        consultClient.setRecipe(recipe);
-        //设置科室-处方默认数据
-        departClient.setRecipe(recipe);
+        if (null == recipe) {
+            throw new DAOException("recipe不能为空");
+        }
+        recipeDataSaveFactory.setRecipeList(recipe);
         return this.saveRecipe(recipe);
+    }
+
+    /**
+     * 保存处方扩展信息
+     *
+     * @param extend 扩展信息
+     * @param recipe 处方信息
+     */
+    public void saveStagingRecipeExt(RecipeExtend extend, Recipe recipe) {
+        if (null == extend) {
+            return;
+        }
+        recipeDataSaveFactory.setRecipeExtList(recipe, extend);
+        this.saveRecipeExtend(extend);
     }
 
     /**
@@ -133,31 +139,6 @@ public class RecipeManager extends BaseManager {
         return this.saveRecipeExtend(recipeExtend);
     }
 
-
-    /**
-     * 保存处方扩展信息
-     *
-     * @param extend 扩展信息
-     * @param recipe 处方信息
-     */
-    public void saveStagingRecipeExt(RecipeExtend extend, Recipe recipe) {
-        if (null == extend) {
-            return;
-        }
-        //根据默认值-设置处方默认数据
-        defaultValueClientUtil.setRecipeExt(recipe, extend);
-        //根据患者-设置处方默认数据
-        patientClient.setRecipeExt(recipe, extend);
-        //根据配置项-设置处方默认数据
-        configurationClient.setRecipeExt(recipe, extend);
-        //设置电子病例-处方默认数据
-        docIndexClient.setRecipeExt(recipe, extend);
-        //设置复诊-处方默认数据
-        revisitClient.setRecipeExt(recipe, extend);
-        //设置咨询-处方默认数据
-        consultClient.setRecipeExt(recipe, extend);
-        this.saveRecipeExtend(extend);
-    }
 
     private RecipeExtend saveRecipeExtend(RecipeExtend recipeExtend) {
         if (ValidateUtil.integerIsEmpty(recipeExtend.getRecipeId())) {

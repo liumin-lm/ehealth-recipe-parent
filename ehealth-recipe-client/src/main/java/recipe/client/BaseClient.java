@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.constant.ErrorCode;
 import recipe.constant.HisErrorCodeEnum;
+import recipe.factory.RecipeDataSaveFactory;
 import recipe.util.DictionaryUtil;
 
 import javax.annotation.Resource;
@@ -29,7 +30,7 @@ import java.util.stream.Collectors;
  *
  * @author fuzi
  */
-public class BaseClient {
+public class BaseClient extends RecipeDataSaveFactory {
     protected final Logger logger = LoggerFactory.getLogger(this.getClass());
     @Autowired
     protected IRecipeHisService recipeHisService;

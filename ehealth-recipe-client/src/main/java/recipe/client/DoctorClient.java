@@ -36,6 +36,16 @@ public class DoctorClient extends BaseClient {
     private EmploymentService iEmploymentService;
 
     /**
+     * 类加载排序
+     *
+     * @return
+     */
+    @Override
+    public Integer getSort() {
+        return 4;
+    }
+
+    /**
      * 获取平台药师信息 无选择发药药师 则获取默认发药药师
      *
      * @param recipe 处方
@@ -228,6 +238,7 @@ public class DoctorClient extends BaseClient {
      *
      * @param recipe 处方头对象
      */
+    @Override
     public void setRecipe(Recipe recipe) {
         if (ValidateUtil.integerIsEmpty(recipe.getDoctor())) {
             return;

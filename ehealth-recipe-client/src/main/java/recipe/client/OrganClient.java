@@ -36,6 +36,17 @@ public class OrganClient extends BaseClient {
     private HealthCardService healthCardService;
     @Autowired
     private OrganConfigService organConfigService;
+
+    /**
+     * 类加载排序
+     *
+     * @return
+     */
+    @Override
+    public Integer getSort() {
+        return 2;
+    }
+
     /**
      * 查询当前区域公众号下所有归属机构
      *
@@ -134,6 +145,7 @@ public class OrganClient extends BaseClient {
      *
      * @param recipe 处方头对象
      */
+    @Override
     public void setRecipe(Recipe recipe) {
         if (ValidateUtil.integerIsEmpty(recipe.getClinicOrgan())) {
             return;

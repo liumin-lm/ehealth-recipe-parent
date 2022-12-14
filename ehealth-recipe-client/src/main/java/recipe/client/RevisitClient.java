@@ -63,6 +63,15 @@ public class RevisitClient extends BaseClient {
     @Autowired
     private IRevisitHosRecordService iRevisitHosRecordService;
 
+    /**
+     * 类加载排序
+     *
+     * @return
+     */
+    @Override
+    public Integer getSort() {
+        return 12;
+    }
 
     /**
      * 根据挂号序号获取复诊信息
@@ -259,6 +268,7 @@ public class RevisitClient extends BaseClient {
      *
      * @param recipe 处方头对象
      */
+    @Override
     public void setRecipe(Recipe recipe) {
         if (ValidateUtil.integerIsEmpty(recipe.getClinicId())) {
             return;
@@ -286,6 +296,7 @@ public class RevisitClient extends BaseClient {
      *
      * @param recipe 处方头对象
      */
+    @Override
     public void setRecipeExt(Recipe recipe, RecipeExtend extend) {
         if (!BussSourceTypeEnum.BUSSSOURCE_REVISIT.getType().equals(recipe.getBussSource())) {
             if (Integer.valueOf(6).equals(extend.getRecipeChooseChronicDisease())) {

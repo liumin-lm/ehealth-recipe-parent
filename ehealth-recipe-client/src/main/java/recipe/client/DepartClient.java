@@ -35,6 +35,16 @@ public class DepartClient extends BaseClient {
     private IRevisitService revisitService;
 
     /**
+     * 类加载排序
+     *
+     * @return
+     */
+    @Override
+    public Integer getSort() {
+        return 16;
+    }
+
+    /**
      * 通过机构和行政科室获取挂号科室
      *
      * @param organId
@@ -134,6 +144,7 @@ public class DepartClient extends BaseClient {
      *
      * @param recipe 处方头对象
      */
+    @Override
     public void setRecipe(Recipe recipe) {
         // 根据咨询单特殊来源标识设置处方单特殊来源标识
         if (BussSourceTypeEnum.BUSSSOURCE_OUTPATIENT.getType().equals(recipe.getBussSource())) {

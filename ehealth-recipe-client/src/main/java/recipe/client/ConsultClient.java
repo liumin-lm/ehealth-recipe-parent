@@ -50,6 +50,15 @@ public class ConsultClient extends BaseClient {
     @Resource
     private IConsultService consultService;
 
+    /**
+     * 类加载排序
+     *
+     * @return
+     */
+    @Override
+    public Integer getSort() {
+        return 14;
+    }
 
     public ConsultRegistrationNumberResultVO getConsult(Integer consultId) {
         logger.info("ConsultClient getConsult consultId={}", consultId);
@@ -240,6 +249,7 @@ public class ConsultClient extends BaseClient {
      *
      * @param recipe 处方头对象
      */
+    @Override
     public void setRecipe(Recipe recipe) {
         if (ValidateUtil.integerIsEmpty(recipe.getClinicId())) {
             return;
@@ -262,6 +272,7 @@ public class ConsultClient extends BaseClient {
      *
      * @param recipe 处方头对象
      */
+    @Override
     public void setRecipeExt(Recipe recipe, RecipeExtend extend) {
         if (!BussSourceTypeEnum.BUSSSOURCE_CONSULT.getType().equals(recipe.getBussSource())) {
             return;

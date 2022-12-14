@@ -76,6 +76,16 @@ public class PatientClient extends BaseClient {
     private IPatientHisService patientHisService;
 
     /**
+     * 类加载排序
+     *
+     * @return
+     */
+    @Override
+    public Integer getSort() {
+        return 6;
+    }
+
+    /**
      * 获取 脱敏后的 患者对象
      *
      * @param mpiId
@@ -455,6 +465,7 @@ public class PatientClient extends BaseClient {
      *
      * @param recipe 处方头对象
      */
+    @Override
     public void setRecipe(Recipe recipe) {
         if (StringUtils.isEmpty(recipe.getMpiid())) {
             return;
@@ -476,6 +487,7 @@ public class PatientClient extends BaseClient {
      * @param recipe 处方头对象
      * @param extend 处方头扩展
      */
+    @Override
     public void setRecipeExt(Recipe recipe, RecipeExtend extend) {
         PatientDTO patient = this.getPatientDTO(recipe.getMpiid());
         extend.setGuardianName(patient.getGuardianName());

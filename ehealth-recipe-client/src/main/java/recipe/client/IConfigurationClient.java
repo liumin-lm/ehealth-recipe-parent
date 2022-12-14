@@ -42,6 +42,16 @@ public class IConfigurationClient extends BaseClient {
     private IHisConfigService hisConfigService;
 
     /**
+     * 类加载排序
+     *
+     * @return
+     */
+    @Override
+    public Integer getSort() {
+        return 8;
+    }
+
+    /**
      * 获取终端id
      *
      * @return
@@ -426,6 +436,7 @@ public class IConfigurationClient extends BaseClient {
      *
      * @param recipe 处方头对象
      */
+    @Override
     public void setRecipe(Recipe recipe) {
         Boolean isDefaultGiveModeToHos = this.getValueBooleanCatch(recipe.getClinicOrgan(), "isDefaultGiveModeToHos", false);
         if (isDefaultGiveModeToHos && null == recipe.getGiveMode()) {
@@ -462,6 +473,7 @@ public class IConfigurationClient extends BaseClient {
      *
      * @param recipe 处方头对象
      */
+    @Override
     public void setRecipeExt(Recipe recipe, RecipeExtend extend) {
         Integer recipeChooseChronicDisease = this.getValueCatch(recipe.getClinicOrgan(), "recipeChooseChronicDisease", 1);
         extend.setRecipeChooseChronicDisease(null == extend.getRecipeChooseChronicDisease() ? recipeChooseChronicDisease : extend.getRecipeChooseChronicDisease());
