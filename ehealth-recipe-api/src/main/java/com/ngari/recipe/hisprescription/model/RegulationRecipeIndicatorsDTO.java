@@ -180,6 +180,18 @@ public class RegulationRecipeIndicatorsDTO implements Serializable {
     /**配送地址*/
     private String address;
 
+    @ItemProperty(alias="关联监管疾病编码")
+    private String jgDiseasId;
+
+    @ItemProperty(alias = "关联监管疾病名称")
+    private String jgDiseasName;
+
+    @ItemProperty(alias = "医保诊断编码")
+    private String medicalDiseaseCode;
+
+    @ItemProperty(alias = "医保诊断名称")
+    private String medicalDiseaseName;
+
     /**
      * 处方扩展表信息
      */
@@ -188,6 +200,38 @@ public class RegulationRecipeIndicatorsDTO implements Serializable {
     //中草药扩展字段
     private RecipeChHerbalIndicatorsReq recipeChHerbalIndicatorsReq;
 
+
+    public String getJgDiseasId() {
+        return jgDiseasId;
+    }
+
+    public void setJgDiseasId(String jgDiseasId) {
+        this.jgDiseasId = jgDiseasId;
+    }
+
+    public String getJgDiseasName() {
+        return jgDiseasName;
+    }
+
+    public void setJgDiseasName(String jgDiseasName) {
+        this.jgDiseasName = jgDiseasName;
+    }
+
+    public String getMedicalDiseaseCode() {
+        return medicalDiseaseCode;
+    }
+
+    public void setMedicalDiseaseCode(String medicalDiseaseCode) {
+        this.medicalDiseaseCode = medicalDiseaseCode;
+    }
+
+    public String getMedicalDiseaseName() {
+        return medicalDiseaseName;
+    }
+
+    public void setMedicalDiseaseName(String medicalDiseaseName) {
+        this.medicalDiseaseName = medicalDiseaseName;
+    }
 
     public String getOutTradeNo() {
         return outTradeNo;

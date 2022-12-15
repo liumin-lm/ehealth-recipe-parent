@@ -6224,6 +6224,8 @@ public class RecipeService extends RecipeBaseService {
         }
         StringBuilder regulationOrganDiseaseId = new StringBuilder();
         StringBuilder regulationOrganDiseaseName = new StringBuilder();
+        StringBuilder regulationMedicalDiseaseCode = new StringBuilder();
+        StringBuilder regulationMedicalDiseaseName = new StringBuilder();
         try {
             for (String diseaseId : diseaseIdArray) {
                 DiseaseDTO diseaseDTO = diseaseService.getDiseasByCodeAndOrganId(organId, diseaseId);
@@ -6235,6 +6237,12 @@ public class RecipeService extends RecipeBaseService {
                     if (null != diseaseDTO.getJgDiseasName()) {
                         regulationOrganDiseaseName.append(diseaseDTO.getJgDiseasName()).append("|");
                     }
+                    if (null != diseaseDTO.getMedicalDiseaseCode()) {
+                        regulationMedicalDiseaseCode.append(diseaseDTO.getMedicalDiseaseCode()).append("|");
+                    }
+                    if (null != diseaseDTO.getMedicalDiseaseName()) {
+                        regulationMedicalDiseaseName.append(diseaseDTO.getMedicalDiseaseName()).append("|");
+                    }
                 }
             }
             if (StringUtils.isNotEmpty(regulationOrganDiseaseId)) {
@@ -6242,6 +6250,12 @@ public class RecipeService extends RecipeBaseService {
             }
             if (StringUtils.isNotEmpty(regulationOrganDiseaseName)) {
                 disease.setJgDiseasName(regulationOrganDiseaseName.substring(0, regulationOrganDiseaseName.length() - 1));
+            }
+            if (StringUtils.isNotEmpty(regulationMedicalDiseaseCode)) {
+                disease.setMedicalDiseaseCode(regulationMedicalDiseaseCode.substring(0, regulationMedicalDiseaseCode.length() - 1));
+            }
+            if (StringUtils.isNotEmpty(regulationMedicalDiseaseName)) {
+                disease.setMedicalDiseaseName(regulationMedicalDiseaseName.substring(0, regulationMedicalDiseaseName.length() - 1));
             }
             LOGGER.info("assembleMultipleSymptom symptoms={}", JSONUtils.toString(disease));
         } catch (Exception e) {

@@ -1300,6 +1300,10 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             if (null != diseaseDTO) {
                 recipeChHerbalIndicatorsReq.setOrganDiseaseId(diseaseDTO.getJgDiseasId());
                 recipeChHerbalIndicatorsReq.setOrganDiseaseName(diseaseDTO.getJgDiseasName());
+                req.setJgDiseasId(diseaseDTO.getJgDiseasId());
+                req.setJgDiseasName(diseaseDTO.getJgDiseasName());
+                req.setMedicalDiseaseCode(diseaseDTO.getMedicalDiseaseCode());
+                req.setMedicalDiseaseName(diseaseDTO.getMedicalDiseaseName());
             }
             req.setRecipeChHerbalIndicatorsReq(recipeChHerbalIndicatorsReq);
             LOGGER.info("setDetail recipeChHerbalIndicatorsReq={}", JSONUtils.toString(recipeChHerbalIndicatorsReq));
