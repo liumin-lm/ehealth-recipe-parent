@@ -183,8 +183,11 @@ public class RecipeStatusFromHisObserver implements Observer<NoticeNgariRecipeIn
                 recipeExtend.setCostItemCode(costItemCode);
                 recipeExtend.setCostItemType(costItemType);
                 recipeExtend.setRecipeCostNumber(costItemCode);
-                recipeExtendDAO.updateNonNullFieldByPrimaryKey(recipeExtend);
             }
+            if (StringUtils.isNotEmpty(notice.getHisOrderCode())) {
+                recipeExtend.setHisOrderCode(notice.getHisOrderCode());
+            }
+            recipeExtendDAO.updateNonNullFieldByPrimaryKey(recipeExtend);
         } catch (Exception e) {
             LOGGER.error("修改电子病例使用状态失败 ", e);
         }
