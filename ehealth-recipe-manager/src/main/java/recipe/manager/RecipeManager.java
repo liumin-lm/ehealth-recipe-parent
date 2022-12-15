@@ -2,10 +2,12 @@ package recipe.manager;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
+import com.google.common.base.Joiner;
 import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.dto.UsingRateDTO;
 import com.ngari.consult.common.model.ConsultExDTO;
 import com.ngari.follow.utils.ObjectCopyUtil;
+import com.ngari.his.recipe.mode.HisOrderCodeResTO;
 import com.ngari.his.visit.mode.RecipeChargeItemCodeReqTo;
 import com.ngari.his.visit.mode.RecipeChargeItemCodeResTo;
 import com.ngari.patient.dto.DoctorDTO;
@@ -23,12 +25,14 @@ import eh.base.constant.ErrorCode;
 import eh.recipeaudit.api.IRecipeCheckService;
 import eh.recipeaudit.model.RecipeCheckBean;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.client.DocIndexClient;
 import recipe.client.RecipeAuditClient;
+import recipe.client.RecipeHisClient;
 import recipe.common.CommonConstant;
 import recipe.common.UrlConfig;
 import recipe.constant.RecipeBussConstant;
@@ -74,6 +78,8 @@ public class RecipeManager extends BaseManager {
     private IRecipeCheckService iRecipeCheckService;
     @Autowired
     private RequirementsForTakingDao requirementsForTakingDao;
+    @Autowired
+    private RecipeHisClient recipeHisClient;
 
     /**
      * 保存处方信息
@@ -1141,5 +1147,52 @@ public class RecipeManager extends BaseManager {
             logger.error("RecipeManager getChargeItemCode error", e);
         }
         return new ArrayList<>();
+    }
+
+    /**
+     * 获取医保id
+     *
+     * @param clinicOrgan
+     * @param recipeIdList
+     * @return
+     */
+    public String getHisOrderCode(Integer clinicOrgan, List<Integer> recipeIdList) {
+        List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIdList);
+        if (CollectionUtils.isEmpty(recipes)) {
+            return null;
+        }
+        List<String> recipeCodes = recipes.stream().map(Recipe::getRecipeCode).collect(Collectors.toList());
+        List<HisOrderCodeResTO> hisOrderCodeResTOS = recipeHisClient.queryHisOrderCodeByRecipeCode(clinicOrgan, recipeCodes);
+        if (CollectionUtils.isEmpty(hisOrderCodeResTOS)) {
+            // 如果前置机没有返回数据,就使用ext表中的
+            List<RecipeExtend> recipeExtends = recipeExtendDAO.queryRecipeExtendByRecipeIds(recipeIdList);
+            if (CollectionUtils.isNotEmpty(recipeExtends)) {
+                List<String> hisOrderCodes = recipeExtends.stream().filter(recipeExt -> StringUtils.isNotEmpty(recipeExt.getHisOrderCode())).map(RecipeExtend::getHisOrderCode).collect(Collectors.toList());
+                if (CollectionUtils.isNotEmpty(hisOrderCodes)) {
+                    return Joiner.on("|").join(hisOrderCodes);
+                }
+            }
+        }
+
+        Map<String, List<Recipe>> recipeMap = recipes.stream().collect(Collectors.groupingBy(Recipe::getRecipeCode));
+        List<String> hisOrderCode = new ArrayList<>();
+        for (HisOrderCodeResTO hisOrderCodeResTO : hisOrderCodeResTOS) {
+            if (StringUtils.isNotEmpty(hisOrderCodeResTO.getHisOrderCode())) {
+                continue;
+            }
+            hisOrderCode.add(hisOrderCodeResTO.getHisOrderCode());
+            if (MapUtils.isNotEmpty(recipeMap) && CollectionUtils.isNotEmpty(recipeMap.get(hisOrderCodeResTO.getRecipeCode()))) {
+                Recipe recipe = recipeMap.get(hisOrderCodeResTO.getRecipeCode()).get(0);
+                RecipeExtend recipeExt = new RecipeExtend();
+                recipeExt.setRecipeId(recipe.getRecipeId());
+                recipeExt.setHisOrderCode(hisOrderCodeResTO.getHisOrderCode());
+                recipeExtendDAO.updateNonNullFieldByPrimaryKey(recipeExt);
+            }
+        }
+        if (CollectionUtils.isNotEmpty(hisOrderCode)) {
+            return null;
+        }
+
+        return Joiner.on("|").join(hisOrderCode);
     }
 }

@@ -1,7 +1,9 @@
 package recipe.service.buspay;
 
 import com.alibaba.fastjson.JSONObject;
+import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.auth.api.service.IAuthExtraService;
 import com.ngari.auth.api.vo.SignNoReq;
@@ -446,7 +448,10 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
                 if (StringUtils.isNotEmpty(recipeExtend.getTerminalId())) {
                     simpleBusObject.setTerminalId(recipeExtend.getTerminalId());
                 }
-                simpleBusObject.setYbIdSyf(recipeExtend.getHisOrderCode());
+            }
+            String hisOrderCode = recipeManager.getHisOrderCode(recipe.getClinicOrgan(),Lists.newArrayList(recipe.getRecipeId()));
+            if(StringUtils.isNotEmpty(hisOrderCode)){
+                simpleBusObject.setYbIdSyf(hisOrderCode);
             }
         } else {
             simpleBusObject.setBusId(busId);
@@ -476,7 +481,10 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
                 if (StringUtils.isNotEmpty(recipeExtend.getTerminalId())) {
                     simpleBusObject.setTerminalId(recipeExtend.getTerminalId());
                 }
-                simpleBusObject.setYbIdSyf(recipeExtend.getHisOrderCode());
+            }
+            String hisOrderCode = recipeManager.getHisOrderCode(order.getOrganId(),recipeIdList);
+            if(StringUtils.isNotEmpty(hisOrderCode)){
+                simpleBusObject.setYbIdSyf(hisOrderCode);
             }
             //杭州互联网流程
             if (order.getRegisterNo() != null) {
