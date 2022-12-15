@@ -685,7 +685,7 @@ public class HisRecipeManager extends BaseManager {
         String makeMethodId = recipePdfDTO.getRecipeExtend().getMakeMethodId();
         DrugMakingMethod makingMethod = null;
         if (StringUtils.isNotBlank(makeMethodId)) {
-            makingMethod = drugMakingMethodDao.get(decoctionId);
+            makingMethod = drugMakingMethodDao.get(Integer.valueOf(makeMethodId));
         }
 
         if (CommonConstant.RECIPE_DOCTOR_TYPE.equals(sysType)) {
