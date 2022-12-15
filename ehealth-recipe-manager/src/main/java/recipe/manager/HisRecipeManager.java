@@ -675,10 +675,24 @@ public class HisRecipeManager extends BaseManager {
         EmrDetailDTO emrDetail = emrDetail(recipePdfDTO);
         Integer clinicId = recipePdfDTO.getRecipe().getClinicId();
         RevisitExDTO revisitEx = revisitClient.getByClinicId(clinicId);
+
+        String decoctionId = recipePdfDTO.getRecipeExtend().getDecoctionId();
+        DecoctionWay decoctionWay = null;
+        if (StringUtils.isNotBlank(decoctionId)) {
+            decoctionWay = drugDecoctionWayDao.get(decoctionId);
+        }
+
+        String makeMethodId = recipePdfDTO.getRecipeExtend().getMakeMethodId();
+        DrugMakingMethod makingMethod = null;
+        if (StringUtils.isNotBlank(makeMethodId)) {
+            makingMethod = drugMakingMethodDao.get(decoctionId);
+        }
+
         if (CommonConstant.RECIPE_DOCTOR_TYPE.equals(sysType)) {
             return offlineRecipeClient.pushRecipe(pushType, recipePdfDTO, emrDetail, pharmacyIdMap, giveModeKey, revisitEx);
         } else {
-            return offlineRecipeClient.patientPushRecipe(pushType, recipePdfDTO, emrDetail, pharmacyIdMap, giveModeKey, revisitEx);
+            return offlineRecipeClient.patientPushRecipe(pushType, recipePdfDTO, emrDetail, pharmacyIdMap,
+                    giveModeKey, revisitEx, decoctionWay, makingMethod);
         }
     }
 

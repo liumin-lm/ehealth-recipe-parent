@@ -128,7 +128,7 @@ public class OfflineRecipeClient extends BaseClient {
      * @throws Exception
      */
     public Boolean cancelRecipeImpl(RecipeStatusUpdateReqTO request, RecipeInfoDTO recipePdfDTO, EmrDetailDTO emrDetail, Map<Integer, PharmacyTcm> pharmacyIdMap) throws Exception {
-        com.ngari.platform.recipe.mode.RecipeDTO recipeDTO = packageRecipeDTO(CommonConstant.RECIPE_CANCEL_TYPE, recipePdfDTO, emrDetail, pharmacyIdMap, null);
+        com.ngari.platform.recipe.mode.RecipeDTO recipeDTO = packageRecipeDTO(CommonConstant.RECIPE_CANCEL_TYPE, recipePdfDTO, emrDetail, pharmacyIdMap, null, null, null);
         request.setRecipeDTO(recipeDTO);
         logger.info("cancelRecipeImpl request={}", JSONUtils.toString(request));
         try {
@@ -156,7 +156,7 @@ public class OfflineRecipeClient extends BaseClient {
      */
     public RecipeInfoDTO pushRecipe(Integer pushType, RecipeInfoDTO recipePdfDTO, EmrDetailDTO emrDetail,
                                     Map<Integer, PharmacyTcm> pharmacyIdMap, String giveModeKey, RevisitExDTO revisitEx) throws Exception {
-        com.ngari.platform.recipe.mode.RecipeDTO recipeDTO = packageRecipeDTO(pushType, recipePdfDTO, emrDetail, pharmacyIdMap, giveModeKey);
+        com.ngari.platform.recipe.mode.RecipeDTO recipeDTO = packageRecipeDTO(pushType, recipePdfDTO, emrDetail, pharmacyIdMap, giveModeKey, null, null);
         recipeDTO.setRevisitEx(ObjectCopyUtils.convert(revisitEx, com.ngari.platform.revisit.model.RevisitExDTO.class));
         logger.info("OfflineRecipeClient patientPushRecipe recipeDTO：{}", JSON.toJSONString(recipeDTO));
         try {
@@ -179,8 +179,9 @@ public class OfflineRecipeClient extends BaseClient {
      * @throws Exception
      */
     public RecipeInfoDTO patientPushRecipe(Integer pushType, RecipeInfoDTO recipePdfDTO, EmrDetailDTO emrDetail,
-                                           Map<Integer, PharmacyTcm> pharmacyIdMap, String giveModeKey, RevisitExDTO revisitBean) throws Exception {
-        com.ngari.platform.recipe.mode.RecipeDTO recipeDTO = packageRecipeDTO(pushType, recipePdfDTO, emrDetail, pharmacyIdMap, giveModeKey);
+                                           Map<Integer, PharmacyTcm> pharmacyIdMap, String giveModeKey, RevisitExDTO revisitBean,
+                                           DecoctionWay decoctionWay, DrugMakingMethod makingMethod) throws Exception {
+        com.ngari.platform.recipe.mode.RecipeDTO recipeDTO = packageRecipeDTO(pushType, recipePdfDTO, emrDetail, pharmacyIdMap, giveModeKey, decoctionWay, makingMethod);
         recipeDTO.setRevisitEx(ObjectCopyUtils.convert(revisitBean, com.ngari.platform.revisit.model.RevisitExDTO.class));
         logger.info("OfflineRecipeClient patientPushRecipe recipeDTO：{}", JSON.toJSONString(recipeDTO));
         try {
@@ -774,18 +775,27 @@ public class OfflineRecipeClient extends BaseClient {
      */
     private com.ngari.platform.recipe.mode.RecipeDTO packageRecipeDTO(Integer pushType, RecipeInfoDTO recipePdfDTO,
                                                                       EmrDetailDTO emrDetail, Map<Integer, PharmacyTcm> pharmacyIdMap,
-                                                                      String giveModeKey) throws Exception {
+                                                                      String giveModeKey, DecoctionWay decoctionWay, DrugMakingMethod makingMethod) throws Exception {
         com.ngari.platform.recipe.mode.RecipeDTO recipeDTO = new com.ngari.platform.recipe.mode.RecipeDTO();
         recipeDTO.setPushType(pushType);
         recipeDTO.setOrganId(recipePdfDTO.getRecipe().getClinicOrgan());
-        recipeDTO.setRecipeExtendBean(ObjectCopyUtils.convert(recipePdfDTO.getRecipeExtend(), RecipeExtendBean.class));
-        if (null != recipePdfDTO.getRecipeExtend() && StringUtils.isNotEmpty(recipePdfDTO.getRecipeExtend().getCardType())) {
-            recipeDTO.getRecipeExtendBean().setCardTypeStr(recipePdfDTO.getRecipeExtend().getCardType());
+        RecipeExtend recipeExtend = recipePdfDTO.getRecipeExtend();
+        RecipeExtendBean recipeExtendBean = ObjectCopyUtils.convert(recipeExtend, RecipeExtendBean.class);
+        if (Objects.nonNull(recipeExtend) && StringUtils.isNotEmpty(recipeExtend.getCardType())) {
+            recipeExtendBean.setCardTypeStr(recipeExtend.getCardType());
         }
-        recipeDTO.getRecipeExtendBean().setDecoctionUnitPrice(recipeDTO.getRecipeExtendBean().getDecoctionPrice());
-        if (null != recipePdfDTO.getRecipeExtend()) {
-            recipeDTO.getRecipeExtendBean().setSelfServiceMachineFlag(new Integer(1).equals(recipePdfDTO.getRecipeExtend().getTerminalType()));
+        recipeExtendBean.setDecoctionUnitPrice(recipeExtendBean.getDecoctionPrice());
+        if (Objects.nonNull(recipeExtend)) {
+            recipeExtendBean.setSelfServiceMachineFlag(new Integer(1).equals(recipeExtend.getTerminalType()));
         }
+        if (Objects.nonNull(makingMethod)) {
+            recipeExtendBean.setMakeMethod(makingMethod.getMethodCode());
+        }
+        if (Objects.nonNull(decoctionWay)) {
+            recipeExtendBean.setDecoctionCode(decoctionWay.getDecoctionCode());
+        }
+        recipeDTO.setRecipeExtendBean(recipeExtendBean);
+
         recipeDTO.setPatientDTO(ObjectCopyUtils.convert(recipePdfDTO.getPatientBean(), PatientDTO.class));
         com.ngari.platform.recipe.mode.EmrDetailDTO emrDetailDTO = new com.ngari.platform.recipe.mode.EmrDetailDTO();
         BeanUtils.copyProperties(emrDetail, emrDetailDTO);

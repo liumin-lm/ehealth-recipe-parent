@@ -67,6 +67,8 @@ public class BaseManager {
     @Autowired
     DrugDecoctionWayDao drugDecoctionWayDao;
     @Autowired
+    DrugMakingMethodDao drugMakingMethodDao;
+    @Autowired
     protected DrugListDAO drugListDAO;
     @Autowired
     protected RecipeRefundDAO recipeRefundDAO;
