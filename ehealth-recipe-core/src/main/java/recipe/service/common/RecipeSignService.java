@@ -464,7 +464,7 @@ public class RecipeSignService {
      * @return
      */
     @RpcService
-    public void doSignRecipeSave(RecipeBean recipeBean, List<RecipeDetailBean> details) {
+    public Integer doSignRecipeSave(RecipeBean recipeBean, List<RecipeDetailBean> details) {
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
         PatientService patientService = BasicAPI.getService(PatientService.class);
@@ -522,6 +522,7 @@ public class RecipeSignService {
             recipeBean.setRecipeId(recipeId);
         }
         rMap.put("recipeId", recipeId);
+        return recipeId;
     }
 
     @RpcService
