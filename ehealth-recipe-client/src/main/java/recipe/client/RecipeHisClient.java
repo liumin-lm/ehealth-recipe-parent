@@ -1,6 +1,7 @@
 package recipe.client;
 
 import com.ngari.common.mode.HisResponseTO;
+import com.ngari.his.recipe.mode.HisOrderCodeReqTO;
 import com.ngari.his.recipe.mode.HisOrderCodeResTO;
 import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.infra.logistics.mode.ControlLogisticsOrderDto;
@@ -31,17 +32,19 @@ public class RecipeHisClient extends BaseClient {
      * @return
      */
     @LogRecord
-    public List<HisOrderCodeResTO> queryHisOrderCodeByRecipeCode(Integer organId,List<String> recipeCode) {
+    public List<HisOrderCodeResTO> queryHisOrderCodeByRecipeCode(String patientID,Integer organId,List<String> recipeCode) {
         if(CollectionUtils.isEmpty(recipeCode) || Objects.isNull(organId)){
             return null;
         }
         List<HisOrderCodeResTO> hisOrderCodeResTOS = recipeCode.stream().map(code -> {
             HisOrderCodeResTO hisOrderCodeResTO = new HisOrderCodeResTO();
             hisOrderCodeResTO.setRecipeCode(code);
-            hisOrderCodeResTO.setOrganId(organId);
             return hisOrderCodeResTO;
         }).collect(Collectors.toList());
-        HisResponseTO<List<HisOrderCodeResTO>> listHisResponseTO = recipeHisService.queryHisOrderCodeByRecipeCode(hisOrderCodeResTOS);
+        HisOrderCodeReqTO hisOrderCodeReqTOS = new HisOrderCodeReqTO();
+        hisOrderCodeReqTOS.setOrganId(organId);
+        hisOrderCodeReqTOS.setPatientID(patientID);
+        HisResponseTO<List<HisOrderCodeResTO>> listHisResponseTO = recipeHisService.queryHisOrderCodeByRecipeCode(hisOrderCodeReqTOS);
         List<HisOrderCodeResTO> response = null;
         try {
             response = this.getResponse(listHisResponseTO);
