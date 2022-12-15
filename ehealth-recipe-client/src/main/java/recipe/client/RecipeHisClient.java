@@ -44,6 +44,7 @@ public class RecipeHisClient extends BaseClient {
         HisOrderCodeReqTO hisOrderCodeReqTOS = new HisOrderCodeReqTO();
         hisOrderCodeReqTOS.setOrganId(organId);
         hisOrderCodeReqTOS.setPatientID(patientID);
+        hisOrderCodeReqTOS.setHisOrderCodeResTOS(hisOrderCodeResTOS);
         List<HisOrderCodeResTO> response = null;
         try {
             HisResponseTO<List<HisOrderCodeResTO>> listHisResponseTO = recipeHisService.queryHisOrderCodeByRecipeCode(hisOrderCodeReqTOS);
