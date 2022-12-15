@@ -139,7 +139,7 @@ public class RecipePreSettleService {
         }
         // 获取终端配置
         Client currentClient = currentUserInfoService.getCurrentClient();
-        String callPreSettlement = configurationClient.getValueCatchReturnArr(currentClient.getClientConfigId(), "callPreSettlement", "1");
+        String callPreSettlement = configurationClient.getValueCatch(currentClient.getClientConfigId(), "callPreSettlement", "1");
         LOGGER.info("unifyRecipePreSettle currentClient={},callPreSettlement={}", JSONUtils.toString(currentClient),JSONUtils.toString(callPreSettlement));
 
         if (CallPreSettlementTypeEnum.NO_CALL.getType().equals(callPreSettlement)) {
