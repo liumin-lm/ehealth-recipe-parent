@@ -679,7 +679,7 @@ public class HisRecipeManager extends BaseManager {
         String decoctionId = recipePdfDTO.getRecipeExtend().getDecoctionId();
         DecoctionWay decoctionWay = null;
         if (StringUtils.isNotBlank(decoctionId)) {
-            decoctionWay = drugDecoctionWayDao.get(decoctionId);
+            decoctionWay = drugDecoctionWayDao.get(Integer.valueOf(decoctionId));
         }
 
         String makeMethodId = recipePdfDTO.getRecipeExtend().getMakeMethodId();
