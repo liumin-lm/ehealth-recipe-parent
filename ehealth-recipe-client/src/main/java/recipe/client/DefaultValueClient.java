@@ -1,10 +1,9 @@
-package recipe.client.factory.recipedate;
+package recipe.client;
 
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import ctd.persistence.exception.DAOException;
 import org.springframework.stereotype.Service;
-import recipe.client.BaseClient;
 import recipe.constant.PayConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;

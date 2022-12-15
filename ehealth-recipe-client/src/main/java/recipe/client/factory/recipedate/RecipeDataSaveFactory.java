@@ -7,11 +7,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ApplicationObjectSupport;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Service;
 import recipe.util.ValidateUtil;
 
-import javax.annotation.PostConstruct;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -22,11 +21,11 @@ import java.util.TreeMap;
  * @author fuzi
  */
 @Service
-public class RecipeDataSaveFactory extends ApplicationObjectSupport {
+public class RecipeDataSaveFactory implements ApplicationContextAware {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    private final Map<Integer, RecipeDataSaveFactory> map = new TreeMap<>();
+    private final Map<Integer, IRecipeDataSave> map = new TreeMap<>();
 
     /**
      * 设置处方默认数据 责任链
@@ -74,40 +73,18 @@ public class RecipeDataSaveFactory extends ApplicationObjectSupport {
         map.forEach((k,v)->v.setRecipeExt(recipe,extend));
     }
 
-    protected Integer getSort() {
-        return null;
-    }
-
-    /**
-     * 设置处方默认数据 基类空实现 具体赋值子类处理
-     *
-     * @param recipe 处方头对象
-     */
-    protected void setRecipe(Recipe recipe) {
-    }
-
-    /**
-     * 设置处方默认数据 基类空实现 具体赋值子类处理
-     *
-     * @param recipe 处方扩展对象
-     */
-    protected void setRecipeExt(Recipe recipe, RecipeExtend extend) {
-    }
-
     /**
      * 添加工厂实现类
      *
      * @throws BeansException
      */
-    @PostConstruct
-    private void setApplicationContext() {
-        ApplicationContext applicationContext = super.getApplicationContext();
-        String[] beanNames = applicationContext.getBeanNamesForType(RecipeDataSaveFactory.class);
-        logger.info("RecipeDataSaveFactory添加授权服务工厂类，beanNames = {}", JSON.toJSONString(beanNames));
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) {
+        String[] beanNames = applicationContext.getBeanNamesForType(IRecipeDataSave.class);
         for (String beanName : beanNames) {
-            RecipeDataSaveFactory giveModeService = applicationContext.getBean(beanName, RecipeDataSaveFactory.class);
-            if (!ValidateUtil.integerIsEmpty(giveModeService.getSort())) {
-                map.put(giveModeService.getSort(), giveModeService);
+            IRecipeDataSave bean = applicationContext.getBean(beanName, IRecipeDataSave.class);
+            if (!ValidateUtil.integerIsEmpty(bean.getSort())) {
+                map.put(bean.getSort(), bean);
             }
         }
         logger.info("RecipeDataSaveFactory添加授权服务工厂类，giveModeMap = {}", JSON.toJSONString(map));

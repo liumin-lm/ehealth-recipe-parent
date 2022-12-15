@@ -9,14 +9,12 @@ import com.ngari.infra.statistics.IEventLogService;
 import com.ngari.infra.statistics.dto.EventLogDTO;
 import com.ngari.patient.service.DoctorService;
 import com.ngari.recipe.dto.ServiceLogDTO;
-import com.ngari.recipe.entity.OrganDrugList;
-import com.ngari.recipe.entity.PharmacyTcm;
-import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.entity.*;
 import ctd.persistence.exception.DAOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import recipe.client.factory.recipedate.RecipeDataSaveFactory;
+import recipe.client.factory.recipedate.IRecipeDataSave;
 import recipe.constant.ErrorCode;
 import recipe.constant.HisErrorCodeEnum;
 import recipe.util.DictionaryUtil;
@@ -30,7 +28,7 @@ import java.util.stream.Collectors;
  *
  * @author fuzi
  */
-public class BaseClient extends RecipeDataSaveFactory {
+public abstract class BaseClient implements IRecipeDataSave {
     protected final Logger logger = LoggerFactory.getLogger(this.getClass());
     @Autowired
     protected IRecipeHisService recipeHisService;
@@ -172,4 +170,18 @@ public class BaseClient extends RecipeDataSaveFactory {
             logger.error("BaseClient serviceLog error", e);
         }
     }
+
+    @Override
+    public Integer getSort() {
+        return null;
+    }
+
+    @Override
+    public void setRecipe(Recipe recipe) {
+    }
+
+    @Override
+    public void setRecipeExt(Recipe recipe, RecipeExtend extend) {
+    }
+
 }
