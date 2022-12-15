@@ -1180,6 +1180,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     }
 
     @Override
+    @LogRecord
     public Map<String, String> getEnterpriseCodeByRecipeId(Integer orderId) {
         Map<String, String> map = new HashMap<String, String>();
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
