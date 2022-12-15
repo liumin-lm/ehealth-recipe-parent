@@ -1177,7 +1177,7 @@ public class RecipeManager extends BaseManager {
         Map<String, List<Recipe>> recipeMap = recipes.stream().collect(Collectors.groupingBy(Recipe::getRecipeCode));
         List<String> hisOrderCode = new ArrayList<>();
         for (HisOrderCodeResTO hisOrderCodeResTO : hisOrderCodeResTOS) {
-            if (StringUtils.isNotEmpty(hisOrderCodeResTO.getHisOrderCode())) {
+            if (StringUtils.isEmpty(hisOrderCodeResTO.getHisOrderCode())) {
                 continue;
             }
             hisOrderCode.add(hisOrderCodeResTO.getHisOrderCode());
@@ -1189,7 +1189,7 @@ public class RecipeManager extends BaseManager {
                 recipeExtendDAO.updateNonNullFieldByPrimaryKey(recipeExt);
             }
         }
-        if (CollectionUtils.isNotEmpty(hisOrderCode)) {
+        if (CollectionUtils.isEmpty(hisOrderCode)) {
             return null;
         }
 
