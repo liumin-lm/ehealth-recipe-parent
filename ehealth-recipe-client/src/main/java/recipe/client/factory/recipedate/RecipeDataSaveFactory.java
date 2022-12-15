@@ -6,8 +6,8 @@ import com.ngari.recipe.entity.RecipeExtend;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ApplicationObjectSupport;
 import org.springframework.stereotype.Service;
 import recipe.util.ValidateUtil;
 
@@ -22,13 +22,11 @@ import java.util.TreeMap;
  * @author fuzi
  */
 @Service
-public class RecipeDataSaveFactory {
+public class RecipeDataSaveFactory extends ApplicationObjectSupport {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private final Map<Integer, RecipeDataSaveFactory> map = new TreeMap<>();
-    @Autowired
-    private ApplicationContext applicationContext;
 
     /**
      * 设置处方默认数据 责任链
@@ -102,8 +100,10 @@ public class RecipeDataSaveFactory {
      * @throws BeansException
      */
     @PostConstruct
-    public void setApplicationContext() {
+    private void setApplicationContext() {
+        ApplicationContext applicationContext = super.getApplicationContext();
         String[] beanNames = applicationContext.getBeanNamesForType(RecipeDataSaveFactory.class);
+        logger.info("RecipeDataSaveFactory添加授权服务工厂类，beanNames = {}", JSON.toJSONString(beanNames));
         for (String beanName : beanNames) {
             RecipeDataSaveFactory giveModeService = applicationContext.getBean(beanName, RecipeDataSaveFactory.class);
             if (!ValidateUtil.integerIsEmpty(giveModeService.getSort())) {
