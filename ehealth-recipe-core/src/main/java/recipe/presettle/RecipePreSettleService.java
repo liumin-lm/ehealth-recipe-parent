@@ -8,6 +8,7 @@ import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
+import ctd.account.Client;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -18,11 +19,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.business.StockBusinessService;
+import recipe.client.IConfigurationClient;
 import recipe.constant.RecipeBussConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.dao.RecipeParameterDao;
+import recipe.enumerate.type.CallPreSettlementTypeEnum;
 import recipe.presettle.factory.PreSettleFactory;
 
 import javax.annotation.Resource;
@@ -53,6 +56,8 @@ public class RecipePreSettleService {
     private ICurrentUserInfoService currentUserInfoService;
     @Autowired
     private RecipeParameterDao recipeParameterDao;
+    @Autowired
+    private IConfigurationClient configurationClient;
 
     /**
      * 统一处方预结算接口
@@ -131,6 +136,13 @@ public class RecipePreSettleService {
         String appId = recipeParameterDao.getByName("syf_alipay_appid");
         if (wxAccount != null && StringUtils.isNotEmpty(appId) && appId.equals(wxAccount.getAppId())) {
             orderType = 5;
+        }
+        // 获取终端配置
+        Client currentClient = currentUserInfoService.getCurrentClient();
+        String callPreSettlement = configurationClient.getValueCatchReturnArr(currentClient.getClientConfigId(), "callPreSettlement", "1");
+        if (CallPreSettlementTypeEnum.NO_CALL.getType().equals(callPreSettlement)) {
+            result.put("code", "200");
+            return result;
         }
         //获取对应预结算服务
         IRecipePreSettleService preSettleService = PreSettleFactory.getPreSettleService(recipe.getClinicOrgan(),orderType);
