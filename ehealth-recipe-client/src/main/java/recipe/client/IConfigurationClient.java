@@ -55,6 +55,24 @@ public class IConfigurationClient extends BaseClient {
         }
     }
 
+    /**
+     * 获取终端配置
+     * @param medicalPayConfigKey
+     * @return
+     */
+    public String getPropertyByString(String medicalPayConfigKey) {
+        try {
+            Client client = currentUserInfoService.getCurrentClient();
+            logger.info("IConfigurationClient getPropertyByClientId  client:{}", JSONArray.toJSONString(client));
+            String valueBooleanCatch = (String) configService.getPropertyByClientId(client.getClientConfigId(), medicalPayConfigKey);
+            logger.info("IConfigurationClient getPropertyByClientId  valueBooleanCatch:{}", valueBooleanCatch);
+            return valueBooleanCatch;
+        } catch (Exception e) {
+            logger.error("IConfigurationClient getPropertyByClientId", e);
+            return "";
+        }
+    }
+
 
     /**
      * 获取多个机构配置
