@@ -176,9 +176,6 @@ public class RecipeStatusFromHisObserver implements Observer<NoticeNgariRecipeIn
             }
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(Integer.parseInt(notice.getPlatRecipeID()));
-            EmrRecipeManager emrRecipeManager = AppContextHolder.getBean("emrRecipeManager", EmrRecipeManager.class);
-            //将药品信息加入病历中
-            emrRecipeManager.upDocIndex(recipeExtend.getRecipeId(), recipeExtend.getDocIndexId());
             if (StringUtils.isNotEmpty(costItemCode)) {
                 recipeExtend.setCostItemCode(costItemCode);
                 recipeExtend.setCostItemType(costItemType);
@@ -188,6 +185,9 @@ public class RecipeStatusFromHisObserver implements Observer<NoticeNgariRecipeIn
                 recipeExtend.setHisOrderCode(notice.getHisOrderCode());
             }
             recipeExtendDAO.updateNonNullFieldByPrimaryKey(recipeExtend);
+            //将药品信息加入病历中
+            EmrRecipeManager emrRecipeManager = AppContextHolder.getBean("emrRecipeManager", EmrRecipeManager.class);
+            emrRecipeManager.upDocIndex(recipeExtend.getRecipeId(), recipeExtend.getDocIndexId());
         } catch (Exception e) {
             LOGGER.error("修改电子病例使用状态失败 ", e);
         }
