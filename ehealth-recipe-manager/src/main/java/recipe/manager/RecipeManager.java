@@ -1176,6 +1176,8 @@ public class RecipeManager extends BaseManager {
                 List<String> hisOrderCodes = recipeExtends.stream().filter(recipeExt -> StringUtils.isNotEmpty(recipeExt.getHisOrderCode())).map(RecipeExtend::getHisOrderCode).collect(Collectors.toList());
                 if (CollectionUtils.isNotEmpty(hisOrderCodes)) {
                     return Joiner.on("|").join(hisOrderCodes);
+                }else {
+                    return null;
                 }
             }
         }
