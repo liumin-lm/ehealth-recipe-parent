@@ -38,10 +38,12 @@ public abstract class RecipeLogDAO extends HibernateSupportDelegateDAO<RecipeLog
     public boolean saveRecipeLog(RecipeLog log) {
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(log.getRecipeId());
-        log.setProcessState(recipe.getProcessState());
-        log.setSubState(recipe.getSubState());
-        if (StringUtils.isEmpty(log.getMemo())) {
-            log.setMemo(RecipeStateEnum.getRecipeStateEnum(recipe.getSubState()).getName());
+        if (null != recipe) {
+            log.setProcessState(recipe.getProcessState());
+            log.setSubState(recipe.getSubState());
+            if (StringUtils.isEmpty(log.getMemo())) {
+                log.setMemo(RecipeStateEnum.getRecipeStateEnum(recipe.getSubState()).getName());
+            }
         }
         log.setMemo(StringUtils.defaultString(log.getMemo(), ""));
         log.setExpand(StringUtils.defaultString(log.getExpand(), ""));
