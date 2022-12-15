@@ -1162,7 +1162,13 @@ public class RecipeManager extends BaseManager {
             return null;
         }
         List<String> recipeCodes = recipes.stream().map(Recipe::getRecipeCode).collect(Collectors.toList());
-        List<HisOrderCodeResTO> hisOrderCodeResTOS = recipeHisClient.queryHisOrderCodeByRecipeCode(recipes.get(0).getPatientID(),clinicOrgan, recipeCodes);
+        List<HisOrderCodeResTO> hisOrderCodeResTOS = null;
+        try {
+            hisOrderCodeResTOS = recipeHisClient.queryHisOrderCodeByRecipeCode(recipes.get(0).getPatientID(), clinicOrgan, recipeCodes);
+        } catch (Exception e) {
+            logger.error("获取医保id错误");
+            return null;
+        }
         if (CollectionUtils.isEmpty(hisOrderCodeResTOS)) {
             // 如果前置机没有返回数据,就使用ext表中的
             List<RecipeExtend> recipeExtends = recipeExtendDAO.queryRecipeExtendByRecipeIds(recipeIdList);
