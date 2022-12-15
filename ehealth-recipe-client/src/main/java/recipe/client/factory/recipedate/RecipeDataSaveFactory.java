@@ -6,6 +6,7 @@ import com.ngari.recipe.entity.RecipeExtend;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 import recipe.util.ValidateUtil;
@@ -26,6 +27,8 @@ public abstract class RecipeDataSaveFactory {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private final Map<Integer, RecipeDataSaveFactory> map = new TreeMap<>();
+    @Autowired
+    private ApplicationContext applicationContext;
 
     /**
      * 设置处方默认数据 责任链
@@ -96,11 +99,10 @@ public abstract class RecipeDataSaveFactory {
     /**
      * 添加工厂实现类
      *
-     * @param applicationContext spring上下文
      * @throws BeansException
      */
     @PostConstruct
-    public void setApplicationContext(ApplicationContext applicationContext) {
+    public void setApplicationContext() {
         String[] beanNames = applicationContext.getBeanNamesForType(RecipeDataSaveFactory.class);
         for (String beanName : beanNames) {
             RecipeDataSaveFactory giveModeService = applicationContext.getBean(beanName, RecipeDataSaveFactory.class);
