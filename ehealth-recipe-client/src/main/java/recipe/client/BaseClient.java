@@ -15,7 +15,9 @@ import com.ngari.recipe.entity.Recipedetail;
 import ctd.persistence.exception.DAOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import recipe.client.factory.recipedate.RecipeDataSaveFactory;
 import recipe.constant.ErrorCode;
 import recipe.constant.HisErrorCodeEnum;
@@ -171,5 +173,9 @@ public class BaseClient extends RecipeDataSaveFactory {
         } catch (Exception e) {
             logger.error("BaseClient serviceLog error", e);
         }
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
     }
 }

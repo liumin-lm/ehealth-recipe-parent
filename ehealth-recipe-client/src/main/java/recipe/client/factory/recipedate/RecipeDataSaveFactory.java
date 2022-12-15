@@ -11,7 +11,6 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Service;
 import recipe.util.ValidateUtil;
 
-import java.util.Arrays;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -102,7 +101,6 @@ public abstract class RecipeDataSaveFactory implements ApplicationContextAware {
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         String[] beanNames = applicationContext.getBeanNamesForType(RecipeDataSaveFactory.class);
-        logger.info("RecipeDataSaveFactory添加授权服务工厂类，beanNames = {}", Arrays.toString(beanNames));
         for (String beanName : beanNames) {
             RecipeDataSaveFactory giveModeService = applicationContext.getBean(beanName, RecipeDataSaveFactory.class);
             if (!ValidateUtil.integerIsEmpty(giveModeService.getSort())) {
