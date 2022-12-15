@@ -22,7 +22,7 @@ import java.util.TreeMap;
  * @author fuzi
  */
 @Service
-public abstract class RecipeDataSaveFactory {
+public class RecipeDataSaveFactory {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
