@@ -33,7 +33,7 @@ public class RecipeHisClient extends BaseClient {
      */
     @LogRecord
     public List<HisOrderCodeResTO> queryHisOrderCodeByRecipeCode(String patientID,Integer organId,List<String> recipeCode) {
-        if(CollectionUtils.isEmpty(recipeCode) || Objects.isNull(organId)){
+        if (CollectionUtils.isEmpty(recipeCode) || Objects.isNull(organId)) {
             return null;
         }
         List<HisOrderCodeResTO> hisOrderCodeResTOS = recipeCode.stream().map(code -> {
@@ -44,9 +44,9 @@ public class RecipeHisClient extends BaseClient {
         HisOrderCodeReqTO hisOrderCodeReqTOS = new HisOrderCodeReqTO();
         hisOrderCodeReqTOS.setOrganId(organId);
         hisOrderCodeReqTOS.setPatientID(patientID);
-        HisResponseTO<List<HisOrderCodeResTO>> listHisResponseTO = recipeHisService.queryHisOrderCodeByRecipeCode(hisOrderCodeReqTOS);
         List<HisOrderCodeResTO> response = null;
         try {
+            HisResponseTO<List<HisOrderCodeResTO>> listHisResponseTO = recipeHisService.queryHisOrderCodeByRecipeCode(hisOrderCodeReqTOS);
             response = this.getResponse(listHisResponseTO);
         } catch (Exception e) {
             logger.error("RecipeHisClient queryHisOrderCodeByRecipeCode error ", e);
