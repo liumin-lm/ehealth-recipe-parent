@@ -7,24 +7,25 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Service;
 import recipe.util.ValidateUtil;
 
+import javax.annotation.PostConstruct;
 import java.util.Map;
 import java.util.TreeMap;
 
 
 /**
  * 处方保存数据 工厂处理类
+ *
  * @author fuzi
  */
 @Service
-public abstract class RecipeDataSaveFactory implements ApplicationContextAware {
+public abstract class RecipeDataSaveFactory {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    private final Map<Integer,RecipeDataSaveFactory> map = new TreeMap<>();
+    private final Map<Integer, RecipeDataSaveFactory> map = new TreeMap<>();
 
     /**
      * 设置处方默认数据 责任链
@@ -98,13 +99,13 @@ public abstract class RecipeDataSaveFactory implements ApplicationContextAware {
      * @param applicationContext spring上下文
      * @throws BeansException
      */
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+    @PostConstruct
+    public void setApplicationContext(ApplicationContext applicationContext) {
         String[] beanNames = applicationContext.getBeanNamesForType(RecipeDataSaveFactory.class);
         for (String beanName : beanNames) {
             RecipeDataSaveFactory giveModeService = applicationContext.getBean(beanName, RecipeDataSaveFactory.class);
             if (!ValidateUtil.integerIsEmpty(giveModeService.getSort())) {
-                map.put(giveModeService.getSort(),giveModeService);
+                map.put(giveModeService.getSort(), giveModeService);
             }
         }
         logger.info("RecipeDataSaveFactory添加授权服务工厂类，giveModeMap = {}", JSON.toJSONString(map));
