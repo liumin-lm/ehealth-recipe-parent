@@ -148,7 +148,7 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
             recipeDetails = recipeDetailDAO.findDetailByOrderCode(orderCode);
         } else {
             List<Integer> recipeIds = orderManager.getRecipeIdsByOrderId(orderId);
-            recipeDetails = recipeDetailDAO.findByRecipeIds(recipeIds);
+            recipeDetails = recipeDetailManager.findRecipeDetails(recipeIds);
         }
         if (CollectionUtils.isEmpty(recipeDetails)) {
             return stringBuilder.toString();
@@ -217,8 +217,11 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
             return resultBean;
         }
         List<Integer> recipeIds = recipeManager.findRecipeByClinicIdAndProcessState(validateDetailVO.getRecipeBean().getClinicId(), validateDetailVO.getRecipeBean().getRecipeId(), RecipeStatusEnum.RECIPE_REPEAT);
+        if (CollectionUtils.isEmpty(recipeIds)) {
+            return resultBean;
+        }
         List<Recipedetail> recipeDetails = recipeDetailManager.findRecipeDetails(recipeIds);
-        
+
         return resultBean;
     }
 

@@ -267,7 +267,6 @@ public abstract class RecipeDetailDAO extends
      * @return
      */
     public Integer getRecipeIdByOrganIdAndInvoiceNo(final int organId, final String invoiceNo) {
-        StringBuilder drugNames = new StringBuilder();
         HibernateStatelessResultAction<Integer> action = new AbstractHibernateStatelessResultAction<Integer>() {
             public void execute(StatelessSession ss) throws DAOException {
                 StringBuilder hql = new StringBuilder();
@@ -287,6 +286,23 @@ public abstract class RecipeDetailDAO extends
         HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
+
+    public List<Recipedetail> findRecipeDetailSumTotalDose(List<Integer> recipeIds) {
+        HibernateStatelessResultAction<List<Recipedetail>> action = new AbstractHibernateStatelessResultAction<List<Recipedetail>>() {
+            @Override
+            public void execute(StatelessSession ss) throws DAOException {
+                StringBuilder sql = new StringBuilder();
+                sql.append("select OrganDrugCode,sum(UseTotalDose) as UseTotalDose  from cdr_recipedetail where RecipeID  in (:recipeIds) group by OrganDrugCode");
+                Query q = ss.createSQLQuery(sql.toString()).addEntity(Recipedetail.class);
+                q.setParameter("recipeIds", recipeIds);
+                List<Recipedetail> list = q.list();
+                setResult(list);
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
 
     /**
      * 供 处方单详情服务 调用
