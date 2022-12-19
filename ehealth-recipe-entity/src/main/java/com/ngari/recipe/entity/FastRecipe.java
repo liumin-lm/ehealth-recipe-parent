@@ -150,9 +150,6 @@ public class FastRecipe {
     @ItemProperty(alias = "配送药企代码")
     private String deliveryCode;
 
-    @ItemProperty(alias = "配送药企名称")
-    private String deliveryName;
-
     @ItemProperty(alias = "处方指定药企类型: 1医院, 2药企, 默认0")
     private Integer appointEnterpriseType;
 
@@ -542,15 +539,6 @@ public class FastRecipe {
 
     public void setDeliveryCode(String deliveryCode) {
         this.deliveryCode = deliveryCode;
-    }
-
-    @Column(name = "delivery_name")
-    public String getDeliveryName() {
-        return deliveryName;
-    }
-
-    public void setDeliveryName(String deliveryName) {
-        this.deliveryName = deliveryName;
     }
 
     @Column(name = "appoint_enterprise_type")

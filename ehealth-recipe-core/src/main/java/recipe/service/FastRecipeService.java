@@ -372,7 +372,6 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
             fastRecipe.setAppointEnterpriseType(0);
         }
         fastRecipe.setDeliveryCode(fastRecipeVO.getDeliveryCode());
-        fastRecipe.setDeliveryName(fastRecipeVO.getDeliveryName());
         fastRecipeDAO.update(fastRecipe);
 
         //1.更新药方详情（目前只能删除药品，修改药品随后版本做）
