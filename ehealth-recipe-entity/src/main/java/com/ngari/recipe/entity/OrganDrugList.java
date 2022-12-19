@@ -235,6 +235,9 @@ public class OrganDrugList implements java.io.Serializable {
     @ItemProperty(alias = "中药国标编码")
     private String tcmNationalStandardCode;
 
+    @ItemProperty(alias = "开药数量限制")
+    private Integer maximum;
+
 //    @ItemProperty(alias = "是否冷链运输 0 否 1 是")
 //    private Integer coldChainTransportationFlag;
 //

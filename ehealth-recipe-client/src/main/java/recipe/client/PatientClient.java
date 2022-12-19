@@ -495,6 +495,9 @@ public class PatientClient extends BaseClient {
      */
     @Override
     public void setRecipeExt(Recipe recipe, RecipeExtend extend) {
+        if (StringUtils.isEmpty(recipe.getMpiid())) {
+            return;
+        }
         PatientDTO patient = this.getPatientDTO(recipe.getMpiid());
         extend.setGuardianName(patient.getGuardianName());
         extend.setGuardianCertificate(patient.getGuardianCertificate());

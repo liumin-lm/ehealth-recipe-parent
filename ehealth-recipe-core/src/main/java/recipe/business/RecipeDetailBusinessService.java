@@ -209,6 +209,9 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
     public ResultBean<String> validateRepeatRecipeDetail(ValidateDetailVO validateDetailVO) {
         ResultBean<String> resultBean = new ResultBean<>();
         resultBean.setBool(true);
+        List<String> organDrugCode = validateDetailVO.getRecipeDetails().stream().map(RecipeDetailBean::getOrganDrugCode).distinct().collect(Collectors.toList());
+        List<OrganDrugList> organDrugList = organDrugListManager.findOrganDrugCode(validateDetailVO.getOrganId(), organDrugCode);
+        //  organDrugList.stream().allMatch()
 
         List<Integer> recipeIds = recipeManager.findRecipeByClinicIdAndProcessState(validateDetailVO.getRecipeBean().getClinicId(), validateDetailVO.getRecipeBean().getRecipeId(), RecipeStatusEnum.RECIPE_REPEAT);
         List<Recipedetail> recipeDetails = recipeDetailManager.findRecipeDetails(recipeIds);

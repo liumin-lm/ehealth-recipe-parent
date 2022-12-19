@@ -567,7 +567,7 @@ public class RecipeManager extends BaseManager {
     }
 
     /**
-     * 根据复诊id获取处方明细，并排除 特定处方id
+     * 根据复诊id获取处方id，并排除 特定处方id
      *
      * @param clinicId 复诊id
      * @param recipeId 特定处方id
@@ -578,21 +578,16 @@ public class RecipeManager extends BaseManager {
         return findRecipeByClinicId(recipeList, recipeId);
     }
 
+    /**
+     * 根据复诊id与状态字段 获取处方id，并排除 特定处方id
+     *
+     * @param clinicId 复诊id
+     * @param recipeId 特定处方id
+     * @return 处方明细
+     */
     public List<Integer> findRecipeByClinicIdAndProcessState(Integer clinicId, Integer recipeId, List<Integer> processState) {
         List<Recipe> recipeList = recipeDAO.findRecipeClinicIdAndProcessState(clinicId, processState);
         return findRecipeByClinicId(recipeList, recipeId);
-    }
-
-    private List<Integer> findRecipeByClinicId(List<Recipe> recipeList, Integer recipeId) {
-        logger.info("RecipeManager findRecipeByClinicId recipeList:{},recipeId={}", JSON.toJSONString(recipeList), recipeId);
-        if (CollectionUtils.isEmpty(recipeList)) {
-            return null;
-        }
-        if (ValidateUtil.integerIsEmpty(recipeId)) {
-            return recipeList.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
-        } else {
-            return recipeList.stream().map(Recipe::getRecipeId).filter(id -> !id.equals(recipeId)).collect(Collectors.toList());
-        }
     }
 
 
@@ -1247,4 +1242,25 @@ public class RecipeManager extends BaseManager {
 
         return Joiner.on("|").join(hisOrderCode);
     }
+
+
+    /**
+     * 排除 特定处方id
+     *
+     * @param recipeList
+     * @param recipeId
+     * @return
+     */
+    private List<Integer> findRecipeByClinicId(List<Recipe> recipeList, Integer recipeId) {
+        logger.info("RecipeManager findRecipeByClinicId recipeList:{},recipeId={}", JSON.toJSONString(recipeList), recipeId);
+        if (CollectionUtils.isEmpty(recipeList)) {
+            return null;
+        }
+        if (ValidateUtil.integerIsEmpty(recipeId)) {
+            return recipeList.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
+        } else {
+            return recipeList.stream().map(Recipe::getRecipeId).filter(id -> !id.equals(recipeId)).collect(Collectors.toList());
+        }
+    }
+
 }

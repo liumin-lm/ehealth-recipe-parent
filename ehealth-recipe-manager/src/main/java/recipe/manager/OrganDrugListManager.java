@@ -177,6 +177,22 @@ public class OrganDrugListManager extends BaseManager {
     }
 
     /**
+     * 根据code获取机构药品
+     *
+     * @param organId       机构id
+     * @param organDrugCode 机构药品code
+     * @return 机构code = key对象
+     */
+    public List<OrganDrugList> findOrganDrugCode(int organId, List<String> organDrugCode) {
+        if (CollectionUtils.isEmpty(organDrugCode)) {
+            return Collections.emptyList();
+        }
+        List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugCodes(organId, organDrugCode);
+        logger.info("OrganDrugListManager getOrganDrugCode organDrugList= {}", JSON.toJSONString(organDrugList));
+        return organDrugList;
+    }
+
+    /**
      * 根据code获取机构药品 分组
      *
      * @param organId      机构id
