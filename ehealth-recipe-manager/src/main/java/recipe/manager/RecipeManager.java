@@ -575,17 +575,24 @@ public class RecipeManager extends BaseManager {
      */
     public List<Integer> findRecipeByClinicId(Integer clinicId, Integer recipeId, List<Integer> status) {
         List<Recipe> recipeList = recipeDAO.findRecipeClinicIdAndStatus(clinicId, status);
-        logger.info("RecipeManager findRecipeByClinicId recipeList:{}", JSON.toJSONString(recipeList));
+        return findRecipeByClinicId(recipeList, recipeId);
+    }
+
+    public List<Integer> findRecipeByClinicIdAndProcessState(Integer clinicId, Integer recipeId, List<Integer> processState) {
+        List<Recipe> recipeList = recipeDAO.findRecipeClinicIdAndProcessState(clinicId, processState);
+        return findRecipeByClinicId(recipeList, recipeId);
+    }
+
+    private List<Integer> findRecipeByClinicId(List<Recipe> recipeList, Integer recipeId) {
+        logger.info("RecipeManager findRecipeByClinicId recipeList:{},recipeId={}", JSON.toJSONString(recipeList), recipeId);
         if (CollectionUtils.isEmpty(recipeList)) {
             return null;
         }
-        List<Integer> recipeIds;
         if (ValidateUtil.integerIsEmpty(recipeId)) {
-            recipeIds = recipeList.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
+            return recipeList.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
         } else {
-            recipeIds = recipeList.stream().filter(a -> !a.getRecipeId().equals(recipeId)).map(Recipe::getRecipeId).collect(Collectors.toList());
+            return recipeList.stream().map(Recipe::getRecipeId).filter(id -> !id.equals(recipeId)).collect(Collectors.toList());
         }
-        return recipeIds;
     }
 
 

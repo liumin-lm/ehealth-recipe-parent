@@ -206,9 +206,20 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
     }
 
     @Override
+    public ResultBean<String> validateRepeatRecipeDetail(ValidateDetailVO validateDetailVO) {
+        ResultBean<String> resultBean = new ResultBean<>();
+        resultBean.setBool(true);
+
+        List<Integer> recipeIds = recipeManager.findRecipeByClinicIdAndProcessState(validateDetailVO.getRecipeBean().getClinicId(), validateDetailVO.getRecipeBean().getRecipeId(), RecipeStatusEnum.RECIPE_REPEAT);
+        List<Recipedetail> recipeDetails = recipeDetailManager.findRecipeDetails(recipeIds);
+
+        return resultBean;
+    }
+
+    @Override
     public RecipeSkipVO getRecipeSkipUrl(Integer organId, String recipeCode, Integer recipeType) {
-        logger.info("RecipeDetailBusinessService getRecipeSkipUrl organId={},recipeCode={},recipeType={}",organId,recipeCode,recipeType);
-        return ObjectCopyUtils.convert(recipeManager.getRecipeSkipUrl(organId,recipeCode,recipeType),RecipeSkipVO.class);
+        logger.info("RecipeDetailBusinessService getRecipeSkipUrl organId={},recipeCode={},recipeType={}", organId, recipeCode, recipeType);
+        return ObjectCopyUtils.convert(recipeManager.getRecipeSkipUrl(organId, recipeCode, recipeType), RecipeSkipVO.class);
     }
 
     @Override
