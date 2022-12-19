@@ -4696,16 +4696,17 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                                                               @DAOParam("endTime") Date endTime,
                                                               @DAOParam("organIds") List<Integer> organIds);
 
-    public List<Recipe> findDoctorRecipeList(Integer doctorId, Integer start, Integer limit){
+    public List<Recipe> findDoctorRecipeList(Integer doctorId,Integer organId, Integer start, Integer limit){
         HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder();
-                hql.append("from Recipe r where doctor=:doctorId and recipeSourceType = 4 ");
+                hql.append("from Recipe r where doctor=:doctorId and clinicOrgan=:organId and recipeSourceType = 4 ");
 
                 hql.append("order by createDate desc ");
                 Query query = ss.createQuery(hql.toString());
                 query.setParameter("doctorId", doctorId);
+                query.setParameter("organId", organId);
                 query.setFirstResult(start);
                 query.setMaxResults(limit);
 

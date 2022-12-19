@@ -1530,12 +1530,12 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     @Override
     public List<RecipeInfoVO> findDoctorRecipeList(DoctorRecipeListReqVO doctorRecipeListReqVO) {
         // 校验医生权限
-//        checkUserHasPermissionByDoctorId(doctorRecipeListReqVO.getDoctorId());
+        checkUserHasPermissionByDoctorId(doctorRecipeListReqVO.getDoctorId());
         // 这个版本只查询常用方
         if (!RecipeSourceTypeEnum.COMMON_RECIPE.getType().equals(doctorRecipeListReqVO.getRecipeType())) {
             return null;
         }
-        List<Recipe> recipeList = recipeDAO.findDoctorRecipeList(doctorRecipeListReqVO.getDoctorId(), doctorRecipeListReqVO.getStart(), doctorRecipeListReqVO.getLimit());
+        List<Recipe> recipeList = recipeDAO.findDoctorRecipeList(doctorRecipeListReqVO.getDoctorId(),doctorRecipeListReqVO.getOrganId(), doctorRecipeListReqVO.getStart(), doctorRecipeListReqVO.getLimit());
         if (CollectionUtils.isEmpty(recipeList)) {
             return null;
         }

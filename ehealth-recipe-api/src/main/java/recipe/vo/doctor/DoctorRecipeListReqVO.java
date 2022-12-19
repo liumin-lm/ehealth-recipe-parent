@@ -17,6 +17,9 @@ public class DoctorRecipeListReqVO implements Serializable {
     @ItemProperty(alias = "医生id")
     private Integer doctorId;
 
+    @ItemProperty(alias = "机构id")
+    private Integer organId;
+
     @ItemProperty(alias = "开始")
     private Integer start;
 
