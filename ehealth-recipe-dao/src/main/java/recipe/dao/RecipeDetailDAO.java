@@ -292,7 +292,8 @@ public abstract class RecipeDetailDAO extends
             @Override
             public void execute(StatelessSession ss) throws DAOException {
                 StringBuilder sql = new StringBuilder();
-                sql.append("select OrganDrugCode,sum(UseTotalDose) as UseTotalDose  from cdr_recipedetail where RecipeID  in (:recipeIds) group by OrganDrugCode");
+                sql.append("select OrganDrugCode,sum(UseTotalDose) as UseTotalDose  from cdr_recipedetail" +
+                        " where RecipeID in (:recipeIds) group by OrganDrugCode");
                 Query q = ss.createSQLQuery(sql.toString()).addEntity(Recipedetail.class);
                 q.setParameter("recipeIds", recipeIds);
                 List<Recipedetail> list = q.list();

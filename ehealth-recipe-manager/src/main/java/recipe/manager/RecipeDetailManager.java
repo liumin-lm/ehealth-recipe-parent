@@ -157,11 +157,23 @@ public class RecipeDetailManager extends BaseManager {
         return recipeDetails;
     }
 
+    public Map<String, Double> findRecipeDetailSumTotalDose(List<Integer> recipeIds) {
+        if (CollectionUtils.isEmpty(recipeIds)) {
+            return null;
+        }
+        List<Recipedetail> recipeDetails = recipeDetailDAO.findRecipeDetailSumTotalDose(recipeIds);
+        if (CollectionUtils.isEmpty(recipeDetails)) {
+            return null;
+        }
+        return recipeDetails.stream().collect(Collectors.toMap(Recipedetail::getOrganDrugCode, Recipedetail::getUseTotalDose));
+    }
+
     /**
      * 过滤保密处方，重新设置保密处方信息
+     *
      * @param recipePdfDTO
      */
-    public void filterSecrecyDrug(RecipeInfoDTO recipePdfDTO){
+    public void filterSecrecyDrug(RecipeInfoDTO recipePdfDTO) {
         logger.info("RecipeDetailManager filterSecrecyDrug begin recipePdfDTO:{}", JSON.toJSONString(recipePdfDTO));
         List<Recipedetail> recipeDetailList = recipePdfDTO.getRecipeDetails();
         List<Recipedetail> secrecyRecipeDetailList = recipeDetailList.stream().filter(recipeDetail -> DrugBelongTypeEnum.SECRECY_DRUG.getType().equals(recipeDetail.getType())).collect(Collectors.toList());

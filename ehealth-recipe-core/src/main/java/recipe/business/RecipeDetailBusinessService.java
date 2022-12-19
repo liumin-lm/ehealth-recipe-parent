@@ -210,6 +210,7 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
     public ResultBean<String> validateRepeatRecipeDetail(ValidateDetailVO validateDetailVO) {
         ResultBean<String> resultBean = new ResultBean<>();
         resultBean.setBool(true);
+        resultBean.setData("5");
         List<String> organDrugCode = validateDetailVO.getRecipeDetails().stream().map(RecipeDetailBean::getOrganDrugCode).distinct().collect(Collectors.toList());
         List<OrganDrugList> organDrugList = organDrugListManager.findOrganDrugCode(validateDetailVO.getRecipeBean().getClinicOrgan(), organDrugCode);
         List<OrganDrugList> drugList = organDrugList.stream().filter(a -> !ValidateUtil.integerIsEmpty(a.getMaximum())).collect(Collectors.toList());
@@ -220,8 +221,31 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
         if (CollectionUtils.isEmpty(recipeIds)) {
             return resultBean;
         }
-        List<Recipedetail> recipeDetails = recipeDetailManager.findRecipeDetails(recipeIds);
-
+        Map<String, Double> sumTotalMap = recipeDetailManager.findRecipeDetailSumTotalDose(recipeIds);
+        List<String> list = new ArrayList<>();
+        organDrugList.forEach(a -> {
+            if (ValidateUtil.integerIsEmpty(a.getMaximum())) {
+                return;
+            }
+            Double sum = sumTotalMap.get(a.getOrganDrugCode());
+            if (null == sum) {
+                return;
+            }
+            StringBuilder s = new StringBuilder();
+            s.append("【");
+            s.append(a.getDrugName()).append("】售药上限为");
+            s.append(a.getMaximum()).append("【");
+            s.append(a.getUnit()).append("】已开【");
+            s.append(sum).append("】【");
+            s.append(a.getUnit()).append("】，仅剩【");
+            s.append(a.getMaximum() - sum).append("】【");
+            s.append(a.getUnit()).append("】可开");
+            list.add(s.toString());
+        });
+        if (CollectionUtils.isNotEmpty(list)) {
+            resultBean.setMsgList(list);
+            resultBean.setBool(false);
+        }
         return resultBean;
     }
 
