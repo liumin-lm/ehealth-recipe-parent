@@ -106,6 +106,7 @@ public class PatientClient extends BaseClient {
         com.ngari.patient.dto.PatientDTO patient = patientService.get(mpiId);
         PatientDTO p = new PatientDTO();
         BeanUtils.copyProperties(patient, p);
+        logger.info("PatientClient getPatientDTO p={}", JSON.toJSONString(p));
         return p;
     }
 
@@ -472,8 +473,12 @@ public class PatientClient extends BaseClient {
         }
         PatientDTO patientDTO = this.getPatientDTO(recipe.getMpiid());
         recipe.setPatientName(patientDTO.getPatientName());
-        PatientDTO requestPatient = this.getPatientDTO(patientDTO.getLoginId());
-        if (null != requestPatient) {
+        List<com.ngari.patient.dto.PatientDTO> requestPatients = patientService.findOwnPatient(patientDTO.getLoginId());
+        if (CollectionUtils.isEmpty(requestPatients)) {
+            return;
+        }
+        com.ngari.patient.dto.PatientDTO requestPatient = requestPatients.get(0);
+        if (null == requestPatient) {
             return;
         }
         recipe.setRequestMpiId(requestPatient.getMpiId());
