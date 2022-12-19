@@ -13,8 +13,7 @@ import com.ngari.platform.recipe.mode.HospitalDrugListDTO;
 import com.ngari.platform.recipe.mode.HospitalDrugListReqDTO;
 import com.ngari.recipe.dto.DrugInfoDTO;
 import com.ngari.recipe.dto.PatientDrugWithEsDTO;
-import com.ngari.recipe.entity.DecoctionWay;
-import com.ngari.recipe.entity.DrugMakingMethod;
+import com.ngari.recipe.entity.*;
 import ctd.spring.AppDomainContext;
 import eh.entity.base.UsePathways;
 import eh.entity.base.UsingRate;
@@ -24,11 +23,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import recipe.constant.RecipeBussConstant;
 import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.util.ObjectCopyUtils;
 import recipe.util.RecipeUtil;
 import recipe.util.ValidateUtil;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -309,5 +311,85 @@ public class DrugClient extends BaseClient {
 
     public com.ngari.patient.dto.UsePathwaysDTO getUsePathwaysById(int usePathwaysId) {
         return ObjectCopyUtils.convert(usePathwaysService.getById(usePathwaysId), com.ngari.patient.dto.UsePathwaysDTO.class);
+    }
+
+
+    /**
+     * 设置处方默认数据-金额计算
+     *
+     * @param recipe 处方头对象
+     */
+    public Recipe updateRecipe(Recipe recipe, List<Recipedetail> recipeDetails, List<OrganDrugList> organDrugList) {
+        Recipe recipeUpdate = new Recipe();
+        recipeUpdate.setRecipeId(recipe.getRecipeId());
+        //外带处方， 同时也设置成只能配送处方
+        boolean takeMedicine = organDrugList.stream().allMatch(a -> Integer.valueOf(1).equals(a.getTakeMedicine()));
+        if (takeMedicine) {
+            recipeUpdate.setTakeMedicine(1);
+            recipeUpdate.setDistributionFlag(1);
+        }
+        //药品总金额
+        BigDecimal totalMoney = this.totalMoney(recipe.getRecipeType(), recipeDetails, recipe);
+        recipeUpdate.setTotalMoney(totalMoney);
+        recipeUpdate.setActualPrice(totalMoney);
+        return recipeUpdate;
+    }
+
+    /**
+     * 计算处方总金额
+     *
+     * @param recipeType 处方类型
+     * @param detailList 处方明细
+     * @param recipe     处方数据
+     * @return 处方总金额
+     */
+    public BigDecimal totalMoney(Integer recipeType, List<Recipedetail> detailList, Recipe recipe) {
+        BigDecimal totalMoney = new BigDecimal(0d);
+        if (org.apache.commons.collections.CollectionUtils.isEmpty(detailList)) {
+            return totalMoney;
+        }
+        for (Recipedetail detail : detailList) {
+            BigDecimal price = detail.getSalePrice();
+            BigDecimal drugCost;
+            if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipeType)) {
+                detail.setUseTotalDose(BigDecimal.valueOf(recipe.getCopyNum()).multiply(BigDecimal.valueOf(detail.getUseDose())).doubleValue());
+                //保留3位小数
+                drugCost = price.multiply(BigDecimal.valueOf(detail.getUseTotalDose())).divide(BigDecimal.valueOf(detail.getPack()), 4, RoundingMode.HALF_UP).setScale(4, RoundingMode.HALF_UP);
+            } else {
+                //保留3位小数
+                drugCost = price.multiply(BigDecimal.valueOf(detail.getUseTotalDose())).setScale(4, RoundingMode.HALF_UP);
+            }
+            detail.setDrugCost(drugCost);
+            totalMoney = totalMoney.add(drugCost);
+        }
+        return totalMoney.setScale(2, RoundingMode.HALF_UP);
+    }
+
+    /**
+     * 设置处方药品默认数据
+     *
+     * @param detail
+     * @param usePathwaysMap
+     * @param usingRateMap
+     */
+    public void setRecipeDetail(Recipedetail detail, Map<Integer, UsePathways> usePathwaysMap, Map<Integer, UsingRate> usingRateMap) {
+        //频次处理
+        if (StringUtils.isNotEmpty(detail.getUsingRateId()) && !usingRateMap.isEmpty()) {
+            UsingRate usingRate = usingRateMap.get(Integer.valueOf(detail.getUsingRateId()));
+            if (usingRate != null) {
+                detail.setUsingRateTextFromHis(usingRate.getText());
+                detail.setOrganUsingRate(usingRate.getUsingRateKey());
+                detail.setUsingRate(usingRate.getRelatedPlatformKey());
+            }
+        }
+        //用法处理
+        if (StringUtils.isNotEmpty(detail.getUsePathwaysId()) && !usePathwaysMap.isEmpty()) {
+            UsePathways usePathways = usePathwaysMap.get(Integer.valueOf(detail.getUsePathwaysId()));
+            if (usePathways != null) {
+                detail.setUsePathwaysTextFromHis(usePathways.getText());
+                detail.setOrganUsePathways(usePathways.getPathwaysKey());
+                detail.setUsePathways(usePathways.getRelatedPlatformKey());
+            }
+        }
     }
 }

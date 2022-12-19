@@ -11,6 +11,8 @@ import recipe.atop.BaseAtop;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.core.api.patient.IRecipeOrderBusinessService;
 import recipe.vo.PageGenericsVO;
+import recipe.vo.doctor.DoctorRecipeListReqVO;
+import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.greenroom.RecipeRefundInfoReqVO;
 
 import java.util.Collections;
@@ -54,6 +56,18 @@ public class FindRecipeDoctorAtop extends BaseAtop {
         }
         result.setDataList(recipeRefundInfo);
         return result;
+    }
+
+    /**
+     * 医生端获取列表接口
+     * @param doctorRecipeListReqVO
+     * @return
+     */
+    @RpcService
+    public List<RecipeInfoVO> findDoctorRecipeList(DoctorRecipeListReqVO doctorRecipeListReqVO) {
+        validateAtop(doctorRecipeListReqVO,doctorRecipeListReqVO.getDoctorId(),doctorRecipeListReqVO.getStart(),doctorRecipeListReqVO.getLimit()
+                ,doctorRecipeListReqVO.getRecipeType(),doctorRecipeListReqVO.getOrganId());
+        return recipeBusinessService.findDoctorRecipeList(doctorRecipeListReqVO);
     }
 
 }

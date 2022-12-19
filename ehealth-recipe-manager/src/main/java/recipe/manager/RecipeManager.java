@@ -33,6 +33,7 @@ import org.springframework.stereotype.Service;
 import recipe.client.DocIndexClient;
 import recipe.client.RecipeAuditClient;
 import recipe.client.RecipeHisClient;
+import recipe.client.factory.recipedate.RecipeDataSaveFactory;
 import recipe.common.CommonConstant;
 import recipe.common.UrlConfig;
 import recipe.constant.RecipeBussConstant;
@@ -80,6 +81,9 @@ public class RecipeManager extends BaseManager {
     private RequirementsForTakingDao requirementsForTakingDao;
     @Autowired
     private RecipeHisClient recipeHisClient;
+    @Autowired
+    private RecipeDataSaveFactory recipeDataSaveFactory;
+
 
     /**
      * 保存处方信息
@@ -99,7 +103,35 @@ public class RecipeManager extends BaseManager {
     }
 
     /**
+     * 保存处方信息
+     * 设置处方默认数据
+     *
+     * @param recipe 前端传入的处方对象
+     */
+    public Recipe saveStagingRecipe(Recipe recipe) {
+        if (null == recipe) {
+            throw new DAOException("recipe不能为空");
+        }
+        recipeDataSaveFactory.setRecipeList(recipe);
+        return this.saveRecipe(recipe);
+    }
+
+    /**
      * 保存处方扩展信息
+     *
+     * @param extend 扩展信息
+     * @param recipe 处方信息
+     */
+    public void saveStagingRecipeExt(RecipeExtend extend, Recipe recipe) {
+        if (null == extend) {
+            return;
+        }
+        recipeDataSaveFactory.setRecipeExtList(recipe, extend);
+        this.saveRecipeExtend(extend, recipe.getRecipeId());
+    }
+
+    /**
+     * 保存处方扩展信息 诊疗处方
      *
      * @param recipeExtend 处方扩展信息
      * @param recipe       处方信息
@@ -110,8 +142,13 @@ public class RecipeManager extends BaseManager {
             RevisitExDTO revisitExDTO = revisitClient.getByClinicId(recipe.getClinicId());
             recipeExtend.setCardNo(revisitExDTO.getCardId());
         }
+        return this.saveRecipeExtend(recipeExtend, recipe.getRecipeId());
+    }
+
+
+    private RecipeExtend saveRecipeExtend(RecipeExtend recipeExtend, Integer recipeId) {
         if (ValidateUtil.integerIsEmpty(recipeExtend.getRecipeId())) {
-            recipeExtend.setRecipeId(recipe.getRecipeId());
+            recipeExtend.setRecipeId(recipeId);
             recipeExtend = recipeExtendDAO.save(recipeExtend);
         } else {
             recipeExtend = recipeExtendDAO.update(recipeExtend);
@@ -1148,6 +1185,7 @@ public class RecipeManager extends BaseManager {
         }
         return new ArrayList<>();
     }
+
 
     /**
      * 获取医保id

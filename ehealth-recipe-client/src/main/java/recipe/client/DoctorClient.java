@@ -36,6 +36,16 @@ public class DoctorClient extends BaseClient {
     private EmploymentService iEmploymentService;
 
     /**
+     * 类加载排序
+     *
+     * @return
+     */
+    @Override
+    public Integer getSort() {
+        return 4;
+    }
+
+    /**
      * 获取平台药师信息 无选择发药药师 则获取默认发药药师
      *
      * @param recipe 处方
@@ -221,5 +231,19 @@ public class DoctorClient extends BaseClient {
         logger.info("DoctorClient findByDoctorIds doctorList : {}", doctorList.size());
         return Optional.ofNullable(doctorList).orElseGet(Collections::emptyList)
                 .stream().collect(Collectors.toMap(DoctorDTO::getDoctorId, a -> a, (k1, k2) -> k1));
+    }
+
+    /**
+     * 设置处方默认数据
+     *
+     * @param recipe 处方头对象
+     */
+    @Override
+    public void setRecipe(Recipe recipe) {
+        if (ValidateUtil.integerIsEmpty(recipe.getDoctor())) {
+            return;
+        }
+        DoctorDTO doctor = this.getDoctor(recipe.getDoctor());
+        recipe.setDoctorName(doctor.getName());
     }
 }

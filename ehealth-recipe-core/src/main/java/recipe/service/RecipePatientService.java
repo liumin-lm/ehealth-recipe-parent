@@ -877,11 +877,8 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         //保存处方明细
         if (CollectionUtils.isNotEmpty(recipeInfoVO.getRecipeDetails())) {
             List<Recipedetail> details = ObjectCopyUtils.convert(recipeInfoVO.getRecipeDetails(), Recipedetail.class);
-            List<Integer> drugIds = details.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
-            Map<String, OrganDrugList> organDrugListMap = organDrugListManager.getOrganDrugByIdAndCode(recipe.getClinicOrgan(), drugIds);
-            recipeDetailManager.saveRecipeDetails(recipe, details, organDrugListMap);
+            recipeDetailManager.saveRecipeDetails(details, recipe);
         }
-        recipe = recipeManager.saveRecipe(recipe);
         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), RecipeStatusEnum.RECIPE_STATUS_UNSIGNED.getType(), RecipeStatusEnum.RECIPE_STATUS_READY_CHECK_YS.getType(), "处方保存成功，等待药师审核");
         //保存审方信息
         recipeManager.saveRecipeCheck(recipe);
@@ -896,7 +893,6 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
             recipeManager.saveRecipe(recipe);
             stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_WRITE_HIS_NOT_ORDER);
         }
-        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType(), RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType(), "处方写入HIS成功");
         try {
             //设置处方的失效时间
             RecipeService.handleRecipeInvalidTime(recipe.getClinicOrgan(), recipe.getRecipeId(), recipe.getSignDate());

@@ -19,6 +19,7 @@ import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.SignEnum;
 import recipe.vo.PageGenericsVO;
+import recipe.vo.doctor.DoctorRecipeListReqVO;
 import recipe.vo.doctor.PatientOptionalDrugVO;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.greenroom.DrugUsageLabelResp;
@@ -451,4 +452,20 @@ public interface IRecipeBusinessService {
      * @return
      */
     List<RecipeBean> findAuditOverTimeRecipeList(Date startTime, Date endTime, List<Integer> organIds);
+
+    Recipe getRecipe(Integer recipeId);
+
+    /**
+     * 暂存处方接口
+     *
+     * @param recipeInfoVO
+     */
+    Integer stagingRecipe(RecipeInfoVO recipeInfoVO);
+
+    /**
+     * 医生端获取列表接口
+     * @param doctorRecipeListReqVO
+     * @return
+     */
+    List<RecipeInfoVO> findDoctorRecipeList(DoctorRecipeListReqVO doctorRecipeListReqVO);
 }

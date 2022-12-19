@@ -14,8 +14,10 @@ import com.ngari.recipe.dto.WriteDrugRecipeBean;
 import com.ngari.recipe.dto.WriteDrugRecipeDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
+import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.common.model.RevisitBussNoticeDTO;
 import com.ngari.revisit.common.model.RevisitExDTO;
+import com.ngari.revisit.common.service.IRevisitService;
 import ctd.dictionary.DictionaryController;
 import ctd.net.broadcast.MQHelper;
 import ctd.util.JSONUtils;
@@ -27,6 +29,8 @@ import recipe.client.PatientClient;
 import recipe.client.RevisitClient;
 import recipe.common.OnsConfig;
 import recipe.constant.RecipeSystemConstant;
+import recipe.enumerate.type.BussSourceTypeEnum;
+import recipe.enumerate.type.WriteRecipeConditionTypeEnum;
 import recipe.util.ObjectCopyUtils;
 import recipe.util.ValidateUtil;
 
@@ -278,6 +282,26 @@ public class RevisitManager extends BaseManager {
             logger.info("remindDrugForRevisit revisitBussNoticeDTO:{}", JSON.toJSONString(revisitBussNoticeDTO));
             revisitClient.remindDrugRevisit(revisitBussNoticeDTO);
         });
+    }
+
+    /**
+     * 复诊结束后医生不能开出处方规则优化
+     * @param clinicOrgan
+     * @param bussSource
+     * @param clinicId
+     * @return
+     */
+    public boolean openRecipeOptimize(Integer clinicOrgan,Integer bussSource,Integer clinicId) {
+        //开具处方时复诊状态判断配置
+        String isUnderwayRevisit = configurationClient.getValueEnumCatch(clinicOrgan, "isUnderwayRevisit", WriteRecipeConditionTypeEnum.NO_CONDITION.getType());
+        if (WriteRecipeConditionTypeEnum.NO_CONDITION.getType().equals(isUnderwayRevisit)) {
+            return true;
+        }
+        if (BussSourceTypeEnum.BUSSSOURCE_REVISIT.getType().equals(bussSource) && null != clinicId) {
+            IRevisitService revisitService = RevisitAPI.getService(IRevisitService.class);
+            return revisitService.findValidRevisitByMpiIdAndDoctorIdEffectiveExtension(clinicOrgan, clinicId);
+        }
+        return true;
     }
 
 }

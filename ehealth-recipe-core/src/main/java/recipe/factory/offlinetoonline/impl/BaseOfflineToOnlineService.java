@@ -791,11 +791,11 @@ public class BaseOfflineToOnlineService {
         List<String> drugCodeList = hisRecipeDetails.stream().filter(hisRecipeDetail -> StringUtils.isNotEmpty(hisRecipeDetail.getDrugCode())).map(HisRecipeDetail::getDrugCode).collect(Collectors.toList());
         List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugCodes(hisRecipe.getClinicOrgan(), drugCodeList);
         Integer recipeDrugFormType = hisRecipeManager.validateDrugForm(organDrugList, hisRecipe.getRecipeType());
-        if (Objects.nonNull(recipeDrugFormType) && recipeDrugFormType == -1) {
-            LOGGER.info("中药处方中的药品剂型不一致:{}", hisRecipe.getRecipeCode());
-            hisRecipeManager.deleteSetRecipeCode(hisRecipe.getClinicOrgan(), recipeCodes);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "中药处方中的药品剂型不一致");
-        }
+//        if (Objects.nonNull(recipeDrugFormType) && recipeDrugFormType == -1) {
+//            LOGGER.info("中药处方中的药品剂型不一致:{}", hisRecipe.getRecipeCode());
+//            hisRecipeManager.deleteSetRecipeCode(hisRecipe.getClinicOrgan(), recipeCodes);
+//            throw new DAOException(ErrorCode.SERVICE_ERROR, "中药处方中的药品剂型不一致");
+//        }
         Map<String, List<OrganDrugList>> organDrugListMap = organDrugList.stream().collect(Collectors.groupingBy(OrganDrugList::getOrganDrugCode));
         Integer targetedDrugType = 0;
         for (HisRecipeDetail hisRecipeDetail : hisRecipeDetails) {

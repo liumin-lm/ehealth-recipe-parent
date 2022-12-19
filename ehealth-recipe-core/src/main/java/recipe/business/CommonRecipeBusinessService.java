@@ -75,7 +75,6 @@ public class CommonRecipeBusinessService extends BaseService implements ICommonR
         }
     }
 
-    @Override
     public void refreshCommonValidateStatus(List<CommonRecipeDrugDTO> drugList) {
         List<CommonRecipeDrug> commonDrugList = ObjectCopyUtils.convert(drugList, CommonRecipeDrug.class);
         commonRecipeManager.refreshCommonValidateStatus(commonDrugList);
@@ -92,7 +91,6 @@ public class CommonRecipeBusinessService extends BaseService implements ICommonR
         commonRecipeManager.removeCommonRecipe(commonRecipeId);
     }
 
-    @Override
     public List<CommonRecipe> commonRecipeListV2(Integer organId, Integer doctorId, List<Integer> recipeType, int start, int limit) {
         List<CommonRecipe> list = commonRecipeManager.commonRecipeList(organId, doctorId, recipeType, start, limit);
         if (CollectionUtils.isEmpty(list)) {

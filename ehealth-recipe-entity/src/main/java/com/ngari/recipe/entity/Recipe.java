@@ -270,7 +270,7 @@ public class Recipe implements Serializable {
     @ItemProperty(alias = "审核途径 1平台审核 2his审核")
     private Integer checkMode;
 
-    @ItemProperty(alias = "处方来源类型 1 平台处方 2 线下转线上的处方 3诊疗处方")
+    @ItemProperty(alias = "处方来源类型 1 平台处方 2 线下转线上的处方 3诊疗处方 4常用方")
     private Integer recipeSourceType;
 
 
@@ -335,7 +335,7 @@ public class Recipe implements Serializable {
     @Dictionary(id = "eh.cdr.dictionary.FastRecipeFlag")
     private Integer fastRecipeFlag;
 
-    @ItemProperty(alias = "线下处方名称")
+    @ItemProperty(alias = "线下处方/常用方/协定方名称")
     private String offlineRecipeName;
 
     @ItemProperty(alias = "0：默认(未写入)，1：写入中，2：写入失败，3：写入成功")

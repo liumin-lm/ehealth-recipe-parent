@@ -8,6 +8,8 @@ import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.scratchable.model.ScratchableBean;
 import com.ngari.base.scratchable.service.IScratchableService;
 import com.ngari.patient.service.OrganConfigService;
+import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeExtend;
 import ctd.account.Client;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
@@ -16,6 +18,8 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import recipe.constant.ErrorCode;
+import recipe.constant.RecipeBussConstant;
+import recipe.constant.ReviewTypeConstant;
 import recipe.util.ByteUtils;
 import recipe.util.RecipeUtil;
 
@@ -36,6 +40,16 @@ public class IConfigurationClient extends BaseClient {
     private OrganConfigService organConfigService;
     @Resource
     private IHisConfigService hisConfigService;
+
+    /**
+     * 类加载排序
+     *
+     * @return
+     */
+    @Override
+    public Integer getSort() {
+        return 8;
+    }
 
     /**
      * 获取终端id
@@ -383,25 +397,6 @@ public class IConfigurationClient extends BaseClient {
     }
 
     /**
-     * 获取限制开药天数
-     *
-     * @param organId
-     * @return
-     */
-    private String[] useDaysRange(Integer organId) {
-        Object isLimitUseDays = configService.getConfiguration(organId, "isLimitUseDays");
-        if (null == isLimitUseDays || !(boolean) isLimitUseDays) {
-            return new String[]{"1", "999"};
-        }
-        Object useDaysRange = configService.getConfiguration(organId, "useDaysRange");
-        if (null == useDaysRange) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "useDaysRange is null");
-        }
-        return useDaysRange.toString().split(ByteUtils.COMMA);
-
-    }
-
-    /**
      * 获取机构的购药方式
      *
      * @param organId 机构ID
@@ -444,13 +439,81 @@ public class IConfigurationClient extends BaseClient {
      */
     public String getOfflineRecipeQueryConfig(Integer organId) {
         //费用对照项目代码配置 龙华在用
-        String decoctionFeeCompareCode=getValueCatch(organId,"decoctionFeeCompareCode","");
-        String tcmFeeCompareCode=getValueCatch(organId,"tcmFeeCompareCode","");
-        String otherTotalFeeCompareCode=getValueCatch(organId,"otherTotalFeeCompareCode","");
-        Map<String,Object> jsonConfigMap=new HashMap<>();
-        jsonConfigMap.put("decoctionFeeCompareCode",decoctionFeeCompareCode);
-        jsonConfigMap.put("tcmFeeCompareCode",tcmFeeCompareCode);
-        jsonConfigMap.put("otherTotalFeeCompareCode",otherTotalFeeCompareCode);
+        String decoctionFeeCompareCode = getValueCatch(organId, "decoctionFeeCompareCode", "");
+        String tcmFeeCompareCode = getValueCatch(organId, "tcmFeeCompareCode", "");
+        String otherTotalFeeCompareCode = getValueCatch(organId, "otherTotalFeeCompareCode", "");
+        Map<String, Object> jsonConfigMap = new HashMap<>();
+        jsonConfigMap.put("decoctionFeeCompareCode", decoctionFeeCompareCode);
+        jsonConfigMap.put("tcmFeeCompareCode", tcmFeeCompareCode);
+        jsonConfigMap.put("otherTotalFeeCompareCode", otherTotalFeeCompareCode);
         return JSONUtils.toString(jsonConfigMap);
     }
+
+    /**
+     * 设置处方默认数据
+     *
+     * @param recipe 处方头对象
+     */
+    @Override
+    public void setRecipe(Recipe recipe) {
+        Boolean isDefaultGiveModeToHos = this.getValueBooleanCatch(recipe.getClinicOrgan(), "isDefaultGiveModeToHos", false);
+        if (isDefaultGiveModeToHos && null == recipe.getGiveMode()) {
+            //默认到院取药
+            recipe.setGiveMode(RecipeBussConstant.GIVEMODE_TO_HOS);
+        }
+        if (null == recipe.getReviewType()) {
+            //互联网模式默认为审方前置
+            if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())) {
+                recipe.setReviewType(ReviewTypeConstant.Preposition_Check);
+            } else {
+                //设置运营平台设置的审方模式-互联网设置了默认值，平台没有设置默认值从运营平台取
+                Integer reviewType = this.getValueCatchReturnInteger(recipe.getClinicOrgan(), "reviewType", ReviewTypeConstant.Postposition_Check);
+                recipe.setReviewType(reviewType);
+            }
+        }
+        //设置运营平台设置的审方途径
+        if (null == recipe.getCheckMode()) {
+            Integer checkMode = this.getValueCatchReturnInteger(recipe.getClinicOrgan(), "isOpenHisCheckRecipeFlag", 1);
+            recipe.setCheckMode(checkMode);
+        }
+        //设置接方模式
+        boolean supportMode = this.getValueBooleanCatch(recipe.getClinicOrgan(), "supportReciveRecipe", false);
+        if (supportMode) {
+            recipe.setSupportMode(1);
+        } else {
+            recipe.setSupportMode(2);
+        }
+    }
+
+
+    /**
+     * 设置处方默认数据
+     *
+     * @param recipe 处方头对象
+     */
+    @Override
+    public void setRecipeExt(Recipe recipe, RecipeExtend extend) {
+        Integer recipeChooseChronicDisease = this.getValueCatchReturnInteger(recipe.getClinicOrgan(), "recipeChooseChronicDisease", 1);
+        extend.setRecipeChooseChronicDisease(null == extend.getRecipeChooseChronicDisease() ? recipeChooseChronicDisease : extend.getRecipeChooseChronicDisease());
+    }
+
+    /**
+     * 获取限制开药天数
+     *
+     * @param organId
+     * @return
+     */
+    private String[] useDaysRange(Integer organId) {
+        Object isLimitUseDays = configService.getConfiguration(organId, "isLimitUseDays");
+        if (null == isLimitUseDays || !(boolean) isLimitUseDays) {
+            return new String[]{"1", "999"};
+        }
+        Object useDaysRange = configService.getConfiguration(organId, "useDaysRange");
+        if (null == useDaysRange) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "useDaysRange is null");
+        }
+        return useDaysRange.toString().split(ByteUtils.COMMA);
+    }
+
+
 }
