@@ -110,6 +110,14 @@ public class PatientClient extends BaseClient {
         return p;
     }
 
+    public com.ngari.patient.dto.PatientDTO getPatient(String mpiId) {
+        if (StringUtils.isEmpty(mpiId)) {
+            return null;
+        }
+        return patientService.get(mpiId);
+    }
+
+
     /**
      * 医保授权
      *
