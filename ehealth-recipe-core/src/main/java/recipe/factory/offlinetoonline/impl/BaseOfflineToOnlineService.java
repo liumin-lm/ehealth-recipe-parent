@@ -593,7 +593,7 @@ public class BaseOfflineToOnlineService {
                 RecipeServiceEsignExt.updateInitRecipePDF(true, recipe, doctorRequestSealTO.getPdfBase64Str());
                 //药师
                 CaSealRequestTO checkerRequestSealTO = createPdfFactory.queryPdfByte(recipe.getRecipeId(),false);
-                RecipeServiceEsignExt.updateInitRecipePDF(true, recipe, checkerRequestSealTO.getPdfBase64Str());
+                RecipeServiceEsignExt.updateInitRecipePDF(false, recipe, checkerRequestSealTO.getPdfBase64Str());
             }catch (Exception e){
                 LOGGER.error("BaseOfflineToOnlineService 线上转线上生成处方笺失败", e);
             }
