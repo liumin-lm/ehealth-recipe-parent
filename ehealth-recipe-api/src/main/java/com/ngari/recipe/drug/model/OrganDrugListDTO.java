@@ -86,6 +86,8 @@ public class OrganDrugListDTO implements java.io.Serializable {
     private String medicalDrugCode;
     @ItemProperty(alias = "HIS剂型编码")
     private String drugFormCode;
+    @ItemProperty(alias = "his剂型名称")
+    private String hisDrugForm;
     @ItemProperty(alias = "医保剂型编码")
     private String medicalDrugFormCode;
 
@@ -214,6 +216,14 @@ public class OrganDrugListDTO implements java.io.Serializable {
 //    @ItemProperty(alias = "是否冷链运输 0 否 1 是")
 //    private Integer coldChainTransportationFlag;
 
+
+    public String getHisDrugForm() {
+        return hisDrugForm;
+    }
+
+    public void setHisDrugForm(String hisDrugForm) {
+        this.hisDrugForm = hisDrugForm;
+    }
 
     public String getTcmNationalStandardCode() {
         return tcmNationalStandardCode;

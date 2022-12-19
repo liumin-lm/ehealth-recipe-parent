@@ -441,6 +441,14 @@ public class DrugToolService implements IDrugToolService {
                     LOGGER.error("药品剂型有误 ," + e.getMessage(), e);
                     errMsg.append("药品剂型有误").append(";");
                 }
+//                try {
+//                    if (!StringUtils.isEmpty(getStrFromCell(row.getCell(10)))) {
+//                        drug.setHisDrugForm(getStrFromCell(row.getCell(10)));
+//                    }
+//                } catch (Exception e) {
+//                    LOGGER.error("药品剂型有误 ," + e.getMessage(), e);
+//                    errMsg.append("药品剂型有误").append(";");
+//                }
                 try {
                     if (StringUtils.isEmpty(getStrFromCell(row.getCell(11)))) {
                         errMsg.append("【药品规格/单位】未填写").append(";");
@@ -1360,6 +1368,7 @@ public class DrugToolService implements IDrugToolService {
                         organDrugList.setDrugSpec(drugListMatch.getDrugSpec());
                         organDrugList.setRetrievalCode(drugListMatch.getRetrievalCode());
                         organDrugList.setDrugForm(drugListMatch.getDrugForm());
+                        organDrugList.setHisDrugForm(drugListMatch.getDrugForm());
                         organDrugList.setBaseDrug(drugListMatch.getBaseDrug());
                         organDrugList.setRegulationDrugCode(drugListMatch.getRegulationDrugCode());
                         organDrugList.setLicenseNumber(drugListMatch.getLicenseNumber());
@@ -1591,6 +1600,7 @@ public class DrugToolService implements IDrugToolService {
                         organDrugList.setDrugSpec(drugListMatch.getDrugSpec());
                         organDrugList.setRetrievalCode(drugListMatch.getRetrievalCode());
                         organDrugList.setDrugForm(drugListMatch.getDrugForm());
+                        organDrugList.setHisDrugForm(drugListMatch.getDrugForm());
                         organDrugList.setChemicalName(drugListMatch.getChemicalName());
                         organDrugList.setBaseDrug(drugListMatch.getBaseDrug());
                         if (ObjectUtils.isEmpty(drugListMatch.getRegulationDrugCode())) {
