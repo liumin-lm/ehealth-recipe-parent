@@ -118,9 +118,8 @@ public class RecipeDetailManager extends BaseManager {
         List<String> organDrugCodes = recipeDetails.stream().map(Recipedetail::getOrganDrugCode).distinct().collect(Collectors.toList());
         List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugCodes(organId, organDrugCodes);
         logger.info("RecipeDetailManager saveRecipeDetails organDrugList = {}", JSON.toJSONString(organDrugList));
-        if (CollectionUtils.isNotEmpty(organDrugList)) {
-            logger.info("RecipeDetailManager saveRecipeDetails is null");
-            return;
+        if (CollectionUtils.isEmpty(organDrugList)) {
+            organDrugList = new LinkedList<>();
         }
         Map<String, OrganDrugList> organDrugListMap = organDrugList.stream().collect(Collectors.toMap(k -> k.getOrganDrugCode() + k.getDrugId(), a -> a, (k1, k2) -> k1));
         //用药途径 用药频次
