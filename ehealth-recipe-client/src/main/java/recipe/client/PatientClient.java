@@ -469,6 +469,7 @@ public class PatientClient extends BaseClient {
     @Override
     public void setRecipe(Recipe recipe) {
         if (StringUtils.isEmpty(recipe.getMpiid())) {
+            recipe.setMpiid("");
             return;
         }
         PatientDTO patientDTO = this.getPatientDTO(recipe.getMpiid());

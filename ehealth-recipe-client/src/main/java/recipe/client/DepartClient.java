@@ -150,6 +150,9 @@ public class DepartClient extends BaseClient {
         if (BussSourceTypeEnum.BUSSSOURCE_OUTPATIENT.getType().equals(recipe.getBussSource())) {
             return;
         }
+        if (ValidateUtil.integerIsEmpty(recipe.getDepart())) {
+            return;
+        }
         AppointDepartDTO appointDepart = this.getAppointDepartDTO(recipe.getClinicId(), recipe.getClinicOrgan(), recipe.getDepart());
         if (null == appointDepart) {
             return;
