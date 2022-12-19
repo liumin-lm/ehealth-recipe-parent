@@ -3,6 +3,7 @@ package recipe.client;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import ctd.persistence.exception.DAOException;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import recipe.constant.PayConstant;
 import recipe.constant.RecipeBussConstant;
@@ -111,6 +112,7 @@ public class DefaultValueClient extends BaseClient {
         String medicalTypeText = MedicalTypeEnum.getOldMedicalTypeText(extend.getPatientType());
         extend.setMedicalTypeText(null != medicalTypeText ? medicalTypeText : extend.getMedicalTypeText());
         extend.setRecipeBusinessType(RecipeBusinessTypeEnum.getRecipeBusinessType(recipe.getBussSource()));
+        extend.setTerminalType(StringUtils.isNotEmpty(extend.getTerminalId()) ? 1 : null);
     }
 
 }

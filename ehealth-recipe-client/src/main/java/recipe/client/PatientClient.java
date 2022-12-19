@@ -498,11 +498,7 @@ public class PatientClient extends BaseClient {
         extend.setGuardianName(patient.getGuardianName());
         extend.setGuardianCertificate(patient.getGuardianCertificate());
         extend.setGuardianMobile(patient.getMobile());
-        if (ValidateUtil.integerIsEmpty(patient.getPatientUserType())) {
-            extend.setRecipeFlag(0);
-        } else {
-            extend.setRecipeFlag(1);
-        }
+        extend.setRecipeFlag(ValidateUtil.integerIsEmpty(patient.getPatientUserType()) ? 0 : 1);
     }
 
     /**

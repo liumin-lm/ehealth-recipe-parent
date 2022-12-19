@@ -306,7 +306,7 @@ public class RevisitClient extends BaseClient {
             }
             return;
         }
-
+        
         RevisitExDTO revisitExDTO = this.getByClinicId(recipe.getClinicId());
         if (null != revisitExDTO) {
             extend.setCardNo(revisitExDTO.getCardId());
@@ -318,7 +318,6 @@ public class RevisitClient extends BaseClient {
             extend.setIllnessName(revisitExDTO.getDbTypeName());
             extend.setTerminalId(revisitExDTO.getSelfServiceMachineNo());
             extend.setCardNo(StringUtils.isNotEmpty(revisitExDTO.getCardId()) ? revisitExDTO.getCardId() : extend.getCardNo());
-            extend.setTerminalType(StringUtils.isNotEmpty(extend.getTerminalId()) ? 1 : extend.getTerminalType());
             //从复诊获取病种编码和名称
             if (Integer.valueOf(6).equals(extend.getRecipeChooseChronicDisease()) && "4".equals(revisitExDTO.getInsureTypeCode())) {
                 extend.setChronicDiseaseCode(revisitExDTO.getMtTypeCode());
