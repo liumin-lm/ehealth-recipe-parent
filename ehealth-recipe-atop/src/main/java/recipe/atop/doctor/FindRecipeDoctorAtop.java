@@ -66,7 +66,7 @@ public class FindRecipeDoctorAtop extends BaseAtop {
     @RpcService
     public List<RecipeInfoVO> findDoctorRecipeList(DoctorRecipeListReqVO doctorRecipeListReqVO) {
         validateAtop(doctorRecipeListReqVO,doctorRecipeListReqVO.getDoctorId(),doctorRecipeListReqVO.getStart(),doctorRecipeListReqVO.getLimit()
-                ,doctorRecipeListReqVO.getRecipeType(),doctorRecipeListReqVO.getTabStatus());
+                ,doctorRecipeListReqVO.getRecipeType(),doctorRecipeListReqVO.getOrganId());
         return recipeBusinessService.findDoctorRecipeList(doctorRecipeListReqVO);
     }
 
