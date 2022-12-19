@@ -153,6 +153,9 @@ public class FastRecipe {
     @ItemProperty(alias = "配送药企名称")
     private String deliveryName;
 
+    @ItemProperty(alias = "处方指定药企类型: 1医院, 2药企, 默认0")
+    private Integer appointEnterpriseType;
+
     @Id
     @GeneratedValue(strategy = IDENTITY)
     @Column(name = "id", unique = true, nullable = false)
@@ -548,5 +551,14 @@ public class FastRecipe {
 
     public void setDeliveryName(String deliveryName) {
         this.deliveryName = deliveryName;
+    }
+
+    @Column(name = "appoint_enterprise_type")
+    public Integer getAppointEnterpriseType() {
+        return appointEnterpriseType;
+    }
+
+    public void setAppointEnterpriseType(Integer appointEnterpriseType) {
+        this.appointEnterpriseType = appointEnterpriseType;
     }
 }
