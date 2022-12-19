@@ -148,6 +148,8 @@ public class OrganDrugList implements java.io.Serializable {
     private String medicalDrugCode;
     @ItemProperty(alias = "his剂型代码")
     private String drugFormCode;
+    @ItemProperty(alias = "his剂型名称")
+    private String hisDrugForm;
     @ItemProperty(alias = "医保剂型编码")
     private String medicalDrugFormCode;
 
@@ -214,9 +216,6 @@ public class OrganDrugList implements java.io.Serializable {
 
     @ItemProperty(alias = "是否特殊使用级抗生素药物  0否  1是 ")
     private Integer specialUseAntibioticDrugFlag;
-
-    @ItemProperty(alias = "his剂型名称")
-    private String hisDrugForm;
 
     @ItemProperty(alias = "国家医保代码")
     private String nationalMedicalCode;
