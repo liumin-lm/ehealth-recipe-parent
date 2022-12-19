@@ -21,6 +21,7 @@ import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.manager.*;
 import recipe.util.MapValueUtil;
 import recipe.util.ObjectCopyUtils;
+import recipe.util.ValidateUtil;
 import recipe.vo.ResultBean;
 import recipe.vo.doctor.ConfigOptionsVO;
 import recipe.vo.doctor.ValidateDetailVO;
@@ -211,11 +212,13 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
         resultBean.setBool(true);
         List<String> organDrugCode = validateDetailVO.getRecipeDetails().stream().map(RecipeDetailBean::getOrganDrugCode).distinct().collect(Collectors.toList());
         List<OrganDrugList> organDrugList = organDrugListManager.findOrganDrugCode(validateDetailVO.getOrganId(), organDrugCode);
-        //  organDrugList.stream().allMatch()
-
+        List<OrganDrugList> drugList = organDrugList.stream().filter(a -> !ValidateUtil.integerIsEmpty(a.getMaximum())).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(drugList)) {
+            return resultBean;
+        }
         List<Integer> recipeIds = recipeManager.findRecipeByClinicIdAndProcessState(validateDetailVO.getRecipeBean().getClinicId(), validateDetailVO.getRecipeBean().getRecipeId(), RecipeStatusEnum.RECIPE_REPEAT);
         List<Recipedetail> recipeDetails = recipeDetailManager.findRecipeDetails(recipeIds);
-
+        
         return resultBean;
     }
 

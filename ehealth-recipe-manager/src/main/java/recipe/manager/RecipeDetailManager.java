@@ -264,19 +264,19 @@ public class RecipeDetailManager extends BaseManager {
      * @return
      */
     private List<Recipedetail> saveRecipeDetails(List<Recipedetail> details) {
-        logger.info("RecipeDetailManager saveRecipeDetails  details = {}", JSON.toJSONString(details));
         if (CollectionUtils.isEmpty(details)) {
             return details;
         }
         Integer recipeId = details.get(0).getRecipeId();
         recipeDetailDAO.updateDetailInvalidByRecipeId(recipeId);
-        for (Recipedetail detail : details) {
-            if (ValidateUtil.integerIsEmpty(detail.getRecipeDetailId())) {
-                recipeDetailDAO.save(detail);
-            } else {
-                recipeDetailDAO.update(detail);
-            }
-        }
+//        for (Recipedetail detail : details) {
+//            if (ValidateUtil.integerIsEmpty(detail.getRecipeDetailId())) {
+//                recipeDetailDAO.save(detail);
+//            } else {
+//                recipeDetailDAO.update(detail);
+//            }
+//        }
+        recipeDetailDAO.saveRecipeDetails(details);
         logger.info("RecipeDetailManager saveRecipeDetails details:{}", JSON.toJSONString(details));
         return details;
     }

@@ -237,7 +237,15 @@ public class OrganDrugList implements java.io.Serializable {
 
     @ItemProperty(alias = "开药数量限制")
     private Integer maximum;
+    
+    @Column(name = "maximum")
+    public Integer getMaximum() {
+        return maximum;
+    }
 
+    public void setMaximum(Integer maximum) {
+        this.maximum = maximum;
+    }
 //    @ItemProperty(alias = "是否冷链运输 0 否 1 是")
 //    private Integer coldChainTransportationFlag;
 //
