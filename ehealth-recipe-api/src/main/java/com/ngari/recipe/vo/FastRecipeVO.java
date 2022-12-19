@@ -150,4 +150,13 @@ public class FastRecipeVO implements Serializable {
 
     @ItemProperty(alias = "是否保密， 1:保密，2:非保密")
     private Integer secrecyFlag;
+
+    @ItemProperty(alias = "处方支持的购药方式,逗号分隔")
+    private String recipeSupportGiveMode;
+
+    @ItemProperty(alias = "配送药企代码")
+    private String deliveryCode;
+
+    @ItemProperty(alias = "配送药企名称")
+    private String deliveryName;
 }
