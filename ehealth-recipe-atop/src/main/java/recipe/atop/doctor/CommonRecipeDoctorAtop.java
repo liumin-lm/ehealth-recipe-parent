@@ -7,7 +7,6 @@ import com.ngari.recipe.commonrecipe.model.CommonDTO;
 import com.ngari.recipe.commonrecipe.model.CommonRecipeDTO;
 import com.ngari.recipe.dto.HisRecipeDTO;
 import com.ngari.recipe.dto.HisRecipeInfoDTO;
-import com.ngari.recipe.entity.CommonRecipe;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.recipe.model.HisRecipeBean;
 import com.ngari.recipe.recipe.model.HisRecipeDetailBean;
@@ -26,7 +25,6 @@ import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.util.ValidateUtil;
 
 import java.sql.Timestamp;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -87,26 +85,6 @@ public class CommonRecipeDoctorAtop extends BaseAtop {
     }
 
     /**
-     * 获取常用方列表
-     *
-     * @param recipeType 处方类型
-     * @param doctorId   医生id
-     * @param organId    机构id
-     * @param start      开始
-     * @param limit      分页条数
-     * @return 常用方列表
-     */
-    @RpcService
-    public List<CommonRecipeDTO> commonRecipeListV2(Integer organId, Integer doctorId, List<Integer> recipeType, int start, int limit) {
-        validateAtop(doctorId, organId);
-        List<CommonRecipe> list = commonRecipeService.commonRecipeListV2(organId, doctorId, recipeType, start, limit);
-        if (CollectionUtils.isEmpty(list)) {
-            return Collections.emptyList();
-        }
-        return ObjectCopyUtils.convert(list, CommonRecipeDTO.class);
-    }
-
-    /**
      * 获取常用方详情
      *
      * @param commonRecipeId 常用方id
@@ -131,18 +109,6 @@ public class CommonRecipeDoctorAtop extends BaseAtop {
         validateAtop("常用方必填参数为空", commonRecipe.getDoctorId(), commonRecipe.getRecipeType(), commonRecipe.getCommonRecipeType(), commonRecipe.getCommonRecipeName());
         commonRecipeService.saveCommonRecipe(common);
     }
-//
-//    /**
-//     * 刷新常用方校验状态
-//     *
-//     * @param drugList 常用方药品
-//     */
-//    @RpcService
-//    public void refreshCommonValidateStatus(List<CommonRecipeDrugDTO> drugList) {
-//        validateAtop(drugList);
-//        drugList.forEach(a -> validateAtop(a.getCommonRecipeId(), a.getId()));
-//        commonRecipeService.refreshCommonValidateStatus(drugList);
-//    }
 
     /**
      * 删除常用方
