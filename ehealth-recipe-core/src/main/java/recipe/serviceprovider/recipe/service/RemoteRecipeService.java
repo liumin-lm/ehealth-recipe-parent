@@ -385,6 +385,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @RpcService
     @Override
     public RecipeBean getByRecipeId(int recipeId) {
+        LOGGER.info("remoteRecipeService.getByRecipeId recipeId ={}", recipeId);
         RecipeBean recipeBean = get(recipeId);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
