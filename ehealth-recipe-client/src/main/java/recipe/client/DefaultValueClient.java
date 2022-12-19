@@ -103,7 +103,6 @@ public class DefaultValueClient extends BaseClient {
         if (Objects.isNull(recipe.getRecipeId())) {
             throw new DAOException("处方id不能为空");
         }
-        extend.setRecipeId(recipe.getRecipeId());
         extend.setCancellation("");
         extend.setCanUrgentAuditRecipe(null == extend.getCanUrgentAuditRecipe() ? 0 : extend.getCanUrgentAuditRecipe());
         extend.setAppointEnterpriseType(null == extend.getAppointEnterpriseType() ? 0 : extend.getAppointEnterpriseType());

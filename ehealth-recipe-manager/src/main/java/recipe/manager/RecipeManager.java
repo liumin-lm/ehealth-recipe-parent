@@ -120,11 +120,11 @@ public class RecipeManager extends BaseManager {
             return;
         }
         recipeDataSaveFactory.setRecipeExtList(recipe, extend);
-        this.saveRecipeExtend(extend);
+        this.saveRecipeExtend(extend, recipe.getRecipeId());
     }
 
     /**
-     * 保存处方扩展信息
+     * 保存处方扩展信息 诊疗处方
      *
      * @param recipeExtend 处方扩展信息
      * @param recipe       处方信息
@@ -135,13 +135,13 @@ public class RecipeManager extends BaseManager {
             RevisitExDTO revisitExDTO = revisitClient.getByClinicId(recipe.getClinicId());
             recipeExtend.setCardNo(revisitExDTO.getCardId());
         }
-        recipeExtend.setRecipeId(recipe.getRecipeId());
-        return this.saveRecipeExtend(recipeExtend);
+        return this.saveRecipeExtend(recipeExtend, recipe.getRecipeId());
     }
 
 
-    private RecipeExtend saveRecipeExtend(RecipeExtend recipeExtend) {
+    private RecipeExtend saveRecipeExtend(RecipeExtend recipeExtend, Integer recipeId) {
         if (ValidateUtil.integerIsEmpty(recipeExtend.getRecipeId())) {
+            recipeExtend.setRecipeId(recipeId);
             recipeExtend = recipeExtendDAO.save(recipeExtend);
         } else {
             recipeExtend = recipeExtendDAO.update(recipeExtend);
