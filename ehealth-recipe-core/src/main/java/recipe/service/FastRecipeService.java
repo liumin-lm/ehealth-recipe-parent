@@ -18,6 +18,7 @@ import ctd.util.event.GlobalEventExecFactory;
 import eh.cdr.api.vo.MedicalDetailBean;
 import eh.utils.ValidateUtil;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -347,22 +348,31 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
 
     @Override
     public Boolean fullUpdateFastRecipe(FastRecipeVO fastRecipeVO) {
-        //1.更新药方
+        //1.更新药方 TODO:入参对象直接复制，需要单独处理的字段拎出来处理
         FastRecipe fastRecipe = fastRecipeDAO.get(fastRecipeVO.getId());
         if (Objects.isNull(fastRecipe)) {
             throw new DAOException("未找到对应药方单！");
-        } else {
-            if (!operationClient.isAuthorisedOrgan(fastRecipe.getClinicOrgan())) {
-                throw new DAOException("您没有修改该药方的权限！");
-            }
-            fastRecipe.setTitle(fastRecipeVO.getTitle());
-            fastRecipe.setOfflineRecipeName(fastRecipeVO.getTitle());
-            fastRecipe.setBackgroundImg(fastRecipeVO.getBackgroundImg());
-            fastRecipe.setIntroduce(fastRecipeVO.getIntroduce());
-            fastRecipe.setNeedQuestionnaire(fastRecipeVO.getNeedQuestionnaire());
-            fastRecipe.setQuestionnaireUrl(fastRecipeVO.getQuestionnaireUrl());
-            fastRecipeDAO.update(fastRecipe);
         }
+        if (!operationClient.isAuthorisedOrgan(fastRecipe.getClinicOrgan())) {
+            throw new DAOException("您没有修改该药方的权限！");
+        }
+
+        fastRecipe.setTitle(fastRecipeVO.getTitle());
+        fastRecipe.setOfflineRecipeName(fastRecipeVO.getTitle());
+        fastRecipe.setBackgroundImg(fastRecipeVO.getBackgroundImg());
+        fastRecipe.setIntroduce(fastRecipeVO.getIntroduce());
+        fastRecipe.setNeedQuestionnaire(fastRecipeVO.getNeedQuestionnaire());
+        fastRecipe.setQuestionnaireUrl(fastRecipeVO.getQuestionnaireUrl());
+        fastRecipe.setRecipeSupportGiveMode(fastRecipeVO.getRecipeSupportGiveMode());
+        if (StringUtils.isNotBlank(fastRecipeVO.getRecipeSupportGiveMode())) {
+            fastRecipe.setAppointEnterpriseType(2);
+        } else {
+            fastRecipe.setAppointEnterpriseType(0);
+        }
+        fastRecipe.setDeliveryCode(fastRecipeVO.getDeliveryCode());
+        fastRecipe.setDeliveryName(fastRecipeVO.getDeliveryName());
+        fastRecipeDAO.update(fastRecipe);
+
         //1.更新药方详情（目前只能删除药品，修改药品随后版本做）
         List<FastRecipeDetailVO> fastRecipeDetailVOList = fastRecipeVO.getFastRecipeDetailList();
         if (CollectionUtils.isEmpty(fastRecipeDetailVOList)) {
@@ -379,13 +389,12 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
                 fastRecipeDetailDAO.updateStatusById(fastRecipeDetail.getId(), 0);
             }
         }
-        ////更新保密方标识
-        //if (Integer.valueOf(1).equals(fastRecipeVO.getSecrecyFlag())) {
-        //    fastRecipeDetailDAO.updateTypeByFastRecipeId(fastRecipe.getId(), 3);
-        //} else {
-        //    fastRecipeDetailDAO.updateTypeByFastRecipeId(fastRecipe.getId(), 1);
-        //}
-
+        //更新保密方标识
+        if (Integer.valueOf(1).equals(fastRecipeVO.getSecrecyFlag())) {
+            fastRecipeDetailDAO.updateTypeByFastRecipeId(fastRecipe.getId(), 3);
+        } else {
+            fastRecipeDetailDAO.updateTypeByFastRecipeId(fastRecipe.getId(), 1);
+        }
         return true;
     }
 
