@@ -33,7 +33,7 @@ public class DefaultValueClient extends BaseClient {
      */
     @Override
     public Integer getSort() {
-        return 0;
+        return 1;
     }
 
     /**

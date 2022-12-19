@@ -50,7 +50,8 @@ public class RecipeDataSaveFactory implements ApplicationContextAware {
      *
      */
     public void setRecipeList(Recipe recipe) {
-        map.forEach((k,v)->v.setRecipe(recipe));
+        map.forEach((k, v) -> v.setRecipe(recipe));
+        logger.info("RecipeDataSaveFactory setRecipeList recipe = {}", JSON.toJSONString(recipe));
     }
     /**
      * 设置处方扩展默认数据 责任链
@@ -70,7 +71,8 @@ public class RecipeDataSaveFactory implements ApplicationContextAware {
      * @param extend 处方扩展对象
      */
     public void setRecipeExtList(Recipe recipe, RecipeExtend extend) {
-        map.forEach((k,v)->v.setRecipeExt(recipe,extend));
+        map.forEach((k, v) -> v.setRecipeExt(recipe, extend));
+        logger.info("RecipeDataSaveFactory setRecipeExtList recipe = {},extend={}", JSON.toJSONString(recipe), JSON.toJSONString(extend));
     }
 
     /**
@@ -87,6 +89,6 @@ public class RecipeDataSaveFactory implements ApplicationContextAware {
                 map.put(bean.getSort(), bean);
             }
         }
-        logger.info("RecipeDataSaveFactory添加授权服务工厂类，giveModeMap = {}", JSON.toJSONString(map));
+        logger.info("RecipeDataSaveFactory添加授权服务工厂类，map = {}", JSON.toJSONString(map));
     }
 }
