@@ -8,7 +8,10 @@ package recipe.enumerate.status;
 public enum RecipeSourceTypeEnum {
 
     ONLINE_RECIPE(1, "线上处方"),
-    OFFLINE_RECIPE(2, "线下处方");
+    OFFLINE_RECIPE(2, "线下处方"),
+    THERAPY_RECIPE(3, "诊疗处方"),
+    COMMON_RECIPE(4, "常用方"),
+    ;
     //1表示未缴费 2表示已缴费
     private Integer type;
     private String name;

@@ -69,7 +69,7 @@ public class HisSendResTO implements java.io.Serializable {
     @ItemProperty(alias = "0：默认(未写入)，1：写入中，2：写入失败，3：写入成功")
     private Integer writeHisState;
 
-    @ItemProperty(alias = "his订单编号(邵逸夫)")
+    @ItemProperty(alias = "his订单编号(浙江医保小程序)")
     private String ybid;
 
     public String getYbid() {

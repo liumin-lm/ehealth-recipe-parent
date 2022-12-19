@@ -8,12 +8,14 @@ import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.HealthCardService;
 import com.ngari.patient.service.OrganConfigService;
 import com.ngari.patient.service.OrganService;
+import com.ngari.recipe.entity.Recipe;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.aop.LogRecord;
 import recipe.util.ObjectCopyUtils;
+import recipe.util.ValidateUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,6 +36,17 @@ public class OrganClient extends BaseClient {
     private HealthCardService healthCardService;
     @Autowired
     private OrganConfigService organConfigService;
+
+    /**
+     * 类加载排序
+     *
+     * @return
+     */
+    @Override
+    public Integer getSort() {
+        return 2;
+    }
+
     /**
      * 查询当前区域公众号下所有归属机构
      *
@@ -119,10 +132,26 @@ public class OrganClient extends BaseClient {
 
     /**
      * 更新机构配置
+     *
      * @param param
      * @return
      */
     public OrganConfigDTO updateOrganConfig(OrganConfigDTO param) {
         return organConfigService.update(param);
     }
+
+    /**
+     * 设置处方默认数据
+     *
+     * @param recipe 处方头对象
+     */
+    @Override
+    public void setRecipe(Recipe recipe) {
+        if (ValidateUtil.integerIsEmpty(recipe.getClinicOrgan())) {
+            return;
+        }
+        com.ngari.recipe.dto.OrganDTO organDTO = this.organDTO(recipe.getClinicOrgan());
+        recipe.setOrganName(organDTO.getShortName());
+    }
+
 }

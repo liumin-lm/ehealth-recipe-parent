@@ -15,6 +15,7 @@ import com.ngari.common.mode.HisResponseTO;
 import com.ngari.follow.service.IMedicineRemindService;
 import com.ngari.follow.vo.MedicineRemindTO;
 import com.ngari.his.patient.mode.PatientQueryRequestTO;
+import com.ngari.his.patient.service.IPatientHisService;
 import com.ngari.jgpt.zjs.service.IMinkeOrganService;
 import com.ngari.patient.dto.HealthCardDTO;
 import com.ngari.patient.dto.OrganDTO;
@@ -25,6 +26,8 @@ import com.ngari.platform.recipe.MedicalInsuranceAuthResBean;
 import com.ngari.platform.recipe.mode.MedicalInsuranceAuthInfoBean;
 import com.ngari.recipe.dto.PatientDTO;
 import com.ngari.recipe.dto.RecipeInfoDTO;
+import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.Recipedetail;
 import ctd.account.Client;
 import ctd.persistence.exception.DAOException;
@@ -38,6 +41,7 @@ import recipe.constant.ErrorCode;
 import recipe.util.ChinaIDNumberUtil;
 import recipe.util.DateConversion;
 import recipe.util.DictionaryUtil;
+import recipe.util.ValidateUtil;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -68,6 +72,18 @@ public class PatientClient extends BaseClient {
     private IClientConfigService clientConfigService;
     @Autowired
     private IDeviceService deviceService;
+    @Autowired
+    private IPatientHisService patientHisService;
+
+    /**
+     * 类加载排序
+     *
+     * @return
+     */
+    @Override
+    public Integer getSort() {
+        return 6;
+    }
 
     /**
      * 获取 脱敏后的 患者对象
@@ -90,6 +106,7 @@ public class PatientClient extends BaseClient {
         com.ngari.patient.dto.PatientDTO patient = patientService.get(mpiId);
         PatientDTO p = new PatientDTO();
         BeanUtils.copyProperties(patient, p);
+        logger.info("PatientClient getPatientDTO p={}", JSON.toJSONString(p));
         return p;
     }
 
@@ -442,6 +459,46 @@ public class PatientClient extends BaseClient {
         logger.info("PatientClient remindPatientTakeMedicine medicineRemindTOList:{}.", JSON.toJSONString(medicineRemindTOList));
         medicineRemindService.createMedicineRemind(medicineRemindTOList);
         return true;
+    }
+
+    /**
+     * 设置处方默认数据
+     *
+     * @param recipe 处方头对象
+     */
+    @Override
+    public void setRecipe(Recipe recipe) {
+        if (StringUtils.isEmpty(recipe.getMpiid())) {
+            return;
+        }
+        PatientDTO patientDTO = this.getPatientDTO(recipe.getMpiid());
+        recipe.setPatientName(patientDTO.getPatientName());
+        List<com.ngari.patient.dto.PatientDTO> requestPatients = patientService.findOwnPatient(patientDTO.getLoginId());
+        if (CollectionUtils.isEmpty(requestPatients)) {
+            return;
+        }
+        com.ngari.patient.dto.PatientDTO requestPatient = requestPatients.get(0);
+        if (null == requestPatient) {
+            return;
+        }
+        recipe.setRequestMpiId(requestPatient.getMpiId());
+        // urt用于系统消息推送
+        recipe.setRequestUrt(requestPatient.getUrt());
+    }
+
+    /**
+     * 设置处方默认数据
+     *
+     * @param recipe 处方头对象
+     * @param extend 处方头扩展
+     */
+    @Override
+    public void setRecipeExt(Recipe recipe, RecipeExtend extend) {
+        PatientDTO patient = this.getPatientDTO(recipe.getMpiid());
+        extend.setGuardianName(patient.getGuardianName());
+        extend.setGuardianCertificate(patient.getGuardianCertificate());
+        extend.setGuardianMobile(patient.getMobile());
+        extend.setRecipeFlag(ValidateUtil.integerIsEmpty(patient.getPatientUserType()) ? 0 : 1);
     }
 
     /**

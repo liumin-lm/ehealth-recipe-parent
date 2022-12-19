@@ -33,7 +33,8 @@ public class BaseService {
     protected ButtonManager buttonManager;
     @Autowired
     protected PharmacyManager pharmacyManager;
-
+    @Autowired
+    protected DepartManager departManager;
 
     protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 

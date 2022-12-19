@@ -9,6 +9,7 @@ import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.recipe.mode.EmrDetailValueDTO;
 import com.ngari.his.recipe.mode.*;
+import com.ngari.his.recipe.service.IRecipeToTestService;
 import com.ngari.patient.dto.AppointDepartDTO;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.DoctorDTO;
@@ -53,7 +54,9 @@ public class OfflineRecipeClient extends BaseClient {
     @Autowired
     private DepartClient departClient;
     @Autowired
-    protected IConfigurationClient configurationClient;
+    private IConfigurationClient configurationClient;
+    @Autowired
+    private IRecipeToTestService recipeToTestService;
 
     /**
      * @param organId   机构id
