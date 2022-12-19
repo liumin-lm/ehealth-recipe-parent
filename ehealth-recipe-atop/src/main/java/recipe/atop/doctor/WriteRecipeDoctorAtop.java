@@ -219,7 +219,7 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
      * @param recipeInfoVO
      */
     @RpcService
-    public void stagingRecipe(RecipeInfoVO recipeInfoVO) {
+    public Integer stagingRecipe(RecipeInfoVO recipeInfoVO) {
         validateAtop(recipeInfoVO, recipeInfoVO.getRecipeBean());
         validateAtop(recipeInfoVO.getRecipeBean().getDoctor(), recipeInfoVO.getRecipeBean().getClinicOrgan());
         RecipeBean recipeBean = recipeInfoVO.getRecipeBean();
@@ -230,6 +230,6 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
                 throw new DAOException(ErrorCode.SERVICE_ERROR, "当前处方不是暂存状态,不能操作");
             }
         }
-        recipeBusinessService.stagingRecipe(recipeInfoVO);
+        return recipeBusinessService.stagingRecipe(recipeInfoVO);
     }
 }

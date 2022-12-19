@@ -335,7 +335,7 @@ public class Recipe implements Serializable {
     @Dictionary(id = "eh.cdr.dictionary.FastRecipeFlag")
     private Integer fastRecipeFlag;
 
-    @ItemProperty(alias = "线下处方名称")
+    @ItemProperty(alias = "线下处方/常用方/协定方名称")
     private String offlineRecipeName;
 
     @ItemProperty(alias = "0：默认(未写入)，1：写入中，2：写入失败，3：写入成功")
