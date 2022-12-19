@@ -117,7 +117,9 @@ public class RecipeDetailManager extends BaseManager {
         Integer organId = recipe.getClinicOrgan();
         List<String> organDrugCodes = recipeDetails.stream().map(Recipedetail::getOrganDrugCode).distinct().collect(Collectors.toList());
         List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugCodes(organId, organDrugCodes);
+        logger.info("RecipeDetailManager saveRecipeDetails organDrugList = {}", JSON.toJSONString(organDrugList));
         if (CollectionUtils.isNotEmpty(organDrugList)) {
+            logger.info("RecipeDetailManager saveRecipeDetails is null");
             return;
         }
         Map<String, OrganDrugList> organDrugListMap = organDrugList.stream().collect(Collectors.toMap(k -> k.getOrganDrugCode() + k.getDrugId(), a -> a, (k1, k2) -> k1));
@@ -129,6 +131,7 @@ public class RecipeDetailManager extends BaseManager {
         //设置药品金额等-处方默认数据
         Recipe recipeUpdate = drugClient.updateRecipe(recipe, recipeDetails, organDrugList);
         recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
+        logger.info("RecipeDetailManager saveRecipeDetails recipeUpdate = {}, organDrugList = {}", JSON.toJSONString(recipeUpdate), JSON.toJSONString(organDrugList));
         //保存处方明细
         this.saveRecipeDetails(recipeDetails);
     }
