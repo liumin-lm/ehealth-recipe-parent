@@ -211,7 +211,7 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
         ResultBean<String> resultBean = new ResultBean<>();
         resultBean.setBool(true);
         List<String> organDrugCode = validateDetailVO.getRecipeDetails().stream().map(RecipeDetailBean::getOrganDrugCode).distinct().collect(Collectors.toList());
-        List<OrganDrugList> organDrugList = organDrugListManager.findOrganDrugCode(validateDetailVO.getOrganId(), organDrugCode);
+        List<OrganDrugList> organDrugList = organDrugListManager.findOrganDrugCode(validateDetailVO.getRecipeBean().getClinicOrgan(), organDrugCode);
         List<OrganDrugList> drugList = organDrugList.stream().filter(a -> !ValidateUtil.integerIsEmpty(a.getMaximum())).collect(Collectors.toList());
         if (CollectionUtils.isEmpty(drugList)) {
             return resultBean;
