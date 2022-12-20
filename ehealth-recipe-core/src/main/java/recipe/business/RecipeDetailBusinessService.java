@@ -217,7 +217,7 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
         List<Integer> recipeIds = recipeManager.findRecipeByClinicIdAndProcessState(validateDetailVO.getRecipeBean().getClinicId(), validateDetailVO.getRecipeBean().getRecipeId(), RecipeStateEnum.RECIPE_REPEAT);
         Map<String, Double> sumTotalMap = recipeDetailManager.findRecipeDetailSumTotalDose(recipeIds);
         Map<String, Double> detailTotalMap = validateDetailVO.getRecipeDetails().stream().collect(Collectors.toMap(RecipeDetailBean::getOrganDrugCode, RecipeDetailBean::getUseTotalDose));
-
+        logger.info("RecipeDetailBusinessService validateRepeatRecipeDetail sumTotalMap={},detailTotalMap={} ", JSON.toJSONString(sumTotalMap), JSON.toJSONString(detailTotalMap));
         List<String> list = new ArrayList<>();
         organDrugList.forEach(a -> {
             Double detailTotal = detailTotalMap.get(a.getOrganDrugCode());

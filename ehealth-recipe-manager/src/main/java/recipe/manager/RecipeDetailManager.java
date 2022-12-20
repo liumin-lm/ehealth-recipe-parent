@@ -162,6 +162,7 @@ public class RecipeDetailManager extends BaseManager {
             return null;
         }
         List<Recipedetail> recipeDetails = recipeDetailDAO.findRecipeDetailSumTotalDose(recipeIds);
+        logger.info("RecipeDetailManager findRecipeDetailSumTotalDose recipeDetails:{}", JSON.toJSONString(recipeDetails));
         if (CollectionUtils.isEmpty(recipeDetails)) {
             return null;
         }
