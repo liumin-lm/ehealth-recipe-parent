@@ -148,8 +148,6 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
             recipeBean.setBussSource(BussSourceTypeEnum.BUSSSOURCE_REVISIT.getType());
             recipeBean.setDecoctionNum(fastRecipe.getDecoctionNum());
             recipeBean.setRecipeSupportGiveMode(fastRecipe.getRecipeSupportGiveMode());
-            recipeBean.getRecipeExtend().setAppointEnterpriseType(fastRecipe.getAppointEnterpriseType());
-            recipeBean.getRecipeExtend().setDecoctionCode(fastRecipe.getDeliveryCode());
             recipeBean.setRecipeMemo(fastRecipe.getRecipeMemo());
 
             RecipeExtendBean recipeExtendBean = recipeInfoVO.getRecipeExtendBean();
@@ -160,6 +158,8 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
             recipeExtendBean.setDecoctionId(fastRecipe.getDecoctionId());
             recipeExtendBean.setDecoctionText(fastRecipe.getDecoctionText());
             recipeExtendBean.setSingleOrCompoundRecipe(fastRecipe.getSingleOrCompoundRecipe());
+            recipeExtendBean.setAppointEnterpriseType(fastRecipe.getAppointEnterpriseType());
+            recipeExtendBean.setDeliveryCode(fastRecipe.getDeliveryCode());
 
             int buyNum = ValidateUtil.nullOrZeroInteger(recipeInfoVO.getBuyNum()) ? 1 : recipeInfoVO.getBuyNum();
             packageTotalParamByBuyNum(recipeInfoVO, buyNum);
