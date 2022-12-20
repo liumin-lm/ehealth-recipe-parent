@@ -222,15 +222,13 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
         organDrugList.forEach(a -> {
             Double detailTotal = detailTotalMap.get(a.getOrganDrugCode());
             if (ValidateUtil.validateObjects(detailTotal, a.getMaximum())) {
-                logger.info("RecipeDetailBusinessService validateRepeatRecipeDetail a={},detailTotal={}", JSON.toJSONString(a), detailTotal);
                 return;
             }
             Double sum = 0d;
             if (null != sumTotalMap) {
                 sum = null == sumTotalMap.get(a.getOrganDrugCode()) ? sum : sumTotalMap.get(a.getOrganDrugCode());
             }
-            sum = sum + detailTotal;
-            int total = sum.intValue();
+            Integer total = sum.intValue() + detailTotal.intValue();
             String s = "【" +
                     a.getDrugName() + "】售药上限为" +
                     a.getMaximum() + "【" +
@@ -241,11 +239,11 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
                     a.getUnit() + "】可开";
             list.add(s);
         });
-        logger.info("RecipeDetailBusinessService validateRepeatRecipeDetail list={}", JSON.toJSONString(list));
         if (CollectionUtils.isNotEmpty(list)) {
             resultBean.setMsgList(list);
             resultBean.setBool(false);
         }
+        logger.info("RecipeDetailBusinessService validateRepeatRecipeDetail resultBean={}", JSON.toJSONString(resultBean));
         return resultBean;
     }
 

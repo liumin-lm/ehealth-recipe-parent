@@ -197,11 +197,10 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
         }
         //校验复诊下重复药品数量
         ResultBean<String> detail = recipeDetailService.validateRepeatRecipeDetail(validateDetailVO);
-        if (result.isBool()) {
-            return result;
-        } else {
+        if (!detail.isBool()) {
             return detail;
         }
+        return result;
     }
 
     /**
