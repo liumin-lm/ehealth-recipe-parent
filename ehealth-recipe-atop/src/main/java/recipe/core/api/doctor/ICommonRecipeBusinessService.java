@@ -4,6 +4,7 @@ import com.ngari.recipe.commonrecipe.model.CommonDTO;
 import com.ngari.recipe.commonrecipe.model.CommonRecipeDTO;
 import com.ngari.recipe.dto.HisRecipeDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
+import recipe.vo.doctor.RecipeInfoVO;
 
 import java.util.List;
 
@@ -85,4 +86,16 @@ public interface ICommonRecipeBusinessService {
     HisRecipeDTO offlineCommonV1(Integer organId, String commonRecipeCode);
 
 
+    /**
+     * 获取历史常用方
+     * @param organId 机构id
+     * @param doctorId 医生id
+     */
+    List<RecipeInfoVO> syncHistoryCommonRecipe(Integer organId, Integer doctorId);
+
+    /**
+     * 变更已同步的常用方状态
+     * @param commonIds
+     */
+    void updateCommonRecipeStatus(List<Integer> commonIds);
 }

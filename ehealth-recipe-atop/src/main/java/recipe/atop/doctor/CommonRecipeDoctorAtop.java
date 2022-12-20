@@ -1,6 +1,7 @@
 package recipe.atop.doctor;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.google.common.collect.Lists;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.commonrecipe.model.CommonDTO;
@@ -19,14 +20,18 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.core.api.IDrugBusinessService;
+import recipe.core.api.IRecipeBusinessService;
 import recipe.core.api.doctor.ICommonRecipeBusinessService;
 import recipe.enumerate.type.RecipeDrugFormTypeEnum;
 import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.util.ValidateUtil;
+import recipe.vo.doctor.RecipeInfoVO;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -40,6 +45,8 @@ public class CommonRecipeDoctorAtop extends BaseAtop {
     private ICommonRecipeBusinessService commonRecipeService;
     @Autowired
     private IDrugBusinessService drugBusinessService;
+    @Autowired
+    private IRecipeBusinessService recipeBusinessService;
 
     /**
      * 获取常用方列表
@@ -219,6 +226,34 @@ public class CommonRecipeDoctorAtop extends BaseAtop {
         }
         recipeBean.setDetailData(hisRecipeDetailBeans);
         return recipeBean;
+    }
+
+    /**
+     * 同步历史常用方
+     * @param organId 机构id
+     * @param doctorId 医生id
+     */
+    @RpcService
+    public void syncHistoryCommonRecipe(Integer organId, Integer doctorId) {
+        validateAtop(doctorId, organId);
+        List<RecipeInfoVO> recipeInfoVOs = commonRecipeService.syncHistoryCommonRecipe(organId, doctorId);
+        if (CollectionUtils.isEmpty(recipeInfoVOs)) {
+            return;
+        }
+        List<Integer> commonIds = new ArrayList<>();
+        for (RecipeInfoVO recipeInfoVO : recipeInfoVOs) {
+            if(Objects.isNull(recipeInfoVO.getRecipeBean())){
+                continue;
+            }
+            try {
+                recipeBusinessService.stagingRecipe(recipeInfoVO);
+                commonIds.add(recipeInfoVO.getCommonRecipeId());
+            } catch (Exception e) {
+                logger.error("同步历史常用方失败,常用方名称={}",recipeInfoVO.getRecipeBean().getOfflineRecipeName());
+            }
+        }
+        logger.info("同步成功的常用方id={}", JSONArray.toJSONString(commonIds));
+        commonRecipeService.updateCommonRecipeStatus(commonIds);
     }
 
 }

@@ -190,6 +190,19 @@ public class CommonRecipeManager extends BaseManager {
     }
 
     /**
+     * 查询常用方列表
+     *
+     * @param organId  机构id
+     * @param doctorId 医生id
+     * @return
+     */
+    public List<CommonRecipe> findCommonRecipeListByOrganIdAndDoctorId(Integer organId, Integer doctorId) {
+        List<CommonRecipe> commonRecipeList = commonRecipeDAO.findCommonRecipeListByOrganIdAndDoctorId(organId, doctorId);
+        LOGGER.info("CommonRecipeManager findCommonRecipeListByOrganIdAndDoctorId commonRecipeList={}，organId={}，doctorId={}", JSON.toJSONString(commonRecipeList), organId, doctorId);
+        return commonRecipeList;
+    }
+
+    /**
      * 查询常用方药品，与机构药品关联返回
      *
      * @param organId            机构id
@@ -321,4 +334,7 @@ public class CommonRecipeManager extends BaseManager {
         return offlineRecipeClient.offlineCommonV1(organId, commonRecipeCode);
     }
 
+    public void updateCommonRecipeStatus(List<Integer> commonIds) {
+        commonRecipeDAO.updateCommonRecipeStatus(commonIds);
+    }
 }

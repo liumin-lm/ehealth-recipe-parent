@@ -228,6 +228,11 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
             if (null != sumTotalMap) {
                 sum = null == sumTotalMap.get(a.getOrganDrugCode()) ? sum : sumTotalMap.get(a.getOrganDrugCode());
             }
+
+            if (sum + detailTotal <= a.getMaximum()) {
+                return;
+            }
+
             String s = "【" + a.getDrugName() + "】售药上限为【" + a.getMaximum() + a.getUnit()
                     + "】已开【" + sum.intValue() + a.getUnit()
                     + "】，仅剩【" + Math.max(a.getMaximum() - sum.intValue(), 0) + a.getUnit() + "】可开";
