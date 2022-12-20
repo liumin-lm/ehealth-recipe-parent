@@ -2549,6 +2549,18 @@ public class RecipeOrderService extends RecipeBaseService {
                     attrMap.put("status", OrderStatusConstant.READY_PAY);
                 }
                 attrMap.put("effective", 1);
+            } else if (PayFlagEnum.REFUND_SUCCESS.getType().equals(payFlag)) {
+                // 退款成功后根据配置 电子处方进行隐方
+                List<String> hideRecipeDetail = configurationClient.getValueListCatch(nowRecipe.getClinicOrgan(), "hideRecipeDetail", null);
+                LOGGER.info("hideRecipeDetail 药品类型：{} 需要隐方的类型:{}", nowRecipe.getRecipeType(), hideRecipeDetail);
+                DocIndexClient docIndexClient = AppContextHolder.getBean("docIndexClient", DocIndexClient.class);
+                if (CollectionUtils.isNotEmpty(hideRecipeDetail)) {
+                    recipes.forEach(recipe -> {
+                        if (hideRecipeDetail.contains(recipe.getRecipeType().toString())) {
+                            docIndexClient.updateStatusByBussIdBussType(recipe.getRecipeId(), DocIndexShowEnum.HIDE.getCode());
+                        }
+                    });
+                }
             }
         }
         LOGGER.info("finishOrderPayImpl orderCode:{},attrMap:{},result:{}.", orderCode, JSONUtils.toString(attrMap), JSONUtils.toString(result));
