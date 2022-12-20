@@ -53,7 +53,7 @@ import java.util.stream.Collectors;
 @RpcBean(value = "fastRecipeService")
 public class FastRecipeService extends BaseService implements IFastRecipeBusinessService {
 
-    private static final Logger logger = LoggerFactory.getLogger(RecipeToHisCallbackService.class);
+    private static final Logger logger = LoggerFactory.getLogger(FastRecipeService.class);
 
     @Autowired
     private FastRecipeDAO fastRecipeDAO;
@@ -92,8 +92,15 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
     private SmsClient smsClient;
 
 
+    /**
+     * 快捷购药开方接口（包括自动开方、手动开方）
+     *
+     * @param recipeInfoVOList
+     * @return
+     */
     @Override
     public List<Integer> fastRecipeSaveRecipeList(List<RecipeInfoVO> recipeInfoVOList) {
+        //快捷购药开方流程模式： "0":"自动开方流程", "1":"手动开方流程"
         Integer fastRecipeMode = configurationClient.getValueCatchReturnInteger(recipeInfoVOList.get(0).getRecipeBean().getClinicOrgan(), "fastRecipeMode", null);
         List<Integer> resultList;
         if (Integer.valueOf("1").equals(fastRecipeMode)) {
@@ -106,7 +113,7 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
             }
             resultList = super.futureTaskCallbackBeanList(futureTasks, 15000);
             if (CollectionUtils.isNotEmpty(resultList)) {
-                //通知医生
+                //通知医生，只给开方医生推送一条
                 smsClient.fastRecipeApplyToDoctor(recipeInfoVOList.get(0).getRecipeBean().getClinicOrgan(),
                         recipeInfoVOList.get(0).getRecipeBean().getDoctor());
             }
@@ -138,7 +145,7 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
     }
 
     /**
-     * 组装参数调用暂存接口
+     * 手动开方：组装参数调用暂存接口，处方单会显示在对应医生的暂存列表
      *
      * @param recipeInfoVO
      * @return
@@ -196,6 +203,7 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
     }
 
     /**
+     * 自动开方
      * 此处最优方案为前端组装患者信息和需要患者选择的参数，其他参数后端从药方获取，
      * 目前前端去组装的参数，但是没传全，暂时后台查询补全
      *
