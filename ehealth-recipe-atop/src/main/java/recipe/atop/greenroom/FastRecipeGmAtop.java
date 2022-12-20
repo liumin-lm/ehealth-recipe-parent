@@ -94,11 +94,11 @@ public class FastRecipeGmAtop extends BaseAtop {
             isAuthorisedOrgan(fastRecipeVO.getClinicOrgan());
             List<FastRecipeDetail> fastRecipeDetailList = fastRecipeService.findFastRecipeDetailsByFastRecipeId(fastRecipeList.get(0).getId());
             fastRecipeVO.setFastRecipeDetailList(BeanCopyUtils.copyList(fastRecipeDetailList, FastRecipeDetailVO::new));
-            //if (Integer.valueOf(3).equals(fastRecipeDetailList.get(0).getType())) {
-            //    fastRecipeVO.setSecrecyFlag(1);
-            //} else {
-            //    fastRecipeVO.setSecrecyFlag(2);
-            //}
+            if (Integer.valueOf(3).equals(fastRecipeDetailList.get(0).getType())) {
+                fastRecipeVO.setSecrecyFlag(1);
+            } else {
+                fastRecipeVO.setSecrecyFlag(2);
+            }
             return fastRecipeVO;
         } else {
             return null;

@@ -567,7 +567,7 @@ public class RecipeManager extends BaseManager {
     }
 
     /**
-     * 根据复诊id获取处方明细，并排除 特定处方id
+     * 根据复诊id获取处方id，并排除 特定处方id
      *
      * @param clinicId 复诊id
      * @param recipeId 特定处方id
@@ -575,17 +575,19 @@ public class RecipeManager extends BaseManager {
      */
     public List<Integer> findRecipeByClinicId(Integer clinicId, Integer recipeId, List<Integer> status) {
         List<Recipe> recipeList = recipeDAO.findRecipeClinicIdAndStatus(clinicId, status);
-        logger.info("RecipeManager findRecipeByClinicId recipeList:{}", JSON.toJSONString(recipeList));
-        if (CollectionUtils.isEmpty(recipeList)) {
-            return null;
-        }
-        List<Integer> recipeIds;
-        if (ValidateUtil.integerIsEmpty(recipeId)) {
-            recipeIds = recipeList.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
-        } else {
-            recipeIds = recipeList.stream().filter(a -> !a.getRecipeId().equals(recipeId)).map(Recipe::getRecipeId).collect(Collectors.toList());
-        }
-        return recipeIds;
+        return findRecipeByClinicId(recipeList, recipeId);
+    }
+
+    /**
+     * 根据复诊id与状态字段 获取处方id，并排除 特定处方id
+     *
+     * @param clinicId 复诊id
+     * @param recipeId 特定处方id
+     * @return 处方明细
+     */
+    public List<Integer> findRecipeByClinicIdAndProcessState(Integer clinicId, Integer recipeId, List<Integer> processState) {
+        List<Recipe> recipeList = recipeDAO.findRecipeClinicIdAndProcessState(clinicId, processState);
+        return findRecipeByClinicId(recipeList, recipeId);
     }
 
 
@@ -1240,4 +1242,25 @@ public class RecipeManager extends BaseManager {
 
         return Joiner.on("|").join(hisOrderCode);
     }
+
+
+    /**
+     * 排除 特定处方id
+     *
+     * @param recipeList
+     * @param recipeId
+     * @return
+     */
+    private List<Integer> findRecipeByClinicId(List<Recipe> recipeList, Integer recipeId) {
+        logger.info("RecipeManager findRecipeByClinicId recipeList:{},recipeId={}", JSON.toJSONString(recipeList), recipeId);
+        if (CollectionUtils.isEmpty(recipeList)) {
+            return null;
+        }
+        if (ValidateUtil.integerIsEmpty(recipeId)) {
+            return recipeList.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
+        } else {
+            return recipeList.stream().map(Recipe::getRecipeId).filter(id -> !id.equals(recipeId)).collect(Collectors.toList());
+        }
+    }
+
 }

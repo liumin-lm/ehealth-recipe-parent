@@ -588,12 +588,7 @@ public class BaseOfflineToOnlineService {
             }
             //生成处方笺
             try {
-                //医生
-                CaSealRequestTO doctorRequestSealTO = createPdfFactory.queryPdfByte(recipe.getRecipeId(),true);
-                RecipeServiceEsignExt.updateInitRecipePDF(true, recipe, doctorRequestSealTO.getPdfBase64Str());
-                //药师
-                CaSealRequestTO checkerRequestSealTO = createPdfFactory.queryPdfByte(recipe.getRecipeId(),false);
-                RecipeServiceEsignExt.updateInitRecipePDF(false, recipe, checkerRequestSealTO.getPdfBase64Str());
+                createRecipePdf(recipe);
             }catch (Exception e){
                 LOGGER.error("BaseOfflineToOnlineService 线上转线上生成处方笺失败", e);
             }
@@ -1372,6 +1367,22 @@ public class BaseOfflineToOnlineService {
         //药品发生变更，删除关联信息
         deleteRecipeData(hisRecipeTo, hisRecipeMap, hisRecipeDetailList, patientDTO.getMpiId());
         LOGGER.info("BaseOfflineToOnlineService hisRecipeInfoCheck 方法结束");
+    }
+
+    /**
+     * 线下转线上-生成处方笺
+     * @param recipe 处方数据
+     *
+     */
+    private void createRecipePdf(Recipe recipe){
+        LOGGER.info("BaseOfflineToOnlineService createRecipePdf recipe={}",JSONUtils.toString(recipe));
+        //医生
+        CaSealRequestTO doctorRequestSealTO = createPdfFactory.queryPdfByte(recipe.getRecipeId(),true);
+        RecipeServiceEsignExt.updateInitRecipePDF(true, recipe, doctorRequestSealTO.getPdfBase64Str());
+        //药师
+        CaSealRequestTO checkerRequestSealTO = createPdfFactory.queryPdfByte(recipe.getRecipeId(),false);
+        RecipeServiceEsignExt.updateInitRecipePDF(false, recipe, checkerRequestSealTO.getPdfBase64Str());
+        LOGGER.info("BaseOfflineToOnlineService createRecipePdf 方法结束");
     }
 
 }

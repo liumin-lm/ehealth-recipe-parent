@@ -175,6 +175,9 @@ public class RecipeServiceSub {
     @Autowired
     private RevisitClient revisitClient;
 
+    private static PatientClient patientClient = AppContextHolder.getBean("patientClient", PatientClient.class);
+
+
     private static EmploymentService employmentService = ApplicationUtils.getBasicService(EmploymentService.class);
 
 
@@ -1600,7 +1603,7 @@ public class RecipeServiceSub {
         DrugsEnterpriseService drugsEnterpriseService = ApplicationUtils.getRecipeService(DrugsEnterpriseService.class);
         map.put("checkEnterprise", drugsEnterpriseService.checkEnterprise(recipe.getClinicOrgan()));
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
-        PatientDTO patientBean = patientService.get(recipe.getMpiid());
+        PatientDTO patientBean = patientClient.getPatient(recipe.getMpiid());
         PatientDTO patient = null;
         if (patientBean != null) {
             //添加患者标签和关注这些字段

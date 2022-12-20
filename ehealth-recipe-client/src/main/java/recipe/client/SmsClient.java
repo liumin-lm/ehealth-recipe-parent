@@ -73,4 +73,19 @@ public class SmsClient extends BaseClient {
         smsInfoBean.setOrganId(recipe.getClinicOrgan());
         this.pushMsgData2OnsExtendValue(smsInfoBean);
     }
+
+    /**
+     * 便捷购药手动开方通知医生
+     *
+     * @param organId
+     * @param doctorId
+     */
+    public void fastRecipeApplyToDoctor(Integer organId, Integer doctorId) {
+        SmsInfoBean smsInfoBean = new SmsInfoBean();
+        smsInfoBean.setBusType("fastRecipeApplyToDoctor");
+        smsInfoBean.setSmsType("fastRecipeApplyToDoctor");
+        smsInfoBean.setBusId(doctorId);
+        smsInfoBean.setOrganId(organId);
+        this.pushMsgData2OnsExtendValue(smsInfoBean);
+    }
 }

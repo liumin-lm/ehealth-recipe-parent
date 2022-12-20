@@ -1620,6 +1620,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         hql.append(" LEFT JOIN cdr_recipeorder o on r.orderCode = o.orderCode ");
         hql.append(" LEFT JOIN cdr_recipe_ext re ON r.RecipeID = re.recipeId ");
         hql.append(" where (r.recipeSourceType in (1,2) or r.recipeSourceType is null) ");
+        hql.append(" and r.delete_flag = 0");
         return generateRecipeOderWhereHQLforStatistics(hql,recipesQueryVO);
     }
 
@@ -1633,6 +1634,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         hql.append(" LEFT JOIN cdr_recipeorder o on r.orderCode = o.orderCode ");
         hql.append(" LEFT JOIN cdr_recipe_ext re ON r.RecipeID = re.recipeId ");
         hql.append(" where (r.recipeSourceType in (1,2) or r.recipeSourceType is null) ");
+        hql.append(" and r.delete_flag = 0");
         return generateRecipeOderWhereHQLforStatistics(hql,recipesQueryVO);
     }
 
@@ -1818,7 +1820,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 " LEFT JOIN cdr_recipeorder o on r.orderCode=o.orderCode " +
                 " left join cdr_recipedetail cr on cr.recipeId = r.recipeId  and cr.status =1 " +
                 " left join cdr_recipe_ext re on re.recipeId = r.recipeId " +
-                " where (r.recipeSourceType in (1,2) or r.recipeSourceType is null) ");
+                " where (r.recipeSourceType in (1,2) or r.recipeSourceType is null) and r.delete_flag = 0 ");
 
         return generateRecipeOderWhereHQLforStatistics(hql,recipesQueryVO);
     }
@@ -1835,7 +1837,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 " from cdr_recipe r " +
                 " LEFT JOIN cdr_recipeorder o on r.orderCode=o.orderCode " +
                 " left join cdr_recipe_ext re on re.recipeId = r.recipeId " +
-                " where (r.recipeSourceType in (1,2) or r.recipeSourceType is null) ");
+                " where (r.recipeSourceType in (1,2) or r.recipeSourceType is null) and r.delete_flag = 0 ");
 
         return generateRecipeOderWhereHQLforStatistics(hql,recipesQueryVO);
     }
@@ -1855,7 +1857,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         hql.append(" from cdr_recipe r LEFT JOIN cdr_recipeorder o on r.orderCode=o.orderCode ");
         hql.append("LEFT JOIN cdr_recipedetail d ON r.RecipeID = d.RecipeID")
                 .append(" LEFT JOIN cdr_recipe_ext re on re.recipeId = r.recipeId ");
-        hql.append(" where d.Status= 1 and (r.recipeSourceType in (1,2) or r.recipeSourceType is null) ");
+        hql.append(" where d.Status= 1 and (r.recipeSourceType in (1,2) or r.recipeSourceType is null) and r.delete_flag = 0  ");
 
         return generateRecipeOderWhereHQLforStatistics(hql,recipesQueryVO);
     }
@@ -3782,6 +3784,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      */
     @DAOMethod(sql = "from Recipe where clinicId=:clinicId and status not in(:status)")
     public abstract List<Recipe> findRecipeClinicIdAndStatus(@DAOParam("clinicId") Integer clinicId, @DAOParam("status") List<Integer> status);
+
+    @DAOMethod(sql = "from Recipe where clinicId=:clinicId and process_state in(:processState)")
+    public abstract List<Recipe> findRecipeClinicIdAndProcessState(@DAOParam("clinicId") Integer clinicId, @DAOParam("processState") List<Integer> processState);
 
     @DAOMethod(sql = "from Recipe where clinicId=:clinicId and bussSource=:bussSource  and status in(:status)")
     public abstract List<Recipe> findRecipeClinicIdAndStatusV1(@DAOParam("clinicId") Integer clinicId, @DAOParam("bussSource") Integer bussSource, @DAOParam("status") List<Integer> status);

@@ -144,6 +144,15 @@ public class FastRecipe {
     @ItemProperty(alias = "代煎帖数")
     private Integer decoctionNum;
 
+    @ItemProperty(alias = "处方支持的购药方式,逗号分隔")
+    private String recipeSupportGiveMode;
+
+    @ItemProperty(alias = "配送药企代码")
+    private String deliveryCode;
+
+    @ItemProperty(alias = "处方指定药企类型: 1医院, 2药企, 默认0")
+    private Integer appointEnterpriseType;
+
     @Id
     @GeneratedValue(strategy = IDENTITY)
     @Column(name = "id", unique = true, nullable = false)
@@ -512,5 +521,32 @@ public class FastRecipe {
 
     public void setDecoctionNum(Integer decoctionNum) {
         this.decoctionNum = decoctionNum;
+    }
+
+    @Column(name = "recipe_support_give_mode")
+    public String getRecipeSupportGiveMode() {
+        return recipeSupportGiveMode;
+    }
+
+    public void setRecipeSupportGiveMode(String recipeSupportGiveMode) {
+        this.recipeSupportGiveMode = recipeSupportGiveMode;
+    }
+
+    @Column(name = "delivery_code")
+    public String getDeliveryCode() {
+        return deliveryCode;
+    }
+
+    public void setDeliveryCode(String deliveryCode) {
+        this.deliveryCode = deliveryCode;
+    }
+
+    @Column(name = "appoint_enterprise_type")
+    public Integer getAppointEnterpriseType() {
+        return appointEnterpriseType;
+    }
+
+    public void setAppointEnterpriseType(Integer appointEnterpriseType) {
+        this.appointEnterpriseType = appointEnterpriseType;
     }
 }

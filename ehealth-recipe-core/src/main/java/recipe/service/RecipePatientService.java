@@ -870,8 +870,6 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
             }
             recipeExtend.setRecipeBusinessType(RecipeBusinessTypeEnum.BUSINESS_RECIPE_REVISIT.getType());
             recipeManager.setRecipeInfoFromRevisit(recipe, recipeExtend);
-            //设置购药方式
-            this.setRecipeSupportGiveMode(recipe);
             recipeManager.saveRecipeExtend(recipeExtend, recipe);
         }
         //保存处方明细
@@ -886,6 +884,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         try {
             //将处方写入HIS
             offlineRecipeBusinessService.pushRecipe(recipe.getRecipeId(), CommonConstant.RECIPE_PUSH_TYPE, CommonConstant.RECIPE_PATIENT_TYPE, null, null, null);
+            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType(), RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType(), "处方写入HIS成功");
         } catch (Exception e) {
             LOGGER.error("RecipePatientService pushRecipe error,recipeId:{}", recipe.getRecipeId(), e);
             //处方写入his失败

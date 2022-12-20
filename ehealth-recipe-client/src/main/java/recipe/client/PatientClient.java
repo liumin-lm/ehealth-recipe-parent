@@ -110,6 +110,14 @@ public class PatientClient extends BaseClient {
         return p;
     }
 
+    public com.ngari.patient.dto.PatientDTO getPatient(String mpiId) {
+        if (StringUtils.isEmpty(mpiId)) {
+            return null;
+        }
+        return patientService.get(mpiId);
+    }
+
+
     /**
      * 医保授权
      *
@@ -495,6 +503,9 @@ public class PatientClient extends BaseClient {
      */
     @Override
     public void setRecipeExt(Recipe recipe, RecipeExtend extend) {
+        if (StringUtils.isEmpty(recipe.getMpiid())) {
+            return;
+        }
         PatientDTO patient = this.getPatientDTO(recipe.getMpiid());
         extend.setGuardianName(patient.getGuardianName());
         extend.setGuardianCertificate(patient.getGuardianCertificate());

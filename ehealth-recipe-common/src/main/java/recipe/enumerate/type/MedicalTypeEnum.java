@@ -23,7 +23,7 @@ public enum MedicalTypeEnum {
 
 
     public static String getOldMedicalTypeText(String patientType) {
-        if (StringUtils.isNotEmpty(patientType)) {
+        if (StringUtils.isEmpty(patientType)) {
             return null;
         }
         if (patientType.equals("2")) {
