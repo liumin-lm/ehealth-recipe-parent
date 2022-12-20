@@ -161,12 +161,12 @@ public class RecipeDetailManager extends BaseManager {
         if (CollectionUtils.isEmpty(recipeIds)) {
             return null;
         }
-        List<Recipedetail> recipeDetails = recipeDetailDAO.findRecipeDetailSumTotalDose(recipeIds);
+        List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeIdList(recipeIds);
         logger.info("RecipeDetailManager findRecipeDetailSumTotalDose recipeDetails:{}", JSON.toJSONString(recipeDetails));
         if (CollectionUtils.isEmpty(recipeDetails)) {
             return null;
         }
-        return recipeDetails.stream().collect(Collectors.toMap(Recipedetail::getOrganDrugCode, Recipedetail::getUseTotalDose));
+        return recipeDetails.stream().collect(Collectors.groupingBy(Recipedetail::getOrganDrugCode, Collectors.summingDouble(Recipedetail::getUseTotalDose)));
     }
 
     /**
