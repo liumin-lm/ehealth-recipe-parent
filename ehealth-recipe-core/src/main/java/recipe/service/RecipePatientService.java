@@ -872,6 +872,10 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
             recipeManager.setRecipeInfoFromRevisit(recipe, recipeExtend);
             recipeManager.saveRecipeExtend(recipeExtend, recipe);
         }
+        if (StringUtils.isEmpty(recipeInfoVO.getRecipeBean().getRecipeSupportGiveMode())) {
+            //设置购药方式
+            this.setRecipeSupportGiveMode(recipe);
+        }
         //保存处方明细
         if (CollectionUtils.isNotEmpty(recipeInfoVO.getRecipeDetails())) {
             List<Recipedetail> details = ObjectCopyUtils.convert(recipeInfoVO.getRecipeDetails(), Recipedetail.class);
