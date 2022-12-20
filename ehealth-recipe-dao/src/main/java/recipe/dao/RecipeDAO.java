@@ -1692,6 +1692,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 hql.append(" and r.status =").append(recipesQueryVO.getStatus());
             }
         }
+        if (null != recipesQueryVO.getProcessState()) {
+            hql.append(" and r.processState =").append(recipesQueryVO.getProcessState());
+        }
         if (null != recipesQueryVO.getDoctor()) {
             hql.append(" and r.doctor=").append(recipesQueryVO.getDoctor());
         }
@@ -1811,7 +1814,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      */
     private StringBuilder generateRecipeMsgHQLforStatisticsV1(RecipesQueryVO recipesQueryVO) {
         StringBuilder hql = new StringBuilder("select r.recipeId,r.patientName,r.Mpiid mpiId,r.organName,r.depart,r.doctor,r.organDiseaseName," +
-                "o.recipeFee,r.totalMoney,r.checker,r.checkDateYs,r.fromflag,r.status,o.payTime, r.doctorName, r.giveUser, o.dispensingTime, " +
+                "o.recipeFee,r.totalMoney,r.checker,r.checkDateYs,r.fromflag,r.status,r.process_state,o.payTime, r.doctorName, r.giveUser, o.dispensingTime, " +
                 "sum(cr.useTotalDose) sumDose ,o.send_type sendType ,o.outTradeNo ,o.cashAmount,o.fundAmount,o.orderType,r.recipeType,r.bussSource," +
                 "r.recipeCode,re.recipe_business_type as recipeBusinessType, " +
                 "o.drugStoreName,o.enterpriseId,r.fast_recipe_flag as fastRecipeFlag, " +

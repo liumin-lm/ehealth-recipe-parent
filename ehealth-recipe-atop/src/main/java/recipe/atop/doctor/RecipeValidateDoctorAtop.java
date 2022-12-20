@@ -190,18 +190,13 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
             resultBean.setBool(true);
             return resultBean;
         }
-        //校验复诊下重复处方
-        ResultBean<String> result = recipeDetailService.validateRepeatRecipe(validateDetailVO);
-        if (!result.isBool()) {
-            return result;
-        }
         //校验复诊下重复药品数量
         ResultBean<String> detail = recipeDetailService.validateRepeatRecipeDetail(validateDetailVO);
-        if (result.isBool()) {
-            return result;
-        } else {
+        if (!detail.isBool()) {
             return detail;
         }
+        //校验复诊下重复处方
+        return recipeDetailService.validateRepeatRecipe(validateDetailVO);
     }
 
     /**

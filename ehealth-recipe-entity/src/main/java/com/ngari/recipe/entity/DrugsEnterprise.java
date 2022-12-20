@@ -95,6 +95,12 @@ public class DrugsEnterprise implements java.io.Serializable {
     @ItemProperty(alias = "校验药品库存标志 0 不需要校验 1 校验药企库存 2 药店没库存时可以备货 3 校验医院库存")
     private Integer checkInventoryFlag;
 
+    @ItemProperty(alias = "校验药品库存标志 0 全程都不校验 1 开方时校验 2 下单时校验 3 开方时和下单时都进行校验")
+    private Integer checkInventoryType;
+
+    @ItemProperty(alias = "库存校验途径 1 校验药企 2 药店没库存时可以备货 3 校验医院库存")
+    private Integer checkInventoryWay;
+
     @ItemProperty(alias = "创建类型：1：非自建  0：自建")
     @Dictionary(id = "eh.cdr.dictionary.DepType")
     private Integer createType;
@@ -394,6 +400,24 @@ public class DrugsEnterprise implements java.io.Serializable {
 
     public void setCheckInventoryFlag(Integer checkInventoryFlag) {
         this.checkInventoryFlag = checkInventoryFlag;
+    }
+
+    @Column(name = "check_inventory_type")
+    public Integer getCheckInventoryType() {
+        return checkInventoryType;
+    }
+
+    public void setCheckInventoryType(Integer checkInventoryType) {
+        this.checkInventoryType = checkInventoryType;
+    }
+
+    @Column(name = "check_inventory_way")
+    public Integer getCheckInventoryWay() {
+        return checkInventoryWay;
+    }
+
+    public void setCheckInventoryWay(Integer checkInventoryWay) {
+        this.checkInventoryWay = checkInventoryWay;
     }
 
     public Integer getCreateType() {

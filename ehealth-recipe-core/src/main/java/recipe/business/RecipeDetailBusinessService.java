@@ -214,38 +214,35 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
         resultBean.setData("5");
         List<String> organDrugCode = validateDetailVO.getRecipeDetails().stream().map(RecipeDetailBean::getOrganDrugCode).distinct().collect(Collectors.toList());
         List<OrganDrugList> organDrugList = organDrugListManager.findOrganDrugCode(validateDetailVO.getRecipeBean().getClinicOrgan(), organDrugCode);
-        List<OrganDrugList> drugList = organDrugList.stream().filter(a -> !ValidateUtil.integerIsEmpty(a.getMaximum())).collect(Collectors.toList());
-        if (CollectionUtils.isEmpty(drugList)) {
-            return resultBean;
-        }
         List<Integer> recipeIds = recipeManager.findRecipeByClinicIdAndProcessState(validateDetailVO.getRecipeBean().getClinicId(), validateDetailVO.getRecipeBean().getRecipeId(), RecipeStateEnum.RECIPE_REPEAT);
-        if (CollectionUtils.isEmpty(recipeIds)) {
-            return resultBean;
-        }
         Map<String, Double> sumTotalMap = recipeDetailManager.findRecipeDetailSumTotalDose(recipeIds);
+        Map<String, Double> detailTotalMap = validateDetailVO.getRecipeDetails().stream().collect(Collectors.toMap(RecipeDetailBean::getOrganDrugCode, RecipeDetailBean::getUseTotalDose));
+        logger.info("RecipeDetailBusinessService validateRepeatRecipeDetail detailTotalMap ={}, sumTotalMap={},detailTotalMap={} ", JSON.toJSONString(detailTotalMap), JSON.toJSONString(sumTotalMap), JSON.toJSONString(detailTotalMap));
         List<String> list = new ArrayList<>();
         organDrugList.forEach(a -> {
-            if (ValidateUtil.integerIsEmpty(a.getMaximum())) {
+            Double detailTotal = detailTotalMap.get(a.getOrganDrugCode());
+            if (ValidateUtil.validateObjects(detailTotal, a.getMaximum())) {
                 return;
             }
-            Double sum = sumTotalMap.get(a.getOrganDrugCode());
-            if (null == sum) {
+            Double sum = 0d;
+            if (null != sumTotalMap) {
+                sum = null == sumTotalMap.get(a.getOrganDrugCode()) ? sum : sumTotalMap.get(a.getOrganDrugCode());
+            }
+
+            if (sum + detailTotal <= a.getMaximum()) {
                 return;
             }
-            String s = "【" +
-                    a.getDrugName() + "】售药上限为" +
-                    a.getMaximum() + "【" +
-                    a.getUnit() + "】已开【" +
-                    sum + "】【" +
-                    a.getUnit() + "】，仅剩【" +
-                    (a.getMaximum() - sum) + "】【" +
-                    a.getUnit() + "】可开";
+
+            String s = "【" + a.getDrugName() + "】售药上限为【" + a.getMaximum() + a.getUnit()
+                    + "】已开【" + sum.intValue() + a.getUnit()
+                    + "】，仅剩【" + Math.max(a.getMaximum() - sum.intValue(), 0) + a.getUnit() + "】可开";
             list.add(s);
         });
         if (CollectionUtils.isNotEmpty(list)) {
             resultBean.setMsgList(list);
             resultBean.setBool(false);
         }
+        logger.info("RecipeDetailBusinessService validateRepeatRecipeDetail resultBean={}", JSON.toJSONString(resultBean));
         return resultBean;
     }
 

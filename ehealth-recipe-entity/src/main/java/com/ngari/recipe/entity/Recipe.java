@@ -151,6 +151,7 @@ public class Recipe implements Serializable {
 
     @ItemProperty(alias = "处方状态")
     @Dictionary(id = "eh.cdr.dictionary.RecipeStatus")
+
     private Integer status;
 
     @ItemProperty(alias = "来源标志")

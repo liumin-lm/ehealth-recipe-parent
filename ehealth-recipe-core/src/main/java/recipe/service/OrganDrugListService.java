@@ -506,6 +506,7 @@ public class OrganDrugListService implements IOrganDrugListService {
      * @author zhongzx
      */
     @RpcService
+    @LogRecord
     public OrganDrugListDTO updateOrganDrugList(OrganDrugList organDrugList) {
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);

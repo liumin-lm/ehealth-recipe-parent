@@ -50,6 +50,7 @@ import recipe.client.DrugClient;
 import recipe.client.RecipeAuditClient;
 import recipe.constant.*;
 import recipe.dao.*;
+import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.type.TakeMedicineWayEnum;
 import recipe.manager.ButtonManager;
 import recipe.manager.DepartManager;
@@ -222,6 +223,7 @@ public class OperationPlatformRecipeService {
         r.setAppointDepartName((null != appointDepart) ? appointDepart.getAppointDepartName() : "");
         //机构所属一级科室
         r.setOrganProfession((null != appointDepart) ? appointDepart.getOrganProfession() : null);
+        r.setSubStateText(RecipeStateEnum.getRecipeStateEnum(recipe.getSubState()).getName());
         LOGGER.info("findRecipeAndDetailsAndCheckById reicpeid={},r={}", recipeId, JSONUtils.toString(r));
         //取医生的手机号
         DoctorDTO doctor = new DoctorDTO();
