@@ -116,6 +116,9 @@ public class QueryRecipeService implements IQueryRecipeService {
     @Autowired
     private PharmacyTcmService pharmacyTcmService;
 
+    @Autowired
+    private DrugListDAO drugListDAO;
+
     /**
      * 用于sendRecipeToHIS 推送处方mq后 查询接口
      *
@@ -763,8 +766,11 @@ public class QueryRecipeService implements IQueryRecipeService {
             Date now = DateTime.now().toDate();
             com.ngari.recipe.common.OrganDrugChangeBean organDrugChangeBean = transFormOrganDrugChangeBean(organDrugChange);
             BeanUtils.copyProperties(organDrugChangeBean, organDrug, getNullPropertyNames(organDrugChangeBean));
-            if(StringUtils.isEmpty(organDrug.getDrugForm())){
-                organDrug.setDrugForm("中药饮片");
+            DrugList drugList = drugListDAO.getById(organDrug.getDrugId());
+            if(drugList != null){
+                if(StringUtils.isEmpty(organDrug.getDrugForm()) && new Integer(3).equals(drugList.getDrugType())){
+                    organDrug.setDrugForm("中药饮片");
+                }
             }
             organDrug.setLastModify(now);
             OrganDrugList nowOrganDrugList = organDrugListDAO.update(organDrug);
@@ -882,8 +888,11 @@ public class QueryRecipeService implements IQueryRecipeService {
                     //将设置为启用
                     OrganDrugList organDrugListAdd = organDrugsNo.get(0);
                     BeanUtils.copyProperties(organDrugList, organDrugListAdd, getNullPropertyNames(organDrugList));
-                    if(StringUtils.isEmpty(organDrugListAdd.getDrugForm())){
-                        organDrugListAdd.setDrugForm("中药饮片");
+                    DrugList drugList = drugListDAO.getById(organDrugList.getDrugId());
+                    if(drugList != null){
+                        if(StringUtils.isEmpty(organDrugListAdd.getDrugForm()) && new Integer(3).equals(drugList.getDrugType())){
+                            organDrugListAdd.setDrugForm("中药饮片");
+                        }
                     }
                     organDrugListAdd.setStatus(1);
                     organDrugListAdd.setLastModify(now);
@@ -922,8 +931,11 @@ public class QueryRecipeService implements IQueryRecipeService {
                     if (regulationFlag) {
                         organDrugList.setRegulationDrugCode(organDrugList.getDrugId().toString());
                     }
-                    if(StringUtils.isEmpty(organDrugList.getDrugForm())){
-                        organDrugList.setDrugForm("中药饮片");
+                    DrugList drugList = drugListDAO.getById(organDrugList.getDrugId());
+                    if(drugList != null){
+                        if(StringUtils.isEmpty(organDrugList.getDrugForm()) && new Integer(3).equals(drugList.getDrugType())){
+                            organDrugList.setDrugForm("中药饮片");
+                        }
                     }
                     OrganDrugList nowOrganDrugList = organDrugListDAO.save(organDrugList);
                     //同步药品到监管备案
@@ -980,8 +992,11 @@ public class QueryRecipeService implements IQueryRecipeService {
                 if (null == organDrugListChange.getUnavailable()) {
                     organDrugListChange.setUnavailable(0);
                 }
-                if(StringUtils.isEmpty(organDrugListChange.getDrugForm())){
-                    organDrugListChange.setDrugForm("中药饮片");
+                DrugList drugList = drugListDAO.getById(organDrugList.getDrugId());
+                if(drugList != null){
+                    if(StringUtils.isEmpty(organDrugListChange.getDrugForm()) && new Integer(3).equals(drugList.getDrugType())){
+                        organDrugListChange.setDrugForm("中药饮片");
+                    }
                 }
                 LOGGER.info("updateOrSaveOrganDrug 更新机构药品信息{}", JSONUtils.toString(organDrugListChange));
                 OrganDrugList nowOrganDrugList = organDrugListDAO.update(organDrugListChange);
