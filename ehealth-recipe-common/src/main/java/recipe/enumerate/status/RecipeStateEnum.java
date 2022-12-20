@@ -116,6 +116,11 @@ public enum RecipeStateEnum {
      * 用药记录列表展示状态【待审核、待购药、待发药、待取药、配送中、已完成、已作废】
      */
     public static final Integer[] HISTORYRECIPELIST_SHOW_PROCESSSTATES = {RecipeStateEnum.PROCESS_STATE_AUDIT.getType(), RecipeStateEnum.PROCESS_STATE_ORDER.getType(), RecipeStateEnum.PROCESS_STATE_DISPENSING.getType(), RecipeStateEnum.PROCESS_STATE_DISTRIBUTION.getType(), RecipeStateEnum.PROCESS_STATE_MEDICINE.getType(), RecipeStateEnum.PROCESS_STATE_DONE.getType(), RecipeStateEnum.PROCESS_STATE_CANCELLATION.getType()};
+    /**
+     *
+     */
+    public static final List<Integer> RECIPE_REPEAT = Arrays.asList(PROCESS_STATE_AUDIT.type, PROCESS_STATE_ORDER.type, PROCESS_STATE_DISPENSING.type, PROCESS_STATE_DISTRIBUTION.type, PROCESS_STATE_MEDICINE.type, PROCESS_STATE_DONE.type);
+
 
     /**
      * 根据类型 获取枚举类型

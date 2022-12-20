@@ -17,6 +17,7 @@ import recipe.client.IConfigurationClient;
 import recipe.core.api.IRecipeDetailBusinessService;
 import recipe.dao.RecipeDetailDAO;
 import recipe.drugTool.validate.RecipeDetailValidateTool;
+import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.manager.*;
 import recipe.util.MapValueUtil;
@@ -217,7 +218,7 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
         if (CollectionUtils.isEmpty(drugList)) {
             return resultBean;
         }
-        List<Integer> recipeIds = recipeManager.findRecipeByClinicIdAndProcessState(validateDetailVO.getRecipeBean().getClinicId(), validateDetailVO.getRecipeBean().getRecipeId(), RecipeStatusEnum.RECIPE_REPEAT);
+        List<Integer> recipeIds = recipeManager.findRecipeByClinicIdAndProcessState(validateDetailVO.getRecipeBean().getClinicId(), validateDetailVO.getRecipeBean().getRecipeId(), RecipeStateEnum.RECIPE_REPEAT);
         if (CollectionUtils.isEmpty(recipeIds)) {
             return resultBean;
         }
@@ -231,16 +232,15 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
             if (null == sum) {
                 return;
             }
-            StringBuilder s = new StringBuilder();
-            s.append("【");
-            s.append(a.getDrugName()).append("】售药上限为");
-            s.append(a.getMaximum()).append("【");
-            s.append(a.getUnit()).append("】已开【");
-            s.append(sum).append("】【");
-            s.append(a.getUnit()).append("】，仅剩【");
-            s.append(a.getMaximum() - sum).append("】【");
-            s.append(a.getUnit()).append("】可开");
-            list.add(s.toString());
+            String s = "【" +
+                    a.getDrugName() + "】售药上限为" +
+                    a.getMaximum() + "【" +
+                    a.getUnit() + "】已开【" +
+                    sum + "】【" +
+                    a.getUnit() + "】，仅剩【" +
+                    (a.getMaximum() - sum) + "】【" +
+                    a.getUnit() + "】可开";
+            list.add(s);
         });
         if (CollectionUtils.isNotEmpty(list)) {
             resultBean.setMsgList(list);
