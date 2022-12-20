@@ -115,4 +115,20 @@ public abstract class CommonRecipeDAO extends HibernateSupportDelegateDAO<Common
 
     @DAOMethod(sql = "from CommonRecipe where commonRecipeId=:commonRecipeId")
     public abstract CommonRecipe getByCommonRecipeId(@DAOParam("commonRecipeId") Integer commonRecipeId);
+
+    /**
+     * 根据机构跟医生id获取为同步过的常用方
+     * @param organId
+     * @param doctorId
+     * @return
+     */
+    @DAOMethod(limit = 0, sql = "from CommonRecipe where doctorId=:doctorId and organId=:organId and validateStatus=0")
+    public abstract List<CommonRecipe> findCommonRecipeListByOrganIdAndDoctorId(@DAOParam("organId") Integer organId, @DAOParam("doctorId") Integer doctorId);
+
+    /**
+     * 根据常用方id变更同步状态
+     * @param commonIds
+     */
+    @DAOMethod(sql = "update CommonRecipe set validateStatus = 1 where commonRecipeId in (:commonIds)", limit = 0)
+    public abstract void updateCommonRecipeStatus(@DAOParam("commonIds")List<Integer> commonIds);
 }

@@ -10,11 +10,15 @@ import com.ngari.recipe.dto.HisRecipeDTO;
 import com.ngari.recipe.dto.ValidateOrganDrugDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RecipeBean;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import eh.entity.base.UsePathways;
 import eh.entity.base.UsingRate;
+import eh.utils.BeanCopyUtils;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,11 +30,13 @@ import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.client.DrugClient;
 import recipe.constant.ErrorCode;
 import recipe.core.api.doctor.ICommonRecipeBusinessService;
+import recipe.enumerate.status.RecipeSourceTypeEnum;
 import recipe.enumerate.type.RecipeDrugFormTypeEnum;
 import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.manager.*;
 import recipe.util.ByteUtils;
 import recipe.util.MapValueUtil;
+import recipe.vo.doctor.RecipeInfoVO;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -319,6 +325,82 @@ public class CommonRecipeBusinessService extends BaseService implements ICommonR
     @Override
     public HisRecipeDTO offlineCommonV1(Integer organId, String commonRecipeCode) {
         return commonRecipeManager.offlineCommonV1(organId, commonRecipeCode);
+    }
+
+    @Override
+    public List<RecipeInfoVO> syncHistoryCommonRecipe(Integer organId, Integer doctorId) {
+        List<CommonRecipe> commonRecipeList = commonRecipeManager.findCommonRecipeListByOrganIdAndDoctorId(organId, doctorId);
+        if(CollectionUtils.isEmpty(commonRecipeList)){
+            logger.info("没有查询到常用方信息 organId={};doctorId={}",organId,doctorId);
+            return null;
+        }
+        List<RecipeInfoVO> recipeInfoVOS = CommonRecipeConvertRecipeInfo(organId,commonRecipeList);
+
+        return recipeInfoVOS;
+    }
+
+    @Override
+    public void updateCommonRecipeStatus(List<Integer> commonIds) {
+        commonRecipeManager.updateCommonRecipeStatus(commonIds);
+    }
+
+    /**
+     * 常用方转换处方
+     * @param commonRecipeList
+     * @return
+     */
+    private List<RecipeInfoVO> CommonRecipeConvertRecipeInfo(Integer organId,List<CommonRecipe> commonRecipeList) {
+        List<Integer> commonRecipeIds = commonRecipeList.stream().map(CommonRecipe::getCommonRecipeId).collect(Collectors.toList());
+        Map<Integer, CommonRecipeExt> commonRecipeExtMap = commonRecipeManager.commonRecipeExtDTOMap(commonRecipeIds);
+        Map<Integer, List<com.ngari.recipe.dto.CommonRecipeDrugDTO>> commonRecipeDrugMap = commonRecipeManager.commonDrugGroup(organId, commonRecipeIds);
+        List<RecipeInfoVO> recipeInfoVOS = commonRecipeList.stream().map(commonRecipe -> {
+
+            RecipeInfoVO recipeInfoVO = new RecipeInfoVO();
+            recipeInfoVO.setCommonRecipeId(commonRecipe.getCommonRecipeId());
+            RecipeBean recipeBean = new RecipeBean();
+            recipeBean.setDoctor(commonRecipe.getDoctorId());
+            recipeBean.setOfflineRecipeName(commonRecipe.getCommonRecipeName());
+            recipeBean.setRecipeType(commonRecipe.getRecipeType());
+            recipeBean.setClinicOrgan(commonRecipe.getOrganId());
+            recipeBean.setRecipeCode(commonRecipe.getCommonRecipeCode());
+            recipeBean.setRecipeSourceType(RecipeSourceTypeEnum.COMMON_RECIPE.getType());
+
+            RecipeExtendBean recipeExtendBean = new RecipeExtendBean();
+            recipeExtendBean.setIsLongRecipe(commonRecipe.getIsLongRecipe());
+            recipeExtendBean.setRecipeJsonConfig(commonRecipe.getRecipeJsonConfig());
+            if (MapUtils.isNotEmpty(commonRecipeExtMap) && Objects.nonNull(commonRecipeExtMap.get(commonRecipe.getCommonRecipeId()))){
+                CommonRecipeExt commonRecipeExt = commonRecipeExtMap.get(commonRecipe.getCommonRecipeId());
+                recipeExtendBean.setMakeMethodId(commonRecipeExt.getMakeMethodId());
+                recipeExtendBean.setMakeMethodText(commonRecipeExt.getMakeMethodText());
+                recipeExtendBean.setEveryTcmNumFre(commonRecipeExt.getEveryTcmNumFre());
+                recipeExtendBean.setJuice(commonRecipeExt.getJuice());
+                recipeExtendBean.setJuiceUnit(commonRecipeExt.getJuiceUnit());
+                recipeExtendBean.setMinor(commonRecipeExt.getMinor());
+                recipeExtendBean.setMinorUnit(commonRecipeExt.getMinorUnit());
+                recipeExtendBean.setDecoctionId(commonRecipeExt.getDecoctionId());
+                recipeExtendBean.setDecoctionText(commonRecipeExt.getDecoctionText());
+                recipeBean.setCopyNum(commonRecipeExt.getCopyNum());
+                recipeBean.setMemo(commonRecipeExt.getEntrust());
+            }
+
+            List<RecipeDetailBean> recipeDetails = new ArrayList<>();
+            if (MapUtils.isNotEmpty(commonRecipeDrugMap) && CollectionUtils.isNotEmpty(commonRecipeDrugMap.get(commonRecipe.getCommonRecipeId()))) {
+                List<com.ngari.recipe.dto.CommonRecipeDrugDTO> commonRecipeDrugDTOS = commonRecipeDrugMap.get(commonRecipe.getCommonRecipeId());
+                commonRecipeDrugDTOS.forEach(commonRecipeDrugDTO -> {
+                    RecipeDetailBean recipeDetailBean = new RecipeDetailBean();
+                    BeanCopyUtils.copy(commonRecipeDrugDTO, recipeDetailBean);
+                    recipeDetailBean.setPharmacyCode(commonRecipeDrugDTO.getOrganPharmacyId());
+                    recipeDetailBean.setStatus(commonRecipeDrugDTO.getDrugStatus());
+                    recipeDetails.add(recipeDetailBean);
+                });
+
+            }
+            recipeInfoVO.setRecipeDetails(recipeDetails);
+            recipeInfoVO.setRecipeBean(recipeBean);
+            recipeInfoVO.setRecipeExtendBean(recipeExtendBean);
+            return recipeInfoVO;
+        }).collect(Collectors.toList());
+        return recipeInfoVOS;
     }
 
     /**
