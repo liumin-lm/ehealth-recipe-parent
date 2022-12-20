@@ -1692,6 +1692,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 hql.append(" and r.status =").append(recipesQueryVO.getStatus());
             }
         }
+        if (null != recipesQueryVO.getProcessState()) {
+            hql.append(" and r.processState =").append(recipesQueryVO.getProcessState());
+        }
         if (null != recipesQueryVO.getDoctor()) {
             hql.append(" and r.doctor=").append(recipesQueryVO.getDoctor());
         }

@@ -37,6 +37,12 @@ public class RecipeInfoExportDTO implements Serializable {
     private Integer fromflag;
     @Dictionary(id = "eh.cdr.dictionary.RecipeStatus")
     private Integer status;
+    @ItemProperty(alias = "处方父状态：0：默认 ， 1：待提交，2：待审核，3：待够药，4：待发药，5：配送中，6：待取药，7：已完成，8：已删除 ，9：已作废")
+    @Dictionary(id = "eh.recipe.recipeState.process")
+    private Integer processState;
+    @ItemProperty(alias = "处方子状态")
+    private Integer subState;
+
     private Date payTime;
     private String doctorName;
     private Integer sumDose;
@@ -97,6 +103,22 @@ public class RecipeInfoExportDTO implements Serializable {
 
     public void setDrugStoreName(String drugStoreName) {
         this.drugStoreName = drugStoreName;
+    }
+
+    public Integer getProcessState() {
+        return processState;
+    }
+
+    public void setProcessState(Integer processState) {
+        this.processState = processState;
+    }
+
+    public Integer getSubState() {
+        return subState;
+    }
+
+    public void setSubState(Integer subState) {
+        this.subState = subState;
     }
 
     @Id
