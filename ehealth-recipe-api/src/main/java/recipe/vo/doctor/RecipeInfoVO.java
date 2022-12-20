@@ -4,6 +4,7 @@ import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.model.RecipeExtendBean;
+import ctd.schema.annotation.ItemProperty;
 import lombok.Getter;
 import lombok.Setter;
 import recipe.vo.second.OrganVO;
@@ -66,4 +67,9 @@ public class RecipeInfoVO {
      * 药方购买数量
      */
     private Integer buyNum;
+
+    /**
+     * 老常用方id
+     */
+    private Integer commonRecipeId;
 }
