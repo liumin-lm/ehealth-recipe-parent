@@ -3785,6 +3785,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     @DAOMethod(sql = "from Recipe where clinicId=:clinicId and status not in(:status)")
     public abstract List<Recipe> findRecipeClinicIdAndStatus(@DAOParam("clinicId") Integer clinicId, @DAOParam("status") List<Integer> status);
 
+    @DAOMethod(sql = "from Recipe where clinicId=:clinicId and process_state in(:processState)")
+    public abstract List<Recipe> findRecipeClinicIdAndProcessState(@DAOParam("clinicId") Integer clinicId, @DAOParam("processState") List<Integer> processState);
+
     @DAOMethod(sql = "from Recipe where clinicId=:clinicId and bussSource=:bussSource  and status in(:status)")
     public abstract List<Recipe> findRecipeClinicIdAndStatusV1(@DAOParam("clinicId") Integer clinicId, @DAOParam("bussSource") Integer bussSource, @DAOParam("status") List<Integer> status);
 

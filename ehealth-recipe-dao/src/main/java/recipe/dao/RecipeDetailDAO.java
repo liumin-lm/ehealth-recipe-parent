@@ -1,7 +1,5 @@
 package recipe.dao;
 
-import com.ngari.recipe.drugsenterprise.model.DrugEnterpriseLogisticsBean;
-import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;
@@ -10,7 +8,6 @@ import ctd.persistence.support.hibernate.HibernateSupportDelegateDAO;
 import ctd.persistence.support.hibernate.template.AbstractHibernateStatelessResultAction;
 import ctd.persistence.support.hibernate.template.HibernateSessionTemplate;
 import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction;
-import ctd.util.BeanUtils;
 import ctd.util.annotation.RpcSupportDAO;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.log4j.Logger;
@@ -18,8 +15,8 @@ import org.hibernate.Query;
 import org.hibernate.StatelessSession;
 import org.hibernate.Transaction;
 import recipe.dao.comment.ExtendDao;
+import recipe.util.ValidateUtil;
 
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -270,7 +267,6 @@ public abstract class RecipeDetailDAO extends
      * @return
      */
     public Integer getRecipeIdByOrganIdAndInvoiceNo(final int organId, final String invoiceNo) {
-        StringBuilder drugNames = new StringBuilder();
         HibernateStatelessResultAction<Integer> action = new AbstractHibernateStatelessResultAction<Integer>() {
             public void execute(StatelessSession ss) throws DAOException {
                 StringBuilder hql = new StringBuilder();
@@ -290,6 +286,24 @@ public abstract class RecipeDetailDAO extends
         HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
+
+    public List<Recipedetail> findRecipeDetailSumTotalDose(List<Integer> recipeIds) {
+        HibernateStatelessResultAction<List<Recipedetail>> action = new AbstractHibernateStatelessResultAction<List<Recipedetail>>() {
+            @Override
+            public void execute(StatelessSession ss) throws DAOException {
+                StringBuilder sql = new StringBuilder();
+                sql.append("select OrganDrugCode,sum(UseTotalDose) as UseTotalDose  from cdr_recipedetail" +
+                        " where RecipeID in (:recipeIds) group by OrganDrugCode");
+                Query q = ss.createSQLQuery(sql.toString()).addEntity(Recipedetail.class);
+                q.setParameter("recipeIds", recipeIds);
+                List<Recipedetail> list = q.list();
+                setResult(list);
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
 
     /**
      * 供 处方单详情服务 调用
@@ -329,6 +343,34 @@ public abstract class RecipeDetailDAO extends
                     ss.update(recipedetail);
 
                 });
+                transaction.commit();
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
+    /**
+     * 批量保存
+     *
+     * @param details
+     * @return
+     */
+    public Boolean saveRecipeDetails(List<Recipedetail> details) {
+        if (CollectionUtils.isEmpty(details)) {
+            return true;
+        }
+        HibernateStatelessResultAction<Boolean> action = new AbstractHibernateStatelessResultAction<Boolean>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                Transaction transaction = ss.beginTransaction();
+                for (Recipedetail detail : details) {
+                    if (ValidateUtil.integerIsEmpty(detail.getRecipeDetailId())) {
+                        ss.insert(detail);
+                    } else {
+                        ss.update(detail);
+                    }
+                }
                 transaction.commit();
             }
         };

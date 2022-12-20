@@ -230,6 +230,9 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
                 throw new DAOException(ErrorCode.SERVICE_ERROR, "当前处方不是暂存状态,不能操作");
             }
         }
+        if (!ValidateUtil.integerIsEmpty(recipeInfoVO.getRecipeBean().getRecipeId()) && null != recipeInfoVO.getRecipeExtendBean()) {
+            recipeInfoVO.getRecipeExtendBean().setRecipeId(recipeInfoVO.getRecipeBean().getRecipeId());
+        }
         return recipeBusinessService.stagingRecipe(recipeInfoVO);
     }
 }

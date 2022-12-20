@@ -194,6 +194,7 @@ public class EmrRecipeManager extends BaseManager {
      */
     @Deprecated
     public static void getMedicalInfo(Recipe recipe, RecipeExtend recipeExtend) {
+        logger.info("EmrRecipeManager getMedicalInfo recipeId={}", recipe.getRecipeId());
         if (null == recipeExtend) {
             logger.info("EmrRecipeManager getMedicalInfo RecipeId={}", recipe.getRecipeId());
             return;
@@ -256,7 +257,7 @@ public class EmrRecipeManager extends BaseManager {
                 logger.error("EmrRecipeManager getMultiSearch error detailDTO={}", JSON.toJSONString(detailDTO));
             }
         }
-        logger.debug("EmrRecipeManager getMultiSearch recipe={}", JSONUtils.toString(recipe));
+        logger.info("EmrRecipeManager getMedicalInfo recipe={}", JSONUtils.toString(recipe));
     }
 
 

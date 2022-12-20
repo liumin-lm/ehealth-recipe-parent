@@ -505,14 +505,6 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
                 String accessToken = HztService.findSMKTokenForPay(order.getMpiId(), "hzsmk.ios");
                 simpleBusObject.setFaceToken(order.getSmkFaceToken());
                 simpleBusObject.setAccessToken(accessToken);
-                if (!ObjectUtils.isEmpty(recipeBean.getDoctor())) {
-                    EmploymentService employmentService = BasicAPI.getService(EmploymentService.class);
-                    EmploymentDTO employment = employmentService.getPrimaryEmpByDoctorId(recipeBean.getDoctor());
-                    if (null != employment) {
-                        simpleBusObject.setDoctorId(employment.getJobNumber());
-                        simpleBusObject.setDoctorName(recipeBean.getDoctorName());
-                    }
-                }
 
                 // 默认false
                 simpleBusObject.setIsTeams("false");
@@ -532,6 +524,14 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
                     }
                 } catch (Exception e) {
                     log.info("获取健康卡错误", e);
+                }
+            }
+            if (!ObjectUtils.isEmpty(recipeBean.getDoctor())) {
+                EmploymentService employmentService = BasicAPI.getService(EmploymentService.class);
+                EmploymentDTO employment = employmentService.getPrimaryEmpByDoctorId(recipeBean.getDoctor());
+                if (null != employment) {
+                    simpleBusObject.setDoctorId(employment.getJobNumber());
+                    simpleBusObject.setDoctorName(recipeBean.getDoctorName());
                 }
             }
 
