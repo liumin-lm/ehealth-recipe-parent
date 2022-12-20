@@ -229,7 +229,7 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
                 sum = null == sumTotalMap.get(a.getOrganDrugCode()) ? sum : sumTotalMap.get(a.getOrganDrugCode());
             }
 
-            if (sum + detailTotal > a.getMaximum()) {
+            if (sum + detailTotal <= a.getMaximum()) {
                 return;
             }
 
