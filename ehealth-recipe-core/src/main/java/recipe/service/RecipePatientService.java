@@ -847,7 +847,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         RecipeUtil.setDefaultData(recipe);
         recipe.setFastRecipeFlag(1);
         recipe.setAuditState(RecipeAuditStateEnum.PASS.getType());
-        String ca=caManager.obtainFastRecipeCaParam(recipe);
+        String ca = caManager.obtainFastRecipeCaParam(recipe);
         if(!CaConstant.ESIGN.equals(ca)){
             recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_SIGN_ING_CODE_DOC.getType());
             recipe.setChecker(null);

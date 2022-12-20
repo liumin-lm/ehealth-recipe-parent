@@ -121,6 +121,7 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
             if (Objects.isNull(fastRecipe)) {
                 return null;
             }
+            List<FastRecipeDetail> fastRecipeDetailList = fastRecipeDetailDAO.findFastRecipeDetailsByFastRecipeId(fastRecipe.getId());
             //1.参数设置默认值
             RecipeBean recipeBean = recipeInfoVO.getRecipeBean();
             recipeBean.setStatus(RecipeStatusEnum.RECIPE_STATUS_UNSIGNED.getType());
@@ -149,7 +150,12 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
             recipeBean.setDecoctionNum(fastRecipe.getDecoctionNum());
             recipeBean.setRecipeSupportGiveMode(fastRecipe.getRecipeSupportGiveMode());
             recipeBean.setRecipeMemo(fastRecipe.getRecipeMemo());
-
+            if (CollectionUtils.isNotEmpty(fastRecipeDetailList)) {
+                if (!new Integer(3).equals(fastRecipeDetailList.get(0).getType())) {
+                    //不是保密方
+                    recipeBean.setOfflineRecipeName("");
+                }
+            }
             RecipeExtendBean recipeExtendBean = recipeInfoVO.getRecipeExtendBean();
             recipeExtendBean.setMakeMethodId(fastRecipe.getMakeMethodId());
             recipeExtendBean.setMakeMethodText(fastRecipe.getMakeMethodText());
