@@ -357,6 +357,18 @@ public class Recipe implements Serializable {
     @ItemProperty(alias = "代煎帖数")
     private Integer decoctionNum;
 
+    @ItemProperty(alias = "删除标识 0 否 1 是")
+    private Integer deleteFlag;
+
+    @Column(name = "delete_flag")
+    public Integer getDeleteFlag() {
+        return deleteFlag;
+    }
+
+    public void setDeleteFlag(Integer deleteFlag) {
+        this.deleteFlag = deleteFlag;
+    }
+
     @Column(name = "doctor_sign_state")
     public Integer getDoctorSignState() {
         return doctorSignState;
