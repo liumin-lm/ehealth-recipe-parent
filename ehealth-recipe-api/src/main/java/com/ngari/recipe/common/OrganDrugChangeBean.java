@@ -130,6 +130,17 @@ public class OrganDrugChangeBean implements Serializable {
     @ItemProperty(alias = "his药品分类编码")
     private String hisDrugClassCode;
 
+    @ItemProperty(alias = "开药数量限制")
+    private Integer maximum;
+
+    public Integer getMaximum() {
+        return maximum;
+    }
+
+    public void setMaximum(Integer maximum) {
+        this.maximum = maximum;
+    }
+
     public Integer getSkinTestDrugFlag() {
         return skinTestDrugFlag;
     }

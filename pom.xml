@@ -37,7 +37,7 @@
         <ngari.recipeaudit.version>4.9.2.8.master-SNAPSHOT</ngari.recipeaudit.version>
         <ngari.consult.version>4.4.2.7.master-SNAPSHOT</ngari.consult.version>
         <ngari.networkclinic.version>4.1.1.9.master-SNAPSHOT</ngari.networkclinic.version>
-        <ngari.hisapi.version>4.12.1.5.master-SNAPSHOT</ngari.hisapi.version>
+        <ngari.hisapi.version>4.12.2.7.master-SNAPSHOT</ngari.hisapi.version>
         <ngari.baseapi.version>4.9.1.5.master-SNAPSHOT</ngari.baseapi.version>
         <ngari.opbase.version>4.1.1.9.master-SNAPSHOT</ngari.opbase.version>
         <ngari.utils.version>4.6.2.0.master-SNAPSHOT</ngari.utils.version>
