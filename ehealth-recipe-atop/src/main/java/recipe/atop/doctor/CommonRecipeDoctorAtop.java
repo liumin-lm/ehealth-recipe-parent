@@ -255,7 +255,7 @@ public class CommonRecipeDoctorAtop extends BaseAtop {
                 logger.error("同步历史常用方失败,常用方名称={} , 常用方id={}",recipeInfoVO.getRecipeBean().getOfflineRecipeName(),recipeInfoVO.getCommonRecipeId());
             }
         }
-        logger.info("同步成功的常用方id={}", JSONArray.toJSONString(commonIds));
+        logger.info("同步成功的常用方id = {}", JSONArray.toJSONString(commonIds));
         commonRecipeService.updateCommonRecipeStatus(commonIds);
     }
 
