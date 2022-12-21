@@ -35,7 +35,6 @@ public class RecipeNoAuthGmAtop extends BaseAtop {
         List<FastRecipe> fastRecipeList = fastRecipeService.findFastRecipeListByParam(fastRecipeReq);
         if (CollectionUtils.isNotEmpty(fastRecipeList)) {
             FastRecipeVO fastRecipeVO = BeanUtils.map(fastRecipeList.get(0), FastRecipeVO.class);
-            isAuthorisedOrgan(fastRecipeVO.getClinicOrgan());
             List<FastRecipeDetail> fastRecipeDetailList = fastRecipeService.findFastRecipeDetailsByFastRecipeId(fastRecipeList.get(0).getId());
             fastRecipeVO.setFastRecipeDetailList(BeanCopyUtils.copyList(fastRecipeDetailList, FastRecipeDetailVO::new));
             if (Integer.valueOf(3).equals(fastRecipeDetailList.get(0).getType())) {
