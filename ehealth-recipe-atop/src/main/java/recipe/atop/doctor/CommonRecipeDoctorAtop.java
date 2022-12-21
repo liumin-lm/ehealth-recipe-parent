@@ -242,17 +242,20 @@ public class CommonRecipeDoctorAtop extends BaseAtop {
         }
         List<Integer> commonIds = new ArrayList<>();
         for (RecipeInfoVO recipeInfoVO : recipeInfoVOs) {
-            if(Objects.isNull(recipeInfoVO.getRecipeBean())){
+            if (Objects.isNull(recipeInfoVO.getRecipeBean())) {
+                continue;
+            }
+            if (CollectionUtils.isEmpty(recipeInfoVO.getRecipeDetails())) {
                 continue;
             }
             try {
                 recipeBusinessService.stagingRecipe(recipeInfoVO);
                 commonIds.add(recipeInfoVO.getCommonRecipeId());
             } catch (Exception e) {
-                logger.error("同步历史常用方失败,常用方名称={}",recipeInfoVO.getRecipeBean().getOfflineRecipeName());
+                logger.error("同步历史常用方失败,常用方名称={} , 常用方id={}",recipeInfoVO.getRecipeBean().getOfflineRecipeName(),recipeInfoVO.getCommonRecipeId());
             }
         }
-        logger.info("同步成功的常用方id={}", JSONArray.toJSONString(commonIds));
+        logger.info("同步成功的常用方id = {}", JSONArray.toJSONString(commonIds));
         commonRecipeService.updateCommonRecipeStatus(commonIds);
     }
 

@@ -4709,7 +4709,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder();
-                hql.append("from Recipe r where doctor=:doctorId and clinicOrgan=:organId and recipeSourceType = 4 ");
+                hql.append("from Recipe r where doctor=:doctorId and clinicOrgan=:organId and recipeSourceType = 4 and processState = 1  ");
 
                 hql.append("order by createDate desc ");
                 Query query = ss.createQuery(hql.toString());

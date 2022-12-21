@@ -279,9 +279,9 @@ public class StateManager extends BaseManager {
         }
 
         Recipe updateRecipe = new Recipe();
-        //药师审核未通过 只要不是审核不通过
-        if (RecipeStateEnum.SUB_CANCELLATION_AUDIT_NOT_PASS != subState
-                && RecipeAuditStateEnum.PENDING_REVIEW.getType().equals(recipe.getAuditState())) {
+        //药师未审核和医生二次确认的改为无需审核
+        if (RecipeAuditStateEnum.FAIL_DOC_CONFIRMING.getType().equals(recipe.getAuditState())
+                || RecipeAuditStateEnum.PENDING_REVIEW.getType().equals(recipe.getAuditState())) {
             updateRecipe.setAuditState(RecipeAuditStateEnum.NO_REVIEW.getType());
         }
         updateRecipe.setRecipeId(recipe.getRecipeId());
