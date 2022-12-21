@@ -1163,6 +1163,7 @@ public class QueryRecipeService implements IQueryRecipeService {
             request.setNationalStandardDrugFlag(organDrugChangeBean.getNationalStandardDrugFlag());
             request.setHisDrugClassCode(organDrugChangeBean.getHisDrugClassCode());
             request.setHisDrugClassName(organDrugChangeBean.getHisDrugClassName());
+            request.setMaximum(organDrugChangeBean.getMaximum());
 
         } catch (Exception e) {
             //抛出异常信息，返回空数组

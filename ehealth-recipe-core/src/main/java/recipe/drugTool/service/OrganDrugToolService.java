@@ -1059,6 +1059,15 @@ public class OrganDrugToolService implements IOrganDrugToolService {
                 validMsg.append("国家标准药品有误").append(";");
             }
 
+            try {
+                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(56)))) {
+                    drug.setMaximum(Integer.parseInt(getStrFromCell(cells.get(56))));
+                }
+            } catch (Exception e) {
+                LOGGER.error("单次就诊开药上限有误 ," + e.getMessage(), e);
+                validMsg.append("单次就诊开药上限有误").append(";");
+            }
+
             if (!ObjectUtils.isEmpty(organId)) {
                 DrugSourcesDAO dao = DAOFactory.getDAO(DrugSourcesDAO.class);
                 List<DrugSources> byDrugSourcesId = dao.findByDrugSourcesId(organId);
