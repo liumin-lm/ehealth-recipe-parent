@@ -33,6 +33,7 @@ import org.springframework.stereotype.Service;
 import recipe.client.DocIndexClient;
 import recipe.client.RecipeAuditClient;
 import recipe.client.RecipeHisClient;
+import recipe.client.factory.recipedate.RecipeDataSaveFactory;
 import recipe.common.CommonConstant;
 import recipe.common.UrlConfig;
 import recipe.constant.RecipeBussConstant;
@@ -80,6 +81,9 @@ public class RecipeManager extends BaseManager {
     private RequirementsForTakingDao requirementsForTakingDao;
     @Autowired
     private RecipeHisClient recipeHisClient;
+    @Autowired
+    private RecipeDataSaveFactory recipeDataSaveFactory;
+
 
     /**
      * 保存处方信息
@@ -99,7 +103,35 @@ public class RecipeManager extends BaseManager {
     }
 
     /**
+     * 保存处方信息
+     * 设置处方默认数据
+     *
+     * @param recipe 前端传入的处方对象
+     */
+    public Recipe saveStagingRecipe(Recipe recipe) {
+        if (null == recipe) {
+            throw new DAOException("recipe不能为空");
+        }
+        recipeDataSaveFactory.setRecipeList(recipe);
+        return this.saveRecipe(recipe);
+    }
+
+    /**
      * 保存处方扩展信息
+     *
+     * @param extend 扩展信息
+     * @param recipe 处方信息
+     */
+    public void saveStagingRecipeExt(RecipeExtend extend, Recipe recipe) {
+        if (null == extend) {
+            return;
+        }
+        recipeDataSaveFactory.setRecipeExtList(recipe, extend);
+        this.saveRecipeExtend(extend, recipe.getRecipeId());
+    }
+
+    /**
+     * 保存处方扩展信息 诊疗处方
      *
      * @param recipeExtend 处方扩展信息
      * @param recipe       处方信息
@@ -110,8 +142,13 @@ public class RecipeManager extends BaseManager {
             RevisitExDTO revisitExDTO = revisitClient.getByClinicId(recipe.getClinicId());
             recipeExtend.setCardNo(revisitExDTO.getCardId());
         }
+        return this.saveRecipeExtend(recipeExtend, recipe.getRecipeId());
+    }
+
+
+    private RecipeExtend saveRecipeExtend(RecipeExtend recipeExtend, Integer recipeId) {
         if (ValidateUtil.integerIsEmpty(recipeExtend.getRecipeId())) {
-            recipeExtend.setRecipeId(recipe.getRecipeId());
+            recipeExtend.setRecipeId(recipeId);
             recipeExtend = recipeExtendDAO.save(recipeExtend);
         } else {
             recipeExtend = recipeExtendDAO.update(recipeExtend);
@@ -530,7 +567,7 @@ public class RecipeManager extends BaseManager {
     }
 
     /**
-     * 根据复诊id获取处方明细，并排除 特定处方id
+     * 根据复诊id获取处方id，并排除 特定处方id
      *
      * @param clinicId 复诊id
      * @param recipeId 特定处方id
@@ -538,17 +575,19 @@ public class RecipeManager extends BaseManager {
      */
     public List<Integer> findRecipeByClinicId(Integer clinicId, Integer recipeId, List<Integer> status) {
         List<Recipe> recipeList = recipeDAO.findRecipeClinicIdAndStatus(clinicId, status);
-        logger.info("RecipeManager findRecipeByClinicId recipeList:{}", JSON.toJSONString(recipeList));
-        if (CollectionUtils.isEmpty(recipeList)) {
-            return null;
-        }
-        List<Integer> recipeIds;
-        if (ValidateUtil.integerIsEmpty(recipeId)) {
-            recipeIds = recipeList.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
-        } else {
-            recipeIds = recipeList.stream().filter(a -> !a.getRecipeId().equals(recipeId)).map(Recipe::getRecipeId).collect(Collectors.toList());
-        }
-        return recipeIds;
+        return findRecipeByClinicId(recipeList, recipeId);
+    }
+
+    /**
+     * 根据复诊id与状态字段 获取处方id，并排除 特定处方id
+     *
+     * @param clinicId 复诊id
+     * @param recipeId 特定处方id
+     * @return 处方明细
+     */
+    public List<Integer> findRecipeByClinicIdAndProcessState(Integer clinicId, Integer recipeId, List<Integer> processState) {
+        List<Recipe> recipeList = recipeDAO.findRecipeClinicIdAndProcessState(clinicId, processState);
+        return findRecipeByClinicId(recipeList, recipeId);
     }
 
 
@@ -1149,6 +1188,7 @@ public class RecipeManager extends BaseManager {
         return new ArrayList<>();
     }
 
+
     /**
      * 获取医保id
      *
@@ -1202,4 +1242,25 @@ public class RecipeManager extends BaseManager {
 
         return Joiner.on("|").join(hisOrderCode);
     }
+
+
+    /**
+     * 排除 特定处方id
+     *
+     * @param recipeList
+     * @param recipeId
+     * @return
+     */
+    private List<Integer> findRecipeByClinicId(List<Recipe> recipeList, Integer recipeId) {
+        logger.info("RecipeManager findRecipeByClinicId recipeList:{},recipeId={}", JSON.toJSONString(recipeList), recipeId);
+        if (CollectionUtils.isEmpty(recipeList)) {
+            return null;
+        }
+        if (ValidateUtil.integerIsEmpty(recipeId)) {
+            return recipeList.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
+        } else {
+            return recipeList.stream().map(Recipe::getRecipeId).filter(id -> !id.equals(recipeId)).collect(Collectors.toList());
+        }
+    }
+
 }

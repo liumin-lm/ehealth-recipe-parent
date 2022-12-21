@@ -1,6 +1,7 @@
 package recipe.client;
 
 import com.alibaba.fastjson.JSON;
+import com.ngari.base.patient.service.IPatientService;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.service.DepartmentService;
 import com.ngari.patient.utils.ObjectCopyUtils;
@@ -52,7 +53,18 @@ public class DocIndexClient extends BaseClient {
     private DepartmentService departmentService;
     @Resource
     private IConfigurationClient configurationClient;
+    @Resource
+    private IPatientService iPatientService;
 
+    /**
+     * 类加载排序
+     *
+     * @return
+     */
+    @Override
+    public Integer getSort() {
+        return 10;
+    }
 
     /**
      * 根据病历id 获取 电子病例明细对象
@@ -360,6 +372,22 @@ public class DocIndexClient extends BaseClient {
         recipeContinuation.setDoctorId(doctorId);
         docIndexService.updateDocIndexForRecipeContinuation(recipeContinuation);
         return true;
+    }
+
+
+    /**
+     * 设置处方默认数据
+     *
+     * @param recipe 处方头对象
+     */
+    @Override
+    public void setRecipeExt(Recipe recipe, RecipeExtend extend) {
+        if (null == extend || ValidateUtil.integerIsEmpty(extend.getDocIndexId())) {
+            return;
+        }
+        EmrDetailDTO emrDetailDTO = this.getEmrDetailsV1(extend.getDocIndexId());
+        recipe.setOrganDiseaseName(emrDetailDTO.getOrganDiseaseName());
+        recipe.setOrganDiseaseId(emrDetailDTO.getOrganDiseaseId());
     }
 
     private MedicalInfoBean getEmrMedicalInfoBean(Integer docIndexId) {

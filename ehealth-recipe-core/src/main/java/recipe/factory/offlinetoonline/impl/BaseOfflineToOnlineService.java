@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
+import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.his.recipe.mode.ExtInfoTO;
 import com.ngari.his.recipe.mode.MedicalInfo;
 import com.ngari.his.recipe.mode.QueryHisRecipResTO;
@@ -44,6 +45,7 @@ import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.aop.LogRecord;
 import recipe.business.StockBusinessService;
+import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.DepartClient;
 import recipe.client.RevisitClient;
 import recipe.constant.HisRecipeConstant;
@@ -56,6 +58,7 @@ import recipe.factory.offlinetoonline.IOfflineToOnlineStrategy;
 import recipe.factory.offlinetoonline.OfflineToOnlineFactory;
 import recipe.manager.*;
 import recipe.service.RecipeService;
+import recipe.service.RecipeServiceEsignExt;
 import recipe.util.RecipeUtil;
 import recipe.vo.patient.RecipeGiveModeButtonRes;
 
@@ -142,6 +145,9 @@ public class BaseOfflineToOnlineService {
 
     @Autowired
     private StateManager stateManager;
+
+    @Autowired
+    private CreatePdfFactory createPdfFactory;
 
     /**
      * 获取购药按钮
@@ -580,6 +586,12 @@ public class BaseOfflineToOnlineService {
                 revisitManager.saveRevisitTracesList(recipe);
                 revisitManager.updateRecipeIdByConsultId(recipe.getRecipeId(), recipe.getClinicId());
             }
+            //生成处方笺
+            try {
+                createRecipePdf(recipe);
+            }catch (Exception e){
+                LOGGER.error("BaseOfflineToOnlineService 线上转线上生成处方笺失败", e);
+            }
             return recipe.getRecipeId();
         }
         return null;
@@ -774,11 +786,11 @@ public class BaseOfflineToOnlineService {
         List<String> drugCodeList = hisRecipeDetails.stream().filter(hisRecipeDetail -> StringUtils.isNotEmpty(hisRecipeDetail.getDrugCode())).map(HisRecipeDetail::getDrugCode).collect(Collectors.toList());
         List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugCodes(hisRecipe.getClinicOrgan(), drugCodeList);
         Integer recipeDrugFormType = hisRecipeManager.validateDrugForm(organDrugList, hisRecipe.getRecipeType());
-        if (Objects.nonNull(recipeDrugFormType) && recipeDrugFormType == -1) {
-            LOGGER.info("中药处方中的药品剂型不一致:{}", hisRecipe.getRecipeCode());
-            hisRecipeManager.deleteSetRecipeCode(hisRecipe.getClinicOrgan(), recipeCodes);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "中药处方中的药品剂型不一致");
-        }
+//        if (Objects.nonNull(recipeDrugFormType) && recipeDrugFormType == -1) {
+//            LOGGER.info("中药处方中的药品剂型不一致:{}", hisRecipe.getRecipeCode());
+//            hisRecipeManager.deleteSetRecipeCode(hisRecipe.getClinicOrgan(), recipeCodes);
+//            throw new DAOException(ErrorCode.SERVICE_ERROR, "中药处方中的药品剂型不一致");
+//        }
         Map<String, List<OrganDrugList>> organDrugListMap = organDrugList.stream().collect(Collectors.groupingBy(OrganDrugList::getOrganDrugCode));
         Integer targetedDrugType = 0;
         for (HisRecipeDetail hisRecipeDetail : hisRecipeDetails) {
@@ -1355,6 +1367,22 @@ public class BaseOfflineToOnlineService {
         //药品发生变更，删除关联信息
         deleteRecipeData(hisRecipeTo, hisRecipeMap, hisRecipeDetailList, patientDTO.getMpiId());
         LOGGER.info("BaseOfflineToOnlineService hisRecipeInfoCheck 方法结束");
+    }
+
+    /**
+     * 线下转线上-生成处方笺
+     * @param recipe 处方数据
+     *
+     */
+    private void createRecipePdf(Recipe recipe){
+        LOGGER.info("BaseOfflineToOnlineService createRecipePdf recipe={}",JSONUtils.toString(recipe));
+        //医生
+        CaSealRequestTO doctorRequestSealTO = createPdfFactory.queryPdfByte(recipe.getRecipeId(),true);
+        RecipeServiceEsignExt.updateInitRecipePDF(true, recipe, doctorRequestSealTO.getPdfBase64Str());
+        //药师
+        CaSealRequestTO checkerRequestSealTO = createPdfFactory.queryPdfByte(recipe.getRecipeId(),false);
+        RecipeServiceEsignExt.updateInitRecipePDF(false, recipe, checkerRequestSealTO.getPdfBase64Str());
+        LOGGER.info("BaseOfflineToOnlineService createRecipePdf 方法结束");
     }
 
 }

@@ -2,23 +2,19 @@ package recipe.client;
 
 import com.alibaba.fastjson.JSON;
 import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
-import com.ngari.base.patient.service.IPatientService;
 import com.ngari.common.mode.HisResponseTO;
-import com.ngari.his.patient.service.IPatientHisService;
 import com.ngari.his.recipe.mode.DrugInfoTO;
 import com.ngari.his.recipe.service.IRecipeHisService;
-import com.ngari.his.recipe.service.IRecipeToTestService;
 import com.ngari.infra.statistics.IEventLogService;
 import com.ngari.infra.statistics.dto.EventLogDTO;
 import com.ngari.patient.service.DoctorService;
 import com.ngari.recipe.dto.ServiceLogDTO;
-import com.ngari.recipe.entity.OrganDrugList;
-import com.ngari.recipe.entity.PharmacyTcm;
-import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.entity.*;
 import ctd.persistence.exception.DAOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import recipe.client.factory.recipedate.IRecipeDataSave;
 import recipe.constant.ErrorCode;
 import recipe.constant.HisErrorCodeEnum;
 import recipe.util.DictionaryUtil;
@@ -32,20 +28,14 @@ import java.util.stream.Collectors;
  *
  * @author fuzi
  */
-public class BaseClient {
+public abstract class BaseClient implements IRecipeDataSave {
     protected final Logger logger = LoggerFactory.getLogger(this.getClass());
     @Autowired
     protected IRecipeHisService recipeHisService;
     @Autowired
-    protected IPatientHisService patientHisService;
-    @Autowired
     protected ICurrentUserInfoService currentUserInfoService;
     @Autowired
-    protected IRecipeToTestService recipeToTestService;
-    @Autowired
     protected DoctorService doctorService;
-    @Resource
-    protected IPatientService iPatientService;
     @Resource
     protected IEventLogService eventLogService;
 
@@ -180,4 +170,18 @@ public class BaseClient {
             logger.error("BaseClient serviceLog error", e);
         }
     }
+
+    @Override
+    public Integer getSort() {
+        return null;
+    }
+
+    @Override
+    public void setRecipe(Recipe recipe) {
+    }
+
+    @Override
+    public void setRecipeExt(Recipe recipe, RecipeExtend extend) {
+    }
+
 }

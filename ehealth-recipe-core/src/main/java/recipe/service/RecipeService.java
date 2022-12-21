@@ -4509,6 +4509,7 @@ public class RecipeService extends RecipeBaseService {
         if (isAllowSyncField(organDrugListSyncFieldMap.get(SyncDrugConstant.drugForm))
                 && !ObjectUtils.isEmpty(drug.getDrugform())) {
             organDrug.setDrugForm(drug.getDrugform());
+            organDrug.setHisDrugForm(drug.getDrugform());
         }
         //获取金额
         if (isAllowSyncField(organDrugListSyncFieldMap.get(SyncDrugConstant.salePrice))
@@ -5059,6 +5060,7 @@ public class RecipeService extends RecipeBaseService {
         //剂型
         if (!ObjectUtils.isEmpty(drug.getDrugForm())) {
             organDrug.setDrugForm(drug.getDrugForm());
+            organDrug.setHisDrugForm(drug.getDrugForm());
         }
         //是否基药
         if (!ObjectUtils.isEmpty(drug.getBaseDrug())) {

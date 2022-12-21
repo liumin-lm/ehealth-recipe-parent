@@ -148,6 +148,8 @@ public class OrganDrugList implements java.io.Serializable {
     private String medicalDrugCode;
     @ItemProperty(alias = "his剂型代码")
     private String drugFormCode;
+    @ItemProperty(alias = "his剂型名称")
+    private String hisDrugForm;
     @ItemProperty(alias = "医保剂型编码")
     private String medicalDrugFormCode;
 
@@ -215,9 +217,6 @@ public class OrganDrugList implements java.io.Serializable {
     @ItemProperty(alias = "是否特殊使用级抗生素药物  0否  1是 ")
     private Integer specialUseAntibioticDrugFlag;
 
-    @ItemProperty(alias = "his剂型名称")
-    private String hisDrugForm;
-
     @ItemProperty(alias = "国家医保代码")
     private String nationalMedicalCode;
 
@@ -236,6 +235,17 @@ public class OrganDrugList implements java.io.Serializable {
     @ItemProperty(alias = "中药国标编码")
     private String tcmNationalStandardCode;
 
+    @ItemProperty(alias = "开药数量限制")
+    private Integer maximum;
+    
+    @Column(name = "maximum")
+    public Integer getMaximum() {
+        return maximum;
+    }
+
+    public void setMaximum(Integer maximum) {
+        this.maximum = maximum;
+    }
 //    @ItemProperty(alias = "是否冷链运输 0 否 1 是")
 //    private Integer coldChainTransportationFlag;
 //

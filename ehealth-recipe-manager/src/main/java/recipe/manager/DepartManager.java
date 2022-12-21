@@ -3,7 +3,6 @@ package recipe.manager;
 import com.ngari.patient.dto.AppointDepartDTO;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.recipe.entity.Recipe;
-import com.ngari.revisit.dto.response.RevisitBeanVO;
 import ctd.util.JSONUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -101,17 +100,7 @@ public class DepartManager extends BaseManager {
      * @return
      */
     public AppointDepartDTO getAppointDepartDTO(Integer clinicId, Integer organId, Integer departId) {
-        AppointDepartDTO appointDepart = getAppointDepart(clinicId, organId, departId);
-        if (null == appointDepart) {
-            appointDepart = new AppointDepartDTO();
-        }
-        if (StringUtils.isNotEmpty(appointDepart.getAppointDepartCode())) {
-            return appointDepart;
-        }
-        DepartmentDTO departmentDTO = this.getDepartmentByDepart(departId);
-        appointDepart.setAppointDepartCode(departmentDTO.getCode());
-        appointDepart.setAppointDepartName(departmentDTO.getName());
-        return appointDepart;
+        return departClient.getAppointDepartDTO(clinicId, organId, departId);
     }
 
     /**
@@ -125,21 +114,5 @@ public class DepartManager extends BaseManager {
     public String jobNumber(Integer organId, Integer doctorId, Integer departId) {
         return doctorClient.jobNumber(organId, doctorId, departId).getJobNumber();
     }
-
-    private AppointDepartDTO getAppointDepart(Integer clinicId, Integer organId, Integer departId) {
-        if (null == clinicId) {
-            return this.getAppointByOrganIdAndDepart(organId, departId);
-        }
-        RevisitBeanVO revisitBeanVO = revisitClient.revisitBean(clinicId);
-        if (null == revisitBeanVO || null == revisitBeanVO.getAppointDepartId()) {
-            return this.getAppointByOrganIdAndDepart(organId, departId);
-        }
-        AppointDepartDTO appointDepartDTO = this.getAppointDepartById(revisitBeanVO.getAppointDepartId());
-        if (null != appointDepartDTO) {
-            return appointDepartDTO;
-        }
-        return this.getAppointByOrganIdAndDepart(organId, departId);
-    }
-
 
 }

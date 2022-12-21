@@ -2,21 +2,25 @@ package recipe.atop.doctor;
 
 import com.ngari.patient.dto.HealthCardDTO;
 import com.ngari.patient.utils.ObjectCopyUtils;
-import com.ngari.recipe.drug.model.DecoctionWayBean;
 import com.ngari.recipe.dto.OutPatientRecordResDTO;
 import com.ngari.recipe.dto.WriteDrugRecipeDTO;
 import com.ngari.recipe.entity.DoctorCommonPharmacy;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.recipe.model.*;
+import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
+import recipe.constant.ErrorCode;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.core.api.IRevisitBusinessService;
 import recipe.enumerate.status.RecipeStateEnum;
+import recipe.enumerate.status.SignEnum;
+import recipe.enumerate.status.WriteHisEnum;
 import recipe.util.ValidateUtil;
+import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.doctor.ValidateDetailVO;
 
 import java.util.List;
@@ -207,5 +211,28 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
     public void saveDoctorCommonPharmacy(DoctorCommonPharmacy doctorCommonPharmacy) {
         validateAtop(doctorCommonPharmacy);
       //  recipeBusinessService.saveDoctorCommonPharmacy(doctorCommonPharmacy);
+    }
+
+    /**
+     * 暂存处方接口
+     *
+     * @param recipeInfoVO
+     */
+    @RpcService
+    public Integer stagingRecipe(RecipeInfoVO recipeInfoVO) {
+        validateAtop(recipeInfoVO, recipeInfoVO.getRecipeBean());
+        validateAtop(recipeInfoVO.getRecipeBean().getDoctor(), recipeInfoVO.getRecipeBean().getClinicOrgan());
+        RecipeBean recipeBean = recipeInfoVO.getRecipeBean();
+        if (!ValidateUtil.integerIsEmpty(recipeBean.getRecipeId())) {
+            Recipe recipe = recipeBusinessService.getRecipe(recipeBean.getRecipeId());
+            // 只有暂存状态才可以修改
+            if (!WriteHisEnum.NONE.getType().equals(recipe.getWriteHisState()) || !SignEnum.NONE.getType().equals(recipe.getDoctorSignState())) {
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "当前处方不是暂存状态,不能操作");
+            }
+        }
+        if (!ValidateUtil.integerIsEmpty(recipeInfoVO.getRecipeBean().getRecipeId()) && null != recipeInfoVO.getRecipeExtendBean()) {
+            recipeInfoVO.getRecipeExtendBean().setRecipeId(recipeInfoVO.getRecipeBean().getRecipeId());
+        }
+        return recipeBusinessService.stagingRecipe(recipeInfoVO);
     }
 }

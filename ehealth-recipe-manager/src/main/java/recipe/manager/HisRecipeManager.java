@@ -710,11 +710,11 @@ public class HisRecipeManager extends BaseManager {
         if (CollectionUtils.isEmpty(organDrugFormSet)) {
             return RecipeDrugFormTypeEnum.TCM_DECOCTION_PIECES.getType();
         }
-        if (organDrugFormSet.size() > 1) {
-            logger.info(JsonUtil.toString(organDrugFormSet));
-            //说明同一批药存在不同的剂型
-            return -1;
-        }
+//        if (organDrugFormSet.size() > 1) {
+//            logger.info(JsonUtil.toString(organDrugFormSet));
+//            //说明同一批药存在不同的剂型
+//            return -1;
+//        }
         return RecipeDrugFormTypeEnum.getDrugFormType((String)organDrugFormSet.toArray()[0]);
     }
 

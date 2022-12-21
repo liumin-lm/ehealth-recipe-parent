@@ -3,7 +3,6 @@ package recipe.core.api;
 import com.ngari.recipe.dto.RecipeDetailDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
-import com.ngari.recipe.vo.RecipeSkipReqVO;
 import com.ngari.recipe.vo.RecipeSkipVO;
 import recipe.vo.ResultBean;
 import recipe.vo.doctor.ConfigOptionsVO;
@@ -55,6 +54,14 @@ public interface IRecipeDetailBusinessService {
      * @return
      */
     ResultBean<String> validateRepeatRecipe(ValidateDetailVO validateDetailVO);
+
+    /**
+     * 校验复诊下重复药品最大数量
+     *
+     * @param validateDetailVO
+     * @return
+     */
+    ResultBean<String> validateRepeatRecipeDetail(ValidateDetailVO validateDetailVO);
 
     /**
      * 跳转到第三方

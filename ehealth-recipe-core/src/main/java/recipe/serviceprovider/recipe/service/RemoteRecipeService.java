@@ -497,8 +497,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                 //处方审核状态处理
                 recipe.setCheckStatus(recipe.getCheckFlag());
                 RecipesQueryResVO resVo = ObjectCopyUtils.convert(recipe, RecipesQueryResVO.class);
-
-
+                resVo.setSubStateText(RecipeStateEnum.getRecipeStateEnum(recipe.getSubState()).getName());
                 resVo.setGiveModeText(buttonManager.getGiveModeTextByRecipe(recipe));
                 if (recipe.getBussSource() == null || new Integer(0).equals(recipe.getBussSource())) {
                     resVo.setBussSourceText("无诊疗");

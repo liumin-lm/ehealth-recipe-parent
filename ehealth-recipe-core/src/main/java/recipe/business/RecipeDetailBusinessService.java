@@ -17,10 +17,12 @@ import recipe.client.IConfigurationClient;
 import recipe.core.api.IRecipeDetailBusinessService;
 import recipe.dao.RecipeDetailDAO;
 import recipe.drugTool.validate.RecipeDetailValidateTool;
+import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.manager.*;
 import recipe.util.MapValueUtil;
 import recipe.util.ObjectCopyUtils;
+import recipe.util.ValidateUtil;
 import recipe.vo.ResultBean;
 import recipe.vo.doctor.ConfigOptionsVO;
 import recipe.vo.doctor.ValidateDetailVO;
@@ -147,7 +149,7 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
             recipeDetails = recipeDetailDAO.findDetailByOrderCode(orderCode);
         } else {
             List<Integer> recipeIds = orderManager.getRecipeIdsByOrderId(orderId);
-            recipeDetails = recipeDetailDAO.findByRecipeIds(recipeIds);
+            recipeDetails = recipeDetailManager.findRecipeDetails(recipeIds);
         }
         if (CollectionUtils.isEmpty(recipeDetails)) {
             return stringBuilder.toString();
@@ -206,9 +208,48 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
     }
 
     @Override
+    public ResultBean<String> validateRepeatRecipeDetail(ValidateDetailVO validateDetailVO) {
+        ResultBean<String> resultBean = new ResultBean<>();
+        resultBean.setBool(true);
+        resultBean.setData("5");
+        List<String> organDrugCode = validateDetailVO.getRecipeDetails().stream().map(RecipeDetailBean::getOrganDrugCode).distinct().collect(Collectors.toList());
+        List<OrganDrugList> organDrugList = organDrugListManager.findOrganDrugCode(validateDetailVO.getRecipeBean().getClinicOrgan(), organDrugCode);
+        List<Integer> recipeIds = recipeManager.findRecipeByClinicIdAndProcessState(validateDetailVO.getRecipeBean().getClinicId(), validateDetailVO.getRecipeBean().getRecipeId(), RecipeStateEnum.RECIPE_REPEAT);
+        Map<String, Double> sumTotalMap = recipeDetailManager.findRecipeDetailSumTotalDose(recipeIds);
+        Map<String, Double> detailTotalMap = validateDetailVO.getRecipeDetails().stream().collect(Collectors.toMap(RecipeDetailBean::getOrganDrugCode, RecipeDetailBean::getUseTotalDose));
+        logger.info("RecipeDetailBusinessService validateRepeatRecipeDetail detailTotalMap ={}, sumTotalMap={},detailTotalMap={} ", JSON.toJSONString(detailTotalMap), JSON.toJSONString(sumTotalMap), JSON.toJSONString(detailTotalMap));
+        List<String> list = new ArrayList<>();
+        organDrugList.forEach(a -> {
+            Double detailTotal = detailTotalMap.get(a.getOrganDrugCode());
+            if (ValidateUtil.validateObjects(detailTotal, a.getMaximum())) {
+                return;
+            }
+            Double sum = 0d;
+            if (null != sumTotalMap) {
+                sum = null == sumTotalMap.get(a.getOrganDrugCode()) ? sum : sumTotalMap.get(a.getOrganDrugCode());
+            }
+
+            if (sum + detailTotal <= a.getMaximum()) {
+                return;
+            }
+
+            String s = "【" + a.getDrugName() + "】售药上限为【" + a.getMaximum() + a.getUnit()
+                    + "】已开【" + sum.intValue() + a.getUnit()
+                    + "】，仅剩【" + Math.max(a.getMaximum() - sum.intValue(), 0) + a.getUnit() + "】可开";
+            list.add(s);
+        });
+        if (CollectionUtils.isNotEmpty(list)) {
+            resultBean.setMsgList(list);
+            resultBean.setBool(false);
+        }
+        logger.info("RecipeDetailBusinessService validateRepeatRecipeDetail resultBean={}", JSON.toJSONString(resultBean));
+        return resultBean;
+    }
+
+    @Override
     public RecipeSkipVO getRecipeSkipUrl(Integer organId, String recipeCode, Integer recipeType) {
-        logger.info("RecipeDetailBusinessService getRecipeSkipUrl organId={},recipeCode={},recipeType={}",organId,recipeCode,recipeType);
-        return ObjectCopyUtils.convert(recipeManager.getRecipeSkipUrl(organId,recipeCode,recipeType),RecipeSkipVO.class);
+        logger.info("RecipeDetailBusinessService getRecipeSkipUrl organId={},recipeCode={},recipeType={}", organId, recipeCode, recipeType);
+        return ObjectCopyUtils.convert(recipeManager.getRecipeSkipUrl(organId, recipeCode, recipeType), RecipeSkipVO.class);
     }
 
     @Override

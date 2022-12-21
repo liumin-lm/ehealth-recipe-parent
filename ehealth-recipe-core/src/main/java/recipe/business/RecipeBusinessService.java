@@ -16,7 +16,8 @@ import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.dto.*;
-import com.ngari.patient.service.*;
+import com.ngari.patient.service.BasicAPI;
+import com.ngari.patient.service.PatientService;
 import com.ngari.platform.recipe.mode.OutpatientPaymentRecipeDTO;
 import com.ngari.platform.recipe.mode.QueryRecipeInfoHisDTO;
 import com.ngari.recipe.dto.*;
@@ -28,6 +29,7 @@ import com.ngari.recipe.recipe.constant.RecipecCheckStatusConstant;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.vo.*;
 import coupon.api.service.ICouponBaseService;
+import ctd.account.UserRoleToken;
 import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
 import ctd.net.broadcast.MQHelper;
@@ -72,6 +74,7 @@ import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.serviceprovider.recipeorder.service.RemoteRecipeOrderService;
 import recipe.util.*;
 import recipe.vo.PageGenericsVO;
+import recipe.vo.doctor.DoctorRecipeListReqVO;
 import recipe.vo.doctor.PatientOptionalDrugVO;
 import recipe.vo.doctor.PharmacyTcmVO;
 import recipe.vo.doctor.RecipeInfoVO;
@@ -105,6 +108,8 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     private RecipeDAO recipeDAO;
     @Autowired
     private RecipeManager recipeManager;
+    @Autowired
+    private RecipeDetailManager recipeDetailManager;
     @Autowired
     private OfflineRecipeClient offlineRecipeClient;
     @Autowired
@@ -561,7 +566,6 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     @Override
     public List<RecipeBean> recipeListByClinicId(Integer clinicId, Integer bussSource) {
         List<Recipe> recipeList = recipeDAO.findRecipeByBussSourceAndClinicId(bussSource, clinicId);
-        RecipeListService recipeListService = ApplicationUtils.getRecipeService(RecipeListService.class);
         List<Map<String, Object>> map = recipeListService.findRecipesForRecipeList(recipeList, null);
         return map.stream().map(a -> (RecipeBean) a.get("recipe")).collect(Collectors.toList());
     }
@@ -1502,5 +1506,80 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             return BeanCopyUtils.copyList(result, RecipeBean::new);
         }
     }
+
+    @Override
+    public Recipe getRecipe(Integer recipeId) {
+        return recipeDAO.get(recipeId);
+    }
+
+    @Override
+    public Integer stagingRecipe(RecipeInfoVO recipeInfoVO) {
+        // recipe 信息
+        Recipe recipe = recipeManager.saveStagingRecipe(ObjectCopyUtils.convert(recipeInfoVO.getRecipeBean(), Recipe.class));
+        // recipe ext信息
+        RecipeExtend recipeExt = ObjectCopyUtils.convert(recipeInfoVO.getRecipeExtendBean(), RecipeExtend.class);
+        recipeManager.saveStagingRecipeExt(recipeExt, recipe);
+        // recipe detail信息
+        List<Recipedetail> recipeDetails = ObjectCopyUtils.convert(recipeInfoVO.getRecipeDetails(), Recipedetail.class);
+        recipeDetailManager.saveRecipeDetails(recipeDetails, recipe);
+        // 修改状态
+        stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_SUBMIT, RecipeStateEnum.SUB_SUBMIT_TEMPORARY);
+        return recipe.getRecipeId();
+    }
+
+    @Override
+    public List<RecipeInfoVO> findDoctorRecipeList(DoctorRecipeListReqVO doctorRecipeListReqVO) {
+        // 校验医生权限
+        checkUserHasPermissionByDoctorId(doctorRecipeListReqVO.getDoctorId());
+        // 这个版本只查询常用方
+        if (!RecipeSourceTypeEnum.COMMON_RECIPE.getType().equals(doctorRecipeListReqVO.getRecipeType())) {
+            return null;
+        }
+        List<Recipe> recipeList = recipeDAO.findDoctorRecipeList(doctorRecipeListReqVO.getDoctorId(),doctorRecipeListReqVO.getOrganId(), doctorRecipeListReqVO.getStart(), doctorRecipeListReqVO.getLimit());
+        if (CollectionUtils.isEmpty(recipeList)) {
+            return null;
+        }
+        List<Integer> recipeIds = recipeList.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
+        List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeIdList(recipeIds);
+        List<RecipeExtend> recipeExtends = recipeExtendDAO.queryRecipeExtendByRecipeIds(recipeIds);
+        Map<Integer, List<Recipedetail>> recipeDetailMap = null;
+        Map<Integer, List<RecipeExtend>> recipeExtMap = null;
+        if (CollectionUtils.isNotEmpty(recipeDetailList)) {
+            recipeDetailMap = recipeDetailList.stream().collect(Collectors.groupingBy(Recipedetail::getRecipeId));
+        }
+        if (CollectionUtils.isNotEmpty(recipeExtends)) {
+            recipeExtMap = recipeExtends.stream().collect(Collectors.groupingBy(RecipeExtend::getRecipeId));
+        }
+        Map<Integer, List<Recipedetail>> finalRecipeDetailMap = recipeDetailMap;
+        Map<Integer, List<RecipeExtend>> finalRecipeExtMap = recipeExtMap;
+        List<RecipeInfoVO> recipeInfoVOS = recipeList.stream().map(recipe -> {
+            RecipeInfoVO recipeInfoVO = new RecipeInfoVO();
+            RecipeBean recipeBean = BeanCopyUtils.copyProperties(recipe, RecipeBean::new);
+            recipeInfoVO.setRecipeBean(recipeBean);
+            if (MapUtils.isNotEmpty(finalRecipeDetailMap) && CollectionUtils.isNotEmpty(finalRecipeDetailMap.get(recipe.getRecipeId()))) {
+                List<Recipedetail> recipeDetails = finalRecipeDetailMap.get(recipe.getRecipeId());
+                List<RecipeDetailBean> recipeDetailBeans = BeanCopyUtils.copyList(recipeDetails, RecipeDetailBean::new);
+                recipeInfoVO.setRecipeDetails(recipeDetailBeans);
+            }
+            if (MapUtils.isNotEmpty(finalRecipeExtMap) && CollectionUtils.isNotEmpty(finalRecipeExtMap.get(recipe.getRecipeId()))) {
+                RecipeExtend extend = finalRecipeExtMap.get(recipe.getRecipeId()).get(0);
+                RecipeExtendBean recipeExtendBean = BeanCopyUtils.copyProperties(extend, RecipeExtendBean::new);
+                recipeInfoVO.setRecipeExtendBean(recipeExtendBean);
+            }
+            return recipeInfoVO;
+        }).collect(Collectors.toList());
+
+        return recipeInfoVOS;
+    }
+
+    public void checkUserHasPermissionByDoctorId(Integer doctorId){
+        UserRoleToken urt = UserRoleToken.getCurrent();
+        String methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
+        if (!(urt.isSelfDoctor(doctorId))){
+            logger.error("当前用户没有权限调用doctorId[{}],methodName[{}]", doctorId ,methodName);
+            throw new DAOException("当前登录用户没有权限");
+        }
+    }
+
 }
 

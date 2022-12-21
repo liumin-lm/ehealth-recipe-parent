@@ -1,6 +1,7 @@
 package recipe.atop.doctor;
 
 import com.ngari.recipe.dto.RecipeRefundDTO;
+import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -8,13 +9,17 @@ import eh.utils.ValidateUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
+import recipe.constant.ErrorCode;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.core.api.patient.IRecipeOrderBusinessService;
 import recipe.vo.PageGenericsVO;
+import recipe.vo.doctor.DoctorRecipeListReqVO;
+import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.greenroom.RecipeRefundInfoReqVO;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 医生端-查处方服务入口类
@@ -54,6 +59,21 @@ public class FindRecipeDoctorAtop extends BaseAtop {
         }
         result.setDataList(recipeRefundInfo);
         return result;
+    }
+
+    /**
+     * 医生端获取列表接口
+     * @param doctorRecipeListReqVO
+     * @return
+     */
+    @RpcService
+    public List<RecipeInfoVO> findDoctorRecipeList(DoctorRecipeListReqVO doctorRecipeListReqVO) {
+        validateAtop(doctorRecipeListReqVO, doctorRecipeListReqVO.getDoctorId(), doctorRecipeListReqVO.getLimit()
+                , doctorRecipeListReqVO.getRecipeType());
+        if (Objects.isNull(doctorRecipeListReqVO.getOrganId()) || Objects.isNull(doctorRecipeListReqVO.getStart())) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "入参错误");
+        }
+        return recipeBusinessService.findDoctorRecipeList(doctorRecipeListReqVO);
     }
 
 }
