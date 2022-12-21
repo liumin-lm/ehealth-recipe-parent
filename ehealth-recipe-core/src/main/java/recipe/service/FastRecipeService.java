@@ -101,9 +101,9 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
     @Override
     public List<Integer> fastRecipeSaveRecipeList(List<RecipeInfoVO> recipeInfoVOList) {
         //快捷购药开方流程模式： "0":"自动开方流程", "1":"手动开方流程"
-        Integer fastRecipeMode = configurationClient.getValueCatchReturnInteger(recipeInfoVOList.get(0).getRecipeBean().getClinicOrgan(), "fastRecipeMode", null);
+        String fastRecipeMode = configurationClient.getValueCatch(recipeInfoVOList.get(0).getRecipeBean().getClinicOrgan(), "fastRecipeMode", "0");
         List<Integer> resultList;
-        if (Integer.valueOf("1").equals(fastRecipeMode)) {
+        if ("1".equals(fastRecipeMode)) {
             //医生手动开方流程，调用处方暂存接口
             List<FutureTask<Integer>> futureTasks = new LinkedList<>();
             for (RecipeInfoVO recipeInfoVO : recipeInfoVOList) {
@@ -192,7 +192,7 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
             //3.recipe参数设置
             List<RecipeDetailBean> detailBeanList = recipeInfoVO.getRecipeDetails();
             //4.暂存
-            Integer recipeId =  recipeSignService.doSignRecipeSave(recipeBean, detailBeanList);
+            Integer recipeId = recipeSignService.doSignRecipeSave(recipeBean, detailBeanList);
             //5.通知复诊关联处方单
             recipePatientService.updateRecipeIdByConsultId(recipeId, recipeInfoVO.getRecipeBean().getClinicId());
             return recipeId;
