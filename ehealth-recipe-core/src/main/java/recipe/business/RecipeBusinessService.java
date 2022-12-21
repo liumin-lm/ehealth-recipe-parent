@@ -17,6 +17,7 @@ import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.dto.*;
 import com.ngari.patient.service.BasicAPI;
+import com.ngari.patient.service.IUsingRateService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.platform.recipe.mode.OutpatientPaymentRecipeDTO;
 import com.ngari.platform.recipe.mode.QueryRecipeInfoHisDTO;
@@ -36,6 +37,7 @@ import ctd.net.broadcast.MQHelper;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
+import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
 import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
@@ -1559,6 +1561,16 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             if (MapUtils.isNotEmpty(finalRecipeDetailMap) && CollectionUtils.isNotEmpty(finalRecipeDetailMap.get(recipe.getRecipeId()))) {
                 List<Recipedetail> recipeDetails = finalRecipeDetailMap.get(recipe.getRecipeId());
                 List<RecipeDetailBean> recipeDetailBeans = BeanCopyUtils.copyList(recipeDetails, RecipeDetailBean::new);
+                recipeDetailBeans.forEach(recipeDetailBean -> {
+                   com.ngari.base.dto.UsingRateDTO usingRateDTO = drugClient.usingRate(recipe.getClinicOrgan(), recipeDetailBean.getOrganUsingRate());
+                    if (null != usingRateDTO) {
+                        recipeDetailBean.setUsingRateId(String.valueOf(usingRateDTO.getId()));
+                    }
+                    com.ngari.base.dto.UsePathwaysDTO usePathwaysDTO = drugClient.usePathways(recipe.getClinicOrgan(), recipeDetailBean.getOrganUsePathways(), recipeDetailBean.getDrugType());
+                    if (null != usePathwaysDTO) {
+                        recipeDetailBean.setUsePathwaysId(String.valueOf(usePathwaysDTO.getId()));
+                    }
+                });
                 recipeInfoVO.setRecipeDetails(recipeDetailBeans);
             }
             if (MapUtils.isNotEmpty(finalRecipeExtMap) && CollectionUtils.isNotEmpty(finalRecipeExtMap.get(recipe.getRecipeId()))) {
