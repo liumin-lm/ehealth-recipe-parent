@@ -9,6 +9,7 @@ import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import recipe.client.DocIndexClient;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.ReviewTypeConstant;
@@ -19,6 +20,7 @@ import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.DocIndexShowEnum;
 import recipe.manager.EnterpriseManager;
+import recipe.manager.RecipeManager;
 import recipe.manager.StateManager;
 import recipe.mq.Buss2SessionProducer;
 import recipe.service.RecipeLogService;
@@ -39,6 +41,9 @@ import static recipe.service.afterpay.IAfterPayBussService.REVISIT_STATUS_IN;
 @AuditMode(ReviewTypeConstant.Pre_AuditMode)
 public class AuditPreMode extends AbstractAuditMode {
     private static final Logger LOGGER = LoggerFactory.getLogger(AuditPreMode.class);
+
+    @Autowired
+    RecipeManager recipeManager;
 
     @Override
     public int afterAuditRecipeChange() {
@@ -75,6 +80,9 @@ public class AuditPreMode extends AbstractAuditMode {
                 RevisitBean revisitBean = iRevisitService.getById(recipe.getClinicId());
                 if (revisitBean != null && REVISIT_STATUS_IN.equals(revisitBean.getStatus())) {
                     Buss2SessionProducer.sendMsgToMq(recipe, "recipeCheckPass", revisitBean.getSessionID());
+                    if (Integer.valueOf(1).equals(recipe.getFastRecipeFlag())) {
+                        recipeManager.doctorJoinFastRecipeNoticeRevisit(recipe);
+                    }
                 }
             }
         } catch (Exception e) {

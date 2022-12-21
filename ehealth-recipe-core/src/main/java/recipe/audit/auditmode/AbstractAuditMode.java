@@ -15,6 +15,7 @@ import eh.cdr.constant.RecipeStatusConstant;
 import eh.wxpay.constant.PayConstant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.audit.IAuditMode;
 import recipe.caNew.pdf.CreatePdfFactory;
@@ -30,6 +31,7 @@ import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.SignImageTypeEnum;
+import recipe.manager.RecipeManager;
 import recipe.manager.StateManager;
 import recipe.mq.Buss2SessionProducer;
 import recipe.service.RecipeLogService;
@@ -51,6 +53,9 @@ import static recipe.service.afterpay.IAfterPayBussService.REVISIT_STATUS_IN;
 public abstract class AbstractAuditMode implements IAuditMode {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractAuditMode.class);
+
+    @Autowired
+    private RecipeManager recipeManager;
 
     @Override
     public void afterHisCallBackChange(Integer status, Recipe recipe, String memo) {
@@ -109,6 +114,9 @@ public abstract class AbstractAuditMode implements IAuditMode {
             RevisitBean revisitBean = iRevisitService.getById(recipe.getClinicId());
             if (revisitBean != null && REVISIT_STATUS_IN.equals(revisitBean.getStatus())) {
                 Buss2SessionProducer.sendMsgToMq(recipe, "recipeCheckNotPass", revisitBean.getSessionID());
+                if (Integer.valueOf(1).equals(recipe.getFastRecipeFlag())) {
+                    recipeManager.doctorJoinFastRecipeNoticeRevisit(recipe);
+                }
             }
         }
         stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_AUDIT_NOT_PASS);
