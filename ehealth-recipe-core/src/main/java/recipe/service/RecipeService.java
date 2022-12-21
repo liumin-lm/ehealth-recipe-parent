@@ -4398,6 +4398,10 @@ public class RecipeService extends RecipeBaseService {
             drugListMatch.setHisDrugClassName(drug.getHisDrugClassName());
         }
 
+        if(drug.getMaximum() != null){
+            drugListMatch.setMaximum(drug.getMaximum());
+        }
+
 //        if(drug.getColdChainTransportationFlag() != null){
 //            drugListMatch.setColdChainTransportationFlag(drug.getColdChainTransportationFlag());
 //        }
@@ -4697,6 +4701,10 @@ public class RecipeService extends RecipeBaseService {
 
         if(StringUtils.isNotEmpty(drug.getHisDrugClassName())){
             organDrug.setHisDrugClassName(drug.getHisDrugClassName());
+        }
+
+        if(drug.getMaximum() != null){
+            organDrug.setMaximum(drug.getMaximum());
         }
 
 //        if(drug.getColdChainTransportationFlag() != null){
@@ -5035,6 +5043,10 @@ public class RecipeService extends RecipeBaseService {
 
         if(StringUtils.isNotEmpty(drug.getHisDrugClassName())){
             organDrug.setHisDrugClassName(drug.getHisDrugClassName());
+        }
+
+        if(drug.getMaximum() != null){
+            organDrug.setMaximum(drug.getMaximum());
         }
 
 //        if(drug.getColdChainTransportationFlag() != null){

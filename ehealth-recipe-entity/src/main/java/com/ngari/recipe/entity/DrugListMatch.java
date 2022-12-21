@@ -272,6 +272,9 @@ public class DrugListMatch implements java.io.Serializable {
     @ItemProperty(alias = "his药品分类编码")
     private String hisDrugClassCode;
 
+    @ItemProperty(alias = "开药数量限制")
+    private Integer maximum;
+
 //    @ItemProperty(alias = "是否冷链运输 0 否 1 是")
 //    private Integer coldChainTransportationFlag;
 //
@@ -283,6 +286,15 @@ public class DrugListMatch implements java.io.Serializable {
 //    public void setColdChainTransportationFlag(Integer coldChainTransportationFlag) {
 //        this.coldChainTransportationFlag = coldChainTransportationFlag;
 //    }
+
+    @Column(name = "maximum")
+    public Integer getMaximum() {
+        return maximum;
+    }
+
+    public void setMaximum(Integer maximum) {
+        this.maximum = maximum;
+    }
 
     @Column(name = "skin_test_drug_flag")
     public Integer getSkinTestDrugFlag() {
