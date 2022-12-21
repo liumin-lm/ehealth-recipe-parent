@@ -847,7 +847,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         RecipeUtil.setDefaultData(recipe);
         recipe.setFastRecipeFlag(1);
         recipe.setAuditState(RecipeAuditStateEnum.PASS.getType());
-        String ca=caManager.obtainFastRecipeCaParam(recipe);
+        String ca = caManager.obtainFastRecipeCaParam(recipe);
         if(!CaConstant.ESIGN.equals(ca)){
             recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_SIGN_ING_CODE_DOC.getType());
             recipe.setChecker(null);
@@ -871,6 +871,10 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
             recipeExtend.setRecipeBusinessType(RecipeBusinessTypeEnum.BUSINESS_RECIPE_REVISIT.getType());
             recipeManager.setRecipeInfoFromRevisit(recipe, recipeExtend);
             recipeManager.saveRecipeExtend(recipeExtend, recipe);
+        }
+        if (StringUtils.isEmpty(recipeInfoVO.getRecipeBean().getRecipeSupportGiveMode())) {
+            //设置购药方式
+            this.setRecipeSupportGiveMode(recipe);
         }
         //保存处方明细
         if (CollectionUtils.isNotEmpty(recipeInfoVO.getRecipeDetails())) {
