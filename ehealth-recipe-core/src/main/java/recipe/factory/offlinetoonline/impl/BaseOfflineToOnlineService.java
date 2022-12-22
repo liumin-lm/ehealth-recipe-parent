@@ -1377,11 +1377,11 @@ public class BaseOfflineToOnlineService {
     private void createRecipePdf(Recipe recipe){
         LOGGER.info("BaseOfflineToOnlineService createRecipePdf recipe={}",JSONUtils.toString(recipe));
         //医生
-        CaSealRequestTO doctorRequestSealTO = createPdfFactory.queryPdfByte(recipe.getRecipeId(),true);
-        RecipeServiceEsignExt.updateInitRecipePDF(true, recipe, doctorRequestSealTO.getPdfBase64Str());
+        createPdfFactory.updateDoctorNamePdf(recipe, null);
+        //RecipeServiceEsignExt.updateInitRecipePDF(true, recipe, doctorRequestSealTO.getPdfBase64Str());
         //药师
-        CaSealRequestTO checkerRequestSealTO = createPdfFactory.queryPdfByte(recipe.getRecipeId(),false);
-        RecipeServiceEsignExt.updateInitRecipePDF(false, recipe, checkerRequestSealTO.getPdfBase64Str());
+        createPdfFactory.updateCheckNamePdf(recipe.getRecipeId());
+        //RecipeServiceEsignExt.updateInitRecipePDF(false, recipe, checkerRequestSealTO.getPdfBase64Str());
         LOGGER.info("BaseOfflineToOnlineService createRecipePdf 方法结束");
     }
 
