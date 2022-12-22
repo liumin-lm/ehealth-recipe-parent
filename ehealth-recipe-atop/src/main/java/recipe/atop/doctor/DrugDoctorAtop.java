@@ -27,6 +27,7 @@ import recipe.core.api.IRecipeBusinessService;
 import recipe.core.api.IStockBusinessService;
 import recipe.enumerate.type.RecipeDrugFormTypeEnum;
 import recipe.enumerate.type.RecipeSupportGiveModeEnum;
+import recipe.enumerate.type.StockCheckSourceTypeEnum;
 import recipe.util.ByteUtils;
 import recipe.util.ObjectCopyUtils;
 import recipe.util.RecipeUtil;
@@ -84,7 +85,7 @@ public class DrugDoctorAtop extends BaseAtop {
             return null;
         }
         //查询购药方式下有库存的药品
-        List<DrugForGiveModeListVO> list = iStockBusinessService.drugForGiveModeV1(recipeDTO);
+        List<DrugForGiveModeListVO> list = iStockBusinessService.drugForGiveModeV1(recipeDTO, StockCheckSourceTypeEnum.DOCTOR_STOCK.getType());
         if (CollectionUtils.isEmpty(list)) {
             return null;
         }
@@ -114,7 +115,7 @@ public class DrugDoctorAtop extends BaseAtop {
     @RpcService
     public List<DrugStockVO> giveModeDrugStock(DrugQueryVO drugQueryVO) {
         RecipeDTO recipeDTO = this.recipeDTO(drugQueryVO);
-        EnterpriseStock result = iStockBusinessService.enterpriseStockCheckV1(recipeDTO, drugQueryVO.getEnterpriseId(), drugQueryVO.getAppointEnterpriseType());
+        EnterpriseStock result = iStockBusinessService.enterpriseStockCheckV1(recipeDTO, drugQueryVO.getEnterpriseId(), drugQueryVO.getAppointEnterpriseType(), StockCheckSourceTypeEnum.DOCTOR_STOCK.getType());
         if (null == result) {
             return new ArrayList<>();
         }
@@ -139,7 +140,7 @@ public class DrugDoctorAtop extends BaseAtop {
             recipedetail.setUseTotalDose(1D);
             detailList.add(recipedetail);
         });
-        return iStockBusinessService.stockList(drugQueryVO, detailList);
+        return iStockBusinessService.stockList(drugQueryVO, detailList, StockCheckSourceTypeEnum.DOCTOR_STOCK.getType());
     }
 
     /**

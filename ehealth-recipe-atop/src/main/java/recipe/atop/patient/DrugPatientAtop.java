@@ -23,6 +23,7 @@ import recipe.constant.ErrorCode;
 import recipe.core.api.IClinicCartBusinessService;
 import recipe.core.api.IDrugBusinessService;
 import recipe.core.api.IStockBusinessService;
+import recipe.enumerate.type.StockCheckSourceTypeEnum;
 import recipe.util.ByteUtils;
 import recipe.util.ObjectCopyUtils;
 import recipe.vo.doctor.DrugsResVo;
@@ -141,7 +142,7 @@ public class DrugPatientAtop extends BaseAtop {
         recipeDTO.setRecipe(recipe);
         recipeDTO.setRecipeExtend(new RecipeExtend());
         recipeDTO.setRecipeDetails(Collections.singletonList(recipedetail));
-        List<EnterpriseStock> drugsStock = stockBusinessService.drugsStock(recipeDTO);
+        List<EnterpriseStock> drugsStock = stockBusinessService.drugsStock(recipeDTO, StockCheckSourceTypeEnum.PATIENT_STOCK.getType());
         return drugsStock.stream().anyMatch(EnterpriseStock::getStock);
     }
     

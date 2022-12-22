@@ -48,6 +48,7 @@ import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.status.SettleAmountStateEnum;
 import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.enumerate.type.StandardPaymentWayEnum;
+import recipe.enumerate.type.StockCheckSourceTypeEnum;
 import recipe.hisservice.RecipeToHisService;
 import recipe.manager.EnterpriseManager;
 import recipe.manager.OrderManager;
@@ -125,7 +126,7 @@ public class PayModeOnline implements IPurchaseService {
         List<Recipedetail> detailList = detailDAO.findByRecipeId(recipeId);
         List<DrugsEnterprise> subDepList = new ArrayList<>(drugsEnterpriseList.size());
         for (DrugsEnterprise dep : drugsEnterpriseList) {
-            EnterpriseStock enterpriseStock = stockBusinessService.enterpriseStockCheck(dbRecipe, detailList, dep.getId());
+            EnterpriseStock enterpriseStock = stockBusinessService.enterpriseStockCheck(dbRecipe, detailList, dep.getId(), StockCheckSourceTypeEnum.PATIENT_STOCK.getType());
             if (null != enterpriseStock && enterpriseStock.getStock() && enterpriseStock.getSendFlag()) {
                 subDepList.add(dep);
             }
@@ -259,7 +260,7 @@ public class PayModeOnline implements IPurchaseService {
             AccessDrugEnterpriseService remoteService = remoteDrugEnterpriseService.getServiceByDep(dep);
 
             // 根据药企查询库存
-            EnterpriseStock enterpriseStock = stockBusinessService.enterpriseStockCheck(dbRecipe, detailList, depId);
+            EnterpriseStock enterpriseStock = stockBusinessService.enterpriseStockCheck(dbRecipe, detailList, depId, StockCheckSourceTypeEnum.PATIENT_STOCK.getType());
             if (Objects.isNull(enterpriseStock) || !enterpriseStock.getStock() || !enterpriseStock.getSendFlag()) {
                 //无法配送
                 result.setCode(RecipeResultBean.FAIL);

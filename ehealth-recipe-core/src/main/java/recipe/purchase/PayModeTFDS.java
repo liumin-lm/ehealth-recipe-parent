@@ -27,6 +27,7 @@ import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.status.YesOrNoEnum;
 import recipe.enumerate.type.RecipeSupportGiveModeEnum;
+import recipe.enumerate.type.StockCheckSourceTypeEnum;
 import recipe.enumerate.type.TakeMedicineWayEnum;
 import recipe.manager.EnterpriseManager;
 import recipe.manager.OrderManager;
@@ -124,7 +125,7 @@ public class PayModeTFDS implements IPurchaseService {
         RemoteDrugEnterpriseService remoteDrugService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
         for (DrugsEnterprise dep : drugsEnterprises) {
             //通过查询该药企对应药店库存
-            EnterpriseStock enterpriseStock = stockBusinessService.enterpriseStockCheck(recipe, detailList, dep.getId());
+            EnterpriseStock enterpriseStock = stockBusinessService.enterpriseStockCheck(recipe, detailList, dep.getId(), StockCheckSourceTypeEnum.PATIENT_STOCK.getType());
             if ((null != enterpriseStock && enterpriseStock.getStock()) || dep.getCheckInventoryFlag().equals(2)) {
                 //需要从接口获取药店列表
                 DrugEnterpriseResult drugEnterpriseResult = remoteDrugService.findSupportDep(recipeIds, extInfo, dep);
@@ -184,7 +185,7 @@ public class PayModeTFDS implements IPurchaseService {
             List<Recipedetail> detailList = detailDAO.findByRecipeId(dbRecipe.getRecipeId());
             //患者提交订单前,先进行库存校验
             // 根据药企查询库存
-            EnterpriseStock enterpriseStock = stockBusinessService.enterpriseStockCheck(dbRecipe, detailList, depId);
+            EnterpriseStock enterpriseStock = stockBusinessService.enterpriseStockCheck(dbRecipe, detailList, depId, StockCheckSourceTypeEnum.PATIENT_STOCK.getType());
             if ((Objects.isNull(enterpriseStock) || !enterpriseStock.getStock()) && dep.getCheckInventoryFlag() != 2) {
                 result.setCode(RecipeResultBean.FAIL);
                 result.setMsg("抱歉，配送商库存不足无法配送。请稍后尝试提交，或更换配送商。");
@@ -314,7 +315,7 @@ public class PayModeTFDS implements IPurchaseService {
 
         RecipeDetailDAO detailDAO = getDAO(RecipeDetailDAO.class);
         List<Recipedetail> detailList = detailDAO.findByRecipeId(dbRecipe.getRecipeId());
-        EnterpriseStock enterpriseStock = stockBusinessService.enterpriseStockCheck(dbRecipe, detailList, dep.getId());
+        EnterpriseStock enterpriseStock = stockBusinessService.enterpriseStockCheck(dbRecipe, detailList, dep.getId(), StockCheckSourceTypeEnum.PATIENT_STOCK.getType());
         if (Objects.isNull(enterpriseStock)) {
             succFlag = false;
         } else {
