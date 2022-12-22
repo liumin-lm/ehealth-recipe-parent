@@ -393,6 +393,9 @@ public class RecipeServiceSub {
                 if ((null != consultBean) && (Integer.valueOf(1).equals(consultBean.getConsultSource()))) {
                     recipe.setRecipeSource(consultBean.getConsultSource());
                 }
+                if (null != consultBean) {
+                    recipe.setFastRecipeFlag(FastRecipeFlagEnum.getFastRecipeFlag(consultBean.getSourceTag()));
+                }
             } else if (RecipeBussConstant.BUSS_SOURCE_WZ.equals(recipe.getBussSource())) {
                 IConsultService consultService = ConsultAPI.getService(IConsultService.class);
                 ConsultBean consultBean = consultService.getById(recipe.getClinicId());
