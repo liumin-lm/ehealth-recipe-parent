@@ -35,6 +35,7 @@ import org.hibernate.StatelessSession;
 import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import recipe.aop.LogRecord;
 import recipe.constant.ConditionOperator;
 import recipe.constant.ErrorCode;
 import recipe.constant.RecipeBussConstant;
@@ -3217,6 +3218,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      * @param limit
      * @return
      */
+    @LogRecord
     public List<Recipe> findRecipeListByDoctorAndPatientAndStatusListAndOrganId(final Integer doctorId, final String mpiId, final Integer start, final Integer limit, final List<Integer> statusList,String startDate,String endDate,Integer organId) {
         Long beginTime = new Date().getTime();
         HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
@@ -3236,6 +3238,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                     hql += " and clinicOrgan=:clinicOrgan";
                 }
                 hql += " and processState IN (:statusList) and recipeSourceType in (1,2)  and checkStatus!=1  order by createDate desc ";
+                logger.info("hql:{}",hql);
                 Query query = ss.createQuery(hql);
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                 if (!com.alibaba.druid.util.StringUtils.isEmpty(startDate)) {
