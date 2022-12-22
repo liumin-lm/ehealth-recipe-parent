@@ -1091,7 +1091,7 @@ public class RecipeService extends RecipeBaseService {
             if (ValidateUtil.integerIsEmpty(recipeBean.getVersion())) {
                 Integer appointEnterpriseType = recipeBean.getRecipeExtend().getAppointEnterpriseType();
                 if ((continueFlag == 0 || continueFlag == 4) && ValidateUtil.integerIsEmpty(appointEnterpriseType)) {
-                    rMap = drugEnterpriseBusinessService.enterpriseStockMap(recipeBean.getRecipeId());
+                    rMap = drugEnterpriseBusinessService.enterpriseStockMap(recipeBean.getRecipeId(), StockCheckSourceTypeEnum.DOCTOR_STOCK.getType());
                     boolean signResult = Boolean.valueOf(rMap.get("signResult").toString());
                     if (!signResult) {
                         return rMap;
@@ -1598,7 +1598,7 @@ public class RecipeService extends RecipeBaseService {
                     LOGGER.info("审方后置-药店取药-药企为空");
                 } else {
                     DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipe.getEnterpriseId());
-                    EnterpriseStock enterpriseStock = stockBusinessService.enterpriseStockCheck(recipe, recipedetailList, drugsEnterprise.getId());
+                    EnterpriseStock enterpriseStock = stockBusinessService.enterpriseStockCheck(recipe, recipedetailList, drugsEnterprise.getId(), StockCheckSourceTypeEnum.DOCTOR_STOCK.getType());
                     boolean scanFlag = enterpriseStock.getStock();
                     LOGGER.info("AuditPostMode afterCheckPassYs scanFlag:{}.", scanFlag);
                     if (scanFlag) {
@@ -3449,7 +3449,7 @@ public class RecipeService extends RecipeBaseService {
                     continue;
                 } else {
                     //通过查询该药企库存，最终确定能否配送
-                    EnterpriseStock enterpriseStock = stockBusinessService.enterpriseStockCheck(recipe, recipedetailList, dep.getId());
+                    EnterpriseStock enterpriseStock = stockBusinessService.enterpriseStockCheck(recipe, recipedetailList, dep.getId(), StockCheckSourceTypeEnum.PATIENT_STOCK.getType());
                     succFlag = enterpriseStock.getStock();
                     if (succFlag || dep.getCheckInventoryFlag() == 2) {
                         subDepList.add(dep);
@@ -3559,7 +3559,7 @@ public class RecipeService extends RecipeBaseService {
                 //通过查询该药企库存，最终确定能否配送
                 Recipe recipe = recipeDAO.getByRecipeId(recipeId);
                 List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipeId);
-                EnterpriseStock enterpriseStock = stockBusinessService.enterpriseStockCheck(recipe, recipeDetailList, dep.getId());
+                EnterpriseStock enterpriseStock = stockBusinessService.enterpriseStockCheck(recipe, recipeDetailList, dep.getId(), StockCheckSourceTypeEnum.PATIENT_STOCK.getType());
                 succFlag = enterpriseStock.getStock();
                 if (succFlag || dep.getCheckInventoryFlag() == 2) {
                     LOGGER.info("findUnSupportDepList 药企名称=[{}]支持配送该处方所有药品. 处方ID=[{}], 药企ID=[{}], drugIds={}", dep.getName(), recipeId, depId, JSONUtils.toString(drugIds));
@@ -5352,7 +5352,7 @@ public class RecipeService extends RecipeBaseService {
                 } else {
                     LOGGER.error("recipeCanDelivery 处方[{}]请求药企{}库存", recipeId, drugsEnterprise.getCallSys());
                     List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipeId);
-                    EnterpriseStock enterpriseStock = stockBusinessService.enterpriseStockCheck(dbrecipe, recipeDetailList, drugsEnterprise.getId());
+                    EnterpriseStock enterpriseStock = stockBusinessService.enterpriseStockCheck(dbrecipe, recipeDetailList, drugsEnterprise.getId(), StockCheckSourceTypeEnum.PATIENT_STOCK.getType());
                     if (enterpriseStock.getStock()) {
                         flag = true;
                         break;

@@ -44,6 +44,7 @@ import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.status.WriteHisEnum;
 import recipe.enumerate.type.SignImageTypeEnum;
+import recipe.enumerate.type.StockCheckSourceTypeEnum;
 import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
 import recipe.manager.CaManager;
@@ -414,7 +415,7 @@ public class RecipeSignService {
             Integer appointEnterpriseType = recipeBean.getRecipeExtend().getAppointEnterpriseType();
             if ((continueFlag == 0 || continueFlag == 4) && ValidateUtil.integerIsEmpty(appointEnterpriseType)
                     && ValidateUtil.integerIsEmpty(recipeBean.getVersion())) {
-                rMap = drugEnterpriseBusinessService.enterpriseStockMap(recipeBean.getRecipeId());
+                rMap = drugEnterpriseBusinessService.enterpriseStockMap(recipeBean.getRecipeId(), StockCheckSourceTypeEnum.DOCTOR_STOCK.getType());
                 boolean signResult = Boolean.parseBoolean(rMap.get("signResult").toString());
                 if (!signResult) {
                     return rMap;

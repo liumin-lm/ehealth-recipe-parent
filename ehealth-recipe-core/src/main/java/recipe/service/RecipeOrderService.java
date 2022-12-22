@@ -2655,7 +2655,7 @@ public class RecipeOrderService extends RecipeBaseService {
             } else {
                 DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(nowRecipe.getEnterpriseId());
                 List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(nowRecipe.getRecipeId());
-                EnterpriseStock enterpriseStock = stockBusinessService.enterpriseStockCheck(nowRecipe, recipeDetailList, drugsEnterprise.getId());
+                EnterpriseStock enterpriseStock = stockBusinessService.enterpriseStockCheck(nowRecipe, recipeDetailList, drugsEnterprise.getId(), StockCheckSourceTypeEnum.PATIENT_STOCK.getType());
                 boolean scanFlag = enterpriseStock.getStock();
                 LOGGER.info("sendMsg scanFlag: {}.", scanFlag);
                 if (scanFlag) {

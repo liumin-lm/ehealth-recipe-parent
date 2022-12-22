@@ -206,6 +206,12 @@ public class DrugsEnterpriseBean implements Serializable {
     @ItemProperty(alias = "优先级")
     private Integer priorityLevel;
 
+    @ItemProperty(alias = "校验药品库存标志 0 全程都不校验 1 开方时校验 2 下单时校验 3 开方时和下单时都进行校验")
+    private Integer checkInventoryType;
+
+    @ItemProperty(alias = "库存校验途径 1 校验药企 2 药店没库存时可以备货 3 校验医院库存")
+    private Integer checkInventoryWay;
+
     private List<String> supportGiveModeNameList;
 
     private PharmacyVO pharmacy;
@@ -705,5 +711,21 @@ public class DrugsEnterpriseBean implements Serializable {
 
     public void setSupportGiveModeNameList(List<String> supportGiveModeNameList) {
         this.supportGiveModeNameList = supportGiveModeNameList;
+    }
+
+    public Integer getCheckInventoryType() {
+        return checkInventoryType;
+    }
+
+    public void setCheckInventoryType(Integer checkInventoryType) {
+        this.checkInventoryType = checkInventoryType;
+    }
+
+    public Integer getCheckInventoryWay() {
+        return checkInventoryWay;
+    }
+
+    public void setCheckInventoryWay(Integer checkInventoryWay) {
+        this.checkInventoryWay = checkInventoryWay;
     }
 }
