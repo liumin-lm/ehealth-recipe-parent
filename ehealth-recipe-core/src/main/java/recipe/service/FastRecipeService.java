@@ -167,6 +167,8 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
             recipeBean.setFastRecipeFlag(1);
             recipeBean.setFromflag(1);
             recipeBean.setRecipeSourceType(1);
+            recipeBean.setRecipeSupportGiveMode(fastRecipe.getRecipeSupportGiveMode());
+
             //recipeBean.setMedicalFlag(0);
             //recipeBean.setMedicalPayFlag(0);
             //recipeBean.setReviewType(1);
@@ -188,6 +190,8 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
             recipeExtendBean.setDecoctionId(fastRecipe.getDecoctionId());
             recipeExtendBean.setDecoctionText(fastRecipe.getDecoctionText());
             recipeExtendBean.setSingleOrCompoundRecipe(fastRecipe.getSingleOrCompoundRecipe());
+            recipeExtendBean.setAppointEnterpriseType(fastRecipe.getAppointEnterpriseType());
+            recipeExtendBean.setDeliveryCode(fastRecipe.getDeliveryCode());
             recipeBean.setRecipeExtend(recipeExtendBean);
 
             //3.recipe参数设置
