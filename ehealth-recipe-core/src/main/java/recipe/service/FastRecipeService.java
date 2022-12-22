@@ -461,6 +461,10 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
         if (!operationClient.isAuthorisedOrgan(fastRecipe.getClinicOrgan())) {
             throw new DAOException("您没有修改该药方的权限！");
         }
+        List<FastRecipeDetailVO> fastRecipeDetailVOList = fastRecipeVO.getFastRecipeDetailList();
+        if (CollectionUtils.isEmpty(fastRecipeDetailVOList)) {
+            throw new DAOException("最少添加一种药品！");
+        }
 
         fastRecipe.setTitle(fastRecipeVO.getTitle());
         fastRecipe.setOfflineRecipeName(fastRecipeVO.getTitle());
@@ -475,13 +479,19 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
             fastRecipe.setAppointEnterpriseType(0);
         }
         fastRecipe.setDeliveryCode(fastRecipeVO.getDeliveryCode());
+        BigDecimal totalMoney = new BigDecimal("0");
+        for (FastRecipeDetailVO fastRecipeDetailVO : fastRecipeDetailVOList) {
+            if (Objects.nonNull(fastRecipeDetailVO.getDrugCost())) {
+                totalMoney = totalMoney.add(fastRecipeDetailVO.getDrugCost());
+            }
+        }
+        //更新价格
+        fastRecipe.setTotalMoney(totalMoney);
+        fastRecipe.setActualPrice(totalMoney);
         fastRecipeDAO.update(fastRecipe);
 
         //1.更新药方详情（目前只能删除药品，修改药品随后版本做）
-        List<FastRecipeDetailVO> fastRecipeDetailVOList = fastRecipeVO.getFastRecipeDetailList();
-        if (CollectionUtils.isEmpty(fastRecipeDetailVOList)) {
-            throw new DAOException("最少添加一种药品！");
-        }
+
         List<Integer> fastRecipeDetailIds = fastRecipeDetailVOList.stream().map(FastRecipeDetailVO::getId).collect(Collectors.toList());
         List<FastRecipeDetail> fastRecipeDetailList = fastRecipeDetailDAO.findFastRecipeDetailsByFastRecipeId(fastRecipe.getId());
         if (CollectionUtils.isEmpty(fastRecipeDetailList)) {
