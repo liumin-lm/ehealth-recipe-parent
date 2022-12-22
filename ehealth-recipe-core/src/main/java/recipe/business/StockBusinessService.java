@@ -422,7 +422,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
             return;
         }
         //医院自建药企-查询医院库存
-        if (3 == drugsEnterprise.getCheckInventoryWay()) {
+        if (2 == drugsEnterprise.getCheckInventoryWay()) {
             DrugStockAmountDTO result = organDrugListManager.scanDrugStockByRecipeId(recipe, recipeDetailList);
             enterpriseStock.setDrugName(result.getNotDrugNames());
             enterpriseStock.setStock(result.isResult());

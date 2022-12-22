@@ -857,7 +857,7 @@ public class RecipeTestService {
                 drugsEnterprise.setCheckInventoryWay(1);
             } else if (3 == drugsEnterprise.getCheckInventoryFlag()) {
                 drugsEnterprise.setCheckInventoryType(3);
-                drugsEnterprise.setCheckInventoryWay(3);
+                drugsEnterprise.setCheckInventoryWay(2);
             }
         });
     }

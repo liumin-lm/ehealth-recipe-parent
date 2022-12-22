@@ -98,7 +98,7 @@ public class DrugsEnterprise implements java.io.Serializable {
     @ItemProperty(alias = "校验药品库存标志 0 全程都不校验 1 开方时校验 2 下单时校验 3 开方时和下单时都进行校验")
     private Integer checkInventoryType;
 
-    @ItemProperty(alias = "库存校验途径 1 校验药企 2 药店没库存时可以备货 3 校验医院库存")
+    @ItemProperty(alias = "库存校验途径 1 校验药企 2 校验医院库存")
     private Integer checkInventoryWay;
 
     @ItemProperty(alias = "创建类型：1：非自建  0：自建")
