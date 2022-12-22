@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.google.common.base.Joiner;
 import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.dto.UsingRateDTO;
+import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.consult.common.model.ConsultExDTO;
 import com.ngari.follow.utils.ObjectCopyUtil;
 import com.ngari.his.recipe.mode.HisOrderCodeResTO;
@@ -83,6 +84,8 @@ public class RecipeManager extends BaseManager {
     private RecipeHisClient recipeHisClient;
     @Autowired
     private RecipeDataSaveFactory recipeDataSaveFactory;
+    @Autowired
+    RevisitManager revisitManager;
 
 
     /**
@@ -1260,6 +1263,25 @@ public class RecipeManager extends BaseManager {
             return recipeList.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
         } else {
             return recipeList.stream().map(Recipe::getRecipeId).filter(id -> !id.equals(recipeId)).collect(Collectors.toList());
+        }
+    }
+
+    /**
+     * 便捷购药开方通知复诊，复诊关联处方单全部开方完成后推送
+     *
+     * @param recipe
+     */
+    public void doctorJoinFastRecipeNoticeRevisit(Recipe recipe) {
+        logger.info("doctorJoinFastRecipeNoticeRevisit recipeId={}, revisitId={}", recipe.getRecipeId(), recipe.getClinicId());
+        IConfigurationCenterUtilsService configService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+        Object fastRecipeMode = configService.getConfiguration(recipe.getClinicOrgan(), "fastRecipeMode");
+        if (Objects.isNull(fastRecipeMode) || !"1".equals(fastRecipeMode)) {
+            //自动开方流程不处理
+            return;
+        }
+        List<Recipe> recipeList = recipeDAO.findTempRecipeByClinicId(recipe.getClinicOrgan(), recipe.getClinicId());
+        if (CollectionUtils.isEmpty(recipeList)) {
+            revisitManager.failedToPrescribeFastDrug(recipe);
         }
     }
 

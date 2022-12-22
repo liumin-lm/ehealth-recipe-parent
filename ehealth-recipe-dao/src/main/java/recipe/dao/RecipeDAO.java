@@ -3161,7 +3161,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      * @param doctorId
      * @param mpiId
      * @param start
-     * @param limit
+     * @param limit iii
      * @return
      */
     public List<Recipe> findRecipeListByDoctorAndPatientAndStatusList(final Integer doctorId, final String mpiId, final Integer start, final Integer limit, final List<Integer> statusList,String startDate,String endDate) {
@@ -3235,7 +3235,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 if (organId != null) {
                     hql += " and clinicOrgan=:clinicOrgan";
                 }
-                hql += " and status IN (:statusList) and recipeSourceType in (1,2)  and checkStatus!=1  order by createDate desc ";
+                hql += " and processState IN (:statusList) and recipeSourceType in (1,2)  and checkStatus!=1  order by createDate desc ";
                 Query query = ss.createQuery(hql);
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                 if (!com.alibaba.druid.util.StringUtils.isEmpty(startDate)) {
@@ -4726,6 +4726,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         List<Recipe> recipes = action.getResult();
         return recipes;
     };
+
+    @DAOMethod(sql = "FROM Recipe where clinicOrgan = :organId AND status = 0 AND clinicId = :clinicId")
+    public abstract List<Recipe> findTempRecipeByClinicId(@DAOParam("organId") Integer organId,
+                                                          @DAOParam("clinicId") Integer clinicId);
 }
 
 

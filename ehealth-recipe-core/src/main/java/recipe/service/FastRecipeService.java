@@ -188,6 +188,7 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
             recipeExtendBean.setDecoctionId(fastRecipe.getDecoctionId());
             recipeExtendBean.setDecoctionText(fastRecipe.getDecoctionText());
             recipeExtendBean.setSingleOrCompoundRecipe(fastRecipe.getSingleOrCompoundRecipe());
+            recipeBean.setRecipeExtend(recipeExtendBean);
 
             //3.recipe参数设置
             List<RecipeDetailBean> detailBeanList = recipeInfoVO.getRecipeDetails();
