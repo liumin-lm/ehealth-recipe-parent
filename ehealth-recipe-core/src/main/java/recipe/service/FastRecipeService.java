@@ -101,7 +101,7 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
     @Override
     public List<Integer> fastRecipeSaveRecipeList(List<RecipeInfoVO> recipeInfoVOList) {
         //快捷购药开方流程模式： "0":"自动开方流程", "1":"手动开方流程"
-        Integer fastRecipeMode = configurationClient.getValueCatchReturnInteger(recipeInfoVOList.get(0).getRecipeBean().getClinicOrgan(), "fastRecipeMode", null);
+        Integer fastRecipeMode = configurationClient.getValueCatchReturnInteger(recipeInfoVOList.get(0).getRecipeBean().getClinicOrgan(), "fastRecipeMode", 0);
         List<Integer> resultList;
         if (Integer.valueOf("1").equals(fastRecipeMode)) {
             //医生手动开方流程，调用处方暂存接口
@@ -188,11 +188,12 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
             recipeExtendBean.setDecoctionId(fastRecipe.getDecoctionId());
             recipeExtendBean.setDecoctionText(fastRecipe.getDecoctionText());
             recipeExtendBean.setSingleOrCompoundRecipe(fastRecipe.getSingleOrCompoundRecipe());
+            recipeBean.setRecipeExtend(recipeExtendBean);
 
             //3.recipe参数设置
             List<RecipeDetailBean> detailBeanList = recipeInfoVO.getRecipeDetails();
             //4.暂存
-            Integer recipeId =  recipeSignService.doSignRecipeSave(recipeBean, detailBeanList);
+            Integer recipeId = recipeSignService.doSignRecipeSave(recipeBean, detailBeanList);
             //5.通知复诊关联处方单
             recipePatientService.updateRecipeIdByConsultId(recipeId, recipeInfoVO.getRecipeBean().getClinicId());
             return recipeId;
@@ -460,6 +461,10 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
         if (!operationClient.isAuthorisedOrgan(fastRecipe.getClinicOrgan())) {
             throw new DAOException("您没有修改该药方的权限！");
         }
+        List<FastRecipeDetailVO> fastRecipeDetailVOList = fastRecipeVO.getFastRecipeDetailList();
+        if (CollectionUtils.isEmpty(fastRecipeDetailVOList)) {
+            throw new DAOException("最少添加一种药品！");
+        }
 
         fastRecipe.setTitle(fastRecipeVO.getTitle());
         fastRecipe.setOfflineRecipeName(fastRecipeVO.getTitle());
@@ -474,13 +479,19 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
             fastRecipe.setAppointEnterpriseType(0);
         }
         fastRecipe.setDeliveryCode(fastRecipeVO.getDeliveryCode());
+        BigDecimal totalMoney = new BigDecimal("0");
+        for (FastRecipeDetailVO fastRecipeDetailVO : fastRecipeDetailVOList) {
+            if (Objects.nonNull(fastRecipeDetailVO.getDrugCost())) {
+                totalMoney = totalMoney.add(fastRecipeDetailVO.getDrugCost());
+            }
+        }
+        //更新价格
+        fastRecipe.setTotalMoney(totalMoney);
+        fastRecipe.setActualPrice(totalMoney);
         fastRecipeDAO.update(fastRecipe);
 
         //1.更新药方详情（目前只能删除药品，修改药品随后版本做）
-        List<FastRecipeDetailVO> fastRecipeDetailVOList = fastRecipeVO.getFastRecipeDetailList();
-        if (CollectionUtils.isEmpty(fastRecipeDetailVOList)) {
-            throw new DAOException("最少添加一种药品！");
-        }
+
         List<Integer> fastRecipeDetailIds = fastRecipeDetailVOList.stream().map(FastRecipeDetailVO::getId).collect(Collectors.toList());
         List<FastRecipeDetail> fastRecipeDetailList = fastRecipeDetailDAO.findFastRecipeDetailsByFastRecipeId(fastRecipe.getId());
         if (CollectionUtils.isEmpty(fastRecipeDetailList)) {

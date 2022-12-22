@@ -2,6 +2,7 @@ package recipe.service.afterpay;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.google.common.base.Joiner;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.infra.logistics.mode.CreateLogisticsOrderDto;
@@ -278,7 +279,10 @@ public class LogisticsOnlineOrderService implements IAfterPayBussService{
             logisticsOrder.setLatitude(addressDTO.getLatitude());
             logisticsOrder.setLongitude(addressDTO.getLongitude());
         }
-
+        List<Integer> recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
+        if (CollectionUtils.isNotEmpty(recipeIdList)) {
+            logisticsOrder.setDetailOrderNo(Joiner.on(",").join(recipeIdList));
+        }
         // 收件人名称
         logisticsOrder.setAddresseeName(order.getReceiver());
         // 收件人手机号

@@ -44,7 +44,7 @@
         <ngari.casign.version>4.6.2.0.master-SNAPSHOT</ngari.casign.version>
         <ngari.video.version>4.1.1.9.master-SNAPSHOT</ngari.video.version>
         <ngari.weixin.service.version>4.1.1.9.master-SNAPSHOT</ngari.weixin.service.version>
-        <ngari.infra.version>4.11.2.8.master-SNAPSHOT</ngari.infra.version>
+        <ngari.infra.version>4.12.2.7.master-SNAPSHOT</ngari.infra.version>
         <ngari.message.version>4.8.3.0.master-SNAPSHOT</ngari.message.version>
         <ngari.bill.version>4.1.1.9.master-SNAPSHOT</ngari.bill.version>
         <ngari.account.version>4.1.1.9.master-SNAPSHOT</ngari.account.version>
