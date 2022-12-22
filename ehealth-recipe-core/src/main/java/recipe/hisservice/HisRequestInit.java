@@ -438,6 +438,14 @@ public class HisRequestInit {
         if (Objects.nonNull(recipe.getDecoctionNum())) {
             requestTO.setDecoctionNum(recipe.getDecoctionNum());
         }
+        try {
+            //操作员代码(医生身份证)
+            DoctorService doctorService = ApplicationUtils.getBasicService(DoctorService.class);
+            DoctorDTO doctorDTO = doctorService.getByDoctorId(recipe.getDoctor());
+            requestTO.setDoctorIdCard(doctorDTO.getIdNumber());
+        }catch (Exception e){
+            LOGGER.info("recipeSend 操作员代码(医生身份证)获取失败",e);
+        }
         //医生名字
         requestTO.setDoctorName(recipe.getDoctorName());
         //设置医生工号
@@ -594,6 +602,8 @@ public class HisRequestInit {
                 }
                 //设置单个药品医保类型
                 orderItem.setDrugMedicalFlag(detail.getDrugMedicalFlag());
+                //生产厂家
+                orderItem.setProducer(detail.getProducer());
                 orderList.add(orderItem);
             }
         } catch (Exception e) {
