@@ -1274,8 +1274,9 @@ public class RecipeManager extends BaseManager {
     public void doctorJoinFastRecipeNoticeRevisit(Recipe recipe) {
         logger.info("doctorJoinFastRecipeNoticeRevisit recipeId={}, revisitId={}", recipe.getRecipeId(), recipe.getClinicId());
         IConfigurationCenterUtilsService configService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-        Object fastRecipeMode = configService.getConfiguration(recipe.getClinicOrgan(), "fastRecipeMode");
-        if (Objects.isNull(fastRecipeMode) || !"1".equals(fastRecipeMode)) {
+        Integer fastRecipeMode = configurationClient.getValueCatchReturnInteger(recipe.getClinicOrgan(), "fastRecipeMode", 0);
+
+        if (Objects.isNull(fastRecipeMode) || !Integer.valueOf("1").equals(fastRecipeMode)) {
             //自动开方流程不处理
             return;
         }
