@@ -193,6 +193,7 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
             recipeExtendBean.setSingleOrCompoundRecipe(fastRecipe.getSingleOrCompoundRecipe());
             recipeExtendBean.setAppointEnterpriseType(fastRecipe.getAppointEnterpriseType());
             recipeExtendBean.setDeliveryCode(fastRecipe.getDeliveryCode());
+            recipeExtendBean.setMouldId(recipeInfoVO.getMouldId());
             recipeBean.setRecipeExtend(recipeExtendBean);
 
             //3.recipe参数设置
@@ -268,6 +269,7 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
             recipeExtendBean.setAppointEnterpriseType(fastRecipe.getAppointEnterpriseType());
             recipeExtendBean.setDeliveryCode(fastRecipe.getDeliveryCode());
             recipeExtendBean.setDoctorIsDecoction(fastRecipe.getDoctorIsDecoction());
+            recipeExtendBean.setMouldId(recipeInfoVO.getMouldId());
 
             int buyNum = ValidateUtil.nullOrZeroInteger(recipeInfoVO.getBuyNum()) ? 1 : recipeInfoVO.getBuyNum();
             packageTotalParamByBuyNum(recipeInfoVO, buyNum);
