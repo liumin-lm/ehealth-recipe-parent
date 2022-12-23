@@ -62,10 +62,7 @@ import recipe.bean.CheckYsInfoBean;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.UsePathwaysFilter;
 import recipe.bussutil.UsingRateFilter;
-import recipe.client.DocIndexClient;
-import recipe.client.IConfigurationClient;
-import recipe.client.OfflineRecipeClient;
-import recipe.client.PayClient;
+import recipe.client.*;
 import recipe.common.CommonConstant;
 import recipe.constant.*;
 import recipe.dao.*;
@@ -125,6 +122,8 @@ public class RecipeHisService extends RecipeBaseService {
     private DepartManager departManager;
     @Autowired
     private DocIndexClient docIndexClient;
+    @Autowired
+    private RevisitClient revisitClient;
     @Autowired
     private OfflineRecipeClient offlineRecipeClient;
     @Autowired
@@ -415,7 +414,9 @@ public class RecipeHisService extends RecipeBaseService {
             request.setTakeMedicine(recipe.getTakeMedicine());
             Map<Integer, PharmacyTcm> pharmacyIdMap = pharmacyManager.pharmacyIdMap(recipe.getClinicOrgan());
             EmrDetailDTO emrDetail = docIndexClient.getEmrDetails(recipeExtend.getDocIndexId());
-            return offlineRecipeClient.cancelRecipeImpl(request, recipePdfDTO, emrDetail, pharmacyIdMap);
+            Integer clinicId = recipePdfDTO.getRecipe().getClinicId();
+            RevisitExDTO revisitEx = revisitClient.getByClinicId(clinicId);
+            return offlineRecipeClient.cancelRecipeImpl(request, recipePdfDTO, emrDetail, pharmacyIdMap, revisitEx);
         } catch (Exception e) {
             LOGGER.error("RecipeHisService cancelRecipeImpl error ", e);
             return false;
