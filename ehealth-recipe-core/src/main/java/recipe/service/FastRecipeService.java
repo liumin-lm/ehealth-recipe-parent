@@ -189,6 +189,7 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
             recipeExtendBean.setJuiceUnit(fastRecipe.getJuiceUnit());
             recipeExtendBean.setDecoctionId(fastRecipe.getDecoctionId());
             recipeExtendBean.setDecoctionText(fastRecipe.getDecoctionText());
+            recipeExtendBean.setDoctorIsDecoction(fastRecipe.getDoctorIsDecoction());
             recipeExtendBean.setSingleOrCompoundRecipe(fastRecipe.getSingleOrCompoundRecipe());
             recipeExtendBean.setAppointEnterpriseType(fastRecipe.getAppointEnterpriseType());
             recipeExtendBean.setDeliveryCode(fastRecipe.getDeliveryCode());
@@ -266,6 +267,7 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
             recipeExtendBean.setSingleOrCompoundRecipe(fastRecipe.getSingleOrCompoundRecipe());
             recipeExtendBean.setAppointEnterpriseType(fastRecipe.getAppointEnterpriseType());
             recipeExtendBean.setDeliveryCode(fastRecipe.getDeliveryCode());
+            recipeExtendBean.setDoctorIsDecoction(fastRecipe.getDoctorIsDecoction());
 
             int buyNum = ValidateUtil.nullOrZeroInteger(recipeInfoVO.getBuyNum()) ? 1 : recipeInfoVO.getBuyNum();
             packageTotalParamByBuyNum(recipeInfoVO, buyNum);
@@ -449,6 +451,7 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
             if (Objects.nonNull(fastRecipeVO.getStatus())) {
                 fastRecipe.setStatus(fastRecipeVO.getStatus());
             }
+            fastRecipe.setStockNum(fastRecipeVO.getStockNum());
 
             fastRecipeDAO.update(fastRecipe);
         }
@@ -477,6 +480,7 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
         fastRecipe.setNeedQuestionnaire(fastRecipeVO.getNeedQuestionnaire());
         fastRecipe.setQuestionnaireUrl(fastRecipeVO.getQuestionnaireUrl());
         fastRecipe.setRecipeSupportGiveMode(fastRecipeVO.getRecipeSupportGiveMode());
+        fastRecipe.setStockNum(fastRecipeVO.getStockNum());
         if (StringUtils.isNotBlank(fastRecipeVO.getRecipeSupportGiveMode())) {
             fastRecipe.setAppointEnterpriseType(2);
         } else {
@@ -495,7 +499,6 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
         fastRecipeDAO.update(fastRecipe);
 
         //1.更新药方详情（目前只能删除药品，修改药品随后版本做）
-
         List<Integer> fastRecipeDetailIds = fastRecipeDetailVOList.stream().map(FastRecipeDetailVO::getId).collect(Collectors.toList());
         List<FastRecipeDetail> fastRecipeDetailList = fastRecipeDetailDAO.findFastRecipeDetailsByFastRecipeId(fastRecipe.getId());
         if (CollectionUtils.isEmpty(fastRecipeDetailList)) {

@@ -1,6 +1,7 @@
 package recipe.atop.greenroom;
 
 import com.google.common.collect.Lists;
+import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.recipe.vo.FastRecipeReq;
 import com.ngari.recipe.entity.FastRecipe;
 import com.ngari.recipe.entity.FastRecipeDetail;
@@ -20,6 +21,7 @@ import recipe.vo.doctor.RecipeInfoVO;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 
 /**
@@ -32,6 +34,9 @@ public class FastRecipeGmAtop extends BaseAtop {
 
     @Autowired
     IFastRecipeBusinessService fastRecipeService;
+
+    @Autowired
+    private IConfigurationCenterUtilsService configService;
 
     /**
      * 快捷购药 开处方
@@ -153,12 +158,18 @@ public class FastRecipeGmAtop extends BaseAtop {
         validateAtop(fastRecipeReq);
         fastRecipeReq.setStatusList(Lists.newArrayList(1));
         List<FastRecipe> fastRecipeList = fastRecipeService.findFastRecipeListByParam(fastRecipeReq);
+        Object config = configService.getConfiguration(fastRecipeReq.getOrganId(), "fastRecipeUsePlatStock");
+        boolean fastRecipeUsePlatStock = Objects.nonNull(config) && (Boolean) config;
+
         if (CollectionUtils.isNotEmpty(fastRecipeList)) {
             List<FastRecipeVO> fastRecipeVOList = Lists.newArrayList();
             for (FastRecipe fastRecipe : fastRecipeList) {
                 FastRecipeVO fastRecipeVO = BeanUtils.map(fastRecipe, FastRecipeVO.class);
                 List<FastRecipeDetail> fastRecipeDetailList = fastRecipeService.findFastRecipeDetailsByFastRecipeId(fastRecipeList.get(0).getId());
                 fastRecipeVO.setFastRecipeDetailList(BeanCopyUtils.copyList(fastRecipeDetailList, FastRecipeDetailVO::new));
+                if (!fastRecipeUsePlatStock) {
+                    fastRecipeVO.setStockNum(null);
+                }
                 fastRecipeVOList.add(fastRecipeVO);
             }
             return fastRecipeVOList;
