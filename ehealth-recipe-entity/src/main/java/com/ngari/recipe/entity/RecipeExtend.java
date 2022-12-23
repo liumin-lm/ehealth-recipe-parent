@@ -280,6 +280,9 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "单复方表示0:无状态，1单方，2复方")
     private Integer singleOrCompoundRecipe;
 
+    @ItemProperty(alias = "药方单Id")
+    private Integer mouldId;
+
     @Column(name = "single_or_compound_recipe")
     public Integer getSingleOrCompoundRecipe() {
         return singleOrCompoundRecipe;
@@ -1101,5 +1104,14 @@ public class RecipeExtend implements Serializable {
 
     public void setCostItemType(String costItemType) {
         this.costItemType = costItemType;
+    }
+
+    @Column(name = "mould_id")
+    public Integer getMouldId() {
+        return mouldId;
+    }
+
+    public void setMouldId(Integer mouldId) {
+        this.mouldId = mouldId;
     }
 }

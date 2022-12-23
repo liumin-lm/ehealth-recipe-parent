@@ -250,6 +250,9 @@ public class RecipeExtendBean implements Serializable {
     @ItemProperty(alias = "电子票号")
     private String einvoiceNumber;
 
+    @ItemProperty(alias = "药方单Id")
+    private Integer mouldId;
+
 
     /**
      * his订单编号(邵逸夫)
@@ -950,5 +953,13 @@ public class RecipeExtendBean implements Serializable {
 
     public void setChargeItemCode(String chargeItemCode) {
         this.chargeItemCode = chargeItemCode;
+    }
+
+    public Integer getMouldId() {
+        return mouldId;
+    }
+
+    public void setMouldId(Integer mouldId) {
+        this.mouldId = mouldId;
     }
 }
