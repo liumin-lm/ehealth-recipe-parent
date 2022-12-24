@@ -38,13 +38,17 @@ import recipe.client.factory.recipedate.RecipeDataSaveFactory;
 import recipe.common.CommonConstant;
 import recipe.common.UrlConfig;
 import recipe.constant.RecipeBussConstant;
+import recipe.dao.FastRecipeDAO;
+import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RequirementsForTakingDao;
 import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.status.WriteHisEnum;
 import recipe.enumerate.type.AppointEnterpriseTypeEnum;
+import recipe.enumerate.type.FastRecipeFlagEnum;
 import recipe.enumerate.type.RecipeShowQrConfigEnum;
+import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.util.*;
 
 import java.math.BigDecimal;
@@ -86,6 +90,10 @@ public class RecipeManager extends BaseManager {
     private RecipeDataSaveFactory recipeDataSaveFactory;
     @Autowired
     RevisitManager revisitManager;
+    @Autowired
+    private FastRecipeDAO fastRecipeDAO;
+    @Autowired
+    private RecipeDetailDAO recipeDetailDAO;
 
 
     /**
@@ -1244,6 +1252,46 @@ public class RecipeManager extends BaseManager {
         }
 
         return Joiner.on("|").join(hisOrderCode);
+    }
+
+    /**
+     * 快捷购药是否存在库存
+     * @param recipeId
+     * @return
+     */
+    public boolean fastRecipeStock(Integer recipeId){
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+        FastRecipe fastRecipe = fastRecipeDAO.get(recipeExtend.getMouldId());
+        if (Objects.isNull(fastRecipe)) {
+            return false;
+        }
+        if (Objects.isNull(fastRecipe.getStockNum())) {
+            return true;
+        }
+        if (0 == fastRecipe.getStockNum()) {
+            return false;
+        }
+        return recipeExtend.getFastRecipeNum() <= fastRecipe.getStockNum();
+    }
+
+    /**
+     * 减少快捷购药库存
+     * @param recipeIdList
+     * @param recipe
+     */
+    public void decreaseInventory(List<Integer> recipeIdList, Recipe recipe) {
+        Boolean fastRecipeUsePlatStock = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "fastRecipeUsePlatStock", false);
+        if (!FastRecipeFlagEnum.FAST_RECIPE_FLAG_QUICK.getType().equals(recipe.getFastRecipeFlag()) || !fastRecipeUsePlatStock) {
+            return;
+        }
+        try {
+            List<RecipeExtend> recipeExtendList = recipeExtendDAO.queryRecipeExtendByRecipeIds(recipeIdList);
+            recipeExtendList.forEach(recipeExtend -> {
+                fastRecipeDAO.updateInventoryByMouldId(recipeExtend.getMouldId(), recipeExtend.getFastRecipeNum());
+            });
+        } catch (Exception e) {
+            throw new DAOException("药品已售罄");
+        }
     }
 
 

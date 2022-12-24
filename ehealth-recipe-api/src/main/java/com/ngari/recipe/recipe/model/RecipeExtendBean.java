@@ -253,6 +253,9 @@ public class RecipeExtendBean implements Serializable {
     @ItemProperty(alias = "药方单Id")
     private Integer mouldId;
 
+    @ItemProperty(alias = "快捷购药购买份数")
+    private Integer fastRecipeNum;
+
 
     /**
      * his订单编号(邵逸夫)
@@ -961,5 +964,13 @@ public class RecipeExtendBean implements Serializable {
 
     public void setMouldId(Integer mouldId) {
         this.mouldId = mouldId;
+    }
+
+    public Integer getFastRecipeNum() {
+        return fastRecipeNum;
+    }
+
+    public void setFastRecipeNum(Integer fastRecipeNum) {
+        this.fastRecipeNum = fastRecipeNum;
     }
 }

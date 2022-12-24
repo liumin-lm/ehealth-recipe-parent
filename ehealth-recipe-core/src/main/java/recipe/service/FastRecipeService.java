@@ -195,7 +195,7 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
             recipeExtendBean.setDeliveryCode(fastRecipe.getDeliveryCode());
             recipeExtendBean.setMouldId(recipeInfoVO.getMouldId());
             recipeBean.setRecipeExtend(recipeExtendBean);
-
+            recipeExtendBean.setFastRecipeNum(buyNum);
             //3.recipe参数设置
             List<RecipeDetailBean> detailBeanList = recipeInfoVO.getRecipeDetails();
             //4.暂存

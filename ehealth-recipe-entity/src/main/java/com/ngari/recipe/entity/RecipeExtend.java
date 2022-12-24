@@ -283,6 +283,9 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "药方单Id")
     private Integer mouldId;
 
+    @ItemProperty(alias = "快捷购药购买份数")
+    private Integer fastRecipeNum;
+
     @Column(name = "single_or_compound_recipe")
     public Integer getSingleOrCompoundRecipe() {
         return singleOrCompoundRecipe;
@@ -1113,5 +1116,14 @@ public class RecipeExtend implements Serializable {
 
     public void setMouldId(Integer mouldId) {
         this.mouldId = mouldId;
+    }
+
+    @Column(name = "fast_recipe_num")
+    public Integer getFastRecipeNum() {
+        return fastRecipeNum;
+    }
+
+    public void setFastRecipeNum(Integer fastRecipeNum) {
+        this.fastRecipeNum = fastRecipeNum;
     }
 }
