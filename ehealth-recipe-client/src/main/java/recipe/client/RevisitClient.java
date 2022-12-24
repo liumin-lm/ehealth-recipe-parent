@@ -58,8 +58,10 @@ public class RevisitClient extends BaseClient {
 
     @Autowired
     private IRevisitBusNoticeService revisitBusNoticeService;
+
     @Autowired
     private IRecipeOnLineRevisitService recipeOnLineRevisitService;
+
     @Autowired
     private IRevisitHosRecordService iRevisitHosRecordService;
 
@@ -238,30 +240,23 @@ public class RevisitClient extends BaseClient {
     }
 
     /**
-     * 便捷够药失败-给复诊法消息
+     * 便捷够药药师签名完成通知复诊
+     * true：签名成功，复诊状态改为已结束
+     * false：签名失败，复诊状态改为已取消
      *
      * @param recipe
+     * @param failFlag
      */
-    public void failedToPrescribeFastDrug(Recipe recipe, RecipeExtend recipeExtend) {
+    public void failedToPrescribeFastDrug(Recipe recipe, boolean failFlag) {
+        logger.info("RevisitClient failedToPrescribeFastDrug recipeId={}, successFlag={}, revisitId={}",
+                recipe.getRecipeId(), failFlag, recipe.getClinicId());
         DrugFaileToRevisitDTO daileToRevisitDTO = new DrugFaileToRevisitDTO();
         daileToRevisitDTO.setConsultId(recipe.getClinicId());
-        daileToRevisitDTO.setRegisterNo(recipeExtend.getRegisterID());
+        daileToRevisitDTO.setFailure(failFlag);
         logger.info("RevisitClient failedToPrescribeFastDrug daileToRevisitDTO={}", JSONUtils.toString(daileToRevisitDTO));
         revisitService.failedToPrescribeFastDrug(daileToRevisitDTO);
     }
 
-    /**
-     * 便捷够药成功-通知复诊
-     *
-     * @param recipe
-     */
-    public void successToPrescribeFastDrug(Recipe recipe) {
-        DrugFaileToRevisitDTO daileToRevisitDTO = new DrugFaileToRevisitDTO();
-        daileToRevisitDTO.setFailure(false);
-        daileToRevisitDTO.setConsultId(recipe.getClinicId());
-        logger.info("RevisitClient failedToPrescribeFastDrug daileToRevisitDTO={}", JSONUtils.toString(daileToRevisitDTO));
-        revisitService.failedToPrescribeFastDrug(daileToRevisitDTO);
-    }
 
     /**
      * 设置处方默认数据
@@ -306,7 +301,7 @@ public class RevisitClient extends BaseClient {
             }
             return;
         }
-        
+
         RevisitExDTO revisitExDTO = this.getByClinicId(recipe.getClinicId());
         if (null != revisitExDTO) {
             extend.setCardNo(revisitExDTO.getCardId());
