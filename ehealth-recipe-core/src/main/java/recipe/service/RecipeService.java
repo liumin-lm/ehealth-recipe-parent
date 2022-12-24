@@ -1678,9 +1678,6 @@ public class RecipeService extends RecipeBaseService {
                 RevisitBean revisitBean = iRevisitService.getById(recipe.getClinicId());
                 if (revisitBean != null && REVISIT_STATUS_IN.equals(revisitBean.getStatus())) {
                     Buss2SessionProducer.sendMsgToMq(recipe, "recipeCheckPass", revisitBean.getSessionID());
-                    if (Integer.valueOf(1).equals(recipe.getFastRecipeFlag())) {
-                        recipeManager.doctorJoinFastRecipeNoticeRevisit(recipe);
-                    }
                 }
             }
         }
@@ -1726,9 +1723,6 @@ public class RecipeService extends RecipeBaseService {
             RevisitBean revisitBean = iRevisitService.getById(recipe.getClinicId());
             if (revisitBean != null && REVISIT_STATUS_IN.equals(revisitBean.getStatus())) {
                 Buss2SessionProducer.sendMsgToMq(recipe, "recipeCheckNotPass", revisitBean.getSessionID());
-                if (Integer.valueOf(1).equals(recipe.getFastRecipeFlag())) {
-                    recipeManager.doctorJoinFastRecipeNoticeRevisit(recipe);
-                }
             }
         }
     }

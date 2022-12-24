@@ -1266,23 +1266,4 @@ public class RecipeManager extends BaseManager {
         }
     }
 
-    /**
-     * 便捷购药开方通知复诊，复诊关联处方单全部开方完成后推送
-     *
-     * @param recipe
-     */
-    public void doctorJoinFastRecipeNoticeRevisit(Recipe recipe) {
-        logger.info("doctorJoinFastRecipeNoticeRevisit recipeId={}, revisitId={}", recipe.getRecipeId(), recipe.getClinicId());
-        Integer fastRecipeMode = configurationClient.getValueCatchReturnInteger(recipe.getClinicOrgan(), "fastRecipeMode", 0);
-
-        if (Objects.isNull(fastRecipeMode) || !Integer.valueOf("1").equals(fastRecipeMode)) {
-            //自动开方流程不处理
-            return;
-        }
-        List<Recipe> recipeList = recipeDAO.findTempRecipeByClinicId(recipe.getClinicOrgan(), recipe.getClinicId());
-        if (CollectionUtils.isEmpty(recipeList)) {
-            revisitManager.failedToPrescribeFastDrug(recipe);
-        }
-    }
-
 }
