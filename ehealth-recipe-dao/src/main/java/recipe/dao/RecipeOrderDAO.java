@@ -1988,6 +1988,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
      * @param organId
      * @return
      */
-    @DAOMethod(sql = "from RecipeOrder where effective=1 and payFlag=0 and OrganId=:organId ")
+//    @DAOMethod(sql = "from RecipeOrder where effective=1 and payFlag=0 and OrganId=:organId and processState=1")
+    @DAOMethod(sql = "from RecipeOrder where effective=1 and payFlag=0 and OrganId=:organId",limit = 0)
     public abstract List<RecipeOrder> findByOrganIdAndPayStatus(@DAOParam("organId")Integer organId);
 }

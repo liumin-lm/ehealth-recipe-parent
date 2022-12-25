@@ -1053,25 +1053,35 @@ public class OrderManager extends BaseManager {
      * @return
      */
     public List<String> hisSettleByOrder(List<RecipeOrder> orders) {
+        if (CollectionUtils.isEmpty(orders)) {
+            return null;
+        }
         HisSettleReqTo hisSettleReqTo = new HisSettleReqTo();
         hisSettleReqTo.setOperatorId("NALI");
         hisSettleReqTo.setOrganId(orders.get(0).getOrganId());
-        List<HisSettleReqDTO> hisSettleReqDTOs = orders.stream().map(order -> {
-            HisSettleReqDTO hisSettleReqDTO = new HisSettleReqDTO();
-            hisSettleReqDTO.setAmount(BigDecimal.valueOf(order.getPreSettletotalAmount()));
-            hisSettleReqDTO.setSettleNo(order.getHisSettlementNo());
+        List<HisSettleReqDTO> hisSettleReqDTOs = new ArrayList<>();
+        for (RecipeOrder order : orders) {
             List<Integer> recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
             Recipe recipe = recipeDAO.get(recipeIdList.get(0));
+            if (Objects.isNull(recipe)) {
+                continue;
+            }
+            HisSettleReqDTO hisSettleReqDTO = new HisSettleReqDTO();
+            if(Objects.nonNull(order.getPreSettletotalAmount())) {
+                hisSettleReqDTO.setAmount(BigDecimal.valueOf(order.getPreSettletotalAmount()));
+            }
+            hisSettleReqDTO.setSettleNo(order.getHisSettlementNo());
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeIdList.get(0));
-
-            hisSettleReqDTO.setHisRegNo(recipeExtend.getRegisterID());
+            if (Objects.nonNull(recipeExtend)) {
+                hisSettleReqDTO.setHisRegNo(recipeExtend.getRegisterID());
+            }
             String mrnForRecipe = getMrnForRecipe(recipe, recipeExtend);
             hisSettleReqDTO.setCardNo(mrnForRecipe);
             PatientDTO patientDTO = patientClient.getPatientBeanByMpiId(recipe.getMpiid());
             hisSettleReqDTO.setPatientDTO(patientDTO);
             hisSettleReqDTO.setPatientID(recipe.getPatientID());
-            return hisSettleReqDTO;
-        }).collect(Collectors.toList());
+            hisSettleReqDTOs.add(hisSettleReqDTO);
+        }
         hisSettleReqTo.setData(hisSettleReqDTOs);
         List<HisSettleResTo> hisSettleResTos = recipeHisClient.queryHisSettle(hisSettleReqTo);
         if (CollectionUtils.isEmpty(hisSettleResTos)) {
@@ -1142,7 +1152,7 @@ public class OrderManager extends BaseManager {
      */
     private String getMrnForRecipe(Recipe recipe,RecipeExtend recipeExtend) {
         String mrn = null;
-        if (StringUtils.isNotEmpty(recipeExtend.getCardNo())) {
+        if (Objects.nonNull(recipeExtend) && StringUtils.isNotEmpty(recipeExtend.getCardNo())) {
             mrn = recipeExtend.getCardNo();
         } else {
             //复诊
