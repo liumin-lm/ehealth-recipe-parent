@@ -43,8 +43,10 @@ import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import easypay.entity.vo.param.bus.MedicalPreSettleQueryReq;
 import easypay.entity.vo.param.bus.SelfPreSettleQueryReq;
+import eh.cdr.constant.RecipeConstant;
 import eh.entity.bus.pay.BusTypeEnum;
 import eh.utils.BeanCopyUtils;
+import eh.wxpay.constant.PayConstant;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
@@ -79,6 +81,7 @@ import recipe.presettle.factory.PreSettleFactory;
 import recipe.purchase.CommonOrder;
 import recipe.purchase.PurchaseService;
 import recipe.service.*;
+import recipe.serviceprovider.recipeorder.service.RemoteRecipeOrderService;
 import recipe.third.IFileDownloadService;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.*;
@@ -170,6 +173,10 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
     private BeforeOrderManager beforeOrderManager;
     @Autowired
     private HisRecipeDAO hisRecipeDAO;
+    @Autowired
+    private RecipeParameterDao recipeParameterDao;
+    @Autowired
+    private RemoteRecipeOrderService recipeOrderService;
 
 
     @Override
@@ -1699,6 +1706,25 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
         }
         //查询该物流是否揽件
         return infraClient.cancelLogisticsOrder(recipeOrder, false);
+    }
+
+    @Override
+    public void findHisSettle() {
+        String hisSettleOrgan = recipeParameterDao.getByName("his_settle_zhuji");
+        if (StringUtils.isEmpty(hisSettleOrgan)) {
+            return;
+        }
+        List<Integer> organIds = JSONUtils.parse(hisSettleOrgan, ArrayList.class);
+        organIds.forEach(organId -> {
+            List<RecipeOrder> list = recipeOrderDAO.findByOrganIdAndPayStatus(organId);
+            List<String> orderCodes = orderManager.hisSettleByOrder(list);
+            if (CollectionUtils.isNotEmpty(orderCodes)) {
+                orderCodes.forEach(orderCode -> {
+                    recipeOrderService.finishOrderPay(orderCode, PayConstant.PAY_FLAG_PAY_SUCCESS, RecipeConstant.PAYMODE_ONLINE);
+                });
+            }
+        });
+
     }
 
     private void syncFinishOrderHandle(List<Integer> recipeIdList, RecipeOrder recipeOrder, boolean isSendFlag) {

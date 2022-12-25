@@ -281,4 +281,10 @@ public interface IRecipeOrderBusinessService {
      * @return
      */
     Boolean interceptPatientApplyRefund(String orderCode);
+
+    /**
+     * 获取his结算信息 诸暨专用
+     */
+    void findHisSettle();
+
 }

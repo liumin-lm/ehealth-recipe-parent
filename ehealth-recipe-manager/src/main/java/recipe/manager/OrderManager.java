@@ -5,7 +5,13 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.ngari.base.patient.model.HealthCardBean;
+import com.ngari.consult.ConsultAPI;
+import com.ngari.consult.common.model.ConsultExDTO;
+import com.ngari.consult.common.service.IConsultExService;
 import com.ngari.his.base.PatientBaseInfo;
+import com.ngari.his.recipe.mode.HisSettleReqDTO;
+import com.ngari.his.recipe.mode.HisSettleReqTo;
+import com.ngari.his.recipe.mode.HisSettleResTo;
 import com.ngari.his.recipe.mode.RecipeThirdUrlReqTO;
 import com.ngari.infra.logistics.mode.ControlLogisticsOrderDto;
 import com.ngari.infra.logistics.mode.LogisticsDistanceDto;
@@ -23,8 +29,10 @@ import com.ngari.platform.recipe.mode.RecipeBean;
 import com.ngari.platform.recipe.mode.RecipeDetailBean;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
+import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.RevisitBean;
 import com.ngari.revisit.common.model.RevisitExDTO;
+import com.ngari.revisit.common.service.IRevisitExService;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
@@ -32,6 +40,7 @@ import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import eh.utils.BeanCopyUtils;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,6 +99,8 @@ public class OrderManager extends BaseManager {
     private AddressService addressService;
     @Autowired
     private RecipeParameterDao parameterDao;
+    @Autowired
+    private RecipeHisClient recipeHisClient;
 
     /**
      * 合并预下单信息
@@ -1034,5 +1045,133 @@ public class OrderManager extends BaseManager {
         } catch (DAOException e) {
             logger.error("OrderManager recordPayBackLog error", e);
         }
+    }
+
+    /**
+     * 根据订单信息获取his的结算信息
+     * @param orders
+     * @return
+     */
+    public List<String> hisSettleByOrder(List<RecipeOrder> orders) {
+        HisSettleReqTo hisSettleReqTo = new HisSettleReqTo();
+        hisSettleReqTo.setOperatorId("NALI");
+        hisSettleReqTo.setOrganId(orders.get(0).getOrganId());
+        List<HisSettleReqDTO> hisSettleReqDTOs = orders.stream().map(order -> {
+            HisSettleReqDTO hisSettleReqDTO = new HisSettleReqDTO();
+            hisSettleReqDTO.setAmount(BigDecimal.valueOf(order.getPreSettletotalAmount()));
+            hisSettleReqDTO.setSettleNo(order.getHisSettlementNo());
+            List<Integer> recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
+            Recipe recipe = recipeDAO.get(recipeIdList.get(0));
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeIdList.get(0));
+
+            hisSettleReqDTO.setHisRegNo(recipeExtend.getRegisterID());
+            String mrnForRecipe = getMrnForRecipe(recipe, recipeExtend);
+            hisSettleReqDTO.setCardNo(mrnForRecipe);
+            PatientDTO patientDTO = patientClient.getPatientBeanByMpiId(recipe.getMpiid());
+            hisSettleReqDTO.setPatientDTO(patientDTO);
+            hisSettleReqDTO.setPatientID(recipe.getPatientID());
+            return hisSettleReqDTO;
+        }).collect(Collectors.toList());
+        hisSettleReqTo.setData(hisSettleReqDTOs);
+        List<HisSettleResTo> hisSettleResTos = recipeHisClient.queryHisSettle(hisSettleReqTo);
+        if (CollectionUtils.isEmpty(hisSettleResTos)) {
+            return null;
+        }
+        Map<String, HisSettleResTo> hisSettleResToMap = hisSettleResTos.stream().filter(k -> StringUtils.isNotEmpty(k.getHisSettlementNo())).collect(Collectors.toMap(k -> k.getHisSettlementNo(), a -> a, (k1, k2) -> k1));
+        if (MapUtils.isEmpty(hisSettleResToMap)) {
+            return null;
+        }
+        List<String> list = new ArrayList<>();
+        orders.forEach(order -> {
+            HisSettleResTo hisSettleResTo = hisSettleResToMap.get(order.getHisSettlementNo());
+            if (Objects.nonNull(hisSettleResTo)) {
+                setHisSettleResult(order, hisSettleResTo);
+                list.add(order.getOrderCode());
+            }
+
+        });
+
+        return list;
+    }
+
+    /**
+     * 保存结算信息
+     * @param order
+     * @param hisSettleResTo
+     */
+    private void setHisSettleResult(RecipeOrder order, HisSettleResTo hisSettleResTo) {
+        if(Objects.nonNull(hisSettleResTo.getPreSettleTotalAmount())){
+            order.setPreSettletotalAmount(hisSettleResTo.getPreSettleTotalAmount().doubleValue());
+        }
+        if(Objects.nonNull(hisSettleResTo.getCashAmount())){
+            order.setCashAmount(hisSettleResTo.getCashAmount().doubleValue());
+        }
+        if(Objects.nonNull(hisSettleResTo.getFundAmount())){
+            order.setFundAmount(hisSettleResTo.getFundAmount().doubleValue());
+        }
+        if(Objects.nonNull(hisSettleResTo.getSettleMode())){
+            order.setSettleMode(hisSettleResTo.getSettleMode());
+        }else {
+            order.setSettleMode(1);
+        }
+        if(Objects.nonNull(hisSettleResTo.getIsMedicalSettle()) && new Integer(1).equals(hisSettleResTo.getIsMedicalSettle())){
+            // RecipeOrderTypeEnum
+            order.setOrderType(4);
+        }
+        if(StringUtils.isNotEmpty(hisSettleResTo.getOutTradeNo())){
+            order.setOutTradeNo(hisSettleResTo.getOutTradeNo());
+        }
+        if(StringUtils.isNotEmpty(hisSettleResTo.getTradeNo())){
+            order.setOutTradeNo(hisSettleResTo.getTradeNo());
+        }
+        if (Objects.nonNull(hisSettleResTo.getPayTime())) {
+            order.setPayTime(hisSettleResTo.getPayTime());
+        } else {
+            order.setPayTime(new Date());
+        }
+        order.setPayFlag(1);
+        recipeOrderDAO.updateNonNullFieldByPrimaryKey(order);
+
+    }
+
+    /**
+     * 获取就诊卡号
+     * @param recipe
+     * @param recipeExtend
+     * @return
+     */
+    private String getMrnForRecipe(Recipe recipe,RecipeExtend recipeExtend) {
+        String mrn = null;
+        if (StringUtils.isNotEmpty(recipeExtend.getCardNo())) {
+            mrn = recipeExtend.getCardNo();
+        } else {
+            //复诊
+            if (new Integer(2).equals(recipe.getBussSource())) {
+                IRevisitExService revisitExService = RevisitAPI.getService(IRevisitExService.class);
+                if (recipe.getClinicId() != null) {
+                    RevisitExDTO revisitExDTO = revisitExService.getByConsultId(recipe.getClinicId());
+                    if (revisitExDTO != null && revisitExDTO.getCardId() != null) {
+                        //就诊卡号
+                        mrn = revisitExDTO.getCardId();
+                    }
+                }
+                //咨询
+            } else if (new Integer(1).equals(recipe.getBussSource())) {
+                IConsultExService consultExService = ConsultAPI.getService(IConsultExService.class);
+                if (recipe.getClinicId() != null) {
+                    ConsultExDTO consultExDTO = consultExService.getByConsultId(recipe.getClinicId());
+                    if (consultExDTO != null && consultExDTO.getCardId() != null) {
+                        //就诊卡号
+                        mrn = consultExDTO.getCardId();
+                    }
+                }
+            }
+        }
+
+        //-1表示获取不到身份证，默认用身份证获取患者信息
+        if (StringUtils.isEmpty(mrn)) {
+            mrn = "-1";
+        }
+        return mrn;
     }
 }
