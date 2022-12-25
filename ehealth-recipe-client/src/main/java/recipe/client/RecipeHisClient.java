@@ -1,16 +1,29 @@
 package recipe.client;
 
 import com.ngari.common.mode.HisResponseTO;
-import com.ngari.his.recipe.mode.HisOrderCodeReqTO;
-import com.ngari.his.recipe.mode.HisOrderCodeResTO;
+import com.ngari.consult.ConsultAPI;
+import com.ngari.consult.common.model.ConsultExDTO;
+import com.ngari.consult.common.service.IConsultExService;
+import com.ngari.his.recipe.mode.*;
 import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.infra.logistics.mode.ControlLogisticsOrderDto;
+import com.ngari.patient.dto.PatientDTO;
+import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeExtend;
+import com.ngari.recipe.entity.RecipeOrder;
+import com.ngari.revisit.RevisitAPI;
+import com.ngari.revisit.common.model.RevisitExDTO;
+import com.ngari.revisit.common.service.IRevisitExService;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.aop.LogRecord;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -51,6 +64,22 @@ public class RecipeHisClient extends BaseClient {
             response = this.getResponse(listHisResponseTO);
         } catch (Exception e) {
             logger.error("RecipeHisClient queryHisOrderCodeByRecipeCode error ", e);
+        }
+        return response;
+    }
+
+
+    @LogRecord
+    public List<HisSettleResTo> queryHisSettle(HisSettleReqTo hisSettleReqTo) {
+        if (Objects.isNull(hisSettleReqTo)) {
+            return null;
+        }
+        List<HisSettleResTo> response = null;
+        try {
+            HisResponseTO<List<HisSettleResTo>> listHisResponseTO = recipeHisService.queryHisSettle(hisSettleReqTo);
+            response = this.getResponse(listHisResponseTO);
+        } catch (Exception e) {
+            logger.error("RecipeHisClient queryHisSettle error ", e);
         }
         return response;
     }

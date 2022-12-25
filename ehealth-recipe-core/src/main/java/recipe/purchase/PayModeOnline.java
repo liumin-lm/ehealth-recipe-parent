@@ -27,12 +27,14 @@ import ctd.util.JSONUtils;
 import eh.base.constant.ErrorCode;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.checkerframework.checker.units.qual.A;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.bean.RecipePayModeSupportBean;
+import recipe.client.IConfigurationClient;
 import recipe.client.PatientClient;
 import recipe.constant.OrderStatusConstant;
 import recipe.constant.RecipeBussConstant;
@@ -46,11 +48,14 @@ import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.drugsenterprise.paymodeonlineshowdep.PayModeOnlineShowDepServiceProducer;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.status.SettleAmountStateEnum;
+import recipe.enumerate.type.FastRecipeFlagEnum;
 import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.enumerate.type.StandardPaymentWayEnum;
+import recipe.enumerate.type.StockCheckSourceTypeEnum;
 import recipe.hisservice.RecipeToHisService;
 import recipe.manager.EnterpriseManager;
 import recipe.manager.OrderManager;
+import recipe.manager.RecipeManager;
 import recipe.presettle.factory.OrderTypeFactory;
 import recipe.presettle.model.OrderTypeCreateConditionRequest;
 import recipe.service.RecipeOrderService;
@@ -87,6 +92,10 @@ public class PayModeOnline implements IPurchaseService {
     private OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO;
     @Autowired
     private OrganDrugsSaleConfigDAO organDrugsSaleConfigDAO;
+    @Autowired
+    private IConfigurationClient configurationClient;
+    @Autowired
+    private RecipeManager recipeManager;
 
     @Override
     public RecipeResultBean findSupportDepList(Recipe dbRecipe, Map<String, String> extInfo) {
@@ -124,10 +133,18 @@ public class PayModeOnline implements IPurchaseService {
 
         List<Recipedetail> detailList = detailDAO.findByRecipeId(recipeId);
         List<DrugsEnterprise> subDepList = new ArrayList<>(drugsEnterpriseList.size());
-        for (DrugsEnterprise dep : drugsEnterpriseList) {
-            EnterpriseStock enterpriseStock = stockBusinessService.enterpriseStockCheck(dbRecipe, detailList, dep.getId());
-            if (null != enterpriseStock && enterpriseStock.getStock() && enterpriseStock.getSendFlag()) {
-                subDepList.add(dep);
+        //如果当前处方为快捷购药并开启开关
+        Boolean fastRecipeUsePlatStock = configurationClient.getValueBooleanCatch(dbRecipe.getClinicOrgan(), "fastRecipeUsePlatStock", false);
+        if (FastRecipeFlagEnum.FAST_RECIPE_FLAG_QUICK.getType().equals(dbRecipe.getFastRecipeFlag()) && fastRecipeUsePlatStock) {
+            if (recipeManager.fastRecipeStock(recipeId)) {
+                subDepList.addAll(drugsEnterpriseList);
+            }
+        } else {
+            for (DrugsEnterprise dep : drugsEnterpriseList) {
+                EnterpriseStock enterpriseStock = stockBusinessService.enterpriseStockCheck(dbRecipe, detailList, dep.getId(), StockCheckSourceTypeEnum.PATIENT_STOCK.getType());
+                if (null != enterpriseStock && enterpriseStock.getStock() && enterpriseStock.getSendFlag()) {
+                    subDepList.add(dep);
+                }
             }
         }
 
@@ -257,16 +274,22 @@ public class PayModeOnline implements IPurchaseService {
                     ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
 
             AccessDrugEnterpriseService remoteService = remoteDrugEnterpriseService.getServiceByDep(dep);
-
-            // 根据药企查询库存
-            EnterpriseStock enterpriseStock = stockBusinessService.enterpriseStockCheck(dbRecipe, detailList, depId);
-            if (Objects.isNull(enterpriseStock) || !enterpriseStock.getStock() || !enterpriseStock.getSendFlag()) {
-                //无法配送
-                result.setCode(RecipeResultBean.FAIL);
-                result.setMsg("药企无法配送");
-                return result;
+            Boolean fastRecipeUsePlatStock = configurationClient.getValueBooleanCatch(dbRecipe.getClinicOrgan(), "fastRecipeUsePlatStock", false);
+            if (FastRecipeFlagEnum.FAST_RECIPE_FLAG_QUICK.getType().equals(dbRecipe.getFastRecipeFlag()) && fastRecipeUsePlatStock) {
+                if (!recipeManager.fastRecipeStock(dbRecipe.getRecipeId())){
+                    throw new DAOException("药品已售罄");
+                }
             } else {
-                remoteService.setEnterpriseMsgToOrder(order, depId, extInfo);
+                // 根据药企查询库存
+                EnterpriseStock enterpriseStock = stockBusinessService.enterpriseStockCheck(dbRecipe, detailList, depId, StockCheckSourceTypeEnum.PATIENT_STOCK.getType());
+                if (Objects.isNull(enterpriseStock) || !enterpriseStock.getStock() || !enterpriseStock.getSendFlag()) {
+                    //无法配送
+                    result.setCode(RecipeResultBean.FAIL);
+                    result.setMsg("药企无法配送");
+                    return result;
+                } else {
+                    remoteService.setEnterpriseMsgToOrder(order, depId, extInfo);
+                }
             }
         }
 
@@ -357,7 +380,7 @@ public class PayModeOnline implements IPurchaseService {
             result.setMsg("订单保存出错");
             return result;
         }
-
+        recipeManager.decreaseInventory(recipeIdLists, recipeList.get(0));
         orderService.setCreateOrderResult(result, order, payModeSupport, 1);
         if (0d >= order.getActualPrice()) {
             //如果不需要支付则不走支付

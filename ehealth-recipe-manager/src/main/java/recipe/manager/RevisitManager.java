@@ -224,19 +224,6 @@ public class RevisitManager extends BaseManager {
     }
 
     /**
-     * 便捷够药失败-给复诊法消息
-     *
-     * @param recipe
-     */
-    public void failedToPrescribeFastDrug(Recipe recipe) {
-        if (!Integer.valueOf(2).equals(recipe.getBussSource())) {
-            return;
-        }
-        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-        revisitClient.failedToPrescribeFastDrug(recipe, recipeExtend);
-    }
-
-    /**
      * 增加复诊 医保状态获取
      * 如新增咨询等可用责任链模式
      *

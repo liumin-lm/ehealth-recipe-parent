@@ -844,6 +844,24 @@ public class RecipeTestService {
         recipeHisService.drugTakeChangeForHis(recipeIdList);
     }
 
+    @RpcService
+    public void stock(){
+        List<DrugsEnterprise> canEnterpriseList = drugsEnterpriseDAO.findAllDrugsEnterpriseByStatus(1);
+        List<DrugsEnterprise> noCanEnterpriseList = drugsEnterpriseDAO.findAllDrugsEnterpriseByStatus(0);
+        canEnterpriseList.addAll(noCanEnterpriseList);
+        canEnterpriseList.forEach(drugsEnterprise -> {
+            if (0 == drugsEnterprise.getCheckInventoryFlag()) {
+                drugsEnterprise.setCheckInventoryType(0);
+            } else if (1 == drugsEnterprise.getCheckInventoryFlag()) {
+                drugsEnterprise.setCheckInventoryType(3);
+                drugsEnterprise.setCheckInventoryWay(1);
+            } else if (3 == drugsEnterprise.getCheckInventoryFlag()) {
+                drugsEnterprise.setCheckInventoryType(3);
+                drugsEnterprise.setCheckInventoryWay(2);
+            }
+        });
+    }
+
     private void saveDrugSaleConfig(OrganAndDrugsepRelation organAndDrugsDepRelation, String standardPaymentWay, Integer isHosDep) {
         OrganDrugsSaleConfig drugsSaleConfig = new OrganDrugsSaleConfig();
         drugsSaleConfig.setStandardPaymentWay(standardPaymentWay);

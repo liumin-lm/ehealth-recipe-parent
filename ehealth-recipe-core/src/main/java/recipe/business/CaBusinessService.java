@@ -1,12 +1,15 @@
 package recipe.business;
 
+import com.alibaba.fastjson.JSON;
 import com.google.common.collect.ImmutableMap;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.aop.LogRecord;
+import recipe.client.RevisitClient;
 import recipe.core.api.doctor.ICaBusinessService;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeExtendDAO;
@@ -16,6 +19,8 @@ import recipe.enumerate.status.SignEnum;
 import recipe.enumerate.status.WriteHisEnum;
 import recipe.manager.StateManager;
 import recipe.service.RecipeLogService;
+
+import java.util.List;
 
 /**
  * ca核心逻辑处理类
@@ -31,6 +36,8 @@ public class CaBusinessService extends BaseService implements ICaBusinessService
     private RecipeDAO recipeDAO;
     @Autowired
     private RecipeExtendDAO recipeExtendDAO;
+    @Autowired
+    private RevisitClient revisitClient;
 
     @Override
     public void signRecipeCAInterruptForStandard(Integer recipeId) {
@@ -105,7 +112,14 @@ public class CaBusinessService extends BaseService implements ICaBusinessService
             stateManager.updateStatus(recipeId, status, null);
             stateManager.updateCheckerSignState(recipeId, SignEnum.SIGN_STATE_AUDIT);
         }
-        revisitManager.failedToPrescribeFastDrug(recipe);
+        if (Integer.valueOf(2).equals(recipe.getBussSource())) {
+            List<Recipe> recipeList = recipeDAO.findTempRecipeByClinicId(recipe.getClinicOrgan(), recipe.getClinicId());
+            if (CollectionUtils.isEmpty(recipeList)) {
+                logger.info("failedToPrescribeFastDrug interrupt 该复诊下有暂存处方单未开方 recipeList={}", JSON.toJSONString(recipeList));
+            } else {
+                revisitClient.failedToPrescribeFastDrug(recipe, false);
+            }
+        }
     }
 
 }

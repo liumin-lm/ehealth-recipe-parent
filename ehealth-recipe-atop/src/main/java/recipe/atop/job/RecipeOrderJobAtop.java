@@ -24,4 +24,12 @@ public class RecipeOrderJobAtop extends BaseAtop {
     public void finishRecipeOrderJob() {
         recipeOrderService.finishRecipeOrderJob();
     }
+
+    /**
+     * 获取his结算信息 诸暨专用
+     */
+    @RpcService
+    public void findHisSettle() {
+        recipeOrderService.findHisSettle();
+    }
 }

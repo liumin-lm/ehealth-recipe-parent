@@ -2263,7 +2263,14 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         this.pharmacyToRecipePDF(recipeId);
         createPdfFactory.updatePdfToImg(recipeId, SignImageTypeEnum.SIGN_IMAGE_TYPE_CHEMIST.getType());
         smsClient.patientConvenientDrug(recipe);
-        revisitClient.successToPrescribeFastDrug(recipe);
+        if (Integer.valueOf(2).equals(recipe.getBussSource())) {
+            List<Recipe> recipeList = recipeDAO.findTempRecipeByClinicId(recipe.getClinicOrgan(), recipe.getClinicId());
+            if (CollectionUtils.isEmpty(recipeList)) {
+                LOGGER.info("failedToPrescribeFastDrug interrupt 该复诊下有暂存处方单未开方 recipeList={}", JSON.toJSONString(recipeList));
+            } else {
+                revisitClient.failedToPrescribeFastDrug(recipe, true);
+            }
+        }
     }
 
 

@@ -1214,19 +1214,12 @@ public class RecipeOrderService extends RecipeBaseService {
                 LOGGER.error("setCreateOrderResult error", e);
             }
         }
-        //上海外服个性化处理账户支付金额
-//        String organName = recipeParameterDao.getByName("shwfAccountFee");
-//        if (StringUtils.isNotEmpty(organName) && LocalStringUtil.hasOrgan(order.getOrganId().toString(), organName)) {
-//            BigDecimal accountFee = orderFeeManager.getAccountFee(order.getTotalFee(), order.getMpiId(), order.getOrganId());
-//            if (null != accountFee) {
-//                recipeOrderBean.setAccountFee(accountFee);
-//            }
-//        }
         result.setObject(recipeOrderBean);
         if (RecipeResultBean.SUCCESS.equals(result.getCode()) && 1 == toDbFlag && null != order.getOrderId()) {
             result.setOrderCode(order.getOrderCode());
             result.setBusId(order.getOrderId());
         }
+        //快捷购药减库存
 
         LOGGER.info("createOrder finish. result={}", JSONUtils.toString(result));
     }
@@ -2655,7 +2648,7 @@ public class RecipeOrderService extends RecipeBaseService {
             } else {
                 DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(nowRecipe.getEnterpriseId());
                 List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(nowRecipe.getRecipeId());
-                EnterpriseStock enterpriseStock = stockBusinessService.enterpriseStockCheck(nowRecipe, recipeDetailList, drugsEnterprise.getId());
+                EnterpriseStock enterpriseStock = stockBusinessService.enterpriseStockCheck(nowRecipe, recipeDetailList, drugsEnterprise.getId(), StockCheckSourceTypeEnum.PATIENT_STOCK.getType());
                 boolean scanFlag = enterpriseStock.getStock();
                 LOGGER.info("sendMsg scanFlag: {}.", scanFlag);
                 if (scanFlag) {

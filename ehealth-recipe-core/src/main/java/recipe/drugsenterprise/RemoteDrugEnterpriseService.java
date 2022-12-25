@@ -47,6 +47,7 @@ import recipe.core.api.IStockBusinessService;
 import recipe.dao.*;
 import recipe.enumerate.type.PayFlagEnum;
 import recipe.enumerate.type.RecipeSupportGiveModeEnum;
+import recipe.enumerate.type.StockCheckSourceTypeEnum;
 import recipe.manager.ButtonManager;
 import recipe.manager.EnterpriseManager;
 import recipe.service.DrugListExtService;
@@ -370,7 +371,7 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
         Recipe recipe = new Recipe();
         recipe.setClinicOrgan(organId);
         LOGGER.info("getDrugInventory recipeDetails:{}", JSONUtils.toString(recipeDetails));
-        EnterpriseStock enterpriseStock = drugEnterpriseBusinessService.enterpriseStockCheck(recipe, recipeDetails, depId);
+        EnterpriseStock enterpriseStock = drugEnterpriseBusinessService.enterpriseStockCheck(recipe, recipeDetails, depId, StockCheckSourceTypeEnum.GREENROOM_STOCK.getType());
         if (null == enterpriseStock) {
             return "无库存";
         }

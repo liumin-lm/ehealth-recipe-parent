@@ -1983,4 +1983,11 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
     @DAOMethod(sql = "from RecipeOrder where processState=3 and subState=32 and SendTime < :date and OrganId=:organId ")
     public abstract List<RecipeOrder> findByOrganIdAndStatus(@DAOParam("organId")Integer organId, @DAOParam("date")Date date);
 
+    /**
+     * 获取机构下有效且未支付的订单
+     * @param organId
+     * @return
+     */
+    @DAOMethod(sql = "from RecipeOrder where effective=1 and payFlag=0 and OrganId=:organId and processState=1")
+    public abstract List<RecipeOrder> findByOrganIdAndPayStatus(@DAOParam("organId")Integer organId);
 }
