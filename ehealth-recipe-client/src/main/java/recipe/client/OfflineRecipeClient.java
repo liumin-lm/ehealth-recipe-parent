@@ -130,8 +130,9 @@ public class OfflineRecipeClient extends BaseClient {
      * @return
      * @throws Exception
      */
-    public Boolean cancelRecipeImpl(RecipeStatusUpdateReqTO request, RecipeInfoDTO recipePdfDTO, EmrDetailDTO emrDetail, Map<Integer, PharmacyTcm> pharmacyIdMap) throws Exception {
+    public Boolean cancelRecipeImpl(RecipeStatusUpdateReqTO request, RecipeInfoDTO recipePdfDTO, EmrDetailDTO emrDetail, Map<Integer, PharmacyTcm> pharmacyIdMap, RevisitExDTO revisitEx) throws Exception {
         com.ngari.platform.recipe.mode.RecipeDTO recipeDTO = packageRecipeDTO(CommonConstant.RECIPE_CANCEL_TYPE, recipePdfDTO, emrDetail, pharmacyIdMap, null, null, null);
+        recipeDTO.setRevisitEx(ObjectCopyUtils.convert(revisitEx, com.ngari.platform.revisit.model.RevisitExDTO.class));
         request.setRecipeDTO(recipeDTO);
         logger.info("cancelRecipeImpl request={}", JSONUtils.toString(request));
         try {
