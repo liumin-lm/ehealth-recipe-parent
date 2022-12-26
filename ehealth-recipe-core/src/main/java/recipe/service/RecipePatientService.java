@@ -854,7 +854,10 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         }else{
             recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType());
         }
-
+        if (StringUtils.isEmpty(recipeInfoVO.getRecipeBean().getRecipeSupportGiveMode())) {
+            //设置购药方式
+            this.setRecipeSupportGiveMode(recipe);
+        }
         recipe = recipeManager.saveRecipe(recipe);
         if(!CaConstant.ESIGN.equals(ca)){
             stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_ORDER, RecipeStateEnum.SUB_ORDER_READY_SUBMIT_ORDER);
@@ -872,10 +875,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
             recipeManager.setRecipeInfoFromRevisit(recipe, recipeExtend);
             recipeManager.saveRecipeExtend(recipeExtend, recipe);
         }
-        if (StringUtils.isEmpty(recipeInfoVO.getRecipeBean().getRecipeSupportGiveMode())) {
-            //设置购药方式
-            this.setRecipeSupportGiveMode(recipe);
-        }
+
         //保存处方明细
         if (CollectionUtils.isNotEmpty(recipeInfoVO.getRecipeDetails())) {
             List<Recipedetail> details = ObjectCopyUtils.convert(recipeInfoVO.getRecipeDetails(), Recipedetail.class);
