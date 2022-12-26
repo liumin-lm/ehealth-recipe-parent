@@ -82,7 +82,7 @@ public class RecipeUtil {
 
         for (DrugList drugList : drugLists) {
             for (Recipedetail recipedetail : recipedetails) {
-                if (null != drugList && drugList.getDrugId().equals(recipedetail.getDrugId())) {
+                if (null != drugList && drugList.getDrugId().equals(recipedetail.getDrugId()) && null != drugList.getPrice1() && null != drugList.getPrice2()) {
                     price1 = price1.add(getTatolPrice(BigDecimal.valueOf(drugList.getPrice1()), recipedetail));
                     price2 = price2.add(getTatolPrice(BigDecimal.valueOf(drugList.getPrice2()), recipedetail));
                     break;
