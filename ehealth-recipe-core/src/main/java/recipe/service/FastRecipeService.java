@@ -1,6 +1,7 @@
 package recipe.service;
 
 import com.alibaba.fastjson.JSON;
+import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
@@ -168,6 +169,10 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
             recipeBean.setFromflag(1);
             recipeBean.setRecipeSourceType(1);
             recipeBean.setRecipeSupportGiveMode(fastRecipe.getRecipeSupportGiveMode());
+            DoctorDTO doctorDTO = doctorClient.getDoctor(recipeBean.getDoctor());
+            if (Objects.nonNull(doctorDTO)) {
+                recipeBean.setDoctorName(doctorDTO.getName());
+            }
 
             //recipeBean.setMedicalFlag(0);
             //recipeBean.setMedicalPayFlag(0);
@@ -252,6 +257,11 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
             recipeBean.setDecoctionNum(fastRecipe.getDecoctionNum());
             recipeBean.setRecipeSupportGiveMode(fastRecipe.getRecipeSupportGiveMode());
             recipeBean.setRecipeMemo(fastRecipe.getRecipeMemo());
+            DoctorDTO doctorDTO = doctorClient.getDoctor(recipeBean.getDoctor());
+            if (Objects.nonNull(doctorDTO)) {
+                recipeBean.setDoctorName(doctorDTO.getName());
+            }
+
             if (CollectionUtils.isNotEmpty(fastRecipeDetailList)) {
                 if (!new Integer(3).equals(fastRecipeDetailList.get(0).getType())) {
                     //不是保密方
