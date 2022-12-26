@@ -33,9 +33,9 @@ import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.BussSourceTypeEnum;
 import recipe.enumerate.type.RecipeDrugFormTypeEnum;
 import recipe.enumerate.type.RecipeTypeEnum;
-import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.service.common.RecipeSignService;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
+import recipe.vo.doctor.DrugQueryVO;
 import recipe.vo.doctor.RecipeInfoVO;
 
 import java.math.BigDecimal;
@@ -529,6 +529,25 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
         } else {
             throw new DAOException("无法找到该处方单");
         }
+    }
+
+    @Override
+    public boolean checkFastRecipeStock(DrugQueryVO recipeInfo) {
+        if (Objects.isNull(recipeInfo)) {
+            return true;
+        }
+        Integer buyNum = recipeInfo.getBuyNum();
+        Integer mouldId = recipeInfo.getMouldId();
+        if (Objects.isNull(buyNum) || Objects.isNull(mouldId)) {
+            return true;
+        }
+        FastRecipe fastRecipe = fastRecipeDAO.get(mouldId);
+        if (Objects.nonNull(fastRecipe) && Objects.nonNull(fastRecipe.getStockNum()) && buyNum > fastRecipe.getStockNum()) {
+            return false;
+        } else {
+            return true;
+        }
+
     }
 
 }

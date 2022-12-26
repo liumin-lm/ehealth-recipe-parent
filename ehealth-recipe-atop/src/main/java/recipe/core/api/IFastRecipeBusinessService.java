@@ -5,6 +5,7 @@ import com.ngari.recipe.entity.FastRecipe;
 import com.ngari.recipe.entity.FastRecipeDetail;
 import com.ngari.recipe.vo.FastRecipeVO;
 import ctd.util.annotation.RpcService;
+import recipe.vo.doctor.DrugQueryVO;
 import recipe.vo.doctor.RecipeInfoVO;
 import java.util.List;
 import java.util.Map;
@@ -71,4 +72,12 @@ public interface IFastRecipeBusinessService {
      * @return
      */
     Map<String, Object> findRecipeAndDetailsByRecipeIdAndOrgan(Integer recipeId, Integer organId);
+
+    /**
+     * 便捷购药判断药方库存
+     *
+     * @param recipeInfoVO
+     * @return
+     */
+    boolean checkFastRecipeStock(DrugQueryVO recipeInfoVO);
 }
