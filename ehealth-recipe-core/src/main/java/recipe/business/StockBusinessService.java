@@ -172,8 +172,8 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
     }
 
     @Override
-    public List<EnterpriseStock> drugRecipeStock(RecipeDTO recipeDTO) {
-        return this.drugRecipeStockV1(recipeDTO, StockCheckSourceTypeEnum.DOCTOR_STOCK.getType());
+    public List<EnterpriseStock> drugRecipeStock(RecipeDTO recipeDTO, Integer stockCheckType) {
+        return this.drugRecipeStockV1(recipeDTO, stockCheckType);
     }
 
 
