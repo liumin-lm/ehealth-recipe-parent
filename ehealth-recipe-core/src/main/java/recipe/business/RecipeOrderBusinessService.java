@@ -1730,10 +1730,10 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
     }
 
     @Override
-    public Boolean checkOrderPayState(Integer orderId){
+    public Integer checkOrderPayState(Integer orderId){
         RecipeOrder recipeOrder = recipeOrderDAO.getByOrderId(orderId);
         if (Objects.nonNull(recipeOrder) && StringUtils.isEmpty(recipeOrder.getOutTradeNo())) {
-            return false;
+            return 0;
         }
         return payClient.payQuery(orderId);
     }

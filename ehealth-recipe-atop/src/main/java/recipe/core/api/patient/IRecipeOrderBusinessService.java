@@ -292,6 +292,6 @@ public interface IRecipeOrderBusinessService {
      * @param orderId
      * @return
      */
-    Boolean checkOrderPayState(Integer orderId);
+    Integer checkOrderPayState(Integer orderId);
 
 }
