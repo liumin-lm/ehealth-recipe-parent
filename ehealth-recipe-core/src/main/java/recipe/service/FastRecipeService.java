@@ -553,7 +553,8 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
             return true;
         }
         FastRecipe fastRecipe = fastRecipeDAO.get(mouldId);
-        if (Objects.nonNull(fastRecipe) && Objects.nonNull(fastRecipe.getStockNum()) && buyNum > fastRecipe.getStockNum()) {
+        if (Objects.nonNull(fastRecipe) && Objects.nonNull(fastRecipe.getStockNum())
+                && (buyNum > fastRecipe.getStockNum() || Integer.valueOf("0").equals(fastRecipe.getStockNum()))) {
             return false;
         } else {
             return true;
