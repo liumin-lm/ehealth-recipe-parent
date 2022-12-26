@@ -114,6 +114,7 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
             }
             resultList = super.futureTaskCallbackBeanList(futureTasks, 15000);
             if (CollectionUtils.isNotEmpty(resultList)) {
+                logger.info("fastRecipeSaveRecipeList fastRecipeApplyToDoctor resultList={}", JSON.toJSONString(resultList));
                 //通知医生，只给开方医生推送一条
                 smsClient.fastRecipeApplyToDoctor(recipeInfoVOList.get(0).getRecipeBean().getClinicOrgan(),
                         recipeInfoVOList.get(0).getRecipeBean().getDoctor());
