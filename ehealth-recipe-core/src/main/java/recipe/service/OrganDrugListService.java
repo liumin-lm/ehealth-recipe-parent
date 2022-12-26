@@ -595,6 +595,9 @@ public class OrganDrugListService implements IOrganDrugListService {
                 if (organDrugList.getUnilateralCompound() == null) {
                     target.setUnilateralCompound(null);
                 }
+                if (organDrugList.getMaximum() == null) {
+                    target.setMaximum(null);
+                }
                 target.setLastModify(new Date());
                 validateOrganDrugList(target);
                 target = organDrugListDAO.update(target);
