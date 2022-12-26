@@ -1061,6 +1061,9 @@ public class OrderManager extends BaseManager {
         hisSettleReqTo.setOrganId(orders.get(0).getOrganId());
         List<HisSettleReqDTO> hisSettleReqDTOs = new ArrayList<>();
         for (RecipeOrder order : orders) {
+            if (StringUtils.isEmpty(order.getHisSettlementNo())) {
+                continue;
+            }
             List<Integer> recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
             Recipe recipe = recipeDAO.get(recipeIdList.get(0));
             if (Objects.isNull(recipe)) {
@@ -1080,6 +1083,8 @@ public class OrderManager extends BaseManager {
             PatientDTO patientDTO = patientClient.getPatientBeanByMpiId(recipe.getMpiid());
             hisSettleReqDTO.setPatientDTO(patientDTO);
             hisSettleReqDTO.setPatientID(recipe.getPatientID());
+            hisSettleReqDTO.setDoctorId(recipe.getDoctor());
+            hisSettleReqDTO.setDoctorName(recipe.getDoctorName());
             hisSettleReqDTOs.add(hisSettleReqDTO);
         }
         hisSettleReqTo.setData(hisSettleReqDTOs);
