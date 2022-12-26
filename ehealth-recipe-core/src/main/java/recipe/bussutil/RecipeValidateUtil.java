@@ -398,17 +398,13 @@ public class RecipeValidateUtil {
                         continue;
                     }
                     //转换
-                    try {
-                        Double useDose = Double.parseDouble(unitDoseForSmallUnit) * recipeDetailBean.getUseDose() / Double.parseDouble(unitDoseForSpecificationUnit);
-                        BigDecimal useDoseBigDecimal = new BigDecimal(useDose);
-                        useDose = useDoseBigDecimal.setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue();
-                        LOGGER.info("covertDrugUnitdoseAndUnit , useDose:{} ,计算公式Double.parseDouble(unitDoseForSmallUnit){}, *recipeDetailBean.getUseDose(){}, /Double.parseDouble(unitDoseForSpecificationUnit){} ",
-                                useDose, Double.parseDouble(unitDoseForSmallUnit), recipeDetailBean.getUseDose(), Double.parseDouble(unitDoseForSpecificationUnit));
-                        recipeDetailBean.setUseDose(useDose);
-                        recipeDetailBean.setUseDoseUnit(unitForSmallUnit);
-                    } catch (Exception e) {
-                        LOGGER.error("method covertDrugUnitdoseAndUnit 转换 error " + e.getMessage());
-                    }
+                    Double useDose = Double.parseDouble(unitDoseForSmallUnit) * recipeDetailBean.getUseDose() / Double.parseDouble(unitDoseForSpecificationUnit);
+                    BigDecimal useDoseBigDecimal = new BigDecimal(useDose);
+                    useDose = useDoseBigDecimal.setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue();
+                    LOGGER.info("covertDrugUnitdoseAndUnit , useDose:{} ,计算公式Double.parseDouble(unitDoseForSmallUnit){}, *recipeDetailBean.getUseDose(){}, /Double.parseDouble(unitDoseForSpecificationUnit){} ",
+                            useDose, Double.parseDouble(unitDoseForSmallUnit), recipeDetailBean.getUseDose(), Double.parseDouble(unitDoseForSpecificationUnit));
+                    recipeDetailBean.setUseDose(useDose);
+                    recipeDetailBean.setUseDoseUnit(unitForSmallUnit);
                 } catch (Exception e) {
                     LOGGER.error("method covertDrugUnitdoseAndUnit error " + e.getMessage());
                 }
