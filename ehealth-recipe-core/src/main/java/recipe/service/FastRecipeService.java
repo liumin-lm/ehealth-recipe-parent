@@ -272,6 +272,7 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
             recipeExtendBean.setMouldId(recipeInfoVO.getMouldId());
 
             int buyNum = ValidateUtil.nullOrZeroInteger(recipeInfoVO.getBuyNum()) ? 1 : recipeInfoVO.getBuyNum();
+            recipeExtendBean.setFastRecipeNum(buyNum);
             packageTotalParamByBuyNum(recipeInfoVO, buyNum);
             Integer recipeId = recipePatientService.saveRecipe(recipeInfoVO);
             recipePatientService.updateRecipeIdByConsultId(recipeId, recipeInfoVO.getRecipeBean().getClinicId());
