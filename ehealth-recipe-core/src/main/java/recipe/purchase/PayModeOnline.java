@@ -279,6 +279,7 @@ public class PayModeOnline implements IPurchaseService {
                 if (!recipeManager.fastRecipeStock(dbRecipe.getRecipeId())){
                     throw new DAOException("药品已售罄");
                 }
+                order.setEnterpriseId(depId);
             } else {
                 // 根据药企查询库存
                 EnterpriseStock enterpriseStock = stockBusinessService.enterpriseStockCheck(dbRecipe, detailList, depId, StockCheckSourceTypeEnum.PATIENT_STOCK.getType());
