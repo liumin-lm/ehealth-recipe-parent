@@ -305,7 +305,7 @@ public class RecipeOrderPatientAtop extends BaseAtop {
      * @return
      */
     @RpcService
-    public Boolean checkOrderPayState(Integer orderId){
+    public Integer checkOrderPayState(Integer orderId){
         validateAtop(orderId);
         return recipeOrderService.checkOrderPayState(orderId);
     }

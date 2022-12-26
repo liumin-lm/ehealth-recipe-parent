@@ -162,7 +162,7 @@ public class PayClient extends BaseClient {
         return tradeStatus;
     }
 
-    public Boolean payQuery(Integer orderId){
+    public Integer payQuery(Integer orderId){
         logger.info("PayClient payQuery orderId:{}", orderId);
         try {
             INgariPayService payService = AppDomainContext.getBean("eh.payService", INgariPayService.class);
@@ -171,15 +171,15 @@ public class PayClient extends BaseClient {
             if (Objects.nonNull(result)) {
                 String code = (String)result.get("code");
                 if ("PROCESSING".equals(code)) {
-                    return true;
+                    return 1;
                 } else {
-                    return false;
+                    return 0;
                 }
             }
         } catch (Exception e) {
             logger.error("PayClient payQuery error", e);
         }
-        return false;
+        return 0;
     }
 
     /**
