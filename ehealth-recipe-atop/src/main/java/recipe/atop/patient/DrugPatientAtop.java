@@ -2,6 +2,7 @@ package recipe.atop.patient;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
+import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.recipe.dto.DrugSpecificationInfoDTO;
 import com.ngari.recipe.dto.EnterpriseStock;
 import com.ngari.recipe.dto.PatientDrugWithEsDTO;
@@ -17,23 +18,29 @@ import com.ngari.recipe.vo.SearchDrugReqVO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
 import recipe.core.api.IClinicCartBusinessService;
 import recipe.core.api.IDrugBusinessService;
+import recipe.core.api.IFastRecipeBusinessService;
 import recipe.core.api.IStockBusinessService;
 import recipe.enumerate.type.StockCheckSourceTypeEnum;
 import recipe.util.ByteUtils;
 import recipe.util.ObjectCopyUtils;
+import recipe.util.ValidateUtil;
+import recipe.vo.doctor.DrugQueryVO;
 import recipe.vo.doctor.DrugsResVo;
 import recipe.vo.patient.PatientContinueRecipeCheckDrugReq;
 import recipe.vo.patient.PatientContinueRecipeCheckDrugRes;
 import recipe.vo.second.ClinicCartVO;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @description： 患者药品查询入口
@@ -51,6 +58,15 @@ public class DrugPatientAtop extends BaseAtop {
 
     @Resource
     private IClinicCartBusinessService clinicCartService;
+
+    @Resource
+    private IStockBusinessService iStockBusinessService;
+
+    @Resource
+    private IConfigurationCenterUtilsService configService;
+
+    @Resource
+    IFastRecipeBusinessService fastRecipeService;
 
     /**
      * 患者端获取药品列表
@@ -91,18 +107,19 @@ public class DrugPatientAtop extends BaseAtop {
 
     /**
      * 下单时获取药品库存
+     *
      * @param recipeIds
      * @param enterpriseId
      * @return
      */
     @RpcService
-    public Boolean getOrderStockFlag(List<Integer> recipeIds,Integer enterpriseId,String giveModeKey) {
-        validateAtop(recipeIds,giveModeKey);
-        return stockBusinessService.getOrderStockFlag(recipeIds, enterpriseId,giveModeKey);
+    public Boolean getOrderStockFlag(List<Integer> recipeIds, Integer enterpriseId, String giveModeKey) {
+        validateAtop(recipeIds, giveModeKey);
+        return stockBusinessService.getOrderStockFlag(recipeIds, enterpriseId, giveModeKey);
     }
 
     @RpcService
-    public List<HospitalDrugListVO> findHospitalDrugList(HospitalDrugListReqVO hospitalDrugListReqVO){
+    public List<HospitalDrugListVO> findHospitalDrugList(HospitalDrugListReqVO hospitalDrugListReqVO) {
         return drugBusinessService.findHospitalDrugList(hospitalDrugListReqVO);
     }
 
@@ -145,7 +162,54 @@ public class DrugPatientAtop extends BaseAtop {
         List<EnterpriseStock> drugsStock = stockBusinessService.drugsStock(recipeDTO, StockCheckSourceTypeEnum.PATIENT_STOCK.getType());
         return drugsStock.stream().anyMatch(EnterpriseStock::getStock);
     }
-    
+
+
+    @RpcService
+    public boolean searchDrugRecipeStock(DrugQueryVO drugQueryVO) {
+        Object config = configService.getConfiguration(drugQueryVO.getOrganId(), "fastRecipeUsePlatStock");
+        boolean fastRecipeUsePlatStock = Objects.nonNull(config) && (Boolean) config;
+        if (fastRecipeUsePlatStock) {
+            // 判断平台库存
+            return fastRecipeService.checkFastRecipeStock(drugQueryVO);
+        } else {
+            RecipeDTO recipeDTO = this.recipeDTO(drugQueryVO);
+            List<EnterpriseStock> result = iStockBusinessService.drugRecipeStock(recipeDTO);
+            logger.info("DrugDoctorAtop drugRecipeStock result={}", JSONArray.toJSONString(result));
+            if (CollectionUtils.isEmpty(result)) {
+                return false;
+            }
+            return result.stream().anyMatch(EnterpriseStock::getStock);
+        }
+    }
+
+    /**
+     * 封装查询库存参数
+     *
+     * @param drugQueryVO
+     * @return
+     */
+    private RecipeDTO recipeDTO(DrugQueryVO drugQueryVO) {
+        validateAtop(drugQueryVO, drugQueryVO.getRecipeDetails(), drugQueryVO.getOrganId());
+        List<Recipedetail> detailList = new ArrayList<>();
+        drugQueryVO.getRecipeDetails().forEach(a -> {
+            validateAtop(a.getDrugId(), a.getOrganDrugCode(), a.getUseTotalDose());
+            Recipedetail recipedetail = ObjectCopyUtils.convert(a, Recipedetail.class);
+            if (null != recipedetail && !ValidateUtil.integerIsEmpty(drugQueryVO.getPharmacyId())) {
+                recipedetail.setPharmacyId(drugQueryVO.getPharmacyId());
+            }
+            detailList.add(recipedetail);
+        });
+        Recipe recipe = new Recipe();
+        recipe.setClinicOrgan(drugQueryVO.getOrganId());
+        recipe.setRecipeType(drugQueryVO.getRecipeType());
+        RecipeExtend recipeExtend = new RecipeExtend();
+        recipeExtend.setDecoctionId(drugQueryVO.getDecoctionId());
+        RecipeDTO recipeDTO = new RecipeDTO();
+        recipeDTO.setRecipe(recipe);
+        recipeDTO.setRecipeDetails(detailList);
+        recipeDTO.setRecipeExtend(recipeExtend);
+        return recipeDTO;
+    }
 
     /**
      * 方便门诊购物车列表查询
@@ -168,7 +232,7 @@ public class DrugPatientAtop extends BaseAtop {
      * @return
      */
     @RpcService
-    public Integer addClinicCart(ClinicCartVO clinicCartVO){
+    public Integer addClinicCart(ClinicCartVO clinicCartVO) {
         return clinicCartService.addClinicCart(clinicCartVO);
     }
 
@@ -187,6 +251,7 @@ public class DrugPatientAtop extends BaseAtop {
 
     /**
      * 方便门诊购物车 修改某一条记录（目前只需要修改数量）
+     *
      * @param clinicCartVO
      * @return
      */

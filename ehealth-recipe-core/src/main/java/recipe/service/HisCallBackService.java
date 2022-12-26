@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import recipe.ApplicationUtils;
 import recipe.bean.RecipeCheckPassResult;
+import recipe.client.IConfigurationClient;
 import recipe.constant.RecipeBussConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
@@ -56,6 +57,7 @@ public class HisCallBackService {
     private static final Logger LOGGER = LoggerFactory.getLogger(HisCallBackService.class);
     private static StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
 
+    private static IConfigurationClient configurationClient = AppContextHolder.getBean("IConfigurationClient", IConfigurationClient.class);
     /**
      * 处方HIS审核通过成功
      *
@@ -332,9 +334,12 @@ public class HisCallBackService {
         }
         order.setSettleAmountState(SettleAmountStateEnum.SETTLE_FAIL.getType());
         orderDAO.updateNonNullFieldByPrimaryKey(order);
-        //微信退款
-        RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
-        recipeService.wxPayRefundForRecipe(1, recipeId, null);
+        Boolean settleFailAllowRefund = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "settleFailAllowRefund", true);
+        if (settleFailAllowRefund) {
+            //微信退款
+            RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
+            recipeService.wxPayRefundForRecipe(1, recipeId, null);
+        }
     }
 
     /**

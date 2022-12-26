@@ -32,11 +32,13 @@ import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.enumerate.status.GiveModeEnum;
 import recipe.enumerate.status.PayModeEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.type.FastRecipeFlagEnum;
 import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.enumerate.type.StockCheckSourceTypeEnum;
 import recipe.manager.EnterpriseManager;
 import recipe.manager.OrderManager;
 import recipe.manager.OrganDrugListManager;
+import recipe.manager.RecipeManager;
 import recipe.presettle.factory.OrderTypeFactory;
 import recipe.presettle.model.OrderTypeCreateConditionRequest;
 import recipe.service.RecipeOrderService;
@@ -86,6 +88,10 @@ public class PayModeToHos implements IPurchaseService {
     private RecipeOrderService recipeOrderService;
     @Autowired
     private RecipeExtendDAO recipeExtendDAO;
+    @Autowired
+    private RecipeManager recipeManager;
+    @Autowired
+    private FastRecipeDAO fastRecipeDAO;
 
     private static final Logger LOG = LoggerFactory.getLogger(PayModeToHos.class);
 
@@ -224,7 +230,7 @@ public class PayModeToHos implements IPurchaseService {
             result.setMsg("提交失败，请重新提交。");
             return result;
         }
-
+        recipeManager.decreaseInventory(recipeIdLists, dbRecipes.get(0));
         // 到院自取也需要更新药品实际销售价格
         recipeIdLists.forEach(recipeId -> {
             purchaseService.updateRecipeDetail(recipeId,null);
@@ -470,16 +476,23 @@ public class PayModeToHos implements IPurchaseService {
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         OrganDTO organDTO = organService.getByOrganId(recipe.getClinicOrgan());
         StringBuilder sb = new StringBuilder();
-
-        //点击到院取药再次判断库存--防止之前开方的时候有库存流转到此无库存
-        // 到院取药校验机构库存
-        EnterpriseStock organStock = organDrugListManager.organStock(recipe, detailList);
-        if (Objects.isNull(organStock) || !organStock.getStock()) {
-            resultBean.setCode(RecipeResultBean.FAIL);
-            resultBean.setMsg("抱歉，医院没有库存，无法到医院取药，请选择其他购药方式。");
-            return resultBean;
+        Boolean fastRecipeUsePlatStock = configurationClient.getValueBooleanCatch(dbRecipe.getClinicOrgan(), "fastRecipeUsePlatStock", false);
+        if (FastRecipeFlagEnum.FAST_RECIPE_FLAG_QUICK.getType().equals(dbRecipe.getFastRecipeFlag()) && fastRecipeUsePlatStock) {
+            if (!recipeManager.fastRecipeStock(dbRecipe.getRecipeId())) {
+                resultBean.setCode(RecipeResultBean.FAIL);
+                resultBean.setMsg("抱歉，医院没有库存，无法到医院取药，请选择其他购药方式。");
+                return resultBean;
+            }
+        } else {
+            //点击到院取药再次判断库存--防止之前开方的时候有库存流转到此无库存
+            // 到院取药校验机构库存
+            EnterpriseStock organStock = organDrugListManager.organStock(recipe, detailList);
+            if (Objects.isNull(organStock) || !organStock.getStock()) {
+                resultBean.setCode(RecipeResultBean.FAIL);
+                resultBean.setMsg("抱歉，医院没有库存，无法到医院取药，请选择其他购药方式。");
+                return resultBean;
+            }
         }
-
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
         if (!Objects.isNull(recipeExtend) && StringUtils.isNotEmpty(recipeExtend.getPharmNo())) {
