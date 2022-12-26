@@ -73,6 +73,7 @@ public interface IStockBusinessService {
      * 医生端 查询购药方式下有库存的药品
      *
      * @param recipeDTO 药品信息
+     * @param stockCheckType 库存校验类型 1 医生端校验 2 患者端校验
      * @return
      */
     List<DrugForGiveModeListVO> drugForGiveModeV1(RecipeDTO recipeDTO, Integer stockCheckType);
@@ -81,9 +82,10 @@ public interface IStockBusinessService {
      * 查询药品能否开在一张处方上
      *
      * @param recipeDTO
+     * @param stockCheckType 库存校验类型 1 医生端校验 2 患者端校验
      * @return
      */
-    List<EnterpriseStock> drugRecipeStock(RecipeDTO recipeDTO);
+    List<EnterpriseStock> drugRecipeStock(RecipeDTO recipeDTO, Integer stockCheckType);
 
 
     /**

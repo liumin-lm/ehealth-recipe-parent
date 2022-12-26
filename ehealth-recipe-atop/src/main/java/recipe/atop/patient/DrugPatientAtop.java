@@ -173,7 +173,7 @@ public class DrugPatientAtop extends BaseAtop {
             return fastRecipeService.checkFastRecipeStock(drugQueryVO);
         } else {
             RecipeDTO recipeDTO = this.recipeDTO(drugQueryVO);
-            List<EnterpriseStock> result = iStockBusinessService.drugRecipeStock(recipeDTO);
+            List<EnterpriseStock> result = iStockBusinessService.drugRecipeStock(recipeDTO, StockCheckSourceTypeEnum.PATIENT_STOCK.getType());
             logger.info("DrugDoctorAtop drugRecipeStock result={}", JSONArray.toJSONString(result));
             if (CollectionUtils.isEmpty(result)) {
                 return false;
