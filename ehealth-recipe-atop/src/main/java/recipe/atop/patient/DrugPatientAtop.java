@@ -166,6 +166,7 @@ public class DrugPatientAtop extends BaseAtop {
 
     @RpcService
     public boolean searchDrugRecipeStock(DrugQueryVO drugQueryVO) {
+        logger.error("searchDrugRecipeStock param ={}", JSON.toJSONString(drugQueryVO));
         Object config = configService.getConfiguration(drugQueryVO.getOrganId(), "fastRecipeUsePlatStock");
         boolean fastRecipeUsePlatStock = Objects.nonNull(config) && (Boolean) config;
         if (fastRecipeUsePlatStock) {
