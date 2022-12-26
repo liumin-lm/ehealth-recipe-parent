@@ -27,4 +27,9 @@ public class DrugQueryVO implements Serializable {
      *  0默认，1查询医院，2查询药企
      */
     private Integer appointEnterpriseType;
+
+    private Integer mouldId;
+
+    private Integer buyNum;
+
 }
