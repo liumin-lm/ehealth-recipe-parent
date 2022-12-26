@@ -403,7 +403,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
             return;
         }
         boolean checkSkipStock = false;
-        if (StockCheckSourceTypeEnum.DOCTOR_STOCK.getType().equals(drugsEnterprise.getCheckInventoryType()) && StockCheckSourceTypeEnum.PATIENT_STOCK.equals(stockCheckType)) {
+        if (StockCheckSourceTypeEnum.DOCTOR_STOCK.getType().equals(drugsEnterprise.getCheckInventoryType()) && StockCheckSourceTypeEnum.PATIENT_STOCK.getType().equals(stockCheckType)) {
             checkSkipStock = true;
         }
         if (StockCheckSourceTypeEnum.PATIENT_STOCK.getType().equals(drugsEnterprise.getCheckInventoryType()) && StockCheckSourceTypeEnum.DOCTOR_STOCK.getType().equals(stockCheckType)) {
