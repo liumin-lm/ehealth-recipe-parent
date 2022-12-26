@@ -587,6 +587,9 @@ public class EnterpriseManager extends BaseManager {
         if (!openEnterprisePriorityFlag) {
             return subDepList;
         }
+        if (CollectionUtils.isEmpty(subDepList)) {
+            return subDepList;
+        }
         List<Integer> enterpriseIds = subDepList.stream().map(DrugsEnterprise::getId).collect(Collectors.toList());
         List<OrganAndDrugsepRelation> organAndDrugsDepRelationList = organAndDrugsepRelationDAO.findByOrganIdEntId(organId, enterpriseIds);
         if (CollectionUtils.isNotEmpty(subDepList) && CollectionUtils.isNotEmpty(organAndDrugsDepRelationList)) {
