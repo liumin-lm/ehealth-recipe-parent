@@ -177,6 +177,8 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
     private RecipeParameterDao recipeParameterDao;
     @Autowired
     private RemoteRecipeOrderService recipeOrderService;
+    @Autowired
+    private PayClient payClient;
 
 
     @Override
@@ -1725,6 +1727,15 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
             }
         });
 
+    }
+
+    @Override
+    public Boolean checkOrderPayState(Integer orderId){
+        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderId(orderId);
+        if (Objects.nonNull(recipeOrder) && StringUtils.isEmpty(recipeOrder.getOutTradeNo())) {
+            return false;
+        }
+        return payClient.payQuery(orderId);
     }
 
     private void syncFinishOrderHandle(List<Integer> recipeIdList, RecipeOrder recipeOrder, boolean isSendFlag) {
