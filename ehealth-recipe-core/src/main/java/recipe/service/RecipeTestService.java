@@ -57,6 +57,7 @@ import recipe.service.afterpay.LogisticsOnlineOrderService;
 import recipe.service.paycallback.RecipePayInfoCallBackService;
 import recipe.service.recipecancel.RecipeCancelService;
 import recipe.util.DateConversion;
+import recipe.util.ObjectCopyUtils;
 import recipe.util.RecipeMsgUtils;
 
 import java.io.ByteArrayOutputStream;
@@ -101,6 +102,10 @@ public class RecipeTestService {
     private OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO;
     @Autowired
     private OrganDrugsSaleConfigDAO drugsSaleConfigDAO;
+    @Autowired
+    private RecipeDetailDAO recipeDetailDAO;
+    @Autowired
+    private RecipeExtendDAO recipeExtendDAO;
 
 
     @RpcService
@@ -861,6 +866,43 @@ public class RecipeTestService {
                 drugsEnterprise.setCheckInventoryWay(2);
             }
         });
+    }
+
+    @RpcService
+    public void offlineDelData(Integer recipeId, Integer clinicID, String orderCode){
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        Recipe newRecipe = new Recipe();
+        ObjectCopyUtils.copyProperties(newRecipe, recipe);
+        newRecipe.setPatientName(recipe.getPatientName());
+        newRecipe.setMpiid(recipe.getMpiid());
+        newRecipe.setClinicId(clinicID);
+        newRecipe.setPushFlag(0);
+        newRecipe.setOrderCode(orderCode);
+        newRecipe.setRecipeId(null);
+        Recipe nowRecipe = recipeDAO.saveOrUpdate(newRecipe);
+
+        List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipeId);
+        recipeDetailList.forEach(recipeDetail -> {
+            Recipedetail newRecipeDetail = new Recipedetail();
+            ObjectCopyUtils.copyProperties(newRecipeDetail, recipeDetail);
+            newRecipeDetail.setRecipeId(nowRecipe.getRecipeId());
+            newRecipeDetail.setRecipeDetailId(null);
+            recipeDetailDAO.save(newRecipeDetail);
+        });
+
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+        RecipeExtend newRecipeExt = new RecipeExtend();
+        ObjectCopyUtils.copyProperties(newRecipeExt, recipeExtend);
+        newRecipeExt.setRecipeId(nowRecipe.getRecipeId());
+        recipeExtendDAO.saveOrUpdateRecipeExtend(newRecipeExt);
+
+        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+        RecipeOrder newRecipeOrder = new RecipeOrder();
+        ObjectCopyUtils.copyProperties(newRecipeOrder, recipeOrder);
+        newRecipeOrder.setRecipeIdList("["+nowRecipe.getRecipeId()+"]");
+        newRecipeOrder.setOrderCode(orderCode);
+        newRecipeOrder.setOrderId(null);
+        recipeOrderDAO.save(newRecipeOrder);
     }
 
     private void saveDrugSaleConfig(OrganAndDrugsepRelation organAndDrugsDepRelation, String standardPaymentWay, Integer isHosDep) {
