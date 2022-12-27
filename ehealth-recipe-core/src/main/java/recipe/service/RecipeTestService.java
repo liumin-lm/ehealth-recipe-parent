@@ -138,7 +138,8 @@ public class RecipeTestService {
 
     @RpcService
     public int changeRecipeToHisFail(Integer recipeId) {
-        HisCallBackService.havePayFail(recipeId);
+        HisCallBackService hisCallBackService = AppContextHolder.getBean("hisCallBackService", HisCallBackService.class);
+        hisCallBackService.havePayFail(recipeId);
         return 0;
     }
 
