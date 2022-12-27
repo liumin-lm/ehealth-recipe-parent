@@ -1599,7 +1599,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         if (CollectionUtils.isNotEmpty(recipeList)) {
             logger.info("auditRecipeNoticeRevisit interrupt 该复诊下有暂存处方单未开方 recipeList={}", JSON.toJSONString(recipeList));
         } else {
-            revisitClient.failedToPrescribeFastDrug(recipe, true);
+            revisitClient.failedToPrescribeFastDrug(recipe, failFlag);
         }
     }
 
