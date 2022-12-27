@@ -344,6 +344,7 @@ public class HisCallBackService {
             order.setStatus(RecipeOrderStatusEnum.ORDER_STATUS_CANCEL_MANUAL.getType());
             orderDAO.updateNonNullFieldByPrimaryKey(order);
             recipeDAO.updateStatusByOrderCode(order.getOrderCode());
+            RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.CHECK_PASS, RecipeStatusConstant.REVOKE,"结算失败，取消处方");
         }
     }
 
