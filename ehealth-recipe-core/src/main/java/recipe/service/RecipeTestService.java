@@ -865,6 +865,7 @@ public class RecipeTestService {
                 drugsEnterprise.setCheckInventoryType(3);
                 drugsEnterprise.setCheckInventoryWay(2);
             }
+            drugsEnterpriseDAO.update(drugsEnterprise);
         });
     }
 
