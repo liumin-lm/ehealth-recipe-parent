@@ -233,7 +233,7 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
                 return;
             }
 
-            String s = "【" + a.getDrugName() + "】单次就诊售药上限为【" + a.getMaximum() + a.getUnit() + "】";
+            String s = "【" + a.getDrugName() + "】单次就诊开药上限为【" + a.getMaximum() + a.getUnit() + "】";
             list.add(s);
         });
         if (CollectionUtils.isNotEmpty(list)) {
