@@ -392,7 +392,7 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
 
         //查询医院库存  药企配置：校验药品库存标志 0 不需要校验 1 校验药企库存 2 药店没库存时可以备货 3 校验医院库存
         //根据药品id查询
-        if (drugsEnterprise != null && drugsEnterprise.getCheckInventoryFlag() != null && drugsEnterprise.getCheckInventoryFlag() == 3) {
+        if (drugsEnterprise != null && drugsEnterprise.getCheckInventoryWay() != null && drugsEnterprise.getCheckInventoryWay() == 2) {
             OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
             //通过机构Id查找对应药品库存列表
             List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(drugId, organId);

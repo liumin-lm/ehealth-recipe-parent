@@ -389,6 +389,7 @@ public class CommonRecipeBusinessService extends BaseService implements ICommonR
             List<RecipeDetailBean> recipeDetails = new ArrayList<>();
             if (MapUtils.isNotEmpty(commonRecipeDrugMap) && CollectionUtils.isNotEmpty(commonRecipeDrugMap.get(commonRecipe.getCommonRecipeId()))) {
                 List<com.ngari.recipe.dto.CommonRecipeDrugDTO> commonRecipeDrugDTOS = commonRecipeDrugMap.get(commonRecipe.getCommonRecipeId());
+                recipeBean.setRecipeDrugForm(RecipeDrugFormTypeEnum.getDrugFormType(commonRecipeDrugDTOS.get(0).getDrugForm()));
                 commonRecipeDrugDTOS.forEach(commonRecipeDrugDTO -> {
                     RecipeDetailBean recipeDetailBean = new RecipeDetailBean();
                     BeanCopyUtils.copy(commonRecipeDrugDTO, recipeDetailBean);

@@ -83,7 +83,7 @@ public class CommonSelfEnterprisesType implements CommonExtendEnterprisesInterfa
         //"校验药品库存标志 0 不需要校验 1 校验药企库存 2 药店没库存时可以备货 3 校验医院库存"
         //根据配送主体校验库存已经被遗弃，根据药企配置来校验
         RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
-        if(drugsEnterprise!=null&&drugsEnterprise.getCheckInventoryFlag()!=null&&drugsEnterprise.getCheckInventoryFlag()==3){
+        if(drugsEnterprise!=null&&drugsEnterprise.getCheckInventoryWay()!=null&&drugsEnterprise.getCheckInventoryWay()==2){
             //当前医院配送，调用医院库存   配送主体是医院，库存校验医院库存
             //当前医院呢库存接口，前置机对接了，则按对接的算
             //前置机没对接算库存足够
