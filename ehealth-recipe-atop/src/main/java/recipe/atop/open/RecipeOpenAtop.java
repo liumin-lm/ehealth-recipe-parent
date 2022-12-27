@@ -439,4 +439,10 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
     public List<RecipeBean> findAuditOverTimeRecipeList(Date startTime, Date endTime, List<Integer> organIds) {
         return recipeBusinessService.findAuditOverTimeRecipeList(startTime, endTime, organIds);
     }
+
+    @Override
+    public void auditRecipeNoticeRevisit(Integer recipeId, Boolean failFlag) {
+        recipeBusinessService.auditRecipeNoticeRevisit(recipeId, failFlag);
+    }
+
 }

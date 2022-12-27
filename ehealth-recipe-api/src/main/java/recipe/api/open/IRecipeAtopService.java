@@ -371,4 +371,13 @@ public interface IRecipeAtopService {
     @RpcService(mvcDisabled = true)
     List<RecipeBean> findAuditOverTimeRecipeList(Date startTime, Date endTime, List<Integer> organIds);
 
+    /**
+     * 便捷购药处方结束通知复诊
+     *
+     * @param recipeId
+     * @param failFlag
+     */
+    @RpcService(mvcDisabled = true)
+    void auditRecipeNoticeRevisit(Integer recipeId, Boolean failFlag);
+
 }
