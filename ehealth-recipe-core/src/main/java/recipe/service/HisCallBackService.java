@@ -335,6 +335,7 @@ public class HisCallBackService {
         order.setSettleAmountState(SettleAmountStateEnum.SETTLE_FAIL.getType());
         orderDAO.updateNonNullFieldByPrimaryKey(order);
         Boolean settleFailAllowRefund = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "settleFailAllowRefund", true);
+        LOGGER.info("havePayFail settleFailAllowRefund:{}", settleFailAllowRefund);
         if (settleFailAllowRefund) {
             //微信退款
             RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
