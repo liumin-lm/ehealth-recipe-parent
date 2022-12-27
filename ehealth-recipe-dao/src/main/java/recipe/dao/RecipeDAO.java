@@ -3345,6 +3345,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     @DAOMethod(sql = "update Recipe set pushFlag=1 where enterpriseId=:enterpriseId and recipeId in (:recipeIds)")
     public abstract void updateRecipeByDepIdAndRecipes(@DAOParam("enterpriseId") Integer enterpriseId, @DAOParam("recipeIds") List recipeIds);
 
+    @DAOMethod(sql = "update Recipe set status=9 where orderCode=:orderCode ")
+    public abstract void updateStatusByOrderCode(@DAOParam("orderCode") String orderCode);
+
     public long getCountByOrganAndDeptIds(Integer organId, List<Integer> deptIds, Integer plusDays) {
         AbstractHibernateStatelessResultAction<Long> action = new AbstractHibernateStatelessResultAction<Long>() {
             @Override
