@@ -1571,8 +1571,10 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
                         recipeDetailBean.setUsePathwaysId(String.valueOf(usePathwaysDTO.getId()));
                     }
                     OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(recipe.getClinicOrgan(), recipeDetailBean.getOrganDrugCode(), recipeDetailBean.getDrugId());
-                    recipeDetailBean.setSkinTestDrugFlag(organDrugList.getSkinTestDrugFlag());
-                    recipeDetailBean.setTargetedDrugType(organDrugList.getTargetedDrugType());
+                    if (Objects.nonNull(organDrugList)) {
+                        recipeDetailBean.setSkinTestDrugFlag(organDrugList.getSkinTestDrugFlag());
+                        recipeDetailBean.setTargetedDrugType(organDrugList.getTargetedDrugType());
+                    }
                 });
                 recipeInfoVO.setRecipeDetails(recipeDetailBeans);
             }
