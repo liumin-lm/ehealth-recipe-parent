@@ -1280,6 +1280,7 @@ public class RecipeManager extends BaseManager {
      * @param recipe
      */
     public void decreaseInventory(List<Integer> recipeIdList, Recipe recipe) {
+        logger.info("RecipeManager decreaseInventory recipeId:{}", recipe.getRecipeId());
         Boolean fastRecipeUsePlatStock = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "fastRecipeUsePlatStock", false);
         if (!FastRecipeFlagEnum.FAST_RECIPE_FLAG_QUICK.getType().equals(recipe.getFastRecipeFlag()) || !fastRecipeUsePlatStock) {
             return;
@@ -1290,7 +1291,7 @@ public class RecipeManager extends BaseManager {
                 fastRecipeDAO.updateInventoryByMouldId(recipeExtend.getMouldId(), recipeExtend.getFastRecipeNum());
             });
         } catch (Exception e) {
-            throw new DAOException("药品已售罄");
+            logger.error("RecipeManager decreaseInventory error", e);
         }
     }
 
