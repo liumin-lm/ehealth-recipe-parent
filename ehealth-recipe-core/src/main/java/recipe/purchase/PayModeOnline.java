@@ -276,9 +276,6 @@ public class PayModeOnline implements IPurchaseService {
             AccessDrugEnterpriseService remoteService = remoteDrugEnterpriseService.getServiceByDep(dep);
             Boolean fastRecipeUsePlatStock = configurationClient.getValueBooleanCatch(dbRecipe.getClinicOrgan(), "fastRecipeUsePlatStock", false);
             if (FastRecipeFlagEnum.FAST_RECIPE_FLAG_QUICK.getType().equals(dbRecipe.getFastRecipeFlag()) && fastRecipeUsePlatStock) {
-                if (!recipeManager.fastRecipeStock(dbRecipe.getRecipeId())){
-                    throw new DAOException("药品已售罄");
-                }
                 order.setEnterpriseId(depId);
             } else {
                 // 根据药企查询库存
