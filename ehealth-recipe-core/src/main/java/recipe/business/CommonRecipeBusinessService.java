@@ -341,6 +341,9 @@ public class CommonRecipeBusinessService extends BaseService implements ICommonR
 
     @Override
     public void updateCommonRecipeStatus(List<Integer> commonIds) {
+        if (CollectionUtils.isEmpty(commonIds)) {
+            return;
+        }
         commonRecipeManager.updateCommonRecipeStatus(commonIds);
     }
 
