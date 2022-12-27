@@ -270,7 +270,7 @@ public class CommonSelfEnterprisesType implements CommonExtendEnterprisesInterfa
             organId = drugsEnterprise.getOrganId();
         }
         EnterpriseManager enterpriseManager = AppContextHolder.getBean("enterpriseManager", EnterpriseManager.class);
-        if (new Integer(1).equals(enterpriseManager.getEnterpriseSendType(organId, drugsEnterprise.getId()))&&drugsEnterprise.getCheckInventoryFlag()==3){
+        if (new Integer(1).equals(enterpriseManager.getEnterpriseSendType(organId, drugsEnterprise.getId()))&&drugsEnterprise.getCheckInventoryWay()==2){
             DrugListExtService drugListExtService = AppContextHolder.getBean("eh.drugList", DrugListExtService.class);
             OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
             List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugIds(organId, Arrays.asList(drugId));
