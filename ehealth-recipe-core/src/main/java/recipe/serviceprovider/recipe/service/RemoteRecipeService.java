@@ -292,7 +292,13 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     public boolean updateRecipeInfoForThirdOrder(RecipeStatusReqTO recipeStatusReqTO) {
         LOGGER.info("updateRecipeInfoForThirdOrder recipeStatusReqTO={}", JSONUtils.toString(recipeStatusReqTO));
         try {
-            Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeStatusReqTO.getRecipeCode(), recipeStatusReqTO.getOrganId());
+            Recipe recipe;
+            if (Objects.nonNull(recipeStatusReqTO.getRecipeId())) {
+                recipe = recipeDAO.getByRecipeId(recipeStatusReqTO.getRecipeId());
+            } else {
+                recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeStatusReqTO.getRecipeCode(), recipeStatusReqTO.getOrganId());
+            }
+
             if (new Integer(RecipeStatusEnum.RECIPE_STATUS_REVOKE.getType()).equals(recipeStatusReqTO.getStatus())) {
                 //表示退款的取消
                 //退费申请记录保存

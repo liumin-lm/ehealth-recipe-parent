@@ -193,7 +193,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
             if (recipeManager.fastRecipeStock(recipe.getRecipeId())) {
                 return true;
             } else {
-                return false;
+                throw new DAOException("药品已售罄");
             }
         }
         recipe.setGiveMode(giveMode);

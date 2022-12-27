@@ -11,8 +11,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.aop.LogRecord;
 import recipe.client.CouponClient;
+import recipe.client.RecipeAuditClient;
 import recipe.enumerate.status.*;
 import recipe.enumerate.type.PayFlagEnum;
+
+import javax.annotation.Resource;
 
 /**
  * 状态处理通用类：处方状态 ，订单状态，审方状态
@@ -24,6 +27,9 @@ public class StateManager extends BaseManager {
 
     @Autowired
     private CouponClient couponClient;
+
+    @Resource
+    RecipeAuditClient recipeAuditClient;
 
     /**
      * 修改订单状态
@@ -287,6 +293,7 @@ public class StateManager extends BaseManager {
         //待审核的单子接方状态改为未接方
         if (RecipeAuditStateEnum.PENDING_REVIEW.getType().equals(recipe.getAuditState())) {
             updateRecipe.setGrabOrderStatus(0);
+            recipeAuditClient.cancelGrabOrderRecipe(recipe.getRecipeId());
         }
         updateRecipe.setRecipeId(recipe.getRecipeId());
         updateRecipe.setProcessState(processState.getType());

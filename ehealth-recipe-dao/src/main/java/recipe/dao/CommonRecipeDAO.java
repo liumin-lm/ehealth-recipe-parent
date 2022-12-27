@@ -122,7 +122,7 @@ public abstract class CommonRecipeDAO extends HibernateSupportDelegateDAO<Common
      * @param doctorId
      * @return
      */
-    @DAOMethod(limit = 0, sql = "from CommonRecipe where doctorId=:doctorId and organId=:organId and validateStatus=0")
+    @DAOMethod(limit = 0, sql = "from CommonRecipe where doctorId=:doctorId and organId=:organId and validateStatus != 1")
     public abstract List<CommonRecipe> findCommonRecipeListByOrganIdAndDoctorId(@DAOParam("organId") Integer organId, @DAOParam("doctorId") Integer doctorId);
 
     /**

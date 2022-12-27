@@ -339,6 +339,12 @@ public class HisCallBackService {
             //微信退款
             RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
             recipeService.wxPayRefundForRecipe(1, recipeId, null);
+        } else {
+            order.setStatus(RecipeOrderStatusEnum.ORDER_STATUS_CANCEL_MANUAL.getType());
+            orderDAO.updateNonNullFieldByPrimaryKey(order);
+            recipeDAO.updateStatusByOrderCode(order.getOrderCode());
+            RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.CHECK_PASS, RecipeStatusConstant.REVOKE,"结算失败，取消处方");
+            stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION, OrderStateEnum.SUB_CANCELLATION_REFUSE_ORDER);
         }
     }
 
