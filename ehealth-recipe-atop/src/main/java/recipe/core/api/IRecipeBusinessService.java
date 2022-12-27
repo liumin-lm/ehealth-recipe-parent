@@ -468,4 +468,12 @@ public interface IRecipeBusinessService {
      * @return
      */
     List<RecipeInfoVO> findDoctorRecipeList(DoctorRecipeListReqVO doctorRecipeListReqVO);
+
+    /**
+     * 便捷购药处方结束通知复诊
+     *
+     * @param recipeId
+     * @param failFlag
+     */
+    void auditRecipeNoticeRevisit(Integer recipeId, Boolean failFlag);
 }

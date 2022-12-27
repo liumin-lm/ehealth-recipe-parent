@@ -172,6 +172,8 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     private DrugClient drugClient;
     @Autowired
     private OrganAndDrugsepRelationDAO drugsDepRelationDAO;
+    @Autowired
+    private RevisitClient revisitClient;
 
 
     /**
@@ -1587,6 +1589,18 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         }).collect(Collectors.toList());
 
         return recipeInfoVOS;
+    }
+
+    @Override
+    public void auditRecipeNoticeRevisit(Integer recipeId, Boolean failFlag) {
+        logger.info("auditRecipeNoticeRevisit recipeId={}, failFlag={}", recipeId, failFlag);
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        List<Recipe> recipeList = recipeDAO.findTempRecipeByClinicId(recipe.getClinicOrgan(), recipe.getClinicId());
+        if (CollectionUtils.isNotEmpty(recipeList)) {
+            logger.info("auditRecipeNoticeRevisit interrupt 该复诊下有暂存处方单未开方 recipeList={}", JSON.toJSONString(recipeList));
+        } else {
+            revisitClient.failedToPrescribeFastDrug(recipe, true);
+        }
     }
 
     public void checkUserHasPermissionByDoctorId(Integer doctorId){
