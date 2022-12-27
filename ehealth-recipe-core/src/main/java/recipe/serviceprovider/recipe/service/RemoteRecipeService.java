@@ -2268,7 +2268,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             if (CollectionUtils.isNotEmpty(recipeList)) {
                 LOGGER.info("failedToPrescribeFastDrug interrupt 该复诊下有暂存处方单未开方 recipeList={}", JSON.toJSONString(recipeList));
             } else {
-                revisitClient.failedToPrescribeFastDrug(recipe, true);
+                revisitClient.failedToPrescribeFastDrug(recipe, false);
             }
         }
     }
