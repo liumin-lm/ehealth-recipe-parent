@@ -299,4 +299,15 @@ public class RecipeOrderPatientAtop extends BaseAtop {
         return recipeOrderService.interceptPatientApplyRefund(orderCode);
     }
 
+    /**
+     * 校验订单是否在支付中
+     * @param orderId
+     * @return
+     */
+    @RpcService
+    public Integer checkOrderPayState(Integer orderId){
+        validateAtop(orderId);
+        return recipeOrderService.checkOrderPayState(orderId);
+    }
+
 }

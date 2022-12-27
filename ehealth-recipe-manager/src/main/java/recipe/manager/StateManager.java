@@ -284,6 +284,10 @@ public class StateManager extends BaseManager {
                 || RecipeAuditStateEnum.PENDING_REVIEW.getType().equals(recipe.getAuditState())) {
             updateRecipe.setAuditState(RecipeAuditStateEnum.NO_REVIEW.getType());
         }
+        //待审核的单子接方状态改为未接方
+        if (RecipeAuditStateEnum.PENDING_REVIEW.getType().equals(recipe.getAuditState())) {
+            updateRecipe.setGrabOrderStatus(0);
+        }
         updateRecipe.setRecipeId(recipe.getRecipeId());
         updateRecipe.setProcessState(processState.getType());
         updateRecipe.setSubState(subState.getType());

@@ -77,7 +77,7 @@ public abstract class FastRecipeDAO extends HibernateSupportDelegateDAO<FastReci
         HibernateStatelessResultAction<Integer> action = new AbstractHibernateStatelessResultAction<Integer>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                String hql = "update FastRecipe set stockNum=(stockNum-:num) where mouldId=:mouldId and stockNum >=:num ";
+                String hql = "update FastRecipe set stockNum=(stockNum-:num) where id=:mouldId and stockNum >=:num ";
                 Query q = ss.createQuery(hql);
                 q.setParameter("mouldId", mouldId);
                 q.setParameter("num", num);

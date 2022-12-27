@@ -287,4 +287,11 @@ public interface IRecipeOrderBusinessService {
      */
     void findHisSettle();
 
+    /**
+     * 校验订单是否在支付中
+     * @param orderId
+     * @return
+     */
+    Integer checkOrderPayState(Integer orderId);
+
 }

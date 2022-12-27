@@ -166,6 +166,7 @@ public class DrugPatientAtop extends BaseAtop {
 
     @RpcService
     public boolean searchDrugRecipeStock(DrugQueryVO drugQueryVO) {
+        logger.error("searchDrugRecipeStock param ={}", JSON.toJSONString(drugQueryVO));
         Object config = configService.getConfiguration(drugQueryVO.getOrganId(), "fastRecipeUsePlatStock");
         boolean fastRecipeUsePlatStock = Objects.nonNull(config) && (Boolean) config;
         if (fastRecipeUsePlatStock) {
@@ -173,7 +174,7 @@ public class DrugPatientAtop extends BaseAtop {
             return fastRecipeService.checkFastRecipeStock(drugQueryVO);
         } else {
             RecipeDTO recipeDTO = this.recipeDTO(drugQueryVO);
-            List<EnterpriseStock> result = iStockBusinessService.drugRecipeStock(recipeDTO);
+            List<EnterpriseStock> result = iStockBusinessService.drugRecipeStock(recipeDTO, StockCheckSourceTypeEnum.PATIENT_STOCK.getType());
             logger.info("DrugDoctorAtop drugRecipeStock result={}", JSONArray.toJSONString(result));
             if (CollectionUtils.isEmpty(result)) {
                 return false;

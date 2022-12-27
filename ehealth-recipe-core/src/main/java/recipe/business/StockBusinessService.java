@@ -19,6 +19,7 @@ import recipe.dao.RecipeDetailDAO;
 import recipe.drugsenterprise.AccessDrugEnterpriseService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.enumerate.status.GiveModeEnum;
+import recipe.enumerate.type.FastRecipeFlagEnum;
 import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.enumerate.type.StockCheckSourceTypeEnum;
 import recipe.manager.EnterpriseManager;
@@ -172,8 +173,8 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
     }
 
     @Override
-    public List<EnterpriseStock> drugRecipeStock(RecipeDTO recipeDTO) {
-        return this.drugRecipeStockV1(recipeDTO, StockCheckSourceTypeEnum.DOCTOR_STOCK.getType());
+    public List<EnterpriseStock> drugRecipeStock(RecipeDTO recipeDTO, Integer stockCheckType) {
+        return this.drugRecipeStockV1(recipeDTO, stockCheckType);
     }
 
 
@@ -186,6 +187,14 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         Integer giveMode = RecipeSupportGiveModeEnum.getGiveMode(giveModeKey);
         if (giveMode == 0) {
             return true;
+        }
+        Boolean fastRecipeUsePlatStock = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "fastRecipeUsePlatStock", false);
+        if (FastRecipeFlagEnum.FAST_RECIPE_FLAG_QUICK.getType().equals(recipe.getFastRecipeFlag()) && fastRecipeUsePlatStock) {
+            if (recipeManager.fastRecipeStock(recipe.getRecipeId())) {
+                return true;
+            } else {
+                return false;
+            }
         }
         recipe.setGiveMode(giveMode);
         return this.getStockFlag(recipeIds, recipe, enterpriseId);
@@ -403,7 +412,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
             return;
         }
         boolean checkSkipStock = false;
-        if (StockCheckSourceTypeEnum.DOCTOR_STOCK.getType().equals(drugsEnterprise.getCheckInventoryType()) && StockCheckSourceTypeEnum.PATIENT_STOCK.equals(stockCheckType)) {
+        if (StockCheckSourceTypeEnum.DOCTOR_STOCK.getType().equals(drugsEnterprise.getCheckInventoryType()) && StockCheckSourceTypeEnum.PATIENT_STOCK.getType().equals(stockCheckType)) {
             checkSkipStock = true;
         }
         if (StockCheckSourceTypeEnum.PATIENT_STOCK.getType().equals(drugsEnterprise.getCheckInventoryType()) && StockCheckSourceTypeEnum.DOCTOR_STOCK.getType().equals(stockCheckType)) {

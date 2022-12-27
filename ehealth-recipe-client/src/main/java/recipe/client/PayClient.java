@@ -19,11 +19,13 @@ import com.ngari.recipe.dto.RefundResultDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.wxpay.service.INgariPayService;
 import com.ngari.wxpay.service.INgariRefundService;
 import coupon.api.service.ICouponBaseService;
 import coupon.api.vo.Coupon;
 import ctd.account.UserRoleToken;
 import ctd.persistence.exception.DAOException;
+import ctd.spring.AppDomainContext;
 import ctd.util.JSONUtils;
 import ctd.util.context.Context;
 import ctd.util.context.ContextUtils;
@@ -45,6 +47,7 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -159,6 +162,25 @@ public class PayClient extends BaseClient {
         return tradeStatus;
     }
 
+    public Integer payQuery(Integer orderId){
+        logger.info("PayClient payQuery orderId:{}", orderId);
+        try {
+            INgariPayService payService = AppDomainContext.getBean("eh.payService", INgariPayService.class);
+            Map<String, Object> result = payService.payQuery("recipe", orderId.toString());
+            logger.info("PayClient payQuery result:{}", JSON.toJSONString(result));
+            if (Objects.nonNull(result)) {
+                String code = (String)result.get("code");
+                if ("PROCESSING".equals(code)) {
+                    return 1;
+                } else {
+                    return 0;
+                }
+            }
+        } catch (Exception e) {
+            logger.error("PayClient payQuery error", e);
+        }
+        return 0;
+    }
 
     /**
      * 退费

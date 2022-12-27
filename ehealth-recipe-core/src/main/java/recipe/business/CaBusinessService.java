@@ -114,10 +114,10 @@ public class CaBusinessService extends BaseService implements ICaBusinessService
         }
         if (Integer.valueOf(2).equals(recipe.getBussSource())) {
             List<Recipe> recipeList = recipeDAO.findTempRecipeByClinicId(recipe.getClinicOrgan(), recipe.getClinicId());
-            if (CollectionUtils.isEmpty(recipeList)) {
+            if (CollectionUtils.isNotEmpty(recipeList)) {
                 logger.info("failedToPrescribeFastDrug interrupt 该复诊下有暂存处方单未开方 recipeList={}", JSON.toJSONString(recipeList));
             } else {
-                revisitClient.failedToPrescribeFastDrug(recipe, false);
+                revisitClient.failedToPrescribeFastDrug(recipe, true);
             }
         }
     }

@@ -1,6 +1,7 @@
 package recipe.service;
 
 import com.alibaba.fastjson.JSON;
+import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
@@ -113,6 +114,7 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
             }
             resultList = super.futureTaskCallbackBeanList(futureTasks, 15000);
             if (CollectionUtils.isNotEmpty(resultList)) {
+                logger.info("fastRecipeSaveRecipeList fastRecipeApplyToDoctor resultList={}", JSON.toJSONString(resultList));
                 //通知医生，只给开方医生推送一条
                 smsClient.fastRecipeApplyToDoctor(recipeInfoVOList.get(0).getRecipeBean().getClinicOrgan(),
                         recipeInfoVOList.get(0).getRecipeBean().getDoctor());
@@ -168,6 +170,10 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
             recipeBean.setFromflag(1);
             recipeBean.setRecipeSourceType(1);
             recipeBean.setRecipeSupportGiveMode(fastRecipe.getRecipeSupportGiveMode());
+            DoctorDTO doctorDTO = doctorClient.getDoctor(recipeBean.getDoctor());
+            if (Objects.nonNull(doctorDTO)) {
+                recipeBean.setDoctorName(doctorDTO.getName());
+            }
 
             //recipeBean.setMedicalFlag(0);
             //recipeBean.setMedicalPayFlag(0);
@@ -252,6 +258,11 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
             recipeBean.setDecoctionNum(fastRecipe.getDecoctionNum());
             recipeBean.setRecipeSupportGiveMode(fastRecipe.getRecipeSupportGiveMode());
             recipeBean.setRecipeMemo(fastRecipe.getRecipeMemo());
+            DoctorDTO doctorDTO = doctorClient.getDoctor(recipeBean.getDoctor());
+            if (Objects.nonNull(doctorDTO)) {
+                recipeBean.setDoctorName(doctorDTO.getName());
+            }
+
             if (CollectionUtils.isNotEmpty(fastRecipeDetailList)) {
                 if (!new Integer(3).equals(fastRecipeDetailList.get(0).getType())) {
                     //不是保密方
@@ -272,6 +283,7 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
             recipeExtendBean.setMouldId(recipeInfoVO.getMouldId());
 
             int buyNum = ValidateUtil.nullOrZeroInteger(recipeInfoVO.getBuyNum()) ? 1 : recipeInfoVO.getBuyNum();
+            recipeExtendBean.setFastRecipeNum(buyNum);
             packageTotalParamByBuyNum(recipeInfoVO, buyNum);
             Integer recipeId = recipePatientService.saveRecipe(recipeInfoVO);
             recipePatientService.updateRecipeIdByConsultId(recipeId, recipeInfoVO.getRecipeBean().getClinicId());
@@ -542,7 +554,8 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
             return true;
         }
         FastRecipe fastRecipe = fastRecipeDAO.get(mouldId);
-        if (Objects.nonNull(fastRecipe) && Objects.nonNull(fastRecipe.getStockNum()) && buyNum > fastRecipe.getStockNum()) {
+        if (Objects.nonNull(fastRecipe) && Objects.nonNull(fastRecipe.getStockNum())
+                && (buyNum > fastRecipe.getStockNum() || Integer.valueOf("0").equals(fastRecipe.getStockNum()))) {
             return false;
         } else {
             return true;
