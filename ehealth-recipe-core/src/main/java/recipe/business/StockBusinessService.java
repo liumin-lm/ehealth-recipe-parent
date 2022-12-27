@@ -399,9 +399,9 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
      */
     private void enterpriseStock(EnterpriseStock enterpriseStock, Recipe recipe, List<Recipedetail> recipeDetails, Integer stockCheckType) {
         DrugsEnterprise drugsEnterprise = enterpriseStock.getDrugsEnterprise();
-        Integer checkInventoryFlag = drugsEnterprise.getCheckInventoryFlag();
-        if (null == checkInventoryFlag) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, drugsEnterprise.getName() + "checkInventoryFlag is null");
+        Integer checkInventoryWay = drugsEnterprise.getCheckInventoryWay();
+        if (null == checkInventoryWay) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, drugsEnterprise.getName() + "checkInventoryWay is null");
         }
         List<Integer> drugIds = recipeDetails.stream().map(Recipedetail::getDrugId).distinct().collect(Collectors.toList());
         Map<Integer, SaleDrugList> saleDrugMap = enterpriseManager.saleDrugListEffectivity(drugsEnterprise.getId(), drugIds);
@@ -419,7 +419,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         if (StockCheckSourceTypeEnum.PATIENT_STOCK.getType().equals(drugsEnterprise.getCheckInventoryType()) && StockCheckSourceTypeEnum.DOCTOR_STOCK.getType().equals(stockCheckType)) {
             checkSkipStock = true;
         }
-        if (StockCheckSourceTypeEnum.GREENROOM_STOCK.getType().equals(drugsEnterprise.getCheckInventoryFlag())) {
+        if (StockCheckSourceTypeEnum.GREENROOM_STOCK.getType().equals(stockCheckType)) {
             checkSkipStock = false;
         }
         if (0 == drugsEnterprise.getCheckInventoryType() || checkSkipStock) {
