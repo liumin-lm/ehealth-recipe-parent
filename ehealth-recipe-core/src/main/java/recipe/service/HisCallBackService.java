@@ -329,13 +329,10 @@ public class HisCallBackService {
 
         // 处方 订单 新状态写入
         stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_REFUSE_ORDER);
-        if (Objects.nonNull(order)) {
-            stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION, OrderStateEnum.SUB_CANCELLATION_USER);
-        }
+
         order.setSettleAmountState(SettleAmountStateEnum.SETTLE_FAIL.getType());
         orderDAO.updateNonNullFieldByPrimaryKey(order);
         Boolean settleFailAllowRefund = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "settleFailAllowRefund", true);
-        LOGGER.info("havePayFail settleFailAllowRefund:{}", settleFailAllowRefund);
         if (settleFailAllowRefund) {
             //微信退款
             RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
@@ -345,6 +342,9 @@ public class HisCallBackService {
             orderDAO.updateNonNullFieldByPrimaryKey(order);
             recipeDAO.updateStatusByOrderCode(order.getOrderCode());
             RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.CHECK_PASS, RecipeStatusConstant.REVOKE,"结算失败，取消处方");
+        }
+        if (Objects.nonNull(order)) {
+            stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION, OrderStateEnum.SUB_CANCELLATION_USER);
         }
     }
 
