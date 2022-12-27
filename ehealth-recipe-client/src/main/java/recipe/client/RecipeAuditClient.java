@@ -27,6 +27,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.aop.LogRecord;
+import recipe.constant.GrabOrderStatusConstant;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -277,4 +278,22 @@ public class RecipeAuditClient extends BaseClient {
     public void caSignChecker(Recipe recipe) {
         recipeCheckService.generateCheckRecipePdf(recipe.getChecker(), ObjectCopyUtils.convert(recipe, RecipeBean.class));
     }
+
+    /**
+     * 取消药师接方
+     *
+     * @param recipeId
+     */
+    public void cancelGrabOrderRecipe(Integer recipeId) {
+        logger.info("cancelGrabOrderRecipe recipeId = {}", recipeId);
+        RecipeCheckBean recipeCheck = recipeCheckService.getByRecipeId(recipeId);
+        if (Objects.nonNull(recipeCheck) && !GrabOrderStatusConstant.GRAB_ORDER_NO.equals(recipeCheck.getGrabOrderStatus())) {
+            recipeCheck.setGrabDoctorId(null);
+            recipeCheck.setGrabOrderStatus(GrabOrderStatusConstant.GRAB_ORDER_NO);
+            recipeCheck.setLocalLimitDate(null);
+            recipeCheckService.update(recipeCheck);
+        }
+    }
+
+
 }
