@@ -308,10 +308,11 @@ public class OrganDrugListManager extends BaseManager {
         if (StringUtils.isEmpty(useDoseUnit)) {
             return null;
         }
-        if (useDoseUnit.equals(organDrug.getUseDoseUnit())) {
+        String unit = null != organDrug.getUseDoseUnit() ? organDrug.getUseDoseUnit().trim() : null;
+        if (useDoseUnit.trim().equals(unit)) {
             return organDrug.getUseDoseUnit();
         }
-        if (useDoseUnit.equals(organDrug.getUseDoseSmallestUnit())) {
+        if (useDoseUnit.trim().equals(organDrug.getUseDoseSmallestUnit())) {
             return organDrug.getUseDoseSmallestUnit();
         }
         return null;
@@ -327,7 +328,8 @@ public class OrganDrugListManager extends BaseManager {
         if (StringUtils.isEmpty(drugUnit)) {
             return null;
         }
-        if (drugUnit.equals(organDrug.getUnit())) {
+        String unit = null != organDrug.getUnit() ? organDrug.getUnit().trim() : null;
+        if (drugUnit.trim().equals(unit)) {
             return organDrug.getUnit();
         }
         return null;
