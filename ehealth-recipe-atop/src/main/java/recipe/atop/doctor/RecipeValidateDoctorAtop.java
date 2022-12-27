@@ -18,6 +18,7 @@ import recipe.core.api.IRecipeBusinessService;
 import recipe.core.api.IRecipeDetailBusinessService;
 import recipe.core.api.IRevisitBusinessService;
 import recipe.enumerate.type.RecipeDrugFormTypeEnum;
+import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.util.ObjectCopyUtils;
 import recipe.util.RecipeUtil;
 import recipe.util.ValidateUtil;
@@ -191,9 +192,12 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
             return resultBean;
         }
         //校验复诊下重复药品数量
-        ResultBean<String> detail = recipeDetailService.validateRepeatRecipeDetail(validateDetailVO);
-        if (!detail.isBool()) {
-            return detail;
+        if(!RecipeTypeEnum.RECIPETYPE_TCM.getType().equals(validateDetailVO.getRecipeBean().getRecipeType())) {
+            // 中药不校验开药上限
+            ResultBean<String> detail = recipeDetailService.validateRepeatRecipeDetail(validateDetailVO);
+            if (!detail.isBool()) {
+                return detail;
+            }
         }
         //校验复诊下重复处方
         return recipeDetailService.validateRepeatRecipe(validateDetailVO);
