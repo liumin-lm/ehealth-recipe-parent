@@ -1829,6 +1829,20 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 hql.append(" AND (b.fast_recipe_flag in (0,2,3) or b.fast_recipe_flag is null) ");
             }
         }
+        if(null != recipeOrderRefundReqDTO.getPrintDrugDistributionListStatus()){
+            if(Integer.valueOf(1).equals(recipeOrderRefundReqDTO.getPrintDrugDistributionListStatus())){
+                hql.append(" AND a.print_drug_distribution_list_flag = 1 ");
+            }else{
+                hql.append(" AND (a.print_drug_distribution_list_flag = 0 or a.print_drug_distribution_list_flag is null) ");
+            }
+        }
+        if(null != recipeOrderRefundReqDTO.getPrintExpressBillStatus()){
+            if(Integer.valueOf(1).equals(recipeOrderRefundReqDTO.getPrintExpressBillStatus())){
+                hql.append(" AND a.print_express_bill_flag = 1 ");
+            }else{
+                hql.append(" AND (a.print_express_bill_flag = 0 or a.print_express_bill_flag is null) ");
+            }
+        }
         logger.info("RecipeOrderDAO getRefundStringBuilder hql:{}", hql);
         return hql;
     }
