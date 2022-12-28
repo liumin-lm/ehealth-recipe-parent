@@ -392,6 +392,12 @@ public class RecipeOrderBean implements Serializable {
     @ItemProperty(alias = "到付运费")
     private String collectPaymentExpressFee;
 
+    @ItemProperty(alias = "是否已打印发药清单")
+    private Boolean printDrugDistributionListFlag;
+
+    @ItemProperty(alias = "是否已打印快递面单")
+    private Boolean printExpressBillFlag;
+
     public String getCollectPaymentExpressFee() {
         return collectPaymentExpressFee;
     }
@@ -1375,5 +1381,21 @@ public class RecipeOrderBean implements Serializable {
 
     public void setGiveModeKey(String giveModeKey) {
         this.giveModeKey = giveModeKey;
+    }
+
+    public Boolean getPrintDrugDistributionListFlag() {
+        return printDrugDistributionListFlag;
+    }
+
+    public void setPrintDrugDistributionListFlag(Boolean printDrugDistributionListFlag) {
+        this.printDrugDistributionListFlag = printDrugDistributionListFlag;
+    }
+
+    public Boolean getPrintExpressBillFlag() {
+        return printExpressBillFlag;
+    }
+
+    public void setPrintExpressBillFlag(Boolean printExpressBillFlag) {
+        this.printExpressBillFlag = printExpressBillFlag;
     }
 }

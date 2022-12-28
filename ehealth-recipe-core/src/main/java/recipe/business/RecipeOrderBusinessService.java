@@ -1767,4 +1767,28 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
             }
         });
     }
+
+
+    @Override
+    public Boolean updateInvoiceStatus(String orderCode, Integer invoiceType) {
+        logger.info("updateInvoiceStatus orderCode:{},invoiceType:{}", orderCode,invoiceType);
+        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(orderCode);
+        if (recipeOrder == null){
+            logger.info("updateInvoiceStatus 当前订单不存在 orderCode:{}", orderCode);
+            return false;
+        }
+        if(new Integer(1).equals(invoiceType)){
+            if(recipeOrder.getPrintDrugDistributionListFlag() == null || !recipeOrder.getPrintDrugDistributionListFlag()){
+                recipeOrder.setPrintDrugDistributionListFlag(true);
+                recipeOrderDAO.updateNonNullFieldByPrimaryKey(recipeOrder);
+            }
+        }
+        else if(new Integer(2).equals(invoiceType)){
+            if(recipeOrder.getPrintExpressBillFlag() == null || !recipeOrder.getPrintExpressBillFlag()){
+                recipeOrder.setPrintExpressBillFlag(true);
+                recipeOrderDAO.updateNonNullFieldByPrimaryKey(recipeOrder);
+            }
+        }
+        return true;
+    }
 }
