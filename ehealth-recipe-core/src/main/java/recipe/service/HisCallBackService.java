@@ -330,7 +330,7 @@ public class HisCallBackService {
         // 处方 订单 新状态写入
         stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_REFUSE_ORDER);
         if (Objects.nonNull(order)) {
-            stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION, OrderStateEnum.SUB_CANCELLATION_USER);
+            stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION, OrderStateEnum.SUB_CANCELLATION_SETTLE_FAIL);
         }
         order.setSettleAmountState(SettleAmountStateEnum.SETTLE_FAIL.getType());
         orderDAO.updateNonNullFieldByPrimaryKey(order);
@@ -344,7 +344,7 @@ public class HisCallBackService {
             orderDAO.updateNonNullFieldByPrimaryKey(order);
             recipeDAO.updateStatusByOrderCode(order.getOrderCode());
             RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.CHECK_PASS, RecipeStatusConstant.REVOKE,"结算失败，取消处方");
-            stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION, OrderStateEnum.SUB_CANCELLATION_REFUSE_ORDER);
+            stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION, OrderStateEnum.SUB_CANCELLATION_SETTLE_FAIL);
         }
     }
 
