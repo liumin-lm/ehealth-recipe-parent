@@ -1,5 +1,6 @@
 package com.ngari.recipe.dto;
 
+import ctd.schema.annotation.ItemProperty;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -32,4 +33,10 @@ public class RecipeOrderRefundReqDTO implements Serializable {
     private Integer fastRecipeFlag;
     private Integer start;
     private Integer limit;
+
+    @ItemProperty(alias = "打印发药清单状态 0 未打印 1 已打印")
+    private Integer printDrugDistributionListStatus;
+
+    @ItemProperty(alias = "打印快递面单状态 0 未打印 1 已打印")
+    private Integer printExpressBillStatus;
 }

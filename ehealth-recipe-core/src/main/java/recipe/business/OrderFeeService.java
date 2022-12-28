@@ -167,6 +167,8 @@ public class OrderFeeService implements IRecipeOrderRefundService {
             if (null != recipeExtend) {
                 recipeOrderRefundVO.setRefundStatusText(RefundNodeStatusEnum.getRefundStatus(recipeExtend.getRefundNodeStatus()));
             }
+            recipeOrderRefundVO.setPrintDrugDistributionListFlag(recipeOrder.getPrintDrugDistributionListFlag());
+            recipeOrderRefundVO.setPrintExpressBillFlag(recipeOrder.getPrintExpressBillFlag());
             recipeOrderRefundVOList.add(recipeOrderRefundVO);
         });
         recipeOrderRefundPageVO.setRecipeOrderRefundVOList(recipeOrderRefundVOList);

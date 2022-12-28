@@ -215,4 +215,9 @@ public class RecipeOrderOpenAtop extends BaseAtop implements IRecipeOrderAtopSer
         return ObjectCopyUtils.convert(list, RecipeOrderVO.class);
     }
 
+    @Override
+    public Boolean updateInvoiceStatus(String orderCode, Integer invoiceType) {
+        return recipeOrderService.updateInvoiceStatus(orderCode,invoiceType);
+    }
+
 }
