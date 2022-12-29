@@ -1178,7 +1178,6 @@ public class RecipeServiceSub {
      * @return
      */
     public static Map<String, String> getTipsByStatusCopy(int status, Recipe recipe, Boolean effective, Integer orderStatus) {
-        RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
         RecipeRefundDAO recipeRefundDAO = DAOFactory.getDAO(RecipeRefundDAO.class);
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         String cancelReason = "";
@@ -2269,9 +2268,15 @@ public class RecipeServiceSub {
 
     private static String getCancelReasonForPatient(int recipeId) {
         String cancelReason = "";
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         RecipeRefundDAO recipeRefundDAO = DAOFactory.getDAO(RecipeRefundDAO.class);
         if (CollectionUtils.isNotEmpty(recipeRefundDAO.findRefundListByRecipeId(recipeId))) {
-            cancelReason = "由于患者申请退费成功，该处方已取消。";
+            //cancelReason = "由于患者申请退费成功，该处方已取消。";
+            cancelReason = OrderStateEnum.getOrderStateEnum(recipe.getSubState()).getName();
+            if (RecipeStateEnum.SUB_CANCELLATION_SETTLE_FAIL.getType().equals(recipe.getSubState())) {
+                cancelReason = OrderStateEnum.getOrderStateEnum(recipe.getSubState()).getDesc();
+            }
         } else {
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
