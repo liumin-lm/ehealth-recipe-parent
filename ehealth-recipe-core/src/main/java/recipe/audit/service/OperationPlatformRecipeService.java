@@ -587,7 +587,7 @@ public class OperationPlatformRecipeService {
                 cancelReason = "开方医生已撤销处方,撤销原因:" + recipeExtend.getCancellation();
             } else {
                 if (RecipeStateEnum.SUB_CANCELLATION_SETTLE_FAIL.getType().equals(recipe.getSubState())) {
-                    cancelReason = OrderStateEnum.getOrderStateEnum(recipe.getSubState()).getDesc();
+                    cancelReason = RecipeStateEnum.getRecipeStateEnum(recipe.getSubState()).getDesc();
                 }
             }
         }
