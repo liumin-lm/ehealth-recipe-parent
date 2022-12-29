@@ -39,6 +39,7 @@ import recipe.constant.ErrorCode;
 import recipe.core.api.patient.IOfflineRecipeBusinessService;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeExtendDAO;
+import recipe.dao.RecipeParameterDao;
 import recipe.enumerate.status.OfflineToOnlineEnum;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.WriteHisEnum;
@@ -85,6 +86,8 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
     private PharmacyManager pharmacyManager;
     @Autowired
     private OrganDrugListManager organDrugListManager;
+    @Autowired
+    private RecipeParameterDao recipeParameterDao;
 
     @Override
     public List<MergeRecipeVO> findHisRecipeList(FindHisRecipeListVO request) {
@@ -318,13 +321,16 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
         ChargeItemDTO chargeItemDTO = new ChargeItemDTO(expressFeePayType, expressFee);
         recipePdfDTO.setChargeItemDTO(chargeItemDTO);
         Recipe recipe = recipePdfDTO.getRecipe();
+        String allowSecondWriteHisOrgan = recipeParameterDao.getByName("allowSecondWriteHisOrgan");
         if (RecipeStateEnum.PROCESS_STATE_CANCELLATION.getType().equals(recipe.getProcessState())) {
             logger.info("RecipeBusinessService pushRecipe 当前处方已撤销 recipeId:{}", recipeId);
             return recipePdfDTO;
         }
-        if (CommonConstant.RECIPE_PUSH_TYPE.equals(pushType) && WriteHisEnum.WRITE_HIS_STATE_ORDER.getType().equals(recipe.getWriteHisState())) {
-            logger.info("RecipeBusinessService pushRecipe 当前处方已写入his成功 recipeId:{}", recipeId);
-            return recipePdfDTO;
+        if (StringUtils.isEmpty(allowSecondWriteHisOrgan) || !allowSecondWriteHisOrgan.contains(recipe.getClinicOrgan().toString())) {
+            if (CommonConstant.RECIPE_PUSH_TYPE.equals(pushType) && WriteHisEnum.WRITE_HIS_STATE_ORDER.getType().equals(recipe.getWriteHisState())) {
+                logger.info("RecipeBusinessService pushRecipe 当前处方已写入his成功 recipeId:{}", recipeId);
+                return recipePdfDTO;
+            }
         }
         //同时set最小售卖单位/单位HIS编码等
         organDrugListManager.setDrugItemCode(recipe.getClinicOrgan(), recipePdfDTO.getRecipeDetails());
