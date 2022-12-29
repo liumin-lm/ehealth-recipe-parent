@@ -1200,7 +1200,11 @@ public class RecipeServiceSub {
             switch (status) {
                 case RecipeStatusConstant.REVOKE:
                     if (CollectionUtils.isNotEmpty(recipeRefundDAO.findRefundListByRecipeIdAndNode(recipe.getRecipeId()))) {
-                        cancelReason = "由于患者申请退费成功，该处方已取消。";
+                        //cancelReason = "由于患者申请退费成功，该处方已取消。";
+                        cancelReason = OrderStateEnum.getOrderStateEnum(recipe.getSubState()).getName();
+                        if (RecipeStateEnum.SUB_CANCELLATION_SETTLE_FAIL.getType().equals(recipe.getSubState())) {
+                            cancelReason = OrderStateEnum.getOrderStateEnum(recipe.getSubState()).getDesc();
+                        }
                         tips = "已取消";
                     } else {
                         tips = "已撤销";
