@@ -76,6 +76,9 @@ import java.util.stream.Collectors;
  */
 @RpcBean(value = "recipeTestService", mvc_authentication = false)
 public class RecipeTestService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(RecipeTestService.class);
+
     @Autowired
     private RecipeDAO recipeDAO;
     @Autowired
@@ -109,16 +112,11 @@ public class RecipeTestService {
 
 
     @RpcService
-    public PushRecipeAndOrder getPushRecipeAndOrder(Integer recipeId){
+    public PushRecipeAndOrder getPushRecipeAndOrder(Integer recipeId, Integer enterpriseId){
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipe.getEnterpriseId());
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(enterpriseId);
         return enterpriseManager.getPushRecipeAndOrder(recipe, drugsEnterprise, "");
     }
-
-    /**
-     * logger
-     */
-    private static final Logger LOGGER = LoggerFactory.getLogger(RecipeTestService.class);
 
     @RpcService
     public String testanyway() {
@@ -206,7 +204,7 @@ public class RecipeTestService {
     }
 
     @RpcService
-    public List<SearchDrugDetailDTO> findDrugListsByNameOrCodePageStaitc(
+    public List<SearchDrugDetailDTO> findDrugListsByNameOrCodePageStatic(
             Integer organId, int drugType, String drugName, int start) {
         DrugListExtService drugListExtService = ApplicationUtils.getRecipeService(DrugListExtService.class, "drugList");
 
@@ -241,7 +239,6 @@ public class RecipeTestService {
         OrganDTO organ = organService.getByOrganId(organDrugList.getOrganId());
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
         CompareDrugDAO compareDrugDAO = DAOFactory.getDAO(CompareDrugDAO.class);
-        DrugList drugList = drugListDAO.getById(organDrugList.getDrugId());
         RegulationDrugCategoryReq drugCategoryReq = new RegulationDrugCategoryReq();
         String organId = minkeOrganService.getRegisterNumberByUnitId(organ.getMinkeUnitID());
         drugCategoryReq.setUnitID(organ.getMinkeUnitID());
@@ -295,7 +292,7 @@ public class RecipeTestService {
     }
 
     @RpcService
-    public void saveOrUpdateRecipeParames(RecipeParameter recipeParameter, Integer flag) {
+    public void saveOrUpdateRecipeParameter(RecipeParameter recipeParameter, Integer flag) {
         RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
         if (1 == flag) {
             recipeParameterDao.save(recipeParameter);
