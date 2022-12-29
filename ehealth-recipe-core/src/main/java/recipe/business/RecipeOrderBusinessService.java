@@ -14,6 +14,7 @@ import com.ngari.his.recipe.mode.RecipeCashPreSettleInfo;
 import com.ngari.his.recipe.mode.RecipeCashPreSettleReqTO;
 import com.ngari.infra.invoice.mode.InvoiceRecordDto;
 import com.ngari.infra.invoice.service.InvoiceRecordService;
+import com.ngari.infra.logistics.service.IWaybillService;
 import com.ngari.patient.dto.AddressDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.AddressService;
@@ -1784,6 +1785,7 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
             }
         }
         else if(new Integer(2).equals(invoiceType)){
+            IWaybillService iWaybillService = AppContextHolder.getBean("infra.waybillService", IWaybillService.class);
             if(recipeOrder.getPrintExpressBillFlag() == null || !recipeOrder.getPrintExpressBillFlag()){
                 recipeOrder.setPrintExpressBillFlag(true);
                 recipeOrderDAO.updateNonNullFieldByPrimaryKey(recipeOrder);
