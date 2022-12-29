@@ -1778,6 +1778,7 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
             logger.info("updateInvoiceStatus 当前订单不存在 orderCode:{}", orderCode);
             return false;
         }
+        logger.info("updateInvoiceStatus recipeOrder:{}", JSONUtils.toString(recipeOrder));
         if(new Integer(1).equals(invoiceType)){
             if(recipeOrder.getPrintDrugDistributionListFlag() == null || !recipeOrder.getPrintDrugDistributionListFlag()){
                 recipeOrder.setPrintDrugDistributionListFlag(true);
@@ -1789,6 +1790,7 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
             if(recipeOrder.getPrintExpressBillFlag() == null || !recipeOrder.getPrintExpressBillFlag()){
                 recipeOrder.setPrintExpressBillFlag(true);
                 recipeOrderDAO.updateNonNullFieldByPrimaryKey(recipeOrder);
+                iWaybillService.updatePrintStatus(orderCode);
             }
         }
         return true;
