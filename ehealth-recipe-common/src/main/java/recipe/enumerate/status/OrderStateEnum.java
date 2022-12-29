@@ -47,7 +47,7 @@ public enum OrderStateEnum {
     /**
      * 订单子状态:作废
      */
-    SUB_CANCELLATION_SETTLE_FAIL(90, "下单结算失败", ""),
+    SUB_CANCELLATION_SETTLE_FAIL(90, "下单结算失败", "患者下单结算失败"),
     SUB_CANCELLATION_DOCTOR_REPEAL(91, "医生撤销", ""),
     SUB_CANCELLATION_AUDIT_NOT_PASS(92, "药师审核未通过", "药师审核不通过"),
     SUB_CANCELLATION_REFUSE_ORDER(93, "供药方拒绝订单", "已拒发"),
