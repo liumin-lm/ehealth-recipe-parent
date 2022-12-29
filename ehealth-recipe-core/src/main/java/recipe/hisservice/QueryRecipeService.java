@@ -206,7 +206,7 @@ public class QueryRecipeService implements IQueryRecipeService {
     }
 
     @Override
-    @RpcService
+    @RpcService(timeout = 60)
     public List<RegulationRecipeIndicatorsDTO> queryRegulationRecipeData(Integer organId, Date startDate, Date endDate, Boolean checkFlag) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         String start = DateConversion.formatDateTimeWithSec(startDate);
