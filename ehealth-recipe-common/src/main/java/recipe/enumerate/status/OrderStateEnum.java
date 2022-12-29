@@ -78,7 +78,9 @@ public enum OrderStateEnum {
         return name;
     }
 
-
+    public String getDesc() {
+        return desc;
+    }
 
     /**
      * 根据类型 获取枚举类型

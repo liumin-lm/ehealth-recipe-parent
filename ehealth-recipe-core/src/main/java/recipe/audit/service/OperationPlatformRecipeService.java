@@ -579,6 +579,9 @@ public class OperationPlatformRecipeService {
         if (CollectionUtils.isNotEmpty(recipeRefundDAO.findRefundListByRecipeId(recipeId))) {
             //cancelReason = "由于患者申请退费成功，该处方已取消。";
             cancelReason = OrderStateEnum.getOrderStateEnum(recipe.getSubState()).getName();
+            if (RecipeStateEnum.SUB_CANCELLATION_SETTLE_FAIL.getType().equals(recipe.getSubState())) {
+                cancelReason = OrderStateEnum.getOrderStateEnum(recipe.getSubState()).getDesc();
+            }
         } else {
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
