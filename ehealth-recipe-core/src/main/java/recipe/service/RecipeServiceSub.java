@@ -1202,9 +1202,6 @@ public class RecipeServiceSub {
                     if (CollectionUtils.isNotEmpty(recipeRefundDAO.findRefundListByRecipeIdAndNode(recipe.getRecipeId()))) {
                         //cancelReason = "由于患者申请退费成功，该处方已取消。";
                         cancelReason = OrderStateEnum.getOrderStateEnum(recipe.getSubState()).getName();
-                        if (RecipeStateEnum.SUB_CANCELLATION_SETTLE_FAIL.getType().equals(recipe.getSubState())) {
-                            cancelReason = OrderStateEnum.getOrderStateEnum(recipe.getSubState()).getDesc();
-                        }
                         tips = "已取消";
                     } else {
                         tips = "已撤销";
@@ -1213,10 +1210,9 @@ public class RecipeServiceSub {
                         if (null != recipeExtend && StringUtils.isNotEmpty(recipeExtend.getCancellation())) {
                             cancelReason = recipeExtend.getCancellation();
                         } else {
-//                            List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatus(recipe.getRecipeId(), status);
-//                            if (CollectionUtils.isNotEmpty(recipeLogs)) {
-//                                cancelReason = recipeLogs.get(0).getMemo();
-//                            }
+                            if (RecipeStateEnum.SUB_CANCELLATION_SETTLE_FAIL.getType().equals(recipe.getSubState())) {
+                                cancelReason = OrderStateEnum.getOrderStateEnum(recipe.getSubState()).getDesc();
+                            }
                         }
                     }
                     break;
