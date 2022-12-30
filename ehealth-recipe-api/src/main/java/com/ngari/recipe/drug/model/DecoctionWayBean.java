@@ -63,6 +63,11 @@ public class DecoctionWayBean implements Serializable {
     private Boolean generationisOfDecoction;
 
     @ItemProperty(
+            alias = "代煎前端展示 0 不展示 1 展示"
+    )
+    private Integer decoctionExhibitionFlag;
+
+    @ItemProperty(
             alias = "用药途径"
     )
     private String drugUsePathway;
@@ -158,5 +163,13 @@ public class DecoctionWayBean implements Serializable {
 
     public void setDrugFormType(String drugFormType) {
         this.drugFormType = drugFormType;
+    }
+
+    public Integer getDecoctionExhibitionFlag() {
+        return decoctionExhibitionFlag;
+    }
+
+    public void setDecoctionExhibitionFlag(Integer decoctionExhibitionFlag) {
+        this.decoctionExhibitionFlag = decoctionExhibitionFlag;
     }
 }
