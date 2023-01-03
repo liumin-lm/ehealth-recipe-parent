@@ -56,4 +56,10 @@ public class ThirdRecipeDetailBean implements Serializable{
     private String organUsingRate;
     @ItemProperty(alias = "机构的用法代码")
     private String organUsePathways;
+
+    @ItemProperty(alias = "药企药品编码")
+    private String enterpriseDrugCode;
+
+    @ItemProperty(alias = "药品序号")
+    private Integer drugId;
 }

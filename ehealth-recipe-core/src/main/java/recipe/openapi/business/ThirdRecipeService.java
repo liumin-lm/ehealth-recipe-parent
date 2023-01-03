@@ -11,9 +11,11 @@ import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
+import com.ngari.recipe.drug.service.ISaleDrugListService;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.entity.SaleDrugList;
 import com.ngari.recipe.recipe.model.PatientTabStatusMergeRecipeDTO;
 import com.ngari.recipe.recipe.model.PatientTabStatusRecipeDTO;
 import ctd.account.UserRoleToken;
@@ -24,6 +26,7 @@ import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +36,7 @@ import recipe.ApplicationUtils;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeOrderDAO;
+import recipe.dao.SaleDrugListDAO;
 import recipe.openapi.business.bean.RecipeAndRecipeDetailsBean;
 import recipe.openapi.business.bean.ThirdRecipeDetailBean;
 import recipe.openapi.business.request.*;
@@ -67,6 +71,8 @@ public class ThirdRecipeService {
     private RecipeService recipeService;
     @Autowired
     private RecipeDetailDAO recipeDetailDAO;
+    @Autowired
+    private SaleDrugListDAO saleDrugListDAO;
 
     /**
      * 根据处方状态查询处方信息
@@ -103,8 +109,9 @@ public class ThirdRecipeService {
                     if(Objects.nonNull(recipe.getTotalMoney())) {
                         recipeAndRecipeDetailsBean.setTotalMoney(recipe.getTotalMoney().doubleValue());
                     }
+                    RecipeOrder recipeOrder = null;
                     if (StringUtils.isNotEmpty(patientTabStatusRecipeDTO.getOrderCode())) {
-                        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(patientTabStatusRecipeDTO.getOrderCode());
+                        recipeOrder = recipeOrderDAO.getByOrderCode(patientTabStatusRecipeDTO.getOrderCode());
                         recipeAndRecipeDetailsBean.setOrderId(recipeOrder.getOrderId());
                         if(Objects.nonNull(recipeOrder.getTotalFee())) {
                             recipeAndRecipeDetailsBean.setTotalMoney(recipeOrder.getTotalFee().doubleValue());
@@ -135,6 +142,18 @@ public class ThirdRecipeService {
                     recipeAndRecipeDetailsBean.setTrackingNumber(patientTabStatusRecipeDTO.getTrackingNumber());
                     List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(patientTabStatusRecipeDTO.getRecipeId());
                     List<ThirdRecipeDetailBean> recipeDetailBeans = ObjectCopyUtils.convert(recipeDetailList, ThirdRecipeDetailBean.class);
+                    if (Objects.nonNull(recipeOrder) && Objects.nonNull(recipeOrder.getEnterpriseId())) {
+                        List<Integer> drugIds = recipeDetailList.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
+                        List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIdsEffectivity(recipeOrder.getEnterpriseId(), drugIds);
+                        if (CollectionUtils.isNotEmpty(saleDrugLists)) {
+                            Map<Integer, SaleDrugList> saleDrugListsMap = saleDrugLists.stream().collect(Collectors.toMap(SaleDrugList::getDrugId, a -> a, (k1, k2) -> k1));
+                            recipeDetailBeans.forEach(recipeDetail -> {
+                                if (MapUtils.isNotEmpty(saleDrugListsMap) && Objects.nonNull(saleDrugListsMap.get(recipeDetail.getDrugId()))) {
+                                    recipeDetail.setEnterpriseDrugCode(saleDrugListsMap.get(recipeDetail.getDrugId()).getOrganDrugCode());
+                                }
+                            });
+                        }
+                    }
                     //TODO 由于drugCost已经定义为double，现在不改字段类型了，先进行转换
                     Map<Integer, Recipedetail> recipeDetailMap = recipeDetailList.stream().collect(Collectors.toMap(Recipedetail::getRecipeDetailId,a->a,(k1,k2)->k1));
                     recipeDetailBeans.forEach(recipeDetail -> recipeDetail.setDrugCost(recipeDetailMap.get(recipeDetail.getRecipeDetailId()).getDrugCost().doubleValue()));
