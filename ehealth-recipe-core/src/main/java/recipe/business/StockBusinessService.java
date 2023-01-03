@@ -527,7 +527,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
      * @return
      */
     private DoSignRecipeDTO enterpriseStock(RecipeDTO recipeDTO, Integer stockCheckType) {
-        DoSignRecipeDTO doSignRecipe = new DoSignRecipeDTO(true, false, null, "", recipeDTO.getRecipe().getRecipeId(), null, null);
+        DoSignRecipeDTO doSignRecipe = new DoSignRecipeDTO(true, false, null, "", recipeDTO.getRecipe().getRecipeId(), null, null, null);
         List<EnterpriseStock> enterpriseStockList = this.drugRecipeStockV1(recipeDTO, stockCheckType);
         Recipe recipe = recipeDTO.getRecipe();
         //保存药品购药方式
@@ -635,6 +635,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         logger.info("StockBusinessService getSupportGiveModeNameText recipe:{}, supportGiveModeList:{}", organId, JSON.toJSONString(supportGiveModeList));
         String recipeShowTipOption = configurationClient.getValueCatchReturnArr(organId, "recipeShowTipOption", "0");
         Set<String> supportGiveModeNameSet = supportGiveModeList.stream().filter(Objects::nonNull).map(GiveModeButtonDTO::getShowButtonName).collect(Collectors.toSet());
+        doSignRecipe.setRecipeSupportGiveModeText(supportGiveModeNameSet);
         if ("0".equals(recipeShowTipOption)) {
             //任何情况下都需要弹框提示
             showSupportGiveMode(doSignRecipe, supportGiveModeNameSet);
