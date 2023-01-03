@@ -30,6 +30,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.aop.LogRecord;
 import recipe.client.DocIndexClient;
 import recipe.client.RecipeAuditClient;
 import recipe.client.RecipeHisClient;
@@ -1324,5 +1325,23 @@ public class RecipeManager extends BaseManager {
         List<Recipe> list = recipeDAO.findRecipeAllByBussSourceAndClinicId(bussSource, clinicId);
         logger.info("RecipeManager findRecipeAllByBussSourceAndClinicId list :{}", JSON.toJSONString(list));
         return list;
+    }
+
+    /**
+     * 判断处方是否写入成功his
+     *
+     * @param recipeId
+     * @return
+     */
+    @LogRecord
+    public boolean recipeWriteHis(Integer recipeId) {
+        if (ValidateUtil.integerIsEmpty(recipeId)) {
+            return false;
+        }
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        if (WriteHisEnum.WRITE_HIS_STATE_ORDER.getType().equals(recipe.getWriteHisState())) {
+            return true;
+        }
+        return false;
     }
 }

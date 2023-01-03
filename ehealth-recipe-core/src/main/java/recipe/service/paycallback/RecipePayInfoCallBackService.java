@@ -457,7 +457,7 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
             if (CollectionUtils.isNotEmpty(recipeIdList)) {
                 Integer recipeId = recipeIdList.get(0);
                 //调用回调处方退费
-                recipeOrderService.refundCallback(recipeId, targetPayFlag, order.getBusId(), PayBusTypeEnum.RECIPE_BUS_TYPE.getType());
+                recipeOrderService.refundCallback(recipeId, targetPayFlag, order.getBusId(), PayBusTypeEnum.RECIPE_BUS_TYPE.getType(),refundResult.get("refund_amount"));
             }
         }
         //更新处方日志

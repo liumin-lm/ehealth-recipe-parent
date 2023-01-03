@@ -56,6 +56,9 @@ public class OrganAndDrugsepRelation implements java.io.Serializable {
     @ItemProperty(alias = "支持煎法的类型  药企配置后，将不支持配送 0 非代煎 1 代煎 ")
     private String supportDecoctionState;
 
+    @ItemProperty(alias = "支持自取煎法的类型  药企配置后，将不支持自取 0 非代煎 1 代煎 ")
+    private String supportSelfDecoctionState;
+
     @Id
     @GeneratedValue(strategy = IDENTITY)
     @Column(name = "id", unique = true, nullable = false)

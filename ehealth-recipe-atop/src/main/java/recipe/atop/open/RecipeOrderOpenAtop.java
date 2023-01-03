@@ -24,6 +24,7 @@ import recipe.util.ObjectCopyUtils;
 import recipe.vo.greenroom.ImperfectInfoVO;
 import recipe.vo.greenroom.RecipeRefundInfoReqVO;
 import recipe.vo.second.CabinetVO;
+import recipe.vo.second.OrderPharmacyVO;
 import recipe.vo.second.RecipeOrderVO;
 import recipe.vo.second.RecipeVo;
 import recipe.vo.second.enterpriseOrder.DownOrderRequestVO;
@@ -213,6 +214,18 @@ public class RecipeOrderOpenAtop extends BaseAtop implements IRecipeOrderAtopSer
     public List<RecipeOrderVO> orderListByClinicId(Integer clinicId, Integer bussSource) {
         List<RecipeOrder> list = recipeOrderService.orderListByClinicId(clinicId, bussSource);
         return ObjectCopyUtils.convert(list, RecipeOrderVO.class);
+    }
+
+    @Override
+    public List<OrderPharmacyVO> getPharmacyByOrderCode(String orderCode) {
+        validateAtop(orderCode);
+        return recipeOrderService.getPharmacyByOrderCode(orderCode);
+    }
+
+    @Override
+    public Integer checkOrderPayState(Integer orderId) {
+        validateAtop(orderId);
+        return recipeOrderService.checkOrderPayState(orderId);
     }
 
 }
