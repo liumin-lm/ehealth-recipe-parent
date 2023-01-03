@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
 import recipe.core.api.IRecipeBusinessService;
+import recipe.core.api.IRecipeDetailBusinessService;
 import recipe.core.api.patient.IRecipeOrderBusinessService;
 import recipe.vo.PageGenericsVO;
 import recipe.vo.doctor.DoctorRecipeListReqVO;
@@ -32,10 +33,13 @@ public class FindRecipeDoctorAtop extends BaseAtop {
     @Autowired
     private IRecipeBusinessService recipeBusinessService;
     @Autowired
+    private IRecipeDetailBusinessService recipeDetailBusinessService;
+    @Autowired
     private IRecipeOrderBusinessService recipeOrderService;
 
     /**
      * 医生端-我的数据获取已退费列表
+     *
      * @param recipeRefundInfoReqVO
      */
     @RpcService
@@ -74,6 +78,19 @@ public class FindRecipeDoctorAtop extends BaseAtop {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "入参错误");
         }
         return recipeBusinessService.findDoctorRecipeList(doctorRecipeListReqVO);
+    }
+
+    /**
+     * 获取二方id下关联的处方
+     *
+     * @param clinicId   二方id
+     * @param bussSource 开处方来源 1问诊 2复诊(在线续方) 3网络门诊
+     * @return
+     */
+    @RpcService
+    public List<RecipeInfoVO> recipeAllByClinicId(Integer clinicId, Integer bussSource) {
+        return recipeDetailBusinessService.recipeAllByClinicId(clinicId, bussSource);
+
     }
 
 }

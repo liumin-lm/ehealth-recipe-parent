@@ -10,6 +10,7 @@ import ctd.util.annotation.RpcService;
 import recipe.vo.greenroom.ImperfectInfoVO;
 import recipe.vo.greenroom.RecipeRefundInfoReqVO;
 import recipe.vo.second.CabinetVO;
+import recipe.vo.second.OrderPharmacyVO;
 import recipe.vo.second.RecipeOrderVO;
 import recipe.vo.second.enterpriseOrder.DownOrderRequestVO;
 import recipe.vo.second.enterpriseOrder.EnterpriseDownDataVO;
@@ -165,4 +166,13 @@ public interface IRecipeOrderAtopService {
      */
     @RpcService(mvcDisabled = true)
     List<RecipeOrderVO> orderListByClinicId(Integer clinicId, Integer bussSource);
+
+
+    /**
+     * 提供给物流 ---- 根据订单编号查询处方药房信息
+     * @param orderCode
+     * @return
+     */
+    @RpcService(mvcDisabled = true)
+    List<OrderPharmacyVO> getPharmacyByOrderCode(String orderCode);
 }

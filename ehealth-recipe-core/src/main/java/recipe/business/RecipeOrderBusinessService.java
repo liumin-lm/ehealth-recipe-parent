@@ -1,7 +1,9 @@
 package recipe.business;
 
 import com.alibaba.fastjson.JSON;
+import com.google.common.base.Function;
 import com.google.common.base.Joiner;
+import com.google.common.base.Predicate;
 import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.common.dto.CheckRequestCommonOrderItemDTO;
 import com.ngari.common.dto.CheckRequestCommonOrderPageDTO;
@@ -22,6 +24,7 @@ import com.ngari.patient.service.OrganService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.platform.recipe.mode.InvoiceInfoResTO;
 import com.ngari.recipe.common.RecipeResultBean;
+import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.*;
@@ -40,6 +43,7 @@ import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
+import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import easypay.entity.vo.param.bus.MedicalPreSettleQueryReq;
 import easypay.entity.vo.param.bus.SelfPreSettleQueryReq;
@@ -92,11 +96,13 @@ import recipe.vo.greenroom.InvoiceRecordVO;
 import recipe.vo.greenroom.RecipeRefundInfoReqVO;
 import recipe.vo.second.CabinetVO;
 import recipe.vo.second.CheckOrderAddressVo;
+import recipe.vo.second.OrderPharmacyVO;
 import recipe.vo.second.enterpriseOrder.*;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -1738,6 +1744,31 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
         return payClient.payQuery(orderId);
     }
 
+    @Override
+    public List<OrderPharmacyVO> getPharmacyByOrderCode(String orderCode) {
+        RecipeOrder order = recipeOrderDAO.getByOrderCode(orderCode);
+        if (Objects.isNull(order)) {
+            logger.info("getPharmacyByOrderCode 订单信息不存在 orderCode={}", orderCode);
+            return null;
+        }
+        if (StringUtils.isEmpty(order.getRecipeIdList())) {
+            logger.info("getPharmacyByOrderCode 订单没有绑定处方信息 orderCode={}", orderCode);
+            return null;
+        }
+        List<Integer> recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
+        List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeIdList(recipeIdList);
+        if (CollectionUtils.isEmpty(recipeDetails)){
+            logger.info("getPharmacyByOrderCode 订单没有药品详细信息 orderCode={}", orderCode);
+            return null;
+        }
+        List<OrderPharmacyVO> pharmacyVOS = recipeDetails.stream().map(recipeDetail -> {
+            OrderPharmacyVO orderPharmacyVO = new OrderPharmacyVO();
+            BeanCopyUtils.copy(recipeDetail, orderPharmacyVO);
+            return orderPharmacyVO;
+        }).filter(distinctByKey(e -> e.getPharmacyId())).collect(Collectors.toList());
+        return pharmacyVOS;
+    }
+
     private void syncFinishOrderHandle(List<Integer> recipeIdList, RecipeOrder recipeOrder, boolean isSendFlag) {
         logger.info("syncFinishOrderHandle recipeIdList:{}, recipeOrder:{}", recipeIdList, JSON.toJSONString(recipeOrder));
         RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
@@ -1766,5 +1797,10 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
                 RecipeMsgService.batchSendMsg(recipe.getRecipeId(), RecipeStatusConstant.RECIPE_TAKE_MEDICINE_FINISH);
             }
         });
+    }
+
+    private static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {
+        Map<Object, Boolean> seen = new ConcurrentHashMap<>();
+        return t -> seen.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
     }
 }
