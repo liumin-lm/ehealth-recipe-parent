@@ -159,6 +159,9 @@ public class FastRecipe {
     @ItemProperty(alias = "药方库存")
     private Integer stockNum;
 
+    @ItemProperty(alias = "药方销量")
+    private Integer saleNum;
+
     @Id
     @GeneratedValue(strategy = IDENTITY)
     @Column(name = "id", unique = true, nullable = false)
@@ -572,5 +575,14 @@ public class FastRecipe {
 
     public void setDecoctionExhibitionFlag(Integer decoctionExhibitionFlag) {
         this.decoctionExhibitionFlag = decoctionExhibitionFlag;
+    }
+
+    @Column(name = "sale_num")
+    public Integer getSaleNum() {
+        return saleNum;
+    }
+
+    public void setSaleNum(Integer saleNum) {
+        this.saleNum = saleNum;
     }
 }

@@ -165,4 +165,7 @@ public class FastRecipeVO implements Serializable {
 
     @ItemProperty(alias = "药方库存")
     private Integer stockNum;
+
+    @ItemProperty(alias = "药方销量")
+    private Integer saleNum;
 }
