@@ -2066,6 +2066,7 @@ public class RecipeServiceSub {
                 map.put("continueOpenRecipeFlag", canShowContinueSignFlag(recipe));
             }
         }
+        map.put("continueRecipeFlag", RecipeStateEnum.continueRecipeFlag.contains(recipe.getProcessState()));
     }
 
     private static boolean canShowContinueSignFlag(Recipe recipe) {
