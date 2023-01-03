@@ -220,6 +220,10 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         LOGGER.info("RemoteRecipeService sendSuccess request ： {} ", JSON.toJSONString(request));
         if (null != request.getData()) {
             HisSendResTO response = (HisSendResTO) request.getData();
+            boolean isWriteHis = recipeManager.recipeWriteHis(Integer.valueOf(response.getRecipeId()));
+            if (isWriteHis) {
+                return;
+            }
             RecipeBusiThreadPool.execute(new RecipeSendSuccessRunnable(response));
         }
     }

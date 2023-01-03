@@ -1029,11 +1029,15 @@ public class RecipeService extends RecipeBaseService {
     @RpcService
     public RecipeResultBean sendNewRecipeToHIS(Integer recipeId) {
         RecipeResultBean resultBean = RecipeResultBean.getSuccess();
+        boolean isWriteHis = recipeManager.recipeWriteHis(recipeId);
+        if (isWriteHis) {
+            resultBean.setCode(RecipeResultBean.PUSHSUCCESS);
+            resultBean.setMsg("处方已推送成功");
+            return resultBean;
+        }
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
-
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-
         //date 20191127
         //重试功能添加his写入失败的处方
         if (null == recipe || null == recipe.getStatus() || (recipe.getStatus() != RecipeStatusConstant.CHECKING_HOS && recipe.getStatus() != RecipeStatusConstant.HIS_FAIL)) {
@@ -1069,6 +1073,14 @@ public class RecipeService extends RecipeBaseService {
         caManager.setCaPassWord(recipeBean.getClinicOrgan(), recipeBean.getDoctor(), recipeBean.getCaPassword());
         Map<String, Object> rMap = new HashMap<>();
         rMap.put("signResult", true);
+        boolean isWriteHis = recipeManager.recipeWriteHis(recipeBean.getRecipeId());
+        if (isWriteHis) {
+            rMap.put("recipeId", recipeBean.getRecipeId());
+            rMap.put("consultId", recipeBean.getClinicId());
+            rMap.put("errorFlag", false);
+            rMap.put("canContinueFlag", "0");
+            return rMap;
+        }
         try {
             recipeBean.setDistributionFlag(continueFlag);
             //第一步暂存处方（处方状态未签名）
@@ -1100,16 +1112,6 @@ public class RecipeService extends RecipeBaseService {
             } else {
                 if (StringUtils.isEmpty(recipeBean.getRecipeSupportGiveMode())) {
                     throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, "无购药方式");
-                }
-            }
-
-            //跳转所需要的复诊信息
-            Integer consultId = recipeBean.getClinicId();
-            Integer bussSource = recipeBean.getBussSource();
-            if (consultId != null) {
-                if (null != rMap && null == rMap.get("consultId")) {
-                    rMap.put("consultId", consultId);
-                    rMap.put("bussSource", bussSource);
                 }
             }
 
