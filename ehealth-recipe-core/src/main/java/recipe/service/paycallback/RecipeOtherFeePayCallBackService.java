@@ -127,14 +127,12 @@ public class RecipeOtherFeePayCallBackService implements IRecipeOtherFeePayCallB
     public boolean doHandleAfterRefund(Order order, int targetPayFlag, Map<String, String> refundResult) {
         logger.info("RecipeOtherFeePayCallBackService doHandleAfterRefund order:{},targetPayFlag:{},refundResult:{}.", JSON.toJSONString(order), targetPayFlag, JSON.toJSONString(refundResult));
         RecipeOrderPayFlow recipeOrderPayFlow = recipeOrderPayFlowManager.getByOutTradeNo(order.getOutTradeNo());
-        RecipeOrder recipeOrder = orderManager.getRecipeOrderById(recipeOrderPayFlow.getOrderId());
         StringBuilder memo = new StringBuilder("订单=");
         memo.append(recipeOrderPayFlow.getOrderId()).append(" ");
         switch (targetPayFlag) {
             case 3:
                 memo.append("退款成功");
                 recipeOrderPayFlow.setPayFlag(PayFlagEnum.REFUND_SUCCESS.getType());
-                recipeOrder.setRefundAmount(new BigDecimal(refundResult.get("refund_amount")));
                 break;
             case 4:
                 memo.append("退款失败");
@@ -145,8 +143,6 @@ public class RecipeOtherFeePayCallBackService implements IRecipeOtherFeePayCallB
                 break;
         }
         recipeOrderPayFlowManager.updateNonNullFieldByPrimaryKey(recipeOrderPayFlow);
-        logger.info("RecipeOtherFeePayCallBackService doHandleAfterRefund recipeOrder:{}.", JSON.toJSONString(recipeOrder));
-        orderManager.updateNonNullFieldByPrimaryKey(recipeOrder);
         logger.info("RecipeOtherFeePayCallBackService doHandleAfterRefund memo:{}.", memo.toString());
         return true;
     }
