@@ -5,7 +5,6 @@ import com.alibaba.fastjson.JSONArray;
 import com.google.common.base.Joiner;
 import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.dto.UsingRateDTO;
-import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.consult.common.model.ConsultExDTO;
 import com.ngari.follow.utils.ObjectCopyUtil;
 import com.ngari.his.recipe.mode.HisOrderCodeResTO;
@@ -48,7 +47,6 @@ import recipe.enumerate.status.WriteHisEnum;
 import recipe.enumerate.type.AppointEnterpriseTypeEnum;
 import recipe.enumerate.type.FastRecipeFlagEnum;
 import recipe.enumerate.type.RecipeShowQrConfigEnum;
-import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.util.*;
 
 import java.math.BigDecimal;
@@ -1315,4 +1313,16 @@ public class RecipeManager extends BaseManager {
         }
     }
 
+    /**
+     * 获取二方id下关联的处方
+     *
+     * @param clinicId   二方id
+     * @param bussSource 开处方来源 1问诊 2复诊(在线续方) 3网络门诊
+     * @return
+     */
+    public List<Recipe> findRecipeAllByBussSourceAndClinicId(Integer bussSource, Integer clinicId) {
+        List<Recipe> list = recipeDAO.findRecipeAllByBussSourceAndClinicId(bussSource, clinicId);
+        logger.info("RecipeManager findRecipeAllByBussSourceAndClinicId list :{}", JSON.toJSONString(list));
+        return list;
+    }
 }
