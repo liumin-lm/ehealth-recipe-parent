@@ -399,6 +399,9 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "是否冷链运输 0 否 1 是")
     private Integer coldChainTransportationFlag;
 
+    @ItemProperty(alias = "退费金额")
+    private BigDecimal refundAmount;
+
     //todo 默认构造器不要给init默认值啊 此方法慎用
     @Deprecated
     public RecipeOrder() {
@@ -1522,5 +1525,14 @@ public class RecipeOrder implements Serializable {
 
     public void setColdChainTransportationFlag(Integer coldChainTransportationFlag) {
         this.coldChainTransportationFlag = coldChainTransportationFlag;
+    }
+
+    @Column(name = "refund_amount")
+    public BigDecimal getRefundAmount() {
+        return refundAmount;
+    }
+
+    public void setRefundAmount(BigDecimal refundAmount) {
+        this.refundAmount = refundAmount;
     }
 }

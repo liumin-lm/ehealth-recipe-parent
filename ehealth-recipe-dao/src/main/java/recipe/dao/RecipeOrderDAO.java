@@ -1947,7 +1947,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         hql.append("b.recipeCode,b.appoint_depart_name as appointDepartName,b.doctorName,b.patientName,b.patientName as requestPatientName,b.CreateDate,b.requestMpiId,case when b.fast_recipe_flag = 1 then '快捷购药订单' else '普通订单' end as fastRecipeFlag, ");
         hql.append("a.OrderCode,a.process_state as processState,");
         hql.append("a.Receiver, a.recMobile, a.address1, a.address2, a.address3, a.address4, a.streetAddress, a.address5Text,");
-        hql.append("case when a.orderType in (1,2,3,4) then '医保' else '自费' end as orderTypeText,a.fundAmount,a.cashAmount,");
+        hql.append("case when a.orderType in (1,2,3,4) then '医保' else '自费' end as orderTypeText,a.fundAmount,a.cashAmount,a.refund_amount,");
         hql.append("c.refundNodeStatus as refundNodeStatus,");
         hql.append("a.giveModeText,a.DrugStoreName,a.CreateTime as orderTime,a.PayTime,a.TotalFee,a.RecipeFee,a.ExpressFee,a.CouponFee,a.DecoctionFee,a.TCMFee,a.RegisterFee,a.AuditFee,a.TradeNo,a.RecMobile as mobile,");
         hql.append("c.decoctionText,");
