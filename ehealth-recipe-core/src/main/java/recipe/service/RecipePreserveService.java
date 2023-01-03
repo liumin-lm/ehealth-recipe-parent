@@ -383,6 +383,13 @@ public class RecipePreserveService {
         return result;
     }
 
+    /**
+     *
+     * @param param
+     * @return
+     * @throws ParseException
+     * @Description getHosRecipeList的新方法 改动getHosRecipeListV2顺便把getHosRecipeList也改改
+     */
     @LogRecord
     public Map<String, Object> getHosRecipeListV2(FindHistoryRecipeListBean param) throws ParseException {
         LOGGER.info("getHosRecipeListV2 param:{}", JSONUtils.toString(param));
@@ -447,6 +454,7 @@ public class RecipePreserveService {
         if (StringUtils.isNotEmpty(cityCardNumber)) {
             patientBaseInfo.setCityCardNumber(cityCardNumber);
         }
+        patientBaseInfo.setMobile(patientDTO.getMobile());
         request.setPatientInfo(patientBaseInfo);
         request.setStartDate(startDate);
         request.setEndDate(endDate);
@@ -460,14 +468,11 @@ public class RecipePreserveService {
             LOGGER.warn("getHosRecipeList his error. ", e);
         }
         LOGGER.info("getHosRecipeList res={}", JSONUtils.toString(response));
-        if(null == response){
+        if(null == response || CollectionUtils.isEmpty(response.getData())){
             return result;
         }
         List<RecipeInfoTO> data = response.getData();
-        //转换平台字段
-        if (CollectionUtils.isEmpty(data)){
-            return result;
-        }
+
         List<HisRecipeBean> recipes = Lists.newArrayList();
         //默认西药
         Integer recipeType = 1;
