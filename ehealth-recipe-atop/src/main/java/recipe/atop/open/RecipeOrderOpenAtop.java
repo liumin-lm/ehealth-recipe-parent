@@ -222,4 +222,10 @@ public class RecipeOrderOpenAtop extends BaseAtop implements IRecipeOrderAtopSer
         return recipeOrderService.getPharmacyByOrderCode(orderCode);
     }
 
+    @Override
+    public Integer checkOrderPayState(Integer orderId) {
+        validateAtop(orderId);
+        return recipeOrderService.checkOrderPayState(orderId);
+    }
+
 }

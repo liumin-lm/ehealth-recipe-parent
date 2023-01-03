@@ -175,4 +175,12 @@ public interface IRecipeOrderAtopService {
      */
     @RpcService(mvcDisabled = true)
     List<OrderPharmacyVO> getPharmacyByOrderCode(String orderCode);
+
+    /**
+     * 校验订单是否在支付中
+     * @param orderId
+     * @return
+     */
+    @RpcService(mvcDisabled = true)
+    Integer checkOrderPayState(Integer orderId);
 }
