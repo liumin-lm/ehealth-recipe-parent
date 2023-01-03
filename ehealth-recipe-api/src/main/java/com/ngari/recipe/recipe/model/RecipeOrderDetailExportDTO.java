@@ -161,6 +161,8 @@ public class RecipeOrderDetailExportDTO implements Serializable {
     @ItemProperty(alias = "单方代煎费")
     private String singleDecoctionFee;
 
+    @ItemProperty(alias = "退费金额")
+    private BigDecimal refundAmount;
 
     public String getRequestMpiId() {
         return requestMpiId;
@@ -543,5 +545,11 @@ public class RecipeOrderDetailExportDTO implements Serializable {
         this.singleDecoctionFee = singleDecoctionFee;
     }
 
+    public BigDecimal getRefundAmount() {
+        return refundAmount;
+    }
 
+    public void setRefundAmount(BigDecimal refundAmount) {
+        this.refundAmount = refundAmount;
+    }
 }

@@ -269,8 +269,8 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
     }
 
 
-    public void refundCallback(Integer recipeId, Integer refundStatus, Integer orderId, Integer busType) {
-        LOGGER.info("RemoteRecipeOrderService.refundCallback recipeId:{},refundStatus:{},orderId:{}.", recipeId, refundStatus, orderId);
+    public void refundCallback(Integer recipeId, Integer refundStatus, Integer orderId, Integer busType,String refundAmount) {
+        LOGGER.info("RemoteRecipeOrderService.refundCallback recipeId:{},refundStatus:{},orderId:{},refundAmount:{}.", recipeId, refundStatus, orderId,refundAmount);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         if (null == recipe) {
@@ -320,6 +320,7 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
                 orderAttrMap.put("payFlag", 3);
                 orderAttrMap.put("refundFlag", 1);
                 orderAttrMap.put("refundTime", new Date());
+                orderAttrMap.put("refund_amount",refundAmount);
                 recipeOrderDAO.updateByOrdeCode(recipeOrder.getOrderCode(), orderAttrMap);
                 stateManager.updateOrderState(recipeOrder.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION,OrderStateEnum.SUB_CANCELLATION_REFUND);
 
