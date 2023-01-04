@@ -34,11 +34,13 @@ import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.BussSourceTypeEnum;
 import recipe.enumerate.type.RecipeDrugFormTypeEnum;
 import recipe.enumerate.type.RecipeTypeEnum;
+import recipe.manager.FastRecipeManager;
 import recipe.service.common.RecipeSignService;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.vo.doctor.DrugQueryVO;
 import recipe.vo.doctor.RecipeInfoVO;
 
+import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -91,6 +93,9 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
 
     @Autowired
     private SmsClient smsClient;
+
+    @Resource
+    private FastRecipeManager fastRecipeManager;
 
 
     /**
@@ -175,12 +180,6 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
                 recipeBean.setDoctorName(doctorDTO.getName());
             }
 
-            //recipeBean.setMedicalFlag(0);
-            //recipeBean.setMedicalPayFlag(0);
-            //recipeBean.setReviewType(1);
-            //recipeBean.setSupportMode(0);
-            //recipeBean.setGiveMode(2);
-
             //剂型
             recipeBean.setRecipeDrugForm(fastRecipe.getRecipeDrugForm());
             //煎法
@@ -208,6 +207,8 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
             Integer recipeId = recipeSignService.doSignRecipeSave(recipeBean, detailBeanList);
             //5.通知复诊关联处方单
             recipePatientService.updateRecipeIdByConsultId(recipeId, recipeInfoVO.getRecipeBean().getClinicId());
+            //药方扣减库存
+            fastRecipeManager.deductStock(recipeInfoVO.getMouldId(), buyNum);
             return recipeId;
         } catch (Exception e) {
             logger.error("doctorJoinFastRecipeSaveRecipe error", e);
