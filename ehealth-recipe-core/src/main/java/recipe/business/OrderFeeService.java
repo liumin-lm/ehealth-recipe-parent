@@ -188,6 +188,7 @@ public class OrderFeeService implements IRecipeOrderRefundService {
         if (null == recipeOrder) {
             return recipeOrderRefundDetailVO;
         }
+        String appName = configurationClient.getAppName(recipeOrder.getTerminalSource());
         RecipeOrderVoNoDS recipeOrderBean = ObjectCopyUtils.convert(recipeOrder, RecipeOrderVoNoDS.class);
         recipeOrderRefundDetailVO.setRecipeOrderBean(recipeOrderBean);
         OrderRefundInfoVO orderRefundInfoVO = new OrderRefundInfoVO();
@@ -251,7 +252,7 @@ public class OrderFeeService implements IRecipeOrderRefundService {
             RecipeExtendBean recipeExtendBean = ObjectCopyUtils.convert(recipeExtend, RecipeExtendBean.class);
             orderRefundInfoVO.setRefundStatusText(RefundNodeStatusEnum.getRefundStatus(recipeExtend.getRefundNodeStatus()));
             orderRefundInfoVO.setRefundNodeStatusText(setRefundNodeStatus(recipeExtend.getRefundNodeStatus()));
-            orderRefundInfoVO.setChannel(patientClient.getClientNameById(recipe.getMpiid()));
+            orderRefundInfoVO.setChannel(appName);
             orderRefundInfoVO.setRefundNodeStatus(recipeExtend.getRefundNodeStatus());
             List<RecipeDetailBean> recipeDetailBeans = ObjectCopyUtils.convert(detailMap.get(recipe.getRecipeId()), RecipeDetailBean.class);
             if (new Integer(1).equals(recipeExtend.getRefundNodeStatus()) || new Integer(3).equals(recipeExtend.getRefundNodeStatus())) {
