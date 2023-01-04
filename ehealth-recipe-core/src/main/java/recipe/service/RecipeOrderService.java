@@ -15,6 +15,7 @@ import com.ngari.base.payment.model.DabaiPayResult;
 import com.ngari.base.payment.service.IPaymentService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.bus.coupon.service.ICouponService;
+import com.ngari.common.dto.RevisitTracesMsg;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.recipe.mode.QueryHisRecipResTO;
@@ -48,6 +49,7 @@ import coupon.api.service.ICouponBaseService;
 import coupon.api.vo.Coupon;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
+import ctd.net.broadcast.MQHelper;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.spring.AppDomainContext;
@@ -74,6 +76,7 @@ import recipe.client.IConfigurationClient;
 import recipe.client.InfraClient;
 import recipe.client.PayClient;
 import recipe.common.CommonConstant;
+import recipe.common.OnsConfig;
 import recipe.common.ResponseUtils;
 import recipe.constant.*;
 import recipe.core.api.IStockBusinessService;
@@ -2576,14 +2579,18 @@ public class RecipeOrderService extends RecipeBaseService {
         order = recipeOrderDAO.getByOrderCode(orderCode);
         //支付后需要完成【1 健康卡上传 2 记账  3 物流自动下单 4 推送消息】
         afterPayBusService.handle(result, order, recipes, payFlag);
-        // 处方支付信息上传 监管平台
-        RecipeBusiThreadPool.submit(() -> {
+        RecipeBusiThreadPool.execute(() -> {
+            //个性化处理
+            orderManager.statusChangeNotify(orderCode,"2");
+            // 处方支付信息上传 监管平台
             HisSyncSupervisionService hisSyncservice = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
             hisSyncservice.uploadRecipePayToRegulation(orderCode, payFlag, refundNo);
-            return null;
         });
+
         return result;
     }
+
+
 
     /**
      * 对来源于HIS的处方单状态更新为已处理

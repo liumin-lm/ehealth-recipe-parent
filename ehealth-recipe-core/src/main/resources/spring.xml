@@ -138,6 +138,7 @@
         <property name="recipeDelayTopic" value="${ons_delay_topic_recipe}"/>
         <property name="sessionTopic" value="${ons_topic_session}"/>
         <property name="revisitTraceTopic" value="${ons_topic_revisit_traces}"/>
+        <property name="statusChangeTopic" value="${ons_topic_status_change}"/>
         <property name="revisitStatusNotify" value="${ons_topic_revisitStatusNotify}"/>
         <property name="kafkaSwitch" value="${kafka_switch}"/>
         <property name="kafkaServers" value="${kafka_servers}"/>

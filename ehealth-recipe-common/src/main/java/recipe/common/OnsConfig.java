@@ -35,6 +35,8 @@ public class OnsConfig {
 
     public static String easyPayTopic;
 
+    public static String statusChangeTopic;
+
 
     /**
      * 药品topic
@@ -77,6 +79,10 @@ public class OnsConfig {
         OnsConfig.revisitTraceTopic = revisitTraceTopic;
     }
 
+    public void setStatusChangeTopic(String statusChangeTopic) {
+        OnsConfig.statusChangeTopic = statusChangeTopic;
+    }
+
     public void setRecipeDelayTopic(String recipeDelayTopic) {
         OnsConfig.recipeDelayTopic = recipeDelayTopic;
     }
@@ -109,4 +115,6 @@ public class OnsConfig {
     public void setEasyPayTopic(String easyPayTopic) {
         OnsConfig.easyPayTopic = easyPayTopic;
     }
+
+
 }
