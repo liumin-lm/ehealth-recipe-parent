@@ -898,7 +898,7 @@ public class QueryRecipeService implements IQueryRecipeService {
                         organDrugListService.uploadDrugToRegulation(nowOrganDrugList);
                         return null;
                     });
-                    processSaleDrugList(drugsEnterpriseId,organDrugsNo.get(0).getDrugId(),organDrugChangeBean);
+                    processSaleDrugList(drugsEnterpriseId,organDrugListAdd.getDrugId(),organDrugChangeBean);
                 } else {
                     //没有失效的新增
                     organDrugList.setStatus(1);
@@ -927,7 +927,7 @@ public class QueryRecipeService implements IQueryRecipeService {
                         organDrugListService.uploadDrugToRegulation(organDrugList);
                         return null;
                     });
-                    processSaleDrugList(drugsEnterpriseId,organDrugsNo.get(0).getDrugId(),organDrugChangeBean);
+                    processSaleDrugList(drugsEnterpriseId,nowOrganDrugList.getDrugId(),organDrugChangeBean);
                 }
                 result = RecipeResultBean.getSuccess();
                 break;
@@ -940,13 +940,7 @@ public class QueryRecipeService implements IQueryRecipeService {
                 //修改1条organDrugList
                 //修改1条saleDrugList
                 List<OrganDrugList> organDrugs = organDrugListDAO.findByOrganIdAndDrugIdAndOrganDrugCodeAndStatus(organDrugChangeBean.getOrganId(), organDrugChangeBean.getDrugId(), organDrugChangeBean.getOrganDrugCode(), 1);
-                List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByDrugIdAndOrganIdAndOrganDrugCodeAndStatus(drugsEnterpriseId, organDrugs.get(0).getDrugId(), organDrugChangeBean.getCloudPharmDrugCode(), 1);
-                if (CollectionUtils.isEmpty(saleDrugLists)) {
-                    result.setMsg("当前没有启用配送药品");
-                    return result;
-                }
                 //将设置为启用
-
                 OrganDrugList organDrugListChange = organDrugs.get(0);
                 BeanUtils.copyProperties(organDrugList, organDrugListChange, getNullPropertyNames(organDrugList));
                 organDrugListChange.setStatus(1);
@@ -988,7 +982,7 @@ public class QueryRecipeService implements IQueryRecipeService {
                 //停用1条organDrugList
                 //停用1条saleDrugList
                 List<OrganDrugList> organDrugsDown = organDrugListDAO.findByOrganIdAndDrugIdAndOrganDrugCodeAndStatus(organDrugChangeBean.getOrganId(), organDrugChangeBean.getDrugId(), organDrugChangeBean.getOrganDrugCode(), 1);
-                List<SaleDrugList> saleDrugListsDown = saleDrugListDAO.findByDrugIdAndOrganIdAndOrganDrugCodeAndStatus(drugsEnterpriseId, organDrugsDown.get(0).getDrugId(), organDrugChangeBean.getCloudPharmDrugCode(), 1);
+                List<SaleDrugList> saleDrugListsDown = saleDrugListDAO.findByDrugIdAndOrganIdAndStatus(drugsEnterpriseId, organDrugsDown.get(0).getDrugId(), 1);
                 if (CollectionUtils.isEmpty(saleDrugListsDown)) {
                     result.setMsg("当前没有启用配送药品");
                     return result;
@@ -1028,7 +1022,9 @@ public class QueryRecipeService implements IQueryRecipeService {
     private void processSaleDrugList(Integer drugsEnterpriseId, Integer drugId, com.ngari.recipe.common.OrganDrugChangeBean organDrugChangeBean) {
         List<SaleDrugList> saleDrugLists = saleDrugListDAO.
                 findByDrugIdAndOrganId(drugsEnterpriseId, drugId);
+        Date now = DateTime.now().toDate();
         SaleDrugList saleDrugList=new SaleDrugList();
+        saleDrugList.setCreateDt(now);
         if(CollectionUtils.isNotEmpty(saleDrugLists)){
             saleDrugList = saleDrugLists.get(0);
         }
@@ -1039,7 +1035,6 @@ public class QueryRecipeService implements IQueryRecipeService {
         saleDrugList.setPrice(organDrugChangeBean.getSalePrice());
         saleDrugList.setSaleName(organDrugChangeBean.getSaleName());
         saleDrugList.setDrugName(organDrugChangeBean.getDrugName());
-        Date now = DateTime.now().toDate();
         saleDrugList.setLastModify(now);
         LOGGER.info("processSaleDrugList 更新配送药品信息{}", JSONUtils.toString(saleDrugList));
         if(CollectionUtils.isNotEmpty(saleDrugLists)){
