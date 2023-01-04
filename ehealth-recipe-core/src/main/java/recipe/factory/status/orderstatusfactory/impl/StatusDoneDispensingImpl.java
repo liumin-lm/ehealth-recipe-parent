@@ -12,9 +12,7 @@ import org.springframework.stereotype.Service;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.DrugStockClient;
 import recipe.constant.ErrorCode;
-import recipe.enumerate.status.OrderStateEnum;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
-import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.manager.PharmacyManager;
 import recipe.service.OrganDrugListService;
@@ -52,8 +50,10 @@ public class StatusDoneDispensingImpl extends AbstractRecipeOrderStatus {
 
     @Override
     public Recipe updateStatus(UpdateOrderStatusVO orderStatus, RecipeOrder recipeOrder, Recipe recipe) {
+        recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_DONE_DISPENSING.getType());
         recipeOrder.setDispensingFlag(DISPENSING_FLAG_DONE);
         recipeOrder.setDispensingTime(new Date());
+        recipeOrder.setSendTime(new Date());
         RecipeOrder order = recipeOrderDAO.get(recipeOrder.getOrderId());
         List<Integer> recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
         List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeIdList(recipeIdList);
@@ -69,12 +69,6 @@ public class StatusDoneDispensingImpl extends AbstractRecipeOrderStatus {
             logger.error("StatusDoneDispensingImpl updateStatus  error",e);
         }
         drugInventory(recipeIdList,recipeDetailList,recipe);
-        recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_DONE_DISPENSING.getType());
-        recipeOrder.setProcessState(OrderStateEnum.PROCESS_STATE_ORDER.getType());
-        recipeOrder.setSubState(OrderStateEnum.SUB_ORDER_DELIVERED.getType());
-        recipeOrder.setSendTime(new Date());
-        recipe.setProcessState(RecipeStateEnum.PROCESS_STATE_DISTRIBUTION.getType());
-        recipe.setSubState(RecipeStateEnum.SUB_ORDER_DELIVERED.getType());
         return recipe;
     }
 

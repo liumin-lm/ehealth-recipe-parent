@@ -151,8 +151,12 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
             if (responseTO != null) {
                 if (responseTO.isSuccess()) {
                     //推送药企处方成功
-                    RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
-                    List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
+                    List<Integer> recipeIdList = Lists.newArrayList(recipeId);
+                    if (Objects.nonNull(recipe.getOrderCode())) {
+                        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+                        recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
+                    }
+
                     recipeIdList.forEach(id -> {
                         Recipe recipeUpdate = recipeDAO.getByRecipeId(id);
                         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
