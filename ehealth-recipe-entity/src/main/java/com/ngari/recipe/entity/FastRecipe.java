@@ -122,6 +122,9 @@ public class FastRecipe {
     @ItemProperty(alias = "医生选择是否代煎（ 0:否 1：是）")
     private String doctorIsDecoction;
 
+    @ItemProperty(alias = "代煎前端展示 0 不展示 1 展示")
+    private Integer decoctionExhibitionFlag;
+
     @ItemProperty(alias = "每贴次数")
     private String everyTcmNumFre;
 
@@ -155,6 +158,9 @@ public class FastRecipe {
 
     @ItemProperty(alias = "药方库存")
     private Integer stockNum;
+
+    @ItemProperty(alias = "药方销量")
+    private Integer saleNum;
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
@@ -560,5 +566,23 @@ public class FastRecipe {
 
     public void setStockNum(Integer stockNum) {
         this.stockNum = stockNum;
+    }
+
+    @Column(name = "decoction_exhibition_flag")
+    public Integer getDecoctionExhibitionFlag() {
+        return decoctionExhibitionFlag;
+    }
+
+    public void setDecoctionExhibitionFlag(Integer decoctionExhibitionFlag) {
+        this.decoctionExhibitionFlag = decoctionExhibitionFlag;
+    }
+
+    @Column(name = "sale_num")
+    public Integer getSaleNum() {
+        return saleNum;
+    }
+
+    public void setSaleNum(Integer saleNum) {
+        this.saleNum = saleNum;
     }
 }

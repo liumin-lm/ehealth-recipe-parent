@@ -164,6 +164,7 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
             newRelation.setEnterpriseDecoctionIds(decoctionIds);
             newRelation.setEnterpriseDrugForm(JSONArray.toJSONString(organEnterpriseRelationVo.getEnterpriseDrugForm()));
             newRelation.setSupportDecoctionState(JSONArray.toJSONString(organEnterpriseRelationVo.getSupportDecoctionType()));
+            newRelation.setSupportSelfDecoctionState(JSONArray.toJSONString(organEnterpriseRelationVo.getSupportSelfDecoctionState()));
             newRelation.setOrganId(organEnterpriseRelationVo.getOrganId());
             organAndDrugsepRelationDAO.save(newRelation);
         } else {
@@ -172,6 +173,7 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
             relation.setEnterpriseDecoctionIds(decoctionIds);
             relation.setEnterpriseDrugForm(JSONArray.toJSONString(organEnterpriseRelationVo.getEnterpriseDrugForm()));
             relation.setSupportDecoctionState(JSONArray.toJSONString(organEnterpriseRelationVo.getSupportDecoctionType()));
+            relation.setSupportSelfDecoctionState(JSONArray.toJSONString(organEnterpriseRelationVo.getSupportSelfDecoctionState()));
             organAndDrugsepRelationDAO.updateNonNullFieldByPrimaryKey(relation);
         }
     }
@@ -210,6 +212,10 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
         if (StringUtils.isNotEmpty(relation.getSupportDecoctionState())) {
             List<Integer> supportDecoctionType = JSONUtils.parse((relation.getSupportDecoctionState()), List.class);
             organEnterpriseRelationVo.setSupportDecoctionType(supportDecoctionType);
+        }
+        if (StringUtils.isNotEmpty(relation.getSupportSelfDecoctionState())) {
+            List<Integer> supportSelfDecoctionState = JSONUtils.parse((relation.getSupportSelfDecoctionState()), List.class);
+            organEnterpriseRelationVo.setSupportSelfDecoctionState(supportSelfDecoctionState);
         }
         logger.info("DrugsEnterpriseBusinessService getOrganEnterpriseRelation res organEnterpriseRelationVo={}", JSONArray.toJSONString(organEnterpriseRelationVo));
         return organEnterpriseRelationVo;
