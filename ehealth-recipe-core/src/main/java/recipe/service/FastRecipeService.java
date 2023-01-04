@@ -558,7 +558,7 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
             }
             FastRecipe fastRecipe = fastRecipeDAO.get(mouldId);
             if (Objects.nonNull(fastRecipe) && Objects.nonNull(fastRecipe.getStockNum()) && buyNum > fastRecipe.getStockNum()) {
-                throw new DAOException("药方【" + fastRecipe.getTitle() + "】库存不足！");
+                throw new DAOException("【" + fastRecipe.getTitle() + "】库存不足！");
             }
         }
         return true;
