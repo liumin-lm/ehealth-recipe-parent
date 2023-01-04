@@ -164,6 +164,7 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
             newRelation.setEnterpriseDecoctionIds(decoctionIds);
             newRelation.setEnterpriseDrugForm(JSONArray.toJSONString(organEnterpriseRelationVo.getEnterpriseDrugForm()));
             newRelation.setSupportDecoctionState(JSONArray.toJSONString(organEnterpriseRelationVo.getSupportDecoctionType()));
+            newRelation.setSupportSelfDecoctionState(JSONArray.toJSONString(organEnterpriseRelationVo.getSupportSelfDecoctionState()));
             newRelation.setOrganId(organEnterpriseRelationVo.getOrganId());
             organAndDrugsepRelationDAO.save(newRelation);
         } else {
@@ -172,6 +173,7 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
             relation.setEnterpriseDecoctionIds(decoctionIds);
             relation.setEnterpriseDrugForm(JSONArray.toJSONString(organEnterpriseRelationVo.getEnterpriseDrugForm()));
             relation.setSupportDecoctionState(JSONArray.toJSONString(organEnterpriseRelationVo.getSupportDecoctionType()));
+            relation.setSupportSelfDecoctionState(JSONArray.toJSONString(organEnterpriseRelationVo.getSupportSelfDecoctionState()));
             organAndDrugsepRelationDAO.updateNonNullFieldByPrimaryKey(relation);
         }
     }
