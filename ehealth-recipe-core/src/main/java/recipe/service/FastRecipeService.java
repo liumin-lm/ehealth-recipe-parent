@@ -325,8 +325,10 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
         fastRecipe.setDecoctionId(recipeExtend.getDecoctionId());
         fastRecipe.setDecoctionPrice(recipeExtend.getDecoctionPrice());
         fastRecipe.setDecoctionText(recipeExtend.getDecoctionText());
+        fastRecipe.setDecoctionExhibitionFlag(recipeExtend.getDecoctionExhibitionFlag());
         fastRecipe.setDecoctionNum(recipe.getDecoctionNum());
         fastRecipe.setAppointEnterpriseType(0);
+        fastRecipe.setSaleNum(0);
         if (Objects.nonNull(recipe.getRecipeDrugForm())) {
             fastRecipe.setRecipeDrugForm(recipe.getRecipeDrugForm());
         }

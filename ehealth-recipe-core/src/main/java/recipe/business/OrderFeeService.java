@@ -236,6 +236,12 @@ public class OrderFeeService implements IRecipeOrderRefundService {
                 recipedetail.setActualSalePrice(recipedetail.getHisReturnSalePrice());
             }
         }
+        if (Objects.nonNull(recipeOrder.getFundAmount()) && recipeOrder.getFundAmount() > 0.0D) {
+            recipeOrderBean.setMedicalInsuranceFlag(1);
+        } else {
+            recipeOrderBean.setMedicalInsuranceFlag(0);
+        }
+
         Map<Integer, List<Recipedetail>> detailMap = recipeDetailList.stream().collect(Collectors.groupingBy(Recipedetail::getRecipeId));
         List<RecipeBean> recipeBeanList = new ArrayList<>();
         recipeList.forEach(recipe -> {
