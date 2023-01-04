@@ -1201,7 +1201,7 @@ public class OrderManager extends BaseManager {
     @RpcService
     public void statusChangeNotify(String orderCode,String orderStatus) {
         //1、湖北鄂州支付完成状态通知
-        logger.info("paySuccessPrivateProcess privateProcess orderCode:{}", orderCode);
+        logger.info("statusChangeNotify privateProcess orderCode:{}", orderCode);
         try {
             RecipeOrder order = recipeOrderDAO.getByOrderCode(orderCode);
             if(null==order){
@@ -1211,11 +1211,11 @@ public class OrderManager extends BaseManager {
             param.put("order_id",String.valueOf(order.getOrderId()));
             param.put("order_type","2");
             param.put("order_status",orderStatus);
-            logger.info("paySuccessPrivateProcess sendMsgToMq send to MQ start, busId:{}，param:{}", orderCode, JSONUtils.toString(param));
+            logger.info("statusChangeNotify sendMsgToMq send to MQ start, busId:{}，param:{}", orderCode, JSONUtils.toString(param));
             MQHelper.getMqPublisher().publish(OnsConfig.statusChangeTopic, param, null);
-            logger.info("paySuccessPrivateProcess sendMsgToMq send to MQ end, busId:{}", orderCode);
+            logger.info("statusChangeNotify sendMsgToMq send to MQ end, busId:{}", orderCode);
         } catch (Exception e) {
-            logger.error("paySuccessPrivateProcess sendMsgToMq can't send to MQ,  busId:{}", orderCode, e);
+            logger.error("statusChangeNotify sendMsgToMq can't send to MQ,  busId:{}", orderCode, e);
         }
     }
 }
