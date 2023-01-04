@@ -292,6 +292,7 @@ public class OrderFeeService implements IRecipeOrderRefundService {
             //1、获取物流详情
             LogisticsOrderDetailsDto logisticsOrderByBizNo = logisticsOrderService.getLogisticsOrderByBizNo(1, orderCode);
             recipeOrderRefundDetailVO.setLogisticsOrderDetailsVO(ObjectCopyUtils.convert(logisticsOrderByBizNo, LogisticsOrderDetailsVO.class));
+            logger.info("RecipeOrderRefundService getRefundOrderDetail logisticsOrderByBizNo={}", JSONUtils.toString(logisticsOrderByBizNo));
             //2、获取三级分拣码
             String logisticsOrderSortCode = logisticsOrderService.getLogisticsOrderSortCode(1, orderCode);
             recipeOrderRefundDetailVO.setLogisticsOrderSortCode(logisticsOrderSortCode);
@@ -301,6 +302,7 @@ public class OrderFeeService implements IRecipeOrderRefundService {
         }catch (Exception e){
             logger.error("RecipeOrderRefundService getRefundOrderDetail error", e);
         }
+        logger.info("RecipeOrderRefundService getRefundOrderDetail recipeOrderRefundDetailVO={}", JSONUtils.toString(recipeOrderRefundDetailVO));
         return recipeOrderRefundDetailVO;
     }
 
