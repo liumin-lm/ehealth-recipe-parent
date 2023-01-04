@@ -28,7 +28,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import recipe.aop.LogRecord;
-import recipe.client.BusinessLogClient;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.SyncDrugConstant;
 import recipe.dao.*;
@@ -68,10 +67,6 @@ public class DrugManager extends BaseManager {
     private DrugSaleStrategyDAO drugSaleStrategyDAO;
     @Autowired
     private OrganDrugListSyncFieldDAO organDrugListSyncFieldDAO;
-    @Autowired
-    private DrugOrganConfigDAO drugOrganConfigDAO;
-    @Autowired
-    private BusinessLogClient businessLogClient;
     private String YES="1";
     private String NO ="0";
 
