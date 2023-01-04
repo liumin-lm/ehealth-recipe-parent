@@ -213,6 +213,10 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
             List<Integer> supportDecoctionType = JSONUtils.parse((relation.getSupportDecoctionState()), List.class);
             organEnterpriseRelationVo.setSupportDecoctionType(supportDecoctionType);
         }
+        if (StringUtils.isNotEmpty(relation.getSupportSelfDecoctionState())) {
+            List<Integer> supportSelfDecoctionState = JSONUtils.parse((relation.getSupportSelfDecoctionState()), List.class);
+            organEnterpriseRelationVo.setSupportSelfDecoctionState(supportSelfDecoctionState);
+        }
         logger.info("DrugsEnterpriseBusinessService getOrganEnterpriseRelation res organEnterpriseRelationVo={}", JSONArray.toJSONString(organEnterpriseRelationVo));
         return organEnterpriseRelationVo;
     }
