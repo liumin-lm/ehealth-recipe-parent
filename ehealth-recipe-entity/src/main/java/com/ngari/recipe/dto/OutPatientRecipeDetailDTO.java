@@ -98,6 +98,9 @@ public class OutPatientRecipeDetailDTO implements Serializable {
      */
     private String memo;
 
+    @ItemProperty(alias = "服药天数")
+    private String useDays;
+
     /**
      * 保密标识 0 非保密 1 保密
      */

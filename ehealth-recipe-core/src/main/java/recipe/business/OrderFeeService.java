@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.ApplicationUtils;
+import recipe.client.IConfigurationClient;
 import recipe.client.PatientClient;
 import recipe.constant.RecipeRefundRoleConstant;
 import recipe.constant.RefundNodeStatusConstant;
@@ -87,6 +88,8 @@ public class OrderFeeService implements IRecipeOrderRefundService {
     private EnterpriseManager enterpriseManager;
     @Autowired
     private RecipeOrderBillDAO recipeOrderBillDAO;
+    @Autowired
+    private IConfigurationClient configurationClient;
 
 
     @Override
@@ -123,7 +126,10 @@ public class OrderFeeService implements IRecipeOrderRefundService {
         Map<Integer, DrugsEnterprise> drugsEnterpriseMap = drugsEnterpriseList.stream().collect(Collectors.toMap(DrugsEnterprise::getId, a -> a, (k1, k2) -> k1));
         List<RecipeOrderRefundVO> recipeOrderRefundVOList = new ArrayList<>();
 
+
         recipeOrderList.forEach(recipeOrder -> {
+            String appName = configurationClient.getAppName(recipeOrder.getTerminalSource());
+            logger.info("findRefundRecipeOrder APPID={},APPname={}",recipeOrder.getTerminalSource(),appName);
             RecipeOrderRefundVO recipeOrderRefundVO = new RecipeOrderRefundVO();
             recipeOrderRefundVO.setOrderCode(recipeOrder.getOrderCode());
             recipeOrderRefundVO.setActualPrice(recipeOrder.getActualPrice());
@@ -150,7 +156,7 @@ public class OrderFeeService implements IRecipeOrderRefundService {
             }
             recipeOrderRefundVO.setOrderStatusText(OrderStateEnum.getOrderStateEnum(recipeOrder.getProcessState()).getName());
             recipeOrderRefundVO.setPatientName(recipeOrderCodeMap.get(recipeOrder.getOrderCode()).getPatientName());
-            recipeOrderRefundVO.setChannel(patientClient.getClientNameById(recipeOrder.getMpiId()));
+            recipeOrderRefundVO.setChannel(appName);
             recipeOrderRefundVO.setPayModeText(PayModeEnum.getPayModeEnumName(recipeOrder.getPayMode()));
             recipeOrderRefundVO.setGiveModeText(recipeOrder.getGiveModeText());
 
@@ -184,6 +190,7 @@ public class OrderFeeService implements IRecipeOrderRefundService {
         if (null == recipeOrder) {
             return recipeOrderRefundDetailVO;
         }
+        String appName = configurationClient.getAppName(recipeOrder.getTerminalSource());
         RecipeOrderVoNoDS recipeOrderBean = ObjectCopyUtils.convert(recipeOrder, RecipeOrderVoNoDS.class);
         recipeOrderRefundDetailVO.setRecipeOrderBean(recipeOrderBean);
         OrderRefundInfoVO orderRefundInfoVO = new OrderRefundInfoVO();
@@ -233,6 +240,12 @@ public class OrderFeeService implements IRecipeOrderRefundService {
                 recipedetail.setActualSalePrice(recipedetail.getHisReturnSalePrice());
             }
         }
+        if (Objects.nonNull(recipeOrder.getFundAmount()) && recipeOrder.getFundAmount() > 0.0D) {
+            recipeOrderBean.setMedicalInsuranceFlag(1);
+        } else {
+            recipeOrderBean.setMedicalInsuranceFlag(0);
+        }
+
         Map<Integer, List<Recipedetail>> detailMap = recipeDetailList.stream().collect(Collectors.groupingBy(Recipedetail::getRecipeId));
         List<RecipeBean> recipeBeanList = new ArrayList<>();
         recipeList.forEach(recipe -> {
@@ -241,7 +254,7 @@ public class OrderFeeService implements IRecipeOrderRefundService {
             RecipeExtendBean recipeExtendBean = ObjectCopyUtils.convert(recipeExtend, RecipeExtendBean.class);
             orderRefundInfoVO.setRefundStatusText(RefundNodeStatusEnum.getRefundStatus(recipeExtend.getRefundNodeStatus()));
             orderRefundInfoVO.setRefundNodeStatusText(setRefundNodeStatus(recipeExtend.getRefundNodeStatus()));
-            orderRefundInfoVO.setChannel(patientClient.getClientNameById(recipe.getMpiid()));
+            orderRefundInfoVO.setChannel(appName);
             orderRefundInfoVO.setRefundNodeStatus(recipeExtend.getRefundNodeStatus());
             List<RecipeDetailBean> recipeDetailBeans = ObjectCopyUtils.convert(detailMap.get(recipe.getRecipeId()), RecipeDetailBean.class);
             if (new Integer(1).equals(recipeExtend.getRefundNodeStatus()) || new Integer(3).equals(recipeExtend.getRefundNodeStatus())) {

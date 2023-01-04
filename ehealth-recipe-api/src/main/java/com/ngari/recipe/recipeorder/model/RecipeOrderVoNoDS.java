@@ -25,4 +25,10 @@ public class RecipeOrderVoNoDS extends RecipeOrderBean implements Serializable {
 
     @ItemProperty(alias = "详细地址")
     private String address4;
+
+    @ItemProperty(alias = "医保标识 0 自费 1 医保")
+    private Integer medicalInsuranceFlag;
+
+    @ItemProperty(alias = "物流状态")
+    private String logisticsStateText;
 }

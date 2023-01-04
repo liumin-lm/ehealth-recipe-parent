@@ -33,11 +33,13 @@ import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.RevisitBean;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.service.IRevisitExService;
+import ctd.net.broadcast.MQHelper;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
+import ctd.util.annotation.RpcService;
 import eh.utils.BeanCopyUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
@@ -48,6 +50,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.aop.LogRecord;
 import recipe.client.*;
+import recipe.common.OnsConfig;
 import recipe.constant.DrugEnterpriseConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.dao.*;
@@ -562,7 +565,7 @@ public class OrderManager extends BaseManager {
         });
         logger.info("findOrderAndRecipes downLoadRecipeOrderDTOList:{}", JSON.toJSONString(downLoadRecipeOrderDTOList));
         return downLoadRecipeOrderDTOList;
-    }
+}
 
     public QueryResult<RecipeOrder> findRefundRecipeOrder(RecipeOrderRefundReqDTO recipeOrderRefundReqDTO) {
         if (OpRefundBusTypeEnum.BUS_TYPE_ALL_ORDER.getType().equals(recipeOrderRefundReqDTO.getBusType())) {
@@ -1188,5 +1191,31 @@ public class OrderManager extends BaseManager {
             mrn = "-1";
         }
         return mrn;
+    }
+
+    /**
+     * 状态变更通知
+     * 支持失败手工推送
+     * @param
+     */
+    @RpcService
+    public void statusChangeNotify(String orderCode,String orderStatus) {
+        //1、湖北鄂州支付完成状态通知
+        logger.info("statusChangeNotify privateProcess orderCode:{}", orderCode);
+        try {
+            RecipeOrder order = recipeOrderDAO.getByOrderCode(orderCode);
+            if(null==order){
+                return;
+            }
+            Map<String,Object> param=new HashMap<>();
+            param.put("order_id",String.valueOf(order.getOrderId()));
+            param.put("order_type","2");
+            param.put("order_status",orderStatus);
+            logger.info("statusChangeNotify sendMsgToMq send to MQ start, busId:{}，param:{}", orderCode, JSONUtils.toString(param));
+            MQHelper.getMqPublisher().publish(OnsConfig.statusChangeTopic, param, null);
+            logger.info("statusChangeNotify sendMsgToMq send to MQ end, busId:{}", orderCode);
+        } catch (Exception e) {
+            logger.error("statusChangeNotify sendMsgToMq can't send to MQ,  busId:{}", orderCode, e);
+        }
     }
 }

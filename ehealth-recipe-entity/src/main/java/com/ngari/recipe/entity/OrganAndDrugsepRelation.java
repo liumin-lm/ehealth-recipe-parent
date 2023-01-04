@@ -150,4 +150,13 @@ public class OrganAndDrugsepRelation implements java.io.Serializable {
     public void setSupportDecoctionState(String supportDecoctionState) {
         this.supportDecoctionState = supportDecoctionState;
     }
+
+    @Column(name = "support_self_decoction_state")
+    public String getSupportSelfDecoctionState() {
+        return supportSelfDecoctionState;
+    }
+
+    public void setSupportSelfDecoctionState(String supportSelfDecoctionState) {
+        this.supportSelfDecoctionState = supportSelfDecoctionState;
+    }
 }

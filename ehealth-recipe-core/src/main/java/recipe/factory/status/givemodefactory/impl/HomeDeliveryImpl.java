@@ -76,6 +76,10 @@ public class HomeDeliveryImpl extends AbstractGiveMode {
             recipe.setPayDate(date);
             recipe.setPayFlag(1);
         }
+        recipe.setProcessState(RecipeStateEnum.PROCESS_STATE_DISTRIBUTION.getType());
+        recipe.setSubState(RecipeStateEnum.SUB_ORDER_DELIVERED.getType());
+        recipeOrder.setProcessState(OrderStateEnum.PROCESS_STATE_ORDER.getType());
+        recipeOrder.setSubState(OrderStateEnum.SUB_ORDER_DELIVERED.getType());
         recipeOrderStatusProxy.updateOrderByStatus(orderStatus, recipeOrder, recipe);
     }
 
