@@ -1,6 +1,8 @@
 package recipe.vo.doctor;
 
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import com.ngari.recipe.vo.FastRecipeReq;
+import com.ngari.recipe.vo.FastRecipeVO;
 import lombok.Data;
 
 import java.io.Serializable;

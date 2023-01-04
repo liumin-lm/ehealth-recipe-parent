@@ -546,23 +546,22 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
     }
 
     @Override
-    public boolean checkFastRecipeStock(DrugQueryVO recipeInfo) {
-        if (Objects.isNull(recipeInfo)) {
+    public boolean checkFastRecipeStock(List<RecipeInfoVO> recipeInfoVOList) {
+        if (CollectionUtils.isEmpty(recipeInfoVOList)) {
             return true;
         }
-        Integer buyNum = recipeInfo.getBuyNum();
-        Integer mouldId = recipeInfo.getMouldId();
-        if (Objects.isNull(buyNum) || Objects.isNull(mouldId)) {
-            return true;
+        for (RecipeInfoVO recipeInfoVO : recipeInfoVOList) {
+            Integer buyNum = recipeInfoVO.getBuyNum();
+            Integer mouldId = recipeInfoVO.getMouldId();
+            if (Objects.isNull(buyNum) || Objects.isNull(mouldId)) {
+                continue;
+            }
+            FastRecipe fastRecipe = fastRecipeDAO.get(mouldId);
+            if (Objects.nonNull(fastRecipe) && Objects.nonNull(fastRecipe.getStockNum()) && buyNum > fastRecipe.getStockNum()) {
+                throw new DAOException("药方【" + fastRecipe.getTitle() + "】库存不足！");
+            }
         }
-        FastRecipe fastRecipe = fastRecipeDAO.get(mouldId);
-        if (Objects.nonNull(fastRecipe) && Objects.nonNull(fastRecipe.getStockNum())
-                && (buyNum > fastRecipe.getStockNum() || Integer.valueOf("0").equals(fastRecipe.getStockNum()))) {
-            return false;
-        } else {
-            return true;
-        }
-
+        return true;
     }
 
 }

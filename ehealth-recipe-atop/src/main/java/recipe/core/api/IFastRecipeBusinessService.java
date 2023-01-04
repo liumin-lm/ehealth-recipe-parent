@@ -76,8 +76,8 @@ public interface IFastRecipeBusinessService {
     /**
      * 便捷购药判断药方库存
      *
-     * @param recipeInfoVO
+     * @param recipeInfoVOList
      * @return
      */
-    boolean checkFastRecipeStock(DrugQueryVO recipeInfoVO);
+    boolean checkFastRecipeStock(List<RecipeInfoVO> recipeInfoVOList);
 }
