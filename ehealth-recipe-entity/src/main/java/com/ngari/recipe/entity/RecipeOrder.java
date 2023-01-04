@@ -391,6 +391,7 @@ public class RecipeOrder implements Serializable {
     private String medicalInsurance;
 
     @ItemProperty(alias = "订单物流状态 0: 默认 1 待发药 2 配送中 3 待取药")
+    @Dictionary(id = "eh.recipe.orderLogisticsState")
     private Integer logisticsState;
 
     @ItemProperty(alias = "订单新支付状态 0 未支付 1 已支付")
@@ -401,6 +402,9 @@ public class RecipeOrder implements Serializable {
 
     @ItemProperty(alias = "退费金额")
     private BigDecimal refundAmount;
+
+    @ItemProperty(alias = "订单来源终端")
+    private String terminalSource;
 
     //todo 默认构造器不要给init默认值啊 此方法慎用
     @Deprecated
@@ -1534,5 +1538,14 @@ public class RecipeOrder implements Serializable {
 
     public void setRefundAmount(BigDecimal refundAmount) {
         this.refundAmount = refundAmount;
+    }
+
+    @Column(name = "terminal_source")
+    public String getTerminalSource() {
+        return terminalSource;
+    }
+
+    public void setTerminalSource(String terminalSource) {
+        this.terminalSource = terminalSource;
     }
 }

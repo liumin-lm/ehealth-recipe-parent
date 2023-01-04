@@ -7,6 +7,8 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.ngari.base.currentuserinfo.model.SimpleWxAccountBean;
+import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
 import com.ngari.base.hisconfig.model.HisServiceConfigBean;
 import com.ngari.base.hisconfig.service.IHisConfigService;
 import com.ngari.base.organconfig.model.OrganConfigBean;
@@ -193,6 +195,8 @@ public class RecipeOrderService extends RecipeBaseService {
     private IRevisitExService revisitExService;
     @Autowired
     private OrganDrugListDAO organDrugListDAO;
+    @Autowired
+    private ICurrentUserInfoService currentUserInfoService;
 
 
 
@@ -1335,6 +1339,8 @@ public class RecipeOrderService extends RecipeBaseService {
             order.setOrderType(0);
         }
         try {
+            SimpleWxAccountBean wxAccount = currentUserInfoService.getSimpleWxAccount();
+            order.setTerminalSource(wxAccount.getAppId());
             if (StringUtils.isEmpty(order.getExpectStartTakeTime())) {
                 order.setExpectStartTakeTime("1970-01-01 00:00:01");
                 order.setExpectEndTakeTime("1970-01-01 00:00:01");

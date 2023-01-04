@@ -3,10 +3,13 @@ package recipe.client;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.ngari.base.clientconfig.service.IClientConfigService;
+import com.ngari.base.clientconfig.to.ClientConfigBean;
 import com.ngari.base.hisconfig.service.IHisConfigService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.scratchable.model.ScratchableBean;
 import com.ngari.base.scratchable.service.IScratchableService;
+import com.ngari.patient.service.ClientConfigService;
 import com.ngari.patient.service.OrganConfigService;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
@@ -16,6 +19,7 @@ import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.constant.ErrorCode;
 import recipe.constant.RecipeBussConstant;
@@ -40,6 +44,8 @@ public class IConfigurationClient extends BaseClient {
     private OrganConfigService organConfigService;
     @Resource
     private IHisConfigService hisConfigService;
+    @Autowired
+    private IClientConfigService clientConfigService;
 
     /**
      * 类加载排序
@@ -513,6 +519,23 @@ public class IConfigurationClient extends BaseClient {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "useDaysRange is null");
         }
         return useDaysRange.toString().split(ByteUtils.COMMA);
+    }
+
+
+    /**
+     * 获取终端名称
+     * @param appId
+     * @return
+     */
+    public String getAppName(String appId) {
+        if (StringUtils.isEmpty(appId)) {
+            return null;
+        }
+        ClientConfigBean clientConfigByAppKey = clientConfigService.getClientConfigByAppKey(appId);
+        if(Objects.isNull(clientConfigByAppKey)){
+            return null;
+        }
+        return clientConfigByAppKey.getClientName();
     }
 
 

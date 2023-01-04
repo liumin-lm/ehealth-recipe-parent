@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.ApplicationUtils;
+import recipe.client.IConfigurationClient;
 import recipe.client.PatientClient;
 import recipe.constant.RecipeRefundRoleConstant;
 import recipe.constant.RefundNodeStatusConstant;
@@ -85,6 +86,8 @@ public class OrderFeeService implements IRecipeOrderRefundService {
     private EnterpriseManager enterpriseManager;
     @Autowired
     private RecipeOrderBillDAO recipeOrderBillDAO;
+    @Autowired
+    private IConfigurationClient configurationClient;
 
 
     @Override
@@ -121,7 +124,9 @@ public class OrderFeeService implements IRecipeOrderRefundService {
         Map<Integer, DrugsEnterprise> drugsEnterpriseMap = drugsEnterpriseList.stream().collect(Collectors.toMap(DrugsEnterprise::getId, a -> a, (k1, k2) -> k1));
         List<RecipeOrderRefundVO> recipeOrderRefundVOList = new ArrayList<>();
 
+
         recipeOrderList.forEach(recipeOrder -> {
+            String appName = configurationClient.getAppName(recipeOrder.getTerminalSource());
             RecipeOrderRefundVO recipeOrderRefundVO = new RecipeOrderRefundVO();
             recipeOrderRefundVO.setOrderCode(recipeOrder.getOrderCode());
             recipeOrderRefundVO.setActualPrice(recipeOrder.getActualPrice());
@@ -148,7 +153,7 @@ public class OrderFeeService implements IRecipeOrderRefundService {
             }
             recipeOrderRefundVO.setOrderStatusText(OrderStateEnum.getOrderStateEnum(recipeOrder.getProcessState()).getName());
             recipeOrderRefundVO.setPatientName(recipeOrderCodeMap.get(recipeOrder.getOrderCode()).getPatientName());
-            recipeOrderRefundVO.setChannel(patientClient.getClientNameById(recipeOrder.getMpiId()));
+            recipeOrderRefundVO.setChannel(appName);
             recipeOrderRefundVO.setPayModeText(PayModeEnum.getPayModeEnumName(recipeOrder.getPayMode()));
             recipeOrderRefundVO.setGiveModeText(recipeOrder.getGiveModeText());
 
