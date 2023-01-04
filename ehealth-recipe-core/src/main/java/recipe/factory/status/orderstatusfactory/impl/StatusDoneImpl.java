@@ -37,15 +37,12 @@ public class StatusDoneImpl extends AbstractRecipeOrderStatus {
         recipe.setGiveFlag(1);
         recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_FINISH.getType());
         recipe.setProcessState(RecipeStateEnum.PROCESS_STATE_DONE.getType());
-        if (GiveModeEnum.GIVE_MODE_HOME_DELIVERY.getType().equals(recipe.getGiveMode())) {
-            recipe.setSubState(RecipeStateEnum.SUB_DONE_SEND.getType());
-        } else {
-            recipe.setSubState(RecipeStateEnum.SUB_DONE_SELF_TAKE.getType());
-        }
         recipeOrder.setProcessState(OrderStateEnum.PROCESS_STATE_DISPENSING.getType());
         if (GiveModeEnum.GIVE_MODE_HOME_DELIVERY.getType().equals(recipe.getGiveMode())) {
+            recipe.setSubState(RecipeStateEnum.SUB_DONE_SEND.getType());
             recipeOrder.setSubState(OrderStateEnum.SUB_DONE_SEND.getType());
         } else {
+            recipe.setSubState(RecipeStateEnum.SUB_DONE_SELF_TAKE.getType());
             recipeOrder.setSubState(OrderStateEnum.SUB_DONE_SELF_TAKE.getType());
         }
         return recipe;
