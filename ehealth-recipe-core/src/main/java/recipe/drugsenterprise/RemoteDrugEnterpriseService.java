@@ -151,24 +151,31 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
             if (responseTO != null) {
                 if (responseTO.isSuccess()) {
                     //推送药企处方成功
-                    orderService.updateOrderInfo(recipe.getOrderCode(), ImmutableMap.of("pushFlag", 1), null);
-                    RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "纳里给" + enterprise.getName() + "推送处方成功");
+                    RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+                    List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
+                    recipeIdList.forEach(id -> {
+                        Recipe recipeUpdate = recipeDAO.getByRecipeId(id);
+                        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+                        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(id);
+
+                        orderService.updateOrderInfo(recipeUpdate.getOrderCode(), ImmutableMap.of("pushFlag", 1), null);
+                        RecipeLogService.saveRecipeLog(id, recipeUpdate.getStatus(), recipeUpdate.getStatus(), "纳里给" + enterprise.getName() + "推送处方成功");
+                        String prescId = (String) responseTO.getExtend().get("prescId");
+                        String chargeItemCode = (String) responseTO.getExtend().get("chargeItemCode");
+                        String recipeCode = (String) responseTO.getExtend().get("recipeCode");
+
+                        if (StringUtils.isNotEmpty(prescId)) {
+                            recipeExtend.setRxid(prescId);
+                        }
+                        if (StringUtils.isNotEmpty(chargeItemCode)) {
+                            recipeExtend.setChargeItemCode(chargeItemCode);
+                        }
+                        if (StringUtils.isNotEmpty(recipeCode)) {
+                            recipeExtend.setChargeId(recipeCode);
+                        }
+                        recipeExtendDAO.updateNonNullFieldByPrimaryKey(recipeExtend);
+                    });
                     result.setCode(1);
-                    String prescId = (String) responseTO.getExtend().get("prescId");
-                    String chargeItemCode = (String)responseTO.getExtend().get("chargeItemCode");
-                    String recipeCode = (String) responseTO.getExtend().get("recipeCode");
-                    RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-                    RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
-                    if (StringUtils.isNotEmpty(prescId)) {
-                        recipeExtend.setRxid(prescId);
-                    }
-                    if (StringUtils.isNotEmpty(chargeItemCode)) {
-                        recipeExtend.setChargeItemCode(chargeItemCode);
-                    }
-                    if (StringUtils.isNotEmpty(recipeCode)) {
-                        recipeExtend.setChargeId(recipeCode);
-                    }
-                    recipeExtendDAO.updateNonNullFieldByPrimaryKey(recipeExtend);
                 } else {
                     if (StringUtils.isEmpty(enterprise.getAppKey()) && !NO_PUSH_MSG.equals(responseTO.getMsg())) {
                         orderService.updateOrderInfo(recipe.getOrderCode(), ImmutableMap.of("pushFlag", -1), null);
