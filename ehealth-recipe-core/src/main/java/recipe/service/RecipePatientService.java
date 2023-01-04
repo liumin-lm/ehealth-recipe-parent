@@ -884,6 +884,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), RecipeStatusEnum.RECIPE_STATUS_UNSIGNED.getType(), RecipeStatusEnum.RECIPE_STATUS_READY_CHECK_YS.getType(), "处方保存成功，等待药师审核");
         //保存审方信息
         recipeManager.saveRecipeCheck(recipe);
+        recipeManager.saveRecipe(recipe);
         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), RecipeStatusEnum.RECIPE_STATUS_READY_CHECK_YS.getType(), RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType(), "药师审核通过，等待患者处理");
         try {
             //将处方写入HIS
