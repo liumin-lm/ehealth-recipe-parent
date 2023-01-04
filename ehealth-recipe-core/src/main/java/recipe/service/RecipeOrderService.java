@@ -888,9 +888,12 @@ public class RecipeOrderService extends RecipeBaseService {
                 Integer enterpriseId = MapValueUtil.getInteger(extInfo, "depId");
                 //TODO 这两个需要前端在切换地址或者物流公司的时候需要给
                 Integer logisticsCompany = MapValueUtil.getInteger(extInfo, "logisticsCompany");
-                OrganLogisticsManageDto organLogisticsManageDto=null;
-                organLogisticsManageDto=obtainExpressFee(order,enterpriseId,logisticsCompany,address,organLogisticsManageDto);
-                if(ExpressFeePayMethodEnum.CASHONDELIVERYOFFLINE.getType().equals(order.getExpressFeePayMethod())){
+                OrganLogisticsManageDto organLogisticsManageDto = null;
+                DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(enterpriseId);
+                if (Objects.nonNull(drugsEnterprise) && DrugEnterpriseConstant.LOGISTICS_PLATFORM.equals(drugsEnterprise.getLogisticsType())) {
+                    organLogisticsManageDto = obtainExpressFee(order, enterpriseId, logisticsCompany, address, organLogisticsManageDto);
+                }
+                if(organLogisticsManageDto != null && ExpressFeePayMethodEnum.CASHONDELIVERYOFFLINE.getType().equals(order.getExpressFeePayMethod())){
                     expressFee=null;
                     if ("301".equals(String.valueOf(logisticsCompany))) {
                         LogisticsEmsPriceDto logisticsEmsPriceDto = new LogisticsEmsPriceDto();
@@ -920,15 +923,14 @@ public class RecipeOrderService extends RecipeBaseService {
                             result.setExt(ext);
                         }
                     }
-                }else if(organLogisticsManageDto!=null&&
+                } else if(organLogisticsManageDto != null &&
                         !ExpressFeePayMethodEnum.CASHONDELIVERYOFFLINE.getType().equals(organLogisticsManageDto.getPayMethod())&&
                         ConsignmentPricingMethodEnum.LOGISTICS_COMPANY_PRICE.getType().equals(organLogisticsManageDto.getConsignmentPricingMethod())){
                     //取物流公司预估价格
-                    expressFee=order.getExpressFee();
-                }else{
+                    expressFee = order.getExpressFee();
+                } else {
                     //取机构设置物流价格
                     //优化快递费用获取，当费用是从第三方获取需要取第三方接口返回的快递费用
-                    DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
                     if (drugsEnterprise != null && new Integer(1).equals(drugsEnterprise.getExpressFeeType())) {
                         //获取地址信息
                         String address1 = address.getAddress1();  //省
