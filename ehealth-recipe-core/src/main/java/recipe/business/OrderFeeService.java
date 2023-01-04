@@ -127,6 +127,7 @@ public class OrderFeeService implements IRecipeOrderRefundService {
 
         recipeOrderList.forEach(recipeOrder -> {
             String appName = configurationClient.getAppName(recipeOrder.getTerminalSource());
+            logger.info("findRefundRecipeOrder APPID={},APPname={}",recipeOrder.getTerminalSource(),appName);
             RecipeOrderRefundVO recipeOrderRefundVO = new RecipeOrderRefundVO();
             recipeOrderRefundVO.setOrderCode(recipeOrder.getOrderCode());
             recipeOrderRefundVO.setActualPrice(recipeOrder.getActualPrice());
