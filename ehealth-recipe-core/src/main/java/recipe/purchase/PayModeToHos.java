@@ -90,8 +90,6 @@ public class PayModeToHos implements IPurchaseService {
     private RecipeExtendDAO recipeExtendDAO;
     @Autowired
     private RecipeManager recipeManager;
-    @Autowired
-    private FastRecipeDAO fastRecipeDAO;
 
     private static final Logger LOG = LoggerFactory.getLogger(PayModeToHos.class);
 
@@ -126,6 +124,7 @@ public class PayModeToHos implements IPurchaseService {
         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
 
         Integer payMode = MapValueUtil.getInteger(extInfo, "payMode");
+        Integer patientIsDecoction = MapValueUtil.getInteger(extInfo, "patientIsDecoction");
         RecipePayModeSupportBean payModeSupport = orderService.setPayModeSupport(order, payMode);
         List<Integer> recipeIdLists = dbRecipes.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
         // 到院自取是否采用药企管理模式
@@ -133,6 +132,7 @@ public class PayModeToHos implements IPurchaseService {
         if (drugToHosByEnterprise) {
             Integer depId = MapValueUtil.getInteger(extInfo, "depId");
             DrugsEnterprise dep = drugsEnterpriseDAO.get(depId);
+            enterpriseManager.checkSupportDecoction(dbRecipes, depId, patientIsDecoction);
             //处理详情
             for (Recipe dbRecipe : dbRecipes) {
                 List<Recipedetail> detailList = recipeDetailDAO.findByRecipeId(dbRecipe.getRecipeId());

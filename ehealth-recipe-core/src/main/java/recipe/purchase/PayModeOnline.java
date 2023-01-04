@@ -27,7 +27,6 @@ import ctd.util.JSONUtils;
 import eh.base.constant.ErrorCode;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.checkerframework.checker.units.qual.A;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -88,8 +87,6 @@ public class PayModeOnline implements IPurchaseService {
     private EnterpriseManager enterpriseManager;
     @Autowired
     private PatientClient patientClient;
-    @Autowired
-    private OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO;
     @Autowired
     private OrganDrugsSaleConfigDAO organDrugsSaleConfigDAO;
     @Autowired
@@ -216,19 +213,7 @@ public class PayModeOnline implements IPurchaseService {
         Integer takeMedicineWay = MapValueUtil.getInteger(extInfo, "takeMedicineWay");
         Integer templateId = MapValueUtil.getInteger(extInfo, "invoiceRecordId");
         Integer patientIsDecoction = MapValueUtil.getInteger(extInfo, "patientIsDecoction");
-        // 检验是中药处方
-        List<Integer> list = recipeList.stream().map(Recipe::getRecipeType).collect(Collectors.toList());
-        if (list.contains(RecipeBussConstant.RECIPETYPE_TCM)) {
-            // 中药处方代煎需要校验药企是否支持配送代煎
-            OrganAndDrugsepRelation relation = organAndDrugsepRelationDAO.getOrganAndDrugsepByOrganIdAndEntId(recipeList.get(0).getClinicOrgan(), depId);
-            if (Objects.nonNull(relation) && StringUtils.isNotEmpty(relation.getSupportDecoctionState())) {
-                LOG.info("getOrderCreateResult.SupportDecoctionState ={}  patientIsDecoction={}", relation.getSupportDecoctionState(), patientIsDecoction);
-                List<Integer> supportDecoctionType = JSONUtils.parse((relation.getSupportDecoctionState()), List.class);
-                if (supportDecoctionType.contains(patientIsDecoction)) {
-                    throw new DAOException(609, "当前代煎类型不支持该购药方式，请换一种购药方式");
-                }
-            }
-        }
+        enterpriseManager.checkSupportDecoction(recipeList, depId, patientIsDecoction);
 
         if (StringUtils.isNotEmpty(insuredArea)) {
             for (Recipe recipe : recipeList) {
