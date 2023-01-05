@@ -33,6 +33,7 @@ import recipe.enumerate.status.GiveModeEnum;
 import recipe.enumerate.status.PayModeEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.FastRecipeFlagEnum;
+import recipe.enumerate.type.GiveModeTextEnum;
 import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.enumerate.type.StockCheckSourceTypeEnum;
 import recipe.manager.EnterpriseManager;
@@ -132,7 +133,7 @@ public class PayModeToHos implements IPurchaseService {
         if (drugToHosByEnterprise) {
             Integer depId = MapValueUtil.getInteger(extInfo, "depId");
             DrugsEnterprise dep = drugsEnterpriseDAO.get(depId);
-            enterpriseManager.checkSupportDecoction(dbRecipes, depId, patientIsDecoction);
+            enterpriseManager.checkSupportDecoction(dbRecipes, depId, patientIsDecoction, GiveModeTextEnum.SUPPORTTOHIS.getGiveMode());
             //处理详情
             for (Recipe dbRecipe : dbRecipes) {
                 List<Recipedetail> detailList = recipeDetailDAO.findByRecipeId(dbRecipe.getRecipeId());

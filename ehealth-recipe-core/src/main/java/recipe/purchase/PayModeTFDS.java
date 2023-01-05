@@ -26,6 +26,7 @@ import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.status.YesOrNoEnum;
+import recipe.enumerate.type.GiveModeTextEnum;
 import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.enumerate.type.StockCheckSourceTypeEnum;
 import recipe.enumerate.type.TakeMedicineWayEnum;
@@ -181,7 +182,7 @@ public class PayModeTFDS implements IPurchaseService {
         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
         DrugsEnterprise dep = drugsEnterpriseDAO.getById(depId);
         Integer patientIsDecoction = MapValueUtil.getInteger(extInfo, "patientIsDecoction");
-        enterpriseManager.checkSupportDecoction(dbRecipes, depId, patientIsDecoction);
+        enterpriseManager.checkSupportDecoction(dbRecipes, depId, patientIsDecoction, GiveModeTextEnum.SUPPORTTFDS.getGiveMode());
         for (Recipe dbRecipe : dbRecipes) {
             //处理详情
             List<Recipedetail> detailList = detailDAO.findByRecipeId(dbRecipe.getRecipeId());

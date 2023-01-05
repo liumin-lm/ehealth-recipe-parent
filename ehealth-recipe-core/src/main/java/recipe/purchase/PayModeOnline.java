@@ -47,10 +47,7 @@ import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.drugsenterprise.paymodeonlineshowdep.PayModeOnlineShowDepServiceProducer;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.status.SettleAmountStateEnum;
-import recipe.enumerate.type.FastRecipeFlagEnum;
-import recipe.enumerate.type.RecipeSupportGiveModeEnum;
-import recipe.enumerate.type.StandardPaymentWayEnum;
-import recipe.enumerate.type.StockCheckSourceTypeEnum;
+import recipe.enumerate.type.*;
 import recipe.hisservice.RecipeToHisService;
 import recipe.manager.EnterpriseManager;
 import recipe.manager.OrderManager;
@@ -213,7 +210,7 @@ public class PayModeOnline implements IPurchaseService {
         Integer takeMedicineWay = MapValueUtil.getInteger(extInfo, "takeMedicineWay");
         Integer templateId = MapValueUtil.getInteger(extInfo, "invoiceRecordId");
         Integer patientIsDecoction = MapValueUtil.getInteger(extInfo, "patientIsDecoction");
-        enterpriseManager.checkSupportDecoction(recipeList, depId, patientIsDecoction);
+        enterpriseManager.checkSupportDecoction(recipeList, depId, patientIsDecoction, GiveModeTextEnum.SENDTOHOS.getGiveMode());
 
         if (StringUtils.isNotEmpty(insuredArea)) {
             for (Recipe recipe : recipeList) {

@@ -33,6 +33,10 @@ public enum GiveModeTextEnum {
         this.desc = desc;
     }
 
+    public Integer getGiveMode() {
+        return giveMode;
+    }
+
     /**
      * 根据文本获取对应的购药方式
      * @param giveModeText
