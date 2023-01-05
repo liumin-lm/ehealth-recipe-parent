@@ -30,13 +30,4 @@ public class RecipeOrderRefundDetailVO implements Serializable {
     //发票号
     private String billNumber;
 
-    //获取三级分拣码
-    private String logisticsOrderSortCode;
-
-    //获取物流运单条形码
-    private String logisticsOrderNo;
-
-    //获取物流详情
-    private LogisticsOrderDetailsVO logisticsOrderDetailsVO;
-
 }

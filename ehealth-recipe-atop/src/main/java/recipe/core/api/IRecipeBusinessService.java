@@ -25,6 +25,7 @@ import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.greenroom.DrugUsageLabelResp;
 import recipe.vo.greenroom.FindRecipeListForPatientVO;
 import recipe.vo.greenroom.RecipeRefundInfoReqVO;
+import recipe.vo.greenroom.logisticsOrderInfoVO;
 import recipe.vo.patient.PatientOptionalDrugVo;
 import recipe.vo.second.*;
 
@@ -476,4 +477,11 @@ public interface IRecipeBusinessService {
      * @param failFlag
      */
     void auditRecipeNoticeRevisit(Integer recipeId, Boolean failFlag);
+
+    /**
+     * 药品订单-打印快递面单获取物流订单详情
+     * @param orderCode
+     */
+    logisticsOrderInfoVO getLogisticsOrderInfo(String orderCode);
+
 }

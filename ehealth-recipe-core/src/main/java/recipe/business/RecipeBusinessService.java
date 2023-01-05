@@ -13,11 +13,12 @@ import com.ngari.follow.utils.ObjectCopyUtil;
 import com.ngari.his.recipe.mode.OutPatientRecipeReq;
 import com.ngari.his.recipe.mode.OutRecipeDetailReq;
 import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
+import com.ngari.infra.logistics.mode.LogisticsOrderDetailsDto;
+import com.ngari.infra.logistics.service.ILogisticsOrderService;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.dto.*;
 import com.ngari.patient.service.BasicAPI;
-import com.ngari.patient.service.IUsingRateService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.platform.recipe.mode.OutpatientPaymentRecipeDTO;
 import com.ngari.platform.recipe.mode.QueryRecipeInfoHisDTO;
@@ -37,7 +38,6 @@ import ctd.net.broadcast.MQHelper;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
-import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
 import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
@@ -80,9 +80,7 @@ import recipe.vo.doctor.DoctorRecipeListReqVO;
 import recipe.vo.doctor.PatientOptionalDrugVO;
 import recipe.vo.doctor.PharmacyTcmVO;
 import recipe.vo.doctor.RecipeInfoVO;
-import recipe.vo.greenroom.DrugUsageLabelResp;
-import recipe.vo.greenroom.FindRecipeListForPatientVO;
-import recipe.vo.greenroom.RecipeRefundInfoReqVO;
+import recipe.vo.greenroom.*;
 import recipe.vo.patient.PatientOptionalDrugVo;
 import recipe.vo.second.*;
 
@@ -1610,6 +1608,28 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             logger.error("当前用户没有权限调用doctorId[{}],methodName[{}]", doctorId ,methodName);
             throw new DAOException("当前登录用户没有权限");
         }
+    }
+
+    public logisticsOrderInfoVO getLogisticsOrderInfo(String orderCode){
+        logisticsOrderInfoVO logisticsOrderInfoVO = new logisticsOrderInfoVO();
+        try {
+            //获取物流相关信息(以前都是前端调的，但是调的接口太多所以改成后端调用)
+            ILogisticsOrderService logisticsOrderService = AppContextHolder.getBean("infra.logisticsOrderService", ILogisticsOrderService.class);
+            //1、获取物流详情
+            LogisticsOrderDetailsDto logisticsOrderByBizNo = logisticsOrderService.getLogisticsOrderByBizNo(1, orderCode);
+            logisticsOrderInfoVO.setLogisticsOrderDetailsVO(ObjectCopyUtils.convert(logisticsOrderByBizNo, LogisticsOrderDetailsVO.class));
+            logger.info("getLogisticsOrderInfo logisticsOrderByBizNo={}", JSONUtils.toString(logisticsOrderByBizNo));
+            //2、获取三级分拣码
+            String logisticsOrderSortCode = logisticsOrderService.getLogisticsOrderSortCode(1, orderCode);
+            logisticsOrderInfoVO.setLogisticsOrderSortCode(logisticsOrderSortCode);
+            //3、获取物流运单条形码
+            String logisticsOrderNo = logisticsOrderService.waybillBarCodeByLogisticsOrderNo(1, orderCode);
+            logisticsOrderInfoVO.setLogisticsOrderNo(logisticsOrderNo);
+        }catch (Exception e){
+            logger.error("getLogisticsOrderInfo error", e);
+        }
+        logger.info("getLogisticsOrderInfo recipeOrderRefundDetailVO={}", JSONUtils.toString(logisticsOrderInfoVO));
+        return logisticsOrderInfoVO;
     }
 
 }

@@ -286,23 +286,6 @@ public class OrderFeeService implements IRecipeOrderRefundService {
         if(recipeOrderBill != null){
             recipeOrderRefundDetailVO.setBillNumber(recipeOrderBill.getBillNumber());
         }
-        try {
-            //获取物流相关信息(以前都是前端调的，但是调的接口太多所以改成后端调用)
-            ILogisticsOrderService logisticsOrderService = AppContextHolder.getBean("infra.logisticsOrderService", ILogisticsOrderService.class);
-            //1、获取物流详情
-            LogisticsOrderDetailsDto logisticsOrderByBizNo = logisticsOrderService.getLogisticsOrderByBizNo(1, orderCode);
-            recipeOrderRefundDetailVO.setLogisticsOrderDetailsVO(ObjectCopyUtils.convert(logisticsOrderByBizNo, LogisticsOrderDetailsVO.class));
-            logger.info("RecipeOrderRefundService getRefundOrderDetail logisticsOrderByBizNo={}", JSONUtils.toString(logisticsOrderByBizNo));
-            //2、获取三级分拣码
-            String logisticsOrderSortCode = logisticsOrderService.getLogisticsOrderSortCode(1, orderCode);
-            recipeOrderRefundDetailVO.setLogisticsOrderSortCode(logisticsOrderSortCode);
-            //3、获取物流运单条形码
-            String logisticsOrderNo = logisticsOrderService.waybillBarCodeByLogisticsOrderNo(1, orderCode);
-            recipeOrderRefundDetailVO.setLogisticsOrderNo(logisticsOrderNo);
-        }catch (Exception e){
-            logger.error("RecipeOrderRefundService getRefundOrderDetail error", e);
-        }
-        logger.info("RecipeOrderRefundService getRefundOrderDetail recipeOrderRefundDetailVO={}", JSONUtils.toString(recipeOrderRefundDetailVO));
         return recipeOrderRefundDetailVO;
     }
 
