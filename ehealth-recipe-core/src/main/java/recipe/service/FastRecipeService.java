@@ -207,8 +207,8 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
             Integer recipeId = recipeSignService.doSignRecipeSave(recipeBean, detailBeanList);
             //5.通知复诊关联处方单
             recipePatientService.updateRecipeIdByConsultId(recipeId, recipeInfoVO.getRecipeBean().getClinicId());
-            //药方扣减库存
-            fastRecipeManager.deductStock(recipeInfoVO.getMouldId(), buyNum);
+            //6.药方扣减库存
+            fastRecipeManager.decreaseStock(recipeInfoVO.getMouldId(), buyNum, recipeInfoVO.getRecipeBean().getClinicOrgan());
             return recipeId;
         } catch (Exception e) {
             logger.error("doctorJoinFastRecipeSaveRecipe error", e);

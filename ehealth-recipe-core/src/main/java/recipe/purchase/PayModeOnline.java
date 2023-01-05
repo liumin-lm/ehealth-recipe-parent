@@ -50,6 +50,7 @@ import recipe.enumerate.status.SettleAmountStateEnum;
 import recipe.enumerate.type.*;
 import recipe.hisservice.RecipeToHisService;
 import recipe.manager.EnterpriseManager;
+import recipe.manager.FastRecipeManager;
 import recipe.manager.OrderManager;
 import recipe.manager.RecipeManager;
 import recipe.presettle.factory.OrderTypeFactory;
@@ -59,6 +60,7 @@ import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 import recipe.util.ObjectCopyUtils;
 
+import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -90,6 +92,8 @@ public class PayModeOnline implements IPurchaseService {
     private IConfigurationClient configurationClient;
     @Autowired
     private RecipeManager recipeManager;
+    @Resource
+    private FastRecipeManager fastRecipeManager;
 
     @Override
     public RecipeResultBean findSupportDepList(Recipe dbRecipe, Map<String, String> extInfo) {
@@ -360,7 +364,7 @@ public class PayModeOnline implements IPurchaseService {
             result.setMsg("订单保存出错");
             return result;
         }
-        recipeManager.decreaseInventory(recipeIdLists, recipeList.get(0));
+        recipeIdLists.forEach(recipeId -> fastRecipeManager.addSaleNum(recipeId));
         orderService.setCreateOrderResult(result, order, payModeSupport, 1);
         if (0d >= order.getActualPrice()) {
             //如果不需要支付则不走支付

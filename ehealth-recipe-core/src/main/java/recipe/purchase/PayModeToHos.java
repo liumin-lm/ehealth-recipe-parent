@@ -36,16 +36,14 @@ import recipe.enumerate.type.FastRecipeFlagEnum;
 import recipe.enumerate.type.GiveModeTextEnum;
 import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.enumerate.type.StockCheckSourceTypeEnum;
-import recipe.manager.EnterpriseManager;
-import recipe.manager.OrderManager;
-import recipe.manager.OrganDrugListManager;
-import recipe.manager.RecipeManager;
+import recipe.manager.*;
 import recipe.presettle.factory.OrderTypeFactory;
 import recipe.presettle.model.OrderTypeCreateConditionRequest;
 import recipe.service.RecipeOrderService;
 import recipe.util.DistanceUtil;
 import recipe.util.MapValueUtil;
 
+import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -91,6 +89,8 @@ public class PayModeToHos implements IPurchaseService {
     private RecipeExtendDAO recipeExtendDAO;
     @Autowired
     private RecipeManager recipeManager;
+    @Resource
+    private FastRecipeManager fastRecipeManager;
 
     private static final Logger LOG = LoggerFactory.getLogger(PayModeToHos.class);
 
@@ -231,13 +231,10 @@ public class PayModeToHos implements IPurchaseService {
             result.setMsg("提交失败，请重新提交。");
             return result;
         }
-        recipeManager.decreaseInventory(recipeIdLists, dbRecipes.get(0));
+        recipeIdLists.forEach(recipeId -> fastRecipeManager.addSaleNum(recipeId));
         // 到院自取也需要更新药品实际销售价格
-        recipeIdLists.forEach(recipeId -> {
-            purchaseService.updateRecipeDetail(recipeId,null);
-        });
+        recipeIdLists.forEach(recipeId -> purchaseService.updateRecipeDetail(recipeId,null));
         orderService.setCreateOrderResult(result, order, payModeSupport, 1);
-        //更新处方信息
         //更新处方信息
         if (0d >= order.getActualPrice()) {
             //如果不需要支付则不走支付,直接掉支付后的逻辑

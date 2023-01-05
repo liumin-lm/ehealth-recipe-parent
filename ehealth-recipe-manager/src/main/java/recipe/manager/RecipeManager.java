@@ -50,6 +50,7 @@ import recipe.enumerate.type.FastRecipeFlagEnum;
 import recipe.enumerate.type.RecipeShowQrConfigEnum;
 import recipe.util.*;
 
+import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -1272,28 +1273,6 @@ public class RecipeManager extends BaseManager {
         }
         return recipeExtend.getFastRecipeNum() <= fastRecipe.getStockNum();
     }
-
-    /**
-     * 减少快捷购药库存
-     * @param recipeIdList
-     * @param recipe
-     */
-    public void decreaseInventory(List<Integer> recipeIdList, Recipe recipe) {
-        logger.info("RecipeManager decreaseInventory recipeId:{}", recipe.getRecipeId());
-        Boolean fastRecipeUsePlatStock = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "fastRecipeUsePlatStock", false);
-        if (!FastRecipeFlagEnum.FAST_RECIPE_FLAG_QUICK.getType().equals(recipe.getFastRecipeFlag()) || !fastRecipeUsePlatStock) {
-            return;
-        }
-        try {
-            List<RecipeExtend> recipeExtendList = recipeExtendDAO.queryRecipeExtendByRecipeIds(recipeIdList);
-            recipeExtendList.forEach(recipeExtend -> {
-                fastRecipeDAO.updateInventoryByMouldId(recipeExtend.getMouldId(), recipeExtend.getFastRecipeNum());
-            });
-        } catch (Exception e) {
-            logger.error("RecipeManager decreaseInventory error", e);
-        }
-    }
-
 
     /**
      * 排除 特定处方id
