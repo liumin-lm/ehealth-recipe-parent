@@ -1,6 +1,7 @@
 package recipe.service;
 
 import com.alibaba.fastjson.JSON;
+import com.google.common.collect.Lists;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RecipeBean;
@@ -547,10 +548,12 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
     }
 
     @Override
-    public boolean checkFastRecipeStock(List<RecipeInfoVO> recipeInfoVOList) {
+    public List<Integer> checkFastRecipeStock(List<RecipeInfoVO> recipeInfoVOList) {
+        List<Integer> recipeIdList = Lists.newArrayList();
         if (CollectionUtils.isEmpty(recipeInfoVOList)) {
-            return true;
+            return recipeIdList;
         }
+
         for (RecipeInfoVO recipeInfoVO : recipeInfoVOList) {
             Integer buyNum = recipeInfoVO.getBuyNum();
             Integer mouldId = recipeInfoVO.getMouldId();
@@ -559,10 +562,10 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
             }
             FastRecipe fastRecipe = fastRecipeDAO.get(mouldId);
             if (Objects.nonNull(fastRecipe) && Objects.nonNull(fastRecipe.getStockNum()) && buyNum > fastRecipe.getStockNum()) {
-                throw new DAOException("【" + fastRecipe.getTitle() + "】库存不足！");
+                recipeIdList.add(fastRecipe.getId());
             }
         }
-        return true;
+        return recipeIdList;
     }
 
 }

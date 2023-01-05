@@ -79,5 +79,5 @@ public interface IFastRecipeBusinessService {
      * @param recipeInfoVOList
      * @return
      */
-    boolean checkFastRecipeStock(List<RecipeInfoVO> recipeInfoVOList);
+    List<Integer> checkFastRecipeStock(List<RecipeInfoVO> recipeInfoVOList);
 }
