@@ -39,4 +39,7 @@ public class RecipeOrderRefundReqVO implements Serializable {
 
     @ItemProperty(alias = "打印快递面单状态 0 未打印 1 已打印")
     private Integer printExpressBillStatus;
+    private Date payTimeStart;
+    private Date payTimeEnd;
+    private Integer dateType;
 }

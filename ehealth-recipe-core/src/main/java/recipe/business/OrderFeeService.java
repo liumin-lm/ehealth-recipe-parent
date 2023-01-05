@@ -49,6 +49,7 @@ import recipe.util.DateConversion;
 import recipe.util.ObjectCopyUtils;
 import recipe.vo.greenroom.*;
 
+import javax.persistence.criteria.CriteriaBuilder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -106,6 +107,13 @@ public class OrderFeeService implements IRecipeOrderRefundService {
             logger.info("RecipeOrderRefundService findRefundRecipeOrder organIds:{}", JSON.toJSONString(organIds));
             recipeOrderRefundReqVO.setOrganIds(organIds);
         }
+        if(new Integer("1").equals(recipeOrderRefundReqVO.getDateType())){
+            recipeOrderRefundReqVO.setPayTimeStart(null);
+            recipeOrderRefundReqVO.setPayTimeEnd(null);
+        }else if(new Integer("2").equals(recipeOrderRefundReqVO.getDateType())){
+            recipeOrderRefundReqVO.setBeginTime(null);
+            recipeOrderRefundReqVO.setEndTime(null);
+        }
         QueryResult<RecipeOrder> recipeOrderQueryResult =
                 orderManager.findRefundRecipeOrder(Objects.requireNonNull(ObjectCopyUtils.convert(recipeOrderRefundReqVO, RecipeOrderRefundReqDTO.class)));
         logger.info("RecipeOrderRefundService findRefundRecipeOrder recipeOrderQueryResult:{}", JSON.toJSONString(recipeOrderQueryResult));
@@ -161,7 +169,9 @@ public class OrderFeeService implements IRecipeOrderRefundService {
             recipeOrderRefundVO.setChannel(appName);
             recipeOrderRefundVO.setPayModeText(PayModeEnum.getPayModeEnumName(recipeOrder.getPayMode()));
             recipeOrderRefundVO.setGiveModeText(recipeOrder.getGiveModeText());
-
+            if(null!=recipeOrder.getPayTime()){
+                recipeOrderRefundVO.setPayTime(DateConversion.getDateFormatter(recipeOrder.getPayTime(), DateConversion.DEFAULT_DATE_TIME));
+            }
             //订单类型归属
             // 便捷购药订单(=1):便捷购药处方
             // 普通订单(=0)：普通复诊=0/医嘱申请复诊=2/null值/一键续方复诊=3
@@ -172,6 +182,7 @@ public class OrderFeeService implements IRecipeOrderRefundService {
                 fastRecipeFlag=0;
             }
             recipeOrderRefundVO.setFastRecipeFlag(fastRecipeFlag);
+
 
             RecipeExtend recipeExtend = recipeExtendMap.get(recipeOrderCodeMap.get(recipeOrder.getOrderCode()).getRecipeId());
             if (null != recipeExtend) {

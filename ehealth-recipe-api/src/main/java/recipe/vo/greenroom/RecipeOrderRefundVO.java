@@ -51,6 +51,9 @@ public class RecipeOrderRefundVO implements Serializable {
     @ItemProperty(alias = "下单时间")
     private String createTime;
 
+    @ItemProperty(alias = "支付时间")
+    private String payTime;
+
     @ItemProperty(alias = "订单状态")
     private String orderStatusText;
 
