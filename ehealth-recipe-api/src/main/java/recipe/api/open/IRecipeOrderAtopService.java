@@ -53,7 +53,7 @@ public interface IRecipeOrderAtopService {
      * @param downOrderRequestVO 请求入参
      * @return 处方订单列表
      */
-    @RpcService
+    @RpcService(timeout = 60)
     EnterpriseDownDataVO findOrderAndRecipes(DownOrderRequestVO downOrderRequestVO);
 
     /**

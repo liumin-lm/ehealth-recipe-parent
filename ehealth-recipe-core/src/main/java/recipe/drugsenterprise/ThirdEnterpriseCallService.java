@@ -1606,7 +1606,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
      * @param parames
      * @return
      */
-    @RpcService
+    @RpcService(timeout = 60)
     public StandardResultDTO downLoadRecipes(Map<String, Object> parames) {
         StandardResultDTO standardResult = new StandardResultDTO();
         standardResult.setCode(StandardResultDTO.SUCCESS);

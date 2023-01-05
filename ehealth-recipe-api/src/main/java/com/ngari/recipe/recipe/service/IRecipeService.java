@@ -604,7 +604,7 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     @RpcService
     ThirdResultBean finishRecipe(Map<String, Object> paramMap);
 
-    @RpcService
+    @RpcService(timeout = 60)
     StandardResultBean downLoadRecipes(Map<String, Object> parames);
 
     @RpcService
