@@ -44,16 +44,17 @@ public class ClinicCartService implements IClinicCartBusinessService {
     public List<ClinicCartVO> findClinicCartsByOrganIdAndUserId(Integer organId, String userId, Integer workType) {
         List<ClinicCart> clinicCartList = clinicCartDAO.findClinicCartsByOrganIdAndUserId(organId, userId, workType);
         if (CollectionUtils.isNotEmpty(clinicCartList)) {
-            for (ClinicCart clinicCart : clinicCartList) {
+            List<ClinicCartVO> clinicCartVOS = BeanCopyUtils.copyList(clinicCartList, ClinicCartVO::new);
+            for (ClinicCartVO clinicCartVO : clinicCartVOS) {
                 if (!Integer.valueOf("2").equals(workType)) {
                     continue;
                 }
-                FastRecipe fastRecipe = fastRecipeDAO.get(clinicCart.getItemId());
+                FastRecipe fastRecipe = fastRecipeDAO.get(clinicCartVO.getItemId());
                 if (Objects.nonNull(fastRecipe)) {
-                    clinicCart.setStockNum(fastRecipe.getStockNum());
+                    clinicCartVO.setStockNum(fastRecipe.getStockNum());
                 }
             }
-            return BeanCopyUtils.copyList(clinicCartList, ClinicCartVO::new);
+            return clinicCartVOS;
         } else {
             return new ArrayList<>();
         }
