@@ -16,6 +16,7 @@ import com.ngari.his.recipe.mode.RecipeCashPreSettleInfo;
 import com.ngari.his.recipe.mode.RecipeCashPreSettleReqTO;
 import com.ngari.infra.invoice.mode.InvoiceRecordDto;
 import com.ngari.infra.invoice.service.InvoiceRecordService;
+import com.ngari.infra.logistics.service.IWaybillService;
 import com.ngari.patient.dto.AddressDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.AddressService;
@@ -1797,6 +1798,33 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
                 RecipeMsgService.batchSendMsg(recipe.getRecipeId(), RecipeStatusConstant.RECIPE_TAKE_MEDICINE_FINISH);
             }
         });
+    }
+
+
+    @Override
+    public Boolean updateInvoiceStatus(String orderCode, Integer invoiceType) {
+        logger.info("updateInvoiceStatus orderCode:{},invoiceType:{}", orderCode,invoiceType);
+        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(orderCode);
+        if (recipeOrder == null){
+            logger.info("updateInvoiceStatus 当前订单不存在 orderCode:{}", orderCode);
+            return false;
+        }
+        logger.info("updateInvoiceStatus recipeOrder:{}", JSONUtils.toString(recipeOrder));
+        if(new Integer(1).equals(invoiceType)){
+            if(recipeOrder.getPrintDrugDistributionListFlag() == null || !recipeOrder.getPrintDrugDistributionListFlag()){
+                recipeOrder.setPrintDrugDistributionListFlag(true);
+                recipeOrderDAO.updateNonNullFieldByPrimaryKey(recipeOrder);
+            }
+        }
+        else if(new Integer(2).equals(invoiceType)){
+            IWaybillService iWaybillService = AppContextHolder.getBean("infra.waybillService", IWaybillService.class);
+            if(recipeOrder.getPrintExpressBillFlag() == null || !recipeOrder.getPrintExpressBillFlag()){
+                recipeOrder.setPrintExpressBillFlag(true);
+                recipeOrderDAO.updateNonNullFieldByPrimaryKey(recipeOrder);
+                iWaybillService.updatePrintStatus(orderCode);
+            }
+        }
+        return true;
     }
 
     private static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {

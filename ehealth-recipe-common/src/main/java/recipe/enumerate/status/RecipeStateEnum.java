@@ -79,10 +79,11 @@ public enum RecipeStateEnum {
     /**
      * 处方子状态:作废
      */
+    SUB_CANCELLATION_SETTLE_FAIL(90, "下单结算失败", "患者下单结算失败"),
     SUB_CANCELLATION_DOCTOR(91, "医生撤销", ""),
     SUB_CANCELLATION_AUDIT_NOT_PASS(92, "药师审核未通过", "药师不双签，审核不通过"),
-    SUB_CANCELLATION_REFUSE_ORDER(93, "售药方拒绝订单", "已拒发"),
-    SUB_CANCELLATION_RETURN_DRUG(94, "售药方退药", "已退药"),
+    SUB_CANCELLATION_REFUSE_ORDER(93, "供药方拒绝订单", "已拒发"),
+    SUB_CANCELLATION_RETURN_DRUG(94, "供药方退药", "已退药"),
     SUB_CANCELLATION_TIMEOUT_NOT_MEDICINE(95, "患者超时未取药", "患者未取药"),
     SUB_CANCELLATION_TIMEOUT_NOT_ORDER(96, "已过有效期未下单", "过期处方（未支付过期 /未处理过期）"),
     SUB_CANCELLATION_WRITE_HIS_NOT_ORDER(97, "医院his确认失败:", ""),
@@ -107,6 +108,10 @@ public enum RecipeStateEnum {
 
     public String getName() {
         return name;
+    }
+
+    public String getDesc() {
+        return desc;
     }
 
     public static final List<Integer> STATE_DELETED = Arrays.asList(PROCESS_STATE_DELETED.type, PROCESS_STATE_CANCELLATION.type);

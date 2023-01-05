@@ -50,6 +50,7 @@ import recipe.client.DrugClient;
 import recipe.client.RecipeAuditClient;
 import recipe.constant.*;
 import recipe.dao.*;
+import recipe.enumerate.status.OrderStateEnum;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.type.TakeMedicineWayEnum;
 import recipe.manager.ButtonManager;
@@ -572,20 +573,30 @@ public class OperationPlatformRecipeService {
 
     private String getCancelReasonForChecker(Integer recipeId) {
         RecipeRefundDAO recipeRefundDAO = DAOFactory.getDAO(RecipeRefundDAO.class);
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         String cancelReason = "";
         if (CollectionUtils.isNotEmpty(recipeRefundDAO.findRefundListByRecipeId(recipeId))) {
-            cancelReason = "由于患者申请退费成功，该处方已取消。";
+            //cancelReason = "由于患者申请退费成功，该处方已取消。";
+            try {
+                List<RecipeRefund> recipeRefundList = recipeRefundDAO.findRecipeRefundByRecipeIdAndNodeAndStatus(recipe.getRecipeId(), -1);
+                if (CollectionUtils.isNotEmpty(recipeRefundList)) {
+                    cancelReason = "由于患者申请退费成功，该处方已取消。";
+                } else {
+                    cancelReason = OrderStateEnum.getOrderStateEnum(recipe.getSubState()).getName();
+                }
+            } catch (Exception e) {
+                LOGGER.error("getTipsByStatusCopy e", e);
+            }
         } else {
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
             if (StringUtils.isNotEmpty(recipeExtend.getCancellation())) {
                 cancelReason = "开方医生已撤销处方,撤销原因:" + recipeExtend.getCancellation();
             } else {
-//                RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
-//                List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatusDesc(recipeId, RecipeStatusConstant.REVOKE);
-//                if (CollectionUtils.isNotEmpty(recipeLogs)) {
-//                    cancelReason = "开方医生已撤销处方,撤销原因:" + recipeLogs.get(0).getMemo();
-//                }
+                if (RecipeStateEnum.SUB_CANCELLATION_SETTLE_FAIL.getType().equals(recipe.getSubState())) {
+                    cancelReason = RecipeStateEnum.getRecipeStateEnum(recipe.getSubState()).getDesc();
+                }
             }
         }
         return cancelReason;
