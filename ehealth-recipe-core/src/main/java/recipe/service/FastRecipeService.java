@@ -1,6 +1,7 @@
 package recipe.service;
 
 import com.alibaba.fastjson.JSON;
+import com.google.common.collect.Lists;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RecipeBean;
@@ -34,11 +35,13 @@ import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.BussSourceTypeEnum;
 import recipe.enumerate.type.RecipeDrugFormTypeEnum;
 import recipe.enumerate.type.RecipeTypeEnum;
+import recipe.manager.FastRecipeManager;
 import recipe.service.common.RecipeSignService;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.vo.doctor.DrugQueryVO;
 import recipe.vo.doctor.RecipeInfoVO;
 
+import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -91,6 +94,9 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
 
     @Autowired
     private SmsClient smsClient;
+
+    @Resource
+    private FastRecipeManager fastRecipeManager;
 
 
     /**
@@ -175,12 +181,6 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
                 recipeBean.setDoctorName(doctorDTO.getName());
             }
 
-            //recipeBean.setMedicalFlag(0);
-            //recipeBean.setMedicalPayFlag(0);
-            //recipeBean.setReviewType(1);
-            //recipeBean.setSupportMode(0);
-            //recipeBean.setGiveMode(2);
-
             //剂型
             recipeBean.setRecipeDrugForm(fastRecipe.getRecipeDrugForm());
             //煎法
@@ -208,6 +208,8 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
             Integer recipeId = recipeSignService.doSignRecipeSave(recipeBean, detailBeanList);
             //5.通知复诊关联处方单
             recipePatientService.updateRecipeIdByConsultId(recipeId, recipeInfoVO.getRecipeBean().getClinicId());
+            //6.药方扣减库存
+            fastRecipeManager.decreaseStock(recipeInfoVO.getMouldId(), buyNum, recipeInfoVO.getRecipeBean().getClinicOrgan());
             return recipeId;
         } catch (Exception e) {
             logger.error("doctorJoinFastRecipeSaveRecipe error", e);
@@ -325,8 +327,10 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
         fastRecipe.setDecoctionId(recipeExtend.getDecoctionId());
         fastRecipe.setDecoctionPrice(recipeExtend.getDecoctionPrice());
         fastRecipe.setDecoctionText(recipeExtend.getDecoctionText());
+        fastRecipe.setDecoctionExhibitionFlag(recipeExtend.getDecoctionExhibitionFlag());
         fastRecipe.setDecoctionNum(recipe.getDecoctionNum());
         fastRecipe.setAppointEnterpriseType(0);
+        fastRecipe.setSaleNum(0);
         if (Objects.nonNull(recipe.getRecipeDrugForm())) {
             fastRecipe.setRecipeDrugForm(recipe.getRecipeDrugForm());
         }
@@ -544,23 +548,24 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
     }
 
     @Override
-    public boolean checkFastRecipeStock(DrugQueryVO recipeInfo) {
-        if (Objects.isNull(recipeInfo)) {
-            return true;
-        }
-        Integer buyNum = recipeInfo.getBuyNum();
-        Integer mouldId = recipeInfo.getMouldId();
-        if (Objects.isNull(buyNum) || Objects.isNull(mouldId)) {
-            return true;
-        }
-        FastRecipe fastRecipe = fastRecipeDAO.get(mouldId);
-        if (Objects.nonNull(fastRecipe) && Objects.nonNull(fastRecipe.getStockNum())
-                && (buyNum > fastRecipe.getStockNum() || Integer.valueOf("0").equals(fastRecipe.getStockNum()))) {
-            return false;
-        } else {
-            return true;
+    public List<Integer> checkFastRecipeStock(List<RecipeInfoVO> recipeInfoVOList) {
+        List<Integer> recipeIdList = Lists.newArrayList();
+        if (CollectionUtils.isEmpty(recipeInfoVOList)) {
+            return recipeIdList;
         }
 
+        for (RecipeInfoVO recipeInfoVO : recipeInfoVOList) {
+            Integer buyNum = recipeInfoVO.getBuyNum();
+            Integer mouldId = recipeInfoVO.getMouldId();
+            if (Objects.isNull(buyNum) || Objects.isNull(mouldId)) {
+                continue;
+            }
+            FastRecipe fastRecipe = fastRecipeDAO.get(mouldId);
+            if (Objects.nonNull(fastRecipe) && Objects.nonNull(fastRecipe.getStockNum()) && buyNum > fastRecipe.getStockNum()) {
+                recipeIdList.add(fastRecipe.getId());
+            }
+        }
+        return recipeIdList;
     }
 
 }

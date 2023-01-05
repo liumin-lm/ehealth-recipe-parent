@@ -99,6 +99,7 @@ import recipe.thread.PushRecipeToRegulationCallable;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.*;
 
+import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
@@ -171,6 +172,8 @@ public class RecipeServiceSub {
     private static IConfigurationClient configurationClient = AppContextHolder.getBean("IConfigurationClient", IConfigurationClient.class);
 
     private static EnterpriseManager enterpriseManager = AppContextHolder.getBean("enterpriseManager", EnterpriseManager.class);
+
+    private static FastRecipeManager fastRecipeManager = AppContextHolder.getBean("fastRecipeManager", FastRecipeManager.class);
 
     @Autowired
     private RevisitClient revisitClient;
@@ -2074,6 +2077,7 @@ public class RecipeServiceSub {
                 map.put("continueOpenRecipeFlag", canShowContinueSignFlag(recipe));
             }
         }
+        map.put("continueRecipeFlag", RecipeStateEnum.continueRecipeFlag.contains(recipe.getProcessState()));
     }
 
     private static boolean canShowContinueSignFlag(Recipe recipe) {
@@ -3011,6 +3015,8 @@ public class RecipeServiceSub {
         rMap.put("msg", msg);
         StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
         stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_DOCTOR);
+        fastRecipeManager.decreaseSaleNum(recipeId);
+        fastRecipeManager.addStockByRecipeId(recipeId);
         LOGGER.info("cancelRecipe execute ok rMap:{}， result:{}", JSONUtils.toString(rMap), memo);
         return rMap;
     }

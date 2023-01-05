@@ -5,7 +5,6 @@ import com.alibaba.fastjson.JSONArray;
 import com.google.common.base.Joiner;
 import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.dto.UsingRateDTO;
-import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.consult.common.model.ConsultExDTO;
 import com.ngari.follow.utils.ObjectCopyUtil;
 import com.ngari.his.recipe.mode.HisOrderCodeResTO;
@@ -31,6 +30,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.aop.LogRecord;
 import recipe.client.DocIndexClient;
 import recipe.client.RecipeAuditClient;
 import recipe.client.RecipeHisClient;
@@ -48,9 +48,9 @@ import recipe.enumerate.status.WriteHisEnum;
 import recipe.enumerate.type.AppointEnterpriseTypeEnum;
 import recipe.enumerate.type.FastRecipeFlagEnum;
 import recipe.enumerate.type.RecipeShowQrConfigEnum;
-import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.util.*;
 
+import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -1275,28 +1275,6 @@ public class RecipeManager extends BaseManager {
     }
 
     /**
-     * 减少快捷购药库存
-     * @param recipeIdList
-     * @param recipe
-     */
-    public void decreaseInventory(List<Integer> recipeIdList, Recipe recipe) {
-        logger.info("RecipeManager decreaseInventory recipeId:{}", recipe.getRecipeId());
-        Boolean fastRecipeUsePlatStock = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "fastRecipeUsePlatStock", false);
-        if (!FastRecipeFlagEnum.FAST_RECIPE_FLAG_QUICK.getType().equals(recipe.getFastRecipeFlag()) || !fastRecipeUsePlatStock) {
-            return;
-        }
-        try {
-            List<RecipeExtend> recipeExtendList = recipeExtendDAO.queryRecipeExtendByRecipeIds(recipeIdList);
-            recipeExtendList.forEach(recipeExtend -> {
-                fastRecipeDAO.updateInventoryByMouldId(recipeExtend.getMouldId(), recipeExtend.getFastRecipeNum());
-            });
-        } catch (Exception e) {
-            logger.error("RecipeManager decreaseInventory error", e);
-        }
-    }
-
-
-    /**
      * 排除 特定处方id
      *
      * @param recipeList
@@ -1315,4 +1293,34 @@ public class RecipeManager extends BaseManager {
         }
     }
 
+    /**
+     * 获取二方id下关联的处方
+     *
+     * @param clinicId   二方id
+     * @param bussSource 开处方来源 1问诊 2复诊(在线续方) 3网络门诊
+     * @return
+     */
+    public List<Recipe> findRecipeAllByBussSourceAndClinicId(Integer bussSource, Integer clinicId) {
+        List<Recipe> list = recipeDAO.findRecipeAllByBussSourceAndClinicId(bussSource, clinicId);
+        logger.info("RecipeManager findRecipeAllByBussSourceAndClinicId list :{}", JSON.toJSONString(list));
+        return list;
+    }
+
+    /**
+     * 判断处方是否写入成功his
+     *
+     * @param recipeId
+     * @return
+     */
+    @LogRecord
+    public boolean recipeWriteHis(Integer recipeId) {
+        if (ValidateUtil.integerIsEmpty(recipeId)) {
+            return false;
+        }
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        if (WriteHisEnum.WRITE_HIS_STATE_ORDER.getType().equals(recipe.getWriteHisState())) {
+            return true;
+        }
+        return false;
+    }
 }

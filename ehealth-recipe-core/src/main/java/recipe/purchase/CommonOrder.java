@@ -318,6 +318,7 @@ public class CommonOrder {
         }
 
     }
+
     //将map中用来生成平台订单的信息组装成订单配送信息
     private static RecipeOrder createOrderBySendMap(Map<String, String> extInfo) {
         LOG.info("createOrderBySendMap. extInfo=[{}]", JSONUtils.toString(extInfo));

@@ -7,6 +7,8 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.ngari.base.currentuserinfo.model.SimpleWxAccountBean;
+import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
 import com.ngari.base.hisconfig.model.HisServiceConfigBean;
 import com.ngari.base.hisconfig.service.IHisConfigService;
 import com.ngari.base.organconfig.model.OrganConfigBean;
@@ -15,6 +17,7 @@ import com.ngari.base.payment.model.DabaiPayResult;
 import com.ngari.base.payment.service.IPaymentService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.bus.coupon.service.ICouponService;
+import com.ngari.common.dto.RevisitTracesMsg;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.recipe.mode.QueryHisRecipResTO;
@@ -48,6 +51,7 @@ import coupon.api.service.ICouponBaseService;
 import coupon.api.vo.Coupon;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
+import ctd.net.broadcast.MQHelper;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.spring.AppDomainContext;
@@ -74,6 +78,7 @@ import recipe.client.IConfigurationClient;
 import recipe.client.InfraClient;
 import recipe.client.PayClient;
 import recipe.common.CommonConstant;
+import recipe.common.OnsConfig;
 import recipe.common.ResponseUtils;
 import recipe.constant.*;
 import recipe.core.api.IStockBusinessService;
@@ -91,6 +96,7 @@ import recipe.service.afterpay.AfterPayBusService;
 import recipe.service.afterpay.LogisticsOnlineOrderService;
 import recipe.service.common.RecipeCacheService;
 import recipe.thread.RecipeBusiThreadPool;
+import recipe.thread.UpdateWaterPrintRecipePdfRunnable;
 import recipe.util.LocalStringUtil;
 import recipe.util.MapValueUtil;
 
@@ -193,6 +199,8 @@ public class RecipeOrderService extends RecipeBaseService {
     private IRevisitExService revisitExService;
     @Autowired
     private OrganDrugListDAO organDrugListDAO;
+    @Autowired
+    private ICurrentUserInfoService currentUserInfoService;
 
 
 
@@ -881,9 +889,12 @@ public class RecipeOrderService extends RecipeBaseService {
                 Integer enterpriseId = MapValueUtil.getInteger(extInfo, "depId");
                 //TODO 这两个需要前端在切换地址或者物流公司的时候需要给
                 Integer logisticsCompany = MapValueUtil.getInteger(extInfo, "logisticsCompany");
-                OrganLogisticsManageDto organLogisticsManageDto=null;
-                organLogisticsManageDto=obtainExpressFee(order,enterpriseId,logisticsCompany,address,organLogisticsManageDto);
-                if(ExpressFeePayMethodEnum.CASHONDELIVERYOFFLINE.getType().equals(order.getExpressFeePayMethod())){
+                OrganLogisticsManageDto organLogisticsManageDto = null;
+                DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(enterpriseId);
+                if (Objects.nonNull(drugsEnterprise) && DrugEnterpriseConstant.LOGISTICS_PLATFORM.equals(drugsEnterprise.getLogisticsType())) {
+                    organLogisticsManageDto = obtainExpressFee(order, enterpriseId, logisticsCompany, address, organLogisticsManageDto);
+                }
+                if(organLogisticsManageDto != null && ExpressFeePayMethodEnum.CASHONDELIVERYOFFLINE.getType().equals(order.getExpressFeePayMethod())){
                     expressFee=null;
                     if ("301".equals(String.valueOf(logisticsCompany))) {
                         LogisticsEmsPriceDto logisticsEmsPriceDto = new LogisticsEmsPriceDto();
@@ -913,15 +924,14 @@ public class RecipeOrderService extends RecipeBaseService {
                             result.setExt(ext);
                         }
                     }
-                }else if(organLogisticsManageDto!=null&&
+                } else if(organLogisticsManageDto != null &&
                         !ExpressFeePayMethodEnum.CASHONDELIVERYOFFLINE.getType().equals(organLogisticsManageDto.getPayMethod())&&
                         ConsignmentPricingMethodEnum.LOGISTICS_COMPANY_PRICE.getType().equals(organLogisticsManageDto.getConsignmentPricingMethod())){
                     //取物流公司预估价格
-                    expressFee=order.getExpressFee();
-                }else{
+                    expressFee = order.getExpressFee();
+                } else {
                     //取机构设置物流价格
                     //优化快递费用获取，当费用是从第三方获取需要取第三方接口返回的快递费用
-                    DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
                     if (drugsEnterprise != null && new Integer(1).equals(drugsEnterprise.getExpressFeeType())) {
                         //获取地址信息
                         String address1 = address.getAddress1();  //省
@@ -1335,6 +1345,8 @@ public class RecipeOrderService extends RecipeBaseService {
             order.setOrderType(0);
         }
         try {
+            SimpleWxAccountBean wxAccount = currentUserInfoService.getSimpleWxAccount();
+            order.setTerminalSource(wxAccount.getAppId());
             if (StringUtils.isEmpty(order.getExpectStartTakeTime())) {
                 order.setExpectStartTakeTime("1970-01-01 00:00:01");
                 order.setExpectEndTakeTime("1970-01-01 00:00:01");
@@ -2576,14 +2588,16 @@ public class RecipeOrderService extends RecipeBaseService {
         order = recipeOrderDAO.getByOrderCode(orderCode);
         //支付后需要完成【1 健康卡上传 2 记账  3 物流自动下单 4 推送消息】
         afterPayBusService.handle(result, order, recipes, payFlag);
-        // 处方支付信息上传 监管平台
-        RecipeBusiThreadPool.submit(() -> {
+        RecipeBusiThreadPool.execute(() -> {
+            // 处方支付信息上传 监管平台
             HisSyncSupervisionService hisSyncservice = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
             hisSyncservice.uploadRecipePayToRegulation(orderCode, payFlag, refundNo);
-            return null;
         });
+
         return result;
     }
+
+
 
     /**
      * 对来源于HIS的处方单状态更新为已处理
@@ -3094,7 +3108,12 @@ public class RecipeOrderService extends RecipeBaseService {
                 result.setError(resultBean.getError());
                 break;
             }
+            RecipeBusiThreadPool.execute(() -> {
+                stateManager.statusChangeNotify(recipeId,JKHBConstant.ALREADY_PAY);
+            });
         }
+
+
         return result;
     }
 

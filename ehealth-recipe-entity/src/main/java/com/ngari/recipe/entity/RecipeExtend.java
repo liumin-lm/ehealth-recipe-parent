@@ -238,6 +238,9 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "医生选择是否代煎（ 0:否 1：是）")
     private String doctorIsDecoction;
 
+    @ItemProperty(alias = "代煎前端展示 0 不展示 1 展示")
+    private Integer decoctionExhibitionFlag;
+
     @ItemProperty(alias = "处方签名失败具体原因")
     private String signFailReason;
 
@@ -1125,5 +1128,14 @@ public class RecipeExtend implements Serializable {
 
     public void setFastRecipeNum(Integer fastRecipeNum) {
         this.fastRecipeNum = fastRecipeNum;
+    }
+
+    @Column(name = "decoction_exhibition_flag")
+    public Integer getDecoctionExhibitionFlag() {
+        return decoctionExhibitionFlag;
+    }
+
+    public void setDecoctionExhibitionFlag(Integer decoctionExhibitionFlag) {
+        this.decoctionExhibitionFlag = decoctionExhibitionFlag;
     }
 }

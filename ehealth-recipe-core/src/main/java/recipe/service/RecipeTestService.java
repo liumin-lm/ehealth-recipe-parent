@@ -109,7 +109,18 @@ public class RecipeTestService {
     private RecipeDetailDAO recipeDetailDAO;
     @Autowired
     private RecipeExtendDAO recipeExtendDAO;
+    @Autowired
+    private StateManager stateManager;
 
+    /**
+     * 状态通知补偿方法
+     * @param recipeId
+     * @param orderStatus
+     */
+    @RpcService
+    public void statusChangeNotify(Integer recipeId,String orderStatus){
+        stateManager.statusChangeNotify(recipeId,orderStatus);
+    }
 
     @RpcService
     public PushRecipeAndOrder getPushRecipeAndOrder(Integer recipeId, Integer enterpriseId){

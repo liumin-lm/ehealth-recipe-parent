@@ -32,6 +32,7 @@ import recipe.util.ObjectCopyUtils;
 import recipe.util.ValidateUtil;
 import recipe.vo.doctor.DrugQueryVO;
 import recipe.vo.doctor.DrugsResVo;
+import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.patient.PatientContinueRecipeCheckDrugReq;
 import recipe.vo.patient.PatientContinueRecipeCheckDrugRes;
 import recipe.vo.second.ClinicCartVO;
@@ -40,7 +41,6 @@ import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * @description： 患者药品查询入口
@@ -164,23 +164,21 @@ public class DrugPatientAtop extends BaseAtop {
     }
 
 
+    /**
+     * 保留几个版本后删除
+     *
+     * @param drugQueryVO
+     * @return
+     */
+    @Deprecated
     @RpcService
     public boolean searchDrugRecipeStock(DrugQueryVO drugQueryVO) {
-        logger.error("searchDrugRecipeStock param ={}", JSON.toJSONString(drugQueryVO));
-        Object config = configService.getConfiguration(drugQueryVO.getOrganId(), "fastRecipeUsePlatStock");
-        boolean fastRecipeUsePlatStock = Objects.nonNull(config) && (Boolean) config;
-        if (fastRecipeUsePlatStock) {
-            // 判断平台库存
-            return fastRecipeService.checkFastRecipeStock(drugQueryVO);
-        } else {
-            RecipeDTO recipeDTO = this.recipeDTO(drugQueryVO);
-            List<EnterpriseStock> result = iStockBusinessService.drugRecipeStock(recipeDTO, StockCheckSourceTypeEnum.PATIENT_STOCK.getType());
-            logger.info("DrugDoctorAtop drugRecipeStock result={}", JSONArray.toJSONString(result));
-            if (CollectionUtils.isEmpty(result)) {
-                return false;
-            }
-            return result.stream().anyMatch(EnterpriseStock::getStock);
-        }
+        return true;
+    }
+
+    @RpcService
+    public List<Integer> queryFastRecipePlatStock(List<RecipeInfoVO> recipeInfoVOList) {
+        return fastRecipeService.checkFastRecipeStock(recipeInfoVOList);
     }
 
     /**

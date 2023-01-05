@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.dto.ConfigOptionsDTO;
 import com.ngari.recipe.dto.RecipeDetailDTO;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.vo.RecipeSkipVO;
 import org.apache.commons.collections.CollectionUtils;
@@ -15,7 +16,6 @@ import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.client.IConfigurationClient;
 import recipe.core.api.IRecipeDetailBusinessService;
-import recipe.dao.RecipeDetailDAO;
 import recipe.drugTool.validate.RecipeDetailValidateTool;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
@@ -25,10 +25,12 @@ import recipe.util.ObjectCopyUtils;
 import recipe.util.ValidateUtil;
 import recipe.vo.ResultBean;
 import recipe.vo.doctor.ConfigOptionsVO;
+import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.doctor.ValidateDetailVO;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -52,8 +54,6 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
     private IConfigurationClient configurationClient;
     @Autowired
     private RecipeDetailValidateTool recipeDetailValidateTool;
-    @Autowired
-    private RecipeDetailDAO recipeDetailDAO;
     @Autowired
     private PharmacyManager pharmacyManager;
     @Autowired
@@ -146,7 +146,7 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
         StringBuilder stringBuilder = new StringBuilder();
         List<Recipedetail> recipeDetails;
         if (StringUtils.isNotEmpty(orderCode)) {
-            recipeDetails = recipeDetailDAO.findDetailByOrderCode(orderCode);
+            recipeDetails = recipeDetailManager.findDetailByOrderCode(orderCode);
         } else {
             List<Integer> recipeIds = orderManager.getRecipeIdsByOrderId(orderId);
             recipeDetails = recipeDetailManager.findRecipeDetails(recipeIds);
@@ -305,6 +305,29 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
             list.add(ObjectCopyUtils.convert(money, ConfigOptionsVO.class));
         }
         return list;
+    }
+
+    @Override
+    public List<RecipeInfoVO> recipeAllByClinicId(Integer clinicId, Integer bussSource) {
+        List<Recipe> list = recipeManager.findRecipeAllByBussSourceAndClinicId(bussSource, clinicId);
+        if (CollectionUtils.isEmpty(list)) {
+            return Collections.emptyList();
+        }
+        List<Integer> ids = list.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
+        List<Recipedetail> details = recipeDetailManager.findRecipeDetails(ids);
+        if (CollectionUtils.isEmpty(details)) {
+            return Collections.emptyList();
+        }
+        Map<Integer, List<Recipedetail>> detailMap = details.stream().collect(Collectors.groupingBy(Recipedetail::getRecipeId));
+        return list.stream().map(a -> {
+            RecipeInfoVO recipeInfoVO = new RecipeInfoVO();
+            recipeInfoVO.setRecipeBean(ObjectCopyUtils.convert(a, RecipeBean.class));
+            List<Recipedetail> detail = detailMap.get(a.getRecipeId());
+            if (CollectionUtils.isNotEmpty(detail)) {
+                recipeInfoVO.setRecipeDetails(ObjectCopyUtils.convert(detail, RecipeDetailBean.class));
+            }
+            return recipeInfoVO;
+        }).collect(Collectors.toList());
     }
 
 

@@ -154,4 +154,7 @@ public class RecipeOrderDetailExportBean implements Serializable {
     @ItemProperty(alias = "单方代煎费")
     private String singleDecoctionFee;
 
+    @ItemProperty(alias = "退费金额")
+    private BigDecimal refundAmount;
+
 }

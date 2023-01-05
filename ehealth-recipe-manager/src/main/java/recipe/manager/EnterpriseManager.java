@@ -30,6 +30,7 @@ import org.springframework.stereotype.Service;
 import recipe.aop.LogRecord;
 import recipe.client.*;
 import recipe.constant.DrugEnterpriseConstant;
+import recipe.constant.RecipeBussConstant;
 import recipe.dao.*;
 import recipe.enumerate.status.*;
 import recipe.enumerate.type.*;
@@ -1147,6 +1148,11 @@ public class EnterpriseManager extends BaseManager {
         return supportGiveModeEnum;
     }
 
+    /**
+     * 根据payMode获取支持的购药方式
+     * @param payMode
+     * @return
+     */
     public RecipeSupportGiveModeEnum getDepSupportModeByPayMode(Integer payMode){
         RecipeSupportGiveModeEnum supportGiveModeEnum = null;
         switch (payMode) {
@@ -1166,6 +1172,37 @@ public class EnterpriseManager extends BaseManager {
                 break;
         }
         return supportGiveModeEnum;
+    }
+
+    /**
+     * 校验药企支持的代煎方式
+     * @param recipeList
+     * @param depId
+     * @param patientIsDecoction
+     */
+    public void checkSupportDecoction(List<Recipe> recipeList, Integer depId, Integer patientIsDecoction, Integer giveMode) {
+        // 检验是中药处方
+        List<Integer> list = recipeList.stream().map(Recipe::getRecipeType).collect(Collectors.toList());
+        if (list.contains(RecipeBussConstant.RECIPETYPE_TCM)) {
+            // 中药处方代煎需要校验药企是否支持配送代煎
+            OrganAndDrugsepRelation relation = organAndDrugsepRelationDAO.getOrganAndDrugsepByOrganIdAndEntId(recipeList.get(0).getClinicOrgan(), depId);
+            if (Objects.isNull(relation)) {
+                return;
+            }
+            String supportDecoctionState = "";
+            if (GiveModeTextEnum.SENDTOHOS.getGiveMode().equals(giveMode)) {
+                supportDecoctionState = relation.getSupportDecoctionState();
+            } else {
+                supportDecoctionState = relation.getSupportSelfDecoctionState();
+            }
+            if (StringUtils.isNotEmpty(supportDecoctionState)) {
+                logger.info("checkSupportDecoction SupportDecoctionState ={}  patientIsDecoction={}", supportDecoctionState, patientIsDecoction);
+                List<Integer> supportDecoctionType = JSONUtils.parse(supportDecoctionState, List.class);
+                if (supportDecoctionType.contains(patientIsDecoction)) {
+                    throw new DAOException(609, "当前代煎类型不支持该购药方式，请换一种购药方式");
+                }
+            }
+        }
     }
 }
 

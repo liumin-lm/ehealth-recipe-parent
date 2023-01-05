@@ -123,6 +123,9 @@ public class FastRecipeVO implements Serializable {
     @ItemProperty(alias = "医生选择是否代煎（ 0:否 1：是）")
     private String doctorIsDecoction;
 
+    @ItemProperty(alias = "代煎前端展示 0 不展示 1 展示")
+    private Integer decoctionExhibitionFlag;
+
     @ItemProperty(alias = "每贴次数")
     private String everyTcmNumFre;
 
@@ -162,4 +165,7 @@ public class FastRecipeVO implements Serializable {
 
     @ItemProperty(alias = "药方库存")
     private Integer stockNum;
+
+    @ItemProperty(alias = "药方销量")
+    private Integer saleNum;
 }

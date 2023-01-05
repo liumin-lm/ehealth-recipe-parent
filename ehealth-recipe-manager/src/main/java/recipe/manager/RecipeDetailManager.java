@@ -269,7 +269,6 @@ public class RecipeDetailManager extends BaseManager {
         return drugClient.totalMoney(recipeType, detailList, recipe);
     }
 
-
     /**
      * 保存处方明细
      *
@@ -348,4 +347,14 @@ public class RecipeDetailManager extends BaseManager {
         drugClient.setRecipeDetail(detail, usePathwaysMap, usingRateMap);
     }
 
+
+    /**
+     * 根据订单查询处方 详情
+     *
+     * @param orderCode
+     * @return
+     */
+    public List<Recipedetail> findDetailByOrderCode(String orderCode) {
+        return recipeDetailDAO.findDetailByOrderCode(orderCode);
+    }
 }

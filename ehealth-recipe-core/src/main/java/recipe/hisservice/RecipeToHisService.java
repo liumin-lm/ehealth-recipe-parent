@@ -31,9 +31,11 @@ import recipe.dao.OrganDrugListDAO;
 import recipe.dao.PharmacyTcmDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
+import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.status.WriteHisEnum;
+import recipe.manager.StateManager;
 import recipe.service.HisCallBackService;
-import recipe.service.RecipeLogService;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -56,7 +58,8 @@ public class RecipeToHisService {
     private IRecipeHisService hisService;
     @Autowired
     private RecipeOrderDAO recipeOrderDAO;
-
+    @Autowired
+    private StateManager stateManager;
 
     public void recipeSend(RecipeSendRequestTO request) {
         LOGGER.info("RecipeToHisService recipeSend  request={}", JSONUtils.toString(request));
@@ -70,17 +73,14 @@ public class RecipeToHisService {
             if (null == recipe) {
                 return;
             }
-            if (RecipeStatusEnum.RECIPE_STATUS_CHECKING_HOS.getType().equals(recipe.getStatus())) {
+            if (WriteHisEnum.WRITE_HIS_STATE_SUBMIT.getType().equals(recipe.getWriteHisState())) {
                 //失败修改状态
                 Recipe recipeUpdate = new Recipe();
                 recipeUpdate.setRecipeId(recipeId);
                 recipeUpdate.setStatus(RecipeStatusEnum.RECIPE_STATUS_HIS_FAIL.getType());
+                recipeUpdate.setWriteHisState(WriteHisEnum.WRITE_HIS_STATE_AUDIT.getType());
                 recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
-                //日志记录
-                RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusEnum.RECIPE_STATUS_HIS_FAIL.getType(), "his写入失败，调用前置机处方写入服务失败");
-            } else {
-                //非医院确认中的状态不做更改（避免已经回调成功了，这再报超时异常）
-                RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "his写入失败，调用前置机处方写入服务失败,状态不变");
+                stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_WRITE_HIS_ERROR);
             }
         }
     }

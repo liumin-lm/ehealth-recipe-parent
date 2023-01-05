@@ -58,7 +58,7 @@ public class OrganDrugList implements java.io.Serializable {
     @ItemProperty(alias = "出售单位HIS编码")
     private String unitHisCode;
 
-    @ItemProperty(alias = "注册规格剂量")
+    @ItemProperty(alias = "注册规格单位剂量")
     private Double useDose;
 
     @ItemProperty(alias = "注册规格默认每次剂量")

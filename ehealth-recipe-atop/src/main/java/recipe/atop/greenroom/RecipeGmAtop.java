@@ -17,6 +17,7 @@ import recipe.core.api.patient.IRecipeOrderBusinessService;
 import recipe.vo.ResultBean;
 import recipe.vo.greenroom.DrugUsageLabelResp;
 import recipe.vo.greenroom.FindRecipeListForPatientVO;
+import recipe.vo.greenroom.logisticsOrderInfoVO;
 
 import java.util.Date;
 import java.util.List;
@@ -168,6 +169,16 @@ public class RecipeGmAtop extends BaseAtop {
     @RpcService
     public List<PatientTabStatusMergeRecipeDTO> findRecipeListForPatientByTabStatus(FindRecipeListForPatientVO param) {
         return recipeBusinessService.findRecipeListForPatientByTabStatus(param);
+    }
+
+    /**
+     * 药品订单-打印快递面单获取物流订单详情
+     * @param orderCode
+     */
+    @RpcService
+    public logisticsOrderInfoVO getLogisticsOrderInfo(String orderCode){
+        validateAtop(orderCode);
+        return recipeBusinessService.getLogisticsOrderInfo(orderCode);
     }
 
 }

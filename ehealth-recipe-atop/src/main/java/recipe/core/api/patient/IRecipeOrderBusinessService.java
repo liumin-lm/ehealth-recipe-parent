@@ -17,6 +17,7 @@ import recipe.vo.greenroom.ImperfectInfoVO;
 import recipe.vo.greenroom.RecipeRefundInfoReqVO;
 import recipe.vo.second.CabinetVO;
 import recipe.vo.second.CheckOrderAddressVo;
+import recipe.vo.second.OrderPharmacyVO;
 import recipe.vo.second.enterpriseOrder.DownOrderRequestVO;
 import recipe.vo.second.enterpriseOrder.EnterpriseDownDataVO;
 
@@ -302,4 +303,10 @@ public interface IRecipeOrderBusinessService {
      * @return
      */
     Boolean updateInvoiceStatus(String orderCode, Integer invoiceType);
+    /**
+     *  提供给物流 ---- 根据订单编号查询处方药房信息
+     * @param orderCode
+     * @return
+     */
+    List<OrderPharmacyVO> getPharmacyByOrderCode(String orderCode);
 }

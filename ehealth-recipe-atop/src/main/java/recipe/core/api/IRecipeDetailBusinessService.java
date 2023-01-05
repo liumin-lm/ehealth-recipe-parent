@@ -6,6 +6,7 @@ import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.vo.RecipeSkipVO;
 import recipe.vo.ResultBean;
 import recipe.vo.doctor.ConfigOptionsVO;
+import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.doctor.ValidateDetailVO;
 
 import java.util.List;
@@ -102,4 +103,13 @@ public interface IRecipeDetailBusinessService {
      * @return
      */
     List<ConfigOptionsVO> validateConfigOptions(ValidateDetailVO validateDetailVO);
+
+    /**
+     * 获取二方id下关联的处方和明细
+     *
+     * @param clinicId   二方id
+     * @param bussSource 开处方来源 1问诊 2复诊(在线续方) 3网络门诊
+     * @return
+     */
+    List<RecipeInfoVO> recipeAllByClinicId(Integer clinicId, Integer bussSource);
 }

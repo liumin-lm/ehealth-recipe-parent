@@ -27,7 +27,6 @@ import ctd.util.JSONUtils;
 import eh.base.constant.ErrorCode;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.checkerframework.checker.units.qual.A;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,12 +47,10 @@ import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.drugsenterprise.paymodeonlineshowdep.PayModeOnlineShowDepServiceProducer;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.status.SettleAmountStateEnum;
-import recipe.enumerate.type.FastRecipeFlagEnum;
-import recipe.enumerate.type.RecipeSupportGiveModeEnum;
-import recipe.enumerate.type.StandardPaymentWayEnum;
-import recipe.enumerate.type.StockCheckSourceTypeEnum;
+import recipe.enumerate.type.*;
 import recipe.hisservice.RecipeToHisService;
 import recipe.manager.EnterpriseManager;
+import recipe.manager.FastRecipeManager;
 import recipe.manager.OrderManager;
 import recipe.manager.RecipeManager;
 import recipe.presettle.factory.OrderTypeFactory;
@@ -63,6 +60,7 @@ import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 import recipe.util.ObjectCopyUtils;
 
+import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -89,13 +87,13 @@ public class PayModeOnline implements IPurchaseService {
     @Autowired
     private PatientClient patientClient;
     @Autowired
-    private OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO;
-    @Autowired
     private OrganDrugsSaleConfigDAO organDrugsSaleConfigDAO;
     @Autowired
     private IConfigurationClient configurationClient;
     @Autowired
     private RecipeManager recipeManager;
+    @Resource
+    private FastRecipeManager fastRecipeManager;
 
     @Override
     public RecipeResultBean findSupportDepList(Recipe dbRecipe, Map<String, String> extInfo) {
@@ -216,19 +214,7 @@ public class PayModeOnline implements IPurchaseService {
         Integer takeMedicineWay = MapValueUtil.getInteger(extInfo, "takeMedicineWay");
         Integer templateId = MapValueUtil.getInteger(extInfo, "invoiceRecordId");
         Integer patientIsDecoction = MapValueUtil.getInteger(extInfo, "patientIsDecoction");
-        // 检验是中药处方
-        List<Integer> list = recipeList.stream().map(Recipe::getRecipeType).collect(Collectors.toList());
-        if (list.contains(RecipeBussConstant.RECIPETYPE_TCM)) {
-            // 中药处方代煎需要校验药企是否支持配送代煎
-            OrganAndDrugsepRelation relation = organAndDrugsepRelationDAO.getOrganAndDrugsepByOrganIdAndEntId(recipeList.get(0).getClinicOrgan(), depId);
-            if (Objects.nonNull(relation) && StringUtils.isNotEmpty(relation.getSupportDecoctionState())) {
-                LOG.info("getOrderCreateResult.SupportDecoctionState ={}  patientIsDecoction={}", relation.getSupportDecoctionState(), patientIsDecoction);
-                List<Integer> supportDecoctionType = JSONUtils.parse((relation.getSupportDecoctionState()), List.class);
-                if (supportDecoctionType.contains(patientIsDecoction)) {
-                    throw new DAOException(609, "当前代煎类型不支持该购药方式，请换一种购药方式");
-                }
-            }
-        }
+        enterpriseManager.checkSupportDecoction(recipeList, depId, patientIsDecoction, GiveModeTextEnum.SENDTOHOS.getGiveMode());
 
         if (StringUtils.isNotEmpty(insuredArea)) {
             for (Recipe recipe : recipeList) {
@@ -378,7 +364,7 @@ public class PayModeOnline implements IPurchaseService {
             result.setMsg("订单保存出错");
             return result;
         }
-        recipeManager.decreaseInventory(recipeIdLists, recipeList.get(0));
+        recipeIdLists.forEach(recipeId -> fastRecipeManager.addSaleNum(recipeId));
         orderService.setCreateOrderResult(result, order, payModeSupport, 1);
         if (0d >= order.getActualPrice()) {
             //如果不需要支付则不走支付

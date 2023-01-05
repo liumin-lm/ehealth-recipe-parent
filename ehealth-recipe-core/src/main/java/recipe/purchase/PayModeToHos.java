@@ -33,18 +33,17 @@ import recipe.enumerate.status.GiveModeEnum;
 import recipe.enumerate.status.PayModeEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.FastRecipeFlagEnum;
+import recipe.enumerate.type.GiveModeTextEnum;
 import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.enumerate.type.StockCheckSourceTypeEnum;
-import recipe.manager.EnterpriseManager;
-import recipe.manager.OrderManager;
-import recipe.manager.OrganDrugListManager;
-import recipe.manager.RecipeManager;
+import recipe.manager.*;
 import recipe.presettle.factory.OrderTypeFactory;
 import recipe.presettle.model.OrderTypeCreateConditionRequest;
 import recipe.service.RecipeOrderService;
 import recipe.util.DistanceUtil;
 import recipe.util.MapValueUtil;
 
+import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -90,8 +89,8 @@ public class PayModeToHos implements IPurchaseService {
     private RecipeExtendDAO recipeExtendDAO;
     @Autowired
     private RecipeManager recipeManager;
-    @Autowired
-    private FastRecipeDAO fastRecipeDAO;
+    @Resource
+    private FastRecipeManager fastRecipeManager;
 
     private static final Logger LOG = LoggerFactory.getLogger(PayModeToHos.class);
 
@@ -126,6 +125,7 @@ public class PayModeToHos implements IPurchaseService {
         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
 
         Integer payMode = MapValueUtil.getInteger(extInfo, "payMode");
+        Integer patientIsDecoction = MapValueUtil.getInteger(extInfo, "patientIsDecoction");
         RecipePayModeSupportBean payModeSupport = orderService.setPayModeSupport(order, payMode);
         List<Integer> recipeIdLists = dbRecipes.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
         // 到院自取是否采用药企管理模式
@@ -133,6 +133,7 @@ public class PayModeToHos implements IPurchaseService {
         if (drugToHosByEnterprise) {
             Integer depId = MapValueUtil.getInteger(extInfo, "depId");
             DrugsEnterprise dep = drugsEnterpriseDAO.get(depId);
+            enterpriseManager.checkSupportDecoction(dbRecipes, depId, patientIsDecoction, GiveModeTextEnum.SUPPORTTOHIS.getGiveMode());
             //处理详情
             for (Recipe dbRecipe : dbRecipes) {
                 List<Recipedetail> detailList = recipeDetailDAO.findByRecipeId(dbRecipe.getRecipeId());
@@ -230,13 +231,10 @@ public class PayModeToHos implements IPurchaseService {
             result.setMsg("提交失败，请重新提交。");
             return result;
         }
-        recipeManager.decreaseInventory(recipeIdLists, dbRecipes.get(0));
+        recipeIdLists.forEach(recipeId -> fastRecipeManager.addSaleNum(recipeId));
         // 到院自取也需要更新药品实际销售价格
-        recipeIdLists.forEach(recipeId -> {
-            purchaseService.updateRecipeDetail(recipeId,null);
-        });
+        recipeIdLists.forEach(recipeId -> purchaseService.updateRecipeDetail(recipeId,null));
         orderService.setCreateOrderResult(result, order, payModeSupport, 1);
-        //更新处方信息
         //更新处方信息
         if (0d >= order.getActualPrice()) {
             //如果不需要支付则不走支付,直接掉支付后的逻辑
