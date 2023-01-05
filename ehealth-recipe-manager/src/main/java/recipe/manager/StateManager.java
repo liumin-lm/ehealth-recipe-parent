@@ -37,10 +37,13 @@ public class StateManager extends BaseManager {
     private CouponClient couponClient;
 
     @Resource
-    RecipeAuditClient recipeAuditClient;
+    private RecipeAuditClient recipeAuditClient;
 
     @Autowired
     private RedisClient redisClient;
+
+    @Resource
+    private FastRecipeManager fastRecipeManager;
 
     /**
      * 修改订单状态
@@ -123,6 +126,8 @@ public class StateManager extends BaseManager {
             case PROCESS_STATE_CANCELLATION:
                 result = this.cancellation(recipe, processState, subState);
                 statusChangeNotify(recipe.getRecipeId(), JKHBConstant.PROCESS_STATE_CANCELLATION);
+                fastRecipeManager.decreaseSaleNum(recipeId);
+                fastRecipeManager.addStockByRecipeId(recipeId);
                 break;
             default:
                 result = false;
