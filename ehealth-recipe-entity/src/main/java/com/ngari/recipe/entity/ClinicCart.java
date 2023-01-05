@@ -184,7 +184,7 @@ public class ClinicCart implements Serializable {
         this.copyNum = copyNum;
     }
 
-    @Column(name = "stock_num")
+    @Transient
     public Integer getStockNum() {
         return stockNum;
     }
