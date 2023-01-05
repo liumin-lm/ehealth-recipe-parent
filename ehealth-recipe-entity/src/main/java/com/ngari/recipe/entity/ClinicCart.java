@@ -61,6 +61,9 @@ public class ClinicCart implements Serializable {
     @ItemProperty(alias = "贴数")
     private Integer copyNum;
 
+    @ItemProperty(alias = "库存")
+    private Integer stockNum;
+
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
@@ -179,5 +182,14 @@ public class ClinicCart implements Serializable {
 
     public void setCopyNum(Integer copyNum) {
         this.copyNum = copyNum;
+    }
+
+    @Column(name = "stock_num")
+    public Integer getStockNum() {
+        return stockNum;
+    }
+
+    public void setStockNum(Integer stockNum) {
+        this.stockNum = stockNum;
     }
 }

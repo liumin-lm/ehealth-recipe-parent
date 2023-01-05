@@ -400,6 +400,12 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "是否冷链运输 0 否 1 是")
     private Integer coldChainTransportationFlag;
 
+    @ItemProperty(alias = "是否已打印发药清单")
+    private Boolean printDrugDistributionListFlag;
+
+    @ItemProperty(alias = "是否已打印快递面单")
+    private Boolean printExpressBillFlag;
+
     @ItemProperty(alias = "退费金额")
     private BigDecimal refundAmount;
 
@@ -1529,6 +1535,24 @@ public class RecipeOrder implements Serializable {
 
     public void setColdChainTransportationFlag(Integer coldChainTransportationFlag) {
         this.coldChainTransportationFlag = coldChainTransportationFlag;
+    }
+
+    @Column(name = "print_drug_distribution_list_flag")
+    public Boolean getPrintDrugDistributionListFlag() {
+        return printDrugDistributionListFlag;
+    }
+
+    public void setPrintDrugDistributionListFlag(Boolean printDrugDistributionListFlag) {
+        this.printDrugDistributionListFlag = printDrugDistributionListFlag;
+    }
+
+    @Column(name = "print_express_bill_flag")
+    public Boolean getPrintExpressBillFlag() {
+        return printExpressBillFlag;
+    }
+
+    public void setPrintExpressBillFlag(Boolean printExpressBillFlag) {
+        this.printExpressBillFlag = printExpressBillFlag;
     }
 
     @Column(name = "refund_amount")

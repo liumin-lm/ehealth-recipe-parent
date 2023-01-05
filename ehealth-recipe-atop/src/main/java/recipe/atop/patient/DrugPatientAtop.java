@@ -177,7 +177,7 @@ public class DrugPatientAtop extends BaseAtop {
     }
 
     @RpcService
-    public boolean queryFastRecipePlatStock(List<RecipeInfoVO> recipeInfoVOList) {
+    public List<Integer> queryFastRecipePlatStock(List<RecipeInfoVO> recipeInfoVOList) {
         return fastRecipeService.checkFastRecipeStock(recipeInfoVOList);
     }
 

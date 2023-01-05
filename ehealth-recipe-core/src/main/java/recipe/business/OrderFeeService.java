@@ -3,6 +3,7 @@ package recipe.business;
 import com.alibaba.fastjson.JSON;
 import com.ngari.infra.invoice.mode.InvoiceRecordDto;
 import com.ngari.infra.invoice.service.InvoiceRecordService;
+import com.ngari.infra.logistics.service.ILogisticsOrderService;
 import com.ngari.infra.logistics.mode.LogisticsOrderDetailsDto;
 import com.ngari.infra.logistics.service.ILogisticsOrderService;
 import com.ngari.patient.service.OrganService;
@@ -184,6 +185,8 @@ public class OrderFeeService implements IRecipeOrderRefundService {
             if (null != recipeExtend) {
                 recipeOrderRefundVO.setRefundStatusText(RefundNodeStatusEnum.getRefundStatus(recipeExtend.getRefundNodeStatus()));
             }
+            recipeOrderRefundVO.setPrintDrugDistributionListFlag(recipeOrder.getPrintDrugDistributionListFlag());
+            recipeOrderRefundVO.setPrintExpressBillFlag(recipeOrder.getPrintExpressBillFlag());
             recipeOrderRefundVOList.add(recipeOrderRefundVO);
         });
         recipeOrderRefundPageVO.setRecipeOrderRefundVOList(recipeOrderRefundVOList);
@@ -294,6 +297,16 @@ public class OrderFeeService implements IRecipeOrderRefundService {
         RecipeOrderBill recipeOrderBill = recipeOrderBillDAO.getRecipeOrderBillByOrderCode(orderCode);
         if(recipeOrderBill != null){
             recipeOrderRefundDetailVO.setBillNumber(recipeOrderBill.getBillNumber());
+        }
+        try {
+            //查是否可以打印快递面单
+            ILogisticsOrderService logisticsOrderService = AppContextHolder.getBean("infra.logisticsOrderService", ILogisticsOrderService.class);
+            String logisticsOrderPrintWaybill = logisticsOrderService.printWaybillByLogisticsOrderNo(1, orderCode);
+            recipeOrderRefundDetailVO.setLogisticsOrderPrintWaybill(logisticsOrderPrintWaybill);
+            recipeOrderRefundDetailVO.setPrintWaybillByLogisticsOrderNo(true);
+        }catch (Exception e){
+            recipeOrderRefundDetailVO.setPrintWaybillByLogisticsOrderNo(false);
+            logger.error("RecipeOrderRefundService getRefundOrderDetail error", e);
         }
         return recipeOrderRefundDetailVO;
     }

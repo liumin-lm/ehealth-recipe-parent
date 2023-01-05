@@ -51,4 +51,7 @@ public class ClinicCartVO {
 
     @ItemProperty(alias = "贴数")
     private Integer copyNum;
+
+    @ItemProperty(alias = "库存")
+    private Integer stockNum;
 }

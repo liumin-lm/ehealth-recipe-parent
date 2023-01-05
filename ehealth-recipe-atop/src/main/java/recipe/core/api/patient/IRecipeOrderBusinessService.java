@@ -296,6 +296,14 @@ public interface IRecipeOrderBusinessService {
     Integer checkOrderPayState(Integer orderId);
 
     /**
+     * 运营平台-药品订单-更新是否打印发药清单和快递面单
+     *
+     * @param orderCode 订单编号
+     * @param invoiceType 发票类型 1 打印发药清单 2 打印快递面单
+     * @return
+     */
+    Boolean updateInvoiceStatus(String orderCode, Integer invoiceType);
+    /**
      *  提供给物流 ---- 根据订单编号查询处方药房信息
      * @param orderCode
      * @return

@@ -47,10 +47,11 @@ public enum OrderStateEnum {
     /**
      * 订单子状态:作废
      */
+    SUB_CANCELLATION_SETTLE_FAIL(90, "下单结算失败", "患者下单结算失败"),
     SUB_CANCELLATION_DOCTOR_REPEAL(91, "医生撤销", ""),
     SUB_CANCELLATION_AUDIT_NOT_PASS(92, "药师审核未通过", "药师审核不通过"),
-    SUB_CANCELLATION_REFUSE_ORDER(93, "售药方拒绝订单", "已拒发"),
-    SUB_CANCELLATION_RETURN_DRUG(94, "售药方退药", "已退药"),
+    SUB_CANCELLATION_REFUSE_ORDER(93, "供药方拒绝订单", "已拒发"),
+    SUB_CANCELLATION_RETURN_DRUG(94, "供药方退药", "已退药"),
     SUB_CANCELLATION_TIMEOUT_NON_PAYMENT(95, "超时未支付", "过期处方（未支付过期 /未处理过期）"),
     SUB_CANCELLATION_TIMEOUT_NOT_MEDICINE(96, "超时未取药", "超时未取药系统取消"),
     SUB_CANCELLATION_USER(97, "用户取消", "患者手动取消"),
@@ -77,7 +78,9 @@ public enum OrderStateEnum {
         return name;
     }
 
-
+    public String getDesc() {
+        return desc;
+    }
 
     /**
      * 根据类型 获取枚举类型

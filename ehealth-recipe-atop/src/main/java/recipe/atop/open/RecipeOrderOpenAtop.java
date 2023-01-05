@@ -217,6 +217,11 @@ public class RecipeOrderOpenAtop extends BaseAtop implements IRecipeOrderAtopSer
     }
 
     @Override
+    public Boolean updateInvoiceStatus(String orderCode, Integer invoiceType) {
+        return recipeOrderService.updateInvoiceStatus(orderCode,invoiceType);
+    }
+
+    @Override
     public List<OrderPharmacyVO> getPharmacyByOrderCode(String orderCode) {
         validateAtop(orderCode);
         return recipeOrderService.getPharmacyByOrderCode(orderCode);

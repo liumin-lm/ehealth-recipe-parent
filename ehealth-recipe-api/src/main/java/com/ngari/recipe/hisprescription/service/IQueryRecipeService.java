@@ -33,7 +33,7 @@ public interface IQueryRecipeService {
      * @param checkFlag
      * @return
      */
-    @RpcService
+    @RpcService(timeout = 60)
     List<RegulationRecipeIndicatorsDTO> queryRegulationRecipeData(Integer organId, Date startDate, Date endDate, Boolean checkFlag);
 
 
