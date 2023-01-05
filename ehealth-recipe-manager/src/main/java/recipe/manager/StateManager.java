@@ -5,17 +5,25 @@ import com.alibaba.fastjson.JSONArray;
 import com.google.common.collect.Lists;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
+import ctd.net.broadcast.MQHelper;
 import ctd.persistence.exception.DAOException;
+import ctd.util.JSONUtils;
 import eh.base.constant.ErrorCode;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.aop.LogRecord;
 import recipe.client.CouponClient;
 import recipe.client.RecipeAuditClient;
+import recipe.common.OnsConfig;
+import recipe.constant.JKHBConstant;
 import recipe.enumerate.status.*;
 import recipe.enumerate.type.PayFlagEnum;
+import recipe.util.RedisClient;
 
 import javax.annotation.Resource;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * 状态处理通用类：处方状态 ，订单状态，审方状态
@@ -30,6 +38,9 @@ public class StateManager extends BaseManager {
 
     @Resource
     RecipeAuditClient recipeAuditClient;
+
+    @Autowired
+    private RedisClient redisClient;
 
     /**
      * 修改订单状态
@@ -111,6 +122,7 @@ public class StateManager extends BaseManager {
             case PROCESS_STATE_DELETED:
             case PROCESS_STATE_CANCELLATION:
                 result = this.cancellation(recipe, processState, subState);
+                statusChangeNotify(recipe.getRecipeId(), JKHBConstant.PROCESS_STATE_CANCELLATION);
                 break;
             default:
                 result = false;
@@ -355,5 +367,30 @@ public class StateManager extends BaseManager {
         recipeOrderDAO.updateNonNullFieldByPrimaryKey(updateOrder);
         return true;
 
+    }
+
+    /**
+     * 状态变更通知
+     * @param
+     */
+    public void statusChangeNotify(Integer recipeId,String orderStatus) {
+        logger.info("statusChangeNotify recipeId:{} ,orderStatus:{} ", recipeId,orderStatus);
+        try {
+            String statusChangeNotifyCache = redisClient.get("statusChangeNotify_"+orderStatus+"_"+recipeId);
+            if(StringUtils.isNotEmpty(statusChangeNotifyCache)){
+                logger.info("statusChangeNotify already notify recipeId:{} ,orderStatus:{} ", recipeId,orderStatus);
+                return;
+            }
+            redisClient.setEX("statusChangeNotify_"+orderStatus+"_"+recipeId,7 * 24 * 3600L,recipeId);
+            Map<String,Object> param=new HashMap<>();
+            param.put("order_id",String.valueOf(recipeId));
+            param.put("order_type","2");
+            param.put("order_status",orderStatus);
+            logger.info("statusChangeNotify sendMsgToMq send to MQ start, busId:{}，param:{}", recipeId, JSONUtils.toString(param));
+            MQHelper.getMqPublisher().publish(OnsConfig.statusChangeTopic, param, null);
+            logger.info("statusChangeNotify sendMsgToMq send to MQ end, busId:{}", recipeId);
+        } catch (Exception e) {
+            logger.error("statusChangeNotify sendMsgToMq can't send to MQ,  busId:{}", recipeId, e);
+        }
     }
 }

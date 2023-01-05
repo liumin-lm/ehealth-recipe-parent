@@ -96,6 +96,7 @@ import recipe.service.afterpay.AfterPayBusService;
 import recipe.service.afterpay.LogisticsOnlineOrderService;
 import recipe.service.common.RecipeCacheService;
 import recipe.thread.RecipeBusiThreadPool;
+import recipe.thread.UpdateWaterPrintRecipePdfRunnable;
 import recipe.util.LocalStringUtil;
 import recipe.util.MapValueUtil;
 
@@ -2588,8 +2589,6 @@ public class RecipeOrderService extends RecipeBaseService {
         //支付后需要完成【1 健康卡上传 2 记账  3 物流自动下单 4 推送消息】
         afterPayBusService.handle(result, order, recipes, payFlag);
         RecipeBusiThreadPool.execute(() -> {
-            //个性化处理
-            orderManager.statusChangeNotify(orderCode,"2");
             // 处方支付信息上传 监管平台
             HisSyncSupervisionService hisSyncservice = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
             hisSyncservice.uploadRecipePayToRegulation(orderCode, payFlag, refundNo);
@@ -3109,7 +3108,12 @@ public class RecipeOrderService extends RecipeBaseService {
                 result.setError(resultBean.getError());
                 break;
             }
+            RecipeBusiThreadPool.execute(() -> {
+                stateManager.statusChangeNotify(recipeId,JKHBConstant.ALREADY_PAY);
+            });
         }
+
+
         return result;
     }
 

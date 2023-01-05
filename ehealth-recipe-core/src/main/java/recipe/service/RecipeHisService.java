@@ -739,10 +739,10 @@ public class RecipeHisService extends RecipeBaseService {
                 memo = "患者取药完成";
             }
             boolean sendToHisFlag = service.recipeUpdate(request);
-            RecipeOrder recipeOrder = recipeOrderDAO.getOrderByRecipeId(recipeId);
-            if(null!=recipeOrder){
-                orderManager.statusChangeNotify(recipeOrder.getOrderCode(),"2");
-            }
+//            RecipeOrder recipeOrder = recipeOrderDAO.getOrderByRecipeId(recipeId);
+//            if(null!=recipeOrder){
+//                orderManager.statusChangeNotify(recipeOrder.getOrderCode(),"2");
+//            }
             if (sendToHisFlag) {
                 //日志记录
                 RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.FINISH, RecipeStatusConstant.FINISH, memo + "：写入his成功");

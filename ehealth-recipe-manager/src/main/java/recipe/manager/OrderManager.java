@@ -1193,29 +1193,5 @@ public class OrderManager extends BaseManager {
         return mrn;
     }
 
-    /**
-     * 状态变更通知
-     * 支持失败手工推送
-     * @param
-     */
-    @RpcService
-    public void statusChangeNotify(String orderCode,String orderStatus) {
-        //1、湖北鄂州支付完成状态通知
-        logger.info("statusChangeNotify privateProcess orderCode:{}", orderCode);
-        try {
-            RecipeOrder order = recipeOrderDAO.getByOrderCode(orderCode);
-            if(null==order){
-                return;
-            }
-            Map<String,Object> param=new HashMap<>();
-            param.put("order_id",String.valueOf(order.getOrderId()));
-            param.put("order_type","2");
-            param.put("order_status",orderStatus);
-            logger.info("statusChangeNotify sendMsgToMq send to MQ start, busId:{}，param:{}", orderCode, JSONUtils.toString(param));
-            MQHelper.getMqPublisher().publish(OnsConfig.statusChangeTopic, param, null);
-            logger.info("statusChangeNotify sendMsgToMq send to MQ end, busId:{}", orderCode);
-        } catch (Exception e) {
-            logger.error("statusChangeNotify sendMsgToMq can't send to MQ,  busId:{}", orderCode, e);
-        }
-    }
+
 }
