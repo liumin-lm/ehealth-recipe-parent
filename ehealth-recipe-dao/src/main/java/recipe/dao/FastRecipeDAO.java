@@ -74,10 +74,10 @@ public abstract class FastRecipeDAO extends HibernateSupportDelegateDAO<FastReci
     }
 
     @DAOMethod(sql = "update FastRecipe set stockNum = (stockNum - :num) where id = :mouldId and stockNum >= :num")
-    public abstract List<FastRecipe> updateStockByMouldId(@DAOParam("organId") Integer organId,
-                                                          @DAOParam("num") Integer num);
+    public abstract void updateStockByMouldId(@DAOParam("organId") Integer organId,
+                                              @DAOParam("num") Integer num);
 
     @DAOMethod(sql = "update FastRecipe set saleNum = (saleNum + :num) where id = :mouldId")
-    public abstract List<FastRecipe> addSaleNumByMouldId(@DAOParam("organId") Integer organId,
+    public abstract void addSaleNumByMouldId(@DAOParam("organId") Integer organId,
                                                          @DAOParam("num") Integer num);
 }
