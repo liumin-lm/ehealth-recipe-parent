@@ -1743,7 +1743,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         if (null != recipeOrderRefundReqDTO.getPayTimeStart()) {
             query.setParameter("payTimeStart", recipeOrderRefundReqDTO.getPayTimeStart());
         }
-        if (null != recipeOrderRefundReqDTO.getEndTime()) {
+        if (null != recipeOrderRefundReqDTO.getPayTimeEnd()) {
             query.setParameter("payTimeEnd", recipeOrderRefundReqDTO.getPayTimeEnd());
         }
 
