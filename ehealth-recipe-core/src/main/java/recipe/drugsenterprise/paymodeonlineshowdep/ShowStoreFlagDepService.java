@@ -44,7 +44,7 @@ public class ShowStoreFlagDepService implements PayModeOnlineShowDepInterface {
                 for (DepDetailBean depDetailBean : hrList) {
                     depDetailBean.setDepId(dep.getId());
                     depDetailBean.setBelongDepName(depDetailBean.getDepName());
-                    if (StandardPaymentWayEnum.PAYMENT_WAY_ONLINE.getType().equals(organDrugsSaleConfig.getStandardPaymentWay())) {
+                    if (StandardPaymentWayEnum.PAYMENT_WAY_ONLINE.getType().toString().equals(organDrugsSaleConfig.getStandardPaymentWay())) {
                         depDetailBean.setPayModeText(StandardPaymentWayEnum.PAYMENT_WAY_ONLINE.getName());
                         depDetailBean.setPayMode(StandardPaymentWayEnum.PAYMENT_WAY_ONLINE.getType());
                     } else {

@@ -40,7 +40,7 @@ public class OfflineToOnlineShowDepService implements PayModeOnlineShowDepInterf
         depDetailBean.setOrderType(dep.getOrderType());
         depDetailBean.setMemo(dep.getMemo());
         OrganDrugsSaleConfig organDrugsSaleConfig = organDrugsSaleConfigDAO.getOrganDrugsSaleConfig(dep.getId());
-        if (StandardPaymentWayEnum.PAYMENT_WAY_ONLINE.getType().equals(organDrugsSaleConfig.getStandardPaymentWay())) {
+        if (StandardPaymentWayEnum.PAYMENT_WAY_ONLINE.getType().toString().equals(organDrugsSaleConfig.getStandardPaymentWay())) {
             depDetailBean.setPayModeText(StandardPaymentWayEnum.PAYMENT_WAY_ONLINE.getName());
             depDetailBean.setPayMode(StandardPaymentWayEnum.PAYMENT_WAY_ONLINE.getType());
         } else {
