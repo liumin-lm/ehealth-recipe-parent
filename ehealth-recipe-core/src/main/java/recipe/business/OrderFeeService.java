@@ -168,7 +168,9 @@ public class OrderFeeService implements IRecipeOrderRefundService {
             recipeOrderRefundVO.setChannel(appName);
             recipeOrderRefundVO.setPayModeText(PayModeEnum.getPayModeEnumName(recipeOrder.getPayMode()));
             recipeOrderRefundVO.setGiveModeText(recipeOrder.getGiveModeText());
-            recipeOrderRefundVO.setPayTime(DateConversion.getDateFormatter(recipeOrder.getPayTime(), DateConversion.DEFAULT_DATE_TIME));
+            if(null!=recipeOrder.getPayTime()){
+                recipeOrderRefundVO.setPayTime(DateConversion.getDateFormatter(recipeOrder.getPayTime(), DateConversion.DEFAULT_DATE_TIME));
+            }
             //订单类型归属
             // 便捷购药订单(=1):便捷购药处方
             // 普通订单(=0)：普通复诊=0/医嘱申请复诊=2/null值/一键续方复诊=3
