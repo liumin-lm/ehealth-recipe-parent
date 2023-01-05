@@ -292,7 +292,8 @@ public class OrderFeeService implements IRecipeOrderRefundService {
         try {
             //查是否可以打印快递面单
             ILogisticsOrderService logisticsOrderService = AppContextHolder.getBean("infra.logisticsOrderService", ILogisticsOrderService.class);
-            logisticsOrderService.printWaybillByLogisticsOrderNo(1, orderCode);
+            String logisticsOrderPrintWaybill = logisticsOrderService.printWaybillByLogisticsOrderNo(1, orderCode);
+            recipeOrderRefundDetailVO.setLogisticsOrderPrintWaybill(logisticsOrderPrintWaybill);
             recipeOrderRefundDetailVO.setPrintWaybillByLogisticsOrderNo(true);
         }catch (Exception e){
             recipeOrderRefundDetailVO.setPrintWaybillByLogisticsOrderNo(false);
