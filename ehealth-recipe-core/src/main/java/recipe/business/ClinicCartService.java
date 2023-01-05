@@ -49,7 +49,7 @@ public class ClinicCartService implements IClinicCartBusinessService {
                 if (!Integer.valueOf("2").equals(workType)) {
                     continue;
                 }
-                FastRecipe fastRecipe = fastRecipeDAO.get(clinicCartVO.getItemId());
+                FastRecipe fastRecipe = fastRecipeDAO.get(Integer.valueOf(clinicCartVO.getItemId()));
                 if (Objects.nonNull(fastRecipe)) {
                     clinicCartVO.setStockNum(fastRecipe.getStockNum());
                 }
