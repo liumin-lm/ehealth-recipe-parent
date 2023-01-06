@@ -873,6 +873,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
             }
             recipeExtend.setRecipeBusinessType(RecipeBusinessTypeEnum.BUSINESS_RECIPE_REVISIT.getType());
             recipeManager.setRecipeInfoFromRevisit(recipe, recipeExtend);
+            recipeManager.saveRecipe(recipe);
             recipeManager.saveRecipeExtend(recipeExtend, recipe);
         }
 
