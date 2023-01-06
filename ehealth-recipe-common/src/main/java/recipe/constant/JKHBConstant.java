@@ -7,6 +7,11 @@ package recipe.constant;
  */
 public class JKHBConstant {
     /**
+     * 待支付
+     */
+    public static final String NO_PAY = "1";
+
+    /**
      * 已支付
      */
     public static final String ALREADY_PAY = "2";
