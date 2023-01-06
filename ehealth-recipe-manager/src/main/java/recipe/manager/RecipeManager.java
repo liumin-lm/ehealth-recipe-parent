@@ -40,6 +40,7 @@ import recipe.common.CommonConstant;
 import recipe.common.OnsConfig;
 import recipe.common.UrlConfig;
 import recipe.constant.RecipeBussConstant;
+import recipe.constant.RecipeSystemConstant;
 import recipe.dao.FastRecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RequirementsForTakingDao;
@@ -1385,17 +1386,19 @@ public class RecipeManager extends BaseManager {
     public void addRecipeNotify(Integer recipeId, String orderStatus) {
         logger.info("statusChangeNotify recipeId:{} ,orderStatus:{} ", recipeId,orderStatus);
         try {
-            String addRecipeNotifyCache = redisClient.get("addRecipeNotify_"+orderStatus+"_"+recipeId);
+            String redisKey=recipeId+"addRecipeNotify"+orderStatus;
+            String addRecipeNotifyCache = redisClient.get(redisKey);
             if(StringUtils.isNotEmpty(addRecipeNotifyCache)){
                 logger.info("addRecipeNotify already notify recipeId:{} ,orderStatus:{} ", recipeId,orderStatus);
                 return;
             }
-            redisClient.setEX("addRecipeNotify"+orderStatus+"_"+recipeId,30 * 24 * 3600L,recipeId);
+            redisClient.setEX(redisKey,30 * 24 * 3600L,recipeId);
             RecipeDTO recipeDTO = super.getRecipeDTO(recipeId);
 //            Map<String,Object> param=new HashMap<>();
 //            param.put("recipeId",String.valueOf(recipeId));
             logger.info("addRecipeNotify sendMsgToMq send to MQ start, busId:{}，param:{}", recipeId, JSONUtils.toString(recipeDTO));
             MQHelper.getMqPublisher().publish(OnsConfig.statusChangeTopic, recipeDTO, null);
+//            MQHelper.getMqPublisher().publish(OnsConfig.recipeDelayTopic, String.valueOf(recipeId), RecipeSystemConstant.RECIPE_INVALID_TOPIC_TAG, String.valueOf(recipeId), millSecond);
             logger.info("addRecipeNotify sendMsgToMq send to MQ end, busId:{}", recipeId);
         } catch (Exception e) {
             logger.error("addRecipeNotify sendMsgToMq can't send to MQ,  busId:{}", recipeId, e);
