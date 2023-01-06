@@ -13,6 +13,7 @@ import recipe.constant.ErrorCode;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.core.api.IRecipeDetailBusinessService;
 import recipe.core.api.patient.IRecipeOrderBusinessService;
+import recipe.enumerate.status.RecipeSourceTypeEnum;
 import recipe.vo.PageGenericsVO;
 import recipe.vo.doctor.DoctorRecipeListReqVO;
 import recipe.vo.doctor.RecipeInfoVO;
@@ -76,6 +77,12 @@ public class FindRecipeDoctorAtop extends BaseAtop {
                 , doctorRecipeListReqVO.getRecipeType());
         if (Objects.isNull(doctorRecipeListReqVO.getOrganId()) || Objects.isNull(doctorRecipeListReqVO.getStart())) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "入参错误");
+        }
+        // 校验医生权限
+        checkUserHasPermissionByDoctorId(doctorRecipeListReqVO.getDoctorId());
+        // 这个版本只查询常用方
+        if (!RecipeSourceTypeEnum.COMMON_RECIPE.getType().equals(doctorRecipeListReqVO.getRecipeType())) {
+            return null;
         }
         return recipeBusinessService.findDoctorRecipeList(doctorRecipeListReqVO);
     }

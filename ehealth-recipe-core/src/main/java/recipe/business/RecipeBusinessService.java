@@ -43,6 +43,8 @@ import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import eh.cdr.api.vo.MedicalDetailBean;
 import eh.cdr.constant.RecipeConstant;
+import eh.entity.base.UsePathways;
+import eh.entity.base.UsingRate;
 import eh.utils.BeanCopyUtils;
 import eh.wxpay.constant.PayConstant;
 import org.apache.commons.collections.CollectionUtils;
@@ -1531,46 +1533,38 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
 
     @Override
     public List<RecipeInfoVO> findDoctorRecipeList(DoctorRecipeListReqVO doctorRecipeListReqVO) {
-        // 校验医生权限
-        checkUserHasPermissionByDoctorId(doctorRecipeListReqVO.getDoctorId());
-        // 这个版本只查询常用方
-        if (!RecipeSourceTypeEnum.COMMON_RECIPE.getType().equals(doctorRecipeListReqVO.getRecipeType())) {
-            return null;
-        }
-        List<Recipe> recipeList = recipeDAO.findDoctorRecipeList(doctorRecipeListReqVO.getDoctorId(),doctorRecipeListReqVO.getOrganId(), doctorRecipeListReqVO.getStart(), doctorRecipeListReqVO.getLimit());
+        List<Integer> doctorIds = Arrays.asList(doctorRecipeListReqVO.getDoctorId(), -1);
+        List<Recipe> recipeList = recipeDAO.findDoctorRecipeListV1(doctorIds, doctorRecipeListReqVO.getOrganId(), doctorRecipeListReqVO.getRecipeType(), doctorRecipeListReqVO.getStart(), doctorRecipeListReqVO.getLimit());
         if (CollectionUtils.isEmpty(recipeList)) {
             return null;
         }
         List<Integer> recipeIds = recipeList.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
         List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeIdList(recipeIds);
+        Map<Integer, List<Recipedetail>> recipeDetailMap = recipeDetailList.stream().collect(Collectors.groupingBy(Recipedetail::getRecipeId));
         List<RecipeExtend> recipeExtends = recipeExtendDAO.queryRecipeExtendByRecipeIds(recipeIds);
-        Map<Integer, List<Recipedetail>> recipeDetailMap = null;
-        Map<Integer, List<RecipeExtend>> recipeExtMap = null;
-        if (CollectionUtils.isNotEmpty(recipeDetailList)) {
-            recipeDetailMap = recipeDetailList.stream().collect(Collectors.groupingBy(Recipedetail::getRecipeId));
-        }
-        if (CollectionUtils.isNotEmpty(recipeExtends)) {
-            recipeExtMap = recipeExtends.stream().collect(Collectors.groupingBy(RecipeExtend::getRecipeId));
-        }
-        Map<Integer, List<Recipedetail>> finalRecipeDetailMap = recipeDetailMap;
-        Map<Integer, List<RecipeExtend>> finalRecipeExtMap = recipeExtMap;
+        Map<Integer, RecipeExtend> recipeExtMap = recipeExtends.stream().collect(Collectors.toMap(RecipeExtend::getRecipeId, a -> a, (k1, k2) -> k1));
+        Map<String, UsingRate> usingRateMapCode = drugClient.usingRateMapCode(doctorRecipeListReqVO.getOrganId());
+        Map<String, UsePathways> usePathwaysCodeMap = drugClient.usePathwaysCodeMap(doctorRecipeListReqVO.getOrganId());
+        List<Integer> drugIds = recipeDetailList.stream().map(Recipedetail::getDrugId).distinct().collect(Collectors.toList());
+        Map<String, OrganDrugList> getOrganDrugByIdAndCode = organDrugListManager.getOrganDrugByIdAndCode(doctorRecipeListReqVO.getOrganId(), drugIds);
+
         List<RecipeInfoVO> recipeInfoVOS = recipeList.stream().map(recipe -> {
             RecipeInfoVO recipeInfoVO = new RecipeInfoVO();
             RecipeBean recipeBean = BeanCopyUtils.copyProperties(recipe, RecipeBean::new);
             recipeInfoVO.setRecipeBean(recipeBean);
-            if (MapUtils.isNotEmpty(finalRecipeDetailMap) && CollectionUtils.isNotEmpty(finalRecipeDetailMap.get(recipe.getRecipeId()))) {
-                List<Recipedetail> recipeDetails = finalRecipeDetailMap.get(recipe.getRecipeId());
+            if (MapUtils.isNotEmpty(recipeDetailMap) && CollectionUtils.isNotEmpty(recipeDetailMap.get(recipe.getRecipeId()))) {
+                List<Recipedetail> recipeDetails = recipeDetailMap.get(recipe.getRecipeId());
                 List<RecipeDetailBean> recipeDetailBeans = BeanCopyUtils.copyList(recipeDetails, RecipeDetailBean::new);
                 recipeDetailBeans.forEach(recipeDetailBean -> {
-                   com.ngari.base.dto.UsingRateDTO usingRateDTO = drugClient.usingRate(recipe.getClinicOrgan(), recipeDetailBean.getOrganUsingRate());
-                    if (null != usingRateDTO) {
-                        recipeDetailBean.setUsingRateId(String.valueOf(usingRateDTO.getId()));
+                    UsingRate usingRate = usingRateMapCode.get(recipeDetailBean.getOrganUsingRate());
+                    if (null != usingRate) {
+                        recipeDetailBean.setUsingRateId(String.valueOf(usingRate.getId()));
                     }
-                    com.ngari.base.dto.UsePathwaysDTO usePathwaysDTO = drugClient.usePathways(recipe.getClinicOrgan(), recipeDetailBean.getOrganUsePathways(), recipeDetailBean.getDrugType());
-                    if (null != usePathwaysDTO) {
-                        recipeDetailBean.setUsePathwaysId(String.valueOf(usePathwaysDTO.getId()));
+                    UsePathways usePathways = usePathwaysCodeMap.get(recipeDetailBean.getOrganUsePathways());
+                    if (null != usePathways) {
+                        recipeDetailBean.setUsePathwaysId(String.valueOf(usePathways.getId()));
                     }
-                    OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(recipe.getClinicOrgan(), recipeDetailBean.getOrganDrugCode(), recipeDetailBean.getDrugId());
+                    OrganDrugList organDrugList = getOrganDrugByIdAndCode.get(recipeDetailBean.getDrugId() + recipeDetailBean.getOrganDrugCode());
                     if (Objects.nonNull(organDrugList)) {
                         recipeDetailBean.setSkinTestDrugFlag(organDrugList.getSkinTestDrugFlag());
                         recipeDetailBean.setTargetedDrugType(organDrugList.getTargetedDrugType());
@@ -1578,14 +1572,13 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
                 });
                 recipeInfoVO.setRecipeDetails(recipeDetailBeans);
             }
-            if (MapUtils.isNotEmpty(finalRecipeExtMap) && CollectionUtils.isNotEmpty(finalRecipeExtMap.get(recipe.getRecipeId()))) {
-                RecipeExtend extend = finalRecipeExtMap.get(recipe.getRecipeId()).get(0);
+            if (MapUtils.isNotEmpty(recipeExtMap) && null != recipeExtMap.get(recipe.getRecipeId())) {
+                RecipeExtend extend = recipeExtMap.get(recipe.getRecipeId());
                 RecipeExtendBean recipeExtendBean = BeanCopyUtils.copyProperties(extend, RecipeExtendBean::new);
                 recipeInfoVO.setRecipeExtendBean(recipeExtendBean);
             }
             return recipeInfoVO;
         }).collect(Collectors.toList());
-
         return recipeInfoVOS;
     }
 
