@@ -1013,6 +1013,7 @@ public class RecipeService extends RecipeBaseService {
                     LOGGER.warn("retryCaPharmacistCallBackToRecipe pendingTask error. recipeId={}", recipeId, e);
                 }
             }
+            recipeManager.addRecipeNotify(recipe.getRecipeId(), JKHBConstant.NO_PAY);
         });
         //推送处方到监管平台(审核后数据)
         RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(Collections.singletonList(recipe.getRecipeId()), 2));
