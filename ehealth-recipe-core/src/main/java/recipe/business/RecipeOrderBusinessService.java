@@ -1766,7 +1766,7 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
             OrderPharmacyVO orderPharmacyVO = new OrderPharmacyVO();
             BeanCopyUtils.copy(recipeDetail, orderPharmacyVO);
             return orderPharmacyVO;
-        }).filter(distinctByKey(e -> e.getPharmacyId())).collect(Collectors.toList());
+        }).filter(e -> Objects.nonNull(e.getPharmacyId())).filter(distinctByKey(e -> e.getPharmacyId())).collect(Collectors.toList());
         return pharmacyVOS;
     }
 
