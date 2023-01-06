@@ -113,11 +113,6 @@ public abstract class AbstractCaProcessType {
         //根据审方模式改变状态
         AuditModeContext auditModeContext = AppContextHolder.getBean("auditModeContext", AuditModeContext.class);
         auditModeContext.getAuditModes(recipe.getReviewType()).afterHisCallBackChange(status, recipe, memo);
-        RecipeBusiThreadPool.execute(() -> {
-            if(null==recipe.getReviewType()||"0".equals(recipe.getReviewType())){
-                recipeManager.addRecipeNotify(recipe.getRecipeId(), JKHBConstant.NO_PAY);
-            }
-        });
         //配送处方标记 1:只能配送 更改处方取药方式
         if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())
                 && RecipeDistributionFlagEnum.DRUGS_HAVE.getType().equals(recipe.getDistributionFlag())) {
@@ -142,8 +137,13 @@ public abstract class AbstractCaProcessType {
                 LOGGER.error("retryDoctorSignCheck sendRecipeMsg error, type:3, consultId:{}, error:{}", recipe.getClinicId(), e);
             }
         }
-        //推送处方到监管平台
-        RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(Collections.singletonList(recipe.getRecipeId()), 1));
+        //异步处理
+        RecipeBusiThreadPool.execute(() -> {
+            new PushRecipeToRegulationCallable(Collections.singletonList(recipe.getRecipeId()), 1);
+            if(null==recipe.getReviewType()||"0".equals(recipe.getReviewType())){
+                recipeManager.addRecipeNotify(recipe.getRecipeId(), JKHBConstant.NO_PAY);
+            }
+        });
         //保存电子病历
         docIndexClient.saveRecipeDocIndex(recipe);
     }
