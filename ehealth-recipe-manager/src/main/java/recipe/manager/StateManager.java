@@ -388,10 +388,13 @@ public class StateManager extends BaseManager {
                 return;
             }
             redisClient.setEX(redisKey,7 * 24 * 3600L,recipeId);
+            Recipe recipe=recipeDAO.get(recipeId);
             Map<String,Object> param=new HashMap<>();
             param.put("order_id",String.valueOf(recipeId));
             param.put("order_type","2");
             param.put("order_status",orderStatus);
+            param.put("organ_id",String.valueOf(recipe.getClinicOrgan()));
+            param.put("mpiid",String.valueOf(recipe.getMpiid()));
             logger.info("statusChangeNotify sendMsgToMq send to MQ start, busId:{}，param:{}", recipeId, JSONUtils.toString(param));
             MQHelper.getMqPublisher().publish(OnsConfig.statusChangeTopic, param, null);
             logger.info("statusChangeNotify sendMsgToMq send to MQ end, busId:{}", recipeId);
