@@ -1397,7 +1397,7 @@ public class RecipeManager extends BaseManager {
 //            Map<String,Object> param=new HashMap<>();
 //            param.put("recipeId",String.valueOf(recipeId));
             logger.info("addRecipeNotify sendMsgToMq send to MQ start, busId:{}，param:{}", recipeId, JSONUtils.toString(recipeDTO));
-            MQHelper.getMqPublisher().publish(OnsConfig.statusChangeTopic, recipeDTO, null);
+            MQHelper.getMqPublisher().publish(OnsConfig.addRecipeTopic, recipeDTO, null);
 //            MQHelper.getMqPublisher().publish(OnsConfig.recipeDelayTopic, String.valueOf(recipeId), RecipeSystemConstant.RECIPE_INVALID_TOPIC_TAG, String.valueOf(recipeId), millSecond);
             logger.info("addRecipeNotify sendMsgToMq send to MQ end, busId:{}", recipeId);
         } catch (Exception e) {
