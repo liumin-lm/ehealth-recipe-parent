@@ -381,12 +381,13 @@ public class StateManager extends BaseManager {
     public void statusChangeNotify(Integer recipeId,String orderStatus) {
         logger.info("statusChangeNotify recipeId:{} ,orderStatus:{} ", recipeId,orderStatus);
         try {
-            String statusChangeNotifyCache = redisClient.get("statusChangeNotify_"+orderStatus+"_"+recipeId);
+            String redisKey=recipeId+"statusChangeNotify"+orderStatus;
+            String statusChangeNotifyCache = redisClient.get(redisKey);
             if(StringUtils.isNotEmpty(statusChangeNotifyCache)){
                 logger.info("statusChangeNotify already notify recipeId:{} ,orderStatus:{} ", recipeId,orderStatus);
                 return;
             }
-            redisClient.setEX("statusChangeNotify_"+orderStatus+"_"+recipeId,7 * 24 * 3600L,recipeId);
+            redisClient.setEX(redisKey,7 * 24 * 3600L,recipeId);
             Map<String,Object> param=new HashMap<>();
             param.put("order_id",String.valueOf(recipeId));
             param.put("order_type","2");

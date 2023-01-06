@@ -18,6 +18,7 @@ import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import com.ngari.revisit.RevisitBean;
 import com.ngari.revisit.common.model.RevisitExDTO;
+import ctd.net.broadcast.MQHelper;
 import ctd.persistence.exception.DAOException;
 import ctd.util.FileAuth;
 import ctd.util.JSONUtils;
@@ -36,8 +37,10 @@ import recipe.client.RecipeAuditClient;
 import recipe.client.RecipeHisClient;
 import recipe.client.factory.recipedate.RecipeDataSaveFactory;
 import recipe.common.CommonConstant;
+import recipe.common.OnsConfig;
 import recipe.common.UrlConfig;
 import recipe.constant.RecipeBussConstant;
+import recipe.constant.RecipeSystemConstant;
 import recipe.dao.FastRecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RequirementsForTakingDao;
@@ -94,6 +97,8 @@ public class RecipeManager extends BaseManager {
     private FastRecipeDAO fastRecipeDAO;
     @Autowired
     private RecipeDetailDAO recipeDetailDAO;
+    @Autowired
+    private RedisClient redisClient;
 
 
     /**
@@ -1322,5 +1327,81 @@ public class RecipeManager extends BaseManager {
             return true;
         }
         return false;
+    }
+
+//    /**
+//     * 获取处方相关信息 补全数据
+//     *
+//     * @param recipeId 处方id
+//     * @return
+//     */
+//    @Override
+//    public RecipeDTO getRecipeDTO(Integer recipeId) {
+//        RecipeDTO recipeDTO = super.getRecipeDTO(recipeId);
+//        RecipeExtend recipeExtend = recipeDTO.getRecipeExtend();
+//        if (null == recipeExtend) {
+//            return recipeDTO;
+//        }
+//        recipeExtend.setCardTypeName(DictionaryUtil.getDictionary("eh.mpi.dictionary.CardType", recipeExtend.getCardType()));
+//        Integer docIndexId = recipeExtend.getDocIndexId();
+//        EmrDetailDTO emrDetail = docIndexClient.getEmrDetails(docIndexId);
+//        if (StringUtils.isEmpty(emrDetail.getOrganDiseaseId())) {
+//            return recipeDTO;
+//        }
+//        Recipe recipe = recipeDTO.getRecipe();
+//        recipe.setOrganDiseaseId(emrDetail.getOrganDiseaseId());
+//        recipe.setOrganDiseaseName(emrDetail.getOrganDiseaseName());
+//        recipe.setMemo(emrDetail.getMemo());
+//        recipeExtend.setSymptomId(emrDetail.getSymptomId());
+//        recipeExtend.setSymptomName(emrDetail.getSymptomName());
+//        recipeExtend.setAllergyMedical(emrDetail.getAllergyMedical());
+//        if (!ValidateUtil.integerIsEmpty(recipe.getClinicId()) && StringUtils.isEmpty(recipeExtend.getCardNo())) {
+//            RevisitExDTO consultExDTO = revisitClient.getByClinicId(recipe.getClinicId());
+//            if (null != consultExDTO) {
+//                recipeExtend.setCardNo(consultExDTO.getCardId());
+//                recipeExtend.setCardType(consultExDTO.getCardType());
+//            }
+//        }
+//        //当卡类型是医保卡的时候，调用端的配置判断是否开启，如果开启，则调用端提供的工具进行卡号的展示
+//        if ("2".equals(recipeExtend.getCardType())) {
+//            boolean hospitalCardLengthControl = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "hospitalCardLengthControl", false);
+//            if (hospitalCardLengthControl && StringUtils.isNotBlank(recipeExtend.getCardNo()) && recipeExtend.getCardNo().length() == 28) {
+//                recipeExtend.setCardNo(recipeExtend.getCardNo().substring(0, 10));
+//            }
+//        }
+//        if (StringUtils.isNotBlank(recipeExtend.getDecoctionId())) {
+//            DecoctionWay decoctionWay = drugDecoctionWayDao.get(Integer.parseInt(recipeExtend.getDecoctionId()));
+//            if (null != decoctionWay) {
+//                recipeExtend.setDecoctionPrice(decoctionWay.getDecoctionPrice());
+//            }
+//        }
+//        return recipeDTO;
+//    }
+
+    /**
+     * 新增处方通知
+     * @param recipeId
+     * @param
+     */
+    public void addRecipeNotify(Integer recipeId, String orderStatus) {
+        logger.info("statusChangeNotify recipeId:{} ,orderStatus:{} ", recipeId,orderStatus);
+        try {
+            String redisKey=recipeId+"addRecipeNotify"+orderStatus;
+            String addRecipeNotifyCache = redisClient.get(redisKey);
+            if(StringUtils.isNotEmpty(addRecipeNotifyCache)){
+                logger.info("addRecipeNotify already notify recipeId:{} ,orderStatus:{} ", recipeId,orderStatus);
+                return;
+            }
+            redisClient.setEX(redisKey,30 * 24 * 3600L,recipeId);
+            RecipeDTO recipeDTO = super.getRecipeDTO(recipeId);
+//            Map<String,Object> param=new HashMap<>();
+//            param.put("recipeId",String.valueOf(recipeId));
+            logger.info("addRecipeNotify sendMsgToMq send to MQ start, busId:{}，param:{}", recipeId, JSONUtils.toString(recipeDTO));
+            MQHelper.getMqPublisher().publish(OnsConfig.statusChangeTopic, recipeDTO, null);
+//            MQHelper.getMqPublisher().publish(OnsConfig.recipeDelayTopic, String.valueOf(recipeId), RecipeSystemConstant.RECIPE_INVALID_TOPIC_TAG, String.valueOf(recipeId), millSecond);
+            logger.info("addRecipeNotify sendMsgToMq send to MQ end, busId:{}", recipeId);
+        } catch (Exception e) {
+            logger.error("addRecipeNotify sendMsgToMq can't send to MQ,  busId:{}", recipeId, e);
+        }
     }
 }
