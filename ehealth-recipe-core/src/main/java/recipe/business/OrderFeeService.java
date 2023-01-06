@@ -348,10 +348,6 @@ public class OrderFeeService implements IRecipeOrderRefundService {
         return null;
     }
 
-    /**
-     * 重置处方药企推送状态
-     * @param recipeIds
-     * */
     @Override
     public void updateRecipePushFlag(List<Integer> recipeIds) {
         recipeDAO.updateRecipePushFlag(recipeIds);

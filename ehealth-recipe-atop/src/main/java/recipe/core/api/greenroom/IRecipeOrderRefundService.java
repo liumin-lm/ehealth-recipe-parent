@@ -12,13 +12,37 @@ import java.util.List;
  */
 public interface IRecipeOrderRefundService {
 
+    /**
+     * 查询药品订单列表
+     * @param recipeOrderRefundReqVO
+     * @return
+     */
     RecipeOrderRefundPageVO findRefundRecipeOrder(RecipeOrderRefundReqVO recipeOrderRefundReqVO);
 
+    /**
+     * 查询药品订单详情
+     * @param orderCode
+     * @param busType
+     * @return
+     */
     RecipeOrderRefundDetailVO getRefundOrderDetail(String orderCode, Integer busType);
 
+    /**
+     * 强制退费
+     * @param auditRefundVO
+     */
     void forceRefund(AuditRefundVO auditRefundVO);
 
+    /**
+     * 查询患者申请退费记录
+     * @param recipeId
+     * @return
+     */
     RecipeRefund findApplyRefund(Integer recipeId);
 
+    /**
+     * 重置处方药企推送状态
+     * @param recipeIds
+     * */
     void updateRecipePushFlag(List<Integer> recipeIds);
 }
