@@ -92,8 +92,6 @@ public class PayModeOnline implements IPurchaseService {
     private IConfigurationClient configurationClient;
     @Autowired
     private RecipeManager recipeManager;
-    @Resource
-    private FastRecipeManager fastRecipeManager;
 
     @Override
     public RecipeResultBean findSupportDepList(Recipe dbRecipe, Map<String, String> extInfo) {
@@ -364,7 +362,6 @@ public class PayModeOnline implements IPurchaseService {
             result.setMsg("订单保存出错");
             return result;
         }
-        recipeIdLists.forEach(recipeId -> fastRecipeManager.addSaleNum(recipeId));
         orderService.setCreateOrderResult(result, order, payModeSupport, 1);
         if (0d >= order.getActualPrice()) {
             //如果不需要支付则不走支付
