@@ -4707,31 +4707,11 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
 
     @DAOMethod(sql = "FROM Recipe where clinicOrgan IN :organIds AND auditState = 1 AND createDate > :startTime and createDate < :endTime")
     public abstract List<Recipe> findAuditOverTimeRecipeList(@DAOParam("startTime") Date startTime,
-                                                              @DAOParam("endTime") Date endTime,
-                                                              @DAOParam("organIds") List<Integer> organIds);
+                                                             @DAOParam("endTime") Date endTime,
+                                                             @DAOParam("organIds") List<Integer> organIds);
 
-    public List<Recipe> findDoctorRecipeList(Integer doctorId,Integer organId, Integer start, Integer limit){
-        HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
-            @Override
-            public void execute(StatelessSession ss) throws Exception {
-                StringBuilder hql = new StringBuilder();
-                hql.append("from Recipe r where doctor=:doctorId and clinicOrgan=:organId and recipeSourceType = 4 and processState = 1  ");
-
-                hql.append("order by createDate desc ");
-                Query query = ss.createQuery(hql.toString());
-                query.setParameter("doctorId", doctorId);
-                query.setParameter("organId", organId);
-                query.setFirstResult(start);
-                query.setMaxResults(limit);
-
-                setResult(query.list());
-            }
-        };
-        HibernateSessionTemplate.instance().execute(action);
-
-        List<Recipe> recipes = action.getResult();
-        return recipes;
-    };
+    @DAOMethod(sql = "from Recipe r where doctor IN :doctorId and clinicOrgan=:organId and recipeSourceType =:recipeSourceType and processState = 1 order by recipeId desc ", limit = 0)
+    public abstract List<Recipe> findDoctorRecipeListV1(@DAOParam("doctorId") List<Integer> doctorId, @DAOParam("organId") Integer organId, @DAOParam("recipeSourceType") Integer recipeSourceType, @DAOParam(pageStart = true) int start, @DAOParam(pageLimit = true) int limit);
 
     @DAOMethod(sql = "FROM Recipe where clinicOrgan = :organId AND status = 0 AND clinicId = :clinicId")
     public abstract List<Recipe> findTempRecipeByClinicId(@DAOParam("organId") Integer organId,
