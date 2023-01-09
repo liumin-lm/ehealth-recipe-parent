@@ -151,7 +151,7 @@ public class OrderFeeService implements IRecipeOrderRefundService {
                 }
             }
             //发货状态
-            recipeOrderRefundVO.setSendStatusText(OrderLogisticsStateEnum.getOrderLogisticsStateEnum(recipeOrder.getLogisticsState()).getName());
+            recipeOrderRefundVO.setSendStatusText(OrderLogisticsStateEnum.getOrderLogisticsStateName(recipeOrder.getLogisticsState()));
             if (null != recipeOrder.getInvoiceRecordId()) {
                 recipeOrderRefundVO.setInvoiceStatus(1);
             } else {
