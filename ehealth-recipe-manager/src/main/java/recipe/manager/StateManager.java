@@ -126,7 +126,9 @@ public class StateManager extends BaseManager {
             case PROCESS_STATE_CANCELLATION:
                 result = this.cancellation(recipe, processState, subState);
                 statusChangeNotify(recipe.getRecipeId(), JKHBConstant.PROCESS_STATE_CANCELLATION);
-                fastRecipeManager.decreaseSaleNum(recipeId);
+                if (!PayFlagEnum.NOPAY.getType().equals(recipe.getPayFlag())) {
+                    fastRecipeManager.decreaseSaleNum(recipeId);
+                }
                 fastRecipeManager.addStockByRecipeId(recipeId);
                 break;
             default:
