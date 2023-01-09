@@ -1,5 +1,6 @@
 package recipe.atop;
 
+import ctd.account.UserRoleToken;
 import ctd.persistence.exception.DAOException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -71,4 +72,19 @@ public class BaseAtop {
 
         organBusinessService.isAuthorisedOrgan(organId);
     }
+
+    /**
+     * 医生权限校验
+     *
+     * @param doctorId
+     */
+    protected void checkUserHasPermissionByDoctorId(Integer doctorId) {
+        UserRoleToken urt = UserRoleToken.getCurrent();
+        String methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
+        if (!(urt.isSelfDoctor(doctorId))) {
+            logger.error("当前用户没有权限调用doctorId[{}],methodName[{}]", doctorId, methodName);
+            throw new DAOException("当前登录用户没有权限");
+        }
+    }
+
 }

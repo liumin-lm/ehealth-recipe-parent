@@ -22,6 +22,7 @@ import recipe.constant.PageInfoConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.core.api.doctor.ITherapyRecipeBusinessService;
 import recipe.core.api.patient.IOfflineRecipeBusinessService;
+import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.util.ObjectCopyUtils;
 import recipe.util.ValidateUtil;
@@ -60,6 +61,8 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
         RecipeBean recipeBean = recipeInfoVO.getRecipeBean();
         validateAtop(recipeBean.getDoctor(), recipeBean.getMpiid(), recipeBean.getClinicOrgan(), recipeBean.getClinicId(), recipeBean.getDepart());
         recipeBean.setStatus(RecipeStatusEnum.RECIPE_STATUS_UNSIGNED.getType());
+        recipeBean.setProcessState(RecipeStateEnum.PROCESS_STATE_SUBMIT.getType());
+        recipeBean.setSubState(RecipeStateEnum.SUB_SUBMIT_TEMPORARY.getType());
         recipeBean.setRecipeSourceType(3);
         recipeBean.setSignDate(DateTime.now().toDate());
         recipeBean.setRecipeMode(RecipeBussConstant.RECIPEMODE_NGARIHEALTH);

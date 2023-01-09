@@ -35,8 +35,15 @@ public class OnsConfig {
 
     public static String easyPayTopic;
 
+    /**
+     * 处方状态变更
+     */
     public static String statusChangeTopic;
 
+    /**
+     * 处方新增
+     */
+    public static String addRecipeTopic;
 
     /**
      * 药品topic
@@ -48,6 +55,9 @@ public class OnsConfig {
      */
     public static String paymentReportTopic;
 
+    public  void setAddRecipeTopic(String addRecipeTopic) {
+        OnsConfig.addRecipeTopic = addRecipeTopic;
+    }
 
     public void setKafkaSwitch(boolean kafkaSwitch) {
         OnsConfig.kafkaSwitch = kafkaSwitch;
@@ -115,6 +125,7 @@ public class OnsConfig {
     public void setEasyPayTopic(String easyPayTopic) {
         OnsConfig.easyPayTopic = easyPayTopic;
     }
+
 
 
 }

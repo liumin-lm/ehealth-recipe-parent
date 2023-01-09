@@ -126,7 +126,9 @@ public class StateManager extends BaseManager {
             case PROCESS_STATE_CANCELLATION:
                 result = this.cancellation(recipe, processState, subState);
                 statusChangeNotify(recipe.getRecipeId(), JKHBConstant.PROCESS_STATE_CANCELLATION);
-                fastRecipeManager.decreaseSaleNum(recipeId);
+                if (!PayFlagEnum.NOPAY.getType().equals(recipe.getPayFlag())) {
+                    fastRecipeManager.decreaseSaleNum(recipeId);
+                }
                 fastRecipeManager.addStockByRecipeId(recipeId);
                 break;
             default:
@@ -381,16 +383,21 @@ public class StateManager extends BaseManager {
     public void statusChangeNotify(Integer recipeId,String orderStatus) {
         logger.info("statusChangeNotify recipeId:{} ,orderStatus:{} ", recipeId,orderStatus);
         try {
-            String statusChangeNotifyCache = redisClient.get("statusChangeNotify_"+orderStatus+"_"+recipeId);
+            String redisKey=recipeId+"statusChangeNotify"+orderStatus;
+            logger.info("statusChangeNotify statusChangeNotifyCache:{}",redisKey);
+            String statusChangeNotifyCache = redisClient.get(redisKey);
             if(StringUtils.isNotEmpty(statusChangeNotifyCache)){
                 logger.info("statusChangeNotify already notify recipeId:{} ,orderStatus:{} ", recipeId,orderStatus);
                 return;
             }
-            redisClient.setEX("statusChangeNotify_"+orderStatus+"_"+recipeId,7 * 24 * 3600L,recipeId);
+            redisClient.setEX(redisKey,7 * 24 * 3600L,String.valueOf(recipeId));
+            Recipe recipe=recipeDAO.get(recipeId);
             Map<String,Object> param=new HashMap<>();
             param.put("order_id",String.valueOf(recipeId));
             param.put("order_type","2");
             param.put("order_status",orderStatus);
+            param.put("organ_id",String.valueOf(recipe.getClinicOrgan()));
+            param.put("mpiid",String.valueOf(recipe.getMpiid()));
             logger.info("statusChangeNotify sendMsgToMq send to MQ start, busId:{}，param:{}", recipeId, JSONUtils.toString(param));
             MQHelper.getMqPublisher().publish(OnsConfig.statusChangeTopic, param, null);
             logger.info("statusChangeNotify sendMsgToMq send to MQ end, busId:{}", recipeId);
