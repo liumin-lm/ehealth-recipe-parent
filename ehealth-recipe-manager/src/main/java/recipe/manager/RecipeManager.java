@@ -1384,7 +1384,7 @@ public class RecipeManager extends BaseManager {
      * @param
      */
     public void addRecipeNotify(Integer recipeId, String orderStatus) {
-        logger.info("statusChangeNotify recipeId:{} ,orderStatus:{} ", recipeId,orderStatus);
+        logger.info("addRecipeNotify recipeId:{} ,orderStatus:{} ", recipeId,orderStatus);
         try {
             String redisKey=recipeId+"addRecipeNotify"+orderStatus;
             String addRecipeNotifyCache = redisClient.get(redisKey);
