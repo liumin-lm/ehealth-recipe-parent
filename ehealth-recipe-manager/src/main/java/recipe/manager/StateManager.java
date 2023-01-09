@@ -388,7 +388,7 @@ public class StateManager extends BaseManager {
                 logger.info("statusChangeNotify already notify recipeId:{} ,orderStatus:{} ", recipeId,orderStatus);
                 return;
             }
-            redisClient.setEX(redisKey,7 * 24 * 3600L,recipeId);
+            redisClient.setEX(redisKey,7 * 24 * 3600L,String.valueOf(recipeId));
             Recipe recipe=recipeDAO.get(recipeId);
             Map<String,Object> param=new HashMap<>();
             param.put("order_id",String.valueOf(recipeId));
