@@ -47,4 +47,19 @@ public enum OrderLogisticsStateEnum {
         }
         return NONE;
     }
+
+    /**
+     * 根据类型 获取名称(为了type为null的时候不取默认)
+     *
+     * @param type
+     * @return
+     */
+    public static String getOrderLogisticsStateName(Integer type) {
+        for (OrderLogisticsStateEnum e : OrderLogisticsStateEnum.values()) {
+            if (e.type.equals(type)) {
+                return e.name;
+            }
+        }
+        return null;
+    }
 }
