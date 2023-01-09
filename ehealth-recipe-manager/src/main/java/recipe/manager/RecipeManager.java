@@ -1392,7 +1392,7 @@ public class RecipeManager extends BaseManager {
                 logger.info("addRecipeNotify already notify recipeId:{} ,orderStatus:{} ", recipeId,orderStatus);
                 return;
             }
-            redisClient.setEX(redisKey,30 * 24 * 3600L,recipeId);
+            redisClient.setEX(redisKey,30 * 24 * 3600L,String.valueOf(recipeId));
             RecipeDTO recipeDTO = super.getRecipeDTO(recipeId);
 //            Map<String,Object> param=new HashMap<>();
 //            param.put("recipeId",String.valueOf(recipeId));
