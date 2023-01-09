@@ -9,6 +9,7 @@ import com.ngari.recipe.recipe.model.*;
 import ctd.util.annotation.RpcService;
 import recipe.vo.greenroom.ImperfectInfoVO;
 import recipe.vo.greenroom.RecipeRefundInfoReqVO;
+import recipe.vo.greenroom.RefundResultNotifyVO;
 import recipe.vo.second.CabinetVO;
 import recipe.vo.second.OrderPharmacyVO;
 import recipe.vo.second.RecipeOrderVO;
@@ -193,4 +194,11 @@ public interface IRecipeOrderAtopService {
      */
     @RpcService(mvcDisabled = true)
     Integer checkOrderPayState(Integer orderId);
+
+    /**
+     * 退费结果通知
+     * @return
+     */
+    @RpcService(mvcDisabled = true)
+    Integer refundResultNotify(RefundResultNotifyVO refundResultNotifyVO);
 }

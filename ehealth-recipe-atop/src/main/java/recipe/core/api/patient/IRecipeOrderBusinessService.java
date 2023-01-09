@@ -15,6 +15,7 @@ import easypay.entity.vo.param.bus.SelfPreSettleQueryReq;
 import recipe.vo.ResultBean;
 import recipe.vo.greenroom.ImperfectInfoVO;
 import recipe.vo.greenroom.RecipeRefundInfoReqVO;
+import recipe.vo.greenroom.RefundResultNotifyVO;
 import recipe.vo.second.CabinetVO;
 import recipe.vo.second.CheckOrderAddressVo;
 import recipe.vo.second.OrderPharmacyVO;
@@ -309,4 +310,10 @@ public interface IRecipeOrderBusinessService {
      * @return
      */
     List<OrderPharmacyVO> getPharmacyByOrderCode(String orderCode);
+
+    /**
+     * 退费结果通知
+     * @return
+     */
+    Integer refundResultNotify(RefundResultNotifyVO refundResultNotifyVO);
 }
