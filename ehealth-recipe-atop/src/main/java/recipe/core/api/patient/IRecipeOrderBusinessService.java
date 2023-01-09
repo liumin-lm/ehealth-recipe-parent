@@ -315,5 +315,5 @@ public interface IRecipeOrderBusinessService {
      * 退费结果通知
      * @return
      */
-    Integer refundResultNotify(RefundResultNotifyVO refundResultNotifyVO);
+    String refundResultNotify(RefundResultNotifyVO refundResultNotifyVO);
 }

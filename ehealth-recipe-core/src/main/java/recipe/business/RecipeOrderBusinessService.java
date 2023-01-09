@@ -1824,9 +1824,20 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
     }
 
     @Override
-    public Integer refundResultNotify(RefundResultNotifyVO refundResultNotifyVO) {
-        Recipe recipe = recipeDAO.getByRecipeId(refundResultNotifyVO.getRecipeId());
+    public String refundResultNotify(RefundResultNotifyVO refundResultNotifyVO) {
+        Recipe recipe;
+        if (Objects.nonNull(refundResultNotifyVO.getRecipeId())) {
+            recipe = recipeDAO.getByRecipeId(refundResultNotifyVO.getRecipeId());
+        } else {
+            recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(refundResultNotifyVO.getRecipeCode(), refundResultNotifyVO.getOrganId());
+        }
+        if (Objects.isNull(recipe) || StringUtils.isEmpty(recipe.getOrderCode())) {
+            return "-1";
+        }
         RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+        if (Objects.isNull(recipeOrder)) {
+            return "-1";
+        }
         recipeOrderService.finishOrderPayByRefund(recipeOrder.getOrderCode(), refundResultNotifyVO.getRefundState(), RecipeConstant.PAYMODE_ONLINE, refundResultNotifyVO.getRefundNo());
         StringBuilder memo = new StringBuilder("订单=" + recipeOrder.getOrderCode() + " ");
         Integer targetPayFlag = refundResultNotifyVO.getRefundState();
@@ -1846,12 +1857,12 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
             if (CollectionUtils.isNotEmpty(recipeIdList)) {
                 Integer recipeId = recipeIdList.get(0);
                 //调用回调处方退费
-                recipeOrderService.refundCallback(recipeId, targetPayFlag, recipeOrder.getOrderId(), PayBusTypeEnum.RECIPE_BUS_TYPE.getType(),refundResultNotifyVO.getRefundAmount().toString());
+                recipeOrderService.refundCallback(recipeId, targetPayFlag, recipeOrder.getOrderId(), PayBusTypeEnum.RECIPE_BUS_TYPE.getType(),refundResultNotifyVO.getRefundAmount());
             }
         }
         //更新处方日志
         //updateRecipePayLog(recipeOrderBean, memo.toString());
-        return 1;
+        return "000";
     }
 
     private static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {

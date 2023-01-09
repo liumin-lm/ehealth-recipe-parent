@@ -235,8 +235,8 @@ public class RecipeOrderOpenAtop extends BaseAtop implements IRecipeOrderAtopSer
     }
 
     @Override
-    public Integer refundResultNotify(RefundResultNotifyVO refundResultNotifyVO) {
-        validateAtop(refundResultNotifyVO, refundResultNotifyVO.getRecipeId(), refundResultNotifyVO.getRefundAmount());
+    public String refundResultNotify(RefundResultNotifyVO refundResultNotifyVO) {
+        validateAtop(refundResultNotifyVO);
         return recipeOrderService.refundResultNotify(refundResultNotifyVO);
     }
 
