@@ -71,11 +71,7 @@ import recipe.core.api.IEnterpriseBusinessService;
 import recipe.core.api.patient.IRecipeOrderBusinessService;
 import recipe.dao.*;
 import recipe.enumerate.status.*;
-import recipe.enumerate.type.CashDeskSettleUseCodeTypeEnum;
-import recipe.enumerate.type.GiveModeTextEnum;
-import recipe.enumerate.type.NeedSendTypeEnum;
-import recipe.enumerate.type.PayFlagEnum;
-import recipe.enumerate.type.RecipeSupportGiveModeEnum;
+import recipe.enumerate.type.*;
 import recipe.factory.status.givemodefactory.GiveModeProxy;
 import recipe.hisservice.RecipeToHisService;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
@@ -95,6 +91,7 @@ import recipe.vo.base.BaseRecipeDetailVO;
 import recipe.vo.greenroom.ImperfectInfoVO;
 import recipe.vo.greenroom.InvoiceRecordVO;
 import recipe.vo.greenroom.RecipeRefundInfoReqVO;
+import recipe.vo.greenroom.RefundResultNotifyVO;
 import recipe.vo.second.CabinetVO;
 import recipe.vo.second.CheckOrderAddressVo;
 import recipe.vo.second.OrderPharmacyVO;
@@ -1800,7 +1797,6 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
         });
     }
 
-
     @Override
     public Boolean updateInvoiceStatus(String orderCode, Integer invoiceType) {
         logger.info("updateInvoiceStatus orderCode:{},invoiceType:{}", orderCode,invoiceType);
@@ -1825,6 +1821,37 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
             }
         }
         return true;
+    }
+
+    @Override
+    public Integer refundResultNotify(RefundResultNotifyVO refundResultNotifyVO) {
+        Recipe recipe = recipeDAO.getByRecipeId(refundResultNotifyVO.getRecipeId());
+        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+        recipeOrderService.finishOrderPayByRefund(recipeOrder.getOrderCode(), refundResultNotifyVO.getRefundState(), RecipeConstant.PAYMODE_ONLINE, refundResultNotifyVO.getRefundNo());
+        StringBuilder memo = new StringBuilder("订单=" + recipeOrder.getOrderCode() + " ");
+        Integer targetPayFlag = refundResultNotifyVO.getRefundState();
+        switch (targetPayFlag) {
+            case 3:
+                memo.append("退款成功");
+                break;
+            case 4:
+                memo.append("退款失败");
+                break;
+            default:
+                memo.append("支付 未知状态，payFlag:").append(targetPayFlag);
+                break;
+        }
+        if (StringUtils.isNotEmpty(recipeOrder.getRecipeIdList())) {
+            List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
+            if (CollectionUtils.isNotEmpty(recipeIdList)) {
+                Integer recipeId = recipeIdList.get(0);
+                //调用回调处方退费
+                recipeOrderService.refundCallback(recipeId, targetPayFlag, recipeOrder.getOrderId(), PayBusTypeEnum.RECIPE_BUS_TYPE.getType(),refundResultNotifyVO.getRefundAmount().toString());
+            }
+        }
+        //更新处方日志
+        //updateRecipePayLog(recipeOrderBean, memo.toString());
+        return 1;
     }
 
     private static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {
