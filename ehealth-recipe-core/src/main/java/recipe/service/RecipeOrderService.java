@@ -960,8 +960,6 @@ public class RecipeOrderService extends RecipeBaseService {
                         expressFee = orderFeeManager.getPlatformExpressFee(order.getEnterpriseId(), address.getAddress3());
                     }
                 }
-
-
             }
             LOGGER.info("setOrderAddress recipeIds:{}, expressFee:{}.", JSONUtils.toString(recipeIds), expressFee);
             order.setExpressFee(expressFee);
@@ -1027,6 +1025,7 @@ public class RecipeOrderService extends RecipeBaseService {
      * @param organLogisticsManageDto
      */
     private OrganLogisticsManageDto obtainExpressFee(RecipeOrder order, Integer enterpriseId, Integer logisticsCompany, AddressDTO address,OrganLogisticsManageDto organLogisticsManageDto ) {
+        LOGGER.info("obtainExpressFee recipeId:{}, enterpriseId:{}, logisticsCompany:{}", order.getRecipeIdList(), enterpriseId, logisticsCompany);
         try {
             DrugEnterpriseLogistics drugEnterpriseLogistics=new DrugEnterpriseLogistics();
             //lm如果前端没给物流公司，则获取默认物流公司计算快递费
@@ -1053,7 +1052,7 @@ public class RecipeOrderService extends RecipeBaseService {
                     return organLogisticsManageDto;
                 }
                 organLogisticsManageDto=organLogisticsManageDtos.get(0);
-                LOGGER.info("organLogisticsManageDto:{}",JSONUtils.toString(organLogisticsManageDto));
+                LOGGER.info("obtainExpressFee organLogisticsManageDto:{}",JSONUtils.toString(organLogisticsManageDto));
                 if(organLogisticsManageDto==null){return organLogisticsManageDto;}
                 if(ExpressFeePayMethodEnum.CASHONDELIVERYOFFLINE.getType().equals(organLogisticsManageDto.getPayMethod())){
                     //lm到付 展示快递费为：到付
