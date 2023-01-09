@@ -199,6 +199,6 @@ public interface IRecipeOrderAtopService {
      * 退费结果通知
      * @return
      */
-    @RpcService(mvcDisabled = true)
+    @RpcService
     Integer refundResultNotify(RefundResultNotifyVO refundResultNotifyVO);
 }
