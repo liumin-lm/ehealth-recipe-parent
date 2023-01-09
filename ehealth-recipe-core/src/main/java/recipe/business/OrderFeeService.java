@@ -34,10 +34,7 @@ import recipe.constant.RecipeRefundRoleConstant;
 import recipe.constant.RefundNodeStatusConstant;
 import recipe.core.api.greenroom.IRecipeOrderRefundService;
 import recipe.dao.*;
-import recipe.enumerate.status.OrderStateEnum;
-import recipe.enumerate.status.PayModeEnum;
-import recipe.enumerate.status.RecipeOrderStatusEnum;
-import recipe.enumerate.status.RefundNodeStatusEnum;
+import recipe.enumerate.status.*;
 import recipe.enumerate.type.PayFlagEnum;
 import recipe.manager.EnterpriseManager;
 import recipe.manager.OrderFeeManager;
@@ -153,11 +150,8 @@ public class OrderFeeService implements IRecipeOrderRefundService {
                     }
                 }
             }
-            if (RecipeOrderStatusEnum.ORDER_STATUS_HAS_DRUG.getType().equals(recipeOrder.getStatus())) {
-                recipeOrderRefundVO.setSendStatusText(RecipeOrderStatusEnum.ORDER_STATUS_READY_GET_DRUG.getName());
-            } else {
-                recipeOrderRefundVO.setSendStatusText(RecipeOrderStatusEnum.getOrderStatus(recipeOrder.getStatus()));
-            }
+            //发货状态
+            recipeOrderRefundVO.setSendStatusText(OrderLogisticsStateEnum.getOrderLogisticsStateEnum(recipeOrder.getLogisticsState()).getName());
             if (null != recipeOrder.getInvoiceRecordId()) {
                 recipeOrderRefundVO.setInvoiceStatus(1);
             } else {
