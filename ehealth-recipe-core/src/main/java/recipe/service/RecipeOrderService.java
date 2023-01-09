@@ -1346,7 +1346,10 @@ public class RecipeOrderService extends RecipeBaseService {
         }
         try {
             SimpleWxAccountBean wxAccount = currentUserInfoService.getSimpleWxAccount();
-            order.setTerminalSource(wxAccount.getAppId());
+            if (wxAccount != null ) {
+                LOGGER.info("saveOrderToDB wxAccount={}", JSONUtils.toString(wxAccount));
+                order.setTerminalSource(wxAccount.getAppId());
+            }
             if (StringUtils.isEmpty(order.getExpectStartTakeTime())) {
                 order.setExpectStartTakeTime("1970-01-01 00:00:01");
                 order.setExpectEndTakeTime("1970-01-01 00:00:01");

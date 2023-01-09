@@ -1633,8 +1633,13 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 SQLQuery sqlQuery = ss.createSQLQuery(sbHqlCount.toString());
                 setRefundParameter(sqlQuery, recipeOrderRefundReqDTO);
                 Long total = Long.valueOf(String.valueOf((sqlQuery.uniqueResult())));
+                if(new Integer("1").equals(recipeOrderRefundReqDTO.getDateType())){
+                    sbHql.append(" order by a.CreateTime DESC ");
+                }else if(new Integer("2").equals(recipeOrderRefundReqDTO.getDateType())){
+                    sbHql.append(" order by a.payTime  DESC ");
+                }
                 // 查询结果
-                Query query = ss.createSQLQuery(sbHql.append(" order by a.CreateTime DESC").toString()).addEntity(RecipeOrder.class);
+                Query query = ss.createSQLQuery(sbHql.toString()).addEntity(RecipeOrder.class);
                 logger.info("RecipeOderDAO findWaitApplyRefundRecipeOrder sbHql={}",sbHql);
                 setRefundParameter(query, recipeOrderRefundReqDTO);
                 query.setFirstResult(recipeOrderRefundReqDTO.getStart());
@@ -1658,7 +1663,12 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 setRefundParameter(sqlQuery, recipeOrderRefundReqDTO);
                 Long total = Long.valueOf(String.valueOf((sqlQuery.uniqueResult())));
                 // 查询结果
-                Query query = ss.createSQLQuery(sbHql.append(" order by a.CreateTime DESC").toString()).addEntity(RecipeOrder.class);
+                if(new Integer("1").equals(recipeOrderRefundReqDTO.getDateType())){
+                    sbHql.append(" order by a.CreateTime DESC ");
+                }else if(new Integer("2").equals(recipeOrderRefundReqDTO.getDateType())){
+                    sbHql.append(" order by a.payTime  DESC ");
+                }
+                Query query = ss.createSQLQuery(sbHql.toString()).addEntity(RecipeOrder.class);
                 logger.info("RecipeOderDAO findPushFailRecipeOrder sbHql={}",sbHql);
                 setRefundParameter(query, recipeOrderRefundReqDTO);
                 query.setFirstResult(recipeOrderRefundReqDTO.getStart());
@@ -1681,8 +1691,14 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 SQLQuery sqlQuery = ss.createSQLQuery(sbHqlCount.toString());
                 setRefundParameter(sqlQuery, recipeOrderRefundReqDTO);
                 Long total = Long.valueOf(String.valueOf((sqlQuery.uniqueResult())));
+
+                if(new Integer("1").equals(recipeOrderRefundReqDTO.getDateType())){
+                    sbHql.append(" order by a.CreateTime DESC ");
+                }else if(new Integer("2").equals(recipeOrderRefundReqDTO.getDateType())){
+                    sbHql.append(" order by a.payTime  DESC ");
+                }
                 // 查询结果
-                Query query = ss.createSQLQuery(sbHql.append(" order by a.CreateTime DESC").toString()).addEntity(RecipeOrder.class);
+                Query query = ss.createSQLQuery(sbHql.toString()).addEntity(RecipeOrder.class);
                 logger.info("RecipeOderDAO findRefundRecipeOrder sbHql={}", sbHql);
                 setRefundParameter(query, recipeOrderRefundReqDTO);
                 query.setFirstResult(recipeOrderRefundReqDTO.getStart());
@@ -1724,6 +1740,13 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         if (null != recipeOrderRefundReqDTO.getEndTime()) {
             query.setParameter("endTime", recipeOrderRefundReqDTO.getEndTime());
         }
+        if (null != recipeOrderRefundReqDTO.getPayTimeStart()) {
+            query.setParameter("payTimeStart", recipeOrderRefundReqDTO.getPayTimeStart());
+        }
+        if (null != recipeOrderRefundReqDTO.getPayTimeEnd()) {
+            query.setParameter("payTimeEnd", recipeOrderRefundReqDTO.getPayTimeEnd());
+        }
+
         if (null != recipeOrderRefundReqDTO.getDepId()) {
             query.setParameter("depId", depId);
         }
@@ -1808,6 +1831,12 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         }
         if (null != recipeOrderRefundReqDTO.getEndTime()) {
             hql.append(" AND a.createTime <= :endTime ");
+        }
+        if (null != recipeOrderRefundReqDTO.getPayTimeStart()) {
+            hql.append(" AND a.payTime >= :payTimeStart ");
+        }
+        if (null != recipeOrderRefundReqDTO.getPayTimeEnd()) {
+            hql.append(" AND a.payTime <= :payTimeEnd ");
         }
         if (null != recipeOrderRefundReqDTO.getDepId()) {
             hql.append(" AND a.enterpriseId =:depId ");

@@ -15,14 +15,17 @@ import ctd.util.AppContextHolder;
 import eh.wxpay.constant.PayConstant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.audit.auditmode.AuditModeContext;
 import recipe.client.DocIndexClient;
 import recipe.client.IConfigurationClient;
+import recipe.constant.JKHBConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.RecipeDistributionFlagEnum;
 import recipe.manager.CaManager;
+import recipe.manager.RecipeManager;
 import recipe.manager.StateManager;
 import recipe.service.RecipeHisService;
 import recipe.service.RecipeServiceSub;
@@ -44,6 +47,7 @@ public abstract class AbstractCaProcessType {
     protected static CaManager caManager = AppContextHolder.getBean("caManager", CaManager.class);
     protected static StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
     protected static DocIndexClient docIndexClient = AppContextHolder.getBean("docIndexClient", DocIndexClient.class);
+    protected static RecipeManager recipeManager = AppContextHolder.getBean("recipeManager", RecipeManager.class);
 
     private static final Integer CA_BEFORE = new Integer(0);
 
@@ -109,7 +113,6 @@ public abstract class AbstractCaProcessType {
         //根据审方模式改变状态
         AuditModeContext auditModeContext = AppContextHolder.getBean("auditModeContext", AuditModeContext.class);
         auditModeContext.getAuditModes(recipe.getReviewType()).afterHisCallBackChange(status, recipe, memo);
-
         //配送处方标记 1:只能配送 更改处方取药方式
         if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())
                 && RecipeDistributionFlagEnum.DRUGS_HAVE.getType().equals(recipe.getDistributionFlag())) {
@@ -134,8 +137,13 @@ public abstract class AbstractCaProcessType {
                 LOGGER.error("retryDoctorSignCheck sendRecipeMsg error, type:3, consultId:{}, error:{}", recipe.getClinicId(), e);
             }
         }
-        //推送处方到监管平台
-        RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(Collections.singletonList(recipe.getRecipeId()), 1));
+        //异步处理
+        RecipeBusiThreadPool.execute(() -> {
+            new PushRecipeToRegulationCallable(Collections.singletonList(recipe.getRecipeId()), 1);
+            if(null==recipe.getReviewType()||"0".equals(recipe.getReviewType())){
+                recipeManager.addRecipeNotify(recipe.getRecipeId(), JKHBConstant.NO_PAY);
+            }
+        });
         //保存电子病历
         docIndexClient.saveRecipeDocIndex(recipe);
     }

@@ -1,6 +1,7 @@
 package recipe.business;
 
 import com.ngari.recipe.entity.ClinicCart;
+import com.ngari.recipe.entity.FastRecipe;
 import ctd.util.BeanUtils;
 import eh.utils.BeanCopyUtils;
 import eh.utils.ValidateUtil;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.core.api.IClinicCartBusinessService;
 import recipe.dao.ClinicCartDAO;
+import recipe.dao.FastRecipeDAO;
 import recipe.vo.second.ClinicCartVO;
 
 import java.util.ArrayList;
@@ -28,6 +30,9 @@ public class ClinicCartService implements IClinicCartBusinessService {
     @Autowired
     ClinicCartDAO clinicCartDAO;
 
+    @Autowired
+    FastRecipeDAO fastRecipeDAO;
+
     /**
      * 方便门诊、便捷购药 购物车列表查询
      *
@@ -39,7 +44,17 @@ public class ClinicCartService implements IClinicCartBusinessService {
     public List<ClinicCartVO> findClinicCartsByOrganIdAndUserId(Integer organId, String userId, Integer workType) {
         List<ClinicCart> clinicCartList = clinicCartDAO.findClinicCartsByOrganIdAndUserId(organId, userId, workType);
         if (CollectionUtils.isNotEmpty(clinicCartList)) {
-            return BeanCopyUtils.copyList(clinicCartList, ClinicCartVO::new);
+            List<ClinicCartVO> clinicCartVOS = BeanCopyUtils.copyList(clinicCartList, ClinicCartVO::new);
+            for (ClinicCartVO clinicCartVO : clinicCartVOS) {
+                if (!Integer.valueOf("2").equals(workType)) {
+                    continue;
+                }
+                FastRecipe fastRecipe = fastRecipeDAO.get(Integer.valueOf(clinicCartVO.getItemId()));
+                if (Objects.nonNull(fastRecipe)) {
+                    clinicCartVO.setStockNum(fastRecipe.getStockNum());
+                }
+            }
+            return clinicCartVOS;
         } else {
             return new ArrayList<>();
         }
