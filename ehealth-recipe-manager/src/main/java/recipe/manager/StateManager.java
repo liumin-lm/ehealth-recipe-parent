@@ -383,6 +383,7 @@ public class StateManager extends BaseManager {
         try {
             String redisKey=recipeId+"statusChangeNotify"+orderStatus;
             String statusChangeNotifyCache = redisClient.get(redisKey);
+            logger.info("statusChangeNotify statusChangeNotifyCache:{}",statusChangeNotifyCache);
             if(StringUtils.isNotEmpty(statusChangeNotifyCache)){
                 logger.info("statusChangeNotify already notify recipeId:{} ,orderStatus:{} ", recipeId,orderStatus);
                 return;
