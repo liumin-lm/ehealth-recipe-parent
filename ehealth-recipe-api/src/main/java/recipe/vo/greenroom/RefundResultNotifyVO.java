@@ -25,12 +25,12 @@ public class RefundResultNotifyVO implements Serializable {
     @ItemProperty(alias = "his处方号")
     private String recipeCode;
 
-    @ItemProperty(alias = "退费状态 1 退费成功 2 退费失败")
+    @ItemProperty(alias = "退费状态 3 退费成功 4 退费失败")
     private Integer refundState;
 
     @ItemProperty(alias = "退费流水号")
     private String refundNo;
 
     @ItemProperty(alias = "退费金额")
-    private BigDecimal refundAmount;
+    private String refundAmount;
 }

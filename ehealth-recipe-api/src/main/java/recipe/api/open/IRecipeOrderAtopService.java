@@ -200,5 +200,5 @@ public interface IRecipeOrderAtopService {
      * @return
      */
     @RpcService
-    Integer refundResultNotify(RefundResultNotifyVO refundResultNotifyVO);
+    String refundResultNotify(RefundResultNotifyVO refundResultNotifyVO);
 }
