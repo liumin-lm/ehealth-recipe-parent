@@ -112,7 +112,6 @@ import java.util.stream.Collectors;
 @Service
 public class RecipeOrderBusinessService extends BaseService implements IRecipeOrderBusinessService {
     private final static long VALID_TIME_SECOND = 3600 * 24 * 30;
-    private final static Integer LOGISTICS_COMPANY_SF = 1;
     @Autowired
     private RecipeDAO recipeDAO;
     @Autowired
@@ -183,6 +182,8 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
     private RemoteRecipeOrderService recipeOrderService;
     @Autowired
     private PayClient payClient;
+    @Autowired
+    private RecipeLogDAO recipeLogDAO;
 
 
     @Override
@@ -1861,7 +1862,7 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
             }
         }
         //更新处方日志
-        //updateRecipePayLog(recipeOrderBean, memo.toString());
+        recipeLogDAO.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), memo.toString());
         return "000";
     }
 
