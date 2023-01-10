@@ -262,13 +262,6 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
             if (Objects.nonNull(doctorDTO)) {
                 recipeBean.setDoctorName(doctorDTO.getName());
             }
-
-            if (CollectionUtils.isNotEmpty(fastRecipeDetailList)) {
-                if (!new Integer(3).equals(fastRecipeDetailList.get(0).getType())) {
-                    //不是保密方
-                    recipeBean.setOfflineRecipeName("");
-                }
-            }
             RecipeExtendBean recipeExtendBean = recipeInfoVO.getRecipeExtendBean();
             recipeExtendBean.setMakeMethodId(fastRecipe.getMakeMethodId());
             recipeExtendBean.setMakeMethodText(fastRecipe.getMakeMethodText());

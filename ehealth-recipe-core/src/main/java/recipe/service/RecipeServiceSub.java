@@ -2012,10 +2012,18 @@ public class RecipeServiceSub {
         BigDecimal offlineRecipeTotalPrice = new BigDecimal(BigInteger.ZERO);
         try {
             List<RecipeDetailBean> recipeDetailBeanList = (List<RecipeDetailBean>)map.get("recipedetails");
-            //计算保密处方药品走总价
-            offlineRecipeTotalPrice = recipeDetailBeanList.stream().filter(recipeDetail -> DrugBelongTypeEnum.SECRECY_DRUG.getType().equals(recipeDetail.getType())).map(recipeDetailBean -> recipeDetailBean.getSalePrice().multiply(new BigDecimal(recipeDetailBean.getUseTotalDose()))).reduce(BigDecimal.ZERO, BigDecimal::add);
+            boolean isSecretRecipe = recipeDetailBeanList.stream().anyMatch(recipeDetail -> DrugBelongTypeEnum.SECRECY_DRUG.getType().equals(recipeDetail.getType()));
+            if (isSecretRecipe) {
+                //计算保密处方药品走总价
+                offlineRecipeTotalPrice = recipeDetailBeanList.stream().filter(recipeDetail -> DrugBelongTypeEnum.SECRECY_DRUG.getType().equals(recipeDetail.getType())).map(recipeDetailBean -> recipeDetailBean.getSalePrice().multiply(new BigDecimal(recipeDetailBean.getUseTotalDose()))).reduce(BigDecimal.ZERO, BigDecimal::add);
+            } else {
+                //非保密方
+                if (StringUtils.isNotEmpty(recipeBean.getOfflineRecipeName())) {
+                    recipeBean.setOfflineRecipeName("");
+                }
+            }
         } catch (Exception e) {
-            LOGGER.error("getRecipeAndDetailByIdImpl error 保密处方价格计算错误:{}", e);
+            LOGGER.error("getRecipeAndDetailByIdImpl 保密处方价格计算错误 error", e);
             offlineRecipeTotalPrice = recipedetails.stream().filter(recipeDetail -> DrugBelongTypeEnum.SECRECY_DRUG.getType().equals(recipeDetail.getType())).map(Recipedetail::getDrugCost).reduce(BigDecimal.ZERO, BigDecimal::add);
         }
         recipeBean.setOfflineRecipeTotalPrice(offlineRecipeTotalPrice);
