@@ -342,7 +342,11 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
             result.getRecipe().setClinicId(recipe.getClinicId());
             recipeManager.updatePushHisRecipe(result.getRecipe(), recipeId, pushType);
             recipeManager.updatePushHisRecipeExt(result.getRecipeExtend(), recipeId, pushType);
-            stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_ORDER, RecipeStateEnum.SUB_ORDER_READY_SUBMIT_ORDER);
+            if (CommonConstant.RECIPE_PUSH_TYPE.equals(pushType)) {
+                stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_ORDER, RecipeStateEnum.SUB_ORDER_READY_SUBMIT_ORDER);
+            } else {
+                stateManager.updateWriteHisState(recipeId, WriteHisEnum.NONE);
+            }
             logger.info("RecipeBusinessService pushRecipe end recipeId:{}", recipeId);
             return result;
         } catch (Exception e) {
