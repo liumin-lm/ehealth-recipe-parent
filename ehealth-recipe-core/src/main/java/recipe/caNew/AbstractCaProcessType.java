@@ -143,7 +143,7 @@ public abstract class AbstractCaProcessType {
         RecipeBusiThreadPool.execute(() -> {
             new PushRecipeToRegulationCallable(Collections.singletonList(recipe.getRecipeId()), 1);
             LOGGER.info("addRecipeNotify 前");
-            if(null==recipe.getReviewType()||"0".equals(recipe.getReviewType())){
+            if(null==recipe.getReviewType()||new Integer(0).equals(recipe.getReviewType())){
                 recipeManager.addRecipeNotify(recipe.getRecipeId(), JKHBConstant.NO_PAY);
             }
         });
