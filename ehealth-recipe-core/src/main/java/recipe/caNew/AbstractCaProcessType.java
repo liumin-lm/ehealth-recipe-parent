@@ -32,6 +32,7 @@ import recipe.service.RecipeServiceSub;
 import recipe.thread.PushRecipeToHisCallable;
 import recipe.thread.PushRecipeToRegulationCallable;
 import recipe.thread.RecipeBusiThreadPool;
+import recipe.util.JsonUtil;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -108,6 +109,7 @@ public abstract class AbstractCaProcessType {
      * @param memo
      */
     public void caComplete(Recipe recipe, String memo) {
+        LOGGER.info("caComplete recipe:{},memo:{}", JsonUtil.toString(recipe),memo);
         //设置处方签名成功后的处方的状态
         Integer status = RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType();
         //根据审方模式改变状态
@@ -140,6 +142,7 @@ public abstract class AbstractCaProcessType {
         //异步处理
         RecipeBusiThreadPool.execute(() -> {
             new PushRecipeToRegulationCallable(Collections.singletonList(recipe.getRecipeId()), 1);
+            LOGGER.info("addRecipeNotify 前");
             if(null==recipe.getReviewType()||"0".equals(recipe.getReviewType())){
                 recipeManager.addRecipeNotify(recipe.getRecipeId(), JKHBConstant.NO_PAY);
             }
