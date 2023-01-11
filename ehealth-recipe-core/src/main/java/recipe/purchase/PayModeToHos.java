@@ -334,13 +334,16 @@ public class PayModeToHos implements IPurchaseService {
         List<Recipedetail> detailList = detailDAO.findByRecipeId(recipeId);
         //如果当前处方为快捷购药并开启开关
         Boolean fastRecipeUsePlatStock = configurationClient.getValueBooleanCatch(dbRecipe.getClinicOrgan(), "fastRecipeUsePlatStock", false);
-        if (!(FastRecipeFlagEnum.FAST_RECIPE_FLAG_QUICK.getType().equals(dbRecipe.getFastRecipeFlag()) && fastRecipeUsePlatStock)) {
+        if (!(FastRecipeFlagEnum.FAST_RECIPE_FLAG_QUICK.getType().equals(dbRecipe.getFastRecipeFlag()))
+                || (FastRecipeFlagEnum.FAST_RECIPE_FLAG_QUICK.getType().equals(dbRecipe.getFastRecipeFlag())) && !fastRecipeUsePlatStock) {
             for (DrugsEnterprise dep : drugsEnterprises) {
                 EnterpriseStock enterpriseStock = stockBusinessService.enterpriseStockCheck(dbRecipe, detailList, dep.getId(), StockCheckSourceTypeEnum.PATIENT_STOCK.getType());
                 if (null != enterpriseStock && enterpriseStock.getStock()) {
                     subDepList.add(dep);
                 }
             }
+        } else {
+            subDepList.addAll(drugsEnterprises);
         }
         drugsEnterprises = enterpriseManager.enterprisePriorityLevel(dbRecipe.getClinicOrgan(), subDepList);
         //判断药企是否不展示药店
