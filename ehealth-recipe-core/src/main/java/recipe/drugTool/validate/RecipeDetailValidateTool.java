@@ -334,10 +334,12 @@ public class RecipeDetailValidateTool {
             recipeExtendBean.setDecoctionCode(decoctionWay.getDecoctionCode());
             recipeExtendBean.setDecoctionId(decoctionWay.getDecoctionId().toString());
             recipeExtendBean.setDecoctionText(decoctionWay.getDecoctionText());
+            recipeExtendBean.setDecoctionExhibitionFlag(decoctionWay.getDecoctionExhibitionFlag());
         } else {
             recipeExtendBean.setDecoctionCode(null);
             recipeExtendBean.setDecoctionId(null);
             recipeExtendBean.setDecoctionText(null);
+            recipeExtendBean.setDecoctionExhibitionFlag(null);
         }
     }
 

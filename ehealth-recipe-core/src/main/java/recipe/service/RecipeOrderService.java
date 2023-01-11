@@ -201,6 +201,8 @@ public class RecipeOrderService extends RecipeBaseService {
     private OrganDrugListDAO organDrugListDAO;
     @Autowired
     private ICurrentUserInfoService currentUserInfoService;
+    @Autowired
+    private RevisitManager revisitManager;
 
 
 
@@ -960,8 +962,6 @@ public class RecipeOrderService extends RecipeBaseService {
                         expressFee = orderFeeManager.getPlatformExpressFee(order.getEnterpriseId(), address.getAddress3());
                     }
                 }
-
-
             }
             LOGGER.info("setOrderAddress recipeIds:{}, expressFee:{}.", JSONUtils.toString(recipeIds), expressFee);
             order.setExpressFee(expressFee);
@@ -1027,6 +1027,7 @@ public class RecipeOrderService extends RecipeBaseService {
      * @param organLogisticsManageDto
      */
     private OrganLogisticsManageDto obtainExpressFee(RecipeOrder order, Integer enterpriseId, Integer logisticsCompany, AddressDTO address,OrganLogisticsManageDto organLogisticsManageDto ) {
+        LOGGER.info("obtainExpressFee recipeId:{}, enterpriseId:{}, logisticsCompany:{}", order.getRecipeIdList(), enterpriseId, logisticsCompany);
         try {
             DrugEnterpriseLogistics drugEnterpriseLogistics=new DrugEnterpriseLogistics();
             //lm如果前端没给物流公司，则获取默认物流公司计算快递费
@@ -1053,7 +1054,7 @@ public class RecipeOrderService extends RecipeBaseService {
                     return organLogisticsManageDto;
                 }
                 organLogisticsManageDto=organLogisticsManageDtos.get(0);
-                LOGGER.info("organLogisticsManageDto:{}",JSONUtils.toString(organLogisticsManageDto));
+                LOGGER.info("obtainExpressFee organLogisticsManageDto:{}",JSONUtils.toString(organLogisticsManageDto));
                 if(organLogisticsManageDto==null){return organLogisticsManageDto;}
                 if(ExpressFeePayMethodEnum.CASHONDELIVERYOFFLINE.getType().equals(organLogisticsManageDto.getPayMethod())){
                     //lm到付 展示快递费为：到付
@@ -2544,6 +2545,8 @@ public class RecipeOrderService extends RecipeBaseService {
                 recipes.forEach(recipe -> {
                     docIndexClient.updateStatusByBussIdBussType(recipe.getRecipeId(), DocIndexShowEnum.SHOW.getCode());
                 });
+                // 支付成功后通知复诊
+                revisitManager.doHandleAfterPayForEntrust(nowRecipe,order);
             } else if (PayConstant.PAY_FLAG_NOT_PAY == payFlag && null != order) {
                 attrMap.put("status", getPayStatus(reviewType, giveMode, nowRecipe));
                 //支付前调用

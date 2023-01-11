@@ -16,11 +16,9 @@ import com.ngari.revisit.common.model.DrugFaileToRevisitDTO;
 import com.ngari.revisit.common.model.HosRecordDTO;
 import com.ngari.revisit.common.model.RevisitBussNoticeDTO;
 import com.ngari.revisit.common.model.RevisitExDTO;
+import com.ngari.revisit.common.request.RevisitEntrustRequest;
 import com.ngari.revisit.common.request.ValidRevisitRequest;
-import com.ngari.revisit.common.service.IRevisitBusNoticeService;
-import com.ngari.revisit.common.service.IRevisitExService;
-import com.ngari.revisit.common.service.IRevisitHosRecordService;
-import com.ngari.revisit.common.service.IRevisitService;
+import com.ngari.revisit.common.service.*;
 import com.ngari.revisit.process.service.IRecipeOnLineRevisitService;
 import com.ngari.revisit.traces.service.IRevisitTracesSortService;
 import ctd.util.JSONUtils;
@@ -65,6 +63,9 @@ public class RevisitClient extends BaseClient {
     @Autowired
     private IRevisitHosRecordService iRevisitHosRecordService;
 
+    @Autowired
+    private RevisitPayService revisitPayService;
+
     /**
      * 类加载排序
      *
@@ -93,6 +94,15 @@ public class RevisitClient extends BaseClient {
         RevisitBean revisitBean = revisitService.getById(clinicId);
         logger.info("RevisitClient getRevisitByClinicId param revisitBean:{}", JSONUtils.toString(revisitBean));
         return revisitBean;
+    }
+
+    /**
+     * 支付成后通知复诊
+     * @param revisitEntrustRequest
+     */
+    public void doHandleAfterPayForEntrust(RevisitEntrustRequest revisitEntrustRequest) {
+        logger.info("RevisitClient doHandleAfterPayForEntrust param revisitEntrustRequest:{}", revisitEntrustRequest);
+        revisitPayService.doHandleAfterPayForEntrust(revisitEntrustRequest);
     }
 
     /**

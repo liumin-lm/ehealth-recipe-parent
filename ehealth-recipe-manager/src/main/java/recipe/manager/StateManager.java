@@ -18,6 +18,7 @@ import recipe.client.RecipeAuditClient;
 import recipe.common.OnsConfig;
 import recipe.constant.JKHBConstant;
 import recipe.enumerate.status.*;
+import recipe.enumerate.type.FastRecipeFlagEnum;
 import recipe.enumerate.type.PayFlagEnum;
 import recipe.util.RedisClient;
 
@@ -126,10 +127,14 @@ public class StateManager extends BaseManager {
             case PROCESS_STATE_CANCELLATION:
                 result = this.cancellation(recipe, processState, subState);
                 statusChangeNotify(recipe.getRecipeId(), JKHBConstant.PROCESS_STATE_CANCELLATION);
-                if (!PayFlagEnum.NOPAY.getType().equals(recipe.getPayFlag())) {
+                if (FastRecipeFlagEnum.FAST_RECIPE_FLAG_QUICK.getType().equals(recipe.getFastRecipeFlag()) &&
+                        !PayFlagEnum.NOPAY.getType().equals(recipe.getPayFlag())) {
                     fastRecipeManager.decreaseSaleNum(recipeId);
                 }
-                fastRecipeManager.addStockByRecipeId(recipeId);
+                Integer fastRecipeMode = configurationClient.getValueCatchReturnInteger(recipe.getClinicOrgan(), "fastRecipeMode", 0);
+                if (FastRecipeFlagEnum.FAST_RECIPE_FLAG_QUICK.getType().equals(recipe.getFastRecipeFlag()) && Integer.valueOf("0").equals(fastRecipeMode)) {
+                    fastRecipeManager.addStockByRecipeId(recipeId);
+                }
                 break;
             default:
                 result = false;

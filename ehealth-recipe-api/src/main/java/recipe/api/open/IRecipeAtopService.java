@@ -235,7 +235,6 @@ public interface IRecipeAtopService {
     @RpcService(mvcDisabled = true)
     Boolean deleteClinicCartByIds(List<Integer> ids);
 
-
     /**
      * 自助机——根据mpiid,recipeStatus获取处方
      */

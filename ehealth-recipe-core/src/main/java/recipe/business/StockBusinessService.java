@@ -573,7 +573,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
      */
     private List<GiveModeButtonDTO> saveGiveMode(Recipe recipe, List<EnterpriseStock> enterpriseStockList, List<Recipedetail> recipeDetails) {
         List<EnterpriseStock> enterpriseStock = enterpriseStockList.stream().filter(a -> CollectionUtils.isNotEmpty(a.getGiveModeButton())).collect(Collectors.toList());
-        logger.info("StockBusinessService saveGiveMode enterpriseStock={}", JSON.toJSONString(enterpriseStock));
+        logger.info("StockBusinessService saveGiveMode recipeId:{}, enterpriseStock={}", recipe.getRecipeId(), JSON.toJSONString(enterpriseStock));
         enterpriseStock = drugsEnterprisePriority(recipe, enterpriseStock);
         List<GiveModeButtonDTO> giveModeButton = new LinkedList<>();
         enterpriseStock.stream().filter(EnterpriseStock::getStock).forEach(a -> giveModeButton.addAll(a.getGiveModeButton()));

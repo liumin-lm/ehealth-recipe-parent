@@ -23,6 +23,7 @@ import recipe.core.api.patient.IRecipeOrderBusinessService;
 import recipe.util.ObjectCopyUtils;
 import recipe.vo.greenroom.ImperfectInfoVO;
 import recipe.vo.greenroom.RecipeRefundInfoReqVO;
+import recipe.vo.greenroom.RefundResultNotifyVO;
 import recipe.vo.second.CabinetVO;
 import recipe.vo.second.OrderPharmacyVO;
 import recipe.vo.second.RecipeOrderVO;
@@ -231,6 +232,12 @@ public class RecipeOrderOpenAtop extends BaseAtop implements IRecipeOrderAtopSer
     public Integer checkOrderPayState(Integer orderId) {
         validateAtop(orderId);
         return recipeOrderService.checkOrderPayState(orderId);
+    }
+
+    @Override
+    public String refundResultNotify(RefundResultNotifyVO refundResultNotifyVO) {
+        validateAtop(refundResultNotifyVO);
+        return recipeOrderService.refundResultNotify(refundResultNotifyVO);
     }
 
 }

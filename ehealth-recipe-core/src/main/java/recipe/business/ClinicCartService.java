@@ -14,6 +14,7 @@ import recipe.dao.FastRecipeDAO;
 import recipe.vo.second.ClinicCartVO;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
@@ -45,15 +46,21 @@ public class ClinicCartService implements IClinicCartBusinessService {
         List<ClinicCart> clinicCartList = clinicCartDAO.findClinicCartsByOrganIdAndUserId(organId, userId, workType);
         if (CollectionUtils.isNotEmpty(clinicCartList)) {
             List<ClinicCartVO> clinicCartVOS = BeanCopyUtils.copyList(clinicCartList, ClinicCartVO::new);
-            for (ClinicCartVO clinicCartVO : clinicCartVOS) {
-                if (!Integer.valueOf("2").equals(workType)) {
-                    continue;
-                }
+            if (!Integer.valueOf("2").equals(workType)) {
+                return clinicCartVOS;
+            }
+            Iterator<ClinicCartVO> it = clinicCartVOS.iterator();
+            while (it.hasNext()) {
+                ClinicCartVO clinicCartVO = it.next();
                 FastRecipe fastRecipe = fastRecipeDAO.get(Integer.valueOf(clinicCartVO.getItemId()));
                 if (Objects.nonNull(fastRecipe)) {
                     clinicCartVO.setStockNum(fastRecipe.getStockNum());
                 }
+                if (!Integer.valueOf("1").equals(fastRecipe.getStatus())) {
+                    it.remove();
+                }
             }
+
             return clinicCartVOS;
         } else {
             return new ArrayList<>();

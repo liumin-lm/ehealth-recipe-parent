@@ -268,12 +268,8 @@ public class QueryRecipeService implements IQueryRecipeService {
                     }
                 }
                 if (StringUtils.isNotEmpty(recipeExtend.getSymptomId())) {
-                    SymptomDAO symptomDAO = DAOFactory.getDAO(SymptomDAO.class);
-                    Symptom symptom = symptomDAO.get(Integer.parseInt(recipeExtend.getSymptomId()));
-                    if (Objects.nonNull(symptom)) {
-                        recipeExtendBean.setSymptomCode(symptom.getSymptomCode());
-                        recipeExtendBean.setSymptomName(symptom.getSymptomName());
-                    }
+                    recipeExtendBean.setSymptomCode(recipeExtend.getSymptomId());
+                    recipeExtendBean.setSymptomName(recipeExtend.getSymptomName());
                 }
                 recipeDTO.setRecipeExtendBean(recipeExtendBean);
                 if (StringUtils.isNotEmpty(emrDetail.getMainDieaseDescribe())) {

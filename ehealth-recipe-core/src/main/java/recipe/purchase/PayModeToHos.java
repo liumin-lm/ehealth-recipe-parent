@@ -89,8 +89,6 @@ public class PayModeToHos implements IPurchaseService {
     private RecipeExtendDAO recipeExtendDAO;
     @Autowired
     private RecipeManager recipeManager;
-    @Resource
-    private FastRecipeManager fastRecipeManager;
 
     private static final Logger LOG = LoggerFactory.getLogger(PayModeToHos.class);
 
@@ -231,7 +229,6 @@ public class PayModeToHos implements IPurchaseService {
             result.setMsg("提交失败，请重新提交。");
             return result;
         }
-        recipeIdLists.forEach(recipeId -> fastRecipeManager.addSaleNum(recipeId));
         // 到院自取也需要更新药品实际销售价格
         recipeIdLists.forEach(recipeId -> purchaseService.updateRecipeDetail(recipeId,null));
         orderService.setCreateOrderResult(result, order, payModeSupport, 1);

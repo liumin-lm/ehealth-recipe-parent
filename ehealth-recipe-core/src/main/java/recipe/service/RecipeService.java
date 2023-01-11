@@ -1054,7 +1054,14 @@ public class RecipeService extends RecipeBaseService {
             resultBean.setMsg("已重新提交医院系统");
         }
         LOGGER.info("sendNewRecipeToHIS before His! dbRecipe={}", JSONUtils.toString(recipe));
-        hisService.recipeSendHis(recipeId, null);
+        if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())) {
+            //MQ推送处方开成功消息
+            RecipeToHisMqService hisMqService = ApplicationUtils.getRecipeService(RecipeToHisMqService.class);
+            hisMqService.recipeStatusToHis(HisMqRequestInit.initRecipeStatusToHisReq(recipe, HisBussConstant.TOHIS_RECIPE_STATUS_ADD));
+        } else {
+            //HIS消息发送
+            hisService.recipeSendHis(recipeId, null);
+        }
         return resultBean;
     }
 

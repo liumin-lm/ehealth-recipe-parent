@@ -14,9 +14,11 @@ import com.ngari.recipe.dto.WriteDrugRecipeBean;
 import com.ngari.recipe.dto.WriteDrugRecipeDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
+import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.common.model.RevisitBussNoticeDTO;
 import com.ngari.revisit.common.model.RevisitExDTO;
+import com.ngari.revisit.common.request.RevisitEntrustRequest;
 import com.ngari.revisit.common.service.IRevisitService;
 import ctd.dictionary.DictionaryController;
 import ctd.net.broadcast.MQHelper;
@@ -34,6 +36,7 @@ import recipe.enumerate.type.WriteRecipeConditionTypeEnum;
 import recipe.util.ObjectCopyUtils;
 import recipe.util.ValidateUtil;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
@@ -291,4 +294,29 @@ public class RevisitManager extends BaseManager {
         return true;
     }
 
+    /**
+     * 支付成功后通知复诊
+     * @param nowRecipe
+     * @param order
+     */
+    public void doHandleAfterPayForEntrust(Recipe nowRecipe, RecipeOrder order) {
+        // 不是复诊或者没有挂号费 不用调用
+        try {
+            if (!BussSourceTypeEnum.BUSSSOURCE_REVISIT.getType().equals(nowRecipe.getBussSource())) {
+                return;
+            }
+            if (Objects.isNull(order.getRegisterFee()) || order.getRegisterFee().compareTo(BigDecimal.ZERO) <= 0) {
+                return;
+            }
+            RevisitEntrustRequest revisitEntrustRequest = new RevisitEntrustRequest();
+            revisitEntrustRequest.setOrderCode(order.getOrderCode());
+            revisitEntrustRequest.setAmount(order.getRegisterFee());
+            revisitEntrustRequest.setOrganId(nowRecipe.getClinicOrgan());
+            revisitEntrustRequest.setPaymentDate(order.getPayTime());
+            revisitEntrustRequest.setRegisterNo(order.getRegisterNo());
+            revisitClient.doHandleAfterPayForEntrust(revisitEntrustRequest);
+        }catch (Exception e){
+            logger.error("doHandleAfterPayForEntrust 通知复诊支付成功失败 orderCode={}",order.getOrderCode());
+        }
+    }
 }
