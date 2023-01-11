@@ -1920,10 +1920,25 @@ public class RecipeOrderService extends RecipeBaseService {
                     }
                     //药品详情
                     recipedetails = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
-                    BigDecimal offlineRecipeTotalPrice = new BigDecimal(BigInteger.ZERO);
-                    //计算保密处方药品走总价
-                    offlineRecipeTotalPrice = recipedetails.stream().filter(recipeDetail -> DrugBelongTypeEnum.SECRECY_DRUG.getType().equals(recipeDetail.getType())).map(Recipedetail::getDrugCost).reduce(BigDecimal.ZERO, BigDecimal::add);
-                    recipeBean.setOfflineRecipeTotalPrice(offlineRecipeTotalPrice);
+                    try {
+                        boolean isSecretRecipe = recipedetails.stream().anyMatch(recipeDetail -> DrugBelongTypeEnum.SECRECY_DRUG.getType().equals(recipeDetail.getType()));
+                        if (isSecretRecipe) {
+                            //计算保密处方药品走总价
+                            BigDecimal offlineRecipeTotalPrice = recipedetails.stream().filter(recipeDetail -> DrugBelongTypeEnum.SECRECY_DRUG.getType().equals(recipeDetail.getType()))
+                                    .map(recipeDetailBean -> recipeDetailBean.getSalePrice().multiply(new BigDecimal(recipeDetailBean.getUseTotalDose())))
+                                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+                            recipeBean.setOfflineRecipeTotalPrice(offlineRecipeTotalPrice);
+                        } else {
+                            //非保密方
+                            if (StringUtils.isNotEmpty(recipeBean.getOfflineRecipeName()) && !RecipeSourceTypeEnum.COMMON_RECIPE.getType().equals(recipe.getRecipeSourceType())) {
+                                recipeBean.setOfflineRecipeName("");
+                                recipeBean.setOfflineRecipeTotalPrice(null);
+                            }
+                        }
+                    } catch (Exception e) {
+                        LOGGER.error("getOrderDetailById 保密处方价格计算错误 error", e);
+                    }
+
                     String className = Thread.currentThread().getStackTrace()[2].getClassName();
                     String methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
                     List<Integer> drugId = recipedetails.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
