@@ -1,5 +1,6 @@
 package recipe.service;
 
+import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Maps;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
@@ -144,11 +145,12 @@ public class RecipeRefundService extends RecipeBaseService {
         IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
         Boolean doctorReviewRefund = (Boolean) configurationService.getConfiguration(recipe.getClinicOrgan(), "doctorReviewRefund");
         if (doctorReviewRefund) {
+            LOGGER.info("applyForRecipeRefund applicationForRefundVisit request:{}", JSON.toJSONString(request));
             //date 20201012 加长了接口过期时间，接口20s会超时
             HisResponseTO<String> hisResult = service.applicationForRefundVisit(request);
+            LOGGER.info("applyForRecipeRefund applicationForRefundVisit hisResult:{}", JSON.toJSONString(hisResult));
             //说明需要医生进行审核，则需要推送给医生，此处兼容上海六院，其他医院前置机需要实现此接口并返回成功但不需要真实对接第三方
             if (hisResult != null && "200".equals(hisResult.getMsgCode())) {
-                LOGGER.info("applyForRecipeRefund-处方退费申请成功-his. param={},result={}", JSONUtils.toString(request), JSONUtils.toString(hisResult));
                 //退费申请记录保存
                 RecipeRefund recipeRefund = new RecipeRefund();
                 recipeRefund.setTradeNo(recipeOrder.getTradeNo());
@@ -210,6 +212,7 @@ public class RecipeRefundService extends RecipeBaseService {
             visitRequest.setChargeItemCode(chargeItemCodes);
             LOGGER.info("applyForRecipeRefund-checkForRefundVisit req visitRequest={}", JSONUtils.toString(visitRequest));
             HisResponseTO<String> result = service.checkForRefundVisit(visitRequest);
+            LOGGER.info("applyForRecipeRefund-checkForRefundVisit result={}", JSONUtils.toString(result));
             if (result != null && "200".equals(result.getMsgCode())) {
                 LOGGER.info("applyForRecipeRefund-checkForRefundVisit 处方退费申请成功-his. param={},result={}", JSONUtils.toString(request), JSONUtils.toString(result));
                 //退费审核记录保存
@@ -276,9 +279,6 @@ public class RecipeRefundService extends RecipeBaseService {
             }
 
             if (refundRequestBean.getRefundFlag()) {
-//                if (Integer.valueOf(1).equals(recipeOrder.getDispensingFlag())) {
-//                    throw new DAOException(ErrorCode.SERVICE_ERROR, "订单已发药, 请先确认退药处理(编辑订单信息-已退药), 再提交退费审核通过");
-//                }
                 //退费申请记录保存
                 RecipeRefund recipeRefund = new RecipeRefund();
                 recipeRefund.setTradeNo(recipeOrder.getTradeNo());
