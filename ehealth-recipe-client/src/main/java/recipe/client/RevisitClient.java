@@ -21,6 +21,7 @@ import com.ngari.revisit.common.request.ValidRevisitRequest;
 import com.ngari.revisit.common.service.*;
 import com.ngari.revisit.process.service.IRecipeOnLineRevisitService;
 import com.ngari.revisit.traces.service.IRevisitTracesSortService;
+import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,9 +64,6 @@ public class RevisitClient extends BaseClient {
     @Autowired
     private IRevisitHosRecordService iRevisitHosRecordService;
 
-    @Autowired
-    private RevisitPayService revisitPayService;
-
     /**
      * 类加载排序
      *
@@ -102,6 +100,7 @@ public class RevisitClient extends BaseClient {
      */
     public void doHandleAfterPayForEntrust(RevisitEntrustRequest revisitEntrustRequest) {
         logger.info("RevisitClient doHandleAfterPayForEntrust param revisitEntrustRequest:{}", revisitEntrustRequest);
+        RevisitPayService revisitPayService = AppContextHolder.getBean("revisit.revisitPayService", RevisitPayService.class);
         revisitPayService.doHandleAfterPayForEntrust(revisitEntrustRequest);
     }
 
