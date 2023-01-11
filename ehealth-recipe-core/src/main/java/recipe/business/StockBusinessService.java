@@ -188,20 +188,11 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         if (giveMode == 0) {
             return true;
         }
-        Boolean fastRecipeUsePlatStock = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "fastRecipeUsePlatStock", false);
-        if (FastRecipeFlagEnum.FAST_RECIPE_FLAG_QUICK.getType().equals(recipe.getFastRecipeFlag()) && fastRecipeUsePlatStock) {
-            recipeIds.forEach(recipeId -> {
-                if (!recipeManager.fastRecipeStock(recipeId)) {
-                    throw new DAOException("药品已售罄");
-                }
-            });
-            return true;
-        }
         recipe.setGiveMode(giveMode);
         return this.getStockFlag(recipeIds, recipe, enterpriseId);
     }
 
-    
+
     @Override
     public List<EnterpriseStock> drugsStock(RecipeDTO recipeDTO, Integer stockCheckType) {
         Recipe recipe = recipeDTO.getRecipe();

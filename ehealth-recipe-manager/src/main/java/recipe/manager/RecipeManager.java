@@ -1259,25 +1259,25 @@ public class RecipeManager extends BaseManager {
         return Joiner.on("|").join(hisOrderCode);
     }
 
-    /**
-     * 快捷购药是否存在库存
-     * @param recipeId
-     * @return
-     */
-    public boolean fastRecipeStock(Integer recipeId){
-        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
-        FastRecipe fastRecipe = fastRecipeDAO.get(recipeExtend.getMouldId());
-        if (Objects.isNull(fastRecipe)) {
-            return false;
-        }
-        if (Objects.isNull(fastRecipe.getStockNum())) {
-            return true;
-        }
-        if (0 == fastRecipe.getStockNum()) {
-            return false;
-        }
-        return recipeExtend.getFastRecipeNum() <= fastRecipe.getStockNum();
-    }
+    ///**
+    // * 快捷购药是否存在库存
+    // * @param recipeId
+    // * @return
+    // */
+    //public boolean fastRecipeStock(Integer recipeId){
+    //    RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+    //    FastRecipe fastRecipe = fastRecipeDAO.get(recipeExtend.getMouldId());
+    //    if (Objects.isNull(fastRecipe)) {
+    //        return false;
+    //    }
+    //    if (Objects.isNull(fastRecipe.getStockNum())) {
+    //        return true;
+    //    }
+    //    if (0 == fastRecipe.getStockNum()) {
+    //        return false;
+    //    }
+    //    return recipeExtend.getFastRecipeNum() <= fastRecipe.getStockNum();
+    //}
 
     /**
      * 排除 特定处方id
