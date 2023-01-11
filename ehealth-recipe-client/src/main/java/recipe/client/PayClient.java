@@ -17,6 +17,7 @@ import com.ngari.platform.recipe.mode.InvoiceInfoResTO;
 import com.ngari.recipe.dto.PatientDTO;
 import com.ngari.recipe.dto.RefundResultDTO;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.wxpay.service.INgariPayService;
@@ -49,6 +50,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * @description： 支付相关client
@@ -210,7 +212,7 @@ public class PayClient extends BaseClient {
     /**
      * 处方退款推送his服务
      */
-    public String recipeRefund(Recipe recipe, List<Recipedetail> details, PatientDTO patient, HealthCardBean card) {
+    public String recipeRefund(Recipe recipe, List<Recipedetail> details, PatientDTO patient, HealthCardBean card, List<Recipe> recipeList, List<RecipeExtend> recipeExtendList) {
         RecipeRefundReqTO requestTO = new RecipeRefundReqTO();
         if (null != recipe) {
             requestTO.setOrganID(String.valueOf(recipe.getClinicOrgan()));
@@ -235,6 +237,17 @@ public class PayClient extends BaseClient {
         }
         requestTO.setHoscode("");
         requestTO.setEmpId("");
+        List<String> recipeCodeList = recipeList.stream().map(Recipe::getRecipeCode).collect(Collectors.toList());
+        requestTO.setRecipeCodes(recipeCodeList);
+        if (CollectionUtils.isNotEmpty(recipeExtendList)) {
+            List<String> recipeCostNumbers = recipeExtendList.stream().map(RecipeExtend::getRecipeCostNumber).collect(Collectors.toList());
+            List<String> chargeItemCodes = recipeExtendList.stream().map(RecipeExtend::getChargeItemCode).collect(Collectors.toList());
+            List<String> chargeIds = recipeExtendList.stream().map(RecipeExtend::getChargeId).collect(Collectors.toList());
+            requestTO.setRecipeCostNumber(recipeCostNumbers);
+            requestTO.setRegisterID(recipeExtendList.get(0).getRegisterID());
+            requestTO.setChargeId(chargeIds);
+            requestTO.setChargeItemCode(chargeItemCodes);
+        }
         logger.info("RefundClient recipeRefund recipeRefund request:{}.", JSONUtils.toString(requestTO));
         try {
             RecipeRefundResTO response = recipeHisService.recipeRefund(requestTO);

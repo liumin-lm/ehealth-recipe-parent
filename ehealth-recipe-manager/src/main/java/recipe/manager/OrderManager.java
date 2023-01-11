@@ -472,7 +472,16 @@ public class OrderManager extends BaseManager {
         List<Recipedetail> details = recipeDetailDAO.findByRecipeId(recipeId);
         com.ngari.recipe.dto.PatientDTO patientBean = patientClient.getPatientDTO(recipe.getMpiid());
         HealthCardBean cardBean = patientClient.getCardBean(recipe.getMpiid(), recipe.getClinicOrgan());
-        String backInfo = payClient.recipeRefund(recipe, details, patientBean, cardBean);
+        List<Integer> recipeIdList = new ArrayList<>();
+        if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
+            RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+            recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
+        } else {
+            recipeIdList.add(recipeId);
+        }
+        List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIdList);
+        List<RecipeExtend> recipeExtendList = recipeExtendDAO.queryRecipeExtendByRecipeIds(recipeIdList);
+        String backInfo = payClient.recipeRefund(recipe, details, patientBean, cardBean, recipeList, recipeExtendList);
         recipeLogDAO.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), RecipeStatusEnum.NONE.getType(), "同步HIS退款返回：" + backInfo);
         return backInfo;
     }
