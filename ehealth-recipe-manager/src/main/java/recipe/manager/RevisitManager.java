@@ -313,7 +313,10 @@ public class RevisitManager extends BaseManager {
             revisitEntrustRequest.setAmount(order.getRegisterFee());
             revisitEntrustRequest.setOrganId(nowRecipe.getClinicOrgan());
             revisitEntrustRequest.setPaymentDate(Calendar.getInstance().getTime());
-            revisitEntrustRequest.setRegisterNo(order.getRegisterFeeNo());
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(nowRecipe.getRecipeId());
+            if (Objects.nonNull(recipeExtend)) {
+                revisitEntrustRequest.setRegisterNo(recipeExtend.getRegisterID());
+            }
             revisitClient.doHandleAfterPayForEntrust(revisitEntrustRequest);
         }catch (Exception e){
             logger.error("doHandleAfterPayForEntrust 通知复诊支付成功失败 orderCode={}",order.getOrderCode());
