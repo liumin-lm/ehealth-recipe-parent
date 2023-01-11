@@ -98,9 +98,6 @@ public class PayClient extends BaseClient {
         // 1.获取参数
         // 1.1获取payWay
         PayWayEnum payWayEnum = PayWayEnum.fromCode(recipeOrder.getWxPayWay());
-//        if (Objects.isNull(payWayEnum)) {
-//            throw new ServiceException("当前订单无法获取到支付方式！");
-//        }
 
         // 1.2获取userId, clientId
         String userId = "";
@@ -124,7 +121,6 @@ public class PayClient extends BaseClient {
         }
         OrderQueryParam orderQueryParam = new OrderQueryParam();
         orderQueryParam.setApplyNo(recipeOrder.getOutTradeNo());
-//        orderQueryParam.setTradeNo(recipeOrder.getTradeNo());
 
         CommonParam commonParam = new CommonParam();
         commonParam.setOrganId(recipeOrder.getPayOrganId());
@@ -152,7 +148,6 @@ public class PayClient extends BaseClient {
             } else if (code != null && code.equals("406")) {//订单不存在
 //                tradeStatus = "ORDER_NOT_EXIST";
             } else {
-
                 //支付平台异常，调用失败
                 logger.info("order.query 调用失败");
             }
@@ -207,7 +202,6 @@ public class PayClient extends BaseClient {
         logger.info("RefundClient refund refundResultDTO:{}.", JSONUtils.toString(refundResultDTO));
         return refundResultDTO;
     }
-
 
     /**
      * 处方退款推送his服务
