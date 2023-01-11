@@ -64,6 +64,9 @@ public class RevisitClient extends BaseClient {
     @Autowired
     private IRevisitHosRecordService iRevisitHosRecordService;
 
+    @Autowired
+    private RevisitPayService revisitPayService;
+
     /**
      * 类加载排序
      *
@@ -100,7 +103,6 @@ public class RevisitClient extends BaseClient {
      */
     public void doHandleAfterPayForEntrust(RevisitEntrustRequest revisitEntrustRequest) {
         logger.info("RevisitClient doHandleAfterPayForEntrust param revisitEntrustRequest:{}", revisitEntrustRequest);
-        RevisitPayService revisitPayService = AppContextHolder.getBean("revisit.revisitPayService", RevisitPayService.class);
         revisitPayService.doHandleAfterPayForEntrust(revisitEntrustRequest);
     }
 
