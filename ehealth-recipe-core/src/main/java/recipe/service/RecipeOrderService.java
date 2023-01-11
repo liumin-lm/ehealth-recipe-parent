@@ -201,6 +201,8 @@ public class RecipeOrderService extends RecipeBaseService {
     private OrganDrugListDAO organDrugListDAO;
     @Autowired
     private ICurrentUserInfoService currentUserInfoService;
+    @Autowired
+    private RevisitManager revisitManager;
 
 
 
@@ -2543,6 +2545,8 @@ public class RecipeOrderService extends RecipeBaseService {
                 recipes.forEach(recipe -> {
                     docIndexClient.updateStatusByBussIdBussType(recipe.getRecipeId(), DocIndexShowEnum.SHOW.getCode());
                 });
+                // 支付成功后通知复诊
+                revisitManager.doHandleAfterPayForEntrust(nowRecipe,order);
             } else if (PayConstant.PAY_FLAG_NOT_PAY == payFlag && null != order) {
                 attrMap.put("status", getPayStatus(reviewType, giveMode, nowRecipe));
                 //支付前调用
