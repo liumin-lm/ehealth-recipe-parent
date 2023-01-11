@@ -301,18 +301,22 @@ public class RevisitManager extends BaseManager {
      */
     public void doHandleAfterPayForEntrust(Recipe nowRecipe, RecipeOrder order) {
         // 不是复诊或者没有挂号费 不用调用
-        if (!BussSourceTypeEnum.BUSSSOURCE_REVISIT.getType().equals(nowRecipe.getBussSource()) ) {
-            return;
+        try {
+            if (!BussSourceTypeEnum.BUSSSOURCE_REVISIT.getType().equals(nowRecipe.getBussSource())) {
+                return;
+            }
+            if (Objects.isNull(order.getRegisterFee()) || order.getRegisterFee().compareTo(BigDecimal.ZERO) <= 0) {
+                return;
+            }
+            RevisitEntrustRequest revisitEntrustRequest = new RevisitEntrustRequest();
+            revisitEntrustRequest.setOrderCode(order.getOrderCode());
+            revisitEntrustRequest.setAmount(order.getRegisterFee());
+            revisitEntrustRequest.setOrganId(nowRecipe.getClinicOrgan());
+            revisitEntrustRequest.setPaymentDate(order.getPayTime());
+            revisitEntrustRequest.setRegisterNo(order.getRegisterNo());
+            revisitClient.doHandleAfterPayForEntrust(revisitEntrustRequest);
+        }catch (Exception e){
+            logger.error("doHandleAfterPayForEntrust 通知复诊支付成功失败 orderCode={}",order.getOrderCode());
         }
-        if( Objects.isNull(order.getRegisterFee()) || order.getRegisterFee().compareTo(BigDecimal.ZERO) <= 0){
-            return;
-        }
-        RevisitEntrustRequest revisitEntrustRequest = new RevisitEntrustRequest();
-        revisitEntrustRequest.setOrderCode(order.getOrderCode());
-        revisitEntrustRequest.setAmount(order.getRegisterFee());
-        revisitEntrustRequest.setOrganId(nowRecipe.getClinicOrgan());
-        revisitEntrustRequest.setPaymentDate(order.getPayTime());
-        revisitEntrustRequest.setRegisterNo(order.getRegisterNo());
-        revisitClient.doHandleAfterPayForEntrust(revisitEntrustRequest);
     }
 }
