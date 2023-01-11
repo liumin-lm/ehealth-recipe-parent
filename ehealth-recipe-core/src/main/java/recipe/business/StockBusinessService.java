@@ -188,6 +188,10 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         if (giveMode == 0) {
             return true;
         }
+        Boolean fastRecipeUsePlatStock = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "fastRecipeUsePlatStock", false);
+        if (FastRecipeFlagEnum.FAST_RECIPE_FLAG_QUICK.getType().equals(recipe.getFastRecipeFlag()) && fastRecipeUsePlatStock) {
+            return true;
+        }
         recipe.setGiveMode(giveMode);
         return this.getStockFlag(recipeIds, recipe, enterpriseId);
     }
