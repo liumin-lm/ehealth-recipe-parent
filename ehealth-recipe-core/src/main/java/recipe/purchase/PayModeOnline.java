@@ -131,11 +131,7 @@ public class PayModeOnline implements IPurchaseService {
         List<DrugsEnterprise> subDepList = new ArrayList<>(drugsEnterpriseList.size());
         //如果当前处方为快捷购药并开启开关
         Boolean fastRecipeUsePlatStock = configurationClient.getValueBooleanCatch(dbRecipe.getClinicOrgan(), "fastRecipeUsePlatStock", false);
-        if (FastRecipeFlagEnum.FAST_RECIPE_FLAG_QUICK.getType().equals(dbRecipe.getFastRecipeFlag()) && fastRecipeUsePlatStock) {
-            if (recipeManager.fastRecipeStock(recipeId)) {
-                subDepList.addAll(drugsEnterpriseList);
-            }
-        } else {
+        if (!(FastRecipeFlagEnum.FAST_RECIPE_FLAG_QUICK.getType().equals(dbRecipe.getFastRecipeFlag()) && fastRecipeUsePlatStock)) {
             for (DrugsEnterprise dep : drugsEnterpriseList) {
                 EnterpriseStock enterpriseStock = stockBusinessService.enterpriseStockCheck(dbRecipe, detailList, dep.getId(), StockCheckSourceTypeEnum.PATIENT_STOCK.getType());
                 if (null != enterpriseStock && enterpriseStock.getStock() && enterpriseStock.getSendFlag()) {

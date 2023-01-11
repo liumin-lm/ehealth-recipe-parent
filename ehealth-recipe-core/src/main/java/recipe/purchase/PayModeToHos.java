@@ -334,11 +334,7 @@ public class PayModeToHos implements IPurchaseService {
         List<Recipedetail> detailList = detailDAO.findByRecipeId(recipeId);
         //如果当前处方为快捷购药并开启开关
         Boolean fastRecipeUsePlatStock = configurationClient.getValueBooleanCatch(dbRecipe.getClinicOrgan(), "fastRecipeUsePlatStock", false);
-        if (FastRecipeFlagEnum.FAST_RECIPE_FLAG_QUICK.getType().equals(dbRecipe.getFastRecipeFlag()) && fastRecipeUsePlatStock) {
-            if (recipeManager.fastRecipeStock(recipeId)) {
-                subDepList.addAll(drugsEnterprises);
-            }
-        } else {
+        if (!(FastRecipeFlagEnum.FAST_RECIPE_FLAG_QUICK.getType().equals(dbRecipe.getFastRecipeFlag()) && fastRecipeUsePlatStock)) {
             for (DrugsEnterprise dep : drugsEnterprises) {
                 EnterpriseStock enterpriseStock = stockBusinessService.enterpriseStockCheck(dbRecipe, detailList, dep.getId(), StockCheckSourceTypeEnum.PATIENT_STOCK.getType());
                 if (null != enterpriseStock && enterpriseStock.getStock()) {
@@ -480,13 +476,7 @@ public class PayModeToHos implements IPurchaseService {
         OrganDTO organDTO = organService.getByOrganId(recipe.getClinicOrgan());
         StringBuilder sb = new StringBuilder();
         Boolean fastRecipeUsePlatStock = configurationClient.getValueBooleanCatch(dbRecipe.getClinicOrgan(), "fastRecipeUsePlatStock", false);
-        if (FastRecipeFlagEnum.FAST_RECIPE_FLAG_QUICK.getType().equals(dbRecipe.getFastRecipeFlag()) && fastRecipeUsePlatStock) {
-            if (!recipeManager.fastRecipeStock(dbRecipe.getRecipeId())) {
-                resultBean.setCode(RecipeResultBean.FAIL);
-                resultBean.setMsg("抱歉，医院没有库存，无法到医院取药，请选择其他购药方式。");
-                return resultBean;
-            }
-        } else {
+        if (!(FastRecipeFlagEnum.FAST_RECIPE_FLAG_QUICK.getType().equals(dbRecipe.getFastRecipeFlag()) && fastRecipeUsePlatStock)) {
             //点击到院取药再次判断库存--防止之前开方的时候有库存流转到此无库存
             // 到院取药校验机构库存
             EnterpriseStock organStock = organDrugListManager.organStock(recipe, detailList);
