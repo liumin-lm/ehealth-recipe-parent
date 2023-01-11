@@ -1,5 +1,6 @@
 package recipe.service;
 
+import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Maps;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
@@ -110,6 +111,16 @@ public class RecipeRefundService extends RecipeBaseService {
             LOGGER.error("applyForRecipeRefund-未获取到处方单信息. recipeId={}", recipeId.toString());
             throw new DAOException("未获取到处方订单信息！");
         }
+        List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
+        List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIdList);
+        List<String> recipeCodeList = recipeList.stream().map(Recipe::getRecipeCode).collect(Collectors.toList());
+        List<RecipeExtend> recipeExtendList = recipeExtendDAO.queryRecipeExtendByRecipeIds(recipeIdList);
+        List<String> recipeCostNumbers = null, chargeItemCodes = null, chargeIds = null;
+        if (CollectionUtils.isNotEmpty(recipeExtendList)) {
+            recipeCostNumbers = recipeExtendList.stream().map(RecipeExtend::getRecipeCostNumber).collect(Collectors.toList());
+            chargeItemCodes = recipeExtendList.stream().map(RecipeExtend::getChargeItemCode).collect(Collectors.toList());
+            chargeIds = recipeExtendList.stream().map(RecipeExtend::getChargeId).collect(Collectors.toList());
+        }
         //解决老版本的支付流水号错误回传,这里应该传收据号
         String hisSettlementNo = StringUtils.isEmpty(recipeOrder.getHisSettlementNo()) ? recipeOrder.getTradeNo() : recipeOrder.getHisSettlementNo();
         ApplicationForRefundVisitReqTO request = new ApplicationForRefundVisitReqTO();
@@ -118,24 +129,28 @@ public class RecipeRefundService extends RecipeBaseService {
         request.setPatientId(recipe.getPatientID());
         request.setPatientName(recipe.getPatientName());
         request.setApplyReason(applyReason);
+        request.setRecipeCodes(recipeCodeList);
         DrugsEnterprise drugsEnterprise = null;
         if (null != recipeOrder.getEnterpriseId()) {
             drugsEnterprise = drugsEnterpriseDAO.getById(recipeOrder.getEnterpriseId());
             request.setDrugsEnterpriseBean(ObjectCopyUtils.convert(drugsEnterprise, DrugsEnterpriseBean.class));
         }
         IVisitService service = AppContextHolder.getBean("his.visitService", IVisitService.class);
-        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
-        if(recipeExtend != null){
-            request.setRxid(recipeExtend.getRxid());
-        }
+
+        request.setRxid(recipeExtendList.get(0).getRxid());
+        request.setRecipeCostNumber(recipeCostNumbers);
+        request.setRegisterID(recipeExtendList.get(0).getRegisterID());
+        request.setChargeId(chargeIds);
+        request.setChargeItemCode(chargeItemCodes);
         IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
         Boolean doctorReviewRefund = (Boolean) configurationService.getConfiguration(recipe.getClinicOrgan(), "doctorReviewRefund");
         if (doctorReviewRefund) {
+            LOGGER.info("applyForRecipeRefund applicationForRefundVisit request:{}", JSON.toJSONString(request));
             //date 20201012 加长了接口过期时间，接口20s会超时
             HisResponseTO<String> hisResult = service.applicationForRefundVisit(request);
+            LOGGER.info("applyForRecipeRefund applicationForRefundVisit hisResult:{}", JSON.toJSONString(hisResult));
             //说明需要医生进行审核，则需要推送给医生，此处兼容上海六院，其他医院前置机需要实现此接口并返回成功但不需要真实对接第三方
             if (hisResult != null && "200".equals(hisResult.getMsgCode())) {
-                LOGGER.info("applyForRecipeRefund-处方退费申请成功-his. param={},result={}", JSONUtils.toString(request), JSONUtils.toString(hisResult));
                 //退费申请记录保存
                 RecipeRefund recipeRefund = new RecipeRefund();
                 recipeRefund.setTradeNo(recipeOrder.getTradeNo());
@@ -186,14 +201,18 @@ public class RecipeRefundService extends RecipeBaseService {
                 visitRequest.setDrugsEnterpriseBean(ObjectCopyUtils.convert(drugsEnterprise, DrugsEnterpriseBean.class));
                 visitRequest.setEnterpriseCode(drugsEnterprise.getEnterpriseCode());
             }
+            visitRequest.setRecipeCodes(recipeCodeList);
             // 交易流水号
             visitRequest.setTradeNo(recipeOrder.getTradeNo());
             visitRequest.setRecipeId(recipeId);
-            if(recipeExtend != null){
-                visitRequest.setRxid(recipeExtend.getRxid());
-            }
+            visitRequest.setRxid(recipeExtendList.get(0).getRxid());
+            visitRequest.setRecipeCostNumber(recipeCostNumbers);
+            visitRequest.setRegisterID(recipeExtendList.get(0).getRegisterID());
+            visitRequest.setChargeId(chargeIds);
+            visitRequest.setChargeItemCode(chargeItemCodes);
             LOGGER.info("applyForRecipeRefund-checkForRefundVisit req visitRequest={}", JSONUtils.toString(visitRequest));
             HisResponseTO<String> result = service.checkForRefundVisit(visitRequest);
+            LOGGER.info("applyForRecipeRefund-checkForRefundVisit result={}", JSONUtils.toString(result));
             if (result != null && "200".equals(result.getMsgCode())) {
                 LOGGER.info("applyForRecipeRefund-checkForRefundVisit 处方退费申请成功-his. param={},result={}", JSONUtils.toString(request), JSONUtils.toString(result));
                 //退费审核记录保存
@@ -260,9 +279,6 @@ public class RecipeRefundService extends RecipeBaseService {
             }
 
             if (refundRequestBean.getRefundFlag()) {
-//                if (Integer.valueOf(1).equals(recipeOrder.getDispensingFlag())) {
-//                    throw new DAOException(ErrorCode.SERVICE_ERROR, "订单已发药, 请先确认退药处理(编辑订单信息-已退药), 再提交退费审核通过");
-//                }
                 //退费申请记录保存
                 RecipeRefund recipeRefund = new RecipeRefund();
                 recipeRefund.setTradeNo(recipeOrder.getTradeNo());
@@ -396,6 +412,16 @@ public class RecipeRefundService extends RecipeBaseService {
         DoctorService doctorService = ApplicationUtils.getBasicService(DoctorService.class);
         EmploymentService iEmploymentService = ApplicationUtils.getBasicService(EmploymentService.class);
         DoctorDTO doctorDTO = doctorService.getByDoctorId(recipe.getDoctor());
+        List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
+        List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIdList);
+        List<String> recipeCodeList = recipeList.stream().map(Recipe::getRecipeCode).collect(Collectors.toList());
+        List<RecipeExtend> recipeExtendList = recipeExtendDAO.queryRecipeExtendByRecipeIds(recipeIdList);
+        List<String> recipeCostNumbers = null, chargeItemCodes = null, chargeIds = null;
+        if (CollectionUtils.isNotEmpty(recipeExtendList)) {
+            recipeCostNumbers = recipeExtendList.stream().map(RecipeExtend::getRecipeCostNumber).collect(Collectors.toList());
+            chargeItemCodes = recipeExtendList.stream().map(RecipeExtend::getChargeItemCode).collect(Collectors.toList());
+            chargeIds = recipeExtendList.stream().map(RecipeExtend::getChargeId).collect(Collectors.toList());
+        }
         if (null != doctorDTO) {
             request.setChecker(iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(doctorDTO.getDoctorId(), recipe.getClinicOrgan(), recipe.getDepart()));
             request.setCheckerName(doctorDTO.getName());
@@ -424,10 +450,12 @@ public class RecipeRefundService extends RecipeBaseService {
         // 交易流水号
         request.setTradeNo(recipeOrder.getTradeNo());
         request.setRecipeId(recipeId);
-        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
-        if(recipeExtend != null){
-            request.setRxid(recipeExtend.getRxid());
-        }
+        request.setRecipeCodes(recipeCodeList);
+        request.setRxid(recipeExtendList.get(0).getRxid());
+        request.setRecipeCostNumber(recipeCostNumbers);
+        request.setRegisterID(recipeExtendList.get(0).getRegisterID());
+        request.setChargeId(chargeIds);
+        request.setChargeItemCode(chargeItemCodes);
         LOGGER.info("checkForRecipeRefund-checkForRefundVisit req = {}", JSONUtils.toString(request));
 
         IVisitService service = AppContextHolder.getBean("his.visitService", IVisitService.class);

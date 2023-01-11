@@ -26,6 +26,7 @@ import recipe.util.ValidateUtil;
 import recipe.vo.ResultBean;
 import recipe.vo.doctor.ConfigOptionsVO;
 import recipe.vo.doctor.RecipeInfoVO;
+import recipe.vo.doctor.RecipeTherapyVO;
 import recipe.vo.doctor.ValidateDetailVO;
 
 import java.math.BigDecimal;
@@ -49,7 +50,8 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
      */
     private final static String REPEAT_OPEN_RULE_NO = "4";
     private final static String REPEAT_OPEN_RULE_RECIPE = "1";
-
+    @Autowired
+    private RecipeTherapyManager recipeTherapyManager;
     @Autowired
     private IConfigurationClient configurationClient;
     @Autowired
@@ -318,6 +320,9 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
         if (CollectionUtils.isEmpty(details)) {
             return Collections.emptyList();
         }
+        List<RecipeTherapy> recipeTherapyList = recipeTherapyManager.findTherapyByClinicId(clinicId);
+        Map<Integer, RecipeTherapy> recipeTherapyMap = recipeTherapyList.stream().collect(Collectors.toMap(RecipeTherapy::getRecipeId, a -> a, (k1, k2) -> k1));
+
         Map<Integer, List<Recipedetail>> detailMap = details.stream().collect(Collectors.groupingBy(Recipedetail::getRecipeId));
         return list.stream().map(a -> {
             RecipeInfoVO recipeInfoVO = new RecipeInfoVO();
@@ -325,6 +330,10 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
             List<Recipedetail> detail = detailMap.get(a.getRecipeId());
             if (CollectionUtils.isNotEmpty(detail)) {
                 recipeInfoVO.setRecipeDetails(ObjectCopyUtils.convert(detail, RecipeDetailBean.class));
+            }
+            RecipeTherapy recipeTherapy = recipeTherapyMap.get(a.getRecipeId());
+            if (null != recipeTherapy) {
+                recipeInfoVO.setRecipeTherapyVO(ObjectCopyUtils.convert(recipeTherapy, RecipeTherapyVO.class));
             }
             return recipeInfoVO;
         }).collect(Collectors.toList());
