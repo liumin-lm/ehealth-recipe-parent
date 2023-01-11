@@ -312,8 +312,8 @@ public class RevisitManager extends BaseManager {
             revisitEntrustRequest.setOrderCode(order.getOrderCode());
             revisitEntrustRequest.setAmount(order.getRegisterFee());
             revisitEntrustRequest.setOrganId(nowRecipe.getClinicOrgan());
-            revisitEntrustRequest.setPaymentDate(order.getPayTime());
-            revisitEntrustRequest.setRegisterNo(order.getRegisterNo());
+            revisitEntrustRequest.setPaymentDate(Calendar.getInstance().getTime());
+            revisitEntrustRequest.setRegisterNo(order.getRegisterFeeNo());
             revisitClient.doHandleAfterPayForEntrust(revisitEntrustRequest);
         }catch (Exception e){
             logger.error("doHandleAfterPayForEntrust 通知复诊支付成功失败 orderCode={}",order.getOrderCode());
