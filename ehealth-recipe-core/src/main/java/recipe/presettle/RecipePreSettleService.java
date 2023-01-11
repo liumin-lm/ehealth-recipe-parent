@@ -26,6 +26,7 @@ import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.dao.RecipeParameterDao;
 import recipe.enumerate.type.CallPreSettlementTypeEnum;
+import recipe.enumerate.type.FastRecipeFlagEnum;
 import recipe.presettle.factory.PreSettleFactory;
 
 import javax.annotation.Resource;
@@ -111,13 +112,16 @@ public class RecipePreSettleService {
             result.put("code", "200");
             return result;
         }
-        // 库存查询
-        Boolean stockFlag = stockBusinessService.getStockFlag(recipeId,recipe,recipeOrder.getEnterpriseId());
-        if(!stockFlag){
-            result.put("msg", "库存不足");
-            return result;
+        Boolean fastRecipeUsePlatStock = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "fastRecipeUsePlatStock", false);
+        if (!(FastRecipeFlagEnum.FAST_RECIPE_FLAG_QUICK.getType().equals(recipe.getFastRecipeFlag()))
+                || (FastRecipeFlagEnum.FAST_RECIPE_FLAG_QUICK.getType().equals(recipe.getFastRecipeFlag()) && !fastRecipeUsePlatStock)) {
+            // 库存查询
+            Boolean stockFlag = stockBusinessService.getStockFlag(recipeId, recipe, recipeOrder.getEnterpriseId());
+            if(!stockFlag){
+                result.put("msg", "库存不足");
+                return result;
+            }
         }
-
         Integer depId = recipeOrder.getEnterpriseId();
         Integer orderType = recipeOrder.getOrderType() == null ? 0 : recipeOrder.getOrderType();
         String insuredArea = extend.getInsuredArea();
