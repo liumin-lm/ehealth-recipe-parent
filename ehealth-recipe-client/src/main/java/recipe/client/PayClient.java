@@ -203,7 +203,6 @@ public class PayClient extends BaseClient {
         return refundResultDTO;
     }
 
-
     /**
      * 处方退款推送his服务
      */
