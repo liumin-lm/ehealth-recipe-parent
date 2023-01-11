@@ -3452,18 +3452,24 @@ public class RecipeService extends RecipeBaseService {
                     LOGGER.error("findSupportDepList 药企名称=[{}]存在不支持配送药品. 处方ID=[{}], 药企ID=[{}], drugIds={}", dep.getName(), recipeId, depId, JSONUtils.toString(drugIds));
                     continue;
                 } else {
-                    //通过查询该药企库存，最终确定能否配送
-                    EnterpriseStock enterpriseStock = stockBusinessService.enterpriseStockCheck(recipe, recipedetailList, dep.getId(), StockCheckSourceTypeEnum.PATIENT_STOCK.getType());
-                    succFlag = enterpriseStock.getStock();
-                    if (succFlag || dep.getCheckInventoryFlag() == 2) {
-                        subDepList.add(dep);
-                        //只需要查询单供应商就返回
-                        if (sigle) {
-                            break;
+                    Boolean fastRecipeUsePlatStock = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "fastRecipeUsePlatStock", false);
+                    if (!(FastRecipeFlagEnum.FAST_RECIPE_FLAG_QUICK.getType().equals(recipe.getFastRecipeFlag()))
+                            || (FastRecipeFlagEnum.FAST_RECIPE_FLAG_QUICK.getType().equals(recipe.getFastRecipeFlag()) && !fastRecipeUsePlatStock)) {
+                        //通过查询该药企库存，最终确定能否配送
+                        EnterpriseStock enterpriseStock = stockBusinessService.enterpriseStockCheck(recipe, recipedetailList, dep.getId(), StockCheckSourceTypeEnum.PATIENT_STOCK.getType());
+                        succFlag = enterpriseStock.getStock();
+                        if (succFlag || dep.getCheckInventoryFlag() == 2) {
+                            subDepList.add(dep);
+                            //只需要查询单供应商就返回
+                            if (sigle) {
+                                break;
+                            }
+                            LOGGER.info("findSupportDepList 药企名称=[{}]支持配送该处方所有药品. 处方ID=[{}], 药企ID=[{}], drugIds={}", dep.getName(), recipeId, depId, JSONUtils.toString(drugIds));
+                        } else {
+                            LOGGER.error("findSupportDepList  药企名称=[{}]药企库存查询返回药品无库存. 处方ID=[{}], 药企ID=[{}]", dep.getName(), recipeId, depId);
                         }
-                        LOGGER.info("findSupportDepList 药企名称=[{}]支持配送该处方所有药品. 处方ID=[{}], 药企ID=[{}], drugIds={}", dep.getName(), recipeId, depId, JSONUtils.toString(drugIds));
                     } else {
-                        LOGGER.error("findSupportDepList  药企名称=[{}]药企库存查询返回药品无库存. 处方ID=[{}], 药企ID=[{}]", dep.getName(), recipeId, depId);
+                        subDepList.add(dep);
                     }
                 }
             }
