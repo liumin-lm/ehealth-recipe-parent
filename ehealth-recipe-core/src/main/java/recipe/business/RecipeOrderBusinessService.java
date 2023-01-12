@@ -956,6 +956,14 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
                 } else {
                     List<String> chargeItemCodeList = recipeManager.getChargeItemCode(recipeExtendList);
                     recipeCodeS.addAll(chargeItemCodeList);
+                    String registerFeeNo = recipeOrder.getRegisterFeeNo();
+                    if (StringUtils.isNotEmpty(registerFeeNo)) {
+                        recipeCodeS.add(registerFeeNo);
+                    }
+                    String tcmFeeNo = recipeOrder.getTcmFeeNo();
+                    if (StringUtils.isNotEmpty(tcmFeeNo)) {
+                        recipeCodeS.add(tcmFeeNo);
+                    }
                 }
                 String join = Joiner.on(",").join(recipeCodeS);
                 medicalPreSettleQueryReq.setRecipeNos(join);
