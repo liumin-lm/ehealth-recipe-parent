@@ -483,6 +483,7 @@ public class RecipePreserveService {
             recipeBean.setDepartText(recipeInfoTO.getDepartName());
             recipeBean.setCopyNum(recipeInfoTO.getCopyNum()==null?0:recipeInfoTO.getCopyNum());
             recipeBean.setRecipeMemo(StringUtils.isEmpty(recipeInfoTO.getRecipeMemo())?"":recipeInfoTO.getRecipeMemo());
+            recipeBean.setRecipeCode(StringUtils.isEmpty(recipeInfoTO.getRecipeCode())?"":recipeInfoTO.getRecipeCode());
             RecipeExtendBean recipeExtend = new RecipeExtendBean();
             if (recipeInfoTO.getRecipeExtendBean() != null) {
                 recipeExtend.setDecoctionCode(recipeInfoTO.getRecipeExtendBean().getDecoctionCode());
