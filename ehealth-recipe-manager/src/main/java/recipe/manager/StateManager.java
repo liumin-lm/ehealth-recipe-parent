@@ -126,13 +126,14 @@ public class StateManager extends BaseManager {
                 break;
             case PROCESS_STATE_DELETED:
             case PROCESS_STATE_CANCELLATION:
-                result = this.cancellation(recipe, processState, subState);
-                statusChangeNotify(recipe.getRecipeId(), JKHBConstant.PROCESS_STATE_CANCELLATION);
-                RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
                 Recipe recipeDb = recipeDAO.getByRecipeId(recipe.getRecipeId());
                 //已经处于取消或作废状态的单子不再处理库存、销量
                 boolean cancelFlag = RecipeStateEnum.PROCESS_STATE_DELETED.getType().equals(recipeDb.getProcessState()) ||
                         RecipeStateEnum.PROCESS_STATE_CANCELLATION.getType().equals(recipeDb.getProcessState());
+                logger.info("updateRecipeState cancelFlag={}", JSON.toJSONString(cancelFlag));
+                result = this.cancellation(recipe, processState, subState);
+                statusChangeNotify(recipe.getRecipeId(), JKHBConstant.PROCESS_STATE_CANCELLATION);
+                RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
                 if (!cancelFlag && FastRecipeFlagEnum.FAST_RECIPE_FLAG_QUICK.getType().equals(recipe.getFastRecipeFlag()) && Objects.nonNull(recipeOrder) &&
                         !PayFlagEnum.NOPAY.getType().equals(recipeOrder.getPayFlag())) {
                     fastRecipeManager.decreaseSaleNum(recipeId);
