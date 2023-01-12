@@ -210,6 +210,7 @@ public class RecipeRefundService extends RecipeBaseService {
             visitRequest.setRegisterID(recipeExtendList.get(0).getRegisterID());
             visitRequest.setChargeIds(chargeIds);
             visitRequest.setChargeItemCodes(chargeItemCodes);
+            visitRequest.setCreateDate(recipe.getSignDate());
             LOGGER.info("applyForRecipeRefund-checkForRefundVisit req visitRequest={}", JSONUtils.toString(visitRequest));
             HisResponseTO<String> result = service.checkForRefundVisit(visitRequest);
             LOGGER.info("applyForRecipeRefund-checkForRefundVisit result={}", JSONUtils.toString(result));
@@ -409,6 +410,7 @@ public class RecipeRefundService extends RecipeBaseService {
         request.setBusNo(hisSettlementNo);
         request.setPatientId(recipe.getPatientID());
         request.setPatientName(recipe.getPatientName());
+        request.setCreateDate(recipe.getSignDate());
         DoctorService doctorService = ApplicationUtils.getBasicService(DoctorService.class);
         EmploymentService iEmploymentService = ApplicationUtils.getBasicService(EmploymentService.class);
         DoctorDTO doctorDTO = doctorService.getByDoctorId(recipe.getDoctor());
