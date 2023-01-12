@@ -79,6 +79,7 @@ import ctd.util.annotation.RpcService;
 import ctd.util.event.GlobalEventExecFactory;
 import eh.recipeaudit.api.IRecipeAuditService;
 import eh.recipeaudit.util.RecipeAuditAPI;
+import eh.utils.BeanCopyUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
@@ -1056,6 +1057,16 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             return ObjectCopyUtils.convert(recipe, RecipeBean.class);
         }
         return null;
+    }
+
+    @Override
+    public List<RecipeBean> findRecipeListByOrderCode(String orderCode) {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        List<Recipe> recipes = recipeDAO.findRecipeListByOrderCode(orderCode);
+        if (CollectionUtils.isNotEmpty(recipes)) {
+            return BeanCopyUtils.copyList(recipes, RecipeBean::new);
+        }
+        return new ArrayList<>();
     }
 
     @Override
