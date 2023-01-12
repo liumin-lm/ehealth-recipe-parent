@@ -548,6 +548,8 @@ public class PurchaseService {
             unLock(recipeIdStr);
         }
 
+        LOG.info("order finish result={}", JSONUtils.toString(result));
+
         return result;
     }
 
