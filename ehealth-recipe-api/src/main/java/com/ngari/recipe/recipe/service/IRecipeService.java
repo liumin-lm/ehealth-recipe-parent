@@ -445,6 +445,9 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     RecipeBean getRecipeByOrderCode(String orderCode);
 
     @RpcService
+    List<RecipeBean> findRecipeListByOrderCode(String orderCode);
+
+    @RpcService
     Map<String, Object> noticePlatRecipeFlowInfo(NoticePlatRecipeFlowInfoDTO req);
 
     /**
