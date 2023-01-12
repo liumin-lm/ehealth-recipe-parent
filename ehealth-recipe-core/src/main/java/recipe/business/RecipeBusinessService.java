@@ -1551,6 +1551,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         List<RecipeInfoVO> recipeInfoVOS = recipeList.stream().map(recipe -> {
             RecipeInfoVO recipeInfoVO = new RecipeInfoVO();
             RecipeBean recipeBean = BeanCopyUtils.copyProperties(recipe, RecipeBean::new);
+            recipeBean.setDoctor(doctorRecipeListReqVO.getDoctorId());
             recipeInfoVO.setRecipeBean(recipeBean);
             if (MapUtils.isNotEmpty(recipeDetailMap) && CollectionUtils.isNotEmpty(recipeDetailMap.get(recipe.getRecipeId()))) {
                 List<Recipedetail> recipeDetails = recipeDetailMap.get(recipe.getRecipeId());
