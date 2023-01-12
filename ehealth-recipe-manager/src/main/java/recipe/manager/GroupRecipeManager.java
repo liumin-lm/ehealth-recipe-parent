@@ -28,6 +28,8 @@ public class GroupRecipeManager extends BaseManager {
     private ICurrentUserInfoService currentUserInfoService;
     @Autowired
     private IConfigurationClient configurationClient;
+    @Autowired
+    private StateManager stateManager;
 
     /**
      * 按照订单id更新同组处方状态
@@ -113,13 +115,13 @@ public class GroupRecipeManager extends BaseManager {
             return;
         }
         Recipe outRecipe = recipeDAO.getByRecipeId(outRecipeId);
-        recipeIds.forEach(a -> {
+        recipeIds.forEach(recipeId -> {
             Recipe recipeUpdate = new Recipe();
             recipeUpdate.setStatus(status);
-            recipeUpdate.setRecipeId(a);
-            recipeUpdate.setProcessState(outRecipe.getProcessState());
-            recipeUpdate.setSubState(outRecipe.getSubState());
+            recipeUpdate.setRecipeId(recipeId);
             recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
+            stateManager.updateRecipeState(recipeId, RecipeStateEnum.getRecipeStateEnum(outRecipe.getProcessState()),
+                    RecipeStateEnum.getRecipeStateEnum(outRecipe.getSubState()));
         });
     }
 
