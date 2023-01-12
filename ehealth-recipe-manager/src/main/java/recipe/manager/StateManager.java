@@ -25,6 +25,7 @@ import recipe.util.RedisClient;
 import javax.annotation.Resource;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * 状态处理通用类：处方状态 ，订单状态，审方状态
@@ -127,12 +128,17 @@ public class StateManager extends BaseManager {
             case PROCESS_STATE_CANCELLATION:
                 result = this.cancellation(recipe, processState, subState);
                 statusChangeNotify(recipe.getRecipeId(), JKHBConstant.PROCESS_STATE_CANCELLATION);
-                if (FastRecipeFlagEnum.FAST_RECIPE_FLAG_QUICK.getType().equals(recipe.getFastRecipeFlag()) &&
-                        !PayFlagEnum.NOPAY.getType().equals(recipe.getPayFlag())) {
+                RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+                Recipe recipeDb = recipeDAO.getByRecipeId(recipe.getRecipeId());
+                //已经处于取消或作废状态的单子不再处理库存、销量
+                boolean cancelFlag = RecipeStateEnum.PROCESS_STATE_DELETED.getType().equals(recipeDb.getProcessState()) ||
+                        RecipeStateEnum.PROCESS_STATE_CANCELLATION.getType().equals(recipeDb.getProcessState());
+                if (!cancelFlag && FastRecipeFlagEnum.FAST_RECIPE_FLAG_QUICK.getType().equals(recipe.getFastRecipeFlag()) && Objects.nonNull(recipeOrder) &&
+                        !PayFlagEnum.NOPAY.getType().equals(recipeOrder.getPayFlag())) {
                     fastRecipeManager.decreaseSaleNum(recipeId);
                 }
                 Integer fastRecipeMode = configurationClient.getValueCatchReturnInteger(recipe.getClinicOrgan(), "fastRecipeMode", 0);
-                if (FastRecipeFlagEnum.FAST_RECIPE_FLAG_QUICK.getType().equals(recipe.getFastRecipeFlag()) && Integer.valueOf("0").equals(fastRecipeMode)) {
+                if (!cancelFlag && FastRecipeFlagEnum.FAST_RECIPE_FLAG_QUICK.getType().equals(recipe.getFastRecipeFlag()) && Integer.valueOf("0").equals(fastRecipeMode)) {
                     fastRecipeManager.addStockByRecipeId(recipeId);
                 }
                 break;
