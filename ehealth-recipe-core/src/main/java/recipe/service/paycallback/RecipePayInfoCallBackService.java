@@ -113,16 +113,26 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
         //业务支付回调
         if (StringUtils.isNotEmpty(orderCode)) {
             IRecipeService recipeService = RecipeAPI.getService(IRecipeService.class);
-            RecipeBean recipeBean = recipeService.getRecipeByOrderCode(orderCode);
-            try {
-                if (FastRecipeFlagEnum.FAST_RECIPE_FLAG_QUICK.getType().equals(recipeBean.getFastRecipeFlag())) {
-                    fastRecipeManager.addSaleNum(recipeBean.getRecipeId());
+            List<RecipeBean> recipeBeanList = recipeService.findRecipeListByOrderCode(orderCode);
+            if (CollectionUtils.isNotEmpty(recipeBeanList)) {
+                recipeBeanList.forEach(recipeBean -> {
+                    try {
+                        if (FastRecipeFlagEnum.FAST_RECIPE_FLAG_QUICK.getType().equals(recipeBean.getFastRecipeFlag())) {
+                            fastRecipeManager.addSaleNum(recipeBean.getRecipeId());
+                        }
+                    } catch (Exception e) {
+                        logger.error("addSaleNum 便捷购药增加销量出错", e);
+                    }
+                });
+
+                try {
+                    Integer payMode = PayModeGiveModeUtil.getPayMode(order.getPayMode(), recipeBeanList.get(0).getGiveMode());
+                    recipeOrderService.finishOrderPay(order.getOrderCode(), PayConstant.PAY_FLAG_PAY_SUCCESS, payMode);
+                } catch (Exception e) {
+                    logger.error("finishOrderPay error", e);
                 }
-            } catch (Exception e) {
-                logger.error("addSaleNum 便捷购药增加销量出错", e);
             }
-            Integer payMode = PayModeGiveModeUtil.getPayMode(order.getPayMode(), recipeBean.getGiveMode());
-            recipeOrderService.finishOrderPay(order.getOrderCode(), PayConstant.PAY_FLAG_PAY_SUCCESS, payMode);
+
         } else {
             recipeOrderService.finishOrderPay(order.getOrderCode(), PayConstant.PAY_FLAG_PAY_SUCCESS, RecipeConstant.PAYMODE_ONLINE);
         }
