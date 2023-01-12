@@ -138,10 +138,10 @@ public class RecipeRefundService extends RecipeBaseService {
         IVisitService service = AppContextHolder.getBean("his.visitService", IVisitService.class);
 
         request.setRxid(recipeExtendList.get(0).getRxid());
-        request.setRecipeCostNumber(recipeCostNumbers);
+        request.setRecipeCostNumbers(recipeCostNumbers);
         request.setRegisterID(recipeExtendList.get(0).getRegisterID());
-        request.setChargeId(chargeIds);
-        request.setChargeItemCode(chargeItemCodes);
+        request.setChargeIds(chargeIds);
+        request.setChargeItemCodes(chargeItemCodes);
         IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
         Boolean doctorReviewRefund = (Boolean) configurationService.getConfiguration(recipe.getClinicOrgan(), "doctorReviewRefund");
         if (doctorReviewRefund) {
@@ -206,10 +206,10 @@ public class RecipeRefundService extends RecipeBaseService {
             visitRequest.setTradeNo(recipeOrder.getTradeNo());
             visitRequest.setRecipeId(recipeId);
             visitRequest.setRxid(recipeExtendList.get(0).getRxid());
-            visitRequest.setRecipeCostNumber(recipeCostNumbers);
+            visitRequest.setRecipeCostNumbers(recipeCostNumbers);
             visitRequest.setRegisterID(recipeExtendList.get(0).getRegisterID());
-            visitRequest.setChargeId(chargeIds);
-            visitRequest.setChargeItemCode(chargeItemCodes);
+            visitRequest.setChargeIds(chargeIds);
+            visitRequest.setChargeItemCodes(chargeItemCodes);
             LOGGER.info("applyForRecipeRefund-checkForRefundVisit req visitRequest={}", JSONUtils.toString(visitRequest));
             HisResponseTO<String> result = service.checkForRefundVisit(visitRequest);
             LOGGER.info("applyForRecipeRefund-checkForRefundVisit result={}", JSONUtils.toString(result));
@@ -452,10 +452,10 @@ public class RecipeRefundService extends RecipeBaseService {
         request.setRecipeId(recipeId);
         request.setRecipeCodes(recipeCodeList);
         request.setRxid(recipeExtendList.get(0).getRxid());
-        request.setRecipeCostNumber(recipeCostNumbers);
+        request.setRecipeCostNumbers(recipeCostNumbers);
         request.setRegisterID(recipeExtendList.get(0).getRegisterID());
-        request.setChargeId(chargeIds);
-        request.setChargeItemCode(chargeItemCodes);
+        request.setChargeIds(chargeIds);
+        request.setChargeItemCodes(chargeItemCodes);
         LOGGER.info("checkForRecipeRefund-checkForRefundVisit req = {}", JSONUtils.toString(request));
 
         IVisitService service = AppContextHolder.getBean("his.visitService", IVisitService.class);

@@ -770,6 +770,9 @@ public class HisRequestInit {
                     requestTO.setDecoctionCode(decoctionWay.getDecoctionCode());
                     requestTO.setDecoctionText(decoctionWay.getDecoctionText());
                 }
+                requestTO.setRecipeCostNumber(recipeExtend.getRecipeCostNumber());
+                requestTO.setChargeItemCode(recipeExtend.getChargeItemCode());
+                requestTO.setChargeId(recipeExtend.getChargeId());
             }
 
             if (null != patient) {

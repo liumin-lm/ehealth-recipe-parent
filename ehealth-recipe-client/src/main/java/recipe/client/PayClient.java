@@ -237,10 +237,10 @@ public class PayClient extends BaseClient {
             List<String> recipeCostNumbers = recipeExtendList.stream().map(RecipeExtend::getRecipeCostNumber).collect(Collectors.toList());
             List<String> chargeItemCodes = recipeExtendList.stream().map(RecipeExtend::getChargeItemCode).collect(Collectors.toList());
             List<String> chargeIds = recipeExtendList.stream().map(RecipeExtend::getChargeId).collect(Collectors.toList());
-            requestTO.setRecipeCostNumber(recipeCostNumbers);
+            requestTO.setRecipeCostNumbers(recipeCostNumbers);
             requestTO.setRegisterID(recipeExtendList.get(0).getRegisterID());
-            requestTO.setChargeId(chargeIds);
-            requestTO.setChargeItemCode(chargeItemCodes);
+            requestTO.setChargeIds(chargeIds);
+            requestTO.setChargeItemCodes(chargeItemCodes);
         }
         logger.info("RefundClient recipeRefund recipeRefund request:{}.", JSONUtils.toString(requestTO));
         try {
