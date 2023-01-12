@@ -25,6 +25,7 @@ import recipe.util.RedisClient;
 import javax.annotation.Resource;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * 状态处理通用类：处方状态 ，订单状态，审方状态
@@ -127,8 +128,9 @@ public class StateManager extends BaseManager {
             case PROCESS_STATE_CANCELLATION:
                 result = this.cancellation(recipe, processState, subState);
                 statusChangeNotify(recipe.getRecipeId(), JKHBConstant.PROCESS_STATE_CANCELLATION);
-                if (FastRecipeFlagEnum.FAST_RECIPE_FLAG_QUICK.getType().equals(recipe.getFastRecipeFlag()) &&
-                        !PayFlagEnum.NOPAY.getType().equals(recipe.getPayFlag())) {
+                RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+                if (FastRecipeFlagEnum.FAST_RECIPE_FLAG_QUICK.getType().equals(recipe.getFastRecipeFlag()) && Objects.nonNull(recipeOrder) &&
+                        !PayFlagEnum.NOPAY.getType().equals(recipeOrder.getPayFlag())) {
                     fastRecipeManager.decreaseSaleNum(recipeId);
                 }
                 Integer fastRecipeMode = configurationClient.getValueCatchReturnInteger(recipe.getClinicOrgan(), "fastRecipeMode", 0);
