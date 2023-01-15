@@ -402,7 +402,7 @@ public class RecipeManager extends BaseManager {
                     qrName = offlineRecipeClient.queryMedicineCode(recipe.getClinicOrgan(), recipe.getRecipeId(), recipe.getRecipeCode());
                     break;
                 case SERIALNUMBER:
-                    qrName = offlineRecipeClient.queryRecipeSerialNumber(recipe.getClinicOrgan(), recipe.getPatientName(), recipe.getPatientID(), recipeExtend.getRegisterID());
+                    qrName = offlineRecipeClient.queryRecipeSerialNumber(recipe.getClinicOrgan(), recipe.getPatientName(), recipe.getPatientID(), recipeExtend.getRegisterID(), recipe.getRecipeCode());
                     break;
                 case CERTIFICATE:
                     PatientDTO patientDTO = patientClient.getPatientDTO(recipe.getMpiid());
@@ -412,7 +412,7 @@ public class RecipeManager extends BaseManager {
                     //优先取药柜发药流水号，药柜流水号没有，取his医院流水号
                     qrName = recipeExtend.getMedicineCode();
                     if(StringUtils.isEmpty(qrName)){
-                        qrName = offlineRecipeClient.queryRecipeSerialNumber(recipe.getClinicOrgan(), recipe.getPatientName(), recipe.getPatientID(), recipeExtend.getRegisterID());
+                        qrName = offlineRecipeClient.queryRecipeSerialNumber(recipe.getClinicOrgan(), recipe.getPatientName(), recipe.getPatientID(), recipeExtend.getRegisterID(), recipe.getRecipeCode());
                     }
                     break;
                 default:

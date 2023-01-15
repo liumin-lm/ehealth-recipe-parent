@@ -323,13 +323,14 @@ public class OfflineRecipeClient extends BaseClient {
      * @param patientId   患者病历号
      * @return 发药流水号
      */
-    public String queryRecipeSerialNumber(Integer organId, String patientName, String patientId, String registerID) {
+    public String queryRecipeSerialNumber(Integer organId, String patientName, String patientId, String registerID, String recipeCode) {
         try {
             PatientDiseaseInfoTO patientDiseaseInfoTO = new PatientDiseaseInfoTO();
             patientDiseaseInfoTO.setOrganId(organId);
             patientDiseaseInfoTO.setPatientId(patientId);
             patientDiseaseInfoTO.setPatientName(patientName);
             patientDiseaseInfoTO.setRegisterID(registerID);
+            patientDiseaseInfoTO.setRecipeCode(recipeCode);
             logger.info("OfflineRecipeClient queryRecipeSerialNumber patientDiseaseInfoTO:{}.", JSON.toJSONString(patientDiseaseInfoTO));
             HisResponseTO response = recipeHisService.queryRecipeSerialNumber(patientDiseaseInfoTO);
             return getResponse(response).toString();
