@@ -6,6 +6,7 @@ import lombok.Setter;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @description： 腹透液配送时间入参
@@ -38,4 +39,7 @@ public class FTYSendTimeReq implements Serializable {
 
     @ItemProperty(alias = "机构id")
     private Integer organId;
+
+    @ItemProperty(alias = "处方id列表")
+    private List<Integer> recipes;
 }
