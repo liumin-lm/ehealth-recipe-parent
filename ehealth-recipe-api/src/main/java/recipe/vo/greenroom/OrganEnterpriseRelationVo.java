@@ -66,4 +66,8 @@ public class OrganEnterpriseRelationVo extends PageVO implements Serializable {
      * 支持自取煎法的类型  药企配置后，将不支持自取 0 非代煎 1 代煎
      */
     private List<Integer> supportSelfDecoctionState;
+    /**
+     * 不可流转医保类型 0不支持自费处方 1不支持医保处方
+     */
+    private List<Integer> cannotMedicalFlag;
 }

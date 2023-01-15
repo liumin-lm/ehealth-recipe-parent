@@ -9,7 +9,6 @@ import com.ngari.base.patient.model.PatientBean;
 import com.ngari.his.recipe.mode.DrugTakeChangeReqTO;
 import com.ngari.his.recipe.mode.FTYSendTimeReqDTO;
 import com.ngari.patient.service.AddrAreaService;
-import com.ngari.patient.service.AddressService;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.platform.recipe.mode.DrugsEnterpriseBean;
 import com.ngari.platform.recipe.mode.MedicineStationDTO;
@@ -156,8 +155,10 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
         String giveModeTypes = StringUtils.join(organEnterpriseRelationVo.getGiveModeTypes(), ByteUtils.COMMA);
         String recipeTypes = StringUtils.join(organEnterpriseRelationVo.getRecipeTypes(), ByteUtils.COMMA);
         String decoctionIds = StringUtils.join(organEnterpriseRelationVo.getDecoctionIds(), ByteUtils.COMMA);
+        String cannotMedicalFlag = StringUtils.join(organEnterpriseRelationVo.getCannotMedicalFlag(), ByteUtils.COMMA);
         if (Objects.isNull(relation)) {
             OrganAndDrugsepRelation newRelation = new OrganAndDrugsepRelation();
+            newRelation.setCannotMedicalFlag(cannotMedicalFlag);
             newRelation.setDrugsEnterpriseSupportGiveMode(giveModeTypes);
             newRelation.setDrugsEnterpriseId(organEnterpriseRelationVo.getDrugsEnterpriseId());
             newRelation.setEnterpriseRecipeTypes(recipeTypes);
@@ -168,6 +169,7 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
             newRelation.setOrganId(organEnterpriseRelationVo.getOrganId());
             organAndDrugsepRelationDAO.save(newRelation);
         } else {
+            relation.setCannotMedicalFlag(cannotMedicalFlag);
             relation.setDrugsEnterpriseSupportGiveMode(giveModeTypes);
             relation.setEnterpriseRecipeTypes(recipeTypes);
             relation.setEnterpriseDecoctionIds(decoctionIds);

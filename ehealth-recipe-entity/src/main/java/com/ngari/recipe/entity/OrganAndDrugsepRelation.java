@@ -59,6 +59,9 @@ public class OrganAndDrugsepRelation implements java.io.Serializable {
     @ItemProperty(alias = "支持自取煎法的类型  药企配置后，将不支持自取 0 非代煎 1 代煎 ")
     private String supportSelfDecoctionState;
 
+    @ItemProperty(alias = "不可流转医保类型 0不支持自费处方 1不支持医保处方")
+    private String cannotMedicalFlag;
+
     @Id
     @GeneratedValue(strategy = IDENTITY)
     @Column(name = "id", unique = true, nullable = false)
@@ -158,5 +161,14 @@ public class OrganAndDrugsepRelation implements java.io.Serializable {
 
     public void setSupportSelfDecoctionState(String supportSelfDecoctionState) {
         this.supportSelfDecoctionState = supportSelfDecoctionState;
+    }
+
+    @Column(name = "cannot_medical_flag")
+    public String getCannotMedicalFlag() {
+        return cannotMedicalFlag;
+    }
+
+    public void setCannotMedicalFlag(String cannotMedicalFlag) {
+        this.cannotMedicalFlag = cannotMedicalFlag;
     }
 }
