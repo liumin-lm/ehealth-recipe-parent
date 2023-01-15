@@ -92,7 +92,7 @@ public class ButtonManager extends BaseManager {
      * @param organId 机构id
      * @return 药企信息
      */
-    public List<EnterpriseStock> enterpriseStockCheck(Integer organId, Integer recipeType, String decoctionId,List<Recipedetail> recipeDetails) {
+    public List<EnterpriseStock> enterpriseStockCheck(Integer organId, Integer recipeType, String decoctionId, List<Recipedetail> recipeDetails) {
         /**获取需要查询库存的药企对象 ，通过药企流转关系筛选*/
         List<DrugsEnterprise> enterprises = this.organAndEnterprise(organId, recipeType, decoctionId);
         if (CollectionUtils.isEmpty(enterprises)) {
@@ -100,6 +100,14 @@ public class ButtonManager extends BaseManager {
         }
         // 获取药品的剂型
         List<String> drugIds = recipeDetails.stream().map(Recipedetail::getOrganDrugCode).collect(Collectors.toList());
+        Set<Integer> recipeIds = recipeDetails.stream().map(Recipedetail::getRecipeId).collect(Collectors.toSet());
+        Set<Integer> medicalFlag = null;
+        if (CollectionUtils.isNotEmpty(recipeIds)) {
+            List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIds);
+            if (CollectionUtils.isNotEmpty(recipes)) {
+                medicalFlag = recipes.stream().map(Recipe::getMedicalFlag).filter(Objects::nonNull).collect(Collectors.toSet());
+            }
+        }
         List<OrganDrugList> drugLists = organDrugListDAO.findByOrganIdAndDrugCodes(organId, drugIds);
         //获取机构配置按钮
         List<GiveModeButtonDTO> giveModeButtonBeans = operationClient.getOrganGiveModeMap(organId);
@@ -112,7 +120,7 @@ public class ButtonManager extends BaseManager {
         Boolean drugToHosByEnterprise = configurationClient.getValueBooleanCatch(organId, "drugToHosByEnterprise", false);
         List<OrganAndDrugsepRelation> relation = organAndDrugsepRelationDAO.findByOrganId(organId);
 
-        Map<String, OrganAndDrugsepRelation> drugsDepRelationMap = relation.stream().collect(Collectors.toMap(drugsDepRelation -> drugsDepRelation.getOrganId()+"_"+drugsDepRelation.getDrugsEnterpriseId(), a -> a, (k1, k2) -> k1));
+        Map<String, OrganAndDrugsepRelation> drugsDepRelationMap = relation.stream().collect(Collectors.toMap(drugsDepRelation -> drugsDepRelation.getOrganId() + "_" + drugsDepRelation.getDrugsEnterpriseId(), a -> a, (k1, k2) -> k1));
         List<EnterpriseStock> list = new ArrayList<>();
         for (DrugsEnterprise drugsEnterprise : enterprises) {
             EnterpriseStock enterpriseStock = new EnterpriseStock();
@@ -122,7 +130,15 @@ public class ButtonManager extends BaseManager {
             enterpriseStock.setDeliveryCode(drugsEnterprise.getId().toString());
             enterpriseStock.setAppointEnterpriseType(AppointEnterpriseTypeEnum.ENTERPRISE_APPOINT.getType());
             OrganAndDrugsepRelation drugsDepRelation = drugsDepRelationMap.get(organId + "_" + drugsEnterprise.getId());
-            logger.info("ButtonManager enterpriseStockCheck configGiveMode:{},configGiveModeMap:{},drugToHosByEnterprise:{},drugsDepRelation:{}", JSON.toJSONString(configGiveMode), JSON.toJSONString(configGiveModeMap),drugToHosByEnterprise,JSON.toJSONString(drugsDepRelation));
+            if (StringUtils.isNotEmpty(drugsDepRelation.getCannotMedicalFlag()) && CollectionUtils.isNotEmpty(medicalFlag)) {
+                List<Integer> medicalFlags = Arrays.stream(drugsDepRelation.getCannotMedicalFlag().split(ByteUtils.COMMA)).map(Integer::parseInt).collect(Collectors.toList());
+                Set<Integer> finalMedicalFlag = medicalFlag;
+                List<Integer> integers = medicalFlags.stream().filter(s -> finalMedicalFlag.contains(s)).collect(Collectors.toList());
+                if (CollectionUtils.isNotEmpty(integers)) {
+                    continue;
+                }
+            }
+            logger.info("ButtonManager enterpriseStockCheck configGiveMode:{},configGiveModeMap:{},drugToHosByEnterprise:{},drugsDepRelation:{}", JSON.toJSONString(configGiveMode), JSON.toJSONString(configGiveModeMap), drugToHosByEnterprise, JSON.toJSONString(drugsDepRelation));
             List<GiveModeButtonDTO> giveModeButton = RecipeSupportGiveModeEnum.giveModeButtonList(configGiveMode, configGiveModeMap, drugToHosByEnterprise, drugsDepRelation);
             if (!checkSendGiveMode(organId, drugsEnterprise.getId(), drugLists) && CollectionUtils.isNotEmpty(giveModeButton)) {
                 giveModeButton = giveModeButton.stream().filter(a -> !RecipeSupportGiveModeEnum.enterpriseSendList.contains(a.getShowButtonKey())).collect(Collectors.toList());
@@ -279,6 +295,7 @@ public class ButtonManager extends BaseManager {
 
     /**
      * 药品剂型是否可以配送
+     *
      * @param organId
      * @param enterpriseId
      * @param drugLists
