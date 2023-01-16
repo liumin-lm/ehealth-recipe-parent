@@ -392,7 +392,7 @@ public class RecipeSignService {
     @RpcService
     public Map<String, Object> doSignRecipeNew(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList, int continueFlag) {
         LOG.info("RecipeSignService.doSignRecipeNew param: recipeBean={} detailBean={} continueFlag={}", JSONUtils.toString(recipeBean), JSONUtils.toString(detailBeanList), continueFlag);
-        recipeDetailValidateTool.validateMedicalChineDrugNumber(recipeBean, detailBeanList);
+        recipeDetailValidateTool.validateMedicalChineDrugNumber(recipeBean, recipeBean.getRecipeExtend(), detailBeanList);
         caManager.setCaPassWord(recipeBean.getClinicOrgan(), recipeBean.getDoctor(), recipeBean.getCaPassword());
         Map<String, Object> rMap = new HashMap<String, Object>();
         rMap.put("signResult", true);
