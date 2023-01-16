@@ -26,6 +26,7 @@ import recipe.factoryManager.button.impl.FromHisGiveModeServiceImpl;
 import recipe.util.ByteUtils;
 import recipe.util.ValidateUtil;
 
+import javax.persistence.criteria.CriteriaBuilder;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -103,20 +104,8 @@ public class ButtonManager extends BaseManager {
         // 获取药品的剂型
         List<String> drugIds = recipeDetails.stream().map(Recipedetail::getOrganDrugCode).collect(Collectors.toList());
         Set<Integer> recipeIds = recipeDetails.stream().map(Recipedetail::getRecipeId).collect(Collectors.toSet());
-        Set<Integer> medicalFlag = new HashSet<>();
-        if (CollectionUtils.isNotEmpty(recipeIds)) {
-            List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIds);
-            if (CollectionUtils.isNotEmpty(recipes)) {
-                Set<Integer> bussSourceIds = recipes.stream().filter(r -> BussSourceTypeEnum.BUSSSOURCE_REVISIT.getType().equals(r.getBussSource())).map(Recipe::getClinicId).collect(Collectors.toSet());
-                for (Integer bussSourceId : bussSourceIds) {
-                    RevisitExDTO revisitExDTO = revisitClient.getByClinicId(bussSourceId);
-                    if (null == revisitExDTO) {
-                        return null;
-                    }
-                    medicalFlag.add(revisitExDTO.getMedicalFlag());
-                }
-            }
-        }
+        Set<Integer> medicalFlag = getMedicalFlag(recipeIds);
+
         List<OrganDrugList> drugLists = organDrugListDAO.findByOrganIdAndDrugCodes(organId, drugIds);
         //获取机构配置按钮
         List<GiveModeButtonDTO> giveModeButtonBeans = operationClient.getOrganGiveModeMap(organId);
@@ -324,4 +313,31 @@ public class ButtonManager extends BaseManager {
         return true;
     }
 
+    /**
+     * 获取医保标识
+     * @param recipeIds
+     * @return
+     */
+    private Set<Integer> getMedicalFlag(Set<Integer> recipeIds){
+        Set<Integer> medicalFlag = new HashSet<>();
+        if (CollectionUtils.isNotEmpty(recipeIds)) {
+            List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIds);
+            if (CollectionUtils.isNotEmpty(recipes)) {
+                Set<Integer> bussSourceIds = recipes.stream().filter(r -> BussSourceTypeEnum.BUSSSOURCE_REVISIT.getType().equals(r.getBussSource())).map(Recipe::getClinicId).collect(Collectors.toSet());
+                if (CollectionUtils.isEmpty(bussSourceIds)) {
+                    medicalFlag.add(0);
+                } else {
+                    for (Integer bussSourceId : bussSourceIds) {
+                        RevisitExDTO revisitExDTO = revisitClient.getByClinicId(bussSourceId);
+                        if (null != revisitExDTO) {
+                            medicalFlag.add(revisitExDTO.getMedicalFlag());
+                        }else {
+                            medicalFlag.add(0);
+                        }
+                    }
+                }
+            }
+        }
+        return medicalFlag;
+    }
 }
