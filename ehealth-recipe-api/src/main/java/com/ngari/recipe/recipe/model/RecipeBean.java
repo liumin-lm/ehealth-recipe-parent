@@ -388,6 +388,7 @@ public class RecipeBean implements Serializable {
     private BigDecimal decoctionFee;
 
     @ItemProperty(alias = "签名的处方img")
+    @FileToken(expires = 3600)
     private String signImg;
 
     @ItemProperty(alias = "处方审核状态")
