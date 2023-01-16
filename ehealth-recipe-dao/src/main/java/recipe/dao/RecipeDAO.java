@@ -3990,6 +3990,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         if (null != objs[29]) {
                             recipeListBean.setMedicalFlag(Integer.valueOf(objs[29].toString()));
                         }
+                        if (null != objs[30]) {
+                            recipeListBean.setReviewType(Integer.valueOf(objs[30].toString()));
+                        }
 
                         backList.add(recipeListBean);
                     }
