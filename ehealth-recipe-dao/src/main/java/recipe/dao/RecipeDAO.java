@@ -3869,7 +3869,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         "END ) AS STATUS,r.patientName,r.fromflag,r.recipeCode,r.doctorName,r.recipeType,r.organDiseaseName, " +
                         "r.clinicOrgan,r.organName,r.signFile,r.chemistSignFile,r.signDate,r.recipeMode,r.recipeSource,r.mpiid,r.depart, " +
                         "r.enterpriseId,e.registerID,e.chronicDiseaseName,o.OrderId,IFNULL(o.CreateTime,r.signDate) as time ," +
-                        "o.Status as orderStatus,r.GiveMode,o.PayMode,r.process_state,r.sub_state, r.targeted_drug_type,r.medical_flag,r.reviewType " +
+                        "o.Status as orderStatus,r.GiveMode,o.PayMode,r.process_state,r.sub_state, r.targeted_drug_type,r.medical_flag " +
                         " FROM cdr_recipe r left join cdr_recipeorder o on r.OrderCode = o.OrderCode left join " +
                         " cdr_recipe_ext e  on r.RecipeID = e.recipeId " +
                         " WHERE r.mpiid IN (:allMpiIds) AND r.recipeSourceType = 1");
@@ -3988,9 +3988,6 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         }
                         if (null != objs[29]) {
                             recipeListBean.setMedicalFlag(Integer.valueOf(objs[29].toString()));
-                        }
-                        if (null != objs[30]) {
-                            recipeListBean.setReviewType(Integer.valueOf(objs[30].toString()));
                         }
 
                         backList.add(recipeListBean);
