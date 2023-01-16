@@ -945,6 +945,8 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
             map.put("pssm", "");
             //收件人姓名
             map.put("sjrxm", recipeOrder.getReceiver() == null ? recipeBean.getPatientName() : recipeOrder.getReceiver());
+            // 订单编码
+            map.put("kddh", recipeOrder.getOrderCode());
             //配送费，如果是12元，就传12.00
             if (recipeOrder.getExpressFeePayWay() == null || recipeOrder.getExpressFeePayWay() == 1) {
                 if (recipeOrder.getExpressFee() != null && recipeOrder.getExpressFee().compareTo(BigDecimal.ZERO) == 1) {
