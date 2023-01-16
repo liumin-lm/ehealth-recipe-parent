@@ -1365,7 +1365,9 @@ public class RecipeListService extends RecipeBaseService {
         }
         //对数据进行过滤
         List<Integer> organIds = recipeListByMPIId.stream().map(RecipeListBean::getClinicOrgan).distinct().collect(Collectors.toList());
+        LOGGER.info("getRecipeByOnReady organIds = {}", JSONArray.toJSONString(organIds));
         Map<Integer, Boolean> canLookDetailMap = configurationClient.getValueBooleanCatchMap(organIds, "readyCheckRecipeCanLookDetail", true);
+        LOGGER.info("getRecipeByOnReady canLookDetailMap = {}", JSONArray.toJSONString(canLookDetailMap));
         List<RecipeListBean> recipeListBeanList = recipeListByMPIId.stream().filter(recipeListBean ->
                 canLookDetailMap.get(recipeListBean.getClinicOrgan()) ||
                         (!ReviewTypeConstant.Preposition_Check.equals(recipeListBean.getReviewType())
