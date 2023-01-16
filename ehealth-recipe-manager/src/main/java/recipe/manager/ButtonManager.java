@@ -6,6 +6,7 @@ import com.ngari.recipe.dto.GiveModeButtonDTO;
 import com.ngari.recipe.dto.GiveModeShowButtonDTO;
 import com.ngari.recipe.dto.OrganDTO;
 import com.ngari.recipe.entity.*;
+import com.ngari.revisit.common.model.RevisitExDTO;
 import ctd.util.JSONUtils;
 import eh.base.constant.CardTypeEnum;
 import org.apache.commons.collections.CollectionUtils;
@@ -13,12 +14,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.client.OperationClient;
+import recipe.client.RevisitClient;
 import recipe.constant.RecipeBussConstant;
 import recipe.dao.OrganAndDrugsepRelationDAO;
-import recipe.enumerate.type.AppointEnterpriseTypeEnum;
-import recipe.enumerate.type.PayButtonEnum;
-import recipe.enumerate.type.RecipeSupportGiveModeEnum;
-import recipe.enumerate.type.RecipeTypeEnum;
+import recipe.enumerate.status.RecipeSourceTypeEnum;
+import recipe.enumerate.type.*;
 import recipe.factoryManager.button.IGiveModeBase;
 import recipe.factoryManager.button.impl.BjGiveModeServiceImpl;
 import recipe.factoryManager.button.impl.CommonGiveModeServiceImpl;
@@ -49,6 +49,8 @@ public class ButtonManager extends BaseManager {
     private OperationClient operationClient;
     @Autowired
     private OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO;
+    @Autowired
+    private RevisitClient revisitClient;
 
     /**
      * 获取支付按钮 仅杭州市互联网医院使用
@@ -101,11 +103,18 @@ public class ButtonManager extends BaseManager {
         // 获取药品的剂型
         List<String> drugIds = recipeDetails.stream().map(Recipedetail::getOrganDrugCode).collect(Collectors.toList());
         Set<Integer> recipeIds = recipeDetails.stream().map(Recipedetail::getRecipeId).collect(Collectors.toSet());
-        Set<Integer> medicalFlag = null;
+        Set<Integer> medicalFlag = new HashSet<>();
         if (CollectionUtils.isNotEmpty(recipeIds)) {
             List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIds);
             if (CollectionUtils.isNotEmpty(recipes)) {
-                medicalFlag = recipes.stream().map(Recipe::getMedicalFlag).filter(Objects::nonNull).collect(Collectors.toSet());
+                Set<Integer> bussSourceIds = recipes.stream().filter(r -> BussSourceTypeEnum.BUSSSOURCE_REVISIT.getType().equals(r.getBussSource())).map(Recipe::getClinicId).collect(Collectors.toSet());
+                for (Integer bussSourceId : bussSourceIds) {
+                    RevisitExDTO revisitExDTO = revisitClient.getByClinicId(bussSourceId);
+                    if (null == revisitExDTO) {
+                        return null;
+                    }
+                    medicalFlag.add(revisitExDTO.getMedicalFlag());
+                }
             }
         }
         List<OrganDrugList> drugLists = organDrugListDAO.findByOrganIdAndDrugCodes(organId, drugIds);
