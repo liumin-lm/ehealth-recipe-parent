@@ -1,5 +1,6 @@
 package recipe.vo.second;
 
+import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
 import lombok.Getter;
 import lombok.Setter;
@@ -57,4 +58,10 @@ public class RecipeVo implements Serializable {
 
     @ItemProperty(alias = "处方来源类型 1 平台处方 2 线下转线上的处方 3诊疗处方")
     private Integer recipeSourceType;
+
+    @ItemProperty(alias = "开方机构")
+    private Integer clinicOrgan;
+
+    @ItemProperty(alias = "处方审核方式")
+    private Integer reviewType;
 }
