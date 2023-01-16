@@ -1367,7 +1367,16 @@ public class RecipeListService extends RecipeBaseService {
         //对数据进行过滤
         List<Integer> organIds = recipeListByMPIId.stream().map(RecipeListBean::getClinicOrgan).distinct().collect(Collectors.toList());
         Map<Integer, Boolean> canLookDetailMap = configurationClient.getValueBooleanCatchMap(organIds, "readyCheckRecipeCanLookDetail", true);
-        List<RecipeListBean> recipeListBeanList = recipeListByMPIId.stream().filter(recipeListBean -> canLookDetailMap.get(recipeListBean.getClinicOrgan()) || (!canLookDetailMap.get(recipeListBean.getClinicOrgan()) && !ReviewTypeConstant.Preposition_Check.equals(recipeListBean.getReviewType()))).collect(Collectors.toList());
+        List<RecipeListBean> recipeListBeanList = recipeListByMPIId.stream().filter(recipeListBean -> {
+            if (canLookDetailMap.get(recipeListBean.getClinicOrgan()) ||
+                    (!canLookDetailMap.get(recipeListBean.getClinicOrgan())
+                            && (!ReviewTypeConstant.Preposition_Check.equals(recipeListBean.getReviewType())
+                            || (ReviewTypeConstant.Preposition_Check.equals(recipeListBean.getReviewType()) && !RecipeStateEnum.PROCESS_STATE_AUDIT.getType().equals(recipeListBean.getProcessState()))))) {
+                return true;
+            } else {
+                return false;
+            }
+        }).collect(Collectors.toList());
         LOGGER.info("getRecipeByOnReady readyCheckRecipeCanLookDetail recipeListBeans = {}", JSONArray.toJSONString(recipeListBeanList));
         if (CollectionUtils.isEmpty(recipeListBeanList)) {
             return result;
