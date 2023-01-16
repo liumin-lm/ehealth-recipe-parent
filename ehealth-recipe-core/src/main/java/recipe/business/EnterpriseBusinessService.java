@@ -155,10 +155,9 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
         String giveModeTypes = StringUtils.join(organEnterpriseRelationVo.getGiveModeTypes(), ByteUtils.COMMA);
         String recipeTypes = StringUtils.join(organEnterpriseRelationVo.getRecipeTypes(), ByteUtils.COMMA);
         String decoctionIds = StringUtils.join(organEnterpriseRelationVo.getDecoctionIds(), ByteUtils.COMMA);
-        String cannotMedicalFlag = StringUtils.join(organEnterpriseRelationVo.getCannotMedicalFlag(), ByteUtils.COMMA);
         if (Objects.isNull(relation)) {
             OrganAndDrugsepRelation newRelation = new OrganAndDrugsepRelation();
-            newRelation.setCannotMedicalFlag(cannotMedicalFlag);
+            newRelation.setCannotMedicalFlag(JSONArray.toJSONString(organEnterpriseRelationVo.getCannotMedicalFlag()));
             newRelation.setDrugsEnterpriseSupportGiveMode(giveModeTypes);
             newRelation.setDrugsEnterpriseId(organEnterpriseRelationVo.getDrugsEnterpriseId());
             newRelation.setEnterpriseRecipeTypes(recipeTypes);
@@ -169,7 +168,7 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
             newRelation.setOrganId(organEnterpriseRelationVo.getOrganId());
             organAndDrugsepRelationDAO.save(newRelation);
         } else {
-            relation.setCannotMedicalFlag(cannotMedicalFlag);
+            relation.setCannotMedicalFlag(JSONArray.toJSONString(organEnterpriseRelationVo.getCannotMedicalFlag()));
             relation.setDrugsEnterpriseSupportGiveMode(giveModeTypes);
             relation.setEnterpriseRecipeTypes(recipeTypes);
             relation.setEnterpriseDecoctionIds(decoctionIds);
