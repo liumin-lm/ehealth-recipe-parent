@@ -131,7 +131,7 @@ public class ButtonManager extends BaseManager {
             enterpriseStock.setAppointEnterpriseType(AppointEnterpriseTypeEnum.ENTERPRISE_APPOINT.getType());
             OrganAndDrugsepRelation drugsDepRelation = drugsDepRelationMap.get(organId + "_" + drugsEnterprise.getId());
             if (StringUtils.isNotEmpty(drugsDepRelation.getCannotMedicalFlag()) && CollectionUtils.isNotEmpty(medicalFlag)) {
-                List<Integer> medicalFlags = Arrays.stream(drugsDepRelation.getCannotMedicalFlag().split(ByteUtils.COMMA)).map(Integer::parseInt).collect(Collectors.toList());
+                List<Integer> medicalFlags = JSONUtils.parse((drugsDepRelation.getCannotMedicalFlag()), List.class);
                 Set<Integer> finalMedicalFlag = medicalFlag;
                 List<Integer> integers = medicalFlags.stream().filter(s -> finalMedicalFlag.contains(s)).collect(Collectors.toList());
                 if (CollectionUtils.isNotEmpty(integers)) {
