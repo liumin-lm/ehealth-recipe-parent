@@ -3893,6 +3893,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
 
                 logger.info("findRecipeListByMPIId hql={}", hql.toString());
                 List<Object[]> result = q.list();
+                logger.info("findOnReadyRecipeListByMPIId result:{}", JSON.toJSONString(result));
                 List<RecipeListBean> backList = new ArrayList<>();
                 if (CollectionUtils.isNotEmpty(result)) {
                     RecipeListBean recipeListBean;
