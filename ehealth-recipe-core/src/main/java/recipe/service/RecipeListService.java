@@ -1248,7 +1248,6 @@ public class RecipeListService extends RecipeBaseService {
      *
      * @param result
      * @param allMpiIds
-     * @param index
      * @param limit
      * @param tabStatus
      * @param recipeStatusList
@@ -1368,10 +1367,9 @@ public class RecipeListService extends RecipeBaseService {
         List<Integer> organIds = recipeListByMPIId.stream().map(RecipeListBean::getClinicOrgan).distinct().collect(Collectors.toList());
         Map<Integer, Boolean> canLookDetailMap = configurationClient.getValueBooleanCatchMap(organIds, "readyCheckRecipeCanLookDetail", true);
         List<RecipeListBean> recipeListBeanList = recipeListByMPIId.stream().filter(recipeListBean ->
-            canLookDetailMap.get(recipeListBean.getClinicOrgan()) ||
-                    (!canLookDetailMap.get(recipeListBean.getClinicOrgan())
-                            && (!ReviewTypeConstant.Preposition_Check.equals(recipeListBean.getReviewType())
-                            || (ReviewTypeConstant.Preposition_Check.equals(recipeListBean.getReviewType()) && !RecipeStateEnum.PROCESS_STATE_AUDIT.getType().equals(recipeListBean.getProcessState()))))
+                canLookDetailMap.get(recipeListBean.getClinicOrgan()) ||
+                        (!ReviewTypeConstant.Preposition_Check.equals(recipeListBean.getReviewType())
+                                || !RecipeStateEnum.PROCESS_STATE_AUDIT.getType().equals(recipeListBean.getProcessState()))
         ).collect(Collectors.toList());
         LOGGER.info("getRecipeByOnReady readyCheckRecipeCanLookDetail recipeListBeans = {}", JSONArray.toJSONString(recipeListBeanList));
         if (CollectionUtils.isEmpty(recipeListBeanList)) {
