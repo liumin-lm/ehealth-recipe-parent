@@ -305,21 +305,27 @@ public class RecipeDetailValidateTool {
      * @param recipeBean
      * @param detailBeanList
      */
-    public void validateMedicalChineDrugNumber(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList) {
-        if (ValidateUtil.integerIsEmpty(recipeBean.getMedicalFlag())) {
-            Integer medicalFlag = revisitManager.medicalFlag(recipeBean.getClinicId(), recipeBean.getBussSource());
-            if (ValidateUtil.integerIsEmpty(medicalFlag)) {
-                return;
-            }
+    public void validateMedicalChineDrugNumber(RecipeBean recipeBean, RecipeExtendBean recipeExtend, List<RecipeDetailBean> detailBeanList) {
+        Integer medicalFlag = revisitManager.medicalFlag(recipeBean.getClinicId(), recipeBean.getBussSource());
+        Integer chineDrugNumber = 5;
+        //自费
+        if (Integer.valueOf(1).equals(recipeExtend.getForceCashType()) ||
+                (ValidateUtil.integerIsEmpty(recipeBean.getMedicalFlag()) && ValidateUtil.integerIsEmpty(medicalFlag))) {
+            chineDrugNumber = configurationClient.getValueCatchReturnInteger(recipeBean.getClinicOrgan(), "selfMedicalChineDrugNumber", 5);
+            logger.info("RecipeDetailValidateTool validateMedicalChineDrugNumber selfMedicalChineDrugNumber ={}", chineDrugNumber);
         }
-        Integer medicalChineDrugNumber = configurationClient.getValueCatchReturnInteger(recipeBean.getClinicOrgan(), "medicalChineDrugNumber", 5);
+        //医保
+        if (Integer.valueOf(1).equals(recipeBean.getMedicalFlag()) || Integer.valueOf(1).equals(medicalFlag)) {
+            chineDrugNumber = configurationClient.getValueCatchReturnInteger(recipeBean.getClinicOrgan(), "medicalChineDrugNumber", 5);
+            logger.info("RecipeDetailValidateTool validateMedicalChineDrugNumber medicalChineDrugNumber ={}", chineDrugNumber);
+        }
         List<Integer> drugIds = detailBeanList.stream().map(RecipeDetailBean::getDrugId).collect(Collectors.toList());
         List<DrugList> drugList = drugManager.drugList(drugIds, 2);
         if (CollectionUtils.isEmpty(drugList)) {
             return;
         }
-        if (drugList.size() > medicalChineDrugNumber) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "中成药最多开具" + medicalChineDrugNumber + "个");
+        if (drugList.size() > chineDrugNumber) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "中成药最多开具" + chineDrugNumber + "个");
         }
     }
 
