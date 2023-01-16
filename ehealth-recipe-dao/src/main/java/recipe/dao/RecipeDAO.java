@@ -3849,6 +3849,161 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     public abstract List<Recipe> findRecipeByMpiId(@DAOParam("mpiId") String mpiId);
 
 
+    /**
+     * 根据处方状态批量查询处方
+     *
+     * @param allMpiIds
+     * @param start
+     * @param limit
+     */
+    public List<RecipeListBean> findOnReadyRecipeListByMPIId(List<String> allMpiIds, Integer start, Integer limit, String tabStatus, List<Integer> recipeStatus, Date startTime, Date endTime) {
+        HibernateStatelessResultAction<List<RecipeListBean>> action = new AbstractHibernateStatelessResultAction<List<RecipeListBean>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder();
+                boolean timeSearchFlag = Objects.nonNull(startTime) && Objects.nonNull(endTime);
+
+                hql.append("select * from (");
+                hql.append("SELECT r.RecipeID,r.orderCode,(CASE WHEN ( r.reviewType = 1 AND r.checkStatus = 1 AND r.STATUS = 15 ) THEN" +
+                        " 8 ELSE r.STATUS " +
+                        "END ) AS STATUS,r.patientName,r.fromflag,r.recipeCode,r.doctorName,r.recipeType,r.organDiseaseName, " +
+                        "r.clinicOrgan,r.organName,r.signFile,r.chemistSignFile,r.signDate,r.recipeMode,r.recipeSource,r.mpiid,r.depart, " +
+                        "r.enterpriseId,e.registerID,e.chronicDiseaseName,o.OrderId,IFNULL(o.CreateTime,r.signDate) as time ," +
+                        "o.Status as orderStatus,r.GiveMode,o.PayMode,r.process_state,r.sub_state, r.targeted_drug_type,r.medical_flag,r.reviewType " +
+                        " FROM cdr_recipe r left join cdr_recipeorder o on r.OrderCode = o.OrderCode left join " +
+                        " cdr_recipe_ext e  on r.RecipeID = e.recipeId " +
+                        " WHERE r.mpiid IN (:allMpiIds) AND r.recipeSourceType = 1");
+                if (timeSearchFlag) {
+                    hql.append(" AND r.CreateDate > :startTime AND r.CreateDate < :endTime ");
+                }
+                if ("onready".equals(tabStatus)) {
+                    hql.append(" AND ((r.recipeMode != 'zjjgpt' && r.STATUS IN ( :recipeStatus ) OR ( r.reviewType != 0 AND r.checkStatus = 1 AND r.STATUS = 15 ) " +
+                            ") OR ( r.recipeMode = 'zjjgpt' AND r.STATUS IN ( 2, 22 ) ) ) ");
+                    hql.append(" AND r.orderCode IS NULL ");
+                }
+                hql.append(" ) a ORDER BY a.time DESC ");
+
+                Query q = ss.createSQLQuery(hql.toString());
+                q.setParameterList("allMpiIds", allMpiIds);
+                q.setParameterList("recipeStatus", recipeStatus);
+                if (timeSearchFlag) {
+                    q.setParameter("startTime", startTime);
+                    q.setParameter("endTime", endTime);
+                }
+
+                logger.info("findRecipeListByMPIId hql={}", hql.toString());
+                List<Object[]> result = q.list();
+                List<RecipeListBean> backList = new ArrayList<>();
+                if (CollectionUtils.isNotEmpty(result)) {
+                    RecipeListBean recipeListBean;
+                    for (Object[] objs : result) {
+                        recipeListBean = new RecipeListBean();
+                        recipeListBean.setRecipeId(Integer.valueOf(objs[0].toString()));
+                        if (null != objs[1]) {
+                            recipeListBean.setOrderCode(objs[1].toString());
+                        }
+                        if (null != objs[2]) {
+                            recipeListBean.setStatus(Integer.valueOf(objs[2].toString()));
+                        }
+                        if (null != objs[3]) {
+                            recipeListBean.setPatientName(objs[3].toString());
+                        }
+                        if (null != objs[4]) {
+                            recipeListBean.setFromFlag(Integer.valueOf(objs[4].toString()));
+                        }
+                        if (null != objs[5]) {
+                            recipeListBean.setRecipeCode(objs[5].toString());
+                        }
+                        if (null != objs[6]) {
+                            recipeListBean.setDoctorName(objs[6].toString());
+                        }
+                        if (null != objs[7]) {
+                            recipeListBean.setRecipeType(Integer.valueOf(objs[7].toString()));
+                        }
+                        if (null != objs[8]) {
+                            recipeListBean.setOrganDiseaseName(objs[8].toString());
+                        }
+                        if (null != objs[9]) {
+                            recipeListBean.setClinicOrgan(Integer.valueOf(objs[9].toString()));
+                        }
+                        if (null != objs[10]) {
+                            recipeListBean.setOrganName(objs[10].toString());
+                        }
+                        if (null != objs[11]) {
+                            recipeListBean.setSignFile(objs[11].toString());
+                        }
+                        if (null != objs[12]) {
+                            recipeListBean.setChemistSignFile(objs[12].toString());
+                        }
+                        if (null != objs[13]) {
+                            recipeListBean.setSignDate((Date) objs[13]);
+                        }
+                        if (null != objs[14]) {
+                            recipeListBean.setRecipeMode(objs[14].toString());
+                        }
+                        if (null != objs[15]) {
+                            recipeListBean.setRecipeSource(Integer.valueOf(objs[15].toString()));
+                        }
+                        if (null != objs[16]) {
+                            recipeListBean.setMpiid(objs[16].toString());
+                        }
+                        if (null != objs[17]) {
+                            recipeListBean.setDepart(Integer.valueOf(objs[17].toString()));
+                        }
+                        if (null != objs[18]) {
+                            recipeListBean.setEnterpriseId(Integer.valueOf(objs[18].toString()));
+                        }
+                        if (null != objs[19]) {
+                            recipeListBean.setRegisterID(objs[19].toString());
+                        }
+                        if (null == objs[19]) {
+                            recipeListBean.setRegisterID("-1");
+                        }
+                        if (null != objs[20]) {
+                            recipeListBean.setChronicDiseaseName(objs[20].toString());
+                        }
+                        if (null == objs[20]) {
+                            recipeListBean.setChronicDiseaseName("-1");
+                        }
+                        if (null != objs[21]) {
+                            recipeListBean.setOrderId(Integer.valueOf(objs[21].toString()));
+                        }
+                        if (null != objs[23]) {
+                            recipeListBean.setOrderStatus(Integer.valueOf(objs[23].toString()));
+                        }
+                        if (null != objs[24]) {
+                            recipeListBean.setGiveMode(Integer.valueOf(objs[24].toString()));
+                        }
+                        if (null != objs[25]) {
+                            recipeListBean.setPayMode(Integer.valueOf(objs[25].toString()));
+                        }
+                        if (null != objs[26]) {
+                            recipeListBean.setProcessState(Integer.valueOf(objs[26].toString()));
+                        }
+                        if (null != objs[27]) {
+                            recipeListBean.setSubState(Integer.valueOf(objs[27].toString()));
+                        }
+                        if (null != objs[28]) {
+                            recipeListBean.setTargetedDrugType(Integer.valueOf(objs[28].toString()));
+                        }
+                        if (null != objs[29]) {
+                            recipeListBean.setMedicalFlag(Integer.valueOf(objs[29].toString()));
+                        }
+                        if (null != objs[30]) {
+                            recipeListBean.setReviewType(Integer.valueOf(objs[30].toString()));
+                        }
+
+                        backList.add(recipeListBean);
+                    }
+                }
+
+                setResult(backList);
+            }
+        };
+
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
 
     /**
      * 根据处方状态批量查询处方

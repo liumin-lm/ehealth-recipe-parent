@@ -123,5 +123,8 @@ public class RecipeListBean implements Serializable {
     @ItemProperty(alias = "订单状态")
     private Integer orderStatus;
 
+    @ItemProperty(alias = "审核模式")
+    private Integer reviewType;
+
 
 }
