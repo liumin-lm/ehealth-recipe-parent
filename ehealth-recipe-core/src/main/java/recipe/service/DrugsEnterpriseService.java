@@ -519,7 +519,7 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
                 if (0 == drugsEnterpriseBean.getCreateType()) {
                     for (Pharmacy pharmacy : listS) {
                         if (pharmacy.getDrugsenterpriseId().equals(drugsEnterpriseBean.getId())) {
-                            HashMap<String, String> map = new HashMap<String, String>();
+                            HashMap<String, String> map = new HashMap<>();
                             map.put("pharmacyAddress", pharmacy.getPharmacyAddress());
                             map.put("pharmacyPhone", pharmacy.getPharmacyPhone());
                             //获取药店经度
@@ -529,7 +529,9 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
                             OrganService bean = AppContextHolder.getBean("basic.organService", OrganService.class);
                             if (drugsEnterpriseBean.getOrganId() != null) {
                                 OrganDTO byOrganId = bean.getByOrganId(drugsEnterpriseBean.getOrganId());
-                                map.put("organName", byOrganId.getName());
+                                if (Objects.nonNull(byOrganId)) {
+                                    map.put("organName", byOrganId.getName());
+                                }
                             } else {
                                 map.put("organName", null);
                             }
