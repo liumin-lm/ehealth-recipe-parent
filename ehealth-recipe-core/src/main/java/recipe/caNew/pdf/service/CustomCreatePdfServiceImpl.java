@@ -593,8 +593,8 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
             list.add(new RecipeLabelDTO("用药途径", "recipeDetail.usePathways_" + i, DictionaryUtil.getDictionary("eh.cdr.dictionary.UsePathways", detail.getUsePathways())));
             list.add(new RecipeLabelDTO("用药天数", "recipeDetail.useDays_" + i, getUseDays(detail.getUseDaysB(), detail.getUseDays())));
             list.add(new RecipeLabelDTO("嘱托", "recipeDetail.memo_" + i, StringUtils.isNotEmpty(detail.getMemo()) ? "嘱托：" + detail.getMemo() : ""));
-            list.add(new RecipeLabelDTO("药品单价（西药）", "recipeDetail.salePrice_" + i, detail.getSalePrice().setScale(4, RoundingMode.HALF_UP).stripTrailingZeros().toString()+"元/"+detail.getDrugUnit()));
-            list.add(new RecipeLabelDTO("单药品总价（西药）", "recipeDetail.drugCost_" + i, detail.getDrugCost().setScale(4, RoundingMode.HALF_UP).stripTrailingZeros().toString()+"元"));
+            list.add(new RecipeLabelDTO("药品单价（西药）", "recipeDetail.salePrice_" + i, detail.getSalePrice().stripTrailingZeros().toString()+"元/"+detail.getDrugUnit()));
+            list.add(new RecipeLabelDTO("单药品总价（西药）", "recipeDetail.drugCost_" + i, detail.getDrugCost().stripTrailingZeros().toString()+"元"));
         }
         list.add(new RecipeLabelDTO("药房", "recipeDetail.pharmacyName", recipedetail.getPharmacyName()));
         logger.info("CreateRecipePdfUtil createMedicinePDF list :{} ", JSON.toJSONString(list));
