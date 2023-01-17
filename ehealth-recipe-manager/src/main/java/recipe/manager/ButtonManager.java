@@ -319,25 +319,15 @@ public class ButtonManager extends BaseManager {
      * @return
      */
     private Set<Integer> getMedicalFlag(Set<Integer> recipeIds){
-        Set<Integer> medicalFlag = new HashSet<>();
-        if (CollectionUtils.isNotEmpty(recipeIds)) {
-            List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIds);
-            if (CollectionUtils.isNotEmpty(recipes)) {
-                Set<Integer> bussSourceIds = recipes.stream().filter(r -> BussSourceTypeEnum.BUSSSOURCE_REVISIT.getType().equals(r.getBussSource())).map(Recipe::getClinicId).collect(Collectors.toSet());
-                if (CollectionUtils.isEmpty(bussSourceIds)) {
-                    medicalFlag.add(0);
-                } else {
-                    for (Integer bussSourceId : bussSourceIds) {
-                        RevisitExDTO revisitExDTO = revisitClient.getByClinicId(bussSourceId);
-                        if (null != revisitExDTO) {
-                            medicalFlag.add(revisitExDTO.getMedicalFlag());
-                        }else {
-                            medicalFlag.add(0);
-                        }
-                    }
-                }
-            }
+        if (CollectionUtils.isEmpty(recipeIds)) {
+            return null;
         }
+        List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIds);
+        if (CollectionUtils.isEmpty(recipes)) {
+            return null;
+        }
+        Set<Integer> medicalFlag = recipes.stream().map(Recipe::getMedicalFlag).filter(Objects::nonNull).collect(Collectors.toSet());
+
         return medicalFlag;
     }
 }
