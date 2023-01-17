@@ -10,6 +10,7 @@ import com.ngari.recipe.recipe.model.*;
 import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
@@ -228,6 +229,13 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
             // 只有暂存状态才可以修改
             if (!WriteHisEnum.NONE.getType().equals(recipe.getWriteHisState()) || !SignEnum.NONE.getType().equals(recipe.getDoctorSignState())) {
                 throw new DAOException(ErrorCode.SERVICE_ERROR, "当前处方不是暂存状态,不能操作");
+            }
+        }
+        List<RecipeDetailBean> recipeDetails = recipeInfoVO.getRecipeDetails();
+        if (CollectionUtils.isNotEmpty(recipeDetails)) {
+            boolean recipeDetailId = recipeDetails.stream().anyMatch(a -> !ValidateUtil.integerIsEmpty(a.getRecipeDetailId()));
+            if (ValidateUtil.integerIsEmpty(recipeBean.getRecipeId()) && recipeDetailId) {
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "药品入参错误");
             }
         }
         if (!ValidateUtil.integerIsEmpty(recipeInfoVO.getRecipeBean().getRecipeId()) && null != recipeInfoVO.getRecipeExtendBean()) {

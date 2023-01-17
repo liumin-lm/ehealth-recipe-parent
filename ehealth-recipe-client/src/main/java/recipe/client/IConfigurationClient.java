@@ -282,6 +282,35 @@ public class IConfigurationClient extends BaseClient {
         }
     }
 
+    /**
+     * 获取多个机构配置项
+     * @param organIds
+     * @param key
+     * @param defaultValue
+     * @return
+     */
+    public Map<Integer, Boolean> getValueBooleanCatchMap(List<Integer> organIds, String key, Boolean defaultValue) {
+        if (null == organIds || StringUtils.isEmpty(key)) {
+            return null;
+        }
+        Map<Integer, Boolean> map = new HashMap<>();
+        try {
+            organIds.forEach(organId->{
+                Boolean value = (Boolean) configService.getConfiguration(organId, key);
+                if (null == value) {
+                    map.put(organId, defaultValue);
+                } else {
+                    map.put(organId, value);
+                }
+            });
+
+            return map;
+        } catch (Exception e) {
+            logger.error("IConfigurationClient getValueBooleanCatch organId:{}, key:{}", JSON.toJSONString(organIds), key, e);
+            return null;
+        }
+    }
+
 
     /**
      * 根据配置获取  枚举类型 配置项值，捕获异常时返回默认值

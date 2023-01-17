@@ -1248,7 +1248,6 @@ public class RecipeListService extends RecipeBaseService {
      *
      * @param result
      * @param allMpiIds
-     * @param index
      * @param limit
      * @param tabStatus
      * @param recipeStatusList
@@ -1350,7 +1349,6 @@ public class RecipeListService extends RecipeBaseService {
      *
      * @param mergeRecipeFlag
      * @param allMpiIds
-     * @param index
      * @param limit
      * @param tabStatus
      * @param mergeRecipeWayAfter
@@ -1360,11 +1358,25 @@ public class RecipeListService extends RecipeBaseService {
     private List<PatientTabStatusMergeRecipeDTO> getRecipeByOnReady(List<PatientTabStatusMergeRecipeDTO> result, Boolean mergeRecipeFlag,
                                                                     List<String> allMpiIds, Integer start, Integer limit, String tabStatus,
                                                                     String mergeRecipeWayAfter, TabStatusEnumNew recipeStatusList, Date startTime, Date endTime) {
-        List<RecipeListBean> recipeListByMPIId = recipeDAO.findRecipeListByMPIId(allMpiIds, start, limit, tabStatus, recipeStatusList.getStatusList(), startTime, endTime);
+        List<RecipeListBean> recipeListByMPIId = recipeDAO.findOnReadyRecipeListByMPIId(allMpiIds, start, limit, tabStatus, recipeStatusList.getStatusList(), startTime, endTime);
         LOGGER.info("getRecipeByOnReady recipeListByMPIId = {}", JSONArray.toJSONString(recipeListByMPIId));
         if (CollectionUtils.isEmpty(recipeListByMPIId)) {
             return result;
         }
+        //对数据进行过滤
+        List<Integer> organIds = recipeListByMPIId.stream().map(RecipeListBean::getClinicOrgan).distinct().collect(Collectors.toList());
+        Map<Integer, Boolean> canLookDetailMap = configurationClient.getValueBooleanCatchMap(organIds, "readyCheckRecipeCanLookDetail", true);
+        List<RecipeListBean> recipeListBeanList = recipeListByMPIId.stream().filter(recipeListBean ->
+                canLookDetailMap.get(recipeListBean.getClinicOrgan()) ||
+                        (!ReviewTypeConstant.Preposition_Check.equals(recipeListBean.getReviewType())
+                                || !RecipeStateEnum.PROCESS_STATE_AUDIT.getType().equals(recipeListBean.getProcessState()))
+        ).collect(Collectors.toList());
+        LOGGER.info("getRecipeByOnReady readyCheckRecipeCanLookDetail recipeListBeans = {}", JSONArray.toJSONString(recipeListBeanList));
+        if (CollectionUtils.isEmpty(recipeListBeanList)) {
+            return result;
+        }
+        recipeListBeanList = getPagedList(recipeListBeanList, start, limit);
+        LOGGER.info("getRecipeByOnReady recipeListBeans = {}", JSONArray.toJSONString(recipeListBeanList));
         // 获取是否跨业务合并支付标识
         Boolean isCrossBusinessConsolidatedPayment = configurationClient.getValueBooleanCatch(recipeListByMPIId.get(0).getClinicOrgan(), "isCrossBusinessConsolidatedPayment", false);
         if (mergeRecipeFlag && !isCrossBusinessConsolidatedPayment) {
@@ -1374,16 +1386,16 @@ public class RecipeListService extends RecipeBaseService {
             Set<Integer> recipeIds = new HashSet<>();
             if ("e.registerId".equals(mergeRecipeWayAfter)) {
                 // 挂号序号
-                recipeListMap = recipeListByMPIId.stream().collect(Collectors.groupingBy(RecipeListBean::getRegisterID));
+                recipeListMap = recipeListBeanList.stream().collect(Collectors.groupingBy(RecipeListBean::getRegisterID));
             } else if ("organId".equals(mergeRecipeWayAfter)) {
                 // 支持同一个机构下同一个就诊人合并支付
-                recipeListMap = recipeListByMPIId.stream().collect(Collectors.groupingBy(k -> k.getClinicOrgan() + k.getPatientName()));
+                recipeListMap = recipeListBeanList.stream().collect(Collectors.groupingBy(k -> k.getClinicOrgan() + k.getPatientName()));
             } else {
                 // 慢病名称
-                recipeListMap = recipeListByMPIId.stream().collect(Collectors.groupingBy(k -> k.getRegisterID() + k.getChronicDiseaseName()));
+                recipeListMap = recipeListBeanList.stream().collect(Collectors.groupingBy(k -> k.getRegisterID() + k.getChronicDiseaseName()));
             }
             Map<String, List<RecipeListBean>> finalRecipeListMap = recipeListMap;
-            recipeListByMPIId.forEach(recipeListBean -> {
+            recipeListBeanList.forEach(recipeListBean -> {
                 if (!recipeIds.contains(recipeListBean.getRecipeId())) {
                     PatientTabStatusMergeRecipeDTO patientTabStatusMergeRecipeDTO = new PatientTabStatusMergeRecipeDTO();
                     // 获取合并处方的关键字
@@ -1433,7 +1445,7 @@ public class RecipeListService extends RecipeBaseService {
             });
         } else {
             //返回非合并处方
-            recipeListByMPIId.forEach(recipeListBean -> {
+            recipeListBeanList.forEach(recipeListBean -> {
                 PatientTabStatusMergeRecipeDTO patientTabStatusMergeRecipeDTO = new PatientTabStatusMergeRecipeDTO();
                 // 获取合并处方的关键字
                 patientTabStatusMergeRecipeDTO.setFirstRecipeId(recipeListBean.getRecipeId());
@@ -2332,6 +2344,26 @@ public class RecipeListService extends RecipeBaseService {
             }
         }
         return togetherPayFlag;
+    }
+
+    /**
+     * 内存分页处理待处理页面
+     * @param recipeListByMPIId
+     * @param pageNum
+     * @param pageSize
+     * @return
+     */
+    private List<RecipeListBean> getPagedList(List<RecipeListBean> recipeListByMPIId , Integer pageNum, Integer pageSize) {
+        int fromIndex = pageNum * pageSize;
+        if (fromIndex >= recipeListByMPIId.size()) {
+            return recipeListByMPIId;
+        }
+
+        int toIndex = (pageNum + 1) * pageSize;
+        if (toIndex >= recipeListByMPIId.size()) {
+            toIndex = recipeListByMPIId.size();
+        }
+        return recipeListByMPIId.subList(fromIndex, toIndex);
     }
 
 }
