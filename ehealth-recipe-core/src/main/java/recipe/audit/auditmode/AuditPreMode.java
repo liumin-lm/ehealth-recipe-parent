@@ -10,8 +10,6 @@ import ctd.util.AppContextHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import recipe.client.IConfigurationClient;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.ReviewTypeConstant;
 import recipe.dao.RecipeDAO;
@@ -96,7 +94,6 @@ public class AuditPreMode extends AbstractAuditMode {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         Recipe currentRecipe = recipeDAO.getByRecipeId(recipe.getRecipeId());
-        IConfigurationClient configurationClient = AppContextHolder.getBean("IConfigurationClient", IConfigurationClient.class);
         if (RecipeStatusEnum.RECIPE_STATUS_REVOKE.getType().equals(currentRecipe.getStatus())) {
             LOGGER.info("afterHisCallBackChange 处方单已经撤销,recipeId:{}", recipe.getRecipeId());
             return;
@@ -116,11 +113,7 @@ public class AuditPreMode extends AbstractAuditMode {
         }
         //日志记录
         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), status, memo);
-        Boolean canLookDetail = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "readyCheckRecipeCanLookDetail", true);
-        if (canLookDetail) {
-            //发送消息,患者可以点开推送消息查看详情
-            RecipeMsgService.batchSendMsg(recipe.getRecipeId(), status);
-        }
+        RecipeMsgService.batchSendMsg(recipe.getRecipeId(), status);
         //处方审核
         super.startRecipeAuditProcess(recipe.getRecipeId());
         //异步添加水印
