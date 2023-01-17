@@ -315,7 +315,8 @@ public class RecipeDetailValidateTool {
             logger.info("RecipeDetailValidateTool validateMedicalChineDrugNumber selfMedicalChineDrugNumber ={}", chineDrugNumber);
         }
         //医保
-        if (Integer.valueOf(1).equals(recipeBean.getMedicalFlag()) || Integer.valueOf(1).equals(medicalFlag)) {
+        if (!Integer.valueOf(1).equals(recipeExtend.getForceCashType()) &&
+                (Integer.valueOf(1).equals(recipeBean.getMedicalFlag()) || Integer.valueOf(1).equals(medicalFlag))) {
             chineDrugNumber = configurationClient.getValueCatchReturnInteger(recipeBean.getClinicOrgan(), "medicalChineDrugNumber", 5);
             logger.info("RecipeDetailValidateTool validateMedicalChineDrugNumber medicalChineDrugNumber ={}", chineDrugNumber);
         }
