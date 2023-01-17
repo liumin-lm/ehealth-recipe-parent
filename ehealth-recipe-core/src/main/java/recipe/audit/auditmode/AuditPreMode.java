@@ -10,7 +10,8 @@ import ctd.util.AppContextHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import recipe.client.DocIndexClient;
+import org.springframework.stereotype.Service;
+import recipe.client.IConfigurationClient;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.ReviewTypeConstant;
 import recipe.dao.RecipeDAO;
@@ -18,7 +19,6 @@ import recipe.dao.RecipeDetailDAO;
 import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
-import recipe.enumerate.type.DocIndexShowEnum;
 import recipe.manager.EnterpriseManager;
 import recipe.manager.RecipeManager;
 import recipe.manager.StateManager;
@@ -87,9 +87,6 @@ public class AuditPreMode extends AbstractAuditMode {
         }
         StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
         stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_ORDER, RecipeStateEnum.SUB_ORDER_READY_SUBMIT_ORDER);
-        // 病历处方-状态修改成显示
-        DocIndexClient docIndexClient = AppContextHolder.getBean("docIndexClient", DocIndexClient.class);
-//        docIndexClient.updateStatusByBussIdBussType(recipe.getRecipeId(), DocIndexShowEnum.SHOW.getCode());
         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "审核通过处理完成");
     }
 
@@ -99,6 +96,7 @@ public class AuditPreMode extends AbstractAuditMode {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         Recipe currentRecipe = recipeDAO.getByRecipeId(recipe.getRecipeId());
+        IConfigurationClient configurationClient = AppContextHolder.getBean("IConfigurationClient", IConfigurationClient.class);
         if (RecipeStatusEnum.RECIPE_STATUS_REVOKE.getType().equals(currentRecipe.getStatus())) {
             LOGGER.info("afterHisCallBackChange 处方单已经撤销,recipeId:{}", recipe.getRecipeId());
             return;
@@ -118,8 +116,11 @@ public class AuditPreMode extends AbstractAuditMode {
         }
         //日志记录
         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), status, memo);
-        //发送消息
-        RecipeMsgService.batchSendMsg(recipe.getRecipeId(), status);
+        Boolean canLookDetail = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "readyCheckRecipeCanLookDetail", true);
+        if (canLookDetail) {
+            //发送消息,患者可以点开推送消息查看详情
+            RecipeMsgService.batchSendMsg(recipe.getRecipeId(), status);
+        }
         //处方审核
         super.startRecipeAuditProcess(recipe.getRecipeId());
         //异步添加水印
