@@ -1,24 +1,18 @@
 package recipe.atop.greenroom;
 
 import com.ngari.base.esign.model.CoOrdinateVO;
-import com.ngari.recipe.entity.DoctorCommonPharmacy;
 import com.ngari.recipe.vo.FastRecipeAndDetailResVO;
 import com.ngari.recipe.vo.FastRecipeReqVO;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
-import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.core.api.IDrugBusinessService;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.core.api.doctor.IDoctorBusinessService;
 import recipe.core.api.greenroom.ITextService;
 import recipe.util.DictionaryUtil;
-import recipe.util.ValidateUtil;
-import recipe.vo.doctor.DoctorDefaultVO;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * 用于postman 后门接口调用
@@ -97,51 +91,4 @@ public class TextGmAtop {
     public void organDrugList2Es(Integer organId) {
         drugBusinessService.organDrugList2Es(organId);
     }
-
-    /**
-     * 医生默认数据处理 只使用一次
-     *
-     * @param
-     */
-    @RpcService
-    public void organDoctor() {
-        List<DoctorCommonPharmacy> list = textBusinessService.findDoctorCommonPharmacyByOrganIdAndDoctorId(0);
-        if (CollectionUtils.isEmpty(list)) {
-            return;
-        }
-        list.forEach(a -> {
-            List<DoctorDefaultVO> doctorList = new ArrayList<>();
-            if (!ValidateUtil.integerIsEmpty(a.getWmPharmacyId())) {
-                DoctorDefaultVO doctor = new DoctorDefaultVO();
-                doctor.setDoctorId(a.getDoctorId());
-                doctor.setOrganId(a.getOrganId());
-                doctor.setCategory(1);
-                doctor.setIdKey(a.getWmPharmacyId());
-                doctor.setType(1);
-                doctorList.add(doctor);
-            }
-            if (!ValidateUtil.integerIsEmpty(a.getPcmPharmacyId())) {
-                DoctorDefaultVO doctor = new DoctorDefaultVO();
-                doctor.setDoctorId(a.getDoctorId());
-                doctor.setOrganId(a.getOrganId());
-                doctor.setCategory(1);
-                doctor.setIdKey(a.getPcmPharmacyId());
-                doctor.setType(2);
-                doctorList.add(doctor);
-            }
-            if (!ValidateUtil.integerIsEmpty(a.getTcmPharmacyId())) {
-                DoctorDefaultVO doctor = new DoctorDefaultVO();
-                doctor.setDoctorId(a.getDoctorId());
-                doctor.setOrganId(a.getOrganId());
-                doctor.setCategory(1);
-                doctor.setIdKey(a.getTcmPharmacyId());
-                doctor.setType(3);
-                doctorList.add(doctor);
-            }
-            if (CollectionUtils.isNotEmpty(doctorList)) {
-                doctorList.forEach(b -> iDoctorBusinessService.saveDoctorDefault(b));
-            }
-        });
-    }
-
 }

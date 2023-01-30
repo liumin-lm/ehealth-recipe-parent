@@ -1,12 +1,14 @@
 package recipe.manager;
 
 import com.alibaba.fastjson.JSON;
+import com.ngari.recipe.entity.DoctorDefault;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.PharmacyTcm;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.client.DepartClient;
 import recipe.dao.PharmacyTcmDAO;
 import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.util.ByteUtils;
@@ -25,6 +27,8 @@ import java.util.stream.Collectors;
 public class PharmacyManager extends BaseManager {
     @Autowired
     private PharmacyTcmDAO pharmacyTcmDAO;
+    @Autowired
+    private DepartClient departClient;
 
     /**
      * 校验药品药房是否变动
@@ -206,5 +210,29 @@ public class PharmacyManager extends BaseManager {
             return new PharmacyTcm();
         }
         return pharmacyIdMap.get(pharmacyId);
+    }
+
+    /**
+     * 获取当前科室的药房 - 医生默认数据实体返回
+     *
+     * @param organId
+     * @param departId
+     * @param clinicId
+     * @param doctorDefaultList
+     * @return
+     */
+    public List<DoctorDefault> appointDepartPharmacy(Integer organId, Integer departId, Integer clinicId, List<DoctorDefault> doctorDefaultList) {
+        List<DoctorDefault> doctorDefaultPharmacy = doctorDefaultList.stream().filter(a -> a.getCategory().equals(1)).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(doctorDefaultPharmacy)) {
+            return new ArrayList<>();
+        }
+        List<Integer> pharmacyIds = doctorDefaultPharmacy.stream().map(DoctorDefault::getIdKey).distinct().collect(Collectors.toList());
+        List<PharmacyTcm> pharmacyTcmList = pharmacyTcmDAO.findPharmacyTcmByIds(pharmacyIds);
+        List<PharmacyTcm> appointDepartPharmacy = departClient.appointDepartPharmacy(clinicId, organId, departId, pharmacyTcmList);
+        if (CollectionUtils.isEmpty(appointDepartPharmacy)) {
+            return new ArrayList<>();
+        }
+        List<Integer> appointDepartPharmacyIds = appointDepartPharmacy.stream().map(PharmacyTcm::getPharmacyId).collect(Collectors.toList());
+        return doctorDefaultPharmacy.stream().filter(a -> appointDepartPharmacyIds.contains(a.getIdKey())).collect(Collectors.toList());
     }
 }

@@ -1012,26 +1012,6 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     }
 
     @Override
-    public DoctorCommonPharmacy findDoctorCommonPharmacyByOrganIdAndDoctorId(Integer organId, Integer doctorId) {
-        List<DoctorCommonPharmacy> doctorCommonPharmacies = doctorCommonPharmacyDao.findByOrganIdAndDoctorId(organId,doctorId);
-        return CollectionUtils.isEmpty(doctorCommonPharmacies)?null:doctorCommonPharmacies.get(0);
-    }
-
-
-    @Override
-    public void saveDoctorCommonPharmacy(DoctorCommonPharmacy doctorCommonPharmacy) {
-        List<DoctorCommonPharmacy> doctorCommonPharmacies=doctorCommonPharmacyDao.findByOrganIdAndDoctorId(doctorCommonPharmacy.getOrganId(),doctorCommonPharmacy.getDoctorId());
-        if(CollectionUtils.isEmpty(doctorCommonPharmacies)){
-            doctorCommonPharmacy.setCreateTime(new Date());
-            doctorCommonPharmacyDao.save(doctorCommonPharmacy);
-        }else{
-            DoctorCommonPharmacy doctorCommonPharmacyDb=doctorCommonPharmacies.get(0);
-            doctorCommonPharmacy.setId(doctorCommonPharmacyDb.getId());
-            doctorCommonPharmacyDao.updateNonNullFieldByPrimaryKey(doctorCommonPharmacy);
-        }
-    }
-
-    @Override
     @LogRecord
     public void recipeOutpatientPaymentCallback(RecipeOutpatientPaymentDTO recipeOutpatientPaymentDTO) {
         List<Recipe> recipes = recipeDAO.findByRecipeCodeAndClinicOrgan(recipeOutpatientPaymentDTO.getRecipeCodes(), recipeOutpatientPaymentDTO.getOrganId());
