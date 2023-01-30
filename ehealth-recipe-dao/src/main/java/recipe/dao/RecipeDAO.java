@@ -1749,7 +1749,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         }
         if (null != recipesQueryVO.getOrderType()) {
             if (recipesQueryVO.getOrderType() == 0) {
-                hql.append(" and o.orderType=").append(0);
+                hql.append(" and o.orderType in (0,5) ");
             } else {
                 hql.append(" and o.orderType in (1,2,3,4) ");
             }
