@@ -38,6 +38,7 @@ import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.manager.FastRecipeManager;
 import recipe.service.common.RecipeSignService;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
+import recipe.util.JsonUtil;
 import recipe.vo.doctor.DrugQueryVO;
 import recipe.vo.doctor.RecipeInfoVO;
 
@@ -559,6 +560,12 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
             }
         }
         return recipeIdList;
+    }
+
+    @Override
+    public Boolean updateFastRecipeSalePriceAndTotalMoney(List<Integer> fastRecipeIdList,Integer organId) {
+        logger.info("fastRecipeService updateFastRecipeSalePriceAndTotalPrice fastRecipeIdList={},organId={}", JsonUtil.toString(fastRecipeIdList),organId);
+        return fastRecipeManager.updateFastRecipeSalePriceAndTotalMoney(fastRecipeIdList,organId);
     }
 
 }

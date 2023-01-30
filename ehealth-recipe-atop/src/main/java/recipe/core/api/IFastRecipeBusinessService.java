@@ -80,4 +80,13 @@ public interface IFastRecipeBusinessService {
      * @return
      */
     List<Integer> checkFastRecipeStock(List<RecipeInfoVO> recipeInfoVOList);
+
+    /**
+     * 快捷购药 运营平台一键更新单价和总价
+     *
+     * @param fastRecipeIdList
+     * @param organId
+     * @return
+     */
+    Boolean updateFastRecipeSalePriceAndTotalMoney(List<Integer> fastRecipeIdList,Integer organId);
 }

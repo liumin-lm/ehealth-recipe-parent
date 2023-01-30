@@ -219,4 +219,17 @@ public class FastRecipeGmAtop extends BaseAtop {
     public Map<String, Object> findRecipeAndDetailsByRecipeIdAndOrgan(Integer recipeId, Integer organId) {
         return fastRecipeService.findRecipeAndDetailsByRecipeIdAndOrgan(recipeId, organId);
     }
+
+    /**
+     * 快捷购药 运营平台一键更新单价和总价
+     *
+     * @param fastRecipeIdList
+     * @param organId
+     * @return
+     */
+    @RpcService
+    public Boolean updateFastRecipeSalePriceAndTotalMoney(List<Integer> fastRecipeIdList,Integer organId) {
+        validateAtop(fastRecipeIdList,organId);
+        return fastRecipeService.updateFastRecipeSalePriceAndTotalMoney(fastRecipeIdList,organId);
+    }
 }
