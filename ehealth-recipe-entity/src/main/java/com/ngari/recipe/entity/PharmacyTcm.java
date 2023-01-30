@@ -50,8 +50,8 @@ public  class PharmacyTcm implements java.io.Serializable{
     @ItemProperty(alias = "剂型 1 中药饮片 2 配送颗粒")
     private String drugFormType;
 
-    @ItemProperty(alias = "挂号科室JSON串，只存id与name")
-    private String appointDepartJson;
+    @ItemProperty(alias = "挂号科室id ，号分割 如 [1,2,3]")
+    private String appointDepartId;
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
@@ -146,12 +146,12 @@ public  class PharmacyTcm implements java.io.Serializable{
         this.drugFormType = drugFormType;
     }
 
-    @Column(name = "appoint_depart_json")
-    public String getAppointDepartJson() {
-        return appointDepartJson;
+    @Column(name = "appoint_depart_id")
+    public String getAppointDepartId() {
+        return appointDepartId;
     }
 
-    public void setAppointDepartJson(String appointDepartJson) {
-        this.appointDepartJson = appointDepartJson;
+    public void setAppointDepartId(String appointDepartId) {
+        this.appointDepartId = appointDepartId;
     }
 }
