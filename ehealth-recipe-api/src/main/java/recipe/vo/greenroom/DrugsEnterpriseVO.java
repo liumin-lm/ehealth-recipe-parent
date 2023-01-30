@@ -135,6 +135,12 @@ public class DrugsEnterpriseVO implements Serializable {
     @ItemProperty(alias = "物流类型 1-平台 2-药企 3-药企(His)")
     private Integer logisticsType;
 
+    @ItemProperty(alias = "是否支持合并快递单 0:不支持合并 1:下单时支持与前面的订单使用同一个快递单")
+    private Integer logisticsMergeFlag;
+
+    @ItemProperty(alias = "可合并订单下单时间")
+    private String logisticsMergeTime;
+
     @ItemProperty(alias = "寄件人名称")
     private String consignorName;
 

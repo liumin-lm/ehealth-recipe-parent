@@ -445,6 +445,8 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
         drugsEnterprise.setShowLogisticsLink(drugsEnterpriseVO.getShowLogisticsLink());
         drugsEnterprise.setShowLogisticsType(drugsEnterpriseVO.getShowLogisticsType());
         drugsEnterprise.setLogisticsType(drugsEnterpriseVO.getLogisticsType());
+        drugsEnterprise.setLogisticsMergeFlag(drugsEnterpriseVO.getLogisticsMergeFlag());
+        drugsEnterprise.setLogisticsMergeTime(drugsEnterpriseVO.getLogisticsMergeTime());
         drugsEnterpriseDAO.update(drugsEnterprise);
         return true;
     }
