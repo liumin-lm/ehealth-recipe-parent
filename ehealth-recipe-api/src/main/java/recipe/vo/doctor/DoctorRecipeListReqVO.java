@@ -31,4 +31,7 @@ public class DoctorRecipeListReqVO implements Serializable {
 
     @ItemProperty(alias = "处方来源类型 1线下转线上 + 线上处方 3诊疗处方 4常用方")
     private Integer recipeType;
+
+    @ItemProperty(alias = "搜索关键词")
+    private String keyWord;
 }
