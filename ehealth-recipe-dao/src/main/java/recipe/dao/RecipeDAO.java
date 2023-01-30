@@ -4873,7 +4873,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                StringBuilder sql = new StringBuilder("select * from cdr_recipe where doctor in :doctorId and clinicOrgan=:organId and recipeSourceType =:recipeSourceType and processState = 1 ");
+                StringBuilder sql = new StringBuilder("select * from cdr_recipe where doctor in :doctorId and clinicOrgan=:organId and recipeSourceType =:recipeSourceType and process_state = 1 ");
                 if (StringUtils.isNotEmpty(keyWord)) {
                     sql.append(" and offline_recipe_name like :keyWord ");
                 }
