@@ -5,7 +5,6 @@ import com.ngari.patient.dto.AppointDepartDTO;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.service.AppointDepartService;
 import com.ngari.patient.service.DepartmentService;
-import com.ngari.recipe.dto.BasicsDTO;
 import com.ngari.recipe.entity.PharmacyTcm;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.revisit.common.service.IRevisitService;
@@ -194,12 +193,11 @@ public class DepartClient extends BaseClient {
     public List<PharmacyTcm> appointDepartPharmacy(Integer clinicId, Integer organId, Integer departId, List<PharmacyTcm> symptomQueryResult) {
         AppointDepartDTO appointDepartDTO = this.getAppointDepart(clinicId, organId, departId);
         return symptomQueryResult.stream().filter(a -> {
-            if (StringUtils.isEmpty(a.getAppointDepartJson())) {
+            if (StringUtils.isEmpty(a.getAppointDepartId())) {
                 return true;
             }
-            List<BasicsDTO> basicsDTO = JSONUtils.parse(a.getAppointDepartJson(), List.class);
-            boolean idIsDepart = basicsDTO.stream().anyMatch(b -> b.getId().equals(appointDepartDTO.getAppointDepartId()));
-            if (idIsDepart) {
+            List<Integer> appointDepartIds = JSONUtils.parse(a.getAppointDepartId(), List.class);
+            if (appointDepartIds.contains(appointDepartDTO.getAppointDepartId())) {
                 return true;
             }
             return false;
