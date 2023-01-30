@@ -595,6 +595,19 @@ public class RecipeManager extends BaseManager {
     }
 
     /**
+     * 获取需要校验重复处方的处方id
+     * @param clinicId
+     * @param recipeId
+     * @param status
+     * @param processState
+     * @return
+     */
+    public List<Integer> findRecipeByClinicIdAndStatusAndProcessState(Integer clinicId, Integer recipeId, List<Integer> status,List<Integer> processState) {
+        List<Recipe> recipeList = recipeDAO.findRecipeClinicIdAndStatusAndProcessState(clinicId, status, processState);
+        return findRecipeByClinicId(recipeList, recipeId);
+    }
+
+    /**
      * 根据复诊id与状态字段 获取处方id，并排除 特定处方id
      *
      * @param clinicId 复诊id

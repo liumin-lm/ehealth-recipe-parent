@@ -178,7 +178,7 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
             return resultBean;
         }
 
-        List<Integer> recipeIds = recipeManager.findRecipeByClinicId(validateDetailVO.getRecipeBean().getClinicId(), validateDetailVO.getRecipeBean().getRecipeId(), RecipeStatusEnum.RECIPE_REPEAT);
+        List<Integer> recipeIds = recipeManager.findRecipeByClinicIdAndStatusAndProcessState(validateDetailVO.getRecipeBean().getClinicId(), validateDetailVO.getRecipeBean().getRecipeId(), RecipeStatusEnum.RECIPE_REPEAT,RecipeStateEnum.RECIPE_REPEAT_VALIDATE);
         List<Recipedetail> recipeDetails = recipeDetailManager.findRecipeDetails(recipeIds);
         if (CollectionUtils.isEmpty(recipeDetails)) {
             return resultBean;
