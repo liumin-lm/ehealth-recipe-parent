@@ -172,6 +172,7 @@ public class FastRecipeManager extends BaseManager {
             logger.info("fastRecipeManager updateFastRecipeSalePriceAndTotalPrice fastRecipeDetailList={}", JsonUtil.toString(fastRecipeDetailList));
             BigDecimal totalMoney = this.updateSalePriceAndTotalMoney(organId,fastRecipe.getRecipeType(),fastRecipeDetailList);
             fastRecipe.setTotalMoney(totalMoney);
+            fastRecipe.setActualPrice(totalMoney);
             fastRecipeDAO.update(fastRecipe);
         }
         return true;
