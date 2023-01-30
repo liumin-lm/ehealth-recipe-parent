@@ -152,10 +152,12 @@ public class PharmacyManager extends BaseManager {
      * @param pharmacy          前端指定药房id
      * @return 药房对象
      */
-    public PharmacyTcm organDrugPharmacyId(Integer organId, Integer recipeType, List<String> organDrugCodeList, String pharmacyCode, Integer pharmacy, Integer recipeDrugForm) {
+    public PharmacyTcm organDrugPharmacyId(Integer organId, Integer recipeType, List<String> organDrugCodeList, String pharmacyCode,
+                                           Integer pharmacy, Integer recipeDrugForm, Integer clinicId, Integer departId) {
         //判断机构药房
         List<PharmacyTcm> pharmacys = pharmacyTcmDAO.findByOrganId(organId);
         logger.info("PharmacyManager organDrugPharmacyId pharmacys:{}，pharmacy:{}", JSON.toJSONString(pharmacys), pharmacyCode);
+        pharmacys = departClient.appointDepartPharmacy(clinicId, organId, departId, pharmacys);
         if (CollectionUtils.isEmpty(pharmacys)) {
             return null;
         }

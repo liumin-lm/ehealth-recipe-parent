@@ -150,28 +150,6 @@ public class DepartClient extends BaseClient {
     }
 
     /**
-     * 设置处方默认数据
-     *
-     * @param recipe 处方头对象
-     */
-    @Override
-    public void setRecipe(Recipe recipe) {
-        // 根据咨询单特殊来源标识设置处方单特殊来源标识
-        if (BussSourceTypeEnum.BUSSSOURCE_OUTPATIENT.getType().equals(recipe.getBussSource())) {
-            return;
-        }
-        if (ValidateUtil.integerIsEmpty(recipe.getDepart())) {
-            return;
-        }
-        AppointDepartDTO appointDepart = this.getAppointDepartDTO(recipe.getClinicId(), recipe.getClinicOrgan(), recipe.getDepart());
-        if (null == appointDepart) {
-            return;
-        }
-        recipe.setAppointDepart(appointDepart.getAppointDepartCode());
-        recipe.setAppointDepartName(appointDepart.getAppointDepartName());
-    }
-
-    /**
      * 获取挂号科室
      *
      * @param clinicId 复诊id
@@ -227,4 +205,27 @@ public class DepartClient extends BaseClient {
             return false;
         }).collect(Collectors.toList());
     }
+
+    /**
+     * 设置处方默认数据
+     *
+     * @param recipe 处方头对象
+     */
+    @Override
+    public void setRecipe(Recipe recipe) {
+        // 根据咨询单特殊来源标识设置处方单特殊来源标识
+        if (BussSourceTypeEnum.BUSSSOURCE_OUTPATIENT.getType().equals(recipe.getBussSource())) {
+            return;
+        }
+        if (ValidateUtil.integerIsEmpty(recipe.getDepart())) {
+            return;
+        }
+        AppointDepartDTO appointDepart = this.getAppointDepartDTO(recipe.getClinicId(), recipe.getClinicOrgan(), recipe.getDepart());
+        if (null == appointDepart) {
+            return;
+        }
+        recipe.setAppointDepart(appointDepart.getAppointDepartCode());
+        recipe.setAppointDepartName(appointDepart.getAppointDepartName());
+    }
+
 }

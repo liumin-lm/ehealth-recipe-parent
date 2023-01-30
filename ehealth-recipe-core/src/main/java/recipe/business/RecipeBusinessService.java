@@ -125,8 +125,6 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     @Autowired
     private PharmacyTcmDAO pharmacyTcmDAO;
     @Autowired
-    private DoctorCommonPharmacyDAO doctorCommonPharmacyDao;
-    @Autowired
     private PatientOptionalDrugDAO patientOptionalDrugDAO;
     @Autowired
     private DrugListDAO drugListDAO;
