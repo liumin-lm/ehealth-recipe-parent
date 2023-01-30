@@ -131,6 +131,11 @@ public enum RecipeStateEnum {
      */
     public static final List<Integer> continueRecipeFlag = Arrays.asList(PROCESS_STATE_AUDIT.type, PROCESS_STATE_ORDER.type, PROCESS_STATE_DISPENSING.type, PROCESS_STATE_DISTRIBUTION.type, PROCESS_STATE_MEDICINE.type, PROCESS_STATE_DONE.type, PROCESS_STATE_CANCELLATION.type);
 
+    /**
+     * 不参与重复处方校验状态
+     */
+    public static final List<Integer> RECIPE_REPEAT_VALIDATE = Arrays.asList(PROCESS_STATE_CANCELLATION.type);
+
 
     /**
      * 根据类型 获取枚举类型

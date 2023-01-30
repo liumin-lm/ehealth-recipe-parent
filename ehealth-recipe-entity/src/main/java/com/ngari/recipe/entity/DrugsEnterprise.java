@@ -158,6 +158,12 @@ public class DrugsEnterprise implements java.io.Serializable {
     @ItemProperty(alias = "物流类型 1-平台 2-药企 3-药企(His)")
     private Integer logisticsType;
 
+    @ItemProperty(alias = "是否支持合并快递单 0:不支持合并 1:下单时支持与前面的订单使用同一个快递单")
+    private Integer logisticsMergeFlag;
+
+    @ItemProperty(alias = "可合并订单下单时间")
+    private String logisticsMergeTime;
+
     @ItemProperty(alias = "订单备注")
     private String orderMemo;
 
@@ -668,6 +674,24 @@ public class DrugsEnterprise implements java.io.Serializable {
 
     public void setMerchantType(Integer merchantType) {
         this.merchantType = merchantType;
+    }
+
+    @Column(name = "logistics_merge_flag")
+    public Integer getLogisticsMergeFlag() {
+        return logisticsMergeFlag;
+    }
+
+    public void setLogisticsMergeFlag(Integer logisticsMergeFlag) {
+        this.logisticsMergeFlag = logisticsMergeFlag;
+    }
+
+    @Column(name = "logistics_merge_time")
+    public String getLogisticsMergeTime() {
+        return logisticsMergeTime;
+    }
+
+    public void setLogisticsMergeTime(String logisticsMergeTime) {
+        this.logisticsMergeTime = logisticsMergeTime;
     }
 
     @Transient

@@ -5,6 +5,8 @@ import com.ngari.patient.dto.AppointDepartDTO;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.service.AppointDepartService;
 import com.ngari.patient.service.DepartmentService;
+import com.ngari.recipe.dto.BasicsDTO;
+import com.ngari.recipe.entity.PharmacyTcm;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.revisit.common.service.IRevisitService;
 import com.ngari.revisit.dto.response.RevisitBeanVO;
@@ -12,8 +14,12 @@ import ctd.util.JSONUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.aop.LogRecord;
 import recipe.enumerate.type.BussSourceTypeEnum;
 import recipe.util.ValidateUtil;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 
 /**
@@ -162,14 +168,14 @@ public class DepartClient extends BaseClient {
     }
 
     /**
-     * 获取挂号科室,如果获取不到挂号科室 ，则使用行政科室
+     * 获取挂号科室
      *
      * @param clinicId 复诊id
      * @param organId  机构id
      * @param departId 行政科室id
      * @return
      */
-    private AppointDepartDTO getAppointDepart(Integer clinicId, Integer organId, Integer departId) {
+    public AppointDepartDTO getAppointDepart(Integer clinicId, Integer organId, Integer departId) {
         if (null == clinicId) {
             return this.getAppointDepartByOrganIdAndDepart(organId, departId);
         }
@@ -182,5 +188,21 @@ public class DepartClient extends BaseClient {
             return appointDepartDTO;
         }
         return this.getAppointDepartByOrganIdAndDepart(organId, departId);
+    }
+
+    @LogRecord
+    public List<PharmacyTcm> appointDepartPharmacy(Integer clinicId, Integer organId, Integer departId, List<PharmacyTcm> symptomQueryResult) {
+        AppointDepartDTO appointDepartDTO = this.getAppointDepart(clinicId, organId, departId);
+        return symptomQueryResult.stream().filter(a -> {
+            if (StringUtils.isEmpty(a.getAppointDepartJson())) {
+                return true;
+            }
+            List<BasicsDTO> basicsDTO = JSONUtils.parse(a.getAppointDepartJson(), List.class);
+            boolean idIsDepart = basicsDTO.stream().anyMatch(b -> b.getId().equals(appointDepartDTO.getAppointDepartId()));
+            if (idIsDepart) {
+                return true;
+            }
+            return false;
+        }).collect(Collectors.toList());
     }
 }
