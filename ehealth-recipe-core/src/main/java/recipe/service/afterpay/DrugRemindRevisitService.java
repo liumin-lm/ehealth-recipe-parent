@@ -118,10 +118,7 @@ public class DrugRemindRevisitService {
                     break;
             }
             //患者修改提醒时间，以修改时间为准进行提醒
-            if(null!=finalRevisitRemindLocalDate&&remindDates.size()==1){
-                remindDates.remove(remindDates.get(0));
-                remindDates.add(finalRevisitRemindLocalDate);
-            }else if(null!=finalRevisitRemindLocalDate&&remindDates.size()==2){
+            if(null!=finalRevisitRemindLocalDate){
                 remindDates.remove(remindDates.get(0));
                 remindDates.add(finalRevisitRemindLocalDate);
             }
