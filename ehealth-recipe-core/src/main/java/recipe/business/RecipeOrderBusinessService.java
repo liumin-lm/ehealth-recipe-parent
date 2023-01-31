@@ -1890,7 +1890,7 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
         List<Integer> longRecipeIds = recipeExtendList.stream().filter(recipeExtend -> "1".equals(recipeExtend.getIsLongRecipe())).map(RecipeExtend::getRecipeId).collect(Collectors.toList());
         //获取全部的处方明细
         List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeIds(recipeIds);
-        logger.info("DrugRemindRevisitService drugRemind recipeDetailList:{}", JSON.toJSONString(recipeDetailList));
+        logger.info("getRevisitRemindTime recipeDetailList：{}", JSON.toJSONString(recipeDetailList));
         if (CollectionUtils.isNotEmpty(tcmRecipeList)) {
             //中药处方 1帖=1天
             for (Recipe tcmRecipe : tcmRecipeList) {
@@ -1900,7 +1900,7 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
                     }
                 }
             }
-            logger.info("DrugRemindRevisitService drugRemind convert recipeDetailList:{}", JSON.toJSONString(recipeDetailList));
+            logger.info("getRevisitRemindTime convert recipeDetailList:{}", JSON.toJSONString(recipeDetailList));
         }
         Map<Integer, List<Recipedetail>> recipeDetailMap = recipeDetailList.stream().collect(Collectors.groupingBy(Recipedetail::getRecipeId));
         List<Date> remindDates = new ArrayList<>();
@@ -1919,23 +1919,23 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
             switch (pushMode) {
                 case 1:
                     //方案一：长处方提前1天和3天， 非长处方提前1天
-                    remindDates.add(DateConversion.addTime(payDate,minRecipeDetail.getUseDays(),1));
+                    remindDates.add(DateConversion.minusDays(payDate,minRecipeDetail.getUseDays(),1));
                     if (longRecipeIds.contains(recipe.getRecipeId())) {
-                        remindDates.add(DateConversion.addTime(payDate,minRecipeDetail.getUseDays(),3));
+                        remindDates.add(DateConversion.minusDays(payDate,minRecipeDetail.getUseDays(),3));
                     }
                     break;
                 case 2:
                     //方案二：长处方提前2天和4天， 非长处方提前2天
-                    remindDates.add(DateConversion.addTime(payDate,minRecipeDetail.getUseDays(),2));
+                    remindDates.add(DateConversion.minusDays(payDate,minRecipeDetail.getUseDays(),2));
                     if (longRecipeIds.contains(recipe.getRecipeId())) {
-                        remindDates.add(DateConversion.addTime(payDate,minRecipeDetail.getUseDays(),4));
+                        remindDates.add(DateConversion.minusDays(payDate,minRecipeDetail.getUseDays(),4));
                     }
                     break;
                 case 3:
                     //方案三：长处方提前3天和5天， 非长处方提前3天
-                    remindDates.add(DateConversion.addTime(payDate,minRecipeDetail.getUseDays(),3));
+                    remindDates.add(DateConversion.minusDays(payDate,minRecipeDetail.getUseDays(),3));
                     if (longRecipeIds.contains(recipe.getRecipeId())) {
-                        remindDates.add(DateConversion.addTime(payDate,minRecipeDetail.getUseDays(),5));
+                        remindDates.add(DateConversion.minusDays(payDate,minRecipeDetail.getUseDays(),5));
                     }
                     break;
                 default:

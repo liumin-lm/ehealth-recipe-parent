@@ -334,7 +334,7 @@ public class DateConversion
 		return sdf.format(lastDateMonth.getTime()) + " 23:59:59";
 	}
 
-	public static Date addTime(LocalDateTime localDateTime,Integer days,Integer addDays){
+	public static Date minusDays(LocalDateTime localDateTime,Integer days,Integer addDays){
 		return localDateTimeFormatDate(localDateTime.plusDays(days).minusDays(addDays));
 	}
 
