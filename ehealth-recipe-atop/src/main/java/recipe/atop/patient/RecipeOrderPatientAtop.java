@@ -24,6 +24,7 @@ import recipe.vo.ResultBean;
 import recipe.vo.patient.PatientSubmitRecipeVO;
 import recipe.vo.second.CheckOrderAddressVo;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -308,6 +309,17 @@ public class RecipeOrderPatientAtop extends BaseAtop {
     public Integer checkOrderPayState(Integer orderId){
         validateAtop(orderId);
         return recipeOrderService.checkOrderPayState(orderId);
+    }
+
+    /**
+     * 获取复诊提醒时间
+     * @param orderId
+     * @return
+     */
+    @RpcService
+    public Date getRevisitRemindTime(Integer orderId){
+        validateAtop(orderId);
+        return recipeOrderService.getRevisitRemindTime(orderId);
     }
 
 }

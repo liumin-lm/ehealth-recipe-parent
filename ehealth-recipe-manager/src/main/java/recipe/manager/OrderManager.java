@@ -574,7 +574,7 @@ public class OrderManager extends BaseManager {
         });
         logger.info("findOrderAndRecipes downLoadRecipeOrderDTOList:{}", JSON.toJSONString(downLoadRecipeOrderDTOList));
         return downLoadRecipeOrderDTOList;
-}
+    }
 
     public QueryResult<RecipeOrder> findRefundRecipeOrder(RecipeOrderRefundReqDTO recipeOrderRefundReqDTO) {
         if (OpRefundBusTypeEnum.BUS_TYPE_ALL_ORDER.getType().equals(recipeOrderRefundReqDTO.getBusType())) {
@@ -1033,7 +1033,7 @@ public class OrderManager extends BaseManager {
      * @param recipeOrder
      * @return
      */
-    public void processShoppingCartAddress(RecipeBeforeOrderDTO recipeBeforeOrder1,RecipeBeforeOrder recipeBeforeOrder2,RecipeOrder recipeOrder){
+    public void processShoppingCartAddress(RecipeBeforeOrderDTO recipeBeforeOrder1, RecipeBeforeOrder recipeBeforeOrder2, RecipeOrder recipeOrder) {
         recipeBeforeOrder1.setAddressId(recipeBeforeOrder2.getAddressId() != null ? recipeBeforeOrder2.getAddressId() : recipeOrder.getAddressID());
         recipeBeforeOrder1.setAddress1(recipeBeforeOrder2.getAddress1() != null ? recipeBeforeOrder2.getAddress1() : recipeOrder.getAddress1());
         recipeBeforeOrder1.setAddress2(recipeBeforeOrder2.getAddress2() != null ? recipeBeforeOrder2.getAddress2() : recipeOrder.getAddress2());
@@ -1048,7 +1048,7 @@ public class OrderManager extends BaseManager {
         recipeBeforeOrder1.setZipCode(recipeBeforeOrder2.getZipCode() != null ? recipeBeforeOrder2.getZipCode() : recipeOrder.getZipCode());
     }
 
-    public void recordPayBackLog(Integer orderId, String orderLog){
+    public void recordPayBackLog(Integer orderId, String orderLog) {
         try {
             RecipeParameter recipeParameter = new RecipeParameter();
             recipeParameter.setParamName(orderId + "_PayInfoCallBack");
@@ -1061,6 +1061,7 @@ public class OrderManager extends BaseManager {
 
     /**
      * 根据订单信息获取his的结算信息
+     *
      * @param orders
      * @return
      */
@@ -1082,7 +1083,7 @@ public class OrderManager extends BaseManager {
                 continue;
             }
             HisSettleReqDTO hisSettleReqDTO = new HisSettleReqDTO();
-            if(Objects.nonNull(order.getPreSettletotalAmount())) {
+            if (Objects.nonNull(order.getPreSettletotalAmount())) {
                 hisSettleReqDTO.setAmount(BigDecimal.valueOf(order.getPreSettletotalAmount()));
             }
             hisSettleReqDTO.setSettleNo(order.getHisSettlementNo());
@@ -1123,32 +1124,33 @@ public class OrderManager extends BaseManager {
 
     /**
      * 保存结算信息
+     *
      * @param order
      * @param hisSettleResTo
      */
     private void setHisSettleResult(RecipeOrder order, HisSettleResTo hisSettleResTo) {
-        if(Objects.nonNull(hisSettleResTo.getPreSettleTotalAmount())){
+        if (Objects.nonNull(hisSettleResTo.getPreSettleTotalAmount())) {
             order.setPreSettletotalAmount(hisSettleResTo.getPreSettleTotalAmount().doubleValue());
         }
-        if(Objects.nonNull(hisSettleResTo.getCashAmount())){
+        if (Objects.nonNull(hisSettleResTo.getCashAmount())) {
             order.setCashAmount(hisSettleResTo.getCashAmount().doubleValue());
         }
-        if(Objects.nonNull(hisSettleResTo.getFundAmount())){
+        if (Objects.nonNull(hisSettleResTo.getFundAmount())) {
             order.setFundAmount(hisSettleResTo.getFundAmount().doubleValue());
         }
-        if(Objects.nonNull(hisSettleResTo.getSettleMode())){
+        if (Objects.nonNull(hisSettleResTo.getSettleMode())) {
             order.setSettleMode(hisSettleResTo.getSettleMode());
-        }else {
+        } else {
             order.setSettleMode(1);
         }
-        if(Objects.nonNull(hisSettleResTo.getIsMedicalSettle()) && new Integer(1).equals(hisSettleResTo.getIsMedicalSettle())){
+        if (Objects.nonNull(hisSettleResTo.getIsMedicalSettle()) && new Integer(1).equals(hisSettleResTo.getIsMedicalSettle())) {
             // RecipeOrderTypeEnum
             order.setOrderType(4);
         }
-        if(StringUtils.isNotEmpty(hisSettleResTo.getOutTradeNo())){
+        if (StringUtils.isNotEmpty(hisSettleResTo.getOutTradeNo())) {
             order.setOutTradeNo(hisSettleResTo.getOutTradeNo());
         }
-        if(StringUtils.isNotEmpty(hisSettleResTo.getTradeNo())){
+        if (StringUtils.isNotEmpty(hisSettleResTo.getTradeNo())) {
             order.setOutTradeNo(hisSettleResTo.getTradeNo());
         }
         if (Objects.nonNull(hisSettleResTo.getPayTime())) {
@@ -1163,11 +1165,12 @@ public class OrderManager extends BaseManager {
 
     /**
      * 获取就诊卡号
+     *
      * @param recipe
      * @param recipeExtend
      * @return
      */
-    private String getMrnForRecipe(Recipe recipe,RecipeExtend recipeExtend) {
+    private String getMrnForRecipe(Recipe recipe, RecipeExtend recipeExtend) {
         String mrn = null;
         if (Objects.nonNull(recipeExtend) && StringUtils.isNotEmpty(recipeExtend.getCardNo())) {
             mrn = recipeExtend.getCardNo();
