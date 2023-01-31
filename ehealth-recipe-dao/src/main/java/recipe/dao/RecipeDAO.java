@@ -4897,6 +4897,42 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     @DAOMethod(sql = "FROM Recipe where clinicOrgan = :organId AND status = 0 AND clinicId = :clinicId")
     public abstract List<Recipe> findTempRecipeByClinicId(@DAOParam("organId") Integer organId,
                                                           @DAOParam("clinicId") Integer clinicId);
+
+    public List<Recipe> getByChargeIdAndOrganId(String recipeCode, Integer organId){
+        HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder("select r.*  from cdr_recipe r ");
+                hql.append(" LEFT JOIN cdr_recipe_ext re ON r.RecipeID = re.recipeId ");
+                hql.append(" where r.clinicOrgan = :organId ");
+                hql.append(" and  re.charge_id = :recipeCode ");
+                hql.append(" and (r.delete_flag = 0 or r.delete_flag  is null)");
+                Query q = ss.createSQLQuery(hql.toString()).addEntity(Recipe.class);
+                q.setParameter("organId", organId);
+                q.setParameter("recipeCode", recipeCode);
+
+                setResult(q.list());
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    };
+
+    public  List<Recipe> getByRecipeCodeLikeAndPayFlag(@DAOParam("recipeCode")String recipeCode, @DAOParam("organId")Integer organId){
+        HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder sql = new StringBuilder("select * from cdr_recipe where clinicOrgan=:organId and PayFlag =0 ");
+                sql.append(" and recipeCode like :recipeCode ");
+                Query q = ss.createSQLQuery(sql.toString()).addEntity(Recipe.class);
+                q.setParameter("organId", organId);
+                q.setParameter("recipeCode", "%" + recipeCode + "%");
+                setResult(q.list());
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    };
 }
 
 

@@ -926,7 +926,23 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     public void recipePayHISCallback(RecipePayHISCallbackReq recipePayHISCallbackReq) {
         logger.info("RecipePayHISCallback recipePayHISCallbackReq[{}]", JSONUtils.toString(recipePayHISCallbackReq));
 
-        Recipe recipe = recipeDAO.getByRecipeCode(recipePayHISCallbackReq.getRecipeCode());
+        Integer cashDeskSettleUseCode = configurationClient.getValueCatchReturnInteger(recipePayHISCallbackReq.getOrganId(), "cashDeskSettleUseCode", CashDeskSettleUseCodeTypeEnum.HIS_RECIPE_CODE.getType());
+        Recipe recipe = null;
+        if (CashDeskSettleUseCodeTypeEnum.HIS_RECIPE_CODE.getType().equals(cashDeskSettleUseCode)) {
+            recipe = recipeDAO.getByRecipeCodeAndClinicOrganWithAll(recipePayHISCallbackReq.getRecipeCode(), recipePayHISCallbackReq.getOrganId());
+            if (Objects.isNull(recipe)){
+                List<Recipe> recipes = recipeDAO.getByRecipeCodeLikeAndPayFlag(recipePayHISCallbackReq.getRecipeCode(), recipePayHISCallbackReq.getOrganId());
+                if(CollectionUtils.isNotEmpty(recipes)){
+                    recipe = recipes.get(0);
+                }
+            }
+        }else {
+            List<Recipe> recipes = recipeDAO.getByChargeIdAndOrganId(recipePayHISCallbackReq.getRecipeCode(), recipePayHISCallbackReq.getOrganId());
+            if(CollectionUtils.isNotEmpty(recipes)){
+                recipe = recipes.get(0);
+            }
+        }
+
         if (Objects.isNull(recipe) || StringUtils.isEmpty(recipe.getOrderCode())) {
             logger.info("RecipePayHISCallback recipe isnull, recipeCode[{}]", recipePayHISCallbackReq.getRecipeCode());
             return;
