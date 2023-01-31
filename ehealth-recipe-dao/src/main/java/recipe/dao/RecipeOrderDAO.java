@@ -533,6 +533,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 if (orderType != null) {
                     sql.append(orderType);
                 }
+                logger.info("RecipeOderDAO queryRecipeOrderDetailed sql={}",sql);
                 Query q = ss.createSQLQuery(sql.toString());
                 q.setParameter("startTime", startTime);
                 q.setParameter("endTime", endTime);
@@ -652,6 +653,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
 
                 //退款的处方单需要展示两条记录，所以要在取一次
                 sql.append("SELECT sum(count), sum(totalPrice) as totalPrice  from ( ").append(sqlPay).append(" UNION ALL ").append(sqlRefund).append(" ) b");
+                logger.info("RecipeOderDAO queryRecipeOrderDetailedTotal sql={}",sql);
                 Query q = ss.createSQLQuery(sql.toString());
                 q.setParameter("startTime", startTime);
                 q.setParameter("endTime", endTime);
