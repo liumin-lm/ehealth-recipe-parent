@@ -52,4 +52,7 @@ public class RecipePayHISCallbackReq implements Serializable {
 
     @ItemProperty(alias = "订单类型 1表示医保 其他自费")
     private Integer orderType;
+
+    @ItemProperty(alias = "机构id")
+    private Integer organId;
 }
