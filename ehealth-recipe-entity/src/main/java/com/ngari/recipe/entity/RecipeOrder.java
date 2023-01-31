@@ -156,6 +156,9 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "支付时间")
     private Date payTime;
 
+    @ItemProperty(alias = "复诊用药提醒时间")
+    private Date revisitRemindTime;
+
     @ItemProperty(alias = "发货时间")
     private Date sendTime;
 
@@ -1571,5 +1574,14 @@ public class RecipeOrder implements Serializable {
 
     public void setTerminalSource(String terminalSource) {
         this.terminalSource = terminalSource;
+    }
+
+    @Column(name = "revisit_remind_time")
+    public Date getRevisitRemindTime() {
+        return revisitRemindTime;
+    }
+
+    public void setRevisitRemindTime(Date revisitRemindTime) {
+        this.revisitRemindTime = revisitRemindTime;
     }
 }
