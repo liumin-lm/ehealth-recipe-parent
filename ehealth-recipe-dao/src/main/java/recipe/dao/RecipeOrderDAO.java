@@ -2033,4 +2033,29 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
      */
     @DAOMethod(sql = "from RecipeOrder where effective=1 and payFlag=0 and OrganId=:organId and processState=1")
     public abstract List<RecipeOrder> findByOrganIdAndPayStatus(@DAOParam("organId")Integer organId);
+
+    /**
+     * 查询可以合并的订单
+     * @param mpiId
+     * @param startDate
+     * @param endDate
+     * @return
+     */
+    public List<RecipeOrder> findCanMergeRecipeOrder(String mpiId, Date startDate, Date endDate) {
+        HibernateStatelessResultAction<List<RecipeOrder>> action = new AbstractHibernateStatelessResultAction<List<RecipeOrder>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                String sql = "select a from RecipeOrder a,Recipe b where a.orderCode = b.orderCode and a.payFlag = 1 and a.effective = 1 and a.processState = 3 " +
+                        " and b.requestMpiId =:mpiId and a.trackingNumber is not null and a.payTime between :startDate and :endDate ";
+                Query q = ss.createQuery(sql);
+                q.setParameter("mpiId", mpiId);
+                q.setParameter("startDate", startDate);
+                q.setParameter("endDate", endDate);
+                setResult(q.list());
+            }
+        };
+
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
 }

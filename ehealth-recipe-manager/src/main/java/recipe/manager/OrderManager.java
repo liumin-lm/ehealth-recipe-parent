@@ -1124,21 +1124,51 @@ public class OrderManager extends BaseManager {
 
     /**
      * 合并物流
-     * @param order
+     * @param order 订单
      */
-    public void mergeLogistics(RecipeOrder order, DrugsEnterprise enterprise){
-        if (Objects.isNull(order) || Objects.isNull(enterprise)) {
-            return;
+    public String getMergeTrackingNumber(RecipeOrder order) {
+        try {
+            if (Objects.isNull(order)) {
+                return null;
+            }
+            if (Objects.isNull(order.getEnterpriseId())) {
+                return null;
+            }
+            DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
+            if (!DrugEnterpriseConstant.LOGISTICS_PLATFORM.equals(enterprise.getLogisticsType())) {
+                return null;
+            }
+            if (logisticsMergeFlagEnum.LOGISTICS_MERGE_NO_SUPPORT.getType().equals(enterprise.getLogisticsMergeFlag())) {
+                return null;
+            }
+            String logisticsMergeTime = enterprise.getLogisticsMergeTime();
+            if (StringUtils.isEmpty(logisticsMergeTime)) {
+                return null;
+            }
+            String designateDateStr = DateConversion.getDesignateDate(logisticsMergeTime);
+            //获取查询时间段
+            Date designateDate = DateConversion.parseDate(designateDateStr, DateConversion.DEFAULT_DATE_TIME);
+            Date startDate;
+            if (new Date().getTime() >= designateDate.getTime()) {
+                startDate = designateDate;
+            } else {
+                startDate = DateConversion.getDateAftXDays(designateDate, -1);
+            }
+            //获取用户mpiId
+            List<Integer> recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
+            List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIdList);
+            String mpiId = recipes.get(0).getRequestMpiId();
+            List<RecipeOrder> canMergeOrder = recipeOrderDAO.findCanMergeRecipeOrder(mpiId, startDate, new Date());
+            List<RecipeOrder> mergeOrderList = canMergeOrder.stream().filter(recipeOrder -> getCompleteAddress(recipeOrder).equals(getCompleteAddress(order))
+                    && recipeOrder.getRecMobile().equals(order.getRecMobile()) && recipeOrder.getReceiver().equals(order.getReceiver())).collect(Collectors.toList());
+            if (CollectionUtils.isEmpty(mergeOrderList)) {
+                return null;
+            }
+            return mergeOrderList.get(0).getTrackingNumber();
+        } catch (Exception e) {
+            logger.error("OrderManager getMergeTrackingNumber recipeId:{}, error ", JSON.toJSONString(order.getRecipeIdList()), e);
         }
-        if (logisticsMergeFlagEnum.LOGISTICS_MERGE_NO_SUPPORT.getType().equals(enterprise.getLogisticsMergeFlag())) {
-            return;
-        }
-        String logisticsMergeTime = enterprise.getLogisticsMergeTime();
-        if (StringUtils.isEmpty(logisticsMergeTime)) {
-            return;
-        }
-        //计算配置时间点后24小时的时间
-
+        return null;
     }
 
     /**

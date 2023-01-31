@@ -53,6 +53,7 @@ getPatientRecipeById 患者端处方详情
 复诊查询处方状态是否有效 judgeRecipeStatus
 患者端下单校验药企库存接口 getOrderStockFlag
 浙江省互联网反查处方写入his queryRecipeInfo
+确认订单页 eh.payService findConfirmOrderInfoExt  对应处方接口：obtainConfirmOrder
 ```
 ```
 关于机构药品目录同步流程及接口描述：
