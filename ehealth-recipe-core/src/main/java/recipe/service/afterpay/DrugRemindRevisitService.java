@@ -6,10 +6,12 @@ import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import recipe.client.IConfigurationClient;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.enumerate.type.RecipeTypeEnum;
@@ -35,9 +37,18 @@ public class DrugRemindRevisitService {
     private RecipeDetailDAO recipeDetailDAO;
     @Autowired
     private RevisitManager revisitManager;
+    @Autowired
+    private IConfigurationClient configurationClient;
 
     public void drugRemind(RecipeOrder recipeOrder, List<Recipe> recipes) {
         LOGGER.info("DrugRemindRevisitService drugRemind recipeOrder:{},recipes:{}", JSON.toJSONString(recipeOrder), JSON.toJSONString(recipes));
+        List<String> revisitRementAppointDepart =new ArrayList<>();
+        LocalDateTime revisitRemindLocalDate=null;
+        Date revisitRemindDate=recipeOrder.getRevisitRemindTime();
+        if (revisitRemindDate != null) {
+            revisitRemindLocalDate=Instant.ofEpochMilli(revisitRemindDate.getTime()).atZone(ZoneId.systemDefault()).toLocalDateTime();
+        }
+
         //订单支付日期
         Date payTime = recipeOrder.getPayTime();
         List<Integer> recipeIds = recipes.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
@@ -60,7 +71,16 @@ public class DrugRemindRevisitService {
             LOGGER.info("DrugRemindRevisitService drugRemind convert recipeDetailList:{}", JSON.toJSONString(recipeDetailList));
         }
         Map<Integer, List<Recipedetail>> recipeDetailMap = recipeDetailList.stream().collect(Collectors.groupingBy(Recipedetail::getRecipeId));
+        String config = configurationClient.getValueCatch(recipes.get(0).getClinicOrgan(), "revisitRemindNotify", "");
+        if(StringUtils.isNotEmpty(config)){
+            revisitRementAppointDepart=Arrays.asList(config.split(","));
+        }
+        List<String> finalRevisitRementAppointDepart = revisitRementAppointDepart;
+        LocalDateTime finalRevisitRemindLocalDate = revisitRemindLocalDate;
         recipes.forEach(recipe -> {
+            if(CollectionUtils.isNotEmpty(finalRevisitRementAppointDepart) && !finalRevisitRementAppointDepart.contains(recipe.getAppointDepart())){
+                return;
+            }
             List<Recipedetail> recipeDetails = recipeDetailMap.get(recipe.getRecipeId());
             //筛选出用药天数大于4天的最小日期
             recipeDetails = recipeDetails.stream().filter(x -> x.getUseDays() > 4).collect(Collectors.toList());
@@ -96,6 +116,14 @@ public class DrugRemindRevisitService {
                     break;
                 default:
                     break;
+            }
+            //患者修改提醒时间，以修改时间为准进行提醒
+            if(null!=finalRevisitRemindLocalDate&&remindDates.size()==1){
+                remindDates.remove(remindDates.get(0));
+                remindDates.add(finalRevisitRemindLocalDate);
+            }else if(null!=finalRevisitRemindLocalDate&&remindDates.size()==2){
+                remindDates.remove(remindDates.get(0));
+                remindDates.add(finalRevisitRemindLocalDate);
             }
             revisitManager.remindDrugForRevisit(recipe, remindDates, pushMode);
         });
