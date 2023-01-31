@@ -158,7 +158,7 @@ public class FastRecipeManager extends BaseManager {
         }
     }
 
-    public Boolean updateFastRecipeSalePriceAndTotalMoney(List<Integer> fastRecipeIdList, Integer organId) {
+    public Boolean updateFastRecipeSalePriceAndTotalMoney(List<Integer> fastRecipeIdList) {
         for (Integer fastRecipeId: fastRecipeIdList){
             FastRecipe fastRecipe = fastRecipeDAO.get(fastRecipeId);
             if(fastRecipe == null){
@@ -170,7 +170,7 @@ public class FastRecipeManager extends BaseManager {
                 return false;
             }
             logger.info("fastRecipeManager updateFastRecipeSalePriceAndTotalPrice fastRecipeDetailList={}", JsonUtil.toString(fastRecipeDetailList));
-            BigDecimal totalMoney = this.updateSalePriceAndTotalMoney(organId,fastRecipe.getRecipeType(),fastRecipeDetailList);
+            BigDecimal totalMoney = this.updateSalePriceAndTotalMoney(fastRecipe.getClinicOrgan(),fastRecipe.getRecipeType(),fastRecipeDetailList);
             fastRecipe.setTotalMoney(totalMoney);
             fastRecipe.setActualPrice(totalMoney);
             fastRecipeDAO.update(fastRecipe);
