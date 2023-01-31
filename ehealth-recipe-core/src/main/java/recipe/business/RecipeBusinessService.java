@@ -949,16 +949,15 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         }
 
         RecipeOrder order = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+        if (null == order) {
+            logger.info("RecipePayHISCallback busObject not exists, recipeCode[{}]", recipePayHISCallbackReq.getRecipeCode());
+            return;
+        }
         if (!"200".equals(recipePayHISCallbackReq.getMsgCode())) {
             String memo = "订单: 收到his支付失败消息 recipePayHISCallbackReq:" + JSONUtils.toString(recipePayHISCallbackReq);
             updateRecipePayLog(order, memo);
         }
 
-
-        if (null == order) {
-            logger.info("RecipePayHISCallback busObject not exists, recipeCode[{}]", recipePayHISCallbackReq.getRecipeCode());
-            return;
-        }
         //已处理-幂等判断
         if (order.getPayFlag() != null && order.getPayFlag() == 1) {
             logger.info("RecipePayHISCallback payflag has been set true, recipeCode[{}]", recipePayHISCallbackReq.getRecipeCode());
