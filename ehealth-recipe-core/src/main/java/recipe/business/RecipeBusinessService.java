@@ -125,8 +125,6 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     @Autowired
     private PharmacyTcmDAO pharmacyTcmDAO;
     @Autowired
-    private DoctorCommonPharmacyDAO doctorCommonPharmacyDao;
-    @Autowired
     private PatientOptionalDrugDAO patientOptionalDrugDAO;
     @Autowired
     private DrugListDAO drugListDAO;
@@ -928,7 +926,23 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     public void recipePayHISCallback(RecipePayHISCallbackReq recipePayHISCallbackReq) {
         logger.info("RecipePayHISCallback recipePayHISCallbackReq[{}]", JSONUtils.toString(recipePayHISCallbackReq));
 
-        Recipe recipe = recipeDAO.getByRecipeCode(recipePayHISCallbackReq.getRecipeCode());
+        Integer cashDeskSettleUseCode = configurationClient.getValueCatchReturnInteger(recipePayHISCallbackReq.getOrganId(), "cashDeskSettleUseCode", CashDeskSettleUseCodeTypeEnum.HIS_RECIPE_CODE.getType());
+        Recipe recipe = null;
+        if (CashDeskSettleUseCodeTypeEnum.HIS_RECIPE_CODE.getType().equals(cashDeskSettleUseCode)) {
+            recipe = recipeDAO.getByRecipeCodeAndClinicOrganWithAll(recipePayHISCallbackReq.getRecipeCode(), recipePayHISCallbackReq.getOrganId());
+            if (Objects.isNull(recipe)){
+                List<Recipe> recipes = recipeDAO.getByRecipeCodeLikeAndPayFlag(recipePayHISCallbackReq.getRecipeCode(), recipePayHISCallbackReq.getOrganId());
+                if(CollectionUtils.isNotEmpty(recipes)){
+                    recipe = recipes.get(0);
+                }
+            }
+        }else {
+            List<Recipe> recipes = recipeDAO.getByChargeIdAndOrganId(recipePayHISCallbackReq.getRecipeCode(), recipePayHISCallbackReq.getOrganId());
+            if(CollectionUtils.isNotEmpty(recipes)){
+                recipe = recipes.get(0);
+            }
+        }
+
         if (Objects.isNull(recipe) || StringUtils.isEmpty(recipe.getOrderCode())) {
             logger.info("RecipePayHISCallback recipe isnull, recipeCode[{}]", recipePayHISCallbackReq.getRecipeCode());
             return;
@@ -1009,26 +1023,6 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             }
         }
         return;
-    }
-
-    @Override
-    public DoctorCommonPharmacy findDoctorCommonPharmacyByOrganIdAndDoctorId(Integer organId, Integer doctorId) {
-        List<DoctorCommonPharmacy> doctorCommonPharmacies = doctorCommonPharmacyDao.findByOrganIdAndDoctorId(organId,doctorId);
-        return CollectionUtils.isEmpty(doctorCommonPharmacies)?null:doctorCommonPharmacies.get(0);
-    }
-
-
-    @Override
-    public void saveDoctorCommonPharmacy(DoctorCommonPharmacy doctorCommonPharmacy) {
-        List<DoctorCommonPharmacy> doctorCommonPharmacies=doctorCommonPharmacyDao.findByOrganIdAndDoctorId(doctorCommonPharmacy.getOrganId(),doctorCommonPharmacy.getDoctorId());
-        if(CollectionUtils.isEmpty(doctorCommonPharmacies)){
-            doctorCommonPharmacy.setCreateTime(new Date());
-            doctorCommonPharmacyDao.save(doctorCommonPharmacy);
-        }else{
-            DoctorCommonPharmacy doctorCommonPharmacyDb=doctorCommonPharmacies.get(0);
-            doctorCommonPharmacy.setId(doctorCommonPharmacyDb.getId());
-            doctorCommonPharmacyDao.updateNonNullFieldByPrimaryKey(doctorCommonPharmacy);
-        }
     }
 
     @Override
@@ -1534,7 +1528,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     @Override
     public List<RecipeInfoVO> findDoctorRecipeList(DoctorRecipeListReqVO doctorRecipeListReqVO) {
         List<Integer> doctorIds = Arrays.asList(doctorRecipeListReqVO.getDoctorId(), -1);
-        List<Recipe> recipeList = recipeDAO.findDoctorRecipeListV1(doctorIds, doctorRecipeListReqVO.getOrganId(), doctorRecipeListReqVO.getRecipeType(), doctorRecipeListReqVO.getStart(), doctorRecipeListReqVO.getLimit());
+        List<Recipe> recipeList = recipeDAO.findDoctorRecipeListV1(doctorIds, doctorRecipeListReqVO.getOrganId(), doctorRecipeListReqVO.getRecipeType(), doctorRecipeListReqVO.getKeyWord(), doctorRecipeListReqVO.getStart(), doctorRecipeListReqVO.getLimit());
         if (CollectionUtils.isEmpty(recipeList)) {
             return null;
         }

@@ -33,4 +33,13 @@ public class DoctorDefaultVO implements Serializable {
      * 关联数据主键，如：药房id，药企id
      */
     private Integer idKey;
+
+    /**
+     * 查询筛选条件用 复诊id 非必传
+     */
+    private Integer clinicId;
+    /**
+     * 查询筛选条件用 行政科室id 非必传
+     */
+    private Integer departId;
 }

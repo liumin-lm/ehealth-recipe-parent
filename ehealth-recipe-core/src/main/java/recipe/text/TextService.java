@@ -1,7 +1,6 @@
 package recipe.text;
 
 import com.ngari.base.esign.model.CoOrdinateVO;
-import com.ngari.recipe.entity.DoctorCommonPharmacy;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.Recipedetail;
@@ -16,7 +15,6 @@ import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.ConsultClient;
 import recipe.constant.ErrorCode;
 import recipe.core.api.greenroom.ITextService;
-import recipe.dao.DoctorCommonPharmacyDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeExtendDAO;
@@ -126,13 +124,5 @@ public class TextService implements ITextService {
                 }
             });
         }
-    }
-
-    @Autowired
-    private DoctorCommonPharmacyDAO doctorCommonPharmacyDao;
-
-    @Override
-    public List<DoctorCommonPharmacy> findDoctorCommonPharmacyByOrganIdAndDoctorId(Integer organId) {
-        return doctorCommonPharmacyDao.findByOrganIdAndDoctorId2(organId);
     }
 }

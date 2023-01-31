@@ -12,6 +12,7 @@ import recipe.vo.doctor.DoctorDefaultVO;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 医生服务类
@@ -30,7 +31,14 @@ public class DoctorBusinessService extends BaseService implements IDoctorBusines
 
     @Override
     public List<DoctorDefault> doctorDefaultList(DoctorDefaultVO doctorDefault) {
-        return doctorManager.doctorDefaultList(doctorDefault.getOrganId(), doctorDefault.getDoctorId(), doctorDefault.getCategory());
+        //医生默认数据
+        List<DoctorDefault> list = doctorManager.doctorDefaultList(doctorDefault.getOrganId(), doctorDefault.getDoctorId(), doctorDefault.getCategory());
+        //当前科室的药房
+        List<DoctorDefault> doctorDefaultPharmacy = pharmacyManager.appointDepartPharmacy(doctorDefault.getOrganId(), doctorDefault.getDepartId(), doctorDefault.getClinicId(), list);
+        //除药房外其他默认数据
+        List<DoctorDefault> doctorDefaultList = list.stream().filter(a -> !a.getCategory().equals(1)).collect(Collectors.toList());
+        doctorDefaultPharmacy.addAll(doctorDefaultList);
+        return doctorDefaultPharmacy;
     }
 
     @Override

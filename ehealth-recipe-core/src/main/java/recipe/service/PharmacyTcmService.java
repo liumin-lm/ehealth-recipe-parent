@@ -3,7 +3,6 @@ package recipe.service;
 import com.aliyun.openservices.shade.org.apache.commons.lang3.StringUtils;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.ngari.base.organconfig.service.IOrganConfigService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.PharmacyTcm;
@@ -12,18 +11,15 @@ import com.ngari.recipe.recipe.service.IPharmacyTcmService;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
-import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
-import org.apache.commons.collections.CollectionUtils;
-import org.omg.CORBA.INTERNAL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.util.ObjectUtils;
-import recipe.ApplicationUtils;
+import recipe.aop.LogRecord;
+import recipe.client.DepartClient;
 import recipe.constant.ErrorCode;
 import recipe.dao.OrganDrugListDAO;
 import recipe.dao.PharmacyTcmDAO;
@@ -39,18 +35,20 @@ import java.util.Map;
  * 药房服务
  */
 @RpcBean("pharmacyTcmService")
-public class PharmacyTcmService  implements IPharmacyTcmService {
+public class PharmacyTcmService implements IPharmacyTcmService {
     private static final Logger logger = LoggerFactory.getLogger(PharmacyTcmService.class);
 
     @Autowired
     private PharmacyTcmDAO pharmacyTcmDAO;
     @Autowired
     private OrganDrugListDAO organDrugListDAO;
-
+    @Autowired
+    private DepartClient departClient;
 
 
     /**
      * 根据药房ID 查找药房数据
+     *
      * @param pharmacyTcmId
      * @return
      */
@@ -120,7 +118,7 @@ public class PharmacyTcmService  implements IPharmacyTcmService {
         PharmacyTcmDAO pharmacyTcmDAO = DAOFactory.getDAO(PharmacyTcmDAO.class);
         //验证症候必要信息
         PharmacyTcm pharmacyTcm1 = pharmacyTcmDAO.get(pharmacyTcm.getPharmacyId());
-        if (pharmacyTcm1 == null){
+        if (null == pharmacyTcm1) {
             throw new DAOException(DAOException.VALUE_NEEDED, "此药房不存在！");
         }
         validate(pharmacyTcm);
@@ -289,32 +287,54 @@ public class PharmacyTcmService  implements IPharmacyTcmService {
 
     /**
      * 根据机构Id查询药房
+     *
      * @param organId
      * @return
      */
     @RpcService
-    public List<PharmacyTcmDTO> querPharmacyTcmByOrganId(Integer organId ) {
+    public List<PharmacyTcmDTO> querPharmacyTcmByOrganId(Integer organId) {
         if (null == organId) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "机构Id不能为空");
         }
         PharmacyTcmDAO pharmacyTcmDAO = DAOFactory.getDAO(PharmacyTcmDAO.class);
         List<PharmacyTcm> symptomQueryResult = pharmacyTcmDAO.findByOrganId(organId);
         logger.info("查询药房服务[querPharmacyTcmByOrganId]:" + JSONUtils.toString(symptomQueryResult));
-        return  ObjectCopyUtils.convert(symptomQueryResult, PharmacyTcmDTO.class);
+        return ObjectCopyUtils.convert(symptomQueryResult, PharmacyTcmDTO.class);
+    }
+
+    /**
+     * 获取挂号科室下的药房
+     *
+     * @param clinicId 复诊id
+     * @param organId  机构id
+     * @param departId 行政科室id
+     * @return
+     */
+    @LogRecord
+    @RpcService
+    public List<PharmacyTcmDTO> querPharmacyTcmByOrganIdAndAppointDepart(Integer clinicId, Integer organId, Integer departId) {
+        if (null == organId) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "机构Id不能为空");
+        }
+        List<PharmacyTcm> symptomQueryResult = pharmacyTcmDAO.findByOrganId(organId);
+        logger.info("查询药房服务[querPharmacyTcmByOrganId]:" + JSONUtils.toString(symptomQueryResult));
+        List<PharmacyTcm> result = departClient.appointDepartPharmacy(clinicId, organId, departId, symptomQueryResult);
+        return ObjectCopyUtils.convert(result, PharmacyTcmDTO.class);
     }
 
     /**
      * 根据机构Id查询药房
+     *
      * @param organId
      * @return
      */
     @RpcService
-    public PharmacyTcm querPharmacyTcmByOrganIdAndName2(Integer organId ,String name) {
+    public PharmacyTcm querPharmacyTcmByOrganIdAndName2(Integer organId, String name) {
         if (null == organId) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "机构Id不能为空");
         }
         PharmacyTcmDAO pharmacyTcmDAO = DAOFactory.getDAO(PharmacyTcmDAO.class);
-        PharmacyTcm symptomQueryResult = pharmacyTcmDAO.getByOrganIdAndName(organId,name);
-        return  symptomQueryResult;
+        PharmacyTcm symptomQueryResult = pharmacyTcmDAO.getByOrganIdAndName(organId, name);
+        return symptomQueryResult;
     }
 }
