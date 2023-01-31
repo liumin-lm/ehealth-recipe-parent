@@ -7,6 +7,7 @@ import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import eh.utils.ValidateUtil;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
@@ -14,6 +15,8 @@ import recipe.core.api.IRecipeBusinessService;
 import recipe.core.api.IRecipeDetailBusinessService;
 import recipe.core.api.patient.IRecipeOrderBusinessService;
 import recipe.enumerate.status.RecipeSourceTypeEnum;
+import recipe.enumerate.type.RecipeDrugFormTypeEnum;
+import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.vo.PageGenericsVO;
 import recipe.vo.doctor.DoctorRecipeListReqVO;
 import recipe.vo.doctor.RecipeInfoVO;
@@ -83,6 +86,12 @@ public class FindRecipeDoctorAtop extends BaseAtop {
         // 这个版本只查询常用方
         if (!RecipeSourceTypeEnum.COMMON_RECIPE.getType().equals(doctorRecipeListReqVO.getRecipeType())) {
             return null;
+        }
+        if (StringUtils.isNotEmpty(doctorRecipeListReqVO.getKeyWord())) {
+            Integer recipeType = RecipeTypeEnum.getRecipeText(doctorRecipeListReqVO.getKeyWord());
+            doctorRecipeListReqVO.setRecipeDrugType(recipeType);
+            Integer recipeDrugForm = RecipeDrugFormTypeEnum.getDrugFormName(doctorRecipeListReqVO.getKeyWord());
+            doctorRecipeListReqVO.setRecipeDrugForm(recipeDrugForm);
         }
         return recipeBusinessService.findDoctorRecipeList(doctorRecipeListReqVO);
     }

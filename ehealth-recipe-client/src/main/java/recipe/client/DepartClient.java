@@ -10,6 +10,7 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.revisit.common.service.IRevisitService;
 import com.ngari.revisit.dto.response.RevisitBeanVO;
 import ctd.util.JSONUtils;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,7 @@ import recipe.aop.LogRecord;
 import recipe.enumerate.type.BussSourceTypeEnum;
 import recipe.util.ValidateUtil;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -57,6 +59,9 @@ public class DepartClient extends BaseClient {
      * @return
      */
     public AppointDepartDTO getAppointDepartByOrganIdAndDepart(Integer organId, Integer depart) {
+        if (ValidateUtil.validateObjects(organId, depart)) {
+            return null;
+        }
         logger.info("DepartClient getAppointDepartByOrganIdAndDepart organId:{},depart:{}", organId, depart);
         return appointDepartService.findByOrganIDAndDepartIDAndCancleFlag(organId, depart);
     }
@@ -145,28 +150,6 @@ public class DepartClient extends BaseClient {
     }
 
     /**
-     * 设置处方默认数据
-     *
-     * @param recipe 处方头对象
-     */
-    @Override
-    public void setRecipe(Recipe recipe) {
-        // 根据咨询单特殊来源标识设置处方单特殊来源标识
-        if (BussSourceTypeEnum.BUSSSOURCE_OUTPATIENT.getType().equals(recipe.getBussSource())) {
-            return;
-        }
-        if (ValidateUtil.integerIsEmpty(recipe.getDepart())) {
-            return;
-        }
-        AppointDepartDTO appointDepart = this.getAppointDepartDTO(recipe.getClinicId(), recipe.getClinicOrgan(), recipe.getDepart());
-        if (null == appointDepart) {
-            return;
-        }
-        recipe.setAppointDepart(appointDepart.getAppointDepartCode());
-        recipe.setAppointDepartName(appointDepart.getAppointDepartName());
-    }
-
-    /**
      * 获取挂号科室
      *
      * @param clinicId 复诊id
@@ -189,18 +172,60 @@ public class DepartClient extends BaseClient {
         return this.getAppointDepartByOrganIdAndDepart(organId, departId);
     }
 
+    /**
+     * 获取当前科室的药房
+     *
+     * @param clinicId
+     * @param organId
+     * @param departId
+     * @param symptomQueryResult
+     * @return
+     */
     @LogRecord
     public List<PharmacyTcm> appointDepartPharmacy(Integer clinicId, Integer organId, Integer departId, List<PharmacyTcm> symptomQueryResult) {
+        if (CollectionUtils.isEmpty(symptomQueryResult)) {
+            return new ArrayList<>();
+        }
         AppointDepartDTO appointDepartDTO = this.getAppointDepart(clinicId, organId, departId);
+        if (null == appointDepartDTO) {
+            return symptomQueryResult.stream().filter(a -> StringUtils.isEmpty(a.getAppointDepartId())).collect(Collectors.toList());
+        }
         return symptomQueryResult.stream().filter(a -> {
             if (StringUtils.isEmpty(a.getAppointDepartId())) {
                 return true;
             }
-            List<Integer> appointDepartIds = JSONUtils.parse(a.getAppointDepartId(), List.class);
-            if (appointDepartIds.contains(appointDepartDTO.getAppointDepartId())) {
-                return true;
+            try {
+                List<Integer> appointDepartIds = JSONUtils.parse(a.getAppointDepartId(), List.class);
+                if (appointDepartIds.contains(appointDepartDTO.getAppointDepartId())) {
+                    return true;
+                }
+            } catch (Exception e) {
+                return false;
             }
             return false;
         }).collect(Collectors.toList());
     }
+
+    /**
+     * 设置处方默认数据
+     *
+     * @param recipe 处方头对象
+     */
+    @Override
+    public void setRecipe(Recipe recipe) {
+        // 根据咨询单特殊来源标识设置处方单特殊来源标识
+        if (BussSourceTypeEnum.BUSSSOURCE_OUTPATIENT.getType().equals(recipe.getBussSource())) {
+            return;
+        }
+        if (ValidateUtil.integerIsEmpty(recipe.getDepart())) {
+            return;
+        }
+        AppointDepartDTO appointDepart = this.getAppointDepartDTO(recipe.getClinicId(), recipe.getClinicOrgan(), recipe.getDepart());
+        if (null == appointDepart) {
+            return;
+        }
+        recipe.setAppointDepart(appointDepart.getAppointDepartCode());
+        recipe.setAppointDepartName(appointDepart.getAppointDepartName());
+    }
+
 }

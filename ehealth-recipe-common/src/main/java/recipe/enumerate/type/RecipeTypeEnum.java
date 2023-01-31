@@ -45,4 +45,13 @@ public enum RecipeTypeEnum {
         }
         return null;
     }
+
+    public static Integer getRecipeText(String text){
+        for (RecipeTypeEnum value : RecipeTypeEnum.values()) {
+            if (value.getText().equals(text)){
+                return value.getType();
+            }
+        }
+        return null;
+    }
 }

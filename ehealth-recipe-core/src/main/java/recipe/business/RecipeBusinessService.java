@@ -125,8 +125,6 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     @Autowired
     private PharmacyTcmDAO pharmacyTcmDAO;
     @Autowired
-    private DoctorCommonPharmacyDAO doctorCommonPharmacyDao;
-    @Autowired
     private PatientOptionalDrugDAO patientOptionalDrugDAO;
     @Autowired
     private DrugListDAO drugListDAO;
@@ -1012,26 +1010,6 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     }
 
     @Override
-    public DoctorCommonPharmacy findDoctorCommonPharmacyByOrganIdAndDoctorId(Integer organId, Integer doctorId) {
-        List<DoctorCommonPharmacy> doctorCommonPharmacies = doctorCommonPharmacyDao.findByOrganIdAndDoctorId(organId,doctorId);
-        return CollectionUtils.isEmpty(doctorCommonPharmacies)?null:doctorCommonPharmacies.get(0);
-    }
-
-
-    @Override
-    public void saveDoctorCommonPharmacy(DoctorCommonPharmacy doctorCommonPharmacy) {
-        List<DoctorCommonPharmacy> doctorCommonPharmacies=doctorCommonPharmacyDao.findByOrganIdAndDoctorId(doctorCommonPharmacy.getOrganId(),doctorCommonPharmacy.getDoctorId());
-        if(CollectionUtils.isEmpty(doctorCommonPharmacies)){
-            doctorCommonPharmacy.setCreateTime(new Date());
-            doctorCommonPharmacyDao.save(doctorCommonPharmacy);
-        }else{
-            DoctorCommonPharmacy doctorCommonPharmacyDb=doctorCommonPharmacies.get(0);
-            doctorCommonPharmacy.setId(doctorCommonPharmacyDb.getId());
-            doctorCommonPharmacyDao.updateNonNullFieldByPrimaryKey(doctorCommonPharmacy);
-        }
-    }
-
-    @Override
     @LogRecord
     public void recipeOutpatientPaymentCallback(RecipeOutpatientPaymentDTO recipeOutpatientPaymentDTO) {
         List<Recipe> recipes = recipeDAO.findByRecipeCodeAndClinicOrgan(recipeOutpatientPaymentDTO.getRecipeCodes(), recipeOutpatientPaymentDTO.getOrganId());
@@ -1534,7 +1512,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     @Override
     public List<RecipeInfoVO> findDoctorRecipeList(DoctorRecipeListReqVO doctorRecipeListReqVO) {
         List<Integer> doctorIds = Arrays.asList(doctorRecipeListReqVO.getDoctorId(), -1);
-        List<Recipe> recipeList = recipeDAO.findDoctorRecipeListV1(doctorIds, doctorRecipeListReqVO.getOrganId(), doctorRecipeListReqVO.getRecipeType(), doctorRecipeListReqVO.getStart(), doctorRecipeListReqVO.getLimit());
+        List<Recipe> recipeList = recipeDAO.findDoctorRecipeListV1(doctorIds, doctorRecipeListReqVO.getOrganId(), doctorRecipeListReqVO.getRecipeType(), doctorRecipeListReqVO.getKeyWord(), doctorRecipeListReqVO.getStart(), doctorRecipeListReqVO.getLimit());
         if (CollectionUtils.isEmpty(recipeList)) {
             return null;
         }

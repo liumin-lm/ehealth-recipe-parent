@@ -1122,6 +1122,25 @@ public class OrderManager extends BaseManager {
     }
 
     /**
+     * 合并物流
+     * @param order
+     */
+    public void mergeLogistics(RecipeOrder order, DrugsEnterprise enterprise){
+        if (Objects.isNull(order) || Objects.isNull(enterprise)) {
+            return;
+        }
+        if (logisticsMergeFlagEnum.LOGISTICS_MERGE_NO_SUPPORT.getType().equals(enterprise.getLogisticsMergeFlag())) {
+            return;
+        }
+        String logisticsMergeTime = enterprise.getLogisticsMergeTime();
+        if (StringUtils.isEmpty(logisticsMergeTime)) {
+            return;
+        }
+        //计算配置时间点后24小时的时间
+
+    }
+
+    /**
      * 保存结算信息
      * @param order
      * @param hisSettleResTo
