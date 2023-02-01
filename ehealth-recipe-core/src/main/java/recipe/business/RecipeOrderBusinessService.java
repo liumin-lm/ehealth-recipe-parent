@@ -1966,6 +1966,30 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
         }
     }
 
+    public Boolean mergeTrackingNumber(Integer addressId, Integer enterpriseId, Integer recipeId) {
+        AddressService addressService = ApplicationUtils.getBasicService(AddressService.class);
+        AddressDTO address;
+        if (Objects.isNull(addressId)) {
+            address = addressService.getDefaultAddressDTO();
+        } else {
+            address = addressService.getByAddressId(addressId);
+        }
+        RecipeOrder recipeOrder = new RecipeOrder("");
+        recipeOrder.setEnterpriseId(enterpriseId);
+        recipeOrder.setRecipeIdList(JSONUtils.toString(Arrays.asList(recipeId)));
+        recipeOrder.setAddressID(address.getAddressId());
+        recipeOrder.setAddress1(address.getAddress1());
+        recipeOrder.setAddress2(address.getAddress2());
+        recipeOrder.setAddress3(address.getAddress3());
+        recipeOrder.setAddress4(address.getAddress4());
+        recipeOrder.setStreetAddress(address.getStreetAddress());
+        String mergeTrackingNumber = orderManager.getMergeTrackingNumber(recipeOrder);
+        if (StringUtils.isNotEmpty(mergeTrackingNumber)) {
+            return true;
+        }
+        return false;
+    }
+
     private static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {
         Map<Object, Boolean> seen = new ConcurrentHashMap<>();
         return t -> seen.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
