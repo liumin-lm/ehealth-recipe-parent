@@ -139,7 +139,7 @@ public class OrderFeeService implements IRecipeOrderRefundService {
             logger.info("findRefundRecipeOrder APPID={},APPname={}",recipeOrder.getTerminalSource(),appName);
             RecipeOrderRefundVO recipeOrderRefundVO = new RecipeOrderRefundVO();
             recipeOrderRefundVO.setOrderCode(recipeOrder.getOrderCode());
-            recipeOrderRefundVO.setActualPrice(recipeOrder.getActualPrice());
+            recipeOrderRefundVO.setActualPrice(recipeOrder.getTotalFee().doubleValue());
             recipeOrderRefundVO.setCreateTime(DateConversion.getDateFormatter(recipeOrder.getCreateTime(), DateConversion.DEFAULT_DATE_TIME));
             if (null != recipeOrder.getEnterpriseId()) {
                 if (StringUtils.isNotEmpty(recipeOrder.getDrugStoreName())) {

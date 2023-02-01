@@ -398,6 +398,9 @@ public class RecipeOrderBean implements Serializable {
     @ItemProperty(alias = "是否已打印快递面单")
     private Boolean printExpressBillFlag;
 
+    @ItemProperty(alias = "订单新支付状态 0 未支付 1 已支付")
+    private Integer orderPayFlag;
+
     public String getCollectPaymentExpressFee() {
         return collectPaymentExpressFee;
     }
@@ -1397,5 +1400,13 @@ public class RecipeOrderBean implements Serializable {
 
     public void setPrintExpressBillFlag(Boolean printExpressBillFlag) {
         this.printExpressBillFlag = printExpressBillFlag;
+    }
+
+    public Integer getOrderPayFlag() {
+        return orderPayFlag;
+    }
+
+    public void setOrderPayFlag(Integer orderPayFlag) {
+        this.orderPayFlag = orderPayFlag;
     }
 }
