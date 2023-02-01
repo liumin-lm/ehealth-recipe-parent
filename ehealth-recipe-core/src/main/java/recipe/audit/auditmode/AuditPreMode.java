@@ -116,6 +116,7 @@ public class AuditPreMode extends AbstractAuditMode {
         RecipeMsgService.batchSendMsg(recipe.getRecipeId(), status);
         //处方审核
         super.startRecipeAuditProcess(recipe.getRecipeId());
+        //todo 已经在回调接口中的代码没必要异步
         //异步添加水印
         RecipeBusiThreadPool.execute(new UpdateWaterPrintRecipePdfRunnable(recipe.getRecipeId()));
     }
