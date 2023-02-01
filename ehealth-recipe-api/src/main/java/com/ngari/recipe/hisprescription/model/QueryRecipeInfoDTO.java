@@ -193,6 +193,47 @@ public class QueryRecipeInfoDTO implements Serializable {
     @ItemProperty(alias = "接诊流水号")
     private String serialNumberOfReception;
 
+    @ItemProperty(alias = "病种代码")
+    private String chronicDiseaseCode;
+    @ItemProperty(alias = "病种名称")
+    private String chronicDiseaseName;
+    @ItemProperty(alias = "诊断名称")
+    private String organDiseaseName;
+    @ItemProperty(alias = "诊断编码")
+    private String organDiseaseId;
+
+    public String getChronicDiseaseCode() {
+        return chronicDiseaseCode;
+    }
+
+    public void setChronicDiseaseCode(String chronicDiseaseCode) {
+        this.chronicDiseaseCode = chronicDiseaseCode;
+    }
+
+    public String getChronicDiseaseName() {
+        return chronicDiseaseName;
+    }
+
+    public void setChronicDiseaseName(String chronicDiseaseName) {
+        this.chronicDiseaseName = chronicDiseaseName;
+    }
+
+    public String getOrganDiseaseName() {
+        return organDiseaseName;
+    }
+
+    public void setOrganDiseaseName(String organDiseaseName) {
+        this.organDiseaseName = organDiseaseName;
+    }
+
+    public String getOrganDiseaseId() {
+        return organDiseaseId;
+    }
+
+    public void setOrganDiseaseId(String organDiseaseId) {
+        this.organDiseaseId = organDiseaseId;
+    }
+
     public String getTreatmentId() {
         return treatmentId;
     }

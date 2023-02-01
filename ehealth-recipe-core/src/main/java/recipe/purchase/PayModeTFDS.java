@@ -33,6 +33,7 @@ import recipe.enumerate.type.TakeMedicineWayEnum;
 import recipe.manager.EnterpriseManager;
 import recipe.manager.OrderManager;
 import recipe.service.RecipeOrderService;
+import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
@@ -233,6 +234,9 @@ public class PayModeTFDS implements IPurchaseService {
         //在患者没有选择的情况下：前端会根据医生是否选择字段传入patientIsDecoction  对于线下处方而言，线下转线上的时候医生是否选择已经赋值
         //在患者选择的情况下：前端会根据患者自己选择传入patientIsDecoction
         order.setPatientIsDecoction(MapValueUtil.getString(extInfo, "patientIsDecoction"));
+        if(StringUtils.isNotEmpty(MapValueUtil.getString(extInfo, "revisitRemindTime")))   {
+            order.setRevisitRemindTime(DateConversion.parseDate(MapValueUtil.getString(extInfo, "revisitRemindTime"),DateConversion.DEFAULT_DATE_TIME));
+        }
         int payModeNew = 2;
         if (dep.getStorePayFlag() == 1) {
             payModeNew = RecipeBussConstant.PAYMODE_ONLINE;

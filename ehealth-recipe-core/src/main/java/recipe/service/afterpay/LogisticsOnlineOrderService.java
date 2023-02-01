@@ -40,6 +40,7 @@ import recipe.drugsenterprise.ThirdEnterpriseCallService;
 import recipe.enumerate.status.GiveModeEnum;
 import recipe.enumerate.status.PayModeEnum;
 import recipe.enumerate.type.ExpressFeePayWayEnum;
+import recipe.manager.OrderManager;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeMsgService;
 import recipe.util.AddressUtils;
@@ -81,6 +82,9 @@ public class LogisticsOnlineOrderService implements IAfterPayBussService{
     @Autowired
     private RecipeDAO recipeDAO;
 
+    @Autowired
+    private OrderManager orderManager;
+
     /**
      * 根据支付结果进行物流下单
      * @param order        订单信息
@@ -110,16 +114,21 @@ public class LogisticsOnlineOrderService implements IAfterPayBussService{
         if (null != enterprise && enterprise.getLogisticsType() != null && enterprise.getLogisticsType().equals(DrugEnterpriseConstant.LOGISTICS_PLATFORM)) {
             String trackingNumber;
             Recipe trackRecipe = recipeS.get(0);
-            try {
-                ILogisticsOrderService logisticsOrderService = AppContextHolder.getBean("infra.logisticsOrderService", ILogisticsOrderService.class);
-                CreateLogisticsOrderDto logisticsOrder = getCreateLogisticsOrderDto(order, trackRecipe, enterprise);
-                LOGGER.info("基础服务物流下单入参={}", JSONObject.toJSONString(logisticsOrder));
-                trackingNumber = logisticsOrderService.addLogisticsOrder(logisticsOrder);
-            } catch (Exception e) {
-                //记录日志
-                RecipeLogService.saveRecipeLog(trackRecipe.getRecipeId(), trackRecipe.getStatus(), trackRecipe.getStatus(), "物流下单失败,原因：" + e.getMessage());
-                LOGGER.error("基础服务物流下单异常 recipeId：{}, orderId：{}，异常：", trackRecipe.getRecipeId(), order.getOrderId(), e);
-                return;
+            String mergeTrackingNumber = orderManager.getMergeTrackingNumber(order);
+            if (StringUtils.isNotEmpty(mergeTrackingNumber)) {
+                trackingNumber = mergeTrackingNumber;
+            } else {
+                try {
+                    ILogisticsOrderService logisticsOrderService = AppContextHolder.getBean("infra.logisticsOrderService", ILogisticsOrderService.class);
+                    CreateLogisticsOrderDto logisticsOrder = getCreateLogisticsOrderDto(order, trackRecipe, enterprise);
+                    LOGGER.info("基础服务物流下单入参={}", JSONObject.toJSONString(logisticsOrder));
+                    trackingNumber = logisticsOrderService.addLogisticsOrder(logisticsOrder);
+                } catch (Exception e) {
+                    //记录日志
+                    RecipeLogService.saveRecipeLog(trackRecipe.getRecipeId(), trackRecipe.getStatus(), trackRecipe.getStatus(), "物流下单失败,原因：" + e.getMessage());
+                    LOGGER.error("基础服务物流下单异常 recipeId：{}, orderId：{}，异常：", trackRecipe.getRecipeId(), order.getOrderId(), e);
+                    return;
+                }
             }
             LOGGER.info("基础服务物流下单结果 recipeId：{}, 物流单号：{}", trackRecipe.getRecipeId(), trackingNumber);
             if (StringUtils.isNotBlank(trackingNumber)) {

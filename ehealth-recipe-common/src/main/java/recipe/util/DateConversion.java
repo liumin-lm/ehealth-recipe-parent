@@ -343,4 +343,15 @@ public class DateConversion
 	}
 
 
+	/**
+	 * 获取指定拼接时间
+	 * @param time
+	 * @return
+	 */
+	public static String getDesignateDate (String time) {
+		String shortDate = getDateFormatter(new Date(), DateConversion.YYYY_MM_DD);
+		String longDate = shortDate + " " + time + ":00";
+		return longDate;
+	}
+
 }

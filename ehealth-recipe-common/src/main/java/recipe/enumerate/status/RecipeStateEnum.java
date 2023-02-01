@@ -89,6 +89,7 @@ public enum RecipeStateEnum {
     SUB_CANCELLATION_WRITE_HIS_NOT_ORDER(97, "医院his确认失败:", ""),
     SUB_CANCELLATION_REFUND(98, "处方已退费成功", ""),
     SUB_CANCELLATION_WRITE_HIS_ERROR(99, "his写入失败，调用前置机处方写入服务失败", ""),
+    SUB_CANCELLATION_REFUND_FAIL(100, "处方退费失败", ""),
     ;
 
     private Integer type;
