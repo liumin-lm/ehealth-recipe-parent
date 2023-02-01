@@ -215,8 +215,6 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     private CaBusinessService CaBusinessService;
     @Autowired
     private RecipeBeforeOrderDAO recipeBeforeOrderDAO;
-    @Autowired
-    private EmrRecipeManager emrRecipeManager;
 
     @RpcService
     @Override
@@ -238,28 +236,14 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         if (isWriteHis) {
             return;
         }
-        RecipeBusiThreadPool.execute(new RecipeSendSuccessRunnable(response));
-
-
         //药品数据 根据his返回更新
         IRecipeDetailBusinessService recipeDetailBusinessService = AppContextHolder.getBean("recipeDetailBusinessService", IRecipeDetailBusinessService.class);
         List<Recipedetail> recipeDetails = recipeDetailBusinessService.sendSuccessDetail(response);
-
         //处方数据 根据his返回更新
         IRecipeBusinessService recipeBusinessService = AppContextHolder.getBean("recipeBusinessService", IRecipeBusinessService.class);
         recipeBusinessService.sendSuccessRecipe(response);
-
-        /**更新药品最新的价格等*/
-        OrganDrugListService organDrugListService = ApplicationUtils.getRecipeService(OrganDrugListService.class);
-        recipeDetails.forEach(a -> organDrugListService.saveOrganDrug(recipe.getClinicOrgan(), a));
-        try {
-            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(Integer.parseInt(response.getRecipeId()));
-            //将药品信息加入电子病历中
-            emrRecipeManager.upDocIndex(recipeExtend.getRecipeId(), recipeExtend.getDocIndexId());
-        } catch (Exception e) {
-            LOGGER.error("修改电子病例使用状态失败 ", e);
-        }
-
+        //更新药品最新的价格等
+        RecipeBusiThreadPool.execute(new RecipeSendSuccessRunnable(recipeDetails, recipe));
         //ca签名处理
         recipeService.retryDoctorSignCheck(recipe.getRecipeId());
     }
