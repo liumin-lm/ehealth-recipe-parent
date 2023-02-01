@@ -5,6 +5,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.common.dto.DepartChargeReportResult;
 import com.ngari.common.dto.HosBusFundsReportResult;
+import com.ngari.recipe.dto.DoctorRecipeListReqDTO;
 import com.ngari.recipe.dto.RecipeRefundDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
@@ -4869,24 +4870,40 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                                                              @DAOParam("endTime") Date endTime,
                                                              @DAOParam("organIds") List<Integer> organIds);
 
-    public List<Recipe> findDoctorRecipeListV1(List<Integer> doctorId, Integer organId, Integer recipeSourceType, String keyWord, int start, int limit) {
+    public List<Recipe> findDoctorRecipeListV1(List<Integer> doctorIds, DoctorRecipeListReqDTO doctorRecipeListReqDTO) {
         HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder sql = new StringBuilder("select * from cdr_recipe where doctor in :doctorId and clinicOrgan=:organId and recipeSourceType =:recipeSourceType and process_state = 1 ");
+                String keyWord = doctorRecipeListReqDTO.getKeyWord();
+                Integer recipeType = doctorRecipeListReqDTO.getRecipeDrugType();
+                Integer recipeDrugForm = doctorRecipeListReqDTO.getRecipeDrugForm();
                 if (StringUtils.isNotEmpty(keyWord)) {
-                    sql.append(" and offline_recipe_name like :keyWord ");
+                    sql.append(" and ( offline_recipe_name like :keyWord ");
+                    if (Objects.nonNull(recipeType)) {
+                        sql.append(" or recipeType=:recipeType ");
+                    }
+                    if (Objects.nonNull(recipeDrugForm)) {
+                        sql.append(" or recipe_drug_form=:recipeDrugForm ");
+                    }
+                    sql.append(") ");
                 }
                 sql.append(" order by recipeId desc ");
                 Query q = ss.createSQLQuery(sql.toString()).addEntity(Recipe.class);
-                q.setParameterList("doctorId", doctorId);
-                q.setParameter("organId", organId);
-                q.setParameter("recipeSourceType", recipeSourceType);
+                q.setParameterList("doctorId", doctorIds);
+                q.setParameter("organId", doctorRecipeListReqDTO.getOrganId());
+                q.setParameter("recipeSourceType", doctorRecipeListReqDTO.getRecipeType());
                 if (StringUtils.isNotEmpty(keyWord)) {
                     q.setParameter("keyWord", "%" + keyWord + "%");
                 }
-                q.setFirstResult(start);
-                q.setMaxResults(limit);
+                if (Objects.nonNull(recipeType)) {
+                    q.setParameter("recipeType", recipeType);
+                }
+                if (Objects.nonNull(recipeDrugForm)) {
+                    q.setParameter("recipeDrugForm", recipeDrugForm);
+                }
+                q.setFirstResult(doctorRecipeListReqDTO.getStart());
+                q.setMaxResults(doctorRecipeListReqDTO.getLimit());
                 setResult(q.list());
             }
         };

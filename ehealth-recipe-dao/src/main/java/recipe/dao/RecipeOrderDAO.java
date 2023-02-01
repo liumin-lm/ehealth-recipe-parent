@@ -2082,4 +2082,13 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
+
+    /**
+     * 查询推送失败订单
+     * @param startDate
+     * @param endDate
+     * @return
+     */
+    @DAOMethod(sql = "from RecipeOrder where payFlag = 1 and pushFlag = -1 and payTime between :startDate and :endDate", limit = 0)
+    public abstract List<RecipeOrder> findByPushFlag(@DAOParam("startDate") Date startDate, @DAOParam("startDate") Date endDate);
 }
