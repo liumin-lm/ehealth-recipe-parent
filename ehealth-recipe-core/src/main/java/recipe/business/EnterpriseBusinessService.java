@@ -892,9 +892,15 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
         return list;
     }
 
+    @Override
     public List<DrugsEnterpriseVO> findDrugEnterprise(){
         List<DrugsEnterprise> drugsEnterprises = drugsEnterpriseDAO.findAllDrugsEnterpriseByStatus(1);
         return ObjectCopyUtils.convert(drugsEnterprises, DrugsEnterpriseVO.class);
+    }
+
+    @Override
+    public void pushFailOrderNotify() {
+
     }
 
     private Integer getEnterpriseSendFlag(DrugsEnterprise enterprise, CheckOrderAddressVo checkOrderAddressVo) {

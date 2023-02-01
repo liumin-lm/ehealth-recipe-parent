@@ -314,4 +314,9 @@ public interface IEnterpriseBusinessService {
      */
     List<DrugsEnterpriseVO> findDrugEnterprise();
 
+    /**
+     * 推送失败订单提醒任务
+     */
+    void pushFailOrderNotify();
+
 }
