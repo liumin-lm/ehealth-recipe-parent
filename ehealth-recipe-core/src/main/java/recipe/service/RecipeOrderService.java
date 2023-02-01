@@ -1823,19 +1823,19 @@ public class RecipeOrderService extends RecipeBaseService {
 
             //如果订单是到院取药，获取His的处方单支付状态，并更新
             //订单有效
-            if (CollectionUtils.isNotEmpty(recipeList) && order.getEffective() == 1) {
-                for (Recipe recipeItem : recipeList) {
-                    //到院取药  && recipeItem.getStatus() == 2
-                    if (recipeItem.getGiveMode() == 2 && recipeItem.getPayFlag() == 1 && !RecipeStatusEnum.RECIPE_STATUS_FINISH.getType().equals(recipeItem.getStatus())) {
-                        Integer query = recipeHisService.getRecipeSinglePayStatusQuery(recipeItem.getRecipeId());
-                        if (query != null && query == eh.cdr.constant.RecipeStatusConstant.HAVE_PAY) {
-                            recipeItem.setStatus(eh.cdr.constant.RecipeStatusConstant.HAVE_PAY);
-                        } else if (query != null && query == eh.cdr.constant.RecipeStatusConstant.FINISH) {
-                            recipeItem.setStatus(eh.cdr.constant.RecipeStatusConstant.FINISH);
-                        }
-                    }
-                }
-            }
+//            if (CollectionUtils.isNotEmpty(recipeList) && order.getEffective() == 1) {
+//                for (Recipe recipeItem : recipeList) {
+//                    //到院取药  && recipeItem.getStatus() == 2
+//                    if (recipeItem.getGiveMode() == 2 && recipeItem.getPayFlag() == 1 && !RecipeStatusEnum.RECIPE_STATUS_FINISH.getType().equals(recipeItem.getStatus())) {
+//                        Integer query = recipeHisService.getRecipeSinglePayStatusQuery(recipeItem.getRecipeId());
+//                        if (query != null && query == eh.cdr.constant.RecipeStatusConstant.HAVE_PAY) {
+//                            recipeItem.setStatus(eh.cdr.constant.RecipeStatusConstant.HAVE_PAY);
+//                        } else if (query != null && query == eh.cdr.constant.RecipeStatusConstant.FINISH) {
+//                            recipeItem.setStatus(eh.cdr.constant.RecipeStatusConstant.FINISH);
+//                        }
+//                    }
+//                }
+//            }
             String decoctionId = "";
             String decoctionText = "";
             boolean decoctionFlag = true;
