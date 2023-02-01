@@ -41,8 +41,6 @@ import recipe.common.CommonConstant;
 import recipe.common.OnsConfig;
 import recipe.common.UrlConfig;
 import recipe.constant.RecipeBussConstant;
-import recipe.constant.RecipeSystemConstant;
-import recipe.dao.FastRecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RequirementsForTakingDao;
 import recipe.enumerate.status.RecipeAuditStateEnum;
@@ -50,11 +48,9 @@ import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.status.WriteHisEnum;
 import recipe.enumerate.type.AppointEnterpriseTypeEnum;
-import recipe.enumerate.type.FastRecipeFlagEnum;
 import recipe.enumerate.type.RecipeShowQrConfigEnum;
 import recipe.util.*;
 
-import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -92,10 +88,6 @@ public class RecipeManager extends BaseManager {
     private RecipeHisClient recipeHisClient;
     @Autowired
     private RecipeDataSaveFactory recipeDataSaveFactory;
-    @Autowired
-    RevisitManager revisitManager;
-    @Autowired
-    private FastRecipeDAO fastRecipeDAO;
     @Autowired
     private RecipeDetailDAO recipeDetailDAO;
     @Autowired
@@ -440,13 +432,6 @@ public class RecipeManager extends BaseManager {
             recipeCancel.setCancelDate(new Date());
             return recipeCancel;
         }
-//        List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatus(recipeId, RecipeStatusConstant.REVOKE);
-//        if (CollectionUtils.isNotEmpty(recipeLogs)) {
-//            cancelReason = recipeLogs.get(0).getMemo();
-//            cancelDate = recipeLogs.get(0).getModifyDate();
-//        }
-//        recipeCancel.setCancelDate(cancelDate);
-//        recipeCancel.setCancelReason("");
         return recipeCancel;
     }
 
@@ -1357,7 +1342,7 @@ public class RecipeManager extends BaseManager {
                 logger.info("addRecipeNotify already notify recipeId:{} ,orderStatus:{} ", recipeId,orderStatus);
                 return;
             }
-            redisClient.setEX(redisKey,30 * 24 * 3600L,String.valueOf(recipeId));
+            redisClient.setEX(redisKey, 30 * 24 * 3600L, String.valueOf(recipeId));
             RecipeDTO recipeDTO = super.getRecipeDTO(recipeId);
             com.ngari.platform.recipe.mode.RecipeInfoDTO recipeDTO1=new com.ngari.platform.recipe.mode.RecipeInfoDTO();
             BeanUtils.copyProperties(recipeDTO, recipeDTO1);
@@ -1367,5 +1352,96 @@ public class RecipeManager extends BaseManager {
         } catch (Exception e) {
             logger.error("addRecipeNotify sendMsgToMq can't send to MQ,  busId:{}", recipeId, e);
         }
+    }
+
+    /**
+     * his回写处方数据更新表字段
+     *
+     * @param recipeId
+     * @param recipeCode
+     * @param patientId
+     * @param writeHisState
+     * @param amount
+     * @param recipeFee
+     * @param detailSize
+     */
+    public void sendSuccessRecipe(Integer recipeId, String recipeCode, String patientId, Integer writeHisState,
+                                  String amount, BigDecimal recipeFee, Integer detailSize) {
+
+        Recipe recipe = recipeDAO.get(recipeId);
+
+        Recipe updateRecipe = new Recipe();
+        updateRecipe.setRecipeId(recipe.getRecipeId());
+        //医院处方号
+        if (StringUtils.isNotEmpty(recipeCode)) {
+            updateRecipe.setRecipeCode(recipeCode);
+        }
+        //病人医院病历号
+        if (StringUtils.isNotEmpty(patientId) && StringUtils.isEmpty(recipe.getPatientID())) {
+            updateRecipe.setPatientID(patientId);
+        }
+        //医保处方处理
+        if (Integer.valueOf(1).equals(recipe.getMedicalFlag())) {
+            updateRecipe.setGiveMode(RecipeBussConstant.GIVEMODE_SEND_TO_HOME);
+        }
+        updateRecipe.setWriteHisState(null == writeHisState ? WriteHisEnum.WRITE_HIS_STATE_ORDER.getType() : writeHisState);
+        //医院处方费
+        BigDecimal totalMoney = null;
+        if (StringUtils.isNotEmpty(amount)) {
+            totalMoney = new BigDecimal(amount);
+        }
+        if (Objects.nonNull(recipeFee)) {
+            totalMoney = recipeFee;
+        }
+        List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
+        //处方总金额， 外带药处方不做处理
+        if (null != totalMoney) {
+            if (recipeDetails.size() == detailSize) {
+                updateRecipe.setTotalMoney(totalMoney);
+                updateRecipe.setActualPrice(totalMoney);
+            }
+        } else {
+            BigDecimal money = drugClient.totalMoney(recipe.getRecipeType(), recipeDetails, recipe);
+            updateRecipe.setTotalMoney(money);
+            updateRecipe.setActualPrice(money);
+        }
+        recipeDAO.updateNonNullFieldByPrimaryKey(updateRecipe);
+        super.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "HIS审核返回：写入his成功，审核通过");
+    }
+
+    /**
+     * his回写处方数据更新表字段
+     *
+     * @param recipeId
+     * @param recipeCostNumber
+     * @param pharmNo
+     * @param hisOrderCode
+     * @param hisDiseaseSerial
+     */
+    public void sendSuccessRecipeExt(Integer recipeId, String recipeCostNumber, String pharmNo, String hisOrderCode, String hisDiseaseSerial
+            , String registerId, String medicalType, String medicalTypeText) {
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+        if (null == recipeExtend) {
+            return;
+        }
+        RecipeExtend updateRecipeExtend = new RecipeExtend();
+        // 将取药窗口更新到ext表
+        updateRecipeExtend.setPharmNo(pharmNo);
+        updateRecipeExtend.setRecipeId(recipeId);
+        updateRecipeExtend.setRecipeCostNumber(recipeCostNumber);
+        updateRecipeExtend.setHisOrderCode(hisOrderCode);
+        if (StringUtils.isNotEmpty(hisDiseaseSerial)) {
+            updateRecipeExtend.setHisDiseaseSerial(hisDiseaseSerial);
+        }
+        if (StringUtils.isNotEmpty(registerId) && StringUtils.isEmpty(recipeExtend.getRegisterID())) {
+            updateRecipeExtend.setRegisterID(registerId);
+        }
+        if (StringUtils.isNotEmpty(medicalType) && StringUtils.isEmpty(recipeExtend.getMedicalType())) {
+            updateRecipeExtend.setMedicalType(medicalType);
+        }
+        if (StringUtils.isNotEmpty(medicalTypeText) && StringUtils.isEmpty(recipeExtend.getMedicalTypeText())) {
+            updateRecipeExtend.setMedicalTypeText(medicalTypeText);
+        }
+        recipeExtendDAO.updateNonNullFieldByPrimaryKey(recipeExtend);
     }
 }

@@ -64,6 +64,7 @@ import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.RevisitBean;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.service.IRevisitExService;
+import com.ngari.revisit.process.service.IRecipeOnLineRevisitService;
 import ctd.account.Client;
 import ctd.account.UserRoleToken;
 import ctd.controller.exception.ControllerException;
@@ -102,6 +103,8 @@ import recipe.client.PatientClient;
 import recipe.client.RevisitClient;
 import recipe.client.SmsClient;
 import recipe.constant.*;
+import recipe.core.api.IRecipeBusinessService;
+import recipe.core.api.IRecipeDetailBusinessService;
 import recipe.dao.*;
 import recipe.dao.sign.SignDoctorRecipeInfoDAO;
 import recipe.drugsenterprise.CommonRemoteService;
@@ -123,7 +126,6 @@ import recipe.service.recipereportforms.RecipeReportFormsService;
 import recipe.serviceprovider.BaseService;
 import recipe.thread.PushRecipeToRegulationCallable;
 import recipe.thread.RecipeBusiThreadPool;
-import recipe.thread.RecipeSendFailRunnable;
 import recipe.thread.RecipeSendSuccessRunnable;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
@@ -213,30 +215,90 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     private CaBusinessService CaBusinessService;
     @Autowired
     private RecipeBeforeOrderDAO recipeBeforeOrderDAO;
-
+    @Autowired
+    private EmrRecipeManager emrRecipeManager;
 
     @RpcService
     @Override
     public void sendSuccess(RecipeBussReqTO request) {
         LOGGER.info("RemoteRecipeService sendSuccess request ： {} ", JSON.toJSONString(request));
-        if (null != request.getData()) {
-            HisSendResTO response = (HisSendResTO) request.getData();
-            boolean isWriteHis = recipeManager.recipeWriteHis(Integer.valueOf(response.getRecipeId()));
-            if (isWriteHis) {
-                return;
-            }
-            RecipeBusiThreadPool.execute(new RecipeSendSuccessRunnable(response));
+        if (null == request || null == request.getData()) {
+            return;
         }
+        HisSendResTO response = (HisSendResTO) request.getData();
+        if (null == response || null == response.getData() || StringUtils.isEmpty(response.getRecipeId())) {
+            return;
+        }
+        RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
+        Recipe recipe = recipeDAO.get(Integer.valueOf(response.getRecipeId()));
+        if (null == recipe) {
+            return;
+        }
+        boolean isWriteHis = recipeManager.recipeWriteHis(recipe.getRecipeId());
+        if (isWriteHis) {
+            return;
+        }
+        RecipeBusiThreadPool.execute(new RecipeSendSuccessRunnable(response));
+
+
+        //药品数据 根据his返回更新
+        IRecipeDetailBusinessService recipeDetailBusinessService = AppContextHolder.getBean("recipeDetailBusinessService", IRecipeDetailBusinessService.class);
+        List<Recipedetail> recipeDetails = recipeDetailBusinessService.sendSuccessDetail(response);
+
+        //处方数据 根据his返回更新
+        IRecipeBusinessService recipeBusinessService = AppContextHolder.getBean("recipeBusinessService", IRecipeBusinessService.class);
+        recipeBusinessService.sendSuccessRecipe(response);
+
+        /**更新药品最新的价格等*/
+        OrganDrugListService organDrugListService = ApplicationUtils.getRecipeService(OrganDrugListService.class);
+        recipeDetails.forEach(a -> organDrugListService.saveOrganDrug(recipe.getClinicOrgan(), a));
+        try {
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(Integer.parseInt(response.getRecipeId()));
+            //将药品信息加入电子病历中
+            emrRecipeManager.upDocIndex(recipeExtend.getRecipeId(), recipeExtend.getDocIndexId());
+        } catch (Exception e) {
+            LOGGER.error("修改电子病例使用状态失败 ", e);
+        }
+
+        //ca签名处理
+        recipeService.retryDoctorSignCheck(recipe.getRecipeId());
     }
 
     @RpcService
     @Override
     public void sendFail(RecipeBussReqTO request) {
-        if (null != request.getData()) {
-            HisSendResTO response = (HisSendResTO) request.getData();
-//            service.sendFail(response);
-            //异步处理回调方法，避免超时
-            RecipeBusiThreadPool.execute(new RecipeSendFailRunnable(response));
+        if (null == request || null == request.getData()) {
+            return;
+        }
+        HisSendResTO response = (HisSendResTO) request.getData();
+        //异步处理回调方法，避免超时
+        //RecipeBusiThreadPool.execute(new RecipeSendFailRunnable(response));
+        LOGGER.info("recipeSend recive fail. recipeId={}, response={}", response.getRecipeId(), JSONUtils.toString(response));
+        if (StringUtils.isEmpty(response.getRecipeId())) {
+            return;
+        }
+        Integer recipeId = Integer.valueOf(response.getRecipeId());
+        //日志记录
+        RecipeLogService.saveRecipeLog(recipeId, RecipeStatusEnum.RECIPE_STATUS_CHECKING_HOS.getType(), RecipeStatusEnum.RECIPE_STATUS_HIS_FAIL.getType()
+                , "HIS审核返回：写入his失败[" + response.getMsgCode() + ":|" + response.getMsg() + "]");
+        Recipe updateRecipe = new Recipe();
+        updateRecipe.setRecipeId(recipeId);
+        updateRecipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_HIS_FAIL.getType());
+        updateRecipe.setWriteHisState(WriteHisEnum.WRITE_HIS_STATE_AUDIT.getType());
+        recipeDAO.updateNonNullFieldByPrimaryKey(updateRecipe);
+        RecipeExtend recipeExtend = new RecipeExtend();
+        recipeExtend.setRecipeId(recipeId);
+        recipeExtend.setCancellation(response.getMsg());
+        recipeExtendDAO.updateNonNullFieldByPrimaryKey(recipeExtend);
+        stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_WRITE_HIS_NOT_ORDER);
+        //发送消息
+        RecipeMsgService.batchSendMsg(recipeId, RecipeStatusEnum.RECIPE_STATUS_HIS_FAIL.getType());
+        //复诊开方HIS确认失败 发送环信消息
+        Recipe recipe = recipeDAO.get(recipeId);
+        if (null != recipe && new Integer(2).equals(recipe.getBussSource())) {
+            LOGGER.info("checkPassFail 复诊开方HIS确认失败 发送环信消息 recipeId:{}", recipeId);
+            IRecipeOnLineRevisitService recipeOnLineRevisitService = RevisitAPI.getService(IRecipeOnLineRevisitService.class);
+            recipeOnLineRevisitService.sendRecipeDefeat(recipe.getRecipeId(), recipe.getClinicId());
         }
     }
 
