@@ -393,7 +393,7 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "支付回调返回的医保出参，含医保编号")
     private String medicalInsurance;
 
-    @ItemProperty(alias = "订单物流状态 0: 默认 1 待发药 2 配送中 3 待取药")
+    @ItemProperty(alias = "订单物流状态 0: 默认 1 待发药 2 配送中 3 待取药 4 完成")
     @Dictionary(id = "eh.recipe.orderLogisticsState")
     private Integer logisticsState;
 

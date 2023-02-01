@@ -1,5 +1,6 @@
 package recipe.serviceprovider.recipeorder.service;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
@@ -366,12 +367,12 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
             throw new DAOException(DAOException.VALUE_NEEDED, "物流公司、编号、状态值不能为空");
         }
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-        String orderCode = recipeOrderDAO.getOrderCodeByLogisticsCompanyAndTrackingNumber(Integer.parseInt(trannckingReqTO.getLogisticsCompany()), trannckingReqTO.getTrackingNumber());
-        LOGGER.info("updateRecipeTrannckingInfo.queryRecipeOrderCode={}", orderCode);
+        List<String> orderCodes = recipeOrderDAO.findOrderCodeByLogisticsCompanyAndTrackingNumber(Integer.parseInt(trannckingReqTO.getLogisticsCompany()), trannckingReqTO.getTrackingNumber());
+        LOGGER.info("updateRecipeTrannckingInfo.queryRecipeOrderCode={}", JSON.toJSONString(orderCodes));
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         try {
-            if (StringUtils.isNotBlank(orderCode)) {
-                List<Recipe> recipeList = recipeDAO.findRecipeListByOrderCode(orderCode);
+            if (CollectionUtils.isNotEmpty(orderCodes)) {
+                List<Recipe> recipeList = recipeDAO.findByOrderCode(orderCodes);
                 LOGGER.info("updateRecipeTrannckingInfo.queryRcipe={}", JSONObject.toJSONString(recipeList));
                 if (recipeList.size() > 0) {
                     Recipe recipe = recipeList.get(0);
