@@ -57,6 +57,7 @@ public enum OrderStateEnum {
     SUB_CANCELLATION_USER(97, "用户取消", "患者手动取消"),
     SUB_CANCELLATION_OTHER(98, "其他原因取消订单", ""),
     SUB_CANCELLATION_REFUND(99, "处方已退费成功", ""),
+    SUB_CANCELLATION_REFUND_FAIL(100, "处方退费失败", ""),
     ;
 
     private Integer type;
