@@ -1750,6 +1750,18 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         if (null != recipeOrderRefundReqDTO.getDepId()) {
             query.setParameter("depId", depId);
         }
+        if (null != recipeOrderRefundReqDTO.getGiveModeKey()) {
+            query.setParameter("giveModeKey", recipeOrderRefundReqDTO.getGiveModeKey());
+        }
+        if (null != recipeOrderRefundReqDTO.getLogisticsCompany()) {
+            query.setParameter("logisticsCompany", recipeOrderRefundReqDTO.getLogisticsCompany());
+        }
+        if (null != recipeOrderRefundReqDTO.getTrackingNumber()) {
+            query.setParameter("trackingNumber", recipeOrderRefundReqDTO.getTrackingNumber());
+        }
+        if (null != recipeOrderRefundReqDTO.getLogisticsState()) {
+            query.setParameter("logisticsState", recipeOrderRefundReqDTO.getLogisticsState());
+        }
     }
 
     private StringBuilder generateWaitApplyRecipeHQL(RecipeOrderRefundReqDTO recipeOrderRefundReqDTO) {
@@ -1871,6 +1883,18 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
             }else{
                 hql.append(" AND (a.print_express_bill_flag = 0 or a.print_express_bill_flag is null) ");
             }
+        }
+        if(null != recipeOrderRefundReqDTO.getGiveModeKey()){
+            hql.append(" AND a.giveModeKey =:giveModeKey ");
+        }
+        if(null != recipeOrderRefundReqDTO.getLogisticsCompany()){
+            hql.append(" AND a.LogisticsCompany =:logisticsCompany ");
+        }
+        if(null != recipeOrderRefundReqDTO.getLogisticsState()){
+            hql.append(" AND a.logistics_state =:logisticsState ");
+        }
+        if(null != recipeOrderRefundReqDTO.getTrackingNumber()){
+            hql.append(" AND a.TrackingNumber =:trackingNumber ");
         }
         logger.info("RecipeOrderDAO getRefundStringBuilder hql:{}", hql);
         return hql;
