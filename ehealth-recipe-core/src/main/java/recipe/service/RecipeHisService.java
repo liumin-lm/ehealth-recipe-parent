@@ -144,7 +144,6 @@ public class RecipeHisService extends RecipeBaseService {
     private DrugOrganConfigDAO drugOrganConfigDao;
     @Autowired
     protected RecipeOrderDAO recipeOrderDAO;
-
     /**
      * 发送处方
      *
@@ -675,6 +674,15 @@ public class RecipeHisService extends RecipeBaseService {
             List<RecipeListQueryReqTO> requestList = new ArrayList<>();
             for (String recipeCode : recipeCodes) {
                 Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeCode, organId);
+                if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
+                    RecipeOrder order = orderDAO.getByOrderCode(recipe.getOrderCode());
+                    if (Objects.nonNull(order)) {
+                        Integer payQuery = payClient.payQuery(order.getOrderId());
+                        if (new Integer(1).equals(payQuery)) {
+                            continue;
+                        }
+                    }
+                }
                 if (RecipeStateEnum.PROCESS_STATE_CANCELLATION.getType().equals(recipe.getProcessState())) {
                     LOGGER.info("recipeListQuery 当前处方已经在平台撤销 recipeId:{}", recipe.getRecipeId());
                     continue;

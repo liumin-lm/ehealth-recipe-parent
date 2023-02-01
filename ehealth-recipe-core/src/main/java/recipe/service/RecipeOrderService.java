@@ -409,26 +409,6 @@ public class RecipeOrderService extends RecipeBaseService {
             order.setOrganId(firstRecipe.getClinicOrgan());
             order.setOrderCode(this.getOrderCode(order.getMpiId()));
             order.setStatus(OrderStatusConstant.READY_PAY);
-            //设置订单是否冷链运输
-//            try {
-//                List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeIds(recipeIds);
-//                if(recipeDetailList.size() > 0){
-//                    List<String> organDrugCodeList = recipeDetailList.stream().map(Recipedetail::getOrganDrugCode).collect(Collectors.toList());
-//                    List<OrganDrugList> organDrugListList = organDrugListDAO.findByOrganIdAndDrugCodes(firstRecipe.getClinicOrgan(), organDrugCodeList);
-//                    LOGGER.info("处理是否冷链运输标志 organDrugListList={}",JSONUtils.toString(organDrugListList));
-//                    if(organDrugListList.size() > 0){
-//                        List<Integer> coldChainTransportationFlags = organDrugListList.stream().map(OrganDrugList::getColdChainTransportationFlag).collect(Collectors.toList());
-//                        LOGGER.info("处理是否冷链运输标志 coldChainTransportationFlags={}",JSONUtils.toString(coldChainTransportationFlags));
-//                        if(coldChainTransportationFlags.contains(1)){
-//                            order.setColdChainTransportationFlag(1);
-//                        }else {
-//                            order.setColdChainTransportationFlag(0);
-//                        }
-//                    }
-//                }
-//            }catch (Exception e){
-//                LOGGER.error("处理是否冷链运输标志出错", e);
-//            }
 
             //设置中药代建费
             Integer decoctionId = MapValueUtil.getInteger(extInfo, "decoctionId");
@@ -457,7 +437,6 @@ public class RecipeOrderService extends RecipeBaseService {
                 order.setRecipeFee(BigDecimal.ZERO);
                 order.setCouponFee(BigDecimal.ZERO);
                 order.setRegisterFee(BigDecimal.ZERO);
-//                order.setExpressFee(new BigDecimal("-1"));
                 order.setTotalFee(BigDecimal.ZERO);
                 order.setActualPrice(BigDecimal.ZERO.doubleValue());
                 double auditFee = getFee(configurationCenterUtilsService.getConfiguration(firstRecipe.getClinicOrgan(), ParameterConstant.KEY_AUDITFEE));
@@ -767,7 +746,12 @@ public class RecipeOrderService extends RecipeBaseService {
         }
         //快递费线上支付的需要计算是否满足包邮
         orderFeeManager.setExpressFee(order);
-
+        //设置合并物流单号
+        String mergeTrackingNumber = orderManager.getMergeTrackingNumber(order);
+        if (StringUtils.isNotEmpty(mergeTrackingNumber)) {
+            order.setTrackingNumber(mergeTrackingNumber);
+            order.setExpressFee(BigDecimal.ZERO);
+        }
         // 更新处方代缴费用
         orderFeeManager.setRecipePaymentFee(order, recipeList);
         order.setTotalFee(countOrderTotalFeeByRecipeInfo(order, firstRecipe, payModeSupport,toDbFlag));
@@ -1839,19 +1823,19 @@ public class RecipeOrderService extends RecipeBaseService {
 
             //如果订单是到院取药，获取His的处方单支付状态，并更新
             //订单有效
-            if (CollectionUtils.isNotEmpty(recipeList) && order.getEffective() == 1) {
-                for (Recipe recipeItem : recipeList) {
-                    //到院取药  && recipeItem.getStatus() == 2
-                    if (recipeItem.getGiveMode() == 2 && recipeItem.getPayFlag() == 1 && !RecipeStatusEnum.RECIPE_STATUS_FINISH.getType().equals(recipeItem.getStatus())) {
-                        Integer query = recipeHisService.getRecipeSinglePayStatusQuery(recipeItem.getRecipeId());
-                        if (query != null && query == eh.cdr.constant.RecipeStatusConstant.HAVE_PAY) {
-                            recipeItem.setStatus(eh.cdr.constant.RecipeStatusConstant.HAVE_PAY);
-                        } else if (query != null && query == eh.cdr.constant.RecipeStatusConstant.FINISH) {
-                            recipeItem.setStatus(eh.cdr.constant.RecipeStatusConstant.FINISH);
-                        }
-                    }
-                }
-            }
+//            if (CollectionUtils.isNotEmpty(recipeList) && order.getEffective() == 1) {
+//                for (Recipe recipeItem : recipeList) {
+//                    //到院取药  && recipeItem.getStatus() == 2
+//                    if (recipeItem.getGiveMode() == 2 && recipeItem.getPayFlag() == 1 && !RecipeStatusEnum.RECIPE_STATUS_FINISH.getType().equals(recipeItem.getStatus())) {
+//                        Integer query = recipeHisService.getRecipeSinglePayStatusQuery(recipeItem.getRecipeId());
+//                        if (query != null && query == eh.cdr.constant.RecipeStatusConstant.HAVE_PAY) {
+//                            recipeItem.setStatus(eh.cdr.constant.RecipeStatusConstant.HAVE_PAY);
+//                        } else if (query != null && query == eh.cdr.constant.RecipeStatusConstant.FINISH) {
+//                            recipeItem.setStatus(eh.cdr.constant.RecipeStatusConstant.FINISH);
+//                        }
+//                    }
+//                }
+//            }
             String decoctionId = "";
             String decoctionText = "";
             boolean decoctionFlag = true;

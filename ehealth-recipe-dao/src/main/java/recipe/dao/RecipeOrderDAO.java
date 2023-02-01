@@ -461,7 +461,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
      * @return
      */
     @DAOMethod(sql = "select orderCode from RecipeOrder order  where order.logisticsCompany=:logisticsCompany and order.trackingNumber=:trackingNumber")
-    public abstract String getOrderCodeByLogisticsCompanyAndTrackingNumber(@DAOParam("logisticsCompany") Integer logisticsCompany,
+    public abstract List<String> findOrderCodeByLogisticsCompanyAndTrackingNumber(@DAOParam("logisticsCompany") Integer logisticsCompany,
                                                                            @DAOParam("trackingNumber") String trackingNumber);
 
     /**
@@ -1750,6 +1750,18 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         if (null != recipeOrderRefundReqDTO.getDepId()) {
             query.setParameter("depId", depId);
         }
+        if (null != recipeOrderRefundReqDTO.getGiveModeKey()) {
+            query.setParameter("giveModeKey", recipeOrderRefundReqDTO.getGiveModeKey());
+        }
+        if (null != recipeOrderRefundReqDTO.getLogisticsCompany()) {
+            query.setParameter("logisticsCompany", recipeOrderRefundReqDTO.getLogisticsCompany());
+        }
+        if (null != recipeOrderRefundReqDTO.getTrackingNumber()) {
+            query.setParameter("trackingNumber", recipeOrderRefundReqDTO.getTrackingNumber());
+        }
+        if (null != recipeOrderRefundReqDTO.getLogisticsState()) {
+            query.setParameter("logisticsState", recipeOrderRefundReqDTO.getLogisticsState());
+        }
     }
 
     private StringBuilder generateWaitApplyRecipeHQL(RecipeOrderRefundReqDTO recipeOrderRefundReqDTO) {
@@ -1871,6 +1883,18 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
             }else{
                 hql.append(" AND (a.print_express_bill_flag = 0 or a.print_express_bill_flag is null) ");
             }
+        }
+        if(null != recipeOrderRefundReqDTO.getGiveModeKey()){
+            hql.append(" AND a.giveModeKey =:giveModeKey ");
+        }
+        if(null != recipeOrderRefundReqDTO.getLogisticsCompany()){
+            hql.append(" AND a.LogisticsCompany =:logisticsCompany ");
+        }
+        if(null != recipeOrderRefundReqDTO.getLogisticsState()){
+            hql.append(" AND a.logistics_state =:logisticsState ");
+        }
+        if(null != recipeOrderRefundReqDTO.getTrackingNumber()){
+            hql.append(" AND a.TrackingNumber =:trackingNumber ");
         }
         logger.info("RecipeOrderDAO getRefundStringBuilder hql:{}", hql);
         return hql;
@@ -2033,4 +2057,38 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
      */
     @DAOMethod(sql = "from RecipeOrder where effective=1 and payFlag=0 and OrganId=:organId and processState=1")
     public abstract List<RecipeOrder> findByOrganIdAndPayStatus(@DAOParam("organId")Integer organId);
+
+    /**
+     * 查询可以合并的订单
+     * @param mpiId
+     * @param startDate
+     * @param endDate
+     * @return
+     */
+    public List<RecipeOrder> findCanMergeRecipeOrder(String mpiId, Date startDate, Date endDate) {
+        HibernateStatelessResultAction<List<RecipeOrder>> action = new AbstractHibernateStatelessResultAction<List<RecipeOrder>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                String sql = "select a from RecipeOrder a,Recipe b where a.orderCode = b.orderCode and a.payFlag = 1 and a.effective = 1 and a.processState = 3 " +
+                        " and b.requestMpiId =:mpiId and a.trackingNumber is not null and a.payTime between :startDate and :endDate ";
+                Query q = ss.createQuery(sql);
+                q.setParameter("mpiId", mpiId);
+                q.setParameter("startDate", startDate);
+                q.setParameter("endDate", endDate);
+                setResult(q.list());
+            }
+        };
+
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
+    /**
+     * 查询推送失败订单
+     * @param startDate
+     * @param endDate
+     * @return
+     */
+    @DAOMethod(sql = "from RecipeOrder where payFlag = 1 and pushFlag = -1 and payTime between :startDate and :endDate", limit = 0)
+    public abstract List<RecipeOrder> findByPushFlag(@DAOParam("startDate") Date startDate, @DAOParam("startDate") Date endDate);
 }

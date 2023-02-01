@@ -40,6 +40,7 @@ import recipe.manager.*;
 import recipe.presettle.factory.OrderTypeFactory;
 import recipe.presettle.model.OrderTypeCreateConditionRequest;
 import recipe.service.RecipeOrderService;
+import recipe.util.DateConversion;
 import recipe.util.DistanceUtil;
 import recipe.util.MapValueUtil;
 
@@ -223,6 +224,9 @@ public class PayModeToHos implements IPurchaseService {
             payModeNew = 1;
         }
         order.setPayMode(payModeNew);
+        if(StringUtils.isNotEmpty(MapValueUtil.getString(extInfo, "revisitRemindTime")))   {
+            order.setRevisitRemindTime(DateConversion.parseDate(MapValueUtil.getString(extInfo, "revisitRemindTime"),DateConversion.DEFAULT_DATE_TIME));
+        }
         boolean saveFlag = orderService.saveOrderToDB(order, dbRecipes, payMode, result, recipeDAO, orderDAO);
         if (!saveFlag) {
             result.setCode(RecipeResultBean.FAIL);

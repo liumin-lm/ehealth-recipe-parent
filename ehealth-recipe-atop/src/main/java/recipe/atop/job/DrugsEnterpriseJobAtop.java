@@ -23,4 +23,12 @@ public class DrugsEnterpriseJobAtop extends BaseAtop {
     public void rePushRecipeToDrugsEnterprise() {
         enterpriseBusinessService.rePushRecipeToDrugsEnterprise();
     }
+
+    /**
+     * 推送失败订单提醒任务
+     */
+    @RpcService
+    public void pushFailOrderNotify() {
+
+    }
 }

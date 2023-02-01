@@ -7,8 +7,12 @@ import org.joda.time.LocalDate;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author yuyun
@@ -328,6 +332,26 @@ public class DateConversion
 		//当前日期 的月份的最后一天
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 		return sdf.format(lastDateMonth.getTime()) + " 23:59:59";
+	}
+
+	public static Date minusDays(LocalDateTime localDateTime,Integer days,Integer addDays){
+		return localDateTimeFormatDate(localDateTime.plusDays(days).minusDays(addDays));
+	}
+
+	public static Date localDateTimeFormatDate(LocalDateTime localDateTime){
+		return Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
+	}
+
+
+	/**
+	 * 获取指定拼接时间
+	 * @param time
+	 * @return
+	 */
+	public static String getDesignateDate (String time) {
+		String shortDate = getDateFormatter(new Date(), DateConversion.YYYY_MM_DD);
+		String longDate = shortDate + " " + time + ":00";
+		return longDate;
 	}
 
 }

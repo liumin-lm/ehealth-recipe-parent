@@ -22,6 +22,7 @@ import recipe.vo.second.OrderPharmacyVO;
 import recipe.vo.second.enterpriseOrder.DownOrderRequestVO;
 import recipe.vo.second.enterpriseOrder.EnterpriseDownDataVO;
 
+import java.util.Date;
 import java.util.List;
 
 public interface IRecipeOrderBusinessService {
@@ -316,4 +317,14 @@ public interface IRecipeOrderBusinessService {
      * @return
      */
     String refundResultNotify(RefundResultNotifyVO refundResultNotifyVO);
+
+    Date getRevisitRemindTime(String orderCode);
+
+    /**
+     * 是否可合并物流单
+     * @param addressId 收货地址
+     * @param enterpriseId 药企ID
+     * @return 是否可以合并
+     */
+    Boolean mergeTrackingNumber(Integer addressId, Integer enterpriseId, Integer recipeId);
 }

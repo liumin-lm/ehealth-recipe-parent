@@ -46,13 +46,21 @@ public enum RecipeDrugFormTypeEnum {
         return "";
     }
 
-    public static Integer getDrugFormType(String desc){
-
+    public static Integer getDrugFormType(String desc) {
         if (StringUtils.isEmpty(desc)) {
             return TCM_DECOCTION_PIECES.type;
         }
         for (RecipeDrugFormTypeEnum e : RecipeDrugFormTypeEnum.values()) {
             if (e.desc.equals(desc)) {
+                return e.type;
+            }
+        }
+        return null;
+    }
+
+    public static Integer getDrugFormName(String name) {
+        for (RecipeDrugFormTypeEnum e : RecipeDrugFormTypeEnum.values()) {
+            if (e.name.equals(name) || e.name.contains(name)) {
                 return e.type;
             }
         }

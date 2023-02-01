@@ -563,9 +563,9 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
     }
 
     @Override
-    public Boolean updateFastRecipeSalePriceAndTotalMoney(List<Integer> fastRecipeIdList,Integer organId) {
-        logger.info("fastRecipeService updateFastRecipeSalePriceAndTotalPrice fastRecipeIdList={},organId={}", JsonUtil.toString(fastRecipeIdList),organId);
-        return fastRecipeManager.updateFastRecipeSalePriceAndTotalMoney(fastRecipeIdList,organId);
+    public Boolean updateFastRecipeSalePriceAndTotalMoney(List<Integer> fastRecipeIdList) {
+        logger.info("fastRecipeService updateFastRecipeSalePriceAndTotalPrice fastRecipeIdList={}", JsonUtil.toString(fastRecipeIdList));
+        return fastRecipeManager.updateFastRecipeSalePriceAndTotalMoney(fastRecipeIdList);
     }
 
 }
