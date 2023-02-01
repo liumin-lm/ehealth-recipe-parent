@@ -900,7 +900,19 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
 
     @Override
     public void pushFailOrderNotify() {
+        Date startDate = DateConversion.getDateAftXDays(new Date(), -1);
+        List<RecipeOrder> recipeOrderList = recipeOrderDAO.findByPushFlag(startDate, new Date());
+        List<Integer> enterpriseIdList = recipeOrderList.stream().map(RecipeOrder::getEnterpriseId).collect(Collectors.toList());
+        List<DrugsEnterprise> drugsEnterprises = drugsEnterpriseDAO.findByIds(enterpriseIdList);
+        Map<Integer, DrugsEnterprise> drugsEnterpriseMap = drugsEnterprises.stream().collect(Collectors.toMap(DrugsEnterprise::getId, a -> a, (k1, k2) -> k1));
+        Map<Integer, List<RecipeOrder>> recipeOrderMap = recipeOrderList.stream().collect(Collectors.groupingBy(RecipeOrder::getEnterpriseId));
+        Iterator<Integer> iterator = recipeOrderMap.keySet().iterator();
+        while (iterator.hasNext()) {
+            Integer  enterpriseId = iterator.next();
+            DrugsEnterprise drugsEnterprise = drugsEnterpriseMap.get(enterpriseId);
+            //消息推送
 
+        }
     }
 
     private Integer getEnterpriseSendFlag(DrugsEnterprise enterprise, CheckOrderAddressVo checkOrderAddressVo) {
