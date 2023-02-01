@@ -13,6 +13,7 @@ import java.io.Serializable;
 @Data
 public class DoctorRecipeListReqDTO implements Serializable {
 
+    private static final long serialVersionUID = 4640454693303329961L;
 
     @ItemProperty(alias = "医生id")
     private Integer doctorId;
