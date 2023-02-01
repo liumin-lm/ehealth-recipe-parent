@@ -15,6 +15,7 @@ import com.ngari.platform.recipe.mode.*;
 import com.ngari.recipe.dto.EmrDetailDTO;
 import com.ngari.recipe.dto.RecipeDTO;
 import com.ngari.recipe.dto.*;
+import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.revisit.RevisitBean;
 import com.ngari.revisit.common.model.RevisitExDTO;
@@ -1358,7 +1359,7 @@ public class RecipeManager extends BaseManager {
             }
             redisClient.setEX(redisKey,30 * 24 * 3600L,String.valueOf(recipeId));
             RecipeDTO recipeDTO = super.getRecipeDTO(recipeId);
-            com.ngari.platform.recipe.mode.RecipeDTO recipeDTO1=new com.ngari.platform.recipe.mode.RecipeDTO();
+            com.ngari.platform.recipe.mode.RecipeInfoDTO recipeDTO1=new com.ngari.platform.recipe.mode.RecipeInfoDTO();
             BeanUtils.copyProperties(recipeDTO, recipeDTO1);
             logger.info("addRecipeNotify sendMsgToMq send to MQ start, busId:{}，param:{}", recipeId, JSONUtils.toString(recipeDTO1));
             MQHelper.getMqPublisher().publish(OnsConfig.addRecipeTopic, recipeDTO1, null);
