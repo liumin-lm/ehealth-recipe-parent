@@ -319,4 +319,12 @@ public interface IRecipeOrderBusinessService {
     String refundResultNotify(RefundResultNotifyVO refundResultNotifyVO);
 
     Date getRevisitRemindTime(Integer orderId);
+
+    /**
+     * 是否可合并物流单
+     * @param addressId 收货地址
+     * @param enterpriseId 药企ID
+     * @return 是否可以合并
+     */
+    Boolean mergeTrackingNumber(Integer addressId, Integer enterpriseId, Integer recipeId);
 }
