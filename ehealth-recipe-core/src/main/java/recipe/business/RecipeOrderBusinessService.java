@@ -1878,14 +1878,14 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
     }
 
     @Override
-    public Date getRevisitRemindTime(Integer orderId) {
+    public Date getRevisitRemindTime(String orderCode) {
         try {
             List<Date> remindDates = new ArrayList<>();
             Date sourceTime = new Date();
             List<String> revisitRementAppointDepart =new ArrayList<>();
             //订单支付日期
-            RecipeOrder recipeOrder = recipeOrderDAO.get(orderId);
-            List<Recipe> recipes = recipeDAO.findRecipeListByOrderCode(recipeOrder.getOrderCode());
+            RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(orderCode);
+            List<Recipe> recipes = recipeDAO.findRecipeListByOrderCode(orderCode);
             List<Integer> recipeIds = recipes.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
             List<Recipe> tcmRecipeList = recipes.stream().filter(recipe -> RecipeTypeEnum.RECIPETYPE_TCM.getType().equals(recipe.getRecipeType())).collect(Collectors.toList());
             List<RecipeExtend> recipeExtendList = recipeExtendDAO.queryRecipeExtendByRecipeIds(recipeIds);

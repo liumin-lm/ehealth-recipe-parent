@@ -313,13 +313,13 @@ public class RecipeOrderPatientAtop extends BaseAtop {
 
     /**
      * 获取复诊提醒时间
-     * @param orderId
+     * @param orderCode
      * @return
      */
     @RpcService
-    public Date getRevisitRemindTime(Integer orderId){
-        validateAtop(orderId);
-        return recipeOrderService.getRevisitRemindTime(orderId);
+    public Date getRevisitRemindTime(String orderCode){
+        validateAtop(orderCode);
+        return recipeOrderService.getRevisitRemindTime(orderCode);
     }
 
     /**

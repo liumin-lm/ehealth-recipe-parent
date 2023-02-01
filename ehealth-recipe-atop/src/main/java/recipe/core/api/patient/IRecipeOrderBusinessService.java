@@ -318,7 +318,7 @@ public interface IRecipeOrderBusinessService {
      */
     String refundResultNotify(RefundResultNotifyVO refundResultNotifyVO);
 
-    Date getRevisitRemindTime(Integer orderId);
+    Date getRevisitRemindTime(String orderCode);
 
     /**
      * 是否可合并物流单
