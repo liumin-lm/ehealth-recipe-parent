@@ -49,7 +49,7 @@
         <ngari.bill.version>4.1.1.9.master-SNAPSHOT</ngari.bill.version>
         <ngari.account.version>4.1.1.9.master-SNAPSHOT</ngari.account.version>
         <ngari.revisit.version>5.1.1.3.master-SNAPSHOT</ngari.revisit.version>
-        <ngari.entity.version>4.9.1.5.master-SNAPSHOT</ngari.entity.version>
+        <ngari.entity.version>5.1.1.3.master-SNAPSHOT</ngari.entity.version>
     </properties>
 
     <build>
