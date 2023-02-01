@@ -326,13 +326,13 @@ public class RecipeOrderPatientAtop extends BaseAtop {
      * 是否可合并物流单
      * @param addressId 收货地址
      * @param enterpriseId 药企ID
-     * @param recipeId 处方ID
+     * @param recipeIdList 处方ID
      * @return 是否可以合并
      */
     @RpcService
-    public Boolean mergeTrackingNumber(Integer addressId, Integer enterpriseId, Integer recipeId) {
-        validateAtop(enterpriseId, recipeId);
-        return recipeOrderService.mergeTrackingNumber(addressId, enterpriseId, recipeId);
+    public Boolean mergeTrackingNumber(Integer addressId, Integer enterpriseId, List<Integer> recipeIdList) {
+        validateAtop(enterpriseId, recipeIdList);
+        return recipeOrderService.mergeTrackingNumber(addressId, enterpriseId, recipeIdList);
     }
 
 }

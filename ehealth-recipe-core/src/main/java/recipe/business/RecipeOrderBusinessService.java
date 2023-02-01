@@ -1980,7 +1980,8 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
         }
     }
 
-    public Boolean mergeTrackingNumber(Integer addressId, Integer enterpriseId, Integer recipeId) {
+    @Override
+    public Boolean mergeTrackingNumber(Integer addressId, Integer enterpriseId, List<Integer> recipeIdList) {
         AddressService addressService = ApplicationUtils.getBasicService(AddressService.class);
         AddressDTO address;
         if (Objects.isNull(addressId)) {
@@ -1990,7 +1991,7 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
         }
         RecipeOrder recipeOrder = new RecipeOrder("");
         recipeOrder.setEnterpriseId(enterpriseId);
-        recipeOrder.setRecipeIdList(JSONUtils.toString(Arrays.asList(recipeId)));
+        recipeOrder.setRecipeIdList(JSONUtils.toString(recipeIdList));
         recipeOrder.setAddressID(address.getAddressId());
         recipeOrder.setAddress1(address.getAddress1());
         recipeOrder.setAddress2(address.getAddress2());

@@ -909,9 +909,10 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
         Iterator<Integer> iterator = recipeOrderMap.keySet().iterator();
         while (iterator.hasNext()) {
             Integer  enterpriseId = iterator.next();
+            List<RecipeOrder> recipeOrders = recipeOrderMap.get(enterpriseId);
             DrugsEnterprise drugsEnterprise = drugsEnterpriseMap.get(enterpriseId);
             //消息推送
-
+            enterpriseManager.pushEnterpriseFailOrderNotify(new Recipe(), drugsEnterprise, recipeOrders.size());
         }
     }
 

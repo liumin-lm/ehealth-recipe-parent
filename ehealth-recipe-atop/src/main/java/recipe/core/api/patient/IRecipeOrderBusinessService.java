@@ -326,5 +326,5 @@ public interface IRecipeOrderBusinessService {
      * @param enterpriseId 药企ID
      * @return 是否可以合并
      */
-    Boolean mergeTrackingNumber(Integer addressId, Integer enterpriseId, Integer recipeId);
+    Boolean mergeTrackingNumber(Integer addressId, Integer enterpriseId, List<Integer> recipeIdList);
 }
