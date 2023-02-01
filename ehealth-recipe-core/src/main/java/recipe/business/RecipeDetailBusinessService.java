@@ -1,9 +1,13 @@
 package recipe.business;
 
 import com.alibaba.fastjson.JSON;
+import com.google.common.collect.Lists;
+import com.ngari.his.recipe.mode.RecipePreSettleDrugFeeDTO;
 import com.ngari.recipe.dto.ConfigOptionsDTO;
 import com.ngari.recipe.dto.RecipeDetailDTO;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.recipe.model.HisSendResTO;
+import com.ngari.recipe.recipe.model.OrderRepTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.vo.RecipeSkipVO;
@@ -20,6 +24,7 @@ import recipe.drugTool.validate.RecipeDetailValidateTool;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.manager.*;
+import recipe.util.LocalStringUtil;
 import recipe.util.MapValueUtil;
 import recipe.util.ObjectCopyUtils;
 import recipe.util.ValidateUtil;
@@ -341,6 +346,29 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
         }).collect(Collectors.toList());
     }
 
+    @Override
+    public List<Recipedetail> sendSuccessDetail(HisSendResTO response) {
+        List<OrderRepTO> repList = response.getData();
+        List<Recipedetail> details = Lists.newArrayList();
+        for (OrderRepTO rep : repList) {
+            Recipedetail detail = new Recipedetail();
+            if (StringUtils.isNotEmpty(rep.getPrice())) {
+                detail.setDrugCost(new BigDecimal(rep.getPrice()));
+            }
+            if (StringUtils.isNotEmpty(rep.getOrderID())) {
+                detail.setRecipeDetailId(Integer.valueOf(rep.getOrderID()));
+            }
+            detail.setOrderNo(LocalStringUtil.toString(rep.getOrderNo()));
+            detail.setDrugGroup(LocalStringUtil.toString(rep.getSetNo()));
+            detail.setMemo(LocalStringUtil.toString(rep.getRemark()));
+            detail.setDrugSpec(rep.getDrugSpec());
+            detail.setMedicalDrugCode(rep.getMedicalDrugCode());
+            detail.setPack(rep.getPack());
+            details.add(detail);
+        }
+        List<RecipePreSettleDrugFeeDTO> recipeDrugFee = null == response.getRecipePreSettleDrugFeeDTOS() ? Lists.newArrayList() : response.getRecipePreSettleDrugFeeDTOS();
+        return recipeDetailManager.sendSuccessDetail(details, recipeDrugFee);
+    }
 
     /**
      * 返回前端必须字段

@@ -196,6 +196,9 @@ public class DepartClient extends BaseClient {
             }
             try {
                 List<Integer> appointDepartIds = JSONUtils.parse(a.getAppointDepartId(), List.class);
+                if (CollectionUtils.isEmpty(appointDepartIds)) {
+                    return true;
+                }
                 if (appointDepartIds.contains(appointDepartDTO.getAppointDepartId())) {
                     return true;
                 }

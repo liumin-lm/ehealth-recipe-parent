@@ -31,7 +31,6 @@ import com.ngari.recipe.recipe.constant.RecipecCheckStatusConstant;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.vo.*;
 import coupon.api.service.ICouponBaseService;
-import ctd.account.UserRoleToken;
 import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
 import ctd.net.broadcast.MQHelper;
@@ -1573,15 +1572,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         }
     }
 
-    public void checkUserHasPermissionByDoctorId(Integer doctorId){
-        UserRoleToken urt = UserRoleToken.getCurrent();
-        String methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
-        if (!(urt.isSelfDoctor(doctorId))){
-            logger.error("当前用户没有权限调用doctorId[{}],methodName[{}]", doctorId ,methodName);
-            throw new DAOException("当前登录用户没有权限");
-        }
-    }
-
+    @Override
     public logisticsOrderInfoVO getLogisticsOrderInfo(String orderCode){
         logisticsOrderInfoVO logisticsOrderInfoVO = new logisticsOrderInfoVO();
         try {
@@ -1597,12 +1588,37 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             //3、获取物流运单条形码
             String logisticsOrderNo = logisticsOrderService.waybillBarCodeByLogisticsOrderNo(1, orderCode);
             logisticsOrderInfoVO.setLogisticsOrderNo(logisticsOrderNo);
-        }catch (Exception e){
+        } catch (Exception e) {
             logger.error("getLogisticsOrderInfo error", e);
         }
         logger.info("getLogisticsOrderInfo recipeOrderRefundDetailVO={}", JSONUtils.toString(logisticsOrderInfoVO));
         return logisticsOrderInfoVO;
     }
 
+    @Override
+    public void sendSuccessRecipe(HisSendResTO response) {
+        Integer recipeId = Integer.valueOf(response.getRecipeId());
+        List<OrderRepTO> repList = response.getData();
+        //医院处方号
+        String recipeCode = repList.get(0).getRecipeNo();
+        // 将取药窗口更新到ext表
+        String pharmNo = repList.stream().filter(a -> StringUtils.isNotEmpty(a.getPharmNo())).findFirst().map(OrderRepTO::getPharmNo).orElse(null);
+        String recipeCostNumber = StringUtils.isNotBlank(response.getRecipeCostNumber()) ? response.getRecipeCostNumber() : recipeCode;
+        String hisDiseaseSerial = repList.get(0).getHisDiseaseSerial();
+        String registerId = repList.get(0).getRegisterID();
+        String medicalType = repList.get(0).getMedicalType();
+        String medicalTypeText = repList.get(0).getMedicalTypeText();
+        recipeManager.sendSuccessRecipeExt(recipeId, recipeCostNumber, pharmNo, response.getYbid(), hisDiseaseSerial,
+                registerId, medicalType, medicalTypeText);
+        //病人医院病历号
+        String patientId = repList.get(0).getPatientID();
+        String amount = repList.get(0).getAmount();
+        recipeManager.sendSuccessRecipe(recipeId, recipeCode, patientId, response.getWriteHisState(),
+                amount, response.getRecipeFee(), repList.size());
+        //修改处方状态
+        stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_SUBMIT, RecipeStateEnum.NONE);
+
+
+    }
 }
 

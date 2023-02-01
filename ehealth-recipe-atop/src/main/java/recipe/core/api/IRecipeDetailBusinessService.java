@@ -2,6 +2,8 @@ package recipe.core.api;
 
 import com.ngari.recipe.dto.RecipeDetailDTO;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.recipe.model.HisSendResTO;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.vo.RecipeSkipVO;
 import recipe.vo.ResultBean;
@@ -112,4 +114,12 @@ public interface IRecipeDetailBusinessService {
      * @return
      */
     List<RecipeInfoVO> recipeAllByClinicId(Integer clinicId, Integer bussSource);
+
+    /**
+     * his回写处方数据更新表字段
+     *
+     * @param response
+     * @return
+     */
+    List<Recipedetail> sendSuccessDetail(HisSendResTO response);
 }
