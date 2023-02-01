@@ -188,6 +188,9 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
     @Autowired
     private RecipeLogDAO recipeLogDAO;
 
+    @Autowired
+    private RecipeHisService recipeHisService;
+
 
     @Override
     public ResultBean updateRecipeGiveUser(Integer recipeId, Integer giveUser) {
@@ -1751,7 +1754,18 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
         if (Objects.nonNull(recipeOrder) && StringUtils.isEmpty(recipeOrder.getOutTradeNo())) {
             return 0;
         }
-        return payClient.payQuery(orderId);
+        Integer payQuery = payClient.payQuery(orderId);
+        // 需要查询是否在线下已经支付
+        if (new Integer(0).equals(payQuery)) {
+            List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
+            for (Integer recipeId : recipeIdList) {
+                Integer query = recipeHisService.getRecipeSinglePayStatusQuery(recipeId);
+                if (query != null && (query == eh.cdr.constant.RecipeStatusConstant.HAVE_PAY || query == eh.cdr.constant.RecipeStatusConstant.FINISH)) {
+                    payQuery = 2;
+                }
+            }
+        }
+        return payQuery;
     }
 
     @Override
