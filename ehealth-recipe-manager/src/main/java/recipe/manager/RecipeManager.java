@@ -1358,8 +1358,10 @@ public class RecipeManager extends BaseManager {
             }
             redisClient.setEX(redisKey,30 * 24 * 3600L,String.valueOf(recipeId));
             RecipeDTO recipeDTO = super.getRecipeDTO(recipeId);
-            logger.info("addRecipeNotify sendMsgToMq send to MQ start, busId:{}，param:{}", recipeId, JSONUtils.toString(recipeDTO));
-            MQHelper.getMqPublisher().publish(OnsConfig.addRecipeTopic, recipeDTO, null);
+            com.ngari.platform.recipe.mode.RecipeDTO recipeDTO1=new com.ngari.platform.recipe.mode.RecipeDTO();
+            BeanUtils.copyProperties(recipeDTO, recipeDTO1);
+            logger.info("addRecipeNotify sendMsgToMq send to MQ start, busId:{}，param:{}", recipeId, JSONUtils.toString(recipeDTO1));
+            MQHelper.getMqPublisher().publish(OnsConfig.addRecipeTopic, recipeDTO1, null);
             logger.info("addRecipeNotify sendMsgToMq send to MQ end, busId:{}", recipeId);
         } catch (Exception e) {
             logger.error("addRecipeNotify sendMsgToMq can't send to MQ,  busId:{}", recipeId, e);
