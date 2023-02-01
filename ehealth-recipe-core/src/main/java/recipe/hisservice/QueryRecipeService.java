@@ -299,6 +299,10 @@ public class QueryRecipeService implements IQueryRecipeService {
                 recipeDTO.setMedicalInfoBean(medicalInfoBean);
                 //终端是否为自助机
                 recipeDTO.getRecipeExtendBean().setSelfServiceMachineFlag((new Integer(1).equals(recipeExtend.getTerminalType())));
+                recipeDTO.setChronicDiseaseCode(recipeExtend.getChronicDiseaseCode());
+                recipeDTO.setChronicDiseaseName(recipeExtend.getChronicDiseaseName());
+                recipeDTO.setOrganDiseaseId(recipe.getOrganDiseaseId());
+                recipeDTO.setOrganDiseaseName(recipe.getOrganDiseaseName());
             }
         } catch (Exception e) {
             LOGGER.error("QueryRecipeService splicingBackData  IDocIndexService error", e);
@@ -451,6 +455,7 @@ public class QueryRecipeService implements IQueryRecipeService {
                         LOGGER.warn("queryRecipe splicingBackData GiveMode = {}", recipe.getGiveMode());
                 }
             }
+
             try {
                 IConfigurationCenterUtilsService configService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
                 Map<Integer, Integer> map = iAuditMedicinesService.queryRecipeMaxLevel(recipeId);

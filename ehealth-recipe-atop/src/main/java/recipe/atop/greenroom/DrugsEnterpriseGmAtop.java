@@ -325,6 +325,9 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
         if (StringUtils.isNotEmpty(organDrugsSaleConfigVo.getRefundNotifyPhone())) {
             validatePhoneInfo(organDrugsSaleConfigVo.getRefundNotifyPhone());
         }
+        if (StringUtils.isNotEmpty(organDrugsSaleConfigVo.getOrderPushFailPhone())) {
+            validatePhoneInfo(organDrugsSaleConfigVo.getOrderPushFailPhone());
+        }
         enterpriseBusinessService.saveOrganDrugsSaleConfig(organDrugsSaleConfigVo);
         return organDrugsSaleConfigVo;
     }

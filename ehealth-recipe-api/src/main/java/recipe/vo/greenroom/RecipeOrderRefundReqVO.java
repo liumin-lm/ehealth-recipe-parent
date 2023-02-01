@@ -1,5 +1,6 @@
 package recipe.vo.greenroom;
 
+import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
 import lombok.Getter;
 import lombok.Setter;
@@ -24,7 +25,10 @@ public class RecipeOrderRefundReqVO implements Serializable {
     private Integer payFlag;
     private Integer depId;
     private Integer refundStatus;
+
+    @ItemProperty(alias = "购药方式")
     private String giveModeKey;
+
     private String orderCode;
     private String patientName;
     private Date beginTime;
@@ -42,4 +46,13 @@ public class RecipeOrderRefundReqVO implements Serializable {
     private Date payTimeStart;
     private Date payTimeEnd;
     private Integer dateType;
+
+    @ItemProperty(alias = "物流公司")
+    private Integer logisticsCompany;
+
+    @ItemProperty(alias = "快递单号")
+    private String trackingNumber;
+
+    @ItemProperty(alias = "发药状态 0: 默认 1 待发药 2 配送中 3 待取药")
+    private Integer logisticsState;
 }

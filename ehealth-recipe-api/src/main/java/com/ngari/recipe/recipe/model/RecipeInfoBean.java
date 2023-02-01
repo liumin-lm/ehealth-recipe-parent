@@ -17,8 +17,8 @@ import java.util.List;
 @Schema
 public class RecipeInfoBean implements Serializable {
     private static final long serialVersionUID = -9005230183318990440L;
-    private RecipeBean recipe;
-    private RecipeExtendBean recipeExtend;
-    private List<RecipeDetailBean> recipeDetails;
-    private RecipeOrderBean recipeOrder;
+    public RecipeBean recipe;
+    public RecipeExtendBean recipeExtend;
+    public List<RecipeDetailBean> recipeDetails;
+    public RecipeOrderBean recipeOrder;
 }

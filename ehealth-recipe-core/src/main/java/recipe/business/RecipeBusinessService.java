@@ -1527,7 +1527,8 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     @Override
     public List<RecipeInfoVO> findDoctorRecipeList(DoctorRecipeListReqVO doctorRecipeListReqVO) {
         List<Integer> doctorIds = Arrays.asList(doctorRecipeListReqVO.getDoctorId(), -1);
-        List<Recipe> recipeList = recipeDAO.findDoctorRecipeListV1(doctorIds, doctorRecipeListReqVO.getOrganId(), doctorRecipeListReqVO.getRecipeType(), doctorRecipeListReqVO.getKeyWord(), doctorRecipeListReqVO.getStart(), doctorRecipeListReqVO.getLimit());
+        DoctorRecipeListReqDTO doctorRecipeListReqDTO = ObjectCopyUtils.convert(doctorRecipeListReqVO, DoctorRecipeListReqDTO.class);
+        List<Recipe> recipeList = recipeDAO.findDoctorRecipeListV1(doctorIds, doctorRecipeListReqDTO);
         if (CollectionUtils.isEmpty(recipeList)) {
             return null;
         }

@@ -1892,14 +1892,14 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
     }
 
     @Override
-    public Date getRevisitRemindTime(Integer orderId) {
+    public Date getRevisitRemindTime(String orderCode) {
         try {
             List<Date> remindDates = new ArrayList<>();
             Date sourceTime = new Date();
             List<String> revisitRementAppointDepart =new ArrayList<>();
             //订单支付日期
-            RecipeOrder recipeOrder = recipeOrderDAO.get(orderId);
-            List<Recipe> recipes = recipeDAO.findRecipeListByOrderCode(recipeOrder.getOrderCode());
+            RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(orderCode);
+            List<Recipe> recipes = recipeDAO.findRecipeListByOrderCode(orderCode);
             List<Integer> recipeIds = recipes.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
             List<Recipe> tcmRecipeList = recipes.stream().filter(recipe -> RecipeTypeEnum.RECIPETYPE_TCM.getType().equals(recipe.getRecipeType())).collect(Collectors.toList());
             List<RecipeExtend> recipeExtendList = recipeExtendDAO.queryRecipeExtendByRecipeIds(recipeIds);
@@ -1978,6 +1978,30 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
             logger.error("getRevisitRemindTime",e);
             return null;
         }
+    }
+
+    public Boolean mergeTrackingNumber(Integer addressId, Integer enterpriseId, Integer recipeId) {
+        AddressService addressService = ApplicationUtils.getBasicService(AddressService.class);
+        AddressDTO address;
+        if (Objects.isNull(addressId)) {
+            address = addressService.getDefaultAddressDTO();
+        } else {
+            address = addressService.getByAddressId(addressId);
+        }
+        RecipeOrder recipeOrder = new RecipeOrder("");
+        recipeOrder.setEnterpriseId(enterpriseId);
+        recipeOrder.setRecipeIdList(JSONUtils.toString(Arrays.asList(recipeId)));
+        recipeOrder.setAddressID(address.getAddressId());
+        recipeOrder.setAddress1(address.getAddress1());
+        recipeOrder.setAddress2(address.getAddress2());
+        recipeOrder.setAddress3(address.getAddress3());
+        recipeOrder.setAddress4(address.getAddress4());
+        recipeOrder.setStreetAddress(address.getStreetAddress());
+        String mergeTrackingNumber = orderManager.getMergeTrackingNumber(recipeOrder);
+        if (StringUtils.isNotEmpty(mergeTrackingNumber)) {
+            return true;
+        }
+        return false;
     }
 
     private static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {

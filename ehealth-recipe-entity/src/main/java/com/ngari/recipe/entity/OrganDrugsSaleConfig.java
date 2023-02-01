@@ -90,6 +90,9 @@ public class OrganDrugsSaleConfig implements Serializable {
     @ItemProperty(alias = "标准的收款方式  1 在线支付 2 货到付款 ")
     private String standardPaymentWay;
 
+    @ItemProperty(alias = "药品订单推送失败通知电话")
+    private String orderPushFailPhone;
+
     @Id
     @GeneratedValue(strategy = IDENTITY)
     @Column(name = "id", unique = true, nullable = false)
@@ -289,5 +292,14 @@ public class OrganDrugsSaleConfig implements Serializable {
 
     public void setStandardPaymentWay(String standardPaymentWay) {
         this.standardPaymentWay = standardPaymentWay;
+    }
+
+    @Column(name = "order_push_fail_phone")
+    public String getOrderPushFailPhone() {
+        return orderPushFailPhone;
+    }
+
+    public void setOrderPushFailPhone(String orderPushFailPhone) {
+        this.orderPushFailPhone = orderPushFailPhone;
     }
 }

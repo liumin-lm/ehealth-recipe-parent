@@ -866,7 +866,7 @@ public class BaseOfflineToOnlineService {
                 }
             }
             if (hisRecipeDetail.getPrice() != null) {
-                recipedetail.setSalePrice(hisRecipeDetail.getPrice());
+                recipedetail.setSalePrice(hisRecipeDetail.getPrice().setScale(4,BigDecimal.ROUND_HALF_UP));
             }
 
             if (CollectionUtils.isNotEmpty(organDrugLists)) {
@@ -889,7 +889,7 @@ public class BaseOfflineToOnlineService {
 
             //单药品总价使用线下传过来的，传过来多少就是多少我们不计算
             if (hisRecipeDetail.getTotalPrice() != null) {
-                recipedetail.setDrugCost(hisRecipeDetail.getTotalPrice());
+                recipedetail.setDrugCost(hisRecipeDetail.getTotalPrice().setScale(4,BigDecimal.ROUND_HALF_UP));
             }
             //特殊煎法、备注
             recipedetail.setMemo(hisRecipeDetail.getMemo());

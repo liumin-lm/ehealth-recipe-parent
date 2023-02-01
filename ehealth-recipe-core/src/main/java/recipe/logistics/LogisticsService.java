@@ -16,6 +16,7 @@ import de.odysseus.staxon.json.JsonXMLConfigBuilder;
 import de.odysseus.staxon.json.JsonXMLInputFactory;
 import de.odysseus.staxon.json.JsonXMLOutputFactory;
 import de.odysseus.staxon.xml.util.PrettyXMLEventWriter;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -483,9 +484,9 @@ public class LogisticsService {
         Recipe recipe = new Recipe();
         if(StringUtils.isNotBlank(item)){
             Integer logisticsCompany = Integer.parseInt(item);
-            String orderCode = recipeOrderDAO.getOrderCodeByLogisticsCompanyAndTrackingNumber(logisticsCompany,expNo);
-            if(orderCode != null){
-                List<Recipe> recipeList = recipeDAO.findRecipeListByOrderCode(orderCode);
+            List<String> orderCodes = recipeOrderDAO.findOrderCodeByLogisticsCompanyAndTrackingNumber(logisticsCompany,expNo);
+            if(CollectionUtils.isNotEmpty(orderCodes)){
+                List<Recipe> recipeList = recipeDAO.findByOrderCode(orderCodes);
                 if(recipeList.size() > 0){
                     recipe = recipeList.get(0);
                 }
