@@ -317,9 +317,9 @@ public class RecipeOrderPatientAtop extends BaseAtop {
      * @return
      */
     @RpcService
-    public Date getRevisitRemindTime(String orderCode){
-        validateAtop(orderCode);
-        return recipeOrderService.getRevisitRemindTime(orderCode);
+    public Date getRevisitRemindTime(List<Integer> recipeIds){
+        validateAtop(recipeIds);
+        return recipeOrderService.getRevisitRemindTime(recipeIds);
     }
 
     /**

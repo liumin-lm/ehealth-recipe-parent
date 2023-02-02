@@ -1894,15 +1894,17 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
     }
 
     @Override
-    public Date getRevisitRemindTime(String orderCode) {
+    public Date getRevisitRemindTime(List<Integer> recipeIds) {
         try {
             List<Date> remindDates = new ArrayList<>();
             Date sourceTime = new Date();
             List<String> revisitRementAppointDepart =new ArrayList<>();
-            //订单支付日期
-            RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(orderCode);
-            List<Recipe> recipes = recipeDAO.findRecipeListByOrderCode(orderCode);
-            List<Integer> recipeIds = recipes.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
+//            RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(orderCode);
+            List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIds);
+            if(CollectionUtils.isEmpty(recipes)){
+                return null;
+            }
+//            List<Integer> recipeIds = recipes.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
             List<Recipe> tcmRecipeList = recipes.stream().filter(recipe -> RecipeTypeEnum.RECIPETYPE_TCM.getType().equals(recipe.getRecipeType())).collect(Collectors.toList());
             List<RecipeExtend> recipeExtendList = recipeExtendDAO.queryRecipeExtendByRecipeIds(recipeIds);
             //获取长处方的处方单号
@@ -1927,7 +1929,7 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
                 revisitRementAppointDepart=Arrays.asList(config.split(","));
             }
             logger.info("getRevisitRemindTime revisitRementAppointDepart:{}", JSON.toJSONString(revisitRementAppointDepart));
-
+            Integer recipeId=recipes.get(0).getRecipeId();
             List<String> finalRevisitRementAppointDepart = revisitRementAppointDepart;
             recipes.forEach(recipe -> {
                 if(CollectionUtils.isNotEmpty(finalRevisitRementAppointDepart) && !finalRevisitRementAppointDepart.contains(recipe.getAppointDepart())){
@@ -1942,7 +1944,7 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
                 }
                 LocalDateTime payDate = Instant.ofEpochMilli(sourceTime.getTime()).atZone(ZoneId.systemDefault()).toLocalDateTime();
                 //三种推送时间方案，按订单号除以3取余
-                int pushMode = recipeOrder.getOrderId() % 3 + 1;
+                int pushMode = recipeId % 3 + 1;
                 switch (pushMode) {
                     case 1:
                         //方案一：长处方提前1天和3天， 非长处方提前1天
