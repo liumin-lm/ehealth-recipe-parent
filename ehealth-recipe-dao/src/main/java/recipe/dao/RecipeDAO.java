@@ -4950,6 +4950,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     };
+
+    @DAOMethod(sql = "from Recipe where orderCode is not null and fastRecipeFlag = 1 and offlineRecipeName is null ", limit = 0)
+    public abstract List<Recipe> findFastRecipeList();
 }
 
 

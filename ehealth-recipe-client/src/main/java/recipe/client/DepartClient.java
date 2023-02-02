@@ -63,7 +63,9 @@ public class DepartClient extends BaseClient {
             return null;
         }
         logger.info("DepartClient getAppointDepartByOrganIdAndDepart organId:{},depart:{}", organId, depart);
-        return appointDepartService.findByOrganIDAndDepartIDAndCancleFlag(organId, depart);
+        AppointDepartDTO appointDepartDTO = appointDepartService.findByOrganIDAndDepartIDAndCancleFlag(organId, depart);
+        logger.info("DepartClient getAppointDepartByOrganIdAndDepart appointDepartDTO:{}", JSON.toJSONString(appointDepartDTO));
+        return appointDepartDTO;
     }
 
     /**
@@ -187,9 +189,6 @@ public class DepartClient extends BaseClient {
             return new ArrayList<>();
         }
         AppointDepartDTO appointDepartDTO = this.getAppointDepart(clinicId, organId, departId);
-        if (null == appointDepartDTO) {
-            return symptomQueryResult.stream().filter(a -> StringUtils.isEmpty(a.getAppointDepartId())).collect(Collectors.toList());
-        }
         return symptomQueryResult.stream().filter(a -> {
             if (StringUtils.isEmpty(a.getAppointDepartId())) {
                 return true;
@@ -199,10 +198,14 @@ public class DepartClient extends BaseClient {
                 if (CollectionUtils.isEmpty(appointDepartIds)) {
                     return true;
                 }
+                if (null == appointDepartDTO) {
+                    return CollectionUtils.isEmpty(appointDepartIds);
+                }
                 if (appointDepartIds.contains(appointDepartDTO.getAppointDepartId())) {
                     return true;
                 }
             } catch (Exception e) {
+                logger.error("DepartClient appointDepartPharmacy error a:{}", JSON.toJSONString(a), e);
                 return false;
             }
             return false;

@@ -20,6 +20,7 @@ import com.ngari.revisit.common.model.RevisitExDTO;
 import ctd.account.session.ClientSession;
 import ctd.net.broadcast.MQHelper;
 import ctd.persistence.DAOFactory;
+import ctd.persistence.exception.DAOException;
 import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
@@ -111,6 +112,8 @@ public class RecipeTestService {
     private RecipeExtendDAO recipeExtendDAO;
     @Autowired
     private StateManager stateManager;
+    @Autowired
+    private FastRecipeDAO fastRecipeDAO;
 
     /**
      * 状态通知补偿方法
@@ -912,6 +915,29 @@ public class RecipeTestService {
         newRecipeOrder.setOrderCode(orderCode);
         newRecipeOrder.setOrderId(null);
         recipeOrderDAO.save(newRecipeOrder);
+    }
+
+    @RpcService
+    public void fastRecipeHandle(){
+        List<Recipe> fastRecipeList = recipeDAO.findFastRecipeList();
+        Map<Integer, Recipe> recipeMap = fastRecipeList.stream().collect((Collectors.toMap(Recipe::getRecipeId, a -> a, (k1, k2) -> k1)));
+        List<Integer> recipeIdList = fastRecipeList.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
+        List<RecipeExtend> recipeExtendList = recipeExtendDAO.queryRecipeExtendByRecipeIds(recipeIdList);
+        Map<Integer, RecipeExtend> recipeExtendMap = recipeExtendList.stream().collect((Collectors.toMap(RecipeExtend::getRecipeId, a -> a, (k1, k2) -> k1)));
+        List<Integer> mouldIdList = recipeExtendList.stream().map(RecipeExtend::getMouldId).collect(Collectors.toList());
+        List<FastRecipe> fastRecipes = fastRecipeDAO.findFastRecipeList(mouldIdList);
+        Map<Integer, FastRecipe> fastRecipeMap = fastRecipes.stream().collect(Collectors.toMap(FastRecipe::getId, a -> a, (k1, k2) -> k1));
+        mouldIdList.forEach(recipeId -> {
+            try {
+                RecipeExtend recipeExtend = recipeExtendMap.get(recipeId);
+                FastRecipe fastRecipe = fastRecipeMap.get(recipeExtend.getMouldId());
+                Recipe recipe = recipeMap.get(recipeId);
+                recipe.setOfflineRecipeName(fastRecipe.getOfflineRecipeName());
+                recipeDAO.update(recipe);
+            } catch (DAOException e) {
+                LOGGER.error("fastRecipeHandle recipeId:{},error ", recipeId, e);
+            }
+        });
     }
 
     private void saveDrugSaleConfig(OrganAndDrugsepRelation organAndDrugsDepRelation, String standardPaymentWay, Integer isHosDep) {
