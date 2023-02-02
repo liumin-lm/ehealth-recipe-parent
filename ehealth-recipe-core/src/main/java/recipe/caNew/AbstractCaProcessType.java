@@ -138,7 +138,6 @@ public abstract class AbstractCaProcessType {
                 LOGGER.error("retryDoctorSignCheck sendRecipeMsg error, type:3, consultId:{}, error:{}", recipe.getClinicId(), e);
             }
         }
-        //todo 已经在回调接口中的代码没必要异步
         //异步处理
         RecipeBusiThreadPool.execute(() -> {
             new PushRecipeToRegulationCallable(Collections.singletonList(recipe.getRecipeId()), 1);
