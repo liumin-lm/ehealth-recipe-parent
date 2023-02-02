@@ -2,6 +2,7 @@ package recipe.atop.open;
 
 import com.ngari.pay.api.service.bus.IBusPayService;
 import ctd.util.annotation.RpcBean;
+import easypay.entity.vo.param.bus.HlwTbParamReq;
 import easypay.entity.vo.param.bus.MedicalPreSettleQueryReq;
 import easypay.entity.vo.param.bus.SelfPreSettleQueryReq;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,5 +26,10 @@ public class RecipePayAtop implements IBusPayService {
     @Override
     public SelfPreSettleQueryReq selfPreSettleQueryInfo(Integer busId) {
         return recipeOrderService.selfPreSettleQueryInfo(busId);
+    }
+
+    @Override
+    public HlwTbParamReq getHlwYbInfo(Integer busId) {
+        return recipeOrderService.getHlwYbInfo(busId);
     }
 }

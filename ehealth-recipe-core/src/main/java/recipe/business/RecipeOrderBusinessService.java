@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
+import com.google.common.collect.Lists;
 import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.common.dto.CheckRequestCommonOrderItemDTO;
 import com.ngari.common.dto.CheckRequestCommonOrderPageDTO;
@@ -46,6 +47,7 @@ import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
+import easypay.entity.vo.param.bus.HlwTbParamReq;
 import easypay.entity.vo.param.bus.MedicalPreSettleQueryReq;
 import easypay.entity.vo.param.bus.SelfPreSettleQueryReq;
 import eh.cdr.constant.RecipeConstant;
@@ -2003,6 +2005,20 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
             return true;
         }
         return false;
+    }
+
+    @Override
+    public HlwTbParamReq getHlwYbInfo(Integer busId) {
+        RecipeOrder recipeOrder = recipeOrderDAO.get(busId);
+        if (Objects.isNull(recipeOrder)) {
+            return null;
+        }
+        List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
+        HisSettleReqDTO settleReqDTO = recipeManager.getHisOrderCode(recipeOrder.getOrganId(), recipeIdList);
+        HlwTbParamReq hlwTbParamReq = new HlwTbParamReq();
+        hlwTbParamReq.setHisBusId(settleReqDTO.getHisBusId());
+        hlwTbParamReq.setYbId(settleReqDTO.getYbId());
+        return hlwTbParamReq;
     }
 
     private static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {

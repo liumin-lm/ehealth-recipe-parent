@@ -1212,15 +1212,17 @@ public class RecipeManager extends BaseManager {
      * @param recipeIdList
      * @return
      */
-    public String getHisOrderCode(Integer clinicOrgan, List<Integer> recipeIdList) {
+    public HisSettleReqDTO getHisOrderCode(Integer clinicOrgan, List<Integer> recipeIdList) {
         List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIdList);
         if (CollectionUtils.isEmpty(recipes)) {
             return null;
         }
-        List<String> recipeCodes = recipes.stream().map(Recipe::getRecipeCode).collect(Collectors.toList());
+        HisSettleReqDTO reqDTO = new HisSettleReqDTO();
+        com.ngari.recipe.dto.PatientDTO patientBean = patientClient.getPatientDTO(recipes.get(0).getMpiid());
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeIdList.get(0));
         List<HisOrderCodeResTO> hisOrderCodeResTOS = null;
         try {
-            hisOrderCodeResTOS = recipeHisClient.queryHisOrderCodeByRecipeCode(recipes.get(0).getPatientID(), clinicOrgan, recipeCodes);
+            hisOrderCodeResTOS = recipeHisClient.queryHisOrderCodeByRecipeCode(recipes.get(0).getPatientID(), clinicOrgan, recipes,patientBean,recipeExtend);
         } catch (Exception e) {
             logger.error("获取医保id错误");
             return null;
@@ -1230,33 +1232,43 @@ public class RecipeManager extends BaseManager {
             List<RecipeExtend> recipeExtends = recipeExtendDAO.queryRecipeExtendByRecipeIds(recipeIdList);
             if (CollectionUtils.isNotEmpty(recipeExtends)) {
                 List<String> hisOrderCodes = recipeExtends.stream().filter(recipeExt -> StringUtils.isNotEmpty(recipeExt.getHisOrderCode())).map(RecipeExtend::getHisOrderCode).collect(Collectors.toList());
+                List<String> hisBusId = recipeExtends.stream().filter(recipeExt -> StringUtils.isNotEmpty(recipeExt.getHisBusId())).map(RecipeExtend::getHisBusId).collect(Collectors.toList());
                 if (CollectionUtils.isNotEmpty(hisOrderCodes)) {
-                    return Joiner.on("|").join(hisOrderCodes);
+                    reqDTO.setYbId(Joiner.on("|").join(hisOrderCodes));
+                }
+                if (CollectionUtils.isNotEmpty(hisBusId)) {
+                    reqDTO.setHisBusId(Joiner.on("|").join(hisBusId));
                 }
             }
-            return null;
+            return reqDTO;
         }
 
         Map<String, List<Recipe>> recipeMap = recipes.stream().collect(Collectors.groupingBy(Recipe::getRecipeCode));
         List<String> hisOrderCode = new ArrayList<>();
+        List<String> hisBusId = new ArrayList<>();
         for (HisOrderCodeResTO hisOrderCodeResTO : hisOrderCodeResTOS) {
-            if (StringUtils.isEmpty(hisOrderCodeResTO.getHisOrderCode())) {
-                continue;
-            }
-            hisOrderCode.add(hisOrderCodeResTO.getHisOrderCode());
             if (MapUtils.isNotEmpty(recipeMap) && CollectionUtils.isNotEmpty(recipeMap.get(hisOrderCodeResTO.getRecipeCode()))) {
                 Recipe recipe = recipeMap.get(hisOrderCodeResTO.getRecipeCode()).get(0);
                 RecipeExtend recipeExt = new RecipeExtend();
                 recipeExt.setRecipeId(recipe.getRecipeId());
-                recipeExt.setHisOrderCode(hisOrderCodeResTO.getHisOrderCode());
+                if (StringUtils.isNotEmpty(hisOrderCodeResTO.getHisOrderCode())) {
+                    recipeExt.setHisOrderCode(hisOrderCodeResTO.getHisOrderCode());
+                    hisOrderCode.add(hisOrderCodeResTO.getHisOrderCode());
+                }
+                if (StringUtils.isNotEmpty(hisOrderCodeResTO.getHisBusId())) {
+                    recipeExt.setHisBusId(hisOrderCodeResTO.getHisBusId());
+                    hisBusId.add(hisOrderCodeResTO.getHisBusId());
+                }
                 recipeExtendDAO.updateNonNullFieldByPrimaryKey(recipeExt);
             }
         }
-        if (CollectionUtils.isEmpty(hisOrderCode)) {
-            return null;
+        if (CollectionUtils.isNotEmpty(hisOrderCode)) {
+            reqDTO.setYbId(Joiner.on("|").join(hisOrderCode));
         }
-
-        return Joiner.on("|").join(hisOrderCode);
+        if (CollectionUtils.isNotEmpty(hisBusId)) {
+            reqDTO.setHisBusId(Joiner.on("|").join(hisBusId));
+        }
+        return reqDTO;
     }
 
     ///**

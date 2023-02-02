@@ -43,23 +43,32 @@ public class RecipeHisClient extends BaseClient {
     /**
      * 获取处方医保id
      * @param organId
-     * @param recipeCode
+     * @param recipes
      * @return
      */
     @LogRecord
-    public List<HisOrderCodeResTO> queryHisOrderCodeByRecipeCode(String patientID,Integer organId,List<String> recipeCode) {
-        if (CollectionUtils.isEmpty(recipeCode) || Objects.isNull(organId)) {
+    public List<HisOrderCodeResTO> queryHisOrderCodeByRecipeCode(String patientID,Integer organId,List<Recipe> recipes,com.ngari.recipe.dto.PatientDTO patientBean,RecipeExtend recipeExtend) {
+        if (CollectionUtils.isEmpty(recipes) || Objects.isNull(organId)) {
             return null;
         }
-        List<HisOrderCodeResTO> hisOrderCodeResTOS = recipeCode.stream().map(code -> {
+        List<HisOrderCodeResTO> hisOrderCodeResTOS = recipes.stream().map(recipe -> {
             HisOrderCodeResTO hisOrderCodeResTO = new HisOrderCodeResTO();
-            hisOrderCodeResTO.setRecipeCode(code);
+            hisOrderCodeResTO.setRecipeCode(recipe.getRecipeCode());
+            hisOrderCodeResTO.setRecipeId(recipe.getRecipeId());
             return hisOrderCodeResTO;
         }).collect(Collectors.toList());
         HisOrderCodeReqTO hisOrderCodeReqTOS = new HisOrderCodeReqTO();
         hisOrderCodeReqTOS.setOrganId(organId);
         hisOrderCodeReqTOS.setPatientID(patientID);
         hisOrderCodeReqTOS.setHisOrderCodeResTOS(hisOrderCodeResTOS);
+        if (null != patientBean) {
+            hisOrderCodeReqTOS.setCertID(patientBean.getCertificate());
+            hisOrderCodeReqTOS.setCertificateType(patientBean.getCertificateType());
+        }
+        if(null != recipeExtend){
+            hisOrderCodeReqTOS.setCardType(recipeExtend.getCardType());
+            hisOrderCodeReqTOS.setCardNo(recipeExtend.getCardNo());
+        }
         List<HisOrderCodeResTO> response = null;
         try {
             HisResponseTO<List<HisOrderCodeResTO>> listHisResponseTO = recipeHisService.queryHisOrderCodeByRecipeCode(hisOrderCodeReqTOS);

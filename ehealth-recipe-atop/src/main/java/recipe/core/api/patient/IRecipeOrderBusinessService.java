@@ -10,6 +10,7 @@ import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.vo.PreOrderInfoReqVO;
 import com.ngari.recipe.vo.ShoppingCartReqVO;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
+import easypay.entity.vo.param.bus.HlwTbParamReq;
 import easypay.entity.vo.param.bus.MedicalPreSettleQueryReq;
 import easypay.entity.vo.param.bus.SelfPreSettleQueryReq;
 import recipe.vo.ResultBean;
@@ -327,4 +328,11 @@ public interface IRecipeOrderBusinessService {
      * @return 是否可以合并
      */
     Boolean mergeTrackingNumber(Integer addressId, Integer enterpriseId, List<Integer> recipeIdList);
+
+    /**
+     * 获取支付需要的结算信息
+     * @param busId
+     * @return
+     */
+    HlwTbParamReq getHlwYbInfo(Integer busId);
 }
