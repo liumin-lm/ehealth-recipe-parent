@@ -184,6 +184,9 @@ public class RecipeStatusFromHisObserver implements Observer<NoticeNgariRecipeIn
             if (StringUtils.isNotEmpty(notice.getHisOrderCode())) {
                 recipeExtend.setHisOrderCode(notice.getHisOrderCode());
             }
+            if (StringUtils.isNotEmpty(notice.getHisBusId())) {
+                recipeExtend.setHisBusId(notice.getHisBusId());
+            }
             recipeExtendDAO.updateNonNullFieldByPrimaryKey(recipeExtend);
             //将药品信息加入病历中
             EmrRecipeManager emrRecipeManager = AppContextHolder.getBean("emrRecipeManager", EmrRecipeManager.class);
