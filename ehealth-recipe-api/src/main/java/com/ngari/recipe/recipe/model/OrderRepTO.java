@@ -1,5 +1,6 @@
 package com.ngari.recipe.recipe.model;
 
+import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
 import java.io.Serializable;
@@ -113,6 +114,18 @@ public class OrderRepTO implements Serializable {
      * 病历号
      */
     private String medicalRecordNumber;
+
+
+    @ItemProperty(alias = "用于支付结算结果查询")
+    private String hisBusId;
+
+    public String getHisBusId() {
+        return hisBusId;
+    }
+
+    public void setHisBusId(String hisBusId) {
+        this.hisBusId = hisBusId;
+    }
 
     public String getHisDiseaseSerial() {
         return hisDiseaseSerial;

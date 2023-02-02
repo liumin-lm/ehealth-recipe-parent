@@ -1624,8 +1624,10 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         String registerId = repList.get(0).getRegisterID();
         String medicalType = repList.get(0).getMedicalType();
         String medicalTypeText = repList.get(0).getMedicalTypeText();
+        String hisBusId = repList.get(0).getHisBusId();
+
         recipeManager.sendSuccessRecipeExt(recipeId, recipeCostNumber, pharmNo, response.getYbid(), hisDiseaseSerial,
-                registerId, medicalType, medicalTypeText);
+                registerId, medicalType, medicalTypeText,hisBusId);
         //病人医院病历号
         String patientId = repList.get(0).getPatientID();
         String amount = repList.get(0).getAmount();

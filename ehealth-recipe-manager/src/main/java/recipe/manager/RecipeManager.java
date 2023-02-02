@@ -1433,7 +1433,7 @@ public class RecipeManager extends BaseManager {
      */
     @LogRecord
     public void sendSuccessRecipeExt(Integer recipeId, String recipeCostNumber, String pharmNo, String hisOrderCode, String hisDiseaseSerial
-            , String registerId, String medicalType, String medicalTypeText) {
+            , String registerId, String medicalType, String medicalTypeText,String hisBusId) {
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
         if (null == recipeExtend) {
             return;
@@ -1444,6 +1444,7 @@ public class RecipeManager extends BaseManager {
         updateRecipeExtend.setRecipeId(recipeId);
         updateRecipeExtend.setRecipeCostNumber(recipeCostNumber);
         updateRecipeExtend.setHisOrderCode(hisOrderCode);
+        updateRecipeExtend.setHisBusId(hisBusId);
         if (StringUtils.isNotEmpty(hisDiseaseSerial)) {
             updateRecipeExtend.setHisDiseaseSerial(hisDiseaseSerial);
         }
