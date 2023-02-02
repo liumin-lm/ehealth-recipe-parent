@@ -12,7 +12,9 @@ public enum OrderLogisticsStateEnum {
     NONE(0, "默认", ""),
     LOGISTICS_STATE_DISPENSING(1, "待发药", ""),
     LOGISTICS_STATE_DISTRIBUTION(2, "配送中", ""),
-    LOGISTICS_STATE_MEDICINE(3, "待取药", ""),;
+    LOGISTICS_STATE_MEDICINE(3, "待取药", ""),
+    LOGISTICS_STATE_FINISH(4, "完成", ""),
+    ;
 
     private Integer type;
     private String name;
