@@ -358,7 +358,11 @@ public class Recipe implements Serializable {
     @ItemProperty(alias = "代煎帖数")
     private Integer decoctionNum;
 
-    @ItemProperty(alias = "删除标识 0 否 1 是")
+    @ItemProperty(alias = "逻辑删除标识 1 是  0 否 默认否 " )
+    /**
+     * 已修改功能范围如下：
+     * 业务查询->电子处方 列表，导出
+     */
     private Integer deleteFlag;
 
     @Column(name = "delete_flag")
