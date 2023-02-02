@@ -216,6 +216,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @Autowired
     private RecipeBeforeOrderDAO recipeBeforeOrderDAO;
 
+    @LogRecord
     @RpcService
     @Override
     public void sendSuccess(RecipeBussReqTO request) {
