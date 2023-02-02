@@ -65,6 +65,7 @@ public class StateManager extends BaseManager {
         boolean result;
         switch (processState) {
             case PROCESS_STATE_ORDER:
+            case PROCESS_STATE_DISPENSING:
                 result = this.updateOrderStateWithLogistics(recipeOrder, processState, subState);
                 break;
             case PROCESS_STATE_CANCELLATION:
@@ -74,7 +75,6 @@ public class StateManager extends BaseManager {
                     couponClient.unlockCouponById(recipeOrder.getCouponId());
                 }
                 break;
-            case PROCESS_STATE_DISPENSING:
             case PROCESS_STATE_ORDER_PLACED:
             case PROCESS_STATE_READY_PAY:
             case NONE:
@@ -378,6 +378,13 @@ public class StateManager extends BaseManager {
                 break;
             case SUB_ORDER_TAKE_MEDICINE:
                 logisticsStateType = OrderLogisticsStateEnum.LOGISTICS_STATE_MEDICINE.getType();
+                break;
+            case SUB_DONE_DOWNLOAD:
+            case SUB_DONE_OD_PAYMENT:
+            case SUB_DONE_UPLOAD_THIRD:
+            case SUB_DONE_SELF_TAKE:
+            case SUB_DONE_SEND:
+                logisticsStateType = OrderLogisticsStateEnum.LOGISTICS_STATE_FINISH.getType();
                 break;
             default:
                 break;

@@ -677,7 +677,6 @@ public class RecipeOrderService extends RecipeBaseService {
             remoteService = getBean("commonRemoteService", CommonRemoteService.class);
         }
         order.setRecipeFee(remoteService.orderToRecipeFee(order, recipeIds, payModeSupport, recipeFee, extInfo));
-        //order.setRecipeFee(recipeFee);
         Map<String, Object> ext = result.getExt();
         if (null == ext) {
             ext = new HashMap<>();
@@ -994,11 +993,6 @@ public class RecipeOrderService extends RecipeBaseService {
         }
     }
 
-//    private void obtainExpressFee1(RecipeOrder order, Integer enterpriseId, Integer logisticsCompany, AddressDTO address, OrganLogisticsManageDto organLogisticsManageDto) {
-//        organLogisticsManageDto=obtainExpressFee(order,enterpriseId,logisticsCompany,address,organLogisticsManageDto);
-//        LOGGER.info(JSONUtils.toString(organLogisticsManageDto));
-//    }
-
     /**
      ** //当患者选择的快递为顺丰快递时，快递费用查询取物流管理获取，根据物流管理返回的值去判断取值情况
      *      * //1、返回为取预估价格时，直接展示物流返回的价格
@@ -1078,11 +1072,6 @@ public class RecipeOrderService extends RecipeBaseService {
             return organLogisticsManageDto;
         }
         return organLogisticsManageDto;
-    }
-
-    private BigDecimal getPriceForRecipeRegister(Integer organId) {
-        IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-        return (BigDecimal) configurationService.getConfiguration(organId, "priceForRecipeRegister");
     }
 
     public BigDecimal reCalculateRecipeFee(Integer enterpriseId, List<Integer> recipeIds, Map<String, String> extInfo) {
@@ -1214,8 +1203,6 @@ public class RecipeOrderService extends RecipeBaseService {
             result.setOrderCode(order.getOrderCode());
             result.setBusId(order.getOrderId());
         }
-        //快捷购药减库存
-
         LOGGER.info("createOrder finish. result={}", JSONUtils.toString(result));
     }
 
@@ -1229,7 +1216,6 @@ public class RecipeOrderService extends RecipeBaseService {
      * @author: JRK
      */
     private void setAppOtherMessage(RecipeOrder order) {
-
         //date 20200311
         //更改订单展示药企信息
         if (null != order && order.getEnterpriseId() != null) {
@@ -1556,7 +1542,6 @@ public class RecipeOrderService extends RecipeBaseService {
             Map<String, Object> orderAttrMap = Maps.newHashMap();
             orderAttrMap.put("effective", 0);
             orderAttrMap.put("status", status);
-//            orderAttrMap.put("finishTime", Calendar.getInstance().getTime());
 
             if (null != order) {
                 //解锁优惠券
@@ -1565,7 +1550,6 @@ public class RecipeOrderService extends RecipeBaseService {
                         if(PayFlagEnum.NOPAY.getType().equals(order.getPayFlag())) {
                             couponService.unlockCoupon(order.getCouponId());
                         }
-//                        orderAttrMap.put("couponId", null);
                     } catch (Exception e) {
                         LOGGER.error("cancelOrder unlock coupon error. couponId={}, error={}", order.getCouponId(), e.getMessage(), e);
                     }
@@ -1684,7 +1668,6 @@ public class RecipeOrderService extends RecipeBaseService {
             Map<String, Object> orderAttrMap = Maps.newHashMap();
             orderAttrMap.put("effective", 0);
             orderAttrMap.put("status", status);
-//            orderAttrMap.put("finishTime", Calendar.getInstance().getTime());
 
             if (null != order) {
                 //解锁优惠券
@@ -1693,7 +1676,6 @@ public class RecipeOrderService extends RecipeBaseService {
                         if(PayFlagEnum.NOPAY.getType().equals(order.getPayFlag())) {
                             couponService.unlockCoupon(order.getCouponId());
                         }
-//                        orderAttrMap.put("couponId", null);
                     } catch (Exception e) {
                         LOGGER.error("cancelOrder unlock coupon error. couponId={}, error={}", order.getCouponId(), e.getMessage(), e);
                     }
@@ -1820,22 +1802,6 @@ public class RecipeOrderService extends RecipeBaseService {
                     }
                 }
             }
-
-            //如果订单是到院取药，获取His的处方单支付状态，并更新
-            //订单有效
-//            if (CollectionUtils.isNotEmpty(recipeList) && order.getEffective() == 1) {
-//                for (Recipe recipeItem : recipeList) {
-//                    //到院取药  && recipeItem.getStatus() == 2
-//                    if (recipeItem.getGiveMode() == 2 && recipeItem.getPayFlag() == 1 && !RecipeStatusEnum.RECIPE_STATUS_FINISH.getType().equals(recipeItem.getStatus())) {
-//                        Integer query = recipeHisService.getRecipeSinglePayStatusQuery(recipeItem.getRecipeId());
-//                        if (query != null && query == eh.cdr.constant.RecipeStatusConstant.HAVE_PAY) {
-//                            recipeItem.setStatus(eh.cdr.constant.RecipeStatusConstant.HAVE_PAY);
-//                        } else if (query != null && query == eh.cdr.constant.RecipeStatusConstant.FINISH) {
-//                            recipeItem.setStatus(eh.cdr.constant.RecipeStatusConstant.FINISH);
-//                        }
-//                    }
-//                }
-//            }
             String decoctionId = "";
             String decoctionText = "";
             boolean decoctionFlag = true;
@@ -2122,7 +2088,6 @@ public class RecipeOrderService extends RecipeBaseService {
             if (!tcmFlag) {
                 //表示处方单中不存在中药处方,需要将中医辨证论证费和代煎费去掉
                 orderBean.setDecoctionFee(null);
-//                orderBean.setTcmFee(null);
             }
             orderBean.setList(patientRecipeBeanList);
             orderBean.setProcessStateText(OrderStateEnum.getOrderStateEnum(order.getProcessState()).getName());

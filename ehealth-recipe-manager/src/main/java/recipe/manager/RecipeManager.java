@@ -14,8 +14,8 @@ import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.platform.recipe.mode.*;
 import com.ngari.recipe.dto.EmrDetailDTO;
 import com.ngari.recipe.dto.RecipeDTO;
-import com.ngari.recipe.dto.*;
 import com.ngari.recipe.dto.RecipeInfoDTO;
+import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import com.ngari.revisit.RevisitBean;
 import com.ngari.revisit.common.model.RevisitExDTO;
@@ -1365,9 +1365,9 @@ public class RecipeManager extends BaseManager {
      * @param recipeFee
      * @param detailSize
      */
+    @LogRecord
     public void sendSuccessRecipe(Integer recipeId, String recipeCode, String patientId, Integer writeHisState,
                                   String amount, BigDecimal recipeFee, Integer detailSize) {
-
         Recipe recipe = recipeDAO.get(recipeId);
 
         Recipe updateRecipe = new Recipe();
@@ -1418,6 +1418,7 @@ public class RecipeManager extends BaseManager {
      * @param hisOrderCode
      * @param hisDiseaseSerial
      */
+    @LogRecord
     public void sendSuccessRecipeExt(Integer recipeId, String recipeCostNumber, String pharmNo, String hisOrderCode, String hisDiseaseSerial
             , String registerId, String medicalType, String medicalTypeText) {
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
