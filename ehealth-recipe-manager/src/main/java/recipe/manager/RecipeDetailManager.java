@@ -390,7 +390,7 @@ public class RecipeDetailManager extends BaseManager {
                 updateRecipeDetail.setSalePrice(salePrice);
                 updateRecipeDetail.setDrugCost(drugCost);
             }
-            recipeDetailDAO.update(updateRecipeDetail);
+            recipeDetailDAO.updateNonNullFieldByPrimaryKey(updateRecipeDetail);
             list.add(updateRecipeDetail);
         }
         return list;
