@@ -15,7 +15,6 @@ import eh.cdr.constant.RecipeStatusConstant;
 import eh.wxpay.constant.PayConstant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.audit.IAuditMode;
 import recipe.caNew.pdf.CreatePdfFactory;
@@ -31,7 +30,6 @@ import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.SignImageTypeEnum;
-import recipe.manager.RecipeManager;
 import recipe.manager.StateManager;
 import recipe.mq.Buss2SessionProducer;
 import recipe.service.RecipeLogService;
@@ -54,15 +52,13 @@ public abstract class AbstractAuditMode implements IAuditMode {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractAuditMode.class);
 
-    @Autowired
-    private RecipeManager recipeManager;
-
     @Override
     public void afterHisCallBackChange(Integer status, Recipe recipe, String memo) {
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         //发送卡片
         RecipeServiceSub.sendRecipeTagToPatient(recipe, detailDAO.findByRecipeId(recipe.getRecipeId()), null, true);
         saveStatusAndSendMsg(recipe, memo);
+        //todo 已经在回调接口中的代码没必要异步
         //异步添加水印
         RecipeBusiThreadPool.execute(new UpdateWaterPrintRecipePdfRunnable(recipe.getRecipeId()));
     }

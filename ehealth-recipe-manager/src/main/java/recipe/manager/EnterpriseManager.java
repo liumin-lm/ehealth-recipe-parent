@@ -749,6 +749,34 @@ public class EnterpriseManager extends BaseManager {
     }
 
     @LogRecord
+    public void pushEnterpriseFailOrderNotify(Recipe recipe, DrugsEnterprise drugsEnterprise, Integer failCount){
+        if (null == drugsEnterprise) {
+            return;
+        }
+        try {
+            OrganDrugsSaleConfig organDrugsSaleConfig = organDrugsSaleConfigDAO.getOrganDrugsSaleConfig(drugsEnterprise.getId());
+            if (null == organDrugsSaleConfig) {
+                return;
+            }
+            if (StringUtils.isEmpty(organDrugsSaleConfig.getOrderPushFailPhone())) {
+                return;
+            }
+            List<String> mobilePhoneList = Arrays.asList(organDrugsSaleConfig.getOrderPushFailPhone().split(","));
+            mobilePhoneList.forEach(mobile -> {
+                if (StringUtils.isNotEmpty(mobile)) {
+                    Map<String, Object> smsMap = Maps.newHashMap();
+                    smsMap.put("mobile", mobile);
+                    smsMap.put("enterpriseName", drugsEnterprise.getName());
+                    smsMap.put("failCount", failCount);
+                    smsClient.pushSmsInfo(recipe, "PushEnterpriseFailOrderNotify", smsMap);
+                }
+            });
+        } catch (Exception e) {
+            logger.error("pushEnterpriseRefundPhone recipeId:{}, error", recipe.getRecipeId(), e);
+        }
+    }
+
+    @LogRecord
     public HisResponseTO doCancelRecipeForEnterprise(Recipe recipe) {
         HospitalReqTo req = new HospitalReqTo();
         req.setOrganId(recipe.getClinicOrgan());

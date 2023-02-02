@@ -29,6 +29,6 @@ public class DrugsEnterpriseJobAtop extends BaseAtop {
      */
     @RpcService
     public void pushFailOrderNotify() {
-
+        enterpriseBusinessService.pushFailOrderNotify();
     }
 }
