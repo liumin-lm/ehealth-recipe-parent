@@ -521,6 +521,7 @@ public class RecipeManager extends BaseManager {
         updateRecipeExt.setRecipeCostNumber(recipeExtendResult.getRecipeCostNumber());
         updateRecipeExt.setHisDiseaseSerial(recipeExtendResult.getHisDiseaseSerial());
         updateRecipeExt.setHisOrderCode(recipeExtendResult.getHisOrderCode());
+        updateRecipeExt.setHisBusId(recipeExtendResult.getHisBusId());
         recipeExtendDAO.updateNonNullFieldByPrimaryKey(updateRecipeExt);
         logger.info("RecipeManager updatePushHisRecipeExt updateRecipeExt:{}.", JSON.toJSONString(updateRecipeExt));
     }
