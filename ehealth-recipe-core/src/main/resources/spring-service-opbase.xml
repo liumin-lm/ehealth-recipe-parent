@@ -14,4 +14,5 @@
     <reference interface="com.ngari.opbase.log.service.IDataSyncLogService" id="opbase.dataSyncLogService" />
     <reference interface="com.ngari.opbase.base.service.IOpOrganAccountAndPermissionService" id="opbase.organOpService" />
     <reference interface="com.ngari.opbase.base.service.IOrganDictionaryItemService" id="opbase.organDictionaryItemService" />
+    <reference interface="com.ngari.opbase.base.service.IPropertyOrganService" id="opbase.propertyOrganService"/>
 </s:beans>
