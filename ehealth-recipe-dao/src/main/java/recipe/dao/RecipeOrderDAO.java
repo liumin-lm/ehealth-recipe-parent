@@ -1886,7 +1886,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 hql.append(" AND (a.print_express_bill_flag = 0 or a.print_express_bill_flag is null) ");
             }
         }
-        if(null != recipeOrderRefundReqDTO.getGiveModeKey()){
+        if(StringUtils.isNotEmpty(recipeOrderRefundReqDTO.getGiveModeKey())){
             hql.append(" AND a.giveModeKey =:giveModeKey ");
         }
         if(null != recipeOrderRefundReqDTO.getLogisticsCompany()){
@@ -1895,7 +1895,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         if(null != recipeOrderRefundReqDTO.getLogisticsState()){
             hql.append(" AND a.logistics_state =:logisticsState ");
         }
-        if(null != recipeOrderRefundReqDTO.getTrackingNumber()){
+        if(StringUtils.isNotEmpty(recipeOrderRefundReqDTO.getTrackingNumber())){
             hql.append(" AND a.TrackingNumber =:trackingNumber ");
         }
         logger.info("RecipeOrderDAO getRefundStringBuilder hql:{}", hql);

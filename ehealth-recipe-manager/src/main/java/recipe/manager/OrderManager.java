@@ -1126,6 +1126,7 @@ public class OrderManager extends BaseManager {
      * 合并物流
      * @param order 订单
      */
+    @LogRecord
     public String getMergeTrackingNumber(RecipeOrder order) {
         try {
             if (Objects.isNull(order)) {
