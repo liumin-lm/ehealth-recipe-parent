@@ -1752,13 +1752,13 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         if (null != recipeOrderRefundReqDTO.getDepId()) {
             query.setParameter("depId", depId);
         }
-        if (null != recipeOrderRefundReqDTO.getGiveModeKey()) {
+        if (StringUtils.isNotEmpty(recipeOrderRefundReqDTO.getGiveModeKey())) {
             query.setParameter("giveModeKey", recipeOrderRefundReqDTO.getGiveModeKey());
         }
         if (null != recipeOrderRefundReqDTO.getLogisticsCompany()) {
             query.setParameter("logisticsCompany", recipeOrderRefundReqDTO.getLogisticsCompany());
         }
-        if (null != recipeOrderRefundReqDTO.getTrackingNumber()) {
+        if (StringUtils.isNotEmpty(recipeOrderRefundReqDTO.getTrackingNumber())) {
             query.setParameter("trackingNumber", recipeOrderRefundReqDTO.getTrackingNumber());
         }
         if (null != recipeOrderRefundReqDTO.getLogisticsState()) {
