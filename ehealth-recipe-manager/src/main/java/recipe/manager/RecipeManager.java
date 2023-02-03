@@ -1335,6 +1335,10 @@ public class RecipeManager extends BaseManager {
             return false;
         }
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+
+        if (RecipeStateEnum.STATE_DELETED.contains(recipe.getProcessState())) {
+            return true;
+        }
         if (WriteHisEnum.WRITE_HIS_STATE_ORDER.getType().equals(recipe.getWriteHisState())) {
             return true;
         }
