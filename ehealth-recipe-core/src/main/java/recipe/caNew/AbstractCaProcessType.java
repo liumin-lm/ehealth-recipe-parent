@@ -15,7 +15,6 @@ import ctd.util.AppContextHolder;
 import eh.wxpay.constant.PayConstant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.audit.auditmode.AuditModeContext;
 import recipe.client.DocIndexClient;

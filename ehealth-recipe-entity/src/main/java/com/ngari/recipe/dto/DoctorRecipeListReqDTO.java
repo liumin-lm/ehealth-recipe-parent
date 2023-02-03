@@ -1,4 +1,4 @@
-package recipe.vo.doctor;
+package com.ngari.recipe.dto;
 
 import ctd.schema.annotation.ItemProperty;
 import lombok.Data;
@@ -11,8 +11,9 @@ import java.io.Serializable;
  * @date： 2022-12-13 9:57
  */
 @Data
-public class DoctorRecipeListReqVO implements Serializable {
-    private static final long serialVersionUID = 5559373753185159589L;
+public class DoctorRecipeListReqDTO implements Serializable {
+
+    private static final long serialVersionUID = 4640454693303329961L;
 
     @ItemProperty(alias = "医生id")
     private Integer doctorId;

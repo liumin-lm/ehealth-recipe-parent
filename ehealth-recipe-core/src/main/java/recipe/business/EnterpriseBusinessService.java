@@ -445,6 +445,8 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
         drugsEnterprise.setShowLogisticsLink(drugsEnterpriseVO.getShowLogisticsLink());
         drugsEnterprise.setShowLogisticsType(drugsEnterpriseVO.getShowLogisticsType());
         drugsEnterprise.setLogisticsType(drugsEnterpriseVO.getLogisticsType());
+        drugsEnterprise.setLogisticsMergeFlag(drugsEnterpriseVO.getLogisticsMergeFlag());
+        drugsEnterprise.setLogisticsMergeTime(drugsEnterpriseVO.getLogisticsMergeTime());
         drugsEnterpriseDAO.update(drugsEnterprise);
         return true;
     }
@@ -890,9 +892,28 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
         return list;
     }
 
+    @Override
     public List<DrugsEnterpriseVO> findDrugEnterprise(){
         List<DrugsEnterprise> drugsEnterprises = drugsEnterpriseDAO.findAllDrugsEnterpriseByStatus(1);
         return ObjectCopyUtils.convert(drugsEnterprises, DrugsEnterpriseVO.class);
+    }
+
+    @Override
+    public void pushFailOrderNotify() {
+        Date startDate = DateConversion.getDateAftXDays(new Date(), -1);
+        List<RecipeOrder> recipeOrderList = recipeOrderDAO.findByPushFlag(startDate, new Date());
+        List<Integer> enterpriseIdList = recipeOrderList.stream().map(RecipeOrder::getEnterpriseId).collect(Collectors.toList());
+        List<DrugsEnterprise> drugsEnterprises = drugsEnterpriseDAO.findByIds(enterpriseIdList);
+        Map<Integer, DrugsEnterprise> drugsEnterpriseMap = drugsEnterprises.stream().collect(Collectors.toMap(DrugsEnterprise::getId, a -> a, (k1, k2) -> k1));
+        Map<Integer, List<RecipeOrder>> recipeOrderMap = recipeOrderList.stream().collect(Collectors.groupingBy(RecipeOrder::getEnterpriseId));
+        Iterator<Integer> iterator = recipeOrderMap.keySet().iterator();
+        while (iterator.hasNext()) {
+            Integer  enterpriseId = iterator.next();
+            List<RecipeOrder> recipeOrders = recipeOrderMap.get(enterpriseId);
+            DrugsEnterprise drugsEnterprise = drugsEnterpriseMap.get(enterpriseId);
+            //消息推送
+            enterpriseManager.pushEnterpriseFailOrderNotify(new Recipe(), drugsEnterprise, recipeOrders.size());
+        }
     }
 
     private Integer getEnterpriseSendFlag(DrugsEnterprise enterprise, CheckOrderAddressVo checkOrderAddressVo) {

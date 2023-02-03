@@ -1,7 +1,6 @@
 package recipe.dao;
 
 import com.google.common.collect.Maps;
-import com.ngari.recipe.entity.Pharmacy;
 import com.ngari.recipe.entity.PharmacyTcm;
 import com.ngari.recipe.recipe.model.PharmacyTcmDTO;
 import ctd.persistence.annotation.DAOMethod;
@@ -13,7 +12,6 @@ import ctd.persistence.support.hibernate.template.AbstractHibernateStatelessResu
 import ctd.persistence.support.hibernate.template.HibernateSessionTemplate;
 import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction;
 import ctd.util.annotation.RpcSupportDAO;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.hibernate.Query;
 import org.hibernate.StatelessSession;
@@ -98,9 +96,11 @@ public abstract class PharmacyTcmDAO extends HibernateSupportDelegateDAO<Pharmac
      * @param organId
      * @return
      */
-    @DAOMethod(sql = " select  pharmacyId from PharmacyTcm where organId=:organId order by sort ASC " ,limit =0)
+    @DAOMethod(sql = " select  pharmacyId from PharmacyTcm where organId=:organId order by sort ASC ", limit = 0)
     public abstract List<Integer> findPharmacyByOrganId(@DAOParam("organId") Integer organId);
 
+    @DAOMethod(sql = "from PharmacyTcm where pharmacyId in (:pharmacyIds)")
+    public abstract List<PharmacyTcm> findPharmacyTcmByIds(@DAOParam("pharmacyIds") List<Integer> pharmacyIds);
 
     /**
      * 通过orgsnId和 药房名称获取
@@ -109,7 +109,7 @@ public abstract class PharmacyTcmDAO extends HibernateSupportDelegateDAO<Pharmac
      * @return
      */
     @DAOMethod(sql = "from PharmacyTcm where organId=:organId and pharmacyName=:pharmacyName")
-    public abstract PharmacyTcm getByOrganIdAndPharmacyName(@DAOParam("organId") Integer organId,@DAOParam("pharmacyName") String pharmacyName);
+    public abstract PharmacyTcm getByOrganIdAndPharmacyName(@DAOParam("organId") Integer organId, @DAOParam("pharmacyName") String pharmacyName);
 
 
     /**

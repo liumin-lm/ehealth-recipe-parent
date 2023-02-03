@@ -71,6 +71,7 @@ public class RecipeToHisCallbackService {
      * @return his返回结果消息
      */
     @RpcService
+    @Deprecated
     public void sendSuccess(HisSendResTO response) {
         long start = System.currentTimeMillis();
         LOGGER.info("recipeSend recive success. recipeId={}, response={}", response.getRecipeId(), JSONUtils.toString(response));

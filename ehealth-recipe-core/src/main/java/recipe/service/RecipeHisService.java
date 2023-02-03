@@ -26,6 +26,7 @@ import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.recipe.common.RecipeBussReqTO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drug.model.OrganDrugListBean;
 import com.ngari.recipe.dto.EmrDetailDTO;
@@ -33,6 +34,7 @@ import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.SyncEinvoiceNumberDTO;
 import com.ngari.recipe.recipe.model.*;
+import com.ngari.recipe.recipe.service.IRecipeService;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.RevisitBean;
 import com.ngari.revisit.common.model.RevisitExDTO;
@@ -74,7 +76,6 @@ import recipe.enumerate.status.*;
 import recipe.enumerate.type.OrderSettleDimensionTypeEnum;
 import recipe.enumerate.type.PayFlagEnum;
 import recipe.hisservice.HisRequestInit;
-import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.hisservice.RecipeToHisService;
 import recipe.manager.*;
 import recipe.presettle.factory.PreSettleFactory;
@@ -144,7 +145,6 @@ public class RecipeHisService extends RecipeBaseService {
     private DrugOrganConfigDAO drugOrganConfigDao;
     @Autowired
     protected RecipeOrderDAO recipeOrderDAO;
-
     /**
      * 发送处方
      *
@@ -232,9 +232,6 @@ public class RecipeHisService extends RecipeBaseService {
         if (patientDTO != null && StringUtils.isNotEmpty(patientDTO.getCertificate())) {
             str = patientDTO.getCertificate().substring(patientDTO.getCertificate().length() - 5);
         }
-        RecipeToHisCallbackService service = ApplicationUtils.getRecipeService(RecipeToHisCallbackService.class);
-        HisSendResTO response = new HisSendResTO();
-        response.setRecipeId(String.valueOf(recipe.getRecipeId()));
         List<OrderRepTO> repList = Lists.newArrayList();
         OrderRepTO orderRepTO = new OrderRepTO();
         List<String> recipeTypes = configurationClient.getValueListCatch(recipe.getClinicOrgan(), "patientRecipeUploadHis", null);
@@ -251,9 +248,16 @@ public class RecipeHisService extends RecipeBaseService {
         }
         orderRepTO.setRecipeNo(String.valueOf(recipe.getRecipeId()));
         repList.add(orderRepTO);
+        HisSendResTO response = new HisSendResTO();
+        response.setRecipeId(String.valueOf(recipe.getRecipeId()));
         response.setData(repList);
         response.setWriteHisState(WriteHisEnum.NONE.getType());
-        service.sendSuccess(response);
+//        RecipeToHisCallbackService service = ApplicationUtils.getRecipeService(RecipeToHisCallbackService.class);
+//        service.sendSuccess(response);
+        IRecipeService recipeService = AppContextHolder.getBean("eh.remoteRecipeService", IRecipeService.class);
+        RecipeBussReqTO request = new RecipeBussReqTO();
+        request.setData(response);
+        recipeService.sendSuccess(request);
         LOGGER.info("skip his success!!! recipeId={}", recipe.getRecipeId());
     }
 
@@ -675,6 +679,15 @@ public class RecipeHisService extends RecipeBaseService {
             List<RecipeListQueryReqTO> requestList = new ArrayList<>();
             for (String recipeCode : recipeCodes) {
                 Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeCode, organId);
+                if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
+                    RecipeOrder order = orderDAO.getByOrderCode(recipe.getOrderCode());
+                    if (Objects.nonNull(order)) {
+                        Integer payQuery = payClient.payQuery(order.getOrderId());
+                        if (new Integer(1).equals(payQuery)) {
+                            continue;
+                        }
+                    }
+                }
                 if (RecipeStateEnum.PROCESS_STATE_CANCELLATION.getType().equals(recipe.getProcessState())) {
                     LOGGER.info("recipeListQuery 当前处方已经在平台撤销 recipeId:{}", recipe.getRecipeId());
                     continue;

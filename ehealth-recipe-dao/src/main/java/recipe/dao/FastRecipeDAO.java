@@ -1,5 +1,6 @@
 package recipe.dao;
 
+import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.vo.FastRecipeReq;
 import com.ngari.recipe.entity.FastRecipe;
 import ctd.persistence.annotation.DAOMethod;
@@ -103,4 +104,7 @@ public abstract class FastRecipeDAO extends HibernateSupportDelegateDAO<FastReci
         HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
+
+    @DAOMethod(sql = "from FastRecipe where id in(:ids) ", limit = 0)
+    public abstract List<FastRecipe> findFastRecipeList(@DAOParam("ids") List<Integer> ids);
 }

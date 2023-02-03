@@ -9,7 +9,6 @@ import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.OutPatientRecipeDTO;
 import com.ngari.recipe.dto.OutPatientRecordResDTO;
 import com.ngari.recipe.dto.RecipeRefundDTO;
-import com.ngari.recipe.entity.DoctorCommonPharmacy;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Symptom;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
@@ -320,12 +319,6 @@ public interface IRecipeBusinessService {
      */
     void recipePayHISCallback(RecipePayHISCallbackReq recipePayHISCallbackReq);
 
-    @Deprecated
-    DoctorCommonPharmacy findDoctorCommonPharmacyByOrganIdAndDoctorId(Integer organId, Integer doctorId);
-
-    @Deprecated
-    void saveDoctorCommonPharmacy(DoctorCommonPharmacy doctorCommonPharmacy);
-
     /**
      * 门诊缴费支付回调
      * @param recipeOutpatientPaymentDTO
@@ -480,8 +473,15 @@ public interface IRecipeBusinessService {
 
     /**
      * 药品订单-打印快递面单获取物流订单详情
+     *
      * @param orderCode
      */
     logisticsOrderInfoVO getLogisticsOrderInfo(String orderCode);
 
+    /**
+     * his回写处方数据更新表字段
+     *
+     * @param response
+     */
+    void sendSuccessRecipe(HisSendResTO response);
 }

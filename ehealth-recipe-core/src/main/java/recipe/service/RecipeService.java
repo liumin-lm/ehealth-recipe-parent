@@ -27,6 +27,7 @@ import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.home.asyn.model.BussCancelEvent;
 import com.ngari.home.asyn.model.BussFinishEvent;
 import com.ngari.home.asyn.service.IAsynDoBussService;
+import com.ngari.opbase.base.service.IPropertyOrganService;
 import com.ngari.opbase.log.mode.DataSyncDTO;
 import com.ngari.opbase.log.service.IDataSyncLogService;
 import com.ngari.patient.ds.PatientDS;
@@ -2559,18 +2560,21 @@ public class RecipeService extends RecipeBaseService {
      */
     @RpcService(timeout = 600000)
     public void drugInfoSynTask() {
-        drugInfoSynTaskExt(null);
+        organDrugListService.drugInfoSynTaskExt(null);
     }
 
+    /**
+     * 作废
+     * @param organId
+     */
     @RpcService(timeout = 600000)
     public void drugInfoSynTaskExt(Integer organId) {
         RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
-        IOrganConfigService iOrganConfigService = ApplicationUtils.getBaseService(IOrganConfigService.class);
         syncDrugExcDAO.deleteByOrganId(organId, 2);
         List<Integer> organIds = new ArrayList<>();
         if (null == organId) {
-            //查询 base_organconfig 表配置需要同步的机构
-            organIds = drugOrganConfigDao.findEnableDrugSync();
+            IPropertyOrganService service = AppDomainContext.getBean("opbase.propertyOrganService", IPropertyOrganService.class);
+            organIds=service.findOrganIdByKeyAndValue("drugUpdateForPlat","true");
         } else {
             organIds.add(organId);
         }
@@ -4879,7 +4883,7 @@ public class RecipeService extends RecipeBaseService {
      * @param drug
      * @param organDrug
      */
-    private void updateHisDrug(DrugInfoTO drug, OrganDrugList organDrug, Integer organId) {
+    public void updateHisDrug(DrugInfoTO drug, OrganDrugList organDrug, Integer organId) {
         if (null == organDrug) {
             return;
         }

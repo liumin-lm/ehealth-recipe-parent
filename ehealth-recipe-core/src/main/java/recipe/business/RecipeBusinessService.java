@@ -31,7 +31,6 @@ import com.ngari.recipe.recipe.constant.RecipecCheckStatusConstant;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.vo.*;
 import coupon.api.service.ICouponBaseService;
-import ctd.account.UserRoleToken;
 import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
 import ctd.net.broadcast.MQHelper;
@@ -124,8 +123,6 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     private IConfigurationClient configurationClient;
     @Autowired
     private PharmacyTcmDAO pharmacyTcmDAO;
-    @Autowired
-    private DoctorCommonPharmacyDAO doctorCommonPharmacyDao;
     @Autowired
     private PatientOptionalDrugDAO patientOptionalDrugDAO;
     @Autowired
@@ -928,23 +925,38 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     public void recipePayHISCallback(RecipePayHISCallbackReq recipePayHISCallbackReq) {
         logger.info("RecipePayHISCallback recipePayHISCallbackReq[{}]", JSONUtils.toString(recipePayHISCallbackReq));
 
-        Recipe recipe = recipeDAO.getByRecipeCode(recipePayHISCallbackReq.getRecipeCode());
+        Integer cashDeskSettleUseCode = configurationClient.getValueCatchReturnInteger(recipePayHISCallbackReq.getOrganId(), "cashDeskSettleUseCode", CashDeskSettleUseCodeTypeEnum.HIS_RECIPE_CODE.getType());
+        Recipe recipe = null;
+        if (CashDeskSettleUseCodeTypeEnum.HIS_RECIPE_CODE.getType().equals(cashDeskSettleUseCode)) {
+            recipe = recipeDAO.getByRecipeCodeAndClinicOrganWithAll(recipePayHISCallbackReq.getRecipeCode(), recipePayHISCallbackReq.getOrganId());
+            if (Objects.isNull(recipe)){
+                List<Recipe> recipes = recipeDAO.getByRecipeCodeLikeAndPayFlag(recipePayHISCallbackReq.getRecipeCode(), recipePayHISCallbackReq.getOrganId());
+                if(CollectionUtils.isNotEmpty(recipes)){
+                    recipe = recipes.get(0);
+                }
+            }
+        }else {
+            List<Recipe> recipes = recipeDAO.getByChargeIdAndOrganId(recipePayHISCallbackReq.getRecipeCode(), recipePayHISCallbackReq.getOrganId());
+            if(CollectionUtils.isNotEmpty(recipes)){
+                recipe = recipes.get(0);
+            }
+        }
+
         if (Objects.isNull(recipe) || StringUtils.isEmpty(recipe.getOrderCode())) {
             logger.info("RecipePayHISCallback recipe isnull, recipeCode[{}]", recipePayHISCallbackReq.getRecipeCode());
             return;
         }
 
         RecipeOrder order = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+        if (null == order) {
+            logger.info("RecipePayHISCallback busObject not exists, recipeCode[{}]", recipePayHISCallbackReq.getRecipeCode());
+            return;
+        }
         if (!"200".equals(recipePayHISCallbackReq.getMsgCode())) {
             String memo = "订单: 收到his支付失败消息 recipePayHISCallbackReq:" + JSONUtils.toString(recipePayHISCallbackReq);
             updateRecipePayLog(order, memo);
         }
 
-
-        if (null == order) {
-            logger.info("RecipePayHISCallback busObject not exists, recipeCode[{}]", recipePayHISCallbackReq.getRecipeCode());
-            return;
-        }
         //已处理-幂等判断
         if (order.getPayFlag() != null && order.getPayFlag() == 1) {
             logger.info("RecipePayHISCallback payflag has been set true, recipeCode[{}]", recipePayHISCallbackReq.getRecipeCode());
@@ -1009,26 +1021,6 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             }
         }
         return;
-    }
-
-    @Override
-    public DoctorCommonPharmacy findDoctorCommonPharmacyByOrganIdAndDoctorId(Integer organId, Integer doctorId) {
-        List<DoctorCommonPharmacy> doctorCommonPharmacies = doctorCommonPharmacyDao.findByOrganIdAndDoctorId(organId,doctorId);
-        return CollectionUtils.isEmpty(doctorCommonPharmacies)?null:doctorCommonPharmacies.get(0);
-    }
-
-
-    @Override
-    public void saveDoctorCommonPharmacy(DoctorCommonPharmacy doctorCommonPharmacy) {
-        List<DoctorCommonPharmacy> doctorCommonPharmacies=doctorCommonPharmacyDao.findByOrganIdAndDoctorId(doctorCommonPharmacy.getOrganId(),doctorCommonPharmacy.getDoctorId());
-        if(CollectionUtils.isEmpty(doctorCommonPharmacies)){
-            doctorCommonPharmacy.setCreateTime(new Date());
-            doctorCommonPharmacyDao.save(doctorCommonPharmacy);
-        }else{
-            DoctorCommonPharmacy doctorCommonPharmacyDb=doctorCommonPharmacies.get(0);
-            doctorCommonPharmacy.setId(doctorCommonPharmacyDb.getId());
-            doctorCommonPharmacyDao.updateNonNullFieldByPrimaryKey(doctorCommonPharmacy);
-        }
     }
 
     @Override
@@ -1534,7 +1526,8 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     @Override
     public List<RecipeInfoVO> findDoctorRecipeList(DoctorRecipeListReqVO doctorRecipeListReqVO) {
         List<Integer> doctorIds = Arrays.asList(doctorRecipeListReqVO.getDoctorId(), -1);
-        List<Recipe> recipeList = recipeDAO.findDoctorRecipeListV1(doctorIds, doctorRecipeListReqVO.getOrganId(), doctorRecipeListReqVO.getRecipeType(), doctorRecipeListReqVO.getStart(), doctorRecipeListReqVO.getLimit());
+        DoctorRecipeListReqDTO doctorRecipeListReqDTO = ObjectCopyUtils.convert(doctorRecipeListReqVO, DoctorRecipeListReqDTO.class);
+        List<Recipe> recipeList = recipeDAO.findDoctorRecipeListV1(doctorIds, doctorRecipeListReqDTO);
         if (CollectionUtils.isEmpty(recipeList)) {
             return null;
         }
@@ -1595,15 +1588,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         }
     }
 
-    public void checkUserHasPermissionByDoctorId(Integer doctorId){
-        UserRoleToken urt = UserRoleToken.getCurrent();
-        String methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
-        if (!(urt.isSelfDoctor(doctorId))){
-            logger.error("当前用户没有权限调用doctorId[{}],methodName[{}]", doctorId ,methodName);
-            throw new DAOException("当前登录用户没有权限");
-        }
-    }
-
+    @Override
     public logisticsOrderInfoVO getLogisticsOrderInfo(String orderCode){
         logisticsOrderInfoVO logisticsOrderInfoVO = new logisticsOrderInfoVO();
         try {
@@ -1619,12 +1604,37 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             //3、获取物流运单条形码
             String logisticsOrderNo = logisticsOrderService.waybillBarCodeByLogisticsOrderNo(1, orderCode);
             logisticsOrderInfoVO.setLogisticsOrderNo(logisticsOrderNo);
-        }catch (Exception e){
+        } catch (Exception e) {
             logger.error("getLogisticsOrderInfo error", e);
         }
         logger.info("getLogisticsOrderInfo recipeOrderRefundDetailVO={}", JSONUtils.toString(logisticsOrderInfoVO));
         return logisticsOrderInfoVO;
     }
 
+    @Override
+    public void sendSuccessRecipe(HisSendResTO response) {
+        Integer recipeId = Integer.valueOf(response.getRecipeId());
+        List<OrderRepTO> repList = response.getData();
+        //医院处方号
+        String recipeCode = repList.get(0).getRecipeNo();
+        // 将取药窗口更新到ext表
+        String pharmNo = repList.stream().filter(a -> StringUtils.isNotEmpty(a.getPharmNo())).findFirst().map(OrderRepTO::getPharmNo).orElse(null);
+        String recipeCostNumber = StringUtils.isNotBlank(response.getRecipeCostNumber()) ? response.getRecipeCostNumber() : recipeCode;
+        String hisDiseaseSerial = repList.get(0).getHisDiseaseSerial();
+        String registerId = repList.get(0).getRegisterID();
+        String medicalType = repList.get(0).getMedicalType();
+        String medicalTypeText = repList.get(0).getMedicalTypeText();
+        String hisBusId = repList.get(0).getHisBusId();
+
+        recipeManager.sendSuccessRecipeExt(recipeId, recipeCostNumber, pharmNo, response.getYbid(), hisDiseaseSerial,
+                registerId, medicalType, medicalTypeText,hisBusId);
+        //病人医院病历号
+        String patientId = repList.get(0).getPatientID();
+        String amount = repList.get(0).getAmount();
+        recipeManager.sendSuccessRecipe(recipeId, recipeCode, patientId, response.getWriteHisState(),
+                amount, response.getRecipeFee(), repList.size());
+        //修改处方状态
+        stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_SUBMIT, RecipeStateEnum.NONE);
+    }
 }
 

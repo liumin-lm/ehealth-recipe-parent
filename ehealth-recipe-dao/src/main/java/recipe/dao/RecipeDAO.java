@@ -5,6 +5,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.common.dto.DepartChargeReportResult;
 import com.ngari.common.dto.HosBusFundsReportResult;
+import com.ngari.recipe.dto.DoctorRecipeListReqDTO;
 import com.ngari.recipe.dto.RecipeRefundDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
@@ -1749,7 +1750,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         }
         if (null != recipesQueryVO.getOrderType()) {
             if (recipesQueryVO.getOrderType() == 0) {
-                hql.append(" and o.orderType=").append(0);
+                hql.append(" and o.orderType in (0,5)  ");
             } else {
                 hql.append(" and o.orderType in (1,2,3,4) ");
             }
@@ -3794,6 +3795,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     @DAOMethod(sql = "from Recipe where clinicId=:clinicId and status not in(:status)")
     public abstract List<Recipe> findRecipeClinicIdAndStatus(@DAOParam("clinicId") Integer clinicId, @DAOParam("status") List<Integer> status);
 
+    @DAOMethod(sql = "from Recipe where clinicId=:clinicId and status not in(:status) and process_state not in(:processState)")
+    public abstract List<Recipe> findRecipeClinicIdAndStatusAndProcessState(@DAOParam("clinicId") Integer clinicId, @DAOParam("status") List<Integer> status, @DAOParam("processState") List<Integer> processState);
+
     @DAOMethod(sql = "from Recipe where clinicId=:clinicId and process_state in(:processState)")
     public abstract List<Recipe> findRecipeClinicIdAndProcessState(@DAOParam("clinicId") Integer clinicId, @DAOParam("processState") List<Integer> processState);
 
@@ -4866,12 +4870,89 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                                                              @DAOParam("endTime") Date endTime,
                                                              @DAOParam("organIds") List<Integer> organIds);
 
-    @DAOMethod(sql = "from Recipe r where doctor IN :doctorId and clinicOrgan=:organId and recipeSourceType =:recipeSourceType and processState = 1 order by recipeId desc ", limit = 0)
-    public abstract List<Recipe> findDoctorRecipeListV1(@DAOParam("doctorId") List<Integer> doctorId, @DAOParam("organId") Integer organId, @DAOParam("recipeSourceType") Integer recipeSourceType, @DAOParam(pageStart = true) int start, @DAOParam(pageLimit = true) int limit);
+    public List<Recipe> findDoctorRecipeListV1(List<Integer> doctorIds, DoctorRecipeListReqDTO doctorRecipeListReqDTO) {
+        HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder sql = new StringBuilder("select * from cdr_recipe where doctor in :doctorId and clinicOrgan=:organId and recipeSourceType =:recipeSourceType and process_state = 1 ");
+                String keyWord = doctorRecipeListReqDTO.getKeyWord();
+                Integer recipeType = doctorRecipeListReqDTO.getRecipeDrugType();
+                Integer recipeDrugForm = doctorRecipeListReqDTO.getRecipeDrugForm();
+                if (StringUtils.isNotEmpty(keyWord)) {
+                    sql.append(" and ( offline_recipe_name like :keyWord ");
+                    if (Objects.nonNull(recipeType)) {
+                        sql.append(" or recipeType=:recipeType ");
+                    }
+                    if (Objects.nonNull(recipeDrugForm)) {
+                        sql.append(" or recipe_drug_form=:recipeDrugForm ");
+                    }
+                    sql.append(") ");
+                }
+                sql.append(" order by recipeId desc ");
+                Query q = ss.createSQLQuery(sql.toString()).addEntity(Recipe.class);
+                q.setParameterList("doctorId", doctorIds);
+                q.setParameter("organId", doctorRecipeListReqDTO.getOrganId());
+                q.setParameter("recipeSourceType", doctorRecipeListReqDTO.getRecipeType());
+                if (StringUtils.isNotEmpty(keyWord)) {
+                    q.setParameter("keyWord", "%" + keyWord + "%");
+                }
+                if (Objects.nonNull(recipeType)) {
+                    q.setParameter("recipeType", recipeType);
+                }
+                if (Objects.nonNull(recipeDrugForm)) {
+                    q.setParameter("recipeDrugForm", recipeDrugForm);
+                }
+                q.setFirstResult(doctorRecipeListReqDTO.getStart());
+                q.setMaxResults(doctorRecipeListReqDTO.getLimit());
+                setResult(q.list());
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
 
     @DAOMethod(sql = "FROM Recipe where clinicOrgan = :organId AND status = 0 AND clinicId = :clinicId")
     public abstract List<Recipe> findTempRecipeByClinicId(@DAOParam("organId") Integer organId,
                                                           @DAOParam("clinicId") Integer clinicId);
+
+    public List<Recipe> getByChargeIdAndOrganId(String recipeCode, Integer organId){
+        HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder("select r.*  from cdr_recipe r ");
+                hql.append(" LEFT JOIN cdr_recipe_ext re ON r.RecipeID = re.recipeId ");
+                hql.append(" where r.clinicOrgan = :organId ");
+                hql.append(" and  re.charge_id = :recipeCode ");
+                hql.append(" and (r.delete_flag = 0 or r.delete_flag  is null)");
+                Query q = ss.createSQLQuery(hql.toString()).addEntity(Recipe.class);
+                q.setParameter("organId", organId);
+                q.setParameter("recipeCode", recipeCode);
+
+                setResult(q.list());
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    };
+
+    public  List<Recipe> getByRecipeCodeLikeAndPayFlag(@DAOParam("recipeCode")String recipeCode, @DAOParam("organId")Integer organId){
+        HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder sql = new StringBuilder("select * from cdr_recipe where clinicOrgan=:organId and PayFlag =0 ");
+                sql.append(" and recipeCode like :recipeCode ");
+                Query q = ss.createSQLQuery(sql.toString()).addEntity(Recipe.class);
+                q.setParameter("organId", organId);
+                q.setParameter("recipeCode", "%" + recipeCode + "%");
+                setResult(q.list());
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    };
+
+    @DAOMethod(sql = "from Recipe where orderCode is not null and fastRecipeFlag = 1 and offlineRecipeName is null ", limit = 0)
+    public abstract List<Recipe> findFastRecipeList();
 }
 
 

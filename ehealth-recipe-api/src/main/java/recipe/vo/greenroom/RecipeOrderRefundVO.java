@@ -1,6 +1,7 @@
 package recipe.vo.greenroom;
 
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
+import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 import lombok.Getter;
@@ -18,6 +19,7 @@ import java.util.List;
  */
 @Getter
 @Setter
+@Schema
 public class RecipeOrderRefundVO implements Serializable {
     private static final long serialVersionUID = -6152135464708446009L;
 
@@ -71,4 +73,11 @@ public class RecipeOrderRefundVO implements Serializable {
 
     @ItemProperty(alias = "是否已打印快递面单")
     private Boolean printExpressBillFlag;
+
+    @ItemProperty(alias = "物流公司")
+    @Dictionary(id = "eh.infra.dictionary.LogisticsCode")
+    private Integer logisticsCompany;
+
+    @ItemProperty(alias = "快递单号")
+    private String trackingNumber;
 }

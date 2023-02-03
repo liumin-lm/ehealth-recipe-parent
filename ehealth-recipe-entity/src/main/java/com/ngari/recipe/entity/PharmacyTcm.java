@@ -50,6 +50,9 @@ public  class PharmacyTcm implements java.io.Serializable{
     @ItemProperty(alias = "剂型 1 中药饮片 2 配送颗粒")
     private String drugFormType;
 
+    @ItemProperty(alias = "挂号科室id ，号分割 如 [1,2,3]")
+    private String appointDepartId;
+
     @Id
     @GeneratedValue(strategy = IDENTITY)
     @Column(name = "pharmacyId", unique = true, nullable = false)
@@ -141,5 +144,14 @@ public  class PharmacyTcm implements java.io.Serializable{
 
     public void setDrugFormType(String drugFormType) {
         this.drugFormType = drugFormType;
+    }
+
+    @Column(name = "appoint_depart_id")
+    public String getAppointDepartId() {
+        return appointDepartId;
+    }
+
+    public void setAppointDepartId(String appointDepartId) {
+        this.appointDepartId = appointDepartId;
     }
 }

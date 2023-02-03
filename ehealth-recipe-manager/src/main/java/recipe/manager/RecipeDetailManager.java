@@ -28,6 +28,7 @@ import recipe.util.ObjectCopyUtils;
 import recipe.util.ValidateUtil;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -281,13 +282,6 @@ public class RecipeDetailManager extends BaseManager {
         }
         Integer recipeId = details.get(0).getRecipeId();
         recipeDetailDAO.updateDetailInvalidByRecipeId(recipeId);
-//        for (Recipedetail detail : details) {
-//            if (ValidateUtil.integerIsEmpty(detail.getRecipeDetailId())) {
-//                recipeDetailDAO.save(detail);
-//            } else {
-//                recipeDetailDAO.update(detail);
-//            }
-//        }
         recipeDetailDAO.saveRecipeDetails(details);
         logger.info("RecipeDetailManager saveRecipeDetails details:{}", JSON.toJSONString(details));
         return details;
@@ -356,5 +350,49 @@ public class RecipeDetailManager extends BaseManager {
      */
     public List<Recipedetail> findDetailByOrderCode(String orderCode) {
         return recipeDetailDAO.findDetailByOrderCode(orderCode);
+    }
+
+
+    public List<Recipedetail> sendSuccessDetail(List<Recipedetail> recipeDetails, List<RecipePreSettleDrugFeeDTO> recipeDrugFee) {
+        List<Recipedetail> list = new ArrayList<>();
+        Map<String, RecipePreSettleDrugFeeDTO> collect = recipeDrugFee.stream().collect(Collectors.toMap(RecipePreSettleDrugFeeDTO::getOrganDrugCode, a -> a, (k1, k2) -> k1));
+        for (Recipedetail detail : recipeDetails) {
+            if (null == detail.getRecipeDetailId()) {
+                continue;
+            }
+            Recipedetail updateRecipeDetail = new Recipedetail();
+            //因为从HIS返回回来的数据不是很全，所以要从DB获取一次
+            Recipedetail recipeDetail = recipeDetailDAO.getByRecipeDetailId(detail.getRecipeDetailId());
+            updateRecipeDetail.setRecipeDetailId(recipeDetail.getRecipeDetailId());
+            updateRecipeDetail.setOrganDrugCode(recipeDetail.getOrganDrugCode());
+            updateRecipeDetail.setDrugId(recipeDetail.getDrugId());
+            updateRecipeDetail.setDrugGroup(detail.getDrugGroup());
+            updateRecipeDetail.setOrderNo(detail.getOrderNo());
+            if (StringUtils.isNotEmpty(detail.getDrugSpec())) {
+                updateRecipeDetail.setDrugSpec(detail.getDrugSpec());
+            }
+            if (!ValidateUtil.integerIsEmpty(detail.getPack())) {
+                updateRecipeDetail.setPack(detail.getPack());
+            }
+            updateRecipeDetail.setMedicalDrugCode(detail.getMedicalDrugCode());
+            RecipePreSettleDrugFeeDTO recipePreSettleDrugFeeDTO = collect.get(recipeDetail.getOrganDrugCode());
+
+            BigDecimal drugCost;
+            //根据医院传入的价格更新药品总价
+            if (null != recipePreSettleDrugFeeDTO) {
+                drugCost = recipePreSettleDrugFeeDTO.getDrugCost();
+                updateRecipeDetail.setHisReturnSalePrice(recipePreSettleDrugFeeDTO.getSalePrice());
+            } else {
+                drugCost = detail.getDrugCost();
+            }
+            if (null != drugCost && null != recipeDetail.getUseTotalDose()) {
+                BigDecimal salePrice = drugCost.divide(BigDecimal.valueOf(recipeDetail.getUseTotalDose()), 2, RoundingMode.UP);
+                updateRecipeDetail.setSalePrice(salePrice);
+                updateRecipeDetail.setDrugCost(drugCost);
+            }
+            recipeDetailDAO.updateNonNullFieldByPrimaryKey(updateRecipeDetail);
+            list.add(updateRecipeDetail);
+        }
+        return list;
     }
 }

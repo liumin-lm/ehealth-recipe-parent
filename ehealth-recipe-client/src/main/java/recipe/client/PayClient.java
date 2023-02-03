@@ -167,7 +167,7 @@ public class PayClient extends BaseClient {
             logger.info("PayClient payQuery result:{}", JSON.toJSONString(result));
             if (Objects.nonNull(result)) {
                 String code = (String)result.get("code");
-                if ("PROCESSING".equals(code)) {
+                if ("PROCESSING".equals(code) || "SUCCESS".equals(code)) {
                     return 1;
                 } else {
                     return 0;

@@ -9,12 +9,14 @@ import com.ngari.base.serviceconfig.service.IHisServiceConfigService;
 import com.ngari.bus.op.service.IUsePathwaysService;
 import com.ngari.bus.op.service.IUsingRateService;
 import com.ngari.common.mode.HisResponseTO;
+import com.ngari.his.recipe.mode.DrugInfoTO;
 import com.ngari.his.recipe.mode.OrganDrugInfoTO;
 import com.ngari.his.regulation.entity.RegulationDrugCategoryReq;
 import com.ngari.his.regulation.entity.RegulationNotifyDataReq;
 import com.ngari.his.regulation.service.IRegulationService;
 import com.ngari.jgpt.zjs.service.IMinkeOrganService;
 import com.ngari.opbase.base.service.IBusActionLogService;
+import com.ngari.opbase.base.service.IPropertyOrganService;
 import com.ngari.opbase.log.mode.DataSyncDTO;
 import com.ngari.opbase.log.service.IDataSyncLogService;
 import com.ngari.opbase.util.OpSecurityUtil;
@@ -58,12 +60,15 @@ import recipe.drugsenterprise.ByRemoteService;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.vo.greenroom.OrganConfigVO;
 
+import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static ctd.persistence.DAOFactory.getDAO;
 
 //import recipe.manager.SaleDrugListManager;
 
@@ -95,6 +100,9 @@ public class OrganDrugListService implements IOrganDrugListService {
 
     @Autowired
     private OrganClient organClient;
+
+    @Resource
+    private SyncDrugExcDAO syncDrugExcDAO;
 
 
     /**
@@ -1229,5 +1237,65 @@ public class OrganDrugListService implements IOrganDrugListService {
             OrganDrugListService.logger.info("copyOrganDrugByOrganId error", e);
         }
     }
+
+    @RpcService(timeout = 600000)
+    public void drugInfoSynTaskExt(Integer organId) {
+        RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
+        syncDrugExcDAO.deleteByOrganId(organId, 2);
+        List<Integer> organIds = new ArrayList<>();
+        if (null == organId) {
+            IPropertyOrganService service = AppDomainContext.getBean("opbase.propertyOrganService", IPropertyOrganService.class);
+            organIds=service.findOrganIdByKeyAndValue("drugUpdateForPlat","true");
+        } else {
+            organIds.add(organId);
+        }
+
+        if (CollectionUtils.isEmpty(organIds)) {
+            logger.info("drugInfoSynTask organIds is empty.");
+            return;
+        }
+
+        OrganDrugListDAO organDrugListDAO = getDAO(OrganDrugListDAO.class);
+        Long updateNum = 0L;
+
+        for (int oid : organIds) {
+            try {
+                //获取纳里机构药品目录
+                List<OrganDrugList> details = organDrugListDAO.findOrganDrugByOrganId(oid);
+                if (CollectionUtils.isEmpty(details)) {
+                    logger.info("drugInfoSynTask 当前医院organId=[{}]，平台没有匹配到机构药品.", oid);
+                    continue;
+                }
+                Map<String, OrganDrugList> drugMap = details.stream().collect(Collectors.toMap(OrganDrugList::getOrganDrugCode, a -> a, (k1, k2) -> k1));
+                //查询起始下标
+                int startIndex = 0;
+                boolean finishFlag = true;
+                long total = organDrugListDAO.getTotal(oid);
+                while (finishFlag) {
+                    List<DrugInfoTO> drugInfoList = hisService.getDrugInfoFromHis(oid, false, startIndex);
+                    if (!CollectionUtils.isEmpty(drugInfoList)) {
+                        //是否有效标志 1-有效 0-无效
+                        for (DrugInfoTO drug : drugInfoList) {
+                            OrganDrugList organDrug = drugMap.get(drug.getDrcode());
+                            if (null == organDrug) {
+                                continue;
+                            }
+                            recipeService.updateHisDrug(drug, organDrug, oid);
+                            updateNum++;
+                            logger.info("drugInfoSynTask organId=[{}] drug=[{}]", oid, JSONUtils.toString(drug));
+                        }
+                    }
+                    startIndex++;
+                    if (startIndex >= total) {
+                        logger.info("drugInfoSynTask organId=[{}] 本次查询量：total=[{}] ,总更新量：update=[{}]，药品信息更新结束.", oid, startIndex, updateNum);
+                        finishFlag = false;
+                    }
+                }
+            } catch (Exception e) {
+                logger.info("定时drugInfoSynTaskExt机构药品数据同步失败,{}", oid + "Exception:{}" + e);
+            }
+        }
+    }
+
 
 }

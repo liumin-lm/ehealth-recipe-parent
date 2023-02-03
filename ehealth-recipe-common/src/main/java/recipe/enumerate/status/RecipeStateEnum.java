@@ -89,6 +89,7 @@ public enum RecipeStateEnum {
     SUB_CANCELLATION_WRITE_HIS_NOT_ORDER(97, "医院his确认失败:", ""),
     SUB_CANCELLATION_REFUND(98, "处方已退费成功", ""),
     SUB_CANCELLATION_WRITE_HIS_ERROR(99, "his写入失败，调用前置机处方写入服务失败", ""),
+    SUB_CANCELLATION_REFUND_FAIL(100, "处方退费失败", ""),
     ;
 
     private Integer type;
@@ -130,6 +131,11 @@ public enum RecipeStateEnum {
      * 需方按钮
      */
     public static final List<Integer> continueRecipeFlag = Arrays.asList(PROCESS_STATE_AUDIT.type, PROCESS_STATE_ORDER.type, PROCESS_STATE_DISPENSING.type, PROCESS_STATE_DISTRIBUTION.type, PROCESS_STATE_MEDICINE.type, PROCESS_STATE_DONE.type, PROCESS_STATE_CANCELLATION.type);
+
+    /**
+     * 不参与重复处方校验状态
+     */
+    public static final List<Integer> RECIPE_REPEAT_VALIDATE = Arrays.asList(PROCESS_STATE_CANCELLATION.type);
 
 
     /**

@@ -24,6 +24,7 @@ import recipe.vo.ResultBean;
 import recipe.vo.patient.PatientSubmitRecipeVO;
 import recipe.vo.second.CheckOrderAddressVo;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -308,6 +309,30 @@ public class RecipeOrderPatientAtop extends BaseAtop {
     public Integer checkOrderPayState(Integer orderId){
         validateAtop(orderId);
         return recipeOrderService.checkOrderPayState(orderId);
+    }
+
+    /**
+     * 获取复诊提醒时间
+     * @param orderCode
+     * @return
+     */
+    @RpcService
+    public Date getRevisitRemindTime(List<Integer> recipeIds){
+        validateAtop(recipeIds);
+        return recipeOrderService.getRevisitRemindTime(recipeIds);
+    }
+
+    /**
+     * 是否可合并物流单
+     * @param addressId 收货地址
+     * @param enterpriseId 药企ID
+     * @param recipeIdList 处方ID
+     * @return 是否可以合并
+     */
+    @RpcService
+    public Boolean mergeTrackingNumber(Integer addressId, Integer enterpriseId, List<Integer> recipeIdList) {
+        validateAtop(enterpriseId, recipeIdList);
+        return recipeOrderService.mergeTrackingNumber(addressId, enterpriseId, recipeIdList);
     }
 
 }

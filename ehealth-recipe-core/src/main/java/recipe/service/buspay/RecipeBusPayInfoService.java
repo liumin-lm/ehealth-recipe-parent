@@ -21,6 +21,7 @@ import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.common.RecipeBussResTO;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.drugsenterprise.service.IDrugsEnterpriseService;
+import com.ngari.recipe.dto.HisSettleReqDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.pay.model.BusBillDateAccountDTO;
 import com.ngari.recipe.pay.model.WnExtBusCdrRecipeDTO;
@@ -450,9 +451,10 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
                     simpleBusObject.setTerminalId(recipeExtend.getTerminalId());
                 }
             }
-            String hisOrderCode = recipeManager.getHisOrderCode(recipe.getClinicOrgan(),Lists.newArrayList(recipe.getRecipeId()));
-            if(StringUtils.isNotEmpty(hisOrderCode)){
-                simpleBusObject.setYbIdSyf(hisOrderCode);
+            HisSettleReqDTO settleReqDTO = recipeManager.getHisOrderCode(recipe.getClinicOrgan(), Lists.newArrayList(recipe.getRecipeId()));
+            if(Objects.nonNull(settleReqDTO)){
+                simpleBusObject.setYbIdSyf(settleReqDTO.getYbId());
+                simpleBusObject.setHisBusId(settleReqDTO.getHisBusId());
             }
         } else {
             simpleBusObject.setBusId(busId);
@@ -486,9 +488,10 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
                     simpleBusObject.setTerminalId(recipeExtend.getTerminalId());
                 }
             }
-            String hisOrderCode = recipeManager.getHisOrderCode(order.getOrganId(),recipeIdList);
-            if(StringUtils.isNotEmpty(hisOrderCode)){
-                simpleBusObject.setYbIdSyf(hisOrderCode);
+            HisSettleReqDTO settleReqDTO = recipeManager.getHisOrderCode(order.getOrganId(), recipeIdList);
+            if(Objects.nonNull(settleReqDTO)){
+                simpleBusObject.setYbIdSyf(settleReqDTO.getYbId());
+                simpleBusObject.setHisBusId(settleReqDTO.getHisBusId());
             }
             //杭州互联网流程
             if (order.getRegisterNo() != null) {

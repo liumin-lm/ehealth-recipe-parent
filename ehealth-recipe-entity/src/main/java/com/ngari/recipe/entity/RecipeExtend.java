@@ -289,6 +289,9 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "快捷购药购买份数")
     private Integer fastRecipeNum;
 
+    @ItemProperty(alias = "用于支付结算结果查询")
+    private String hisBusId;
+
     @Column(name = "single_or_compound_recipe")
     public Integer getSingleOrCompoundRecipe() {
         return singleOrCompoundRecipe;
@@ -1137,5 +1140,14 @@ public class RecipeExtend implements Serializable {
 
     public void setDecoctionExhibitionFlag(Integer decoctionExhibitionFlag) {
         this.decoctionExhibitionFlag = decoctionExhibitionFlag;
+    }
+
+    @Column(name = "his_bus_id")
+    public String getHisBusId() {
+        return hisBusId;
+    }
+
+    public void setHisBusId(String hisBusId) {
+        this.hisBusId = hisBusId;
     }
 }

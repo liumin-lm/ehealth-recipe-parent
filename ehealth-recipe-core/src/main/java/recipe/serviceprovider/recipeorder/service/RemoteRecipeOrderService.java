@@ -1,5 +1,6 @@
 package recipe.serviceprovider.recipeorder.service;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
@@ -295,6 +296,8 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
         nowRecipeRefund.setNode(9);
         nowRecipeRefund.setStatus(refundStatus);
         nowRecipeRefund.setReason(null);
+        List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
+        List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIdList);
         //根据业务id，根据退费推送消息
         //当退费成功后修改处方和订单的状态
         switch (refundStatus) {
@@ -306,8 +309,6 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
                 }
                 RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.RECIPE_REFUND_SUCC);
                 //修改处方单状态 处理合并支付
-                List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
-                List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIdList);
                 recipes.forEach(recipe1 -> {
                     recipeDAO.updateRecipeInfoByRecipeId(recipe1.getRecipeId(), RecipeStatusConstant.REVOKE, ImmutableMap.of("payFlag", 3));
                     StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
@@ -341,6 +342,13 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
                     recipeRefundService.recipeReFundSave(recipe, nowRecipeRefund);
                     recipeRefundService.updateRecipeRefundStatus(recipe, RefundNodeStatusConstant.REFUND_NODE_FAIL_AUDIT_STATUS);
                 }
+                recipes.forEach(recipe2 -> {
+                    recipeDAO.updateRecipeInfoByRecipeId(recipe2.getRecipeId(), RecipeStatusConstant.REVOKE, ImmutableMap.of("payFlag", 4));
+                    StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
+                    stateManager.updateRecipeState(recipe2.getRecipeId(), RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_REFUND_FAIL);
+                    LOGGER.info("退费失败修改处方状态：{}", recipe2.getRecipeId());
+                });
+                stateManager.updateOrderState(recipeOrder.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION,OrderStateEnum.SUB_CANCELLATION_REFUND_FAIL);
                 break;
             default:
                 LOGGER.warn("当前处方{}退费状态{}无法解析！", recipeId, refundStatus);
@@ -368,12 +376,12 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
             throw new DAOException(DAOException.VALUE_NEEDED, "物流公司、编号、状态值不能为空");
         }
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-        String orderCode = recipeOrderDAO.getOrderCodeByLogisticsCompanyAndTrackingNumber(Integer.parseInt(trannckingReqTO.getLogisticsCompany()), trannckingReqTO.getTrackingNumber());
-        LOGGER.info("updateRecipeTrannckingInfo.queryRecipeOrderCode={}", orderCode);
+        List<String> orderCodes = recipeOrderDAO.findOrderCodeByLogisticsCompanyAndTrackingNumber(Integer.parseInt(trannckingReqTO.getLogisticsCompany()), trannckingReqTO.getTrackingNumber());
+        LOGGER.info("updateRecipeTrannckingInfo.queryRecipeOrderCode={}", JSON.toJSONString(orderCodes));
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         try {
-            if (StringUtils.isNotBlank(orderCode)) {
-                List<Recipe> recipeList = recipeDAO.findRecipeListByOrderCode(orderCode);
+            if (CollectionUtils.isNotEmpty(orderCodes)) {
+                List<Recipe> recipeList = recipeDAO.findByOrderCode(orderCodes);
                 LOGGER.info("updateRecipeTrannckingInfo.queryRcipe={}", JSONObject.toJSONString(recipeList));
                 if (recipeList.size() > 0) {
                     Recipe recipe = recipeList.get(0);

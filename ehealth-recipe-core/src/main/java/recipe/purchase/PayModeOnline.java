@@ -327,7 +327,9 @@ public class PayModeOnline implements IPurchaseService {
             //走支付，待支付
             payStatus = OrderStatusConstant.READY_PAY;
         }
-
+        if(StringUtils.isNotEmpty(MapValueUtil.getString(extInfo, "revisitRemindTime")))   {
+            order.setRevisitRemindTime(DateConversion.parseDate(MapValueUtil.getString(extInfo, "revisitRemindTime"),DateConversion.DEFAULT_DATE_TIME));
+        }
         order.setExpectSendDate(MapValueUtil.getString(extInfo, "expectSendDate"));
         order.setExpectSendTime(MapValueUtil.getString(extInfo, "expectSendTime"));
         order.setStatus(payStatus);
