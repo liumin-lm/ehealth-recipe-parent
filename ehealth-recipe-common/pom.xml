@@ -58,6 +58,7 @@
             <version>${fastjson}</version>
         </dependency>
 
+        <!--计算list 排列组合工具包-->
         <dependency>
             <groupId>com.github.dpaukov</groupId>
             <artifactId>combinatoricslib3</artifactId>
