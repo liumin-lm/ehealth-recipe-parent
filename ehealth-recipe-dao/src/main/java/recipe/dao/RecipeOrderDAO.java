@@ -464,6 +464,10 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
     public abstract List<String> findOrderCodeByLogisticsCompanyAndTrackingNumber(@DAOParam("logisticsCompany") Integer logisticsCompany,
                                                                            @DAOParam("trackingNumber") String trackingNumber);
 
+    @DAOMethod(sql = "from RecipeOrder order  where order.logisticsCompany=:logisticsCompany and order.trackingNumber=:trackingNumber")
+    public abstract List<RecipeOrder> findRecipeOrderByLogisticsCompanyAndTrackingNumber(@DAOParam("logisticsCompany") Integer logisticsCompany,
+                                                                                  @DAOParam("trackingNumber") String trackingNumber);
+
     /**
      * 根据日期获取电子处方药企配送订单明细
      *

@@ -1727,6 +1727,15 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
         if (!DrugEnterpriseConstant.LOGISTICS_PLATFORM.equals(drugsEnterprise.getLogisticsType())) {
             return true;
         }
+        if (StringUtils.isEmpty(recipeOrder.getTrackingNumber())) {
+            return true;
+        }
+        List<RecipeOrder> recipeOrderList = recipeOrderDAO.findRecipeOrderByLogisticsCompanyAndTrackingNumber(recipeOrder.getLogisticsCompany(), recipeOrder.getTrackingNumber());
+        List<Integer> orderProcessStateList = Arrays.asList(OrderStateEnum.PROCESS_STATE_ORDER_PLACED.getType(), OrderStateEnum.PROCESS_STATE_ORDER.getType(), OrderStateEnum.PROCESS_STATE_DISPENSING.getType());
+        List<RecipeOrder> recipeOrders = recipeOrderList.stream().filter(order->!orderCode.equals(order.getOrderCode())).filter(order->orderProcessStateList.contains(order.getProcessState())).collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(recipeOrders)) {
+            return false;
+        }
         //查询该物流是否揽件
         return infraClient.cancelLogisticsOrder(recipeOrder, false);
     }
