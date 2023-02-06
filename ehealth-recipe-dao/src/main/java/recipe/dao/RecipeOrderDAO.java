@@ -464,6 +464,10 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
     public abstract List<String> findOrderCodeByLogisticsCompanyAndTrackingNumber(@DAOParam("logisticsCompany") Integer logisticsCompany,
                                                                            @DAOParam("trackingNumber") String trackingNumber);
 
+    @DAOMethod(sql = "from RecipeOrder order  where order.logisticsCompany=:logisticsCompany and order.trackingNumber=:trackingNumber")
+    public abstract List<RecipeOrder> findRecipeOrderByLogisticsCompanyAndTrackingNumber(@DAOParam("logisticsCompany") Integer logisticsCompany,
+                                                                                  @DAOParam("trackingNumber") String trackingNumber);
+
     /**
      * 根据日期获取电子处方药企配送订单明细
      *
@@ -1752,13 +1756,13 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         if (null != recipeOrderRefundReqDTO.getDepId()) {
             query.setParameter("depId", depId);
         }
-        if (null != recipeOrderRefundReqDTO.getGiveModeKey()) {
+        if (StringUtils.isNotEmpty(recipeOrderRefundReqDTO.getGiveModeKey())) {
             query.setParameter("giveModeKey", recipeOrderRefundReqDTO.getGiveModeKey());
         }
         if (null != recipeOrderRefundReqDTO.getLogisticsCompany()) {
             query.setParameter("logisticsCompany", recipeOrderRefundReqDTO.getLogisticsCompany());
         }
-        if (null != recipeOrderRefundReqDTO.getTrackingNumber()) {
+        if (StringUtils.isNotEmpty(recipeOrderRefundReqDTO.getTrackingNumber())) {
             query.setParameter("trackingNumber", recipeOrderRefundReqDTO.getTrackingNumber());
         }
         if (null != recipeOrderRefundReqDTO.getLogisticsState()) {
@@ -1886,7 +1890,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 hql.append(" AND (a.print_express_bill_flag = 0 or a.print_express_bill_flag is null) ");
             }
         }
-        if(null != recipeOrderRefundReqDTO.getGiveModeKey()){
+        if(StringUtils.isNotEmpty(recipeOrderRefundReqDTO.getGiveModeKey())){
             hql.append(" AND a.giveModeKey =:giveModeKey ");
         }
         if(null != recipeOrderRefundReqDTO.getLogisticsCompany()){
@@ -1895,7 +1899,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         if(null != recipeOrderRefundReqDTO.getLogisticsState()){
             hql.append(" AND a.logistics_state =:logisticsState ");
         }
-        if(null != recipeOrderRefundReqDTO.getTrackingNumber()){
+        if(StringUtils.isNotEmpty(recipeOrderRefundReqDTO.getTrackingNumber())){
             hql.append(" AND a.TrackingNumber =:trackingNumber ");
         }
         logger.info("RecipeOrderDAO getRefundStringBuilder hql:{}", hql);
@@ -2092,5 +2096,5 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
      * @return
      */
     @DAOMethod(sql = "from RecipeOrder where payFlag = 1 and pushFlag = -1 and payTime between :startDate and :endDate", limit = 0)
-    public abstract List<RecipeOrder> findByPushFlag(@DAOParam("startDate") Date startDate, @DAOParam("startDate") Date endDate);
+    public abstract List<RecipeOrder> findByPushFlag(@DAOParam("startDate") Date startDate, @DAOParam("endDate") Date endDate);
 }

@@ -65,10 +65,7 @@ import recipe.bean.RecipePayModeSupportBean;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.*;
 import recipe.common.CommonConstant;
-import recipe.constant.DrugEnterpriseConstant;
-import recipe.constant.ErrorCode;
-import recipe.constant.RecipeBussConstant;
-import recipe.constant.RecipeStatusConstant;
+import recipe.constant.*;
 import recipe.core.api.IEnterpriseBusinessService;
 import recipe.core.api.patient.IRecipeOrderBusinessService;
 import recipe.dao.*;
@@ -189,7 +186,6 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
     private PayClient payClient;
     @Autowired
     private RecipeLogDAO recipeLogDAO;
-
     @Autowired
     private RecipeHisService recipeHisService;
 
@@ -1727,6 +1723,15 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
         if (!DrugEnterpriseConstant.LOGISTICS_PLATFORM.equals(drugsEnterprise.getLogisticsType())) {
             return true;
         }
+        if (StringUtils.isEmpty(recipeOrder.getTrackingNumber())) {
+            return true;
+        }
+        List<RecipeOrder> recipeOrderList = recipeOrderDAO.findRecipeOrderByLogisticsCompanyAndTrackingNumber(recipeOrder.getLogisticsCompany(), recipeOrder.getTrackingNumber());
+        List<Integer> orderProcessStateList = Arrays.asList(OrderStateEnum.PROCESS_STATE_ORDER_PLACED.getType(), OrderStateEnum.PROCESS_STATE_ORDER.getType(), OrderStateEnum.PROCESS_STATE_DISPENSING.getType());
+        List<RecipeOrder> recipeOrders = recipeOrderList.stream().filter(order->!orderCode.equals(order.getOrderCode())).filter(order->orderProcessStateList.contains(order.getProcessState())).collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(recipeOrders)) {
+            return false;
+        }
         //查询该物流是否揽件
         return infraClient.cancelLogisticsOrder(recipeOrder, false);
     }
@@ -1876,12 +1881,32 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
             case 4:
                 memo.append("退款失败");
                 break;
+            case 5:
+                memo.append("退费审核不通过");
+                break;
             default:
                 memo.append("支付 未知状态，payFlag:").append(targetPayFlag);
                 break;
         }
         if (StringUtils.isNotEmpty(recipeOrder.getRecipeIdList())) {
             List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
+            if (5 == targetPayFlag) {
+                RecipeRefund recipeRefund = new RecipeRefund();
+                recipeRefund.setTradeNo(recipeOrder.getTradeNo());
+                recipeRefund.setPrice(recipeOrder.getActualPrice());
+                recipeRefund.setStatus(2);
+                recipeRefund.setNode(RecipeRefundRoleConstant.RECIPE_REFUND_ROLE_THIRD);
+                recipeRefund.setReason(refundResultNotifyVO.getRemark());
+                orderFeeManager.recipeReFundSave(recipeOrder.getOrderCode(), recipeRefund);
+                //退费审核不通过 需要看是否管理员可强制退费
+                Boolean forceRecipeRefundFlag = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "forceRecipeRefundFlag", false);
+                if (forceRecipeRefundFlag) {
+                    //表示配置管理员可强制
+                    recipeRefund.setStatus(0);
+                    recipeRefund.setNode(RecipeRefundRoleConstant.RECIPE_REFUND_ROLE_ADMIN);
+                    orderFeeManager.recipeReFundSave(recipeOrder.getOrderCode(), recipeRefund);
+                }
+            }
             if (CollectionUtils.isNotEmpty(recipeIdList)) {
                 Integer recipeId = recipeIdList.get(0);
                 //调用回调处方退费
@@ -2002,6 +2027,8 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
         recipeOrder.setAddress3(address.getAddress3());
         recipeOrder.setAddress4(address.getAddress4());
         recipeOrder.setStreetAddress(address.getStreetAddress());
+        recipeOrder.setRecMobile(address.getRecMobile());
+        recipeOrder.setReceiver(address.getReceiver());
         String mergeTrackingNumber = orderManager.getMergeTrackingNumber(recipeOrder);
         if (StringUtils.isNotEmpty(mergeTrackingNumber)) {
             return true;
