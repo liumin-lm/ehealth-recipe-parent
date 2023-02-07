@@ -347,7 +347,7 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
     }
 
     @Override
-    public List<Recipedetail> sendSuccessDetail(HisSendResTO response) {
+    public List<Recipedetail> sendSuccessDetail(HisSendResTO response, Recipe recipe) {
         List<OrderRepTO> repList = response.getData();
         List<Recipedetail> details = Lists.newArrayList();
         for (OrderRepTO rep : repList) {
@@ -367,7 +367,7 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
             details.add(detail);
         }
         List<RecipePreSettleDrugFeeDTO> recipeDrugFee = null == response.getRecipePreSettleDrugFeeDTOS() ? Lists.newArrayList() : response.getRecipePreSettleDrugFeeDTOS();
-        return recipeDetailManager.sendSuccessDetail(details, recipeDrugFee);
+        return recipeDetailManager.sendSuccessDetail(details, recipeDrugFee, recipe);
     }
 
     /**
