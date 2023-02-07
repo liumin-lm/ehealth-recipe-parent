@@ -67,7 +67,7 @@ public class CommonRemoteService extends AccessDrugEnterpriseService {
         LOGGER.info("[{}][{}]token更新开始", depId, depName);
         try {
             if (-1 != drugsEnterprise.getAuthenUrl().indexOf("http:")) {
-                String backMsg = HttpHelper.doPost(drugsEnterprise.getAuthenUrl(), JSONUtils.toString(map));
+                String backMsg = HttpHelper.doPost(drugsEnterprise.getAuthenUrl(), JSONUtils.toString(map) ,"");
                 LOGGER.info("[{}][{}]token更新返回：{}", depId, depName, backMsg);
                 if (StringUtils.isNotEmpty(backMsg)) {
                     Map backMap = JSONUtils.parse(backMsg, Map.class);
@@ -126,7 +126,7 @@ public class CommonRemoteService extends AccessDrugEnterpriseService {
             LOGGER.info("发送[{}][{}]内容：{}", drugsEnterprise.getName(), method, sendInfoStr);
             String backMsg;
             try {
-                backMsg = HttpHelper.doPost(drugsEnterprise.getBusinessUrl(), sendInfoStr);
+                backMsg = HttpHelper.doPost(drugsEnterprise.getBusinessUrl(), sendInfoStr, "");
                 LOGGER.info("调用[{}][{}]结果返回={}", LOGGER.getName(), method, backMsg);
             } catch (IOException e) {
                 LOGGER.error("调用[{}][{}] IOException: " + e.getMessage() + "，详细数据：" + sendInfoStr, drugsEnterprise.getName(), method,e);
@@ -411,7 +411,7 @@ public class CommonRemoteService extends AccessDrugEnterpriseService {
 
         String backMsg = "";
         try {
-            backMsg = HttpHelper.doPost(drugsEnterprise.getBusinessUrl(), sendInfoStr);
+            backMsg = HttpHelper.doPost(drugsEnterprise.getBusinessUrl(), sendInfoStr, "");
             LOGGER.info("CommonRemoteService backMsg:{}", backMsg);
             if (StringUtils.isEmpty(backMsg)) {
                 return "暂无库存";

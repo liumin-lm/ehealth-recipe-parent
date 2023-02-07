@@ -1,10 +1,12 @@
 package recipe.drugsenterprise;
 
+import com.alibaba.fastjson.JSON;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.*;
+import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
 import com.ngari.recipe.drugsenterprise.model.Position;
@@ -24,15 +26,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
@@ -42,13 +40,15 @@ import recipe.constant.RecipeBussConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.bean.*;
 import recipe.service.RecipeLogService;
-import recipe.service.common.RecipeCacheService;
 import recipe.third.IFileDownloadService;
+import recipe.util.DateConversion;
+import recipe.util.DictionaryUtil;
 import recipe.util.DistanceUtil;
+import recipe.util.HttpHelper;
 
+import javax.annotation.Resource;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -61,8 +61,6 @@ import java.util.stream.Collectors;
 public class YtRemoteService extends AccessDrugEnterpriseService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(YtRemoteService.class);
-
-    private String ORGANIZATION;
 
     private static final String pushRecipeHttpUrl = "prescriptions/digit";
 
@@ -84,54 +82,46 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
 
     private static final String requestHeadPowerKey = "Authorization";
 
-    private static final Integer ytHzMedicalFlag = 2;
-
-    private static final String ytpTimeCheck = "yyyy-MM-dd";
-
-    private static final Integer ytValidDay = 3;
-
-    private static final Integer ytIfPay = 1;
-
-    private static final Integer ytSource = 4;
-
     private static final Integer requestPushSuccessCode = 204;
 
     private static final String imgHead = "data:image/jpeg;base64,";
 
-    @Autowired
-    private SaleDrugListDAO saleDrugListDAO;
+    private static final String YT_SY = "yt_sy";
 
-    public YtRemoteService() {
-        RecipeCacheService recipeService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
-        ORGANIZATION = recipeService.getRecipeParam("organization", "");
-    }
+    @Resource
+    private SaleDrugListDAO saleDrugListDAO;
+    @Resource
+    private RecipeParameterDao recipeParameterDao;
+    @Resource
+    private RecipeDAO recipeDAO;
+    @Resource
+    private RecipeOrderDAO recipeOrderDAO;
 
     @Override
     @RpcService
     public void tokenUpdateImpl(DrugsEnterprise drugsEnterprise) {
-        Integer depId = drugsEnterprise.getId();
-        String depName = drugsEnterprise.getName();
-        LOGGER.info("YtRemoteService.tokenUpdateImpl:[{}][{}]token更新", depId, depName);
-        //获取药企对应的用户名，密码和机构
+        LOGGER.info("YtRemoteService tokenUpdateImpl drugsEnterprise:{}", JSON.toJSONString(drugsEnterprise));
+        if (StringUtils.isEmpty(drugsEnterprise.getAuthenUrl())) {
+            return;
+        }
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         YtTokenRequest request = new YtTokenRequest();
-        //组装请求，判断是否组装成功
-        if (!AssembleRequest(drugsEnterprise, request)) return;
-        //发送http请求获取
-        CloseableHttpClient httpclient = HttpClients.createDefault();
+        request.setUser(drugsEnterprise.getUserId());
+        request.setPassword(drugsEnterprise.getPassword());
+        String organization = recipeParameterDao.getByName("organization");
+        request.setOrganization(organization);
+        LOGGER.info("YtRemoteService tokenUpdateImpl request:{}", JSON.toJSONString(request));
         try {
-            if (drugsEnterprise.getAuthenUrl().contains("http:")) {
-                sendTokenAndUpdateHttpRequest(drugsEnterprise, request, httpclient);
+            String response = HttpHelper.doPost(drugsEnterprise.getAuthenUrl(), JSON.toJSONString(request) ,"");
+            LOGGER.info("YtRemoteService tokenUpdateImpl response:{}", response);
+            YtTokenResponse tokenResponse = JSONUtils.parse(response, YtTokenResponse.class);
+            String newToken = tokenResponse.getTOKEN();
+            if(StringUtils.isNotEmpty(newToken)) {
+                drugsEnterpriseDAO.updateTokenById(drugsEnterprise.getId(), newToken);
+                LOGGER.info("YtRemoteService tokenUpdateImpl:[{}][{}]token更新成功:{}", drugsEnterprise.getId(), drugsEnterprise.getName(), newToken);
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-            LOGGER.error("YtRemoteService.tokenUpdateImpl:[{}][{}]更新token异常：{}", depId, depName, e.getMessage(),e);
-        } finally {
-            try {
-                httpclient.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-                LOGGER.error("YtRemoteService.tokenUpdateImpl:http请求资源关闭异常: {}", e.getMessage(),e);
-            }
+        } catch (IOException e) {
+            LOGGER.error("YtRemoteService tokenUpdateImpl error", e);
         }
     }
 
@@ -168,17 +158,14 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
 
     @Override
     public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId) {
-        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         SaleDrugList saleDrug = saleDrugListDAO.getByDrugIdAndOrganId(drugId, drugsEnterprise.getId());
         Pharmacy pharmacy = new Pharmacy();
-        if ("yt".equals(drugsEnterprise.getAccount())) {
+        if (YT_SY.equals(drugsEnterprise.getAccount())) {
+            pharmacy.setPharmacyCode("YK45286");
+        } else {
             //设置指定药店配送
-            RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
             String store = recipeParameterDao.getByName(organId + "_yt_store_code");
             pharmacy.setPharmacyCode(store);
-        }
-        if ("yt_sy".equals(drugsEnterprise.getAccount())) {
-            pharmacy.setPharmacyCode("YK45286");
         }
         String stockResponse = getInventoryResult(drugsEnterprise, saleDrug, pharmacy);
         if (stockResponse != null) return stockResponse;
@@ -186,21 +173,39 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
     }
 
     private String getInventoryResult(DrugsEnterprise drugsEnterprise, SaleDrugList saleDrug, Pharmacy pharmacy) {
-        try{
-            CloseableHttpClient httpClient = HttpClients.createDefault();
-            CloseableHttpResponse response = sendStockHttpRequest(drugsEnterprise, saleDrug, pharmacy, httpClient);
-            HttpEntity httpEntity = response.getEntity();
-            String responseStr = EntityUtils.toString(httpEntity);
-            LOGGER.info("YtRemoteService.getDrugInventory:[{}]门店该[{}]药品查询库存，请求返回:{}", pharmacy.getPharmacyCode(), saleDrug.getOrganDrugCode(), responseStr);
-            if(CommonConstant.requestSuccessCode == response.getStatusLine().getStatusCode()) {
+        if (YT_SY.equals(drugsEnterprise.getAccount())) {
+            try {
+                String stockUrl = drugsEnterprise.getBusinessUrl() + getStock + "/" + pharmacy.getPharmacyCode() + "/" + saleDrug.getOrganDrugCode();
+                String responseStr = HttpHelper.doGet(stockUrl, drugsEnterprise.getToken());
+                LOGGER.info("YtRemoteService getDrugInventory:[{}]门店该[{}]药品查询库存，请求返回:{}", pharmacy.getPharmacyCode(), saleDrug.getOrganDrugCode(), responseStr);
                 YtStockResponse stockResponse = JSONUtils.parse(responseStr, YtStockResponse.class);
                 if (stockResponse.getStock() == 0.0) {
                     return "0";
                 }
                 return stockResponse.getStock().toString();
+            }catch (Exception e){
+                LOGGER.info("YtRemoteService.getDrugInventory:运营平台查询药品库存失败, {},{},{}", saleDrug.getDrugId(), drugsEnterprise.getName(), e.getMessage(),e);
             }
-        }catch (Exception e){
-            LOGGER.info("YtRemoteService.getDrugInventory:运营平台查询药品库存失败, {},{},{}", saleDrug.getDrugId(), drugsEnterprise.getName(), e.getMessage(),e);
+        } else {
+            Map<String, String> requestMap = new HashMap<>();
+            String orgCode = DictionaryUtil.getDictionary("eh.recipe.orgCode", drugsEnterprise.getId());
+            String hospitalCode = DictionaryUtil.getDictionary("eh.recipe.hospitalCode", drugsEnterprise.getId());
+            requestMap.put("orgCode ", orgCode);
+            requestMap.put("code ", saleDrug.getOrganDrugCode());
+            requestMap.put("hospitalCode ", hospitalCode);
+            String request = JSON.toJSONString(requestMap);
+            LOGGER.info("YtRemoteService getDrugInventory request:{}", request);
+            try {
+                String responseStr = HttpHelper.doPost(drugsEnterprise.getBusinessUrl(), request, drugsEnterprise.getToken());
+                LOGGER.info("YtRemoteService getDrugInventory responseStr:{}", responseStr);
+                YtStockResponse stockResponse = JSONUtils.parse(responseStr, YtStockResponse.class);
+                if (stockResponse.getStock() == 0.0) {
+                    return "0";
+                }
+                return stockResponse.getStock().toString();
+            } catch (IOException e) {
+                LOGGER.error("YtRemoteService getDrugInventory error", e);
+            }
         }
         return "0";
     }
@@ -213,17 +218,18 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
             //配送
             for (RecipeDetailBean recipeDetailBean : drugsDataBean.getRecipeDetailBeans()) {
                 SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganIdAndStatus(recipeDetailBean.getDrugId(), drugsEnterprise.getId());
-                if (saleDrugList != null) {
-                    String drugInventory = getDrugInventory(saleDrugList.getDrugId(), drugsEnterprise, drugsDataBean.getOrganId());
-                    if (!"暂不支持库存查询".equals(drugInventory)) {
-                        try {
-                            Double inventory = Double.parseDouble(drugInventory);
-                            if (recipeDetailBean.getUseTotalDose() <= inventory) {
-                                result.add(recipeDetailBean.getDrugName());
-                            }
-                        } catch(Exception e){
-                            LOGGER.info("YtRemoteService.getDrugInventoryForApp:医生端查询药品库存失败,{},{}", drugsEnterprise.getName(), e.getMessage(),e);
+                if (Objects.isNull(saleDrugList)) {
+                    return result;
+                }
+                String drugInventory = getDrugInventory(saleDrugList.getDrugId(), drugsEnterprise, drugsDataBean.getOrganId());
+                if (!"暂不支持库存查询".equals(drugInventory)) {
+                    try {
+                        Double inventory = Double.parseDouble(drugInventory);
+                        if (recipeDetailBean.getUseTotalDose() <= inventory) {
+                            result.add(recipeDetailBean.getDrugName());
                         }
+                    } catch(Exception e){
+                        LOGGER.info("YtRemoteService.getDrugInventoryForApp:医生端查询药品库存失败,{},{}", drugsEnterprise.getName(), e.getMessage(),e);
                     }
                 }
             }
@@ -233,94 +239,29 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
             List<Pharmacy> pharmacies = pharmacyDAO.findByDrugsenterpriseIdAndStatus(drugsEnterprise.getId(), 1);
             for (RecipeDetailBean recipeDetailBean : drugsDataBean.getRecipeDetailBeans()) {
                 SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipeDetailBean.getDrugId(), drugsDataBean.getOrganId());
-                if (saleDrugList != null) {
-                    for (Pharmacy pharmacy : pharmacies) {
-                        String stockResponse = getInventoryResult(drugsEnterprise, saleDrugList, pharmacy);
-                        if (StringUtils.isNotEmpty(stockResponse)) {
-                            if (!"暂不支持库存查询".equals(stockResponse)) {
-                                try {
-                                    Double inventory = Double.parseDouble(stockResponse);
-                                    if (recipeDetailBean.getUseTotalDose() <= inventory) {
-                                        result.add(recipeDetailBean.getDrugName());
-                                        break;
-                                    }
-                                } catch(Exception e){
-                                    LOGGER.info("YtRemoteService.getDrugInventoryForApp:医生端药店取药查询药品库存失败,{},{}", drugsEnterprise.getName(), e.getMessage(),e);
-                                }
+                if (null == saleDrugList) {
+                    return result;
+                }
+                for (Pharmacy pharmacy : pharmacies) {
+                    String stockResponse = getInventoryResult(drugsEnterprise, saleDrugList, pharmacy);
+                    if (StringUtils.isEmpty(stockResponse)) {
+                        continue;
+                    }
+                    if (!"暂不支持库存查询".equals(stockResponse)) {
+                        try {
+                            Double inventory = Double.parseDouble(stockResponse);
+                            if (recipeDetailBean.getUseTotalDose() <= inventory) {
+                                result.add(recipeDetailBean.getDrugName());
+                                break;
                             }
+                        } catch(Exception e){
+                            LOGGER.info("YtRemoteService.getDrugInventoryForApp:医生端药店取药查询药品库存失败,{},{}", drugsEnterprise.getName(), e.getMessage(),e);
                         }
                     }
                 }
             }
         }
         return result;
-    }
-
-    /**
-     * @method  sendTokenAndUpdateHttpRequest
-     * @description 发送http请求获得新的token信息,并更新
-     * @date: 2019/7/8
-     * @author: JRK
-     * @param drugsEnterprise
-     * @param request 英特请求对象
-     * @param httpclient http请求服务
-     * @return void
-     */
-    private void sendTokenAndUpdateHttpRequest(DrugsEnterprise drugsEnterprise, YtTokenRequest request, CloseableHttpClient httpclient) throws IOException {
-        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        //生成post请求
-        HttpPost httpPost = new HttpPost(drugsEnterprise.getAuthenUrl());
-        httpPost.setHeader("Content-Type", "application/json");
-        //将请求参数转成json
-        StringEntity requestEntity = new StringEntity(JSONUtils.toString(request), ContentType.APPLICATION_JSON);
-        httpPost.setEntity(requestEntity);
-        //获取响应消息
-        LOGGER.info("YtRemoteService.tokenUpdateImpl:发送[{}][{}]token更新请求", drugsEnterprise.getId(), drugsEnterprise.getName());
-        CloseableHttpResponse response = httpclient.execute(httpPost);
-        HttpEntity responseEntity = response.getEntity();
-        String responseStr =  EntityUtils.toString(responseEntity);
-        if(CommonConstant.requestSuccessCode == response.getStatusLine().getStatusCode()){
-            LOGGER.info("YtRemoteService.tokenUpdateImpl:[{}][{}]token更新请求返回:{}", drugsEnterprise.getId(), drugsEnterprise.getName(), responseStr);
-            YtTokenResponse tokenResponse = JSONUtils.parse(responseStr, YtTokenResponse.class);
-            String newToken = tokenResponse.getTOKEN();
-            //当更新请求返回的新token不为空的时候进行更新token的操作
-            if(null != tokenResponse && null != newToken){
-                drugsEnterpriseDAO.updateTokenById(drugsEnterprise.getId(), newToken);
-                LOGGER.info("YtRemoteService.tokenUpdateImpl:[{}][{}]token更新成功:{}", drugsEnterprise.getId(), drugsEnterprise.getName(), newToken);
-            }else{
-                LOGGER.warn("YtRemoteService.tokenUpdateImpl:[{}][{}]token更新token请求失败", drugsEnterprise.getId(), drugsEnterprise.getName());
-            }
-        }else{
-            LOGGER.warn("YtRemoteService.tokenUpdateImpl:[{}][{}]token更新请求，请求未成功,原因：{}", drugsEnterprise.getId(), drugsEnterprise.getName(), responseStr);
-        }
-        //关闭 HttpEntity 输入流
-        EntityUtils.consume(responseEntity);
-        response.close();
-    }
-
-    /**
-     * @method  AssembleRequest
-     * @description 组装请求对象
-     * @date: 2019/7/8
-     * @author: JRK
-     * @param drugsEnterprise
-     * @param depId 药企id
-     * @param depName 药企名称
-     * @param request 请求对象
-     * @return java.lang.Boolean 是否组装成功
-     */
-    private Boolean AssembleRequest(DrugsEnterprise drugsEnterprise, YtTokenRequest request) {
-        String userId = drugsEnterprise.getUserId();
-        String password = drugsEnterprise.getPassword();
-        if (null != userId){
-            request.setUser(userId.toString());
-        }else{
-            LOGGER.warn("YtRemoteService.tokenUpdateImpl:[{}][{}]的userId为空。", drugsEnterprise.getId(), drugsEnterprise.getName());
-            return false;
-        }
-        request.setPassword(password);
-        request.setOrganization(ORGANIZATION);
-        return true;
     }
 
     @Override
@@ -342,35 +283,17 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
             return result;
         }
         //组装YtRecipeDTO和处方明细下的YtDrugDTO
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-
         YtRecipeDTO sendYtRecipe = new YtRecipeDTO();
         List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIds);
         if (CollectionUtils.isNotEmpty(recipeList)) {
             Recipe nowRecipe = recipeList.get(0);
             getMedicalInfo(nowRecipe);
             assemblePushRecipeMessage(result, sendYtRecipe, nowRecipe, enterprise);
-            if (DrugEnterpriseResult.FAIL == result.getCode())
+            if (DrugEnterpriseResult.FAIL.equals(result.getCode())) {
                 return result;
-
-            //发送请求，获得推送的结果
-            CloseableHttpClient httpClient = HttpClients.createDefault();
-            try {
-                if (enterprise.getBusinessUrl().contains("http:")) {
-                    pushRecipeHttpRequest(result, enterprise, sendYtRecipe, httpClient);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                LOGGER.error("YtRemoteService.pushRecipeInfo:[{}][{}]推送处方异常：{}", depId, depName, e.getMessage(),e);
-            } finally {
-                try {
-                    httpClient.close();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    LOGGER.error("YtRemoteService.pushRecipeInfo:http请求资源关闭异常: {}！", e.getMessage(),e);
-                }
             }
-
+            //发送请求，获得推送的结果
+            pushRecipeHttpRequest(result, enterprise, sendYtRecipe, nowRecipe);
         }else{
             LOGGER.warn("YtRemoteService.pushRecipeInfo:未查询到匹配的处方列表");
             getFailResult(result, "未查询到匹配的处方列表");
@@ -391,52 +314,39 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
      * @author: JRK
      * @param enterprise 药企
      * @param sendYtRecipe 推送的处方信息
-     * @param httpClient 请求服务
      * @return void
      */
-    private void pushRecipeHttpRequest(DrugEnterpriseResult result, DrugsEnterprise enterprise, YtRecipeDTO sendYtRecipe, CloseableHttpClient httpClient) throws IOException {
-        HttpPost httpPost = new HttpPost(enterprise.getBusinessUrl() + pushRecipeHttpUrl);
-        //组装请求参数(组装权限验证部分)
-        httpPost.setHeader(requestHeadJsonKey, requestHeadJsonValue);
-        httpPost.setHeader(requestHeadPowerKey, enterprise.getToken());
-        String requestStr = JSONUtils.toString(sendYtRecipe);
-        LOGGER.info("YtRemoteService.pushRecipeInfo:[{}][{}]推送处方请求，请求内容：{}", enterprise.getId(), enterprise.getName(), requestStr);
-        StringEntity requestEntry = new StringEntity(requestStr, ContentType.APPLICATION_JSON);
-        httpPost.setEntity(requestEntry);
-        //获取响应消息
-        CloseableHttpResponse response = httpClient.execute(httpPost);
-        LOGGER.info("YtRemoteService.pushRecipeInfo:处方单号：[{}] 药企：[{}] 推送处方请求，获取响应消息：{}", enterprise.getId(), enterprise.getName(), JSONUtils.toString(response));
-        HttpEntity httpEntity = response.getEntity();
-        //date 20191129
-        //添加推送处方结果展示
-        //String responseStr =  EntityUtils.toString(httpEntity);
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-        Recipe recipe = null;
-        if (sendYtRecipe != null && sendYtRecipe.getRecipeId() != null) {
-            recipe = recipeDAO.getByRecipeId(sendYtRecipe.getRecipeId());
+    private void pushRecipeHttpRequest(DrugEnterpriseResult result, DrugsEnterprise enterprise, YtRecipeDTO sendYtRecipe, Recipe recipe) {
+        String url;
+        if (YT_SY.equals(enterprise.getAccount())) {
+            url = enterprise.getBusinessUrl() + pushRecipeHttpUrl;
+        } else {
+            url = enterprise.getBusinessUrl();
         }
-        if(requestPushSuccessCode == response.getStatusLine().getStatusCode()){
-            if (recipe != null) {
-                LOGGER.info("YtRemoteService.pushRecipeInfo:[{}][{}][{}]处方推送成功.", recipe.getRecipeId() ,enterprise.getId(), enterprise.getName());
-                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "纳里给"+enterprise.getName()+"推送处方成功");
-                recipeOrderDAO.updatePushFlagByOrderCode(recipe.getOrderCode(), 1);
-            } else {
-                LOGGER.info("YtRemoteService.pushRecipeInfo:[{}][{}]处方推送成功.",enterprise.getId(), enterprise.getName());
+        try {
+            String requestStr = JSONUtils.toString(sendYtRecipe);
+            int statusCode = HttpHelper.getStatusCode(url, requestStr, enterprise.getToken());
+            if(requestPushSuccessCode == statusCode) {
+                if (recipe != null) {
+                    LOGGER.info("YtRemoteService pushRecipeInfo:[{}][{}][{}]处方推送成功.", recipe.getRecipeId() ,enterprise.getId(), enterprise.getName());
+                    RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "纳里给"+enterprise.getName()+"推送处方成功");
+                    recipeOrderDAO.updatePushFlagByOrderCode(recipe.getOrderCode(), 1);
+                } else {
+                    LOGGER.info("YtRemoteService pushRecipeInfo:[{}][{}]处方推送成功.",enterprise.getId(), enterprise.getName());
+                }
+            }else{
+                if (recipe != null) {
+                    LOGGER.info("YtRemoteService pushRecipeInfo:[{}][{}][{}]处方推送失败.", recipe.getRecipeId() ,enterprise.getId(), enterprise.getName());
+                    RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "纳里给"+enterprise.getName()+"推送处方失败");
+                    recipeOrderDAO.updatePushFlagByOrderCode(recipe.getOrderCode(), -1);
+                } else {
+                    LOGGER.info("YtRemoteService pushRecipeInfo:[{}][{}]处方推送失败.",enterprise.getId(), enterprise.getName());
+                }
+                getFailResult(result, "处方推送失败");
             }
-        }else{
-            if (recipe != null) {
-                LOGGER.info("YtRemoteService.pushRecipeInfo:[{}][{}][{}]处方推送失败.", recipe.getRecipeId() ,enterprise.getId(), enterprise.getName());
-                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "纳里给"+enterprise.getName()+"推送处方失败");
-                recipeOrderDAO.updatePushFlagByOrderCode(recipe.getOrderCode(), -1);
-            } else {
-                LOGGER.info("YtRemoteService.pushRecipeInfo:[{}][{}]处方推送失败.",enterprise.getId(), enterprise.getName());
-            }
-            getFailResult(result, "处方推送失败");
+        } catch (Exception e) {
+            LOGGER.error("YtRemoteService pushRecipeInfo error", e);
         }
-        //关闭 HttpEntity 输入流
-        EntityUtils.consume(httpEntity);
-        response.close();
     }
 
     /**
@@ -450,63 +360,61 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
      * @param nowRecipe 当前的订单
      * @return recipe.bean.DrugEnterpriseResult 操作的结果集
      */
-    private DrugEnterpriseResult assemblePushRecipeMessage(DrugEnterpriseResult result, YtRecipeDTO sendYtRecipe, Recipe nowRecipe, DrugsEnterprise enterprise) {
+    private void assemblePushRecipeMessage(DrugEnterpriseResult result, YtRecipeDTO sendYtRecipe, Recipe nowRecipe, DrugsEnterprise enterprise) {
         OrganService organService = BasicAPI.getService(OrganService.class);
         //检验并组装处方对应的机构信息
         if(null == nowRecipe){
             LOGGER.warn("YtRemoteService.pushRecipeInfo:处方ID为{},处方不存在,", nowRecipe.getRecipeId());
             getFailResult(result, "处方单不存在");
-            return result;
+            return;
         }
         if (null == nowRecipe.getClinicOrgan()) {
             LOGGER.warn("YtRemoteService.pushRecipeInfo:处方ID为{},绑定的机构id为空.", nowRecipe.getRecipeId());
             getFailResult(result, "开处方机构编码不存在");
-            return result;
+            return;
         }
+
         OrganDTO organ = organService.getByOrganId(nowRecipe.getClinicOrgan());
-        if(null != organ){
+        if(YT_SY.equals(enterprise.getAccount())) {
             //这里保存的医院的社保编码
             sendYtRecipe.setHospitalCode(organ.getOrganizeCode());
-            sendYtRecipe.setHospitalName(organ.getName());
-        }else{
-            LOGGER.warn("YtRemoteService.pushRecipeInfo:处方ID为{},对应的开处方机构不存在.", nowRecipe.getRecipeId());
-            getFailResult(result, "开处方机构不存在");
-            return result;
+        } else {
+            String hospitalCode = DictionaryUtil.getDictionary("eh.recipe.hospitalCode", enterprise.getId());
+            sendYtRecipe.setHospitalCode(hospitalCode);
         }
+        sendYtRecipe.setHospitalName(nowRecipe.getOrganName());
         //检验并组装处方信息（上面已经校验过了）
-        assembleRecipeMsg(sendYtRecipe, nowRecipe);
+        assembleRecipeMsg(sendYtRecipe, nowRecipe, enterprise);
         //检验并组装处方对应的医生信息
         assembleDoctorMsg(result, sendYtRecipe, nowRecipe);
-        if(result.FAIL == result.getCode()){
-            return result;
+        if(RecipeResultBean.FAIL.equals(result.getCode())){
+            return;
         }
         //检验并组装处方对应的患者信息
         assemblePatientMsg(result, sendYtRecipe, nowRecipe);
-        if(result.FAIL == result.getCode()){
-            return result;
+        if(RecipeResultBean.FAIL.equals(result.getCode())){
+            return;
         }
         //检验并组装处方对应的科室信息
         assembleDepartMsg(result, sendYtRecipe, nowRecipe);
-        if(result.FAIL == result.getCode()){
-            return result;
+        if(RecipeResultBean.FAIL.equals(result.getCode())){
+            return;
         }
         //检验并组装处方对应的门店信息
         assembleStoreMsg(result, sendYtRecipe, nowRecipe, enterprise);
-        if(result.FAIL == result.getCode()){
-            return result;
+        if(RecipeResultBean.FAIL.equals(result.getCode())){
+            return;
         }
         //设置处方笺base
         String ossId = nowRecipe.getSignImg();
-
         if(null != ossId){
-
             try {
                 IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
                 String imgStr = imgHead + fileDownloadService.downloadImg(ossId);
                 if(ObjectUtils.isEmpty(imgStr)){
                     LOGGER.warn("YtRemoteService.pushRecipeInfo:处方ID为{}的ossid为{}处方笺不存在", nowRecipe.getRecipeId(), ossId);
                     getFailResult(result, "处方笺不存在");
-                    return result;
+                    return;
                 }
                 LOGGER.warn("YtRemoteService.pushRecipeInfo:{}处方，下载处方笺服务成功", nowRecipe.getRecipeId());
                 sendYtRecipe.setImage(imgStr);
@@ -514,16 +422,12 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
                 e.printStackTrace();
                 LOGGER.warn("YtRemoteService.pushRecipeInfo:{}处方，下载处方笺服务异常：{}.", nowRecipe.getRecipeId(), e.getMessage(),e );
                 getFailResult(result, "下载处方笺服务异常");
-                return result;
+                return;
             }
 
         }
         //检验并组装处方对应的详情信息
         assembleDrugListMsg(result, sendYtRecipe, nowRecipe, organ, enterprise);
-        if(result.FAIL == result.getCode()){
-            return result;
-        }
-        return result;
     }
     /**
      * @method  assembleRecipeMsg
@@ -534,12 +438,12 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
      * @param nowRecipe 当前的处方单
      * @return void
      */
-    private void assembleRecipeMsg(YtRecipeDTO sendYtRecipe, Recipe nowRecipe) {
+    private void assembleRecipeMsg(YtRecipeDTO sendYtRecipe, Recipe nowRecipe, DrugsEnterprise enterprise) {
         sendYtRecipe.setSourceSerialNumber(nowRecipe.getRecipeCode());
         sendYtRecipe.setExternalNumber("");
-        sendYtRecipe.setHzMedicalFlag(ytHzMedicalFlag);
-        sendYtRecipe.setpTime(getNewTime(nowRecipe.getSignDate(), ytpTimeCheck));
-        sendYtRecipe.setValidDay(ytValidDay);
+        sendYtRecipe.setHzMedicalFlag(2);
+        sendYtRecipe.setpTime(DateConversion.getDateFormatter(nowRecipe.getSignDate(), "yyyy-MM-dd"));
+        sendYtRecipe.setValidDay(3);
 
         sendYtRecipe.setRecordNo(nowRecipe.getPatientID());
 
@@ -579,13 +483,18 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
                 sendYtRecipe.setDistrict(district);
                 // 线上支付为已支付,线下支付为未支付
                 if (RecipeBussConstant.PAYMODE_ONLINE.equals(recipeOrder.getPayMode())) {
-                    sendYtRecipe.setIfPay(ytIfPay);
+                    sendYtRecipe.setIfPay(1);
                 } else {
                     sendYtRecipe.setIfPay(0);
                 }
             }
         }
-        sendYtRecipe.setSource(ytSource);
+        if (YT_SY.equals(enterprise.getAccount())) {
+            sendYtRecipe.setSource(4);
+        } else {
+            sendYtRecipe.setSource("nali");
+        }
+
         sendYtRecipe.setRecipeId(nowRecipe.getRecipeId());
         sendYtRecipe.setDiagnose(nowRecipe.getOrganDiseaseName());
         sendYtRecipe.setRecipeType(nowRecipe.getRecipeType());
@@ -596,19 +505,18 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
      * @description 组装推送的处方单中药品详情的信息
      * @date: 2019/7/10
      * @author: JRK
-     * @param result 结果集
      * @param sendYtRecipe 推送的处方单信息
      * @param nowRecipe 当前处方
      * @param organ 所属机构
      * @return recipe.bean.DrugEnterpriseResult 操作结果集
      */
-    private DrugEnterpriseResult assembleDrugListMsg(DrugEnterpriseResult result, YtRecipeDTO sendYtRecipe, Recipe nowRecipe, OrganDTO organ ,DrugsEnterprise enterprise) {
+    private void assembleDrugListMsg(DrugEnterpriseResult result, YtRecipeDTO sendYtRecipe, Recipe nowRecipe, OrganDTO organ ,DrugsEnterprise enterprise) {
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         List<Recipedetail> detailList = detailDAO.findByRecipeId(nowRecipe.getRecipeId());
         if(CollectionUtils.isEmpty(detailList)){
             LOGGER.warn("YtRemoteService.pushRecipeInfo:处方ID为{},绑定订单不存在.", nowRecipe.getRecipeId());
             getFailResult(result, "处方绑定订单不存在");
-            return result;
+            return;
         }
         List<YtDrugDTO> drugList = new ArrayList<>();
         sendYtRecipe.setItemList(drugList);
@@ -625,7 +533,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
             if(null == nowDetail.getRecipeDetailId()){
                 LOGGER.warn("YtRemoteService.pushRecipeInfo:当前处方细节id不存在");
                 getFailResult(result, "当前处方细节id不存在");
-                return result;
+                return;
             }
             nowYtDrugDTO.setItemNo(nowDetail.getRecipeDetailId().toString());
             //根据药品id和所属的药企在salrDrug下获取药品的编码
@@ -633,13 +541,13 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
             if(null == saleDrug){
                 LOGGER.warn("YtRemoteService.pushRecipeInfo:处方细节ID为{},对应销售药品的信息不存在", nowDetail.getRecipeDetailId());
                 getFailResult(result, "销售药品的信息不存在");
-                return result;
+                return;
             }
             nowYtDrugDTO.setCode(saleDrug.getOrganDrugCode());
             if(null == nowDetail.getSalePrice()){
                 LOGGER.warn("YtRemoteService.pushRecipeInfo:处方细节ID为{},药品的单价为空", nowDetail.getRecipeDetailId());
                 getFailResult(result, "药品的单价为空");
-                return result;
+                return;
             }
             price = nowDetail.getActualSalePrice() == null ? nowDetail.getSalePrice().doubleValue() : nowDetail.getActualSalePrice().doubleValue();
             quantity = nowDetail.getUseTotalDose();
@@ -656,11 +564,10 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
             } catch (ControllerException e) {
                 LOGGER.error("YtRemoteService.pushRecipeInfo:处方细节ID为{},药品的单价为空", nowDetail.getRecipeDetailId(),e);
                 getFailResult(result, "药品用法出错");
-                return result;
+                return;
             }
             nowYtDrugDTO.setPeroral(usepathWays);
         }
-        return null;
     }
 
     /**
@@ -668,26 +575,24 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
      * @description 组装推送的处方单中医生的信息
      * @date: 2019/7/10
      * @author: JRK
-     * @param result 结果集
      * @param sendYtRecipe 推送的处方单信息
      * @param nowRecipe 当前处方
      * @return recipe.bean.DrugEnterpriseResult 操作结果集
      */
-    private DrugEnterpriseResult assembleDoctorMsg(DrugEnterpriseResult result, YtRecipeDTO sendYtRecipe, Recipe nowRecipe) {
+    private void assembleDoctorMsg(DrugEnterpriseResult result, YtRecipeDTO sendYtRecipe, Recipe nowRecipe) {
         DoctorService doctorService = BasicAPI.getService(DoctorService.class);
         if(null == nowRecipe.getDoctor()){
             LOGGER.warn("YtRemoteService.pushRecipeInfo:处方ID为{},绑定医生id为空.", nowRecipe.getRecipeId());
             getFailResult(result, "处方绑定医生id为空");
-            return result;
+            return;
         }
         DoctorDTO doctor = doctorService.get(nowRecipe.getDoctor());
         if(null == doctor){
             LOGGER.warn("YtRemoteService.pushRecipeInfo:处方ID为{},绑定医生不存在.", nowRecipe.getRecipeId());
             getFailResult(result, "处方绑定医生不存在");
-            return result;
+            return;
         }
         sendYtRecipe.setDoctorName(doctor.getName());
-        return null;
     }
 
     /**
@@ -695,23 +600,22 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
      * @description 组装推送的处方单中药店的信息
      * @date: 2019/7/10
      * @author: JRK
-     * @param result 结果集
      * @param sendYtRecipe 推送的处方单信息
      * @param nowRecipe 当前处方
      * @return recipe.bean.DrugEnterpriseResult 操作结果集
      */
-    private DrugEnterpriseResult assembleStoreMsg(DrugEnterpriseResult result, YtRecipeDTO sendYtRecipe, Recipe nowRecipe, DrugsEnterprise enterprise) {
+    private void assembleStoreMsg(DrugEnterpriseResult result, YtRecipeDTO sendYtRecipe, Recipe nowRecipe, DrugsEnterprise enterprise) {
         RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         if(null == nowRecipe.getOrderCode()){
             LOGGER.warn("YtRemoteService.pushRecipeInfo:处方ID为{},绑定订单code为空.", nowRecipe.getRecipeId());
             getFailResult(result, "处方绑定订单code为空");
-            return result;
+            return;
         }
         RecipeOrder order = orderDAO.getByOrderCode(nowRecipe.getOrderCode());
         if(null == order){
             LOGGER.warn("YtRemoteService.pushRecipeInfo:处方ID为{},绑定订单不存在.", nowRecipe.getRecipeId());
             getFailResult(result, "处方绑定订单不存在");
-            return result;
+            return;
         }
         if (nowRecipe.getGiveMode() == 1) {
             //表示配送到家
@@ -724,14 +628,12 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
                 LOGGER.info("assembleStoreMsg 商业推送:{}.", storeCode);
                 sendYtRecipe.setOrgCode(storeCode);
             } else {
-                String store_code = organId + "_" + "yt_store_code";
-                String storeCode = recipeParameterDao.getByName(store_code);
-                sendYtRecipe.setOrgCode(storeCode);
+                String orgCode = DictionaryUtil.getDictionary("eh.recipe.orgCode", enterprise.getId());
+                sendYtRecipe.setOrgCode(orgCode);
             }
         } else {
             sendYtRecipe.setOrgCode(order.getDrugStoreCode());
         }
-        return null;
     }
 
     /**
@@ -739,26 +641,24 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
      * @description 组装推送的处方单中科室的信息
      * @date: 2019/7/10
      * @author: JRK
-     * @param result 结果集
      * @param sendYtRecipe 推送的处方单信息
      * @param nowRecipe 当前处方
      * @return recipe.bean.DrugEnterpriseResult 操作结果集
      */
-    private DrugEnterpriseResult assembleDepartMsg(DrugEnterpriseResult result, YtRecipeDTO sendYtRecipe, Recipe nowRecipe) {
+    private void assembleDepartMsg(DrugEnterpriseResult result, YtRecipeDTO sendYtRecipe, Recipe nowRecipe) {
         DepartmentService departmentService = BasicAPI.getService(DepartmentService.class);
         if(null == nowRecipe.getDepart()){
             LOGGER.warn("YtRemoteService.pushRecipeInfo:处方ID为{},绑定科室id为空.", nowRecipe.getRecipeId());
             getFailResult(result, "处方绑定科室id为空");
-            return result;
+            return;
         }
         DepartmentDTO department = departmentService.get(nowRecipe.getDepart());
         if(null == department){
             LOGGER.warn("YtRemoteService.pushRecipeInfo:处方ID为{},绑定科室不存在.", nowRecipe.getRecipeId());
             getFailResult(result, "处方绑定科室不存在");
-            return result;
+            return;
         }
         sendYtRecipe.setCategory(department.getName());
-        return null;
     }
 
     /**
@@ -766,23 +666,21 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
      * @description 组装推送的处方单中患者的信息
      * @date: 2019/7/10
      * @author: JRK
-     * @param result 结果集
      * @param sendYtRecipe 推送的处方单信息
      * @param nowRecipe 当前处方
-     * @return recipe.bean.DrugEnterpriseResult 操作结果集
      */
-    private DrugEnterpriseResult assemblePatientMsg(DrugEnterpriseResult result, YtRecipeDTO sendYtRecipe, Recipe nowRecipe) {
+    private void assemblePatientMsg(DrugEnterpriseResult result, YtRecipeDTO sendYtRecipe, Recipe nowRecipe) {
         PatientService patientService = BasicAPI.getService(PatientService.class);
         if(null == nowRecipe.getMpiid()){
             LOGGER.warn("YtRemoteService.pushRecipeInfo:处方ID为{},绑定患者id为空.", nowRecipe.getRecipeId());
             getFailResult(result, "处方绑定患者id为空");
-            return result;
+            return;
         }
         PatientDTO patient = patientService.get(nowRecipe.getMpiid());
         if(null == patient){
             LOGGER.warn("YtRemoteService.pushRecipeInfo:处方ID为{},绑定患者不存在.", nowRecipe.getRecipeId());
             getFailResult(result, "处方绑定患者不存在");
-            return result;
+            return;
         }
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         RecipeOrder order = recipeOrderDAO.getByOrderCode(nowRecipe.getOrderCode());
@@ -792,27 +690,12 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
         sendYtRecipe.setPhone(patient.getMobile());
         sendYtRecipe.setSymptom(patient.getLastSummary());
         sendYtRecipe.setRecipientName(order.getReceiver());
-        if (nowRecipe.getGiveMode() == 1 && order != null) {
+        if (nowRecipe.getGiveMode() == 1) {
             sendYtRecipe.setRecipientAdd(getCompleteAddress(order));
             sendYtRecipe.setAddress(patient.getAddress());
         }
         sendYtRecipe.setRecipientTel(order.getRecMobile());
         sendYtRecipe.setZipCode("");
-        return result;
-    }
-
-    /**
-     * @method  getNewTime
-     * @description 根据具体的格式转换时间成字符串
-     * @date: 2019/7/10
-     * @author: JRK
-     * @param date 需要转换的时间
-     * @param type 转换的格式
-     * @return java.lang.String 转换的时间字符串
-     */
-    private String getNewTime(Date date, String type) {
-        SimpleDateFormat formatter = new SimpleDateFormat(type);
-        return formatter.format(date);
     }
 
     /**
@@ -964,7 +847,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
         //首先根据你筛选的距离获取药企下的所有药店
         List<Pharmacy> pharmacyList = getPharmacies(recipeIds, ext, enterprise, result);
-        if(DrugEnterpriseResult.FAIL == result.getCode()){
+        if(DrugEnterpriseResult.FAIL.equals(result.getCode())){
             return result;
         }
 
@@ -1102,7 +985,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         List<Recipedetail> detailList = detailDAO.findByRecipeId(nowRecipe.getRecipeId());
         Map<Integer, DetailDrugGroup> drugGroup = getDetailGroup(detailList);
-        if(null == drugGroup || 0 >= drugGroup.size()){
+        if(0 >= drugGroup.size()){
             LOGGER.warn("scanStockSend校验英特库存：当前处方药品信息不存在{}", recipeId);
             return checkScan;
         }
