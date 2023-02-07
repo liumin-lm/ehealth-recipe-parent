@@ -89,7 +89,7 @@ public class PushRecipToEpCallable implements Callable<String> {
                     logger.info("发送[{}][{}]内容：{}", de.getName(), method, sendInfoStr);
 
                     try {
-                        backMsg = HttpHelper.doPost(busUrl, sendInfoStr);
+                        backMsg = HttpHelper.doPost(busUrl, sendInfoStr, "");
                         logger.info("调用[{}][{}]结果返回={}", de.getName(), method, backMsg);
                     } catch (IOException e) {
                         logger.error("调用[{}][{}] IOException: " + e.getMessage() + "，详细数据：" + sendInfoStr, de.getName(), method,e);
@@ -195,7 +195,7 @@ public class PushRecipToEpCallable implements Callable<String> {
             logger.info("发送[{}][{}]内容：{}", de.getName(), method, sendInfoStr);
             String backMsg;
             try {
-                backMsg = HttpHelper.doPost(de.getBusinessUrl(), sendInfoStr);
+                backMsg = HttpHelper.doPost(de.getBusinessUrl(), sendInfoStr, "");
                 logger.info("调用[{}][{}]结果返回={}", de.getName(), method, backMsg);
             } catch (IOException e) {
                 logger.error("调用[{}][{}] IOException: " + e.getMessage() + "，详细数据：" + sendInfoStr, de.getName(), method,e);
