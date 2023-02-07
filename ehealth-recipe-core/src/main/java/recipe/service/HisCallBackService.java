@@ -519,9 +519,9 @@ public class HisCallBackService {
                 syncExecutorService.uploadRecipeVerificationIndicators(recipe.getRecipeId());
 
                 // 更新处方新状态
-                stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_DONE, RecipeStateEnum.SUB_DONE_SELF_TAKE);
+                stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_DONE, RecipeStateEnum.SUB_DONE_HOS_PAY);
                 if(Objects.nonNull(order)) {
-                    stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_DISPENSING, OrderStateEnum.SUB_DONE_HOS_PAY);
+                    stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION, OrderStateEnum.SUB_DONE_HOS_PAY);
                 }
             }
         }
