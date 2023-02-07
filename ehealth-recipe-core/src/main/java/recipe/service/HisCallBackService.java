@@ -496,7 +496,7 @@ public class HisCallBackService {
             if (null == recipe.getPayDate()) {
                 attrMap.put("payDate", DateTime.now().toDate());
             }
-            attrMap.put("giveMode", RecipeBussConstant.GIVEMODE_TO_HOS);
+//            attrMap.put("giveMode", RecipeBussConstant.GIVEMODE_TO_HOS);
             //医院取药-药企模式下，应该是有药企id的，不能更新成null
 //            attrMap.put("enterpriseId", null);
 
