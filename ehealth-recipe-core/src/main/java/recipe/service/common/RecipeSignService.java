@@ -594,6 +594,7 @@ public class RecipeSignService {
      * @return
      */
     @RpcService
+    @Deprecated
     public Map<String, Object> continueSignAfterCheckFailed(RecipeBean recipeBean, List<RecipeDetailBean> details) {
 
         Map<String, Object> rMap = Maps.newHashMap();
