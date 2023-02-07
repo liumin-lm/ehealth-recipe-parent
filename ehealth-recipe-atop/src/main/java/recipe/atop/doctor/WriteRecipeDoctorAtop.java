@@ -218,4 +218,9 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
         }
         return recipeBusinessService.stagingRecipe(recipeInfoVO);
     }
+
+    @RpcService
+    public void splitRecipe(RecipeInfoVO recipeInfoVO) {
+        validateAtop(recipeInfoVO, recipeInfoVO.getRecipeBean(), recipeInfoVO.getRecipeExtendBean(), recipeInfoVO.getRecipeDetails());
+    }
 }

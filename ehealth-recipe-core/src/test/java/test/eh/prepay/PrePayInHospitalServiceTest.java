@@ -1,9 +1,11 @@
 package test.eh.prepay;
 
+import com.google.common.collect.Lists;
 import com.ngari.recipe.recipe.model.DispendingPharmacyReportReqTo;
 import ctd.util.JSONUtils;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.apache.commons.collections.CollectionUtils;
 import org.junit.Test;
 import org.paukov.combinatorics3.Generator;
 
@@ -42,6 +44,10 @@ public class PrePayInHospitalServiceTest {
     static class B {
         private Integer id;
         private List<String> key;
+
+        public B() {
+
+        }
     }
 
     public static void main(String[] args) {
@@ -51,23 +57,68 @@ public class PrePayInHospitalServiceTest {
         list.add(b);
         B b1 = new B(2, Arrays.asList("D"));
         list.add(b1);
-        B b2 = new B(3, Arrays.asList("A", "B", "E"));
+        B b2 = new B(3, Arrays.asList("A", "B", "E", "F", "H", "J"));
         list.add(b2);
         B b3 = new B(4, Arrays.asList("E"));
         list.add(b3);
-        B b4 = new B(5, Arrays.asList("C", "D"));
+        B b4 = new B(5, Arrays.asList("C", "D", "G", "I", "K"));
         list.add(b4);
 
-        List<String> abcde = Stream.of("A", "B", "C", "E", "D").sorted().collect(Collectors.toList());
+        B b5 = new B(6, Arrays.asList("A", "B", "C", "D"));
+        list.add(b5);
+        B b6 = new B(7, Arrays.asList("F", "G", "H", "I", "J"));
+        list.add(b6);
+        B b7 = new B(8, Arrays.asList("K"));
+        list.add(b7);
+        B b8 = new B(9, Arrays.asList("E"));
+        list.add(b8);
+
+        List<String> abcde = Stream.of("A", "B", "C", "E", "D", "F", "G", "H", "I", "J", "K").sorted().collect(Collectors.toList());
         List<List<B>> list1 = Generator.subset(list).simple().stream().sorted(Comparator.comparing(List::size)).collect(Collectors.toList());
+
+        List<B> minKeyList = new ArrayList<>();
+
+        List<B> sizeKeyList = new ArrayList<>();
+        System.out.println(list1.size());
+
         for (List<B> l : list1) {
             Set<String> keySet = new HashSet<>();
             l.forEach(a -> keySet.addAll(a.key));
             List<String> key = keySet.stream().sorted().collect(Collectors.toList());
-            if (abcde.equals(key)) {
-                System.out.println(l);
-                break;
+            if (CollectionUtils.isEmpty(minKeyList) && abcde.equals(key)) {
+                minKeyList = l;
+            }
+            boolean size = l.stream().anyMatch(a -> a.getKey().size() > 5);
+            if (size) {
+                continue;
+            }
+            if (CollectionUtils.isEmpty(sizeKeyList) && abcde.equals(key)) {
+                sizeKeyList = l;
             }
         }
+
+        System.out.println("minKeyList:" + minKeyList);
+        System.out.println("sizeKeyList:" + sizeKeyList);
+
+        List<B> minSplitKeyList = new ArrayList<>();
+        minKeyList.forEach(a -> {
+            List<List<String>> minKeyLists = Lists.partition(a.getKey(), 5);
+            minKeyLists.forEach(c -> {
+                B bb = new B();
+                bb.setKey(c);
+                bb.setId(a.id);
+                minSplitKeyList.add(bb);
+            });
+        });
+        System.out.println("minSplitKeyList:" + minSplitKeyList);
+
+        if (minSplitKeyList.size() < sizeKeyList.size()) {
+            System.out.println("List:" + minSplitKeyList);
+        } else {
+            System.out.println("List:" + sizeKeyList);
+        }
+
     }
+
+
 }

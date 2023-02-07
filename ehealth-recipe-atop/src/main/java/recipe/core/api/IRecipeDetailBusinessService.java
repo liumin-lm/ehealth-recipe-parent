@@ -122,4 +122,6 @@ public interface IRecipeDetailBusinessService {
      * @return
      */
     List<Recipedetail> sendSuccessDetail(HisSendResTO response);
+
+    void validateSplitRecipe(RecipeInfoVO recipeInfoVO);
 }

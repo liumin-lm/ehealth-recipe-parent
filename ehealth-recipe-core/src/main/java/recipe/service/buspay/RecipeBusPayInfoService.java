@@ -1,7 +1,6 @@
 package recipe.service.buspay;
 
 import com.alibaba.fastjson.JSONObject;
-import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -70,10 +69,6 @@ import recipe.enumerate.status.RecipeSourceTypeEnum;
 import recipe.enumerate.type.CashDeskSettleUseCodeTypeEnum;
 import recipe.enumerate.type.ForceCashTypeEnum;
 import recipe.enumerate.type.MedicalTypeEnum;
-import recipe.manager.ButtonManager;
-import recipe.manager.DepartManager;
-import recipe.manager.EnterpriseManager;
-import recipe.manager.RecipeOrderPayFlowManager;
 import recipe.manager.*;
 import recipe.service.PayModeGiveModeUtil;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
@@ -436,7 +431,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
             simpleBusObject.setRecipeId(null != busId ? busId.toString() : null);
             simpleBusObject.setHisRecipeId(recipe.getRecipeCode());
             simpleBusObject.setPatId(recipe.getPatientID());
-            simpleBusObject.setHisBusId(null != busId ? busId.toString() : null);
+          //  simpleBusObject.setHisBusId(null != busId ? busId.toString() : null);
             //date 20210701
             //添加字段
             if (null != recipe.getDepart()) {
@@ -454,7 +449,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
             HisSettleReqDTO settleReqDTO = recipeManager.getHisOrderCode(recipe.getClinicOrgan(), Lists.newArrayList(recipe.getRecipeId()));
             if(Objects.nonNull(settleReqDTO)){
                 simpleBusObject.setYbIdSyf(settleReqDTO.getYbId());
-                simpleBusObject.setHisBusId(settleReqDTO.getHisBusId());
+                //   simpleBusObject.setHisBusId(settleReqDTO.getHisBusId());
             }
         } else {
             simpleBusObject.setBusId(busId);
@@ -474,7 +469,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
             }
             List<Integer> recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
             if (CollectionUtils.isNotEmpty(recipeIdList)) {
-                simpleBusObject.setHisBusId(Joiner.on("|").join(recipeIdList));
+                //   simpleBusObject.setHisBusId(Joiner.on("|").join(recipeIdList));
             }
             RecipeBean recipeBean = recipeService.getByRecipeId(recipeIdList.get(0));
             //获取就诊卡号--一般来说处方里已经保存了复诊里的就诊卡号了取不到再从复诊里取
@@ -491,7 +486,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
             HisSettleReqDTO settleReqDTO = recipeManager.getHisOrderCode(order.getOrganId(), recipeIdList);
             if(Objects.nonNull(settleReqDTO)){
                 simpleBusObject.setYbIdSyf(settleReqDTO.getYbId());
-                simpleBusObject.setHisBusId(settleReqDTO.getHisBusId());
+                //   simpleBusObject.setHisBusId(settleReqDTO.getHisBusId());
             }
             //杭州互联网流程
             if (order.getRegisterNo() != null) {

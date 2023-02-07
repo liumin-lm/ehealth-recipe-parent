@@ -11,6 +11,7 @@ import com.ngari.recipe.recipe.model.OrderRepTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.vo.RecipeSkipVO;
+import ctd.persistence.exception.DAOException;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +20,7 @@ import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.client.IConfigurationClient;
+import recipe.constant.ErrorCode;
 import recipe.core.api.IRecipeDetailBusinessService;
 import recipe.drugTool.validate.RecipeDetailValidateTool;
 import recipe.enumerate.status.RecipeStateEnum;
@@ -368,6 +370,27 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
         }
         List<RecipePreSettleDrugFeeDTO> recipeDrugFee = null == response.getRecipePreSettleDrugFeeDTOS() ? Lists.newArrayList() : response.getRecipePreSettleDrugFeeDTOS();
         return recipeDetailManager.sendSuccessDetail(details, recipeDrugFee);
+    }
+
+    @Override
+    public void validateSplitRecipe(RecipeInfoVO recipeInfoVO) {
+        RecipeBean recipeBean = recipeInfoVO.getRecipeBean();
+        List<String> validateSplitRecipe = configurationClient.getValueListCatch(recipeBean.getClinicOrgan(), "validateSplitRecipe", new ArrayList<>());
+        List<RecipeDetailBean> recipeDetails = recipeInfoVO.getRecipeDetails();
+        //靶向药单独成方
+        if (validateSplitRecipe.contains("1")) {
+            boolean targetedDrugType = recipeDetails.stream().anyMatch(a -> Integer.valueOf(1).equals(a.getTargetedDrugType()));
+            if (targetedDrugType && recipeDetails.size() > 1) {
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "因为【存在靶向药】，需要进行拆分，请确认");
+            }
+        }
+        //调用HIS拆分判断服务
+        if (validateSplitRecipe.contains("2")) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "因为【配置了his拆方】，需要进行拆分，请确认");
+        }
+        //查看库存是否满足？
+        throw new DAOException(ErrorCode.SERVICE_ERROR, "因为【不可以在同一个药企或者药房（同一个供药方）购到药品（库存校验）】，需要进行拆分，请确认");
+
     }
 
     /**

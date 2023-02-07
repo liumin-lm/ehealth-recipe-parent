@@ -24,6 +24,7 @@ import recipe.util.RecipeUtil;
 import recipe.util.ValidateUtil;
 import recipe.vo.ResultBean;
 import recipe.vo.doctor.ConfigOptionsVO;
+import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.doctor.ValidateDetailVO;
 import recipe.vo.second.MedicalDetailVO;
 
@@ -285,4 +286,19 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
         return result;
     }
 
+
+    /**
+     * 拆方校验
+     *
+     * @param recipeInfoVO
+     */
+    @RpcService
+    public void validateSplitRecipe(RecipeInfoVO recipeInfoVO) {
+        validateAtop(recipeInfoVO, recipeInfoVO.getRecipeBean(), recipeInfoVO.getRecipeExtendBean(), recipeInfoVO.getRecipeDetails());
+        if (recipeInfoVO.getRecipeDetails().size() > 5) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "因为【药品数量是否＞5】，需要进行拆分，请确认");
+        }
+        recipeDetailService.validateSplitRecipe(recipeInfoVO);
+
+    }
 }
