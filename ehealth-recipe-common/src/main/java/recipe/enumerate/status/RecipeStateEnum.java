@@ -69,6 +69,7 @@ public enum RecipeStateEnum {
     SUB_DONE_SELF_TAKE(74, "自取核销", ""),
     SUB_DONE_SEND(75, "发药签收", ""),
     SUB_DONE_OFFLINE_ALREADY(78, "已处理", ""),
+    SUB_DONE_HOS_PAY(79, "院内缴费", ""),
 
     /**
      * 处方子状态:删除

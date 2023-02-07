@@ -42,6 +42,7 @@ public enum OrderStateEnum {
     SUB_DONE_UPLOAD_THIRD(43,"上传到第三方",""),
     SUB_DONE_SELF_TAKE(44,"自取核销",""),
     SUB_DONE_SEND(45,"发药签收",""),
+    SUB_DONE_HOS_PAY(46, "院内缴费", ""),
 
 
     /**
