@@ -144,7 +144,10 @@ public class RecipeHisService extends RecipeBaseService {
     @Autowired
     private DrugOrganConfigDAO drugOrganConfigDao;
     @Autowired
-    protected RecipeOrderDAO recipeOrderDAO;
+    private RecipeOrderDAO recipeOrderDAO;
+    @Autowired
+    private RecipeManager recipeManager;
+
     /**
      * 发送处方
      *
@@ -157,6 +160,10 @@ public class RecipeHisService extends RecipeBaseService {
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         LOGGER.info("recipeSendHis recipe={}", JSONUtils.toString(recipe));
         if (null == recipe) {
+            return false;
+        }
+        boolean isWriteHis = recipeManager.recipeWriteHis(recipeId);
+        if (isWriteHis) {
             return false;
         }
         Recipe updateRecipe = new Recipe();
