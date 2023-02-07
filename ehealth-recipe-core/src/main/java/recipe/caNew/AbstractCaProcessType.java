@@ -139,13 +139,10 @@ public abstract class AbstractCaProcessType {
             }
         }
         //异步处理
-        RecipeBusiThreadPool.execute(() -> {
-            new PushRecipeToRegulationCallable(Collections.singletonList(recipe.getRecipeId()), 1);
-            LOGGER.info("addRecipeNotify 前");
-            if(null==recipe.getReviewType()||new Integer(0).equals(recipe.getReviewType())){
-                recipeManager.addRecipeNotify(recipe.getRecipeId(), JKHBConstant.NO_PAY);
-            }
-        });
+        RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(Collections.singletonList(recipe.getRecipeId()), 1));
+        if (null == recipe.getReviewType() || new Integer(0).equals(recipe.getReviewType())) {
+            recipeManager.addRecipeNotify(recipe.getRecipeId(), JKHBConstant.NO_PAY);
+        }
         //保存电子病历
         docIndexClient.saveRecipeDocIndex(recipe);
     }
