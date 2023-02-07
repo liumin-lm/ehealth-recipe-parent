@@ -436,6 +436,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
             simpleBusObject.setRecipeId(null != busId ? busId.toString() : null);
             simpleBusObject.setHisRecipeId(recipe.getRecipeCode());
             simpleBusObject.setPatId(recipe.getPatientID());
+            simpleBusObject.setHisBusId(null != busId ? busId.toString() : null);
             //date 20210701
             //添加字段
             if (null != recipe.getDepart()) {
@@ -472,6 +473,9 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
                 simpleBusObject.setActualPrice(new Double(BigDecimal.valueOf(order.getActualPrice()).subtract(BigDecimal.valueOf(fundAmount)) + ""));
             }
             List<Integer> recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
+            if (CollectionUtils.isNotEmpty(recipeIdList)) {
+                simpleBusObject.setHisBusId(Joiner.on("|").join(recipeIdList));
+            }
             RecipeBean recipeBean = recipeService.getByRecipeId(recipeIdList.get(0));
             //获取就诊卡号--一般来说处方里已经保存了复诊里的就诊卡号了取不到再从复诊里取
             simpleBusObject.setMrn(getMrnForRecipe(recipeBean));
