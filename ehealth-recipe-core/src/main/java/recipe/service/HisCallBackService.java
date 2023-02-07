@@ -480,7 +480,7 @@ public class HisCallBackService {
                         continue;
                     }
                     StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
-                    stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_DONE, RecipeStateEnum.SUB_DONE_SELF_TAKE);
+                    stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_DONE, RecipeStateEnum.SUB_DONE_HOS_PAY);
                 }
             }
         }
@@ -521,7 +521,7 @@ public class HisCallBackService {
                 // 更新处方新状态
                 stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_DONE, RecipeStateEnum.SUB_DONE_SELF_TAKE);
                 if(Objects.nonNull(order)) {
-                    stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_DISPENSING, OrderStateEnum.SUB_DONE_DOWNLOAD);
+                    stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_DISPENSING, OrderStateEnum.SUB_DONE_HOS_PAY);
                 }
             }
         }
