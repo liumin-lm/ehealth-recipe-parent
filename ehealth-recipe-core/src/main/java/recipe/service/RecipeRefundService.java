@@ -495,7 +495,6 @@ public class RecipeRefundService extends RecipeBaseService {
         ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussFinishEvent(recipeId, BussTypeConstant.RECIPE));
     }
 
-
     /*
      * @description 退费记录保存
      * @author gmw

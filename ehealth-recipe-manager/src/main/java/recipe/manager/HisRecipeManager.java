@@ -591,6 +591,8 @@ public class HisRecipeManager extends BaseManager {
                     LOGGER.info("deleteSetRecipeCode cause useTotalDose recipeCode:{}", recipeCode);
                     continue;
                 }
+                LOGGER.info("deleteSetRecipeCode cause useDose 数据库",MapValueUtil.covertString(hisRecipeDetail.getUseDose()));
+                LOGGER.info("deleteSetRecipeCode cause useDose his",MapValueUtil.covertString(recipeDetailTO.getUseDose()));
                 if (!MapValueUtil.covertString(hisRecipeDetail.getUseDose()).equals(MapValueUtil.covertString(recipeDetailTO.getUseDose()))) {
                     deleteSetRecipeCode.add(recipeCode);
                     LOGGER.info("deleteSetRecipeCode cause useDose recipeCode:{}", recipeCode);

@@ -78,7 +78,7 @@ public class DrugRemindRevisitService {
         List<String> finalRevisitRementAppointDepart = revisitRementAppointDepart;
         LocalDateTime finalRevisitRemindLocalDate = revisitRemindLocalDate;
         recipes.forEach(recipe -> {
-            if(CollectionUtils.isNotEmpty(finalRevisitRementAppointDepart) && !finalRevisitRementAppointDepart.contains(recipe.getAppointDepart())){
+            if(CollectionUtils.isEmpty(finalRevisitRementAppointDepart) || (CollectionUtils.isNotEmpty(finalRevisitRementAppointDepart) && !finalRevisitRementAppointDepart.contains(recipe.getAppointDepart()))){
                 return;
             }
             List<Recipedetail> recipeDetails = recipeDetailMap.get(recipe.getRecipeId());

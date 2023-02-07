@@ -464,6 +464,10 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
     public abstract List<String> findOrderCodeByLogisticsCompanyAndTrackingNumber(@DAOParam("logisticsCompany") Integer logisticsCompany,
                                                                            @DAOParam("trackingNumber") String trackingNumber);
 
+    @DAOMethod(sql = "from RecipeOrder order  where order.logisticsCompany=:logisticsCompany and order.trackingNumber=:trackingNumber")
+    public abstract List<RecipeOrder> findRecipeOrderByLogisticsCompanyAndTrackingNumber(@DAOParam("logisticsCompany") Integer logisticsCompany,
+                                                                                  @DAOParam("trackingNumber") String trackingNumber);
+
     /**
      * 根据日期获取电子处方药企配送订单明细
      *
@@ -2090,5 +2094,5 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
      * @return
      */
     @DAOMethod(sql = "from RecipeOrder where payFlag = 1 and pushFlag = -1 and payTime between :startDate and :endDate", limit = 0)
-    public abstract List<RecipeOrder> findByPushFlag(@DAOParam("startDate") Date startDate, @DAOParam("startDate") Date endDate);
+    public abstract List<RecipeOrder> findByPushFlag(@DAOParam("startDate") Date startDate, @DAOParam("endDate") Date endDate);
 }
