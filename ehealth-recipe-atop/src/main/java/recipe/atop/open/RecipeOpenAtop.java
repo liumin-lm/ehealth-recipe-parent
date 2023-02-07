@@ -341,6 +341,7 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
     public HisResponseTO recipePayHISCallback(RecipePayHISCallbackReq recipePayHISCallbackReq) {
         recipeBusinessService.recipePayHISCallback(recipePayHISCallbackReq);
         HisResponseTO hisResponseTO = new HisResponseTO();
+        hisResponseTO.setMsgCode("200");
         return hisResponseTO;
     }
 
