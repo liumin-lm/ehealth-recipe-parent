@@ -514,7 +514,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         List<Recipedetail> detailList = detailDAO.findByRecipeId(nowRecipe.getRecipeId());
         if(CollectionUtils.isEmpty(detailList)){
-            LOGGER.warn("YtRemoteService.pushRecipeInfo:处方ID为{},绑定订单不存在.", nowRecipe.getRecipeId());
+            LOGGER.warn("YtRemoteService pushRecipeInfo:处方ID为{},绑定订单不存在.", nowRecipe.getRecipeId());
             getFailResult(result, "处方绑定订单不存在");
             return;
         }
@@ -531,20 +531,20 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
             nowYtDrugDTO.setSourceSerialNumber(nowRecipe.getRecipeCode());
             nowYtDrugDTO.setHospitalCode(organ.getOrganizeCode());
             if(null == nowDetail.getRecipeDetailId()){
-                LOGGER.warn("YtRemoteService.pushRecipeInfo:当前处方细节id不存在");
+                LOGGER.warn("YtRemoteService pushRecipeInfo:当前处方细节id不存在");
                 getFailResult(result, "当前处方细节id不存在");
                 return;
             }
             nowYtDrugDTO.setItemNo(nowDetail.getRecipeDetailId().toString());
-            //根据药品id和所属的药企在salrDrug下获取药品的编码
+            //根据药品id和所属的药企在saleDrug下获取药品的编码
             saleDrug = saleDrugListDAO.getByDrugIdAndOrganId(nowDetail.getDrugId(), enterprise.getId());
-            if(null == saleDrug){
+            if(null == saleDrug) {
                 LOGGER.warn("YtRemoteService.pushRecipeInfo:处方细节ID为{},对应销售药品的信息不存在", nowDetail.getRecipeDetailId());
                 getFailResult(result, "销售药品的信息不存在");
                 return;
             }
             nowYtDrugDTO.setCode(saleDrug.getOrganDrugCode());
-            if(null == nowDetail.getSalePrice()){
+            if(null == nowDetail.getSalePrice()) {
                 LOGGER.warn("YtRemoteService.pushRecipeInfo:处方细节ID为{},药品的单价为空", nowDetail.getRecipeDetailId());
                 getFailResult(result, "药品的单价为空");
                 return;
@@ -559,8 +559,8 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
             nowYtDrugDTO.setDosage(nowDetail.getUseDose() + nowDetail.getUseDoseUnit());
             String usepathWays = nowDetail.getUsePathways();
             try {
-                String peroral = DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(nowDetail.getUsePathways());
-                usepathWays+="("+peroral+")";
+                String usePathwaysText = DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(nowDetail.getUsePathways());
+                usepathWays+="("+usePathwaysText+")";
             } catch (ControllerException e) {
                 LOGGER.error("YtRemoteService.pushRecipeInfo:处方细节ID为{},药品的单价为空", nowDetail.getRecipeDetailId(),e);
                 getFailResult(result, "药品用法出错");
