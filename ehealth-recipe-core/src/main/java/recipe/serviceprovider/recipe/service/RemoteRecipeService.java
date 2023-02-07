@@ -237,7 +237,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         }
         //药品数据 根据his返回更新
         IRecipeDetailBusinessService recipeDetailBusinessService = AppContextHolder.getBean("recipeDetailBusinessService", IRecipeDetailBusinessService.class);
-        List<Recipedetail> recipeDetails = recipeDetailBusinessService.sendSuccessDetail(response);
+        List<Recipedetail> recipeDetails = recipeDetailBusinessService.sendSuccessDetail(response, recipe);
         //处方数据 根据his返回更新
         IRecipeBusinessService recipeBusinessService = AppContextHolder.getBean("recipeBusinessService", IRecipeBusinessService.class);
         recipeBusinessService.sendSuccessRecipe(response);
