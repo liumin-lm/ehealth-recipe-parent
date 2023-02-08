@@ -40,6 +40,11 @@ public interface IQueryRecipeService {
     @RpcService
     List<DrugListBean> getDrugList(String organId, String organName, Integer start, Integer limit);
 
+    /**
+     * 批量查询平台药品目录
+     * @param drugListDTO
+     * @return
+     */
     @RpcService
     List<DrugListBean> getDrugListByOrganIds(DrugListDTO drugListDTO);
 
