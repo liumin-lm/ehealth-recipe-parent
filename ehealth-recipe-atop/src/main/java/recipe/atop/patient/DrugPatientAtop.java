@@ -60,12 +60,6 @@ public class DrugPatientAtop extends BaseAtop {
     private IClinicCartBusinessService clinicCartService;
 
     @Resource
-    private IStockBusinessService iStockBusinessService;
-
-    @Resource
-    private IConfigurationCenterUtilsService configService;
-
-    @Resource
     IFastRecipeBusinessService fastRecipeService;
 
     /**
