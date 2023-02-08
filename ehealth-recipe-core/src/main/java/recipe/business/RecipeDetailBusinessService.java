@@ -373,10 +373,10 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
     }
 
     @Override
-    public void validateSplitRecipe(RecipeInfoVO recipeInfoVO) {
-        RecipeBean recipeBean = recipeInfoVO.getRecipeBean();
+    public void validateSplitRecipe(ValidateDetailVO validateDetailVO) {
+        RecipeBean recipeBean = validateDetailVO.getRecipeBean();
         List<String> validateSplitRecipe = configurationClient.getValueListCatch(recipeBean.getClinicOrgan(), "validateSplitRecipe", new ArrayList<>());
-        List<RecipeDetailBean> recipeDetails = recipeInfoVO.getRecipeDetails();
+        List<RecipeDetailBean> recipeDetails = validateDetailVO.getRecipeDetails();
         //靶向药单独成方
         if (validateSplitRecipe.contains("1")) {
             boolean targetedDrugType = recipeDetails.stream().anyMatch(a -> Integer.valueOf(1).equals(a.getTargetedDrugType()));
@@ -388,9 +388,6 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
         if (validateSplitRecipe.contains("2")) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "因为【配置了his拆方】，需要进行拆分，请确认");
         }
-        //查看库存是否满足？
-        throw new DAOException(ErrorCode.SERVICE_ERROR, "因为【不可以在同一个药企或者药房（同一个供药方）购到药品（库存校验）】，需要进行拆分，请确认");
-
     }
 
     /**

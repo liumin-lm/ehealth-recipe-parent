@@ -123,5 +123,10 @@ public interface IRecipeDetailBusinessService {
      */
     List<Recipedetail> sendSuccessDetail(HisSendResTO response, Recipe recipe);
 
-    void validateSplitRecipe(RecipeInfoVO recipeInfoVO);
+    /**
+     * 校验智能拆方知识库规则
+     *
+     * @param validateDetailVO
+     */
+    void validateSplitRecipe(ValidateDetailVO validateDetailVO);
 }

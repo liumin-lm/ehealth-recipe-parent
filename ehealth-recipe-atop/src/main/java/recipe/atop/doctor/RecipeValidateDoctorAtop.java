@@ -1,8 +1,12 @@
 package recipe.atop.doctor;
 
 import com.alibaba.fastjson.JSON;
+import com.ngari.recipe.dto.EnterpriseStock;
+import com.ngari.recipe.dto.RecipeDTO;
 import com.ngari.recipe.dto.RecipeDetailDTO;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeExtend;
+import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.vo.CaseHistoryVO;
 import ctd.persistence.exception.DAOException;
@@ -17,6 +21,7 @@ import recipe.constant.ErrorCode;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.core.api.IRecipeDetailBusinessService;
 import recipe.core.api.IRevisitBusinessService;
+import recipe.core.api.IStockBusinessService;
 import recipe.enumerate.type.RecipeDrugFormTypeEnum;
 import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.util.ObjectCopyUtils;
@@ -24,7 +29,6 @@ import recipe.util.RecipeUtil;
 import recipe.util.ValidateUtil;
 import recipe.vo.ResultBean;
 import recipe.vo.doctor.ConfigOptionsVO;
-import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.doctor.ValidateDetailVO;
 import recipe.vo.second.MedicalDetailVO;
 
@@ -45,7 +49,8 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
     private IRevisitBusinessService iRevisitBusinessService;
     @Autowired
     private IRecipeBusinessService recipeBusinessService;
-
+    @Autowired
+    private IStockBusinessService iStockBusinessService;
     /**
      * 长处方标识 0 不是
      */
@@ -290,15 +295,25 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
     /**
      * 拆方校验
      *
-     * @param recipeInfoVO
+     * @param validateDetailVO
      */
     @RpcService
-    public void validateSplitRecipe(RecipeInfoVO recipeInfoVO) {
-        validateAtop(recipeInfoVO, recipeInfoVO.getRecipeBean(), recipeInfoVO.getRecipeExtendBean(), recipeInfoVO.getRecipeDetails());
-        if (recipeInfoVO.getRecipeDetails().size() > 5) {
+    public void validateSplitRecipe(ValidateDetailVO validateDetailVO) {
+        validateAtop(validateDetailVO, validateDetailVO.getRecipeBean(), validateDetailVO.getRecipeExtendBean(), validateDetailVO.getRecipeDetails());
+        //判断数量
+        if (validateDetailVO.getRecipeDetails().size() > 5) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "因为【药品数量是否＞5】，需要进行拆分，请确认");
         }
-        recipeDetailService.validateSplitRecipe(recipeInfoVO);
-
+        recipeDetailService.validateSplitRecipe(validateDetailVO);
+        RecipeDTO recipeDTO = new RecipeDTO();
+        recipeDTO.setRecipe(ObjectCopyUtils.convert(validateDetailVO.getRecipeBean(), Recipe.class));
+        recipeDTO.setRecipeDetails(ObjectCopyUtils.convert(validateDetailVO.getRecipeDetails(), Recipedetail.class));
+        recipeDTO.setRecipeExtend(ObjectCopyUtils.convert(validateDetailVO.getRecipeExtendBean(), RecipeExtend.class));
+        List<EnterpriseStock> result = iStockBusinessService.stockList(recipeDTO);
+        boolean stock = result.stream().anyMatch(EnterpriseStock::getStock);
+        //查看库存是否满足
+        if (!stock) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "因为【不可以在同一个药企或者药房（同一个供药方）购到药品（库存校验）】，需要进行拆分，请确认");
+        }
     }
 }
