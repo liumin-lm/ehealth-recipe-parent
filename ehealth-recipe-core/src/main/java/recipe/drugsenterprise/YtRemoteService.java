@@ -98,7 +98,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
     private RecipeOrderDAO recipeOrderDAO;
 
     @RpcService
-    public void update(Integer depId){
+    public void test(Integer depId){
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         tokenUpdateImpl(drugsEnterpriseDAO.getById(depId));
     }

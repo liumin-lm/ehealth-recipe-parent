@@ -399,7 +399,7 @@ public class RecipeDetailManager extends BaseManager {
             if (null != drugCost && null != recipeDetail.getUseTotalDose()) {
                 updateRecipeDetail.setDrugCost(drugCost);
                 if (RecipeUtil.isTcmType(recipe.getRecipeType())) {
-                    BigDecimal salePrice = drugCost.multiply(BigDecimal.valueOf(recipeDetail.getPack())).divide(BigDecimal.valueOf(recipeDetail.getUseTotalDose()), 2, RoundingMode.UP);
+                    BigDecimal salePrice = drugCost.multiply(BigDecimal.valueOf(recipeDetail.getPack())).divide(BigDecimal.valueOf(recipeDetail.getUseDose()), 2, RoundingMode.UP);
                     updateRecipeDetail.setSalePrice(salePrice);
                 } else {
                     BigDecimal salePrice = drugCost.divide(BigDecimal.valueOf(recipeDetail.getUseTotalDose()), 2, RoundingMode.UP);
