@@ -326,6 +326,7 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
 
         //如果his未接诊，则取消挂号
         CancelVisitRequestTO cancelRequest = new CancelVisitRequestTO();
+        cancelRequest.setBusId(hosrelationBean.getBusId());
         cancelRequest.setOutTradeNo(revisitBean.getOutTradeNo());
         cancelRequest.setOrganId(hosrelationBean.getOrganId());
         cancelRequest.setRegisterId(hosrelationBean.getRegisterId());
