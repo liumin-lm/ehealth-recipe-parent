@@ -5,6 +5,7 @@ import com.ngari.recipe.dto.RecipeFeeDTO;
 import com.ngari.recipe.dto.ShoppingCartDetailDTO;
 import com.ngari.recipe.dto.SkipThirdDTO;
 import com.ngari.recipe.recipe.model.SkipThirdReqVO;
+import com.ngari.recipe.vo.LogisticsMergeVO;
 import com.ngari.recipe.vo.PreOrderInfoReqVO;
 import com.ngari.recipe.vo.ShoppingCartReqVO;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
@@ -330,7 +331,7 @@ public class RecipeOrderPatientAtop extends BaseAtop {
      * @return 是否可以合并
      */
     @RpcService
-    public Boolean mergeTrackingNumber(Integer addressId, Integer enterpriseId, List<Integer> recipeIdList) {
+    public LogisticsMergeVO mergeTrackingNumber(Integer addressId, Integer enterpriseId, List<Integer> recipeIdList) {
         validateAtop(enterpriseId, recipeIdList);
         return recipeOrderService.mergeTrackingNumber(addressId, enterpriseId, recipeIdList);
     }
