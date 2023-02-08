@@ -1925,6 +1925,7 @@ public class RecipeService extends RecipeBaseService {
      * @return
      */
     @RpcService(timeout = 6000)
+    @LogRecord
     public HisResponseTO syncOrganDrug(List<OrganDrugInfoTO> organDrugs, Integer organId) {
         try {
             if (CollectionUtils.isNotEmpty(organDrugs)) {
