@@ -101,10 +101,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
     public void test(Integer depId, Integer recipeId){
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(depId);
-        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
-        List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipeId);
-        scanEnterpriseDrugStock(recipe, drugsEnterprise, recipeDetailList);
+        pushRecipeInfo(Arrays.asList(recipeId), drugsEnterprise);
     }
 
     @Override
