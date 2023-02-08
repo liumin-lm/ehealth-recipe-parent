@@ -2036,6 +2036,8 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
         if (Objects.nonNull(order)) {
             logisticsMerge.setLogisticsMergeFlag(true);
             logisticsMerge.setLogisticsCompany(order.getLogisticsCompany());
+            String logisticsCompanyName = DictionaryUtil.getDictionary("eh.infra.dictionary.LogisticsCode", order.getLogisticsCompany());
+            logisticsMerge.setLogisticsCompanyName(logisticsCompanyName);
             return logisticsMerge;
         }
         logisticsMerge.setLogisticsMergeFlag(false);
