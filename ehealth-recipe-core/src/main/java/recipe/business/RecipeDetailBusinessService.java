@@ -390,6 +390,28 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
         }
     }
 
+    @Override
+    public List<List<RecipeDetailBean>> splitRecipe(RecipeInfoVO recipeInfoVO) {
+        RecipeBean recipeBean = recipeInfoVO.getRecipeBean();
+        List<String> validateSplitRecipe = configurationClient.getValueListCatch(recipeBean.getClinicOrgan(), "validateSplitRecipe", new ArrayList<>());
+        List<RecipeDetailBean> recipeDetails = recipeInfoVO.getRecipeDetails();
+
+        List<List<RecipeDetailBean>> result = new ArrayList<>();
+        //靶向药单独成方
+        if (validateSplitRecipe.contains("1")) {
+            List<RecipeDetailBean> targetedDrugDetails = recipeDetails.stream().filter(a -> Integer.valueOf(1).equals(a.getTargetedDrugType())).collect(Collectors.toList());
+            if (CollectionUtils.isNotEmpty(targetedDrugDetails)) {
+                result.addAll(Lists.partition(targetedDrugDetails, 1));
+            }
+            recipeDetails = recipeDetails.stream().filter(a -> !Integer.valueOf(1).equals(a.getTargetedDrugType())).collect(Collectors.toList());
+        }
+        //调用HIS拆分判断服务
+        if (validateSplitRecipe.contains("2")) {
+            result.add(recipeDetails);
+        }
+        return result;
+    }
+
     /**
      * 返回前端必须字段
      *

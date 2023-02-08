@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.persistence.exception.DAOException;
 import ctd.util.event.GlobalEventExecFactory;
 import org.apache.commons.collections.CollectionUtils;
@@ -212,6 +213,13 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         }
         logger.info("StockBusinessService drugStock result={}", JSON.toJSONString(result));
         return result;
+    }
+
+    @Override
+    public List<List<RecipeDetailBean>> retailsSplitList(RecipeDTO recipeDTO) {
+        List<EnterpriseStock> list = this.stockList(recipeDTO);
+
+        return null;
     }
 
 

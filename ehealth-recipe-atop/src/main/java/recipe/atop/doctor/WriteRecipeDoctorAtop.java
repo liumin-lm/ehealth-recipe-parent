@@ -3,8 +3,11 @@ package recipe.atop.doctor;
 import com.ngari.patient.dto.HealthCardDTO;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.dto.OutPatientRecordResDTO;
+import com.ngari.recipe.dto.RecipeDTO;
 import com.ngari.recipe.dto.WriteDrugRecipeDTO;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeExtend;
+import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.*;
 import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
@@ -15,7 +18,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
 import recipe.core.api.IRecipeBusinessService;
+import recipe.core.api.IRecipeDetailBusinessService;
 import recipe.core.api.IRevisitBusinessService;
+import recipe.core.api.IStockBusinessService;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.SignEnum;
 import recipe.enumerate.status.WriteHisEnum;
@@ -23,6 +28,7 @@ import recipe.util.ValidateUtil;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.doctor.ValidateDetailVO;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -34,12 +40,14 @@ import java.util.stream.Collectors;
  */
 @RpcBean("writeRecipeDoctorAtop")
 public class WriteRecipeDoctorAtop extends BaseAtop {
-
     @Autowired
     private IRevisitBusinessService iRevisitBusinessService;
-
+    @Autowired
+    private IRecipeDetailBusinessService recipeDetailBusinessService;
     @Autowired
     private IRecipeBusinessService recipeBusinessService;
+    @Autowired
+    private IStockBusinessService iStockBusinessService;
 
     /**
      * 暂存处方接口
@@ -77,8 +85,30 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
      * @param recipeInfoVO
      */
     @RpcService
-    public void splitRecipe(RecipeInfoVO recipeInfoVO) {
+    public List<Integer> splitRecipe(RecipeInfoVO recipeInfoVO) {
         validateAtop(recipeInfoVO, recipeInfoVO.getRecipeBean(), recipeInfoVO.getRecipeExtendBean(), recipeInfoVO.getRecipeDetails());
+        if (StringUtils.isEmpty(recipeInfoVO.getRecipeBean().getGroupCode())) {
+            String uuid = UUID.randomUUID().toString();
+            recipeInfoVO.getRecipeBean().setGroupCode(uuid);
+        }
+        //智能拆方知识库规则-拆分药品
+        List<List<RecipeDetailBean>> retailsList = recipeDetailBusinessService.splitRecipe(recipeInfoVO);
+        //算法拆方，拆分可下单处方
+        List<List<RecipeDetailBean>> retailsSplitList = new ArrayList<>();
+        retailsList.forEach(a -> {
+            RecipeDTO recipeDTO = new RecipeDTO();
+            recipeDTO.setRecipe(recipe.util.ObjectCopyUtils.convert(recipeInfoVO.getRecipeBean(), Recipe.class));
+            recipeDTO.setRecipeDetails(recipe.util.ObjectCopyUtils.convert(a, Recipedetail.class));
+            recipeDTO.setRecipeExtend(recipe.util.ObjectCopyUtils.convert(recipeInfoVO.getRecipeExtendBean(), RecipeExtend.class));
+            retailsSplitList.addAll(iStockBusinessService.retailsSplitList(recipeDTO));
+        });
+        //生成暂存处方
+        retailsSplitList.forEach(a -> {
+            recipeInfoVO.setRecipeDetails(a);
+            this.stagingRecipe(recipeInfoVO);
+        });
+        //返回同组处方id
+        return this.recipeByGroupCode(recipeInfoVO.getRecipeBean().getGroupCode(), 1);
     }
 
     /**

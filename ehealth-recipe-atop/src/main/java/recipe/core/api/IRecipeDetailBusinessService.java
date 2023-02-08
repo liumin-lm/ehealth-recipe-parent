@@ -129,4 +129,11 @@ public interface IRecipeDetailBusinessService {
      * @param validateDetailVO
      */
     void validateSplitRecipe(ValidateDetailVO validateDetailVO);
+
+    /**
+     * 智能拆方知识库规则-拆分药品
+     *
+     * @param recipeInfoVO
+     */
+    List<List<RecipeDetailBean>> splitRecipe(RecipeInfoVO recipeInfoVO);
 }
