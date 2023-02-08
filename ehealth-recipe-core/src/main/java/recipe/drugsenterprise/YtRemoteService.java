@@ -201,9 +201,9 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
                 Map<String, String> requestMap = new HashMap<>();
                 String orgCode = DictionaryUtil.getDictionary("eh.recipe.orgCode", drugsEnterprise.getId());
                 String hospitalCode = DictionaryUtil.getDictionary("eh.recipe.hospitalCode", organId);
-                requestMap.put("orgCode ", orgCode);
-                requestMap.put("code ", saleDrug.getOrganDrugCode());
-                requestMap.put("hospitalCode ", hospitalCode);
+                requestMap.put("orgCode", orgCode);
+                requestMap.put("code", saleDrug.getOrganDrugCode());
+                requestMap.put("hospitalCode", hospitalCode);
                 String request = JSON.toJSONString(requestMap);
                 LOGGER.info("YtRemoteService getDrugInventory request:{}", request);
                 String responseStr = HttpHelper.doPost(drugsEnterprise.getBusinessUrl() + "medicine", request, drugsEnterprise.getToken());
