@@ -206,7 +206,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
             String request = JSON.toJSONString(requestMap);
             LOGGER.info("YtRemoteService getDrugInventory request:{}", request);
             try {
-                String responseStr = HttpHelper.doPost(drugsEnterprise.getBusinessUrl(), request, drugsEnterprise.getToken());
+                String responseStr = HttpHelper.doPost(drugsEnterprise.getBusinessUrl() + "medicine", request, drugsEnterprise.getToken());
                 LOGGER.info("YtRemoteService getDrugInventory responseStr:{}", responseStr);
                 YtStockResponse stockResponse = JSONUtils.parse(responseStr, YtStockResponse.class);
                 if (stockResponse.getStock() == 0.0) {
@@ -331,7 +331,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
         if (YT_SY.equals(enterprise.getAccount())) {
             url = enterprise.getBusinessUrl() + pushRecipeHttpUrl;
         } else {
-            url = enterprise.getBusinessUrl();
+            url = enterprise.getBusinessUrl() + "save";
         }
         try {
             String requestStr = JSONUtils.toString(sendYtRecipe);
