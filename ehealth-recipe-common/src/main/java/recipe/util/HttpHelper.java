@@ -1,5 +1,6 @@
 package recipe.util;
 
+import com.alibaba.fastjson.JSON;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -52,6 +53,7 @@ public class HttpHelper {
         HttpEntity entity = new StringEntity(jsonStr, ContentType.APPLICATION_JSON);
         httpPost.setEntity(entity);
         CloseableHttpResponse response = httpclient.execute(httpPost);
+        logger.info("HttpHelper getStatusCode response:{}", JSON.toJSONString(response));
         return response.getStatusLine().getStatusCode();
     }
 
