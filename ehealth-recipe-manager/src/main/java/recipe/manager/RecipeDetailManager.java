@@ -354,7 +354,14 @@ public class RecipeDetailManager extends BaseManager {
         return recipeDetailDAO.findDetailByOrderCode(orderCode);
     }
 
-
+    /**
+     * his返回数据更新 处方药品
+     *
+     * @param recipeDetails
+     * @param recipeDrugFee
+     * @param recipe
+     * @return
+     */
     public List<Recipedetail> sendSuccessDetail(List<Recipedetail> recipeDetails, List<RecipePreSettleDrugFeeDTO> recipeDrugFee, Recipe recipe) {
         List<Recipedetail> list = new ArrayList<>();
         Map<String, RecipePreSettleDrugFeeDTO> collect = recipeDrugFee.stream().collect(Collectors.toMap(RecipePreSettleDrugFeeDTO::getOrganDrugCode, a -> a, (k1, k2) -> k1));
