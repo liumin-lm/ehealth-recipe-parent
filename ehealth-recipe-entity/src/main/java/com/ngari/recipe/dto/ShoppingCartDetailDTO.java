@@ -1,6 +1,5 @@
 package com.ngari.recipe.dto;
 
-import com.ngari.recipe.entity.RecipeBeforeOrder;
 import lombok.Data;
 
 import java.io.Serializable;

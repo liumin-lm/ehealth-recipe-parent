@@ -31,6 +31,7 @@ import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
+import com.ngari.recipe.vo.LogisticsMergeVO;
 import com.ngari.recipe.vo.PreOrderInfoReqVO;
 import com.ngari.recipe.vo.ShoppingCartReqVO;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
@@ -2011,9 +2012,10 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
     }
 
     @Override
-    public Boolean mergeTrackingNumber(Integer addressId, Integer enterpriseId, List<Integer> recipeIdList) {
+    public LogisticsMergeVO mergeTrackingNumber(Integer addressId, Integer enterpriseId, List<Integer> recipeIdList) {
         AddressService addressService = ApplicationUtils.getBasicService(AddressService.class);
         AddressDTO address;
+        LogisticsMergeVO logisticsMerge = new LogisticsMergeVO();
         if (Objects.isNull(addressId)) {
             address = addressService.getDefaultAddressDTO();
         } else {
@@ -2032,9 +2034,12 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
         recipeOrder.setReceiver(address.getReceiver());
         String mergeTrackingNumber = orderManager.getMergeTrackingNumber(recipeOrder);
         if (StringUtils.isNotEmpty(mergeTrackingNumber)) {
-            return true;
+            logisticsMerge.setLogisticsMergeFlag(true);
+            logisticsMerge.setLogisticsCompany(recipeOrder.getLogisticsCompany());
+            return logisticsMerge;
         }
-        return false;
+        logisticsMerge.setLogisticsMergeFlag(false);
+        return logisticsMerge;
     }
 
     @Override
