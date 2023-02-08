@@ -40,6 +40,7 @@ import recipe.drugsenterprise.ThirdEnterpriseCallService;
 import recipe.enumerate.status.GiveModeEnum;
 import recipe.enumerate.status.PayModeEnum;
 import recipe.enumerate.type.ExpressFeePayWayEnum;
+import recipe.manager.EnterpriseManager;
 import recipe.manager.OrderManager;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeMsgService;
@@ -85,6 +86,9 @@ public class LogisticsOnlineOrderService implements IAfterPayBussService{
     @Autowired
     private OrderManager orderManager;
 
+    @Autowired
+    private EnterpriseManager enterpriseManager;
+
     /**
      * 根据支付结果进行物流下单
      * @param order        订单信息
@@ -117,6 +121,8 @@ public class LogisticsOnlineOrderService implements IAfterPayBussService{
             RecipeOrder mergeTrackingNumber = orderManager.getMergeTrackingNumber(order);
             if (Objects.nonNull(mergeTrackingNumber)) {
                 trackingNumber = mergeTrackingNumber.getTrackingNumber();
+                // 更新处方、处方订单成功：药企对接物流的运单信息同步基础服务
+                enterpriseManager.sendLogisticsInfoToBase(order, trackRecipe.getRecipeId(), order.getLogisticsCompany().toString(), trackingNumber);
             } else {
                 try {
                     ILogisticsOrderService logisticsOrderService = AppContextHolder.getBean("infra.logisticsOrderService", ILogisticsOrderService.class);
