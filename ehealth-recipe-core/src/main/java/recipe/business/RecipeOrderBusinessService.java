@@ -1957,7 +1957,8 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
             Integer recipeId=recipes.get(0).getRecipeId();
             List<String> finalRevisitRementAppointDepart = revisitRementAppointDepart;
             recipes.forEach(recipe -> {
-                if(CollectionUtils.isNotEmpty(finalRevisitRementAppointDepart) && !finalRevisitRementAppointDepart.contains(recipe.getAppointDepart())){
+                if(CollectionUtils.isEmpty(finalRevisitRementAppointDepart)
+                        || (CollectionUtils.isNotEmpty(finalRevisitRementAppointDepart) && !finalRevisitRementAppointDepart.contains(recipe.getAppointDepart()))){
                     return;
                 }
                 List<Recipedetail> recipeDetails = recipeDetailMap.get(recipe.getRecipeId());

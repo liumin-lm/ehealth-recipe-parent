@@ -138,8 +138,6 @@ import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static ctd.persistence.DAOFactory.getDAO;
-
 
 /**
  * company: ngarihealth
@@ -239,7 +237,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         }
         //药品数据 根据his返回更新
         IRecipeDetailBusinessService recipeDetailBusinessService = AppContextHolder.getBean("recipeDetailBusinessService", IRecipeDetailBusinessService.class);
-        List<Recipedetail> recipeDetails = recipeDetailBusinessService.sendSuccessDetail(response);
+        List<Recipedetail> recipeDetails = recipeDetailBusinessService.sendSuccessDetail(response, recipe);
         //处方数据 根据his返回更新
         IRecipeBusinessService recipeBusinessService = AppContextHolder.getBean("recipeBusinessService", IRecipeBusinessService.class);
         recipeBusinessService.sendSuccessRecipe(response);
@@ -2229,7 +2227,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         if (null == caType) {
             return;
         }
-        RecipeDetailDAO recipeDetailDAO = getDAO(RecipeDetailDAO.class);
+        if (SignEnum.SIGN_STATE_ORDER.getType().equals(recipe.getDoctorSignState())) {
+            return;
+        }
         List<Recipedetail> details = recipeDetailDAO.findByRecipeId(recipeId);
         if (Integer.valueOf(200).equals(resultVo.getCode())) {
             RecipeServiceEsignExt.saveSignRecipePDFCA(null, recipeId, null, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), true, null);

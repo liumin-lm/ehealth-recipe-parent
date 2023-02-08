@@ -218,13 +218,13 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
         LOGGER.info("RemoteRecipeOrderService recipeOrderDetailedStatistics list={}",JSONUtils.toString(list));
         Map<String, Object> map = DAOFactory.getDAO(RecipeOrderDAO.class).queryrecipeOrderDetailedTotal(startTime, endTime, organId, organIds, depId, drugId, recipeId, payType);
         PatientService patientService = BasicAPI.getService(PatientService.class);
-        if (CollectionUtils.isNotEmpty(list)) {
-            list.forEach(a -> {
-                String mpiId = String.valueOf(a.get("mpiId"));
-                PatientDTO patient = patientService.get(mpiId);
-                a.put("cardId", patient.getCardId());
-            });
-        }
+//        if (CollectionUtils.isNotEmpty(list)) {
+//            list.forEach(a -> {
+//                String mpiId = String.valueOf(a.get("mpiId"));
+//                PatientDTO patient = patientService.get(mpiId);
+//                a.put("cardId", patient.getCardId());
+//            });
+//        }
         map.put("orderData", list);
         LOGGER.info("RemoteRecipeOrderService recipeOrderDetailedStatistics map={}",JSONUtils.toString(map));
         return map;

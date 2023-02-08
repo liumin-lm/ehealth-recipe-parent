@@ -44,6 +44,7 @@ import recipe.aop.LogRecord;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.RevisitClient;
 import recipe.common.OnsConfig;
+import recipe.constant.JKHBConstant;
 import recipe.core.api.IDrugBusinessService;
 import recipe.dao.*;
 import recipe.drugTool.service.DrugToolService;
@@ -53,6 +54,7 @@ import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.manager.EnterpriseManager;
 import recipe.manager.OrderManager;
+import recipe.manager.RecipeManager;
 import recipe.manager.StateManager;
 import recipe.service.afterpay.LogisticsOnlineOrderService;
 import recipe.service.paycallback.RecipePayInfoCallBackService;
@@ -114,6 +116,8 @@ public class RecipeTestService {
     private StateManager stateManager;
     @Autowired
     private FastRecipeDAO fastRecipeDAO;
+    @Autowired
+    private RecipeManager recipeManager;
 
     /**
      * 状态通知补偿方法
@@ -123,6 +127,11 @@ public class RecipeTestService {
     @RpcService
     public void statusChangeNotify(Integer recipeId,String orderStatus){
         stateManager.statusChangeNotify(recipeId,orderStatus);
+    }
+
+    @RpcService
+    public void addRecipeNotify(Integer recipeId,String orderStatus){
+        recipeManager.addRecipeNotify(recipeId, JKHBConstant.NO_PAY);
     }
 
     @RpcService

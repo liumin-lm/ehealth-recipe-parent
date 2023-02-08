@@ -21,10 +21,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.constant.RecipeBussConstant;
 import recipe.dao.PharmacyTcmDAO;
 import recipe.enumerate.type.DrugBelongTypeEnum;
 import recipe.util.JsonUtil;
 import recipe.util.ObjectCopyUtils;
+import recipe.util.RecipeUtil;
 import recipe.util.ValidateUtil;
 
 import java.math.BigDecimal;
@@ -352,8 +354,15 @@ public class RecipeDetailManager extends BaseManager {
         return recipeDetailDAO.findDetailByOrderCode(orderCode);
     }
 
-
-    public List<Recipedetail> sendSuccessDetail(List<Recipedetail> recipeDetails, List<RecipePreSettleDrugFeeDTO> recipeDrugFee) {
+    /**
+     * his返回数据更新 处方药品
+     *
+     * @param recipeDetails
+     * @param recipeDrugFee
+     * @param recipe
+     * @return
+     */
+    public List<Recipedetail> sendSuccessDetail(List<Recipedetail> recipeDetails, List<RecipePreSettleDrugFeeDTO> recipeDrugFee, Recipe recipe) {
         List<Recipedetail> list = new ArrayList<>();
         Map<String, RecipePreSettleDrugFeeDTO> collect = recipeDrugFee.stream().collect(Collectors.toMap(RecipePreSettleDrugFeeDTO::getOrganDrugCode, a -> a, (k1, k2) -> k1));
         for (Recipedetail detail : recipeDetails) {
@@ -382,13 +391,33 @@ public class RecipeDetailManager extends BaseManager {
             if (null != recipePreSettleDrugFeeDTO) {
                 drugCost = recipePreSettleDrugFeeDTO.getDrugCost();
                 updateRecipeDetail.setHisReturnSalePrice(recipePreSettleDrugFeeDTO.getSalePrice());
+                updateRecipeDetail.setSalePrice(recipePreSettleDrugFeeDTO.getSalePrice());
             } else {
                 drugCost = detail.getDrugCost();
             }
+            //总价算单价
             if (null != drugCost && null != recipeDetail.getUseTotalDose()) {
-                BigDecimal salePrice = drugCost.divide(BigDecimal.valueOf(recipeDetail.getUseTotalDose()), 2, RoundingMode.UP);
-                updateRecipeDetail.setSalePrice(salePrice);
                 updateRecipeDetail.setDrugCost(drugCost);
+                if (RecipeUtil.isTcmType(recipe.getRecipeType())) {
+                    BigDecimal salePrice = drugCost.multiply(BigDecimal.valueOf(recipeDetail.getPack())).divide(BigDecimal.valueOf(recipeDetail.getUseTotalDose()), 2, RoundingMode.UP);
+                    updateRecipeDetail.setSalePrice(salePrice);
+                } else {
+                    BigDecimal salePrice = drugCost.divide(BigDecimal.valueOf(recipeDetail.getUseTotalDose()), 2, RoundingMode.UP);
+                    updateRecipeDetail.setSalePrice(salePrice);
+                }
+            }
+            //单价算总价
+            if (null == drugCost && null != updateRecipeDetail.getSalePrice()) {
+                BigDecimal salePrice = updateRecipeDetail.getSalePrice();
+                BigDecimal drugCostNew;
+                if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())) {
+                    //保留3位小数
+                    drugCostNew = salePrice.multiply(BigDecimal.valueOf(detail.getUseTotalDose())).divide(BigDecimal.valueOf(recipeDetail.getPack()), 4, RoundingMode.HALF_UP).setScale(4, RoundingMode.HALF_UP);
+                } else {
+                    //保留3位小数
+                    drugCostNew = salePrice.multiply(BigDecimal.valueOf(detail.getUseTotalDose())).setScale(4, RoundingMode.HALF_UP);
+                }
+                updateRecipeDetail.setDrugCost(drugCostNew);
             }
             recipeDetailDAO.updateNonNullFieldByPrimaryKey(updateRecipeDetail);
             list.add(updateRecipeDetail);
