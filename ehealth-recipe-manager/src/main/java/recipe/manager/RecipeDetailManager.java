@@ -411,10 +411,8 @@ public class RecipeDetailManager extends BaseManager {
                 BigDecimal salePrice = updateRecipeDetail.getSalePrice();
                 BigDecimal drugCostNew;
                 if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())) {
-                    //保留3位小数
                     drugCostNew = salePrice.multiply(BigDecimal.valueOf(detail.getUseTotalDose())).divide(BigDecimal.valueOf(recipeDetail.getPack()), 4, RoundingMode.HALF_UP).setScale(4, RoundingMode.HALF_UP);
                 } else {
-                    //保留3位小数
                     drugCostNew = salePrice.multiply(BigDecimal.valueOf(detail.getUseTotalDose())).setScale(4, RoundingMode.HALF_UP);
                 }
                 updateRecipeDetail.setDrugCost(drugCostNew);
