@@ -16,6 +16,7 @@ import ctd.persistence.support.hibernate.template.HibernateSessionTemplate;
 import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction;
 import ctd.persistence.support.impl.dictionary.DBDictionaryItemLoader;
 import ctd.util.annotation.RpcSupportDAO;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Query;
 import org.hibernate.StatelessSession;
@@ -520,6 +521,41 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
     @DAOMethod(sql = "from DrugList where status=1 and ( sourceOrgan is null or sourceOrgan=0  ) order by drugId")
     public abstract List<DrugList> findAllForPage(@DAOParam(pageStart = true) int start,
                                                    @DAOParam(pageLimit = true) int limit);
+
+
+    /**
+     * 分页查询机构基础药品库数据
+     * @param organIds
+     * @param start
+     * @param limit
+     * @return
+     */
+    public List<DrugList> findDrugListByOrganIds(final List<Integer> organIds,final Integer start,final Integer limit){
+        HibernateStatelessResultAction<List<DrugList>> action = new AbstractHibernateStatelessResultAction<List<DrugList>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder("From DrugList where status = 1 ");
+                //平台药品目录
+                if (organIds.contains(0)) {
+                    hql.append("and sourceOrgan in :organIds or sourceOrgan is null or sourceOrgan = 0 ");
+                }else {
+                    hql.append("and sourceOrgan in :organIds ");
+                }
+                LOGGER.info("findDrugListByOrganIds sql={}", hql);
+                Query q = ss.createQuery(hql.toString());
+                if (CollectionUtils.isNotEmpty(organIds)) {
+                    q.setParameterList("organIds", organIds );
+                }
+                if (null != start && null != limit) {
+                    q.setFirstResult(start);
+                    q.setMaxResults(limit);
+                }
+                setResult(q.list());
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
 
     /**
      * 统计基础药品库总数
