@@ -177,12 +177,12 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
             String store = recipeParameterDao.getByName(organId + "_yt_store_code");
             pharmacy.setPharmacyCode(store);
         }
-        String stockResponse = getInventoryResult(drugsEnterprise, saleDrug, pharmacy);
+        String stockResponse = getInventoryResult(drugsEnterprise, saleDrug, pharmacy, organId);
         if (stockResponse != null) return stockResponse;
         return "0";
     }
 
-    private String getInventoryResult(DrugsEnterprise drugsEnterprise, SaleDrugList saleDrug, Pharmacy pharmacy) {
+    private String getInventoryResult(DrugsEnterprise drugsEnterprise, SaleDrugList saleDrug, Pharmacy pharmacy, Integer organId) {
         if (YT_SY.equals(drugsEnterprise.getAccount())) {
             try {
                 String stockUrl = drugsEnterprise.getBusinessUrl() + getStock + "/" + pharmacy.getPharmacyCode() + "/" + saleDrug.getOrganDrugCode();
@@ -197,15 +197,15 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
                 LOGGER.info("YtRemoteService.getDrugInventory:运营平台查询药品库存失败, {},{},{}", saleDrug.getDrugId(), drugsEnterprise.getName(), e.getMessage(),e);
             }
         } else {
-            Map<String, String> requestMap = new HashMap<>();
-            String orgCode = DictionaryUtil.getDictionary("eh.recipe.orgCode", drugsEnterprise.getId());
-            String hospitalCode = DictionaryUtil.getDictionary("eh.recipe.hospitalCode", drugsEnterprise.getId());
-            requestMap.put("orgCode ", orgCode);
-            requestMap.put("code ", saleDrug.getOrganDrugCode());
-            requestMap.put("hospitalCode ", hospitalCode);
-            String request = JSON.toJSONString(requestMap);
-            LOGGER.info("YtRemoteService getDrugInventory request:{}", request);
             try {
+                Map<String, String> requestMap = new HashMap<>();
+                String orgCode = DictionaryUtil.getDictionary("eh.recipe.orgCode", drugsEnterprise.getId());
+                String hospitalCode = DictionaryUtil.getDictionary("eh.recipe.hospitalCode", organId);
+                requestMap.put("orgCode ", orgCode);
+                requestMap.put("code ", saleDrug.getOrganDrugCode());
+                requestMap.put("hospitalCode ", hospitalCode);
+                String request = JSON.toJSONString(requestMap);
+                LOGGER.info("YtRemoteService getDrugInventory request:{}", request);
                 String responseStr = HttpHelper.doPost(drugsEnterprise.getBusinessUrl() + "medicine", request, drugsEnterprise.getToken());
                 LOGGER.info("YtRemoteService getDrugInventory responseStr:{}", responseStr);
                 YtStockResponse stockResponse = JSONUtils.parse(responseStr, YtStockResponse.class);
@@ -253,7 +253,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
                     return result;
                 }
                 for (Pharmacy pharmacy : pharmacies) {
-                    String stockResponse = getInventoryResult(drugsEnterprise, saleDrugList, pharmacy);
+                    String stockResponse = getInventoryResult(drugsEnterprise, saleDrugList, pharmacy, null);
                     if (StringUtils.isEmpty(stockResponse)) {
                         continue;
                     }
