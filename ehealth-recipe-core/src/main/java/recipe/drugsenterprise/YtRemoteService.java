@@ -386,7 +386,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
             //这里保存的医院的社保编码
             sendYtRecipe.setHospitalCode(organ.getOrganizeCode());
         } else {
-            String hospitalCode = DictionaryUtil.getDictionary("eh.recipe.hospitalCode", enterprise.getId());
+            String hospitalCode = DictionaryUtil.getDictionary("eh.recipe.hospitalCode", nowRecipe.getClinicOrgan());
             sendYtRecipe.setHospitalCode(hospitalCode);
         }
         sendYtRecipe.setHospitalName(nowRecipe.getOrganName());
