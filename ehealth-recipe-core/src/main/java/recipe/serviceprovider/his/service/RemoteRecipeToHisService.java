@@ -23,7 +23,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import recipe.constant.BusTypeEnum;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 
@@ -326,7 +325,7 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
 
         //如果his未接诊，则取消挂号
         CancelVisitRequestTO cancelRequest = new CancelVisitRequestTO();
-        cancelRequest.setBusId(hosrelationBean.getBusId());
+       // cancelRequest.setBusId(hosrelationBean.getBusId());
         cancelRequest.setOutTradeNo(revisitBean.getOutTradeNo());
         cancelRequest.setOrganId(hosrelationBean.getOrganId());
         cancelRequest.setRegisterId(hosrelationBean.getRegisterId());

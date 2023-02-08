@@ -25,6 +25,7 @@ import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.enumerate.type.StockCheckSourceTypeEnum;
 import recipe.manager.EnterpriseManager;
 import recipe.manager.RecipeManager;
+import recipe.util.ListValueUtil;
 import recipe.util.MapValueUtil;
 import recipe.util.ObjectCopyUtils;
 import recipe.util.ValidateUtil;
@@ -217,8 +218,16 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
 
     @Override
     public List<List<RecipeDetailBean>> retailsSplitList(RecipeDTO recipeDTO) {
-        List<EnterpriseStock> list = this.stockList(recipeDTO);
-
+        List<EnterpriseStock> enterpriseStockList = this.stockList(recipeDTO);
+        List<PermutationDTO> source = new ArrayList<>();
+        enterpriseStockList.forEach(a -> {
+            PermutationDTO permutation = new PermutationDTO();
+            permutation.setKey(a.getDeliveryCode());
+            permutation.setValue(a.getDrugInfoList().stream().filter(DrugInfoDTO::getStock).map(DrugInfoDTO::getDrugId).collect(Collectors.toList()));
+            source.add(permutation);
+        });
+        List<Integer> target = recipeDTO.getRecipeDetails().stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
+        List<List<Integer>> drugIdsList = ListValueUtil.permutationDrugs(source, target);
         return null;
     }
 
