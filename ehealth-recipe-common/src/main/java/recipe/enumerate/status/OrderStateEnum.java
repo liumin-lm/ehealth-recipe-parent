@@ -58,6 +58,7 @@ public enum OrderStateEnum {
     SUB_CANCELLATION_OTHER(98, "其他原因取消订单", ""),
     SUB_CANCELLATION_REFUND(99, "处方已退费成功", ""),
     SUB_CANCELLATION_REFUND_FAIL(100, "处方退费失败", ""),
+    SUB_DONE_HOS_PAY(101, "院内缴费", ""),
     ;
 
     private Integer type;

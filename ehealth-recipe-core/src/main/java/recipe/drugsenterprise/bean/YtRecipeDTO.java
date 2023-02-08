@@ -185,7 +185,7 @@ public class YtRecipeDTO implements Serializable {
      * 4.纳里平台
      * 默认4
      */
-    private Integer source;
+    private Object source;
 
     //处方单id
     private Integer recipeId;
@@ -427,11 +427,11 @@ public class YtRecipeDTO implements Serializable {
         this.image = image;
     }
 
-    public Integer getSource() {
+    public Object getSource() {
         return source;
     }
 
-    public void setSource(Integer source) {
+    public void setSource(Object source) {
         this.source = source;
     }
 
