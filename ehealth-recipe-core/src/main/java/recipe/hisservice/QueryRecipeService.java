@@ -66,6 +66,7 @@ import recipe.service.RecipeServiceSub;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.ByteUtils;
 import recipe.util.DateConversion;
+import recipe.util.ValidateUtil;
 import recipe.vo.second.EmrDetailValueVO;
 
 import javax.annotation.Resource;
@@ -1221,8 +1222,23 @@ public class QueryRecipeService implements IQueryRecipeService {
         if (CollectionUtils.isEmpty(drugList)) {
             return new ArrayList<DrugListBean>();
         }
-        LOGGER.info("当前返回结果", JSONUtils.toString(drugList));
+        LOGGER.info("当前返回结果,drugList={}", JSONUtils.toString(drugList));
         return ObjectCopyUtils.convert(drugList, DrugListBean.class);
+
+    }
+
+    @Override
+    public List<DrugListBean> getDrugListByOrganIds(DrugListDTO drugListDTO) {
+        LOGGER.info("当前请求参数：drugListDTO={}", JSONUtils.toString(drugListDTO));
+        if (ValidateUtil.validateObjects(drugListDTO.getOrganIds())) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "机构ID不能为空");
+        }
+        List<DrugList> drugLists = drugListDAO.findDrugListByOrganIds(drugListDTO.getOrganIds(), drugListDTO.getStart(), drugListDTO.getLimit());
+        if (CollectionUtils.isEmpty(drugLists)) {
+            return new ArrayList<DrugListBean>();
+        }
+        LOGGER.info("当前返回结果,drugLists={}", JSONUtils.toString(drugLists));
+        return ObjectCopyUtils.convert(drugLists, DrugListBean.class);
 
     }
 

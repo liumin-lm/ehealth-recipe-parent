@@ -39,7 +39,6 @@ import recipe.manager.FastRecipeManager;
 import recipe.service.common.RecipeSignService;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.util.JsonUtil;
-import recipe.vo.doctor.DrugQueryVO;
 import recipe.vo.doctor.RecipeInfoVO;
 
 import javax.annotation.Resource;
@@ -230,7 +229,6 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
             if (Objects.isNull(fastRecipe)) {
                 return null;
             }
-            List<FastRecipeDetail> fastRecipeDetailList = fastRecipeDetailDAO.findFastRecipeDetailsByFastRecipeId(fastRecipe.getId());
             //1.参数设置默认值
             RecipeBean recipeBean = recipeInfoVO.getRecipeBean();
             recipeBean.setStatus(RecipeStatusEnum.RECIPE_STATUS_UNSIGNED.getType());

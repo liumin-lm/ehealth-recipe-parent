@@ -21,7 +21,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import recipe.constant.RecipeBussConstant;
 import recipe.dao.PharmacyTcmDAO;
 import recipe.enumerate.type.DrugBelongTypeEnum;
 import recipe.util.JsonUtil;
@@ -399,7 +398,7 @@ public class RecipeDetailManager extends BaseManager {
             if (null != drugCost && null != recipeDetail.getUseTotalDose()) {
                 updateRecipeDetail.setDrugCost(drugCost);
                 if (RecipeUtil.isTcmType(recipe.getRecipeType())) {
-                    BigDecimal salePrice = drugCost.multiply(BigDecimal.valueOf(recipeDetail.getPack())).divide(BigDecimal.valueOf(recipeDetail.getUseTotalDose()), 2, RoundingMode.UP);
+                    BigDecimal salePrice = drugCost.multiply(BigDecimal.valueOf(recipeDetail.getPack())).divide(BigDecimal.valueOf(recipeDetail.getUseDose()), 2, RoundingMode.UP);
                     updateRecipeDetail.setSalePrice(salePrice);
                 } else {
                     BigDecimal salePrice = drugCost.divide(BigDecimal.valueOf(recipeDetail.getUseTotalDose()), 2, RoundingMode.UP);
@@ -410,12 +409,10 @@ public class RecipeDetailManager extends BaseManager {
             if (null == drugCost && null != updateRecipeDetail.getSalePrice()) {
                 BigDecimal salePrice = updateRecipeDetail.getSalePrice();
                 BigDecimal drugCostNew;
-                if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())) {
-                    //保留3位小数
-                    drugCostNew = salePrice.multiply(BigDecimal.valueOf(detail.getUseTotalDose())).divide(BigDecimal.valueOf(recipeDetail.getPack()), 4, RoundingMode.HALF_UP).setScale(4, RoundingMode.HALF_UP);
+                if (RecipeUtil.isTcmType(recipe.getRecipeType())) {
+                    drugCostNew = salePrice.multiply(BigDecimal.valueOf(recipeDetail.getUseTotalDose())).divide(BigDecimal.valueOf(recipeDetail.getPack()), 4, RoundingMode.HALF_UP).setScale(4, RoundingMode.HALF_UP);
                 } else {
-                    //保留3位小数
-                    drugCostNew = salePrice.multiply(BigDecimal.valueOf(detail.getUseTotalDose())).setScale(4, RoundingMode.HALF_UP);
+                    drugCostNew = salePrice.multiply(BigDecimal.valueOf(recipeDetail.getUseTotalDose())).setScale(4, RoundingMode.HALF_UP);
                 }
                 updateRecipeDetail.setDrugCost(drugCostNew);
             }
