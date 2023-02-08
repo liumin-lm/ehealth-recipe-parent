@@ -7,6 +7,7 @@ import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.recipe.model.*;
+import com.ngari.recipe.vo.LogisticsMergeVO;
 import com.ngari.recipe.vo.PreOrderInfoReqVO;
 import com.ngari.recipe.vo.ShoppingCartReqVO;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
@@ -327,7 +328,7 @@ public interface IRecipeOrderBusinessService {
      * @param enterpriseId 药企ID
      * @return 是否可以合并
      */
-    Boolean mergeTrackingNumber(Integer addressId, Integer enterpriseId, List<Integer> recipeIdList);
+    LogisticsMergeVO mergeTrackingNumber(Integer addressId, Integer enterpriseId, List<Integer> recipeIdList);
 
     /**
      * 获取支付需要的结算信息

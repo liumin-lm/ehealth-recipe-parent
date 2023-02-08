@@ -23,7 +23,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-import recipe.constant.RecipeBussConstant;
 import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.util.ObjectCopyUtils;
 import recipe.util.RecipeUtil;
@@ -351,7 +350,7 @@ public class DrugClient extends BaseClient {
         for (Recipedetail detail : detailList) {
             BigDecimal price = detail.getSalePrice();
             BigDecimal drugCost;
-            if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipeType)) {
+            if (RecipeUtil.isTcmType(recipeType)) {
                 detail.setUseTotalDose(BigDecimal.valueOf(recipe.getCopyNum()).multiply(BigDecimal.valueOf(detail.getUseDose())).doubleValue());
                 //保留3位小数
                 drugCost = price.multiply(BigDecimal.valueOf(detail.getUseTotalDose())).divide(BigDecimal.valueOf(detail.getPack()), 4, RoundingMode.HALF_UP).setScale(4, RoundingMode.HALF_UP);

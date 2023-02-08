@@ -41,6 +41,9 @@ public interface IQueryRecipeService {
     List<DrugListBean> getDrugList(String organId, String organName, Integer start, Integer limit);
 
     @RpcService
+    List<DrugListBean> getDrugListByOrganIds(DrugListDTO drugListDTO);
+
+    @RpcService
     RecipeResultBean updateOrSaveOrganDrug(OrganDrugChangeBean organDrugChangeBean);
 
     @RpcService
