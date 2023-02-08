@@ -2032,10 +2032,10 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
         recipeOrder.setStreetAddress(address.getStreetAddress());
         recipeOrder.setRecMobile(address.getRecMobile());
         recipeOrder.setReceiver(address.getReceiver());
-        String mergeTrackingNumber = orderManager.getMergeTrackingNumber(recipeOrder);
-        if (StringUtils.isNotEmpty(mergeTrackingNumber)) {
+        RecipeOrder order = orderManager.getMergeTrackingNumber(recipeOrder);
+        if (Objects.nonNull(order)) {
             logisticsMerge.setLogisticsMergeFlag(true);
-            logisticsMerge.setLogisticsCompany(recipeOrder.getLogisticsCompany());
+            logisticsMerge.setLogisticsCompany(order.getLogisticsCompany());
             return logisticsMerge;
         }
         logisticsMerge.setLogisticsMergeFlag(false);

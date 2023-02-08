@@ -114,9 +114,9 @@ public class LogisticsOnlineOrderService implements IAfterPayBussService{
         if (null != enterprise && enterprise.getLogisticsType() != null && enterprise.getLogisticsType().equals(DrugEnterpriseConstant.LOGISTICS_PLATFORM)) {
             String trackingNumber;
             Recipe trackRecipe = recipeS.get(0);
-            String mergeTrackingNumber = orderManager.getMergeTrackingNumber(order);
-            if (StringUtils.isNotEmpty(mergeTrackingNumber)) {
-                trackingNumber = mergeTrackingNumber;
+            RecipeOrder mergeTrackingNumber = orderManager.getMergeTrackingNumber(order);
+            if (Objects.nonNull(mergeTrackingNumber)) {
+                trackingNumber = mergeTrackingNumber.getTrackingNumber();
             } else {
                 try {
                     ILogisticsOrderService logisticsOrderService = AppContextHolder.getBean("infra.logisticsOrderService", ILogisticsOrderService.class);
