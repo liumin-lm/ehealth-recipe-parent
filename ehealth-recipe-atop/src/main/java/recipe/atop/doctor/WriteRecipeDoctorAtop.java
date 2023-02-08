@@ -42,6 +42,60 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
     private IRecipeBusinessService recipeBusinessService;
 
     /**
+     * 暂存处方接口
+     *
+     * @param recipeInfoVO
+     */
+    @RpcService
+    public Integer stagingRecipe(RecipeInfoVO recipeInfoVO) {
+        validateAtop(recipeInfoVO, recipeInfoVO.getRecipeBean());
+        validateAtop(recipeInfoVO.getRecipeBean().getDoctor(), recipeInfoVO.getRecipeBean().getClinicOrgan());
+        RecipeBean recipeBean = recipeInfoVO.getRecipeBean();
+        if (!ValidateUtil.integerIsEmpty(recipeBean.getRecipeId())) {
+            Recipe recipe = recipeBusinessService.getRecipe(recipeBean.getRecipeId());
+            // 只有暂存状态才可以修改
+            if (!WriteHisEnum.NONE.getType().equals(recipe.getWriteHisState()) || !SignEnum.NONE.getType().equals(recipe.getDoctorSignState())) {
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "当前处方不是暂存状态,不能操作");
+            }
+        }
+        List<RecipeDetailBean> recipeDetails = recipeInfoVO.getRecipeDetails();
+        if (CollectionUtils.isNotEmpty(recipeDetails)) {
+            boolean recipeDetailId = recipeDetails.stream().anyMatch(a -> !ValidateUtil.integerIsEmpty(a.getRecipeDetailId()));
+            if (ValidateUtil.integerIsEmpty(recipeBean.getRecipeId()) && recipeDetailId) {
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "药品入参错误");
+            }
+        }
+        if (!ValidateUtil.integerIsEmpty(recipeInfoVO.getRecipeBean().getRecipeId()) && null != recipeInfoVO.getRecipeExtendBean()) {
+            recipeInfoVO.getRecipeExtendBean().setRecipeId(recipeInfoVO.getRecipeBean().getRecipeId());
+        }
+        return recipeBusinessService.stagingRecipe(recipeInfoVO);
+    }
+
+    /**
+     * 处方拆方
+     *
+     * @param recipeInfoVO
+     */
+    @RpcService
+    public void splitRecipe(RecipeInfoVO recipeInfoVO) {
+        validateAtop(recipeInfoVO, recipeInfoVO.getRecipeBean(), recipeInfoVO.getRecipeExtendBean(), recipeInfoVO.getRecipeDetails());
+    }
+
+    /**
+     * 查询同组处方
+     *
+     * @param groupCode 处方组号
+     * @param type      0： 默认全部 1：查询暂存，2查询可撤销处方
+     * @return 处方id集合
+     */
+    @RpcService
+    public List<Integer> recipeByGroupCode(String groupCode, Integer type) {
+        validateAtop(groupCode);
+        return recipeBusinessService.recipeByGroupCode(groupCode, type);
+    }
+
+
+    /**
      * 获取院内门诊
      *
      * @param mpiId    患者唯一标识
@@ -106,23 +160,12 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
      * @return 处方id
      */
     @RpcService
+    @Deprecated
     public List<Integer> splitDrugRecipeV1(ValidateDetailVO validateDetailVO) {
         String groupCode = this.splitDrugRecipe(validateDetailVO);
         return this.recipeByGroupCode(groupCode, 1);
     }
 
-    /**
-     * 查询同组处方
-     *
-     * @param groupCode 处方组号
-     * @param type      0： 默认全部 1：查询暂存，2查询可撤销处方
-     * @return 处方id集合
-     */
-    @RpcService
-    public List<Integer> recipeByGroupCode(String groupCode, Integer type) {
-        validateAtop(groupCode);
-        return recipeBusinessService.recipeByGroupCode(groupCode, type);
-    }
 
     /**
      * 获取处方状态 与 同组处方id
@@ -189,38 +232,4 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
         return recipeBusinessService.findRequirementsForTakingByDecoctionId(organId, decoctionId);
     }
 
-    /**
-     * 暂存处方接口
-     *
-     * @param recipeInfoVO
-     */
-    @RpcService
-    public Integer stagingRecipe(RecipeInfoVO recipeInfoVO) {
-        validateAtop(recipeInfoVO, recipeInfoVO.getRecipeBean());
-        validateAtop(recipeInfoVO.getRecipeBean().getDoctor(), recipeInfoVO.getRecipeBean().getClinicOrgan());
-        RecipeBean recipeBean = recipeInfoVO.getRecipeBean();
-        if (!ValidateUtil.integerIsEmpty(recipeBean.getRecipeId())) {
-            Recipe recipe = recipeBusinessService.getRecipe(recipeBean.getRecipeId());
-            // 只有暂存状态才可以修改
-            if (!WriteHisEnum.NONE.getType().equals(recipe.getWriteHisState()) || !SignEnum.NONE.getType().equals(recipe.getDoctorSignState())) {
-                throw new DAOException(ErrorCode.SERVICE_ERROR, "当前处方不是暂存状态,不能操作");
-            }
-        }
-        List<RecipeDetailBean> recipeDetails = recipeInfoVO.getRecipeDetails();
-        if (CollectionUtils.isNotEmpty(recipeDetails)) {
-            boolean recipeDetailId = recipeDetails.stream().anyMatch(a -> !ValidateUtil.integerIsEmpty(a.getRecipeDetailId()));
-            if (ValidateUtil.integerIsEmpty(recipeBean.getRecipeId()) && recipeDetailId) {
-                throw new DAOException(ErrorCode.SERVICE_ERROR, "药品入参错误");
-            }
-        }
-        if (!ValidateUtil.integerIsEmpty(recipeInfoVO.getRecipeBean().getRecipeId()) && null != recipeInfoVO.getRecipeExtendBean()) {
-            recipeInfoVO.getRecipeExtendBean().setRecipeId(recipeInfoVO.getRecipeBean().getRecipeId());
-        }
-        return recipeBusinessService.stagingRecipe(recipeInfoVO);
-    }
-
-    @RpcService
-    public void splitRecipe(RecipeInfoVO recipeInfoVO) {
-        validateAtop(recipeInfoVO, recipeInfoVO.getRecipeBean(), recipeInfoVO.getRecipeExtendBean(), recipeInfoVO.getRecipeDetails());
-    }
 }
