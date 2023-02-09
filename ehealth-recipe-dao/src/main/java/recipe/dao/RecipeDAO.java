@@ -4953,6 +4953,26 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
 
     @DAOMethod(sql = "from Recipe where orderCode is not null and fastRecipeFlag = 1 and offlineRecipeName is null ", limit = 0)
     public abstract List<Recipe> findFastRecipeList();
+
+    public List<Recipe> getByChargeItemCodeAndOrganId(String recipeCode, Integer organId){
+        HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder("select r.*  from cdr_recipe r ");
+                hql.append(" LEFT JOIN cdr_recipe_ext re ON r.RecipeID = re.recipeId ");
+                hql.append(" where r.clinicOrgan = :organId ");
+                hql.append(" and  re.charge_item_code like :recipeCode ");
+                hql.append(" and (r.delete_flag = 0 or r.delete_flag  is null)");
+                Query q = ss.createSQLQuery(hql.toString()).addEntity(Recipe.class);
+                q.setParameter("organId", organId);
+                q.setParameter("recipeCode", "%" + recipeCode + "%");
+
+                setResult(q.list());
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    };
 }
 
 
