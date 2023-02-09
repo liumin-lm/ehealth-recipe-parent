@@ -104,6 +104,9 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
         });
         //生成暂存处方
         retailsSplitList.forEach(a -> {
+            if (CollectionUtils.isEmpty(a)) {
+                return;
+            }
             recipeInfoVO.setRecipeDetails(a);
             this.stagingRecipe(recipeInfoVO);
         });

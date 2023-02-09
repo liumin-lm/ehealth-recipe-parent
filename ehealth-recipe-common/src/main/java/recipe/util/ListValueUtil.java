@@ -55,9 +55,37 @@ public class ListValueUtil {
         return resultList;
     }
 
+    /**
+     * 根据数据源 找出 符合目标值的 数组排列组合集合，若无符合数据源集合。则递减数据源 从新找出
+     *
+     * @param source 排列组合数据源
+     * @param target 对比获取目标值
+     * @return 目标值，数据源集合
+     */
+    public static List<List<Integer>> permutationDrugsTargetDecline(List<PermutationDTO> source, List<Integer> target) {
+        for (int i = target.size(); i > 0; i--) {
+            List<Integer> targetDecline = target.stream().limit(i).collect(Collectors.toList());
+            List<List<Integer>> drugIdsList = permutationDrugs(source, targetDecline);
+            if (CollectionUtils.isNotEmpty(drugIdsList)) {
+                return drugIdsList;
+            }
+        }
+        return Collections.emptyList();
+    }
 
+
+    /**
+     * 根据数据源 找出 符合目标值的 数组排列组合集合
+     *
+     * @param source 排列组合数据源
+     * @param target 对比获取目标值
+     * @return 目标值，数据源集合
+     */
     public static List<List<Integer>> permutationDrugs(List<PermutationDTO> source, List<Integer> target) {
         if (CollectionUtils.isEmpty(source)) {
+            return Collections.emptyList();
+        }
+        if (CollectionUtils.isEmpty(target)) {
             return Collections.emptyList();
         }
         //生产穷举 排列组合
@@ -102,9 +130,8 @@ public class ListValueUtil {
                 valueSet.addAll(a.getValue());
                 return a.getValue();
             }).collect(Collectors.toList());
-            
             List<Integer> value = valueSet.stream().sorted().collect(Collectors.toList());
-            if (target.equals(value)) {
+            if (value.containsAll(target)) {
                 return idsList;
             }
         }
@@ -132,8 +159,11 @@ public class ListValueUtil {
         list.add(b7);
         PermutationDTO b8 = new PermutationDTO("I", Arrays.asList(5));
         list.add(b8);
+
+        PermutationDTO b9 = new PermutationDTO("I", Arrays.asList(4));
+        list.add(b9);
         List<Integer> target = Stream.of(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11).sorted().collect(Collectors.toList());
-        List<List<Integer>> drugIdsList = ListValueUtil.permutationDrugs(list, target);
+        List<List<Integer>> drugIdsList = ListValueUtil.permutationDrugsTargetDecline(list, target);
         System.out.println(drugIdsList);
     }
 

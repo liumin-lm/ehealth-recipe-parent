@@ -409,6 +409,10 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
         if (validateSplitRecipe.contains("2")) {
             result.add(recipeDetails);
         }
+        
+        if (CollectionUtils.isEmpty(result)) {
+            result.add(recipeDetails);
+        }
         return result;
     }
 

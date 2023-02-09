@@ -218,6 +218,12 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
 
     @Override
     public List<List<RecipeDetailBean>> retailsSplitList(RecipeDTO recipeDTO) {
+        if (CollectionUtils.isEmpty(recipeDTO.getRecipeDetails())) {
+            return null;
+        }
+        if (1 == recipeDTO.getRecipeDetails().size()) {
+            return Collections.singletonList(ObjectCopyUtils.convert(recipeDTO.getRecipeDetails(), RecipeDetailBean.class));
+        }
         List<EnterpriseStock> enterpriseStockList = this.stockList(recipeDTO);
         List<PermutationDTO> source = new ArrayList<>();
         enterpriseStockList.forEach(a -> {
@@ -226,8 +232,11 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
             permutation.setValue(a.getDrugInfoList().stream().filter(DrugInfoDTO::getStock).map(DrugInfoDTO::getDrugId).collect(Collectors.toList()));
             source.add(permutation);
         });
-        List<Integer> target = recipeDTO.getRecipeDetails().stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
-        List<List<Integer>> drugIdsList = ListValueUtil.permutationDrugs(source, target);
+        //计算-动态规划最优处方,最小拆分组数
+        List<Integer> target = recipeDTO.getRecipeDetails().stream().map(Recipedetail::getDrugId).distinct().sorted().collect(Collectors.toList());
+        List<List<Integer>> drugIdsList = ListValueUtil.permutationDrugsTargetDecline(source, target);
+
+
         return null;
     }
 
