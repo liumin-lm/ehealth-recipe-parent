@@ -37,7 +37,11 @@ public interface IQueryRecipeService {
     List<RegulationRecipeIndicatorsDTO> queryRegulationRecipeData(Integer organId, Date startDate, Date endDate, Boolean checkFlag);
 
 
+    /**
+     * 新方法：getDrugListByOrganIds
+     */
     @RpcService
+    @Deprecated
     List<DrugListBean> getDrugList(String organId, String organName, Integer start, Integer limit);
 
     /**
