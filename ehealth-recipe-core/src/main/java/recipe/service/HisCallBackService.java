@@ -531,7 +531,9 @@ public class HisCallBackService {
                             finishFlag = true;
                         }
                     }
-                    if (RecipeBussConstant.GIVEMODE_TO_HOS.equals(recipe.getGiveMode())) {
+                    // 到院线下支付的 或 到院 线上已支付的订单
+                    if ((RecipeBussConstant.GIVEMODE_TO_HOS.equals(recipe.getGiveMode()) && PayModeEnum.ONLINE_PAY.getType().equals(order.getPayMode())
+                            || (RecipeBussConstant.GIVEMODE_TO_HOS.equals(recipe.getGiveMode()) && PayModeEnum.OFFLINE_PAY.getType().equals(order.getPayMode()) && PayFlagEnum.PAYED.getType().equals(order.getPayFlag())))) {
                         stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_DONE, RecipeStateEnum.SUB_DONE_SELF_TAKE);
                         if (finishFlag) {
                             stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_DISPENSING, OrderStateEnum.SUB_DONE_SELF_TAKE);
