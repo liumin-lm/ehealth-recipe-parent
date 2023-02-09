@@ -2,13 +2,12 @@ package recipe.service;
 
 import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Maps;
+import com.ngari.bus.coupon.service.ICouponService;
 import com.ngari.consult.ConsultAPI;
 import com.ngari.consult.common.model.ConsultExDTO;
 import com.ngari.consult.common.service.IConsultExService;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeExtend;
-import com.ngari.recipe.entity.RecipeOrder;
-import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.common.RecipeResultBean;
+import com.ngari.recipe.entity.*;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.service.IRevisitExService;
@@ -28,21 +27,21 @@ import recipe.ApplicationUtils;
 import recipe.bean.RecipeCheckPassResult;
 import recipe.client.IConfigurationClient;
 import recipe.constant.RecipeBussConstant;
-import recipe.dao.RecipeDAO;
-import recipe.dao.RecipeDetailDAO;
-import recipe.dao.RecipeExtendDAO;
-import recipe.dao.RecipeOrderDAO;
+import recipe.dao.*;
 import recipe.enumerate.status.*;
+import recipe.enumerate.type.PayBusTypeEnum;
+import recipe.enumerate.type.PayFlagEnum;
+import recipe.enumerate.type.PayFlowTypeEnum;
 import recipe.hisservice.syncdata.SyncExecutorService;
 import recipe.manager.StateManager;
 import recipe.purchase.CommonOrder;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static ctd.persistence.DAOFactory.getDAO;
 
 /**
  * HIS系统业务回调方法
@@ -410,7 +409,7 @@ public class HisCallBackService {
                                 orderService.cancelOrderByRecipeId(recipeId, OrderStatusConstant.CANCEL_AUTO);
 
                                 if (Objects.nonNull(recipeOrder)) {
-                                    stateManager.updateOrderState(recipeOrder.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION, OrderStateEnum.SUB_CANCELLATION_USER);
+                                    stateManager.updateOrderState(recipeOrder.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION, OrderStateEnum.SUB_DONE_HOS_PAY);
                                 }
                                 //日志记录
                                 RecipeLogService.saveRecipeLog(recipeId, beforeStatus, RecipeStatusConstant.HAVE_PAY, logMemo);
@@ -520,11 +519,73 @@ public class HisCallBackService {
 
                 // 更新处方新状态
                 stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_DONE, RecipeStateEnum.SUB_DONE_HOS_PAY);
-                if(Objects.nonNull(order)) {
-                    stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION, OrderStateEnum.SUB_DONE_HOS_PAY);
+                if (Objects.nonNull(order)) {
+                    List<Integer> recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
+                    Boolean finishFlag = false;
+                    if (1 == recipeIdList.size()) {
+                        finishFlag = true;
+                    } else {
+                        List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIdList);
+                        List<Integer> states = recipes.stream().distinct().map(Recipe::getProcessState).collect(Collectors.toList());
+                        if (1 == states.size() && RecipeStateEnum.PROCESS_STATE_DONE.getType().equals(states.get(0))) {
+                            finishFlag = true;
+                        }
+                    }
+                    if (RecipeBussConstant.GIVEMODE_TO_HOS.equals(recipe.getGiveMode())) {
+                        stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_DONE, RecipeStateEnum.SUB_DONE_SELF_TAKE);
+                        if (finishFlag) {
+                            stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_DISPENSING, OrderStateEnum.SUB_DONE_SELF_TAKE);
+                        }
+                    } else {
+                        // 作废订单
+                        cancelOrderWithListQuery(order, recipeId);
+                        stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION, OrderStateEnum.SUB_DONE_HOS_PAY);
+                    }
                 }
             }
         }
+    }
+
+
+    /**
+     * 取消订单
+     *
+     * @param order
+     * @return
+     */
+    public static void cancelOrderWithListQuery(RecipeOrder order,Integer recipeId) {
+        LOGGER.info("cancelOrderWithListQuery order= {}，recipeId= {}", JSON.toJSONString(order), recipeId);
+
+        if (null != order) {
+            //如果有正在进行中的合并处方单应该还原
+            RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
+            RecipeExtendDAO recipeExtendDAO = getDAO(RecipeExtendDAO.class);
+            List<Integer> recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
+            //合并处方订单取消
+            List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIdList);
+            //订单手动取消，处方单可以进行重新支付
+            //更新处方的orderCode
+            for (Recipe recipe : recipes) {
+                if (recipe != null) {
+                    Boolean canCancelOrderCode = true;
+                    if (recipe.getRecipeId().equals(recipeId)) {
+                        canCancelOrderCode = false;
+                    }
+                    recipeDAO.updateOrderCodeToNullByRecipeId(recipe, 1, canCancelOrderCode);
+                    String decoctionDeploy = configurationClient.getValueEnumCatch(recipe.getClinicOrgan(), "decoctionDeploy", "0");
+                    if ("2".equals(decoctionDeploy) && canCancelOrderCode) {
+                        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+                        if (recipeExtend != null) {
+                            recipeExtend.setDecoctionText(null);
+                            recipeExtend.setDecoctionPrice(null);
+                            recipeExtend.setDecoctionId(null);
+                            recipeExtendDAO.saveOrUpdateRecipeExtend(recipeExtend);
+                        }
+                    }
+                }
+            }
+        }
+
     }
 
 
