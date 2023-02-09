@@ -1127,7 +1127,7 @@ public class OrderManager extends BaseManager {
      * @param order 订单
      */
     @LogRecord
-    public String getMergeTrackingNumber(RecipeOrder order) {
+    public RecipeOrder getMergeTrackingNumber(RecipeOrder order) {
         try {
             if (Objects.isNull(order)) {
                 return null;
@@ -1165,7 +1165,7 @@ public class OrderManager extends BaseManager {
             if (CollectionUtils.isEmpty(mergeOrderList)) {
                 return null;
             }
-            return mergeOrderList.get(0).getTrackingNumber();
+            return mergeOrderList.get(0);
         } catch (Exception e) {
             logger.error("OrderManager getMergeTrackingNumber recipeId:{}, error ", JSON.toJSONString(order.getRecipeIdList()), e);
         }
