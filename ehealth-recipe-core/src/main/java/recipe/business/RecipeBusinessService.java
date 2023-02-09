@@ -937,7 +937,13 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             }
         }else {
             List<Recipe> recipes = recipeDAO.getByChargeIdAndOrganId(recipePayHISCallbackReq.getRecipeCode(), recipePayHISCallbackReq.getOrganId());
-            if(CollectionUtils.isNotEmpty(recipes)){
+            if (CollectionUtils.isEmpty(recipes)) {
+                List<Recipe> recipeList = recipeDAO.getByChargeItemCodeAndOrganId(recipePayHISCallbackReq.getRecipeCode(), recipePayHISCallbackReq.getOrganId());
+                if (CollectionUtils.isNotEmpty(recipeList)) {
+                    recipe = recipeList.get(0);
+                }
+            }
+            if (CollectionUtils.isNotEmpty(recipes)) {
                 recipe = recipes.get(0);
             }
         }
