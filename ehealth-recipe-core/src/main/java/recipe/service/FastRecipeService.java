@@ -38,6 +38,7 @@ import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.manager.FastRecipeManager;
 import recipe.service.common.RecipeSignService;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
+import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.JsonUtil;
 import recipe.vo.doctor.RecipeInfoVO;
 
@@ -134,9 +135,7 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
                 GlobalEventExecFactory.instance().getExecutor().submit(futureTask);
             }
             resultList = super.futureTaskCallbackBeanList(futureTasks, 15000);
-
-            ExecutorService singleExecutor = Executors.newSingleThreadExecutor();
-            singleExecutor.execute(() -> {
+            RecipeBusiThreadPool.submit(() -> {
                 if (CollectionUtils.isNotEmpty(resultList)) {
                     for (Integer recipeId : resultList) {
                         recipePatientService.fastRecipeCa(recipeId);
@@ -147,6 +146,7 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
                         }
                     }
                 }
+                return null;
             });
         }
         return resultList;
