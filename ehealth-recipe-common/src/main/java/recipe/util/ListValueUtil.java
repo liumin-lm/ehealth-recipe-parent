@@ -163,7 +163,7 @@ public class ListValueUtil {
         PermutationDTO b9 = new PermutationDTO("I", Arrays.asList(4));
         list.add(b9);
         List<Integer> target = Stream.of(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11).sorted().collect(Collectors.toList());
-        List<List<Integer>> drugIdsList = ListValueUtil.permutationDrugsTargetDecline(list, target);
+        List<List<Integer>> drugIdsList = ListValueUtil.permutationDrugs(list, target);
         System.out.println(drugIdsList);
     }
 

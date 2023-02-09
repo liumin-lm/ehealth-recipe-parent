@@ -224,7 +224,9 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         if (1 == recipeDTO.getRecipeDetails().size()) {
             return Collections.singletonList(ObjectCopyUtils.convert(recipeDTO.getRecipeDetails(), RecipeDetailBean.class));
         }
+        //查询库存
         List<EnterpriseStock> enterpriseStockList = this.stockList(recipeDTO);
+        //药企药品库存
         List<PermutationDTO> source = new ArrayList<>();
         enterpriseStockList.forEach(a -> {
             PermutationDTO permutation = new PermutationDTO();
@@ -234,10 +236,28 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         });
         //计算-动态规划最优处方,最小拆分组数
         List<Integer> target = recipeDTO.getRecipeDetails().stream().map(Recipedetail::getDrugId).distinct().sorted().collect(Collectors.toList());
-        List<List<Integer>> drugIdsList = ListValueUtil.permutationDrugsTargetDecline(source, target);
-
-
-        return null;
+        List<List<Integer>> drugIdsList = ListValueUtil.permutationDrugs(source, target);
+        if (CollectionUtils.isEmpty(drugIdsList)) {
+            return null;
+        }
+        //合组返回结果
+        List<List<RecipeDetailBean>> result = new ArrayList<>();
+        Map<Integer, Recipedetail> detailBeanMap = recipeDTO.getRecipeDetails().stream().collect(Collectors.toMap(Recipedetail::getDrugId, a -> a, (k1, k2) -> k1));
+        drugIdsList.forEach(drugIds -> {
+            if (CollectionUtils.isEmpty(drugIds)) {
+                return;
+            }
+            List<RecipeDetailBean> recipeDetails = new ArrayList<>();
+            drugIds.forEach(a -> {
+                Recipedetail recipeDetail = detailBeanMap.get(a);
+                if (null == recipeDetail) {
+                    return;
+                }
+                recipeDetails.add(ObjectCopyUtils.convert(recipeDetail, RecipeDetailBean.class));
+            });
+            result.add(recipeDetails);
+        });
+        return result;
     }
 
 

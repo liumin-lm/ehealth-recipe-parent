@@ -24,11 +24,13 @@ import recipe.core.api.IStockBusinessService;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.SignEnum;
 import recipe.enumerate.status.WriteHisEnum;
+import recipe.util.RecipeBusiThreadPool;
 import recipe.util.ValidateUtil;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.doctor.ValidateDetailVO;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -85,33 +87,44 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
      * @param recipeInfoVO
      */
     @RpcService
-    public List<Integer> splitRecipe(RecipeInfoVO recipeInfoVO) {
+    public String splitRecipe(RecipeInfoVO recipeInfoVO) {
         validateAtop(recipeInfoVO, recipeInfoVO.getRecipeBean(), recipeInfoVO.getRecipeExtendBean(), recipeInfoVO.getRecipeDetails());
         if (StringUtils.isEmpty(recipeInfoVO.getRecipeBean().getGroupCode())) {
             String uuid = UUID.randomUUID().toString();
             recipeInfoVO.getRecipeBean().setGroupCode(uuid);
         }
-        //智能拆方知识库规则-拆分药品
-        List<List<RecipeDetailBean>> retailsList = recipeDetailBusinessService.splitRecipe(recipeInfoVO);
-        //算法拆方，拆分可下单处方
-        List<List<RecipeDetailBean>> retailsSplitList = new ArrayList<>();
-        retailsList.forEach(a -> {
-            RecipeDTO recipeDTO = new RecipeDTO();
-            recipeDTO.setRecipe(recipe.util.ObjectCopyUtils.convert(recipeInfoVO.getRecipeBean(), Recipe.class));
-            recipeDTO.setRecipeDetails(recipe.util.ObjectCopyUtils.convert(a, Recipedetail.class));
-            recipeDTO.setRecipeExtend(recipe.util.ObjectCopyUtils.convert(recipeInfoVO.getRecipeExtendBean(), RecipeExtend.class));
-            retailsSplitList.addAll(iStockBusinessService.retailsSplitList(recipeDTO));
+        RecipeBusiThreadPool.execute(() -> {
+            //智能拆方知识库规则-拆分药品
+            List<List<RecipeDetailBean>> retailsList = recipeDetailBusinessService.splitRecipe(recipeInfoVO);
+            //算法拆方，拆分可下单处方
+            List<List<RecipeDetailBean>> retailsSplitList = new ArrayList<>();
+            retailsList.forEach(a -> {
+                RecipeDTO recipeDTO = new RecipeDTO();
+                recipeDTO.setRecipe(recipe.util.ObjectCopyUtils.convert(recipeInfoVO.getRecipeBean(), Recipe.class));
+                recipeDTO.setRecipeDetails(recipe.util.ObjectCopyUtils.convert(a, Recipedetail.class));
+                recipeDTO.setRecipeExtend(recipe.util.ObjectCopyUtils.convert(recipeInfoVO.getRecipeExtendBean(), RecipeExtend.class));
+                retailsSplitList.addAll(iStockBusinessService.retailsSplitList(recipeDTO));
+            });
+            //生成暂存处方
+            retailsSplitList.forEach(a -> {
+                if (CollectionUtils.isEmpty(a)) {
+                    return;
+                }
+                recipeInfoVO.getRecipeBean().setTargetedDrugType(0);
+                boolean targetedDrugType = a.stream().anyMatch(b -> Integer.valueOf(1).equals(b.getTargetedDrugType()));
+                if (targetedDrugType) {
+                    recipeInfoVO.getRecipeBean().setTargetedDrugType(1);
+                }
+                recipeInfoVO.setRecipeDetails(a);
+                this.stagingRecipe(recipeInfoVO);
+            });
         });
-        //生成暂存处方
-        retailsSplitList.forEach(a -> {
-            if (CollectionUtils.isEmpty(a)) {
-                return;
-            }
-            recipeInfoVO.setRecipeDetails(a);
-            this.stagingRecipe(recipeInfoVO);
-        });
+        Integer recipeId = recipeInfoVO.getRecipeBean().getRecipeId();
+        if (!ValidateUtil.integerIsEmpty(recipeId)) {
+            recipeDAO.deleteByRecipeIds(Collections.singletonList(recipeId));
+        }
         //返回同组处方id
-        return this.recipeByGroupCode(recipeInfoVO.getRecipeBean().getGroupCode(), 1);
+        return recipeInfoVO.getRecipeBean().getGroupCode();
     }
 
     /**
