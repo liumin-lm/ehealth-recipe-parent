@@ -1,7 +1,11 @@
 package recipe.business;
 
-import com.ngari.recipe.entity.ClinicCart;
-import com.ngari.recipe.entity.FastRecipe;
+import com.alibaba.fastjson.JSON;
+import com.google.common.collect.Lists;
+import com.ngari.base.property.service.IConfigurationCenterUtilsService;
+import com.ngari.recipe.dto.EnterpriseStock;
+import com.ngari.recipe.dto.RecipeDTO;
+import com.ngari.recipe.entity.*;
 import ctd.util.BeanUtils;
 import eh.utils.BeanCopyUtils;
 import eh.utils.ValidateUtil;
@@ -9,10 +13,16 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.core.api.IClinicCartBusinessService;
+import recipe.core.api.IStockBusinessService;
 import recipe.dao.ClinicCartDAO;
 import recipe.dao.FastRecipeDAO;
+import recipe.dao.FastRecipeDetailDAO;
+import recipe.enumerate.type.StockCheckSourceTypeEnum;
+import recipe.util.ObjectCopyUtils;
+import recipe.vo.doctor.DrugQueryVO;
 import recipe.vo.second.ClinicCartVO;
 
+import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -34,6 +44,15 @@ public class ClinicCartService implements IClinicCartBusinessService {
     @Autowired
     FastRecipeDAO fastRecipeDAO;
 
+    @Autowired
+    FastRecipeDetailDAO fastRecipeDetailDAO;
+
+    @Resource
+    private IConfigurationCenterUtilsService configService;
+
+    @Autowired
+    private IStockBusinessService iStockBusinessService;
+
     /**
      * 方便门诊、便捷购药 购物车列表查询
      *
@@ -49,23 +68,62 @@ public class ClinicCartService implements IClinicCartBusinessService {
             if (!Integer.valueOf("2").equals(workType)) {
                 return clinicCartVOS;
             }
+            Object config = configService.getConfiguration(organId, "fastRecipeUsePlatStock");
+            boolean fastRecipeUsePlatStock = Objects.nonNull(config) && (Boolean) config;
             Iterator<ClinicCartVO> it = clinicCartVOS.iterator();
             while (it.hasNext()) {
                 ClinicCartVO clinicCartVO = it.next();
                 FastRecipe fastRecipe = fastRecipeDAO.get(Integer.valueOf(clinicCartVO.getItemId()));
-                if (Objects.nonNull(fastRecipe)) {
-                    clinicCartVO.setStockNum(fastRecipe.getStockNum());
-                }
+                List<FastRecipeDetail> fastRecipeDetailList = fastRecipeDetailDAO.findFastRecipeDetailsByFastRecipeId(fastRecipe.getId());
+
                 if (!Integer.valueOf("1").equals(fastRecipe.getStatus())) {
                     it.remove();
+                }  else {
+                    if (fastRecipeUsePlatStock) {
+                        // 获取最新库存值
+                        clinicCartVO.setStockNum(fastRecipe.getStockNum());
+                    } else {
+                        // his库存
+                        DrugQueryVO drugQueryVO = new DrugQueryVO();
+                        drugQueryVO.setOrganId(organId);
+                        drugQueryVO.setRecipeType(fastRecipe.getRecipeType());
+                        RecipeDTO recipeDTO = this.recipeDTO(drugQueryVO, fastRecipeDetailList);
+                        List<EnterpriseStock> result = iStockBusinessService.drugRecipeStock(recipeDTO, StockCheckSourceTypeEnum.PATIENT_STOCK.getType());
+                        if (CollectionUtils.isEmpty(result) || result.stream().noneMatch(EnterpriseStock::getStock)) {
+                            clinicCartVO.setStockNum(0);
+                        } else {
+                            clinicCartVO.setStockNum(1);
+                        }
+                    }
                 }
             }
-
             return clinicCartVOS;
         } else {
             return new ArrayList<>();
         }
     }
+
+    private RecipeDTO recipeDTO(DrugQueryVO drugQueryVO, List<FastRecipeDetail> fastRecipeDetailList) {
+        List<Recipedetail> detailList = new ArrayList<>();
+        fastRecipeDetailList.forEach(fastRecipeDetail -> {
+            Recipedetail recipedetail = ObjectCopyUtils.convert(fastRecipeDetail, Recipedetail.class);
+            if (null != recipedetail && !recipe.util.ValidateUtil.integerIsEmpty(drugQueryVO.getPharmacyId())) {
+                recipedetail.setPharmacyId(drugQueryVO.getPharmacyId());
+            }
+            detailList.add(recipedetail);
+        });
+        Recipe recipe = new Recipe();
+        recipe.setClinicOrgan(drugQueryVO.getOrganId());
+        recipe.setRecipeType(drugQueryVO.getRecipeType());
+        RecipeExtend recipeExtend = new RecipeExtend();
+        recipeExtend.setDecoctionId(drugQueryVO.getDecoctionId());
+        RecipeDTO recipeDTO = new RecipeDTO();
+        recipeDTO.setRecipe(recipe);
+        recipeDTO.setRecipeDetails(detailList);
+        recipeDTO.setRecipeExtend(recipeExtend);
+        return recipeDTO;
+    }
+
 
     /**
      * 方便门诊购物车列表新增

@@ -54,6 +54,7 @@ getPatientRecipeById 患者端处方详情
 患者端下单校验药企库存接口 getOrderStockFlag
 浙江省互联网反查处方写入his queryRecipeInfo
 确认订单页 eh.payService findConfirmOrderInfoExt  对应处方接口：obtainConfirmOrder
+浙江省互联网医院确认中定时任务 RecipeTimedTaskService  updateRecipeStatus
 ```
 ```
 关于机构药品目录同步流程及接口描述：
