@@ -21,4 +21,7 @@ public class LogisticsMergeVO implements Serializable {
     @ItemProperty(alias = "物流公司")
     @Dictionary(id = "eh.infra.dictionary.LogisticsCode")
     private Integer logisticsCompany;
+
+    @ItemProperty(alias = "物流公司名称")
+    private String logisticsCompanyName;
 }
