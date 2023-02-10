@@ -611,6 +611,7 @@ public class EnterpriseManager extends BaseManager {
      * @param trackingNumber
      */
     public void sendLogisticsInfoToBase(RecipeOrder order,Integer recipeId, String logisticsCompany, String trackingNumber) {
+        logger.info("sendLogisticsInfoToBase order:{},recipeId:{},logisticsCompany:{},trackingNumber:{}", JSON.toJSONString(order), recipeId, logisticsCompany, trackingNumber);
         try {
             if (null != order && order.getEnterpriseId() != null) {
                 DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
