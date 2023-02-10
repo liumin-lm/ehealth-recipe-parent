@@ -1415,16 +1415,15 @@ public class RecipeManager extends BaseManager {
         }
         List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
         //处方总金额， 外带药处方不做处理
-        if (null != totalMoney) {
-            if (recipeDetails.size() == detailSize) {
-                updateRecipe.setTotalMoney(totalMoney);
-                updateRecipe.setActualPrice(totalMoney);
-            }
+        if (null != totalMoney && recipeDetails.size() == detailSize) {
+            updateRecipe.setTotalMoney(totalMoney);
+            updateRecipe.setActualPrice(totalMoney);
         } else {
             BigDecimal money = drugClient.totalMoney(recipe.getRecipeType(), recipeDetails, recipe);
             updateRecipe.setTotalMoney(money);
             updateRecipe.setActualPrice(money);
         }
+        logger.info("RecipeManager sendSuccessRecipe, updateRecipe:{}", JSON.toJSONString(updateRecipe));
         recipeDAO.updateNonNullFieldByPrimaryKey(updateRecipe);
         super.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "HIS审核返回：写入his成功，审核通过");
     }
@@ -1464,6 +1463,7 @@ public class RecipeManager extends BaseManager {
         if (StringUtils.isNotEmpty(medicalTypeText) && StringUtils.isEmpty(recipeExtend.getMedicalTypeText())) {
             updateRecipeExtend.setMedicalTypeText(medicalTypeText);
         }
+        logger.info("RecipeManager sendSuccessRecipe, recipeExtend:{}", JSON.toJSONString(recipeExtend));
         recipeExtendDAO.updateNonNullFieldByPrimaryKey(recipeExtend);
     }
 }
