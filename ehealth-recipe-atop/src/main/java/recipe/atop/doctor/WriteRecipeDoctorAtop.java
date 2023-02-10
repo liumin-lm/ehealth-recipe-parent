@@ -93,6 +93,7 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
             String uuid = UUID.randomUUID().toString();
             recipeInfoVO.getRecipeBean().setGroupCode(uuid);
         }
+        Integer recipeId = recipeInfoVO.getRecipeBean().getRecipeId();
         RecipeBusiThreadPool.execute(() -> {
             //智能拆方知识库规则-拆分药品
             List<List<RecipeDetailBean>> retailsList = recipeDetailBusinessService.splitRecipe(recipeInfoVO);
@@ -110,15 +111,20 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
                 if (CollectionUtils.isEmpty(a)) {
                     return;
                 }
+                recipeInfoVO.getRecipeExtendBean().setRecipeId(null);
+                recipeInfoVO.getRecipeBean().setRecipeId(null);
                 recipeInfoVO.getRecipeBean().setTargetedDrugType(0);
                 boolean targetedDrugType = a.stream().anyMatch(b -> Integer.valueOf(1).equals(b.getTargetedDrugType()));
                 if (targetedDrugType) {
                     recipeInfoVO.getRecipeBean().setTargetedDrugType(1);
                 }
+                a.forEach(b -> {
+                    b.setRecipeDetailId(null);
+                    b.setRecipeId(null);
+                });
                 recipeInfoVO.setRecipeDetails(a);
                 this.stagingRecipe(recipeInfoVO);
             });
-            Integer recipeId = recipeInfoVO.getRecipeBean().getRecipeId();
             if (!ValidateUtil.integerIsEmpty(recipeId)) {
                 recipeBusinessService.deleteByRecipeIds(Collections.singletonList(recipeId));
             }
