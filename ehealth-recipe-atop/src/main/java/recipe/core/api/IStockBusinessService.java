@@ -116,7 +116,7 @@ public interface IStockBusinessService {
 
     /**
      * 算法拆方，拆分可下单处方
-     * 穷举最优处方==最小拆分组数
+     * 穷举药企 动态规划药品取值最优处方==最小拆分组数
      *
      * @param recipeDTO
      * @return
