@@ -611,11 +611,10 @@ public class EnterpriseManager extends BaseManager {
      * @param trackingNumber
      */
     public void sendLogisticsInfoToBase(RecipeOrder order,Integer recipeId, String logisticsCompany, String trackingNumber) {
-        logger.info("sendLogisticsInfoToBase order:{},recipeId:{},logisticsCompany:{},trackingNumber:{}", JSON.toJSONString(order), recipeId, logisticsCompany, trackingNumber);
         try {
             if (null != order && order.getEnterpriseId() != null) {
                 DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
-                if (null != enterprise && enterprise.getLogisticsType() != null && enterprise.getLogisticsType().equals(DrugEnterpriseConstant.LOGISTICS_ENT)) {
+                if (null != enterprise) {
                     WriteBackLogisticsOrderDto logisticsOrder = new WriteBackLogisticsOrderDto();
                     // 机构id
                     logisticsOrder.setOrganId(order.getOrganId());
