@@ -2073,7 +2073,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         HibernateStatelessResultAction<List<RecipeOrder>> action = new AbstractHibernateStatelessResultAction<List<RecipeOrder>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                String sql = "select a from RecipeOrder a,Recipe b where a.orderCode = b.orderCode and a.payFlag = 1 and a.effective = 1 and a.processState = 3 " +
+                String sql = "select a from RecipeOrder a,Recipe b where a.orderCode = b.orderCode and a.payFlag = 1 and a.effective = 1 and a.subState = 31 " +
                         " and b.requestMpiId =:mpiId and a.trackingNumber is not null and a.enterpriseId =:depId and a.payTime between :startDate and :endDate ";
                 Query q = ss.createQuery(sql);
                 q.setParameter("mpiId", mpiId);
