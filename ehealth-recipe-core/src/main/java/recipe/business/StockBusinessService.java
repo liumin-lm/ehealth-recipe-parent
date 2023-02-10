@@ -236,7 +236,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         });
         //计算-动态规划最优处方,最小拆分组数
         List<Integer> target = recipeDTO.getRecipeDetails().stream().map(Recipedetail::getDrugId).distinct().sorted().collect(Collectors.toList());
-        List<List<Integer>> drugIdsList = ListValueUtil.permutationDrugs(source, target);
+        List<List<Integer>> drugIdsList = ListValueUtil.permutationDrugs1(source, target);
         if (CollectionUtils.isEmpty(drugIdsList)) {
             return null;
         }
