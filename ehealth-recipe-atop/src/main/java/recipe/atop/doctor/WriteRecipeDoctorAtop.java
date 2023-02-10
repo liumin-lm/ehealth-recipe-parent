@@ -89,11 +89,14 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
     @RpcService
     public String splitRecipe(RecipeInfoVO recipeInfoVO) {
         validateAtop(recipeInfoVO, recipeInfoVO.getRecipeBean(), recipeInfoVO.getRecipeExtendBean(), recipeInfoVO.getRecipeDetails());
+        Integer recipeId = recipeInfoVO.getRecipeBean().getRecipeId();
         if (StringUtils.isEmpty(recipeInfoVO.getRecipeBean().getGroupCode())) {
             String uuid = UUID.randomUUID().toString();
             recipeInfoVO.getRecipeBean().setGroupCode(uuid);
         }
-        Integer recipeId = recipeInfoVO.getRecipeBean().getRecipeId();
+        recipeInfoVO.getRecipeExtendBean().setRecipeId(null);
+        recipeInfoVO.getRecipeBean().setRecipeId(null);
+        recipeInfoVO.getRecipeBean().setTargetedDrugType(0);
         RecipeBusiThreadPool.execute(() -> {
             //智能拆方知识库规则-拆分药品
             List<List<RecipeDetailBean>> retailsList = recipeDetailBusinessService.splitRecipe(recipeInfoVO);
@@ -111,17 +114,14 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
                 if (CollectionUtils.isEmpty(a)) {
                     return;
                 }
-                recipeInfoVO.getRecipeExtendBean().setRecipeId(null);
-                recipeInfoVO.getRecipeBean().setRecipeId(null);
-                recipeInfoVO.getRecipeBean().setTargetedDrugType(0);
-                boolean targetedDrugType = a.stream().anyMatch(b -> Integer.valueOf(1).equals(b.getTargetedDrugType()));
-                if (targetedDrugType) {
-                    recipeInfoVO.getRecipeBean().setTargetedDrugType(1);
-                }
                 a.forEach(b -> {
                     b.setRecipeDetailId(null);
                     b.setRecipeId(null);
                 });
+                boolean targetedDrugType = a.stream().anyMatch(b -> Integer.valueOf(1).equals(b.getTargetedDrugType()));
+                if (targetedDrugType) {
+                    recipeInfoVO.getRecipeBean().setTargetedDrugType(1);
+                }
                 recipeInfoVO.setRecipeDetails(a);
                 this.stagingRecipe(recipeInfoVO);
             });
