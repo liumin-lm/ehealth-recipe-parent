@@ -234,9 +234,9 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
             permutation.setValue(a.getDrugInfoList().stream().filter(DrugInfoDTO::getStock).map(DrugInfoDTO::getDrugId).collect(Collectors.toList()));
             source.add(permutation);
         });
-        //计算-动态规划最优处方,最小拆分组数
+        //计算-最优处方,最小拆分组数
         List<Integer> target = recipeDTO.getRecipeDetails().stream().map(Recipedetail::getDrugId).distinct().sorted().collect(Collectors.toList());
-        List<List<Integer>> drugIdsList = ListValueUtil.permutationDrugs1(source, target);
+        List<List<Integer>> drugIdsList = ListValueUtil.permutationTarget(source, target);
         if (CollectionUtils.isEmpty(drugIdsList)) {
             return null;
         }

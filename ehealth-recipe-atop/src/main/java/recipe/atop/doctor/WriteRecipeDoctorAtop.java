@@ -118,11 +118,11 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
                 recipeInfoVO.setRecipeDetails(a);
                 this.stagingRecipe(recipeInfoVO);
             });
+            Integer recipeId = recipeInfoVO.getRecipeBean().getRecipeId();
+            if (!ValidateUtil.integerIsEmpty(recipeId)) {
+                recipeBusinessService.deleteByRecipeIds(Collections.singletonList(recipeId));
+            }
         });
-        Integer recipeId = recipeInfoVO.getRecipeBean().getRecipeId();
-        if (!ValidateUtil.integerIsEmpty(recipeId)) {
-            recipeDAO.deleteByRecipeIds(Collections.singletonList(recipeId));
-        }
         //返回同组处方id
         return recipeInfoVO.getRecipeBean().getGroupCode();
     }

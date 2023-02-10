@@ -62,7 +62,7 @@ public class ListValueUtil {
      * @param target 对比获取目标值
      * @return 目标值，数据源集合
      */
-    public static List<List<Integer>> permutationDrugs1(List<PermutationDTO> source, List<Integer> target) {
+    public static List<List<Integer>> permutationTarget(List<PermutationDTO> source, List<Integer> target) {
         if (CollectionUtils.isEmpty(source)) {
             return Collections.emptyList();
         }
@@ -138,7 +138,7 @@ public class ListValueUtil {
         PermutationDTO b7 = new PermutationDTO("H", Arrays.asList(7, 8, 9, 10, 6));
         list.add(b7);
         List<Integer> target = Stream.of(1, 2, 3, 4, 5, 6, 7, 8, 9, 10).sorted().collect(Collectors.toList());
-        List<List<Integer>> drugIdsList = ListValueUtil.permutationDrugs1(list, target);
+        List<List<Integer>> drugIdsList = ListValueUtil.permutationTarget(list, target);
         System.out.println(drugIdsList);
 
     }
