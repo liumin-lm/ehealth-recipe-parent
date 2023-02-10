@@ -218,7 +218,6 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @RpcService
     @Override
     public void sendSuccess(RecipeBussReqTO request) {
-        LOGGER.info("RemoteRecipeService sendSuccess request ： {} ", JSON.toJSONString(request));
         if (null == request || null == request.getData()) {
             return;
         }
