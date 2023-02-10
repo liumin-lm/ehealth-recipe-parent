@@ -614,7 +614,7 @@ public class EnterpriseManager extends BaseManager {
         try {
             if (null != order && order.getEnterpriseId() != null) {
                 DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
-                if (null != enterprise) {
+                if (null != enterprise && enterprise.getLogisticsType() != null && enterprise.getLogisticsType().equals(DrugEnterpriseConstant.LOGISTICS_ENT)) {
                     WriteBackLogisticsOrderDto logisticsOrder = new WriteBackLogisticsOrderDto();
                     // 机构id
                     logisticsOrder.setOrganId(order.getOrganId());
