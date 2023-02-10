@@ -2028,7 +2028,11 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
         recipeOrder.setAddress1(address.getAddress1());
         recipeOrder.setAddress2(address.getAddress2());
         recipeOrder.setAddress3(address.getAddress3());
-        recipeOrder.setAddress4(address.getAddress4());
+        if (StringUtils.isNotEmpty(address.getAddress5Text())) {
+            recipeOrder.setAddress4(address.getAddress5Text() + address.getAddress4());
+        } else {
+            recipeOrder.setAddress4(address.getAddress4());
+        }
         recipeOrder.setStreetAddress(address.getStreetAddress());
         recipeOrder.setRecMobile(address.getRecMobile());
         recipeOrder.setReceiver(address.getReceiver());
