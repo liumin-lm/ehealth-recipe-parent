@@ -1159,9 +1159,11 @@ public class OrderManager extends BaseManager {
             List<Integer> recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
             List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIdList);
             String mpiId = recipes.get(0).getRequestMpiId();
-            List<RecipeOrder> canMergeOrder = recipeOrderDAO.findCanMergeRecipeOrder(mpiId, startDate, new Date());
+            List<RecipeOrder> canMergeOrder = recipeOrderDAO.findCanMergeRecipeOrder(mpiId, order.getEnterpriseId(), startDate, new Date());
+            logger.info("OrderManager getMergeTrackingNumber canMergeOrder:{}", JSON.toJSONString(canMergeOrder));
             List<RecipeOrder> mergeOrderList = canMergeOrder.stream().filter(recipeOrder -> getCompleteAddress(recipeOrder).equals(getCompleteAddress(order))
                     && recipeOrder.getRecMobile().equals(order.getRecMobile()) && recipeOrder.getReceiver().equals(order.getReceiver())).collect(Collectors.toList());
+            logger.info("OrderManager getMergeTrackingNumber mergeOrderList:{}", JSON.toJSONString(mergeOrderList));
             if (CollectionUtils.isEmpty(mergeOrderList)) {
                 return null;
             }

@@ -45,6 +45,7 @@ import recipe.dao.bean.BillRecipeDetailBean;
 import recipe.dao.bean.RecipeBillBean;
 import recipe.drugsenterprise.ThirdEnterpriseCallService;
 import recipe.enumerate.status.OrderStateEnum;
+import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RefundNodeStatusEnum;
 import recipe.enumerate.type.PayBusTypeEnum;
@@ -296,6 +297,7 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
         nowRecipeRefund.setReason(null);
         List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
         List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIdList);
+        Map<String, Object> orderAttrMap = Maps.newHashMap();
         //根据业务id，根据退费推送消息
         //当退费成功后修改处方和订单的状态
         switch (refundStatus) {
@@ -314,7 +316,7 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
                     LOGGER.info("退款完成修改处方状态：{}", recipe1.getRecipeId());
                 });
                 //订单状态修改
-                Map<String, Object> orderAttrMap = Maps.newHashMap();
+
                 orderAttrMap.put("effective", 0);
                 orderAttrMap.put("status", OrderStatusConstant.CANCEL_MANUAL);
                 //修改支付flag的状态，退费信息
@@ -347,6 +349,9 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
                     LOGGER.info("退费失败修改处方状态：{}", recipe2.getRecipeId());
                 });
                 stateManager.updateOrderState(recipeOrder.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION,OrderStateEnum.SUB_CANCELLATION_REFUND_FAIL);
+                orderAttrMap.put("effective", 0);
+                orderAttrMap.put("status", OrderStatusConstant.CANCEL_AUTO);
+                recipeOrderDAO.updateByOrdeCode(recipeOrder.getOrderCode(), orderAttrMap);
                 break;
             default:
                 LOGGER.warn("当前处方{}退费状态{}无法解析！", recipeId, refundStatus);

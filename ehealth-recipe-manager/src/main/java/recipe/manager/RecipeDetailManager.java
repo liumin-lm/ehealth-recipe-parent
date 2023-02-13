@@ -21,6 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.aop.LogRecord;
 import recipe.dao.PharmacyTcmDAO;
 import recipe.enumerate.type.DrugBelongTypeEnum;
 import recipe.util.JsonUtil;
@@ -361,6 +362,7 @@ public class RecipeDetailManager extends BaseManager {
      * @param recipe
      * @return
      */
+    @LogRecord
     public List<Recipedetail> sendSuccessDetail(List<Recipedetail> recipeDetails, List<RecipePreSettleDrugFeeDTO> recipeDrugFee, Recipe recipe) {
         List<Recipedetail> list = new ArrayList<>();
         Map<String, RecipePreSettleDrugFeeDTO> collect = recipeDrugFee.stream().collect(Collectors.toMap(RecipePreSettleDrugFeeDTO::getOrganDrugCode, a -> a, (k1, k2) -> k1));

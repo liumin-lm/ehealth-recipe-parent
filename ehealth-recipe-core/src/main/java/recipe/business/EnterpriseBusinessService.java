@@ -903,6 +903,7 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
         Date startDate = DateConversion.getDateAftXDays(new Date(), -1);
         List<RecipeOrder> recipeOrderList = recipeOrderDAO.findByPushFlag(startDate, new Date());
         List<Integer> enterpriseIdList = recipeOrderList.stream().map(RecipeOrder::getEnterpriseId).collect(Collectors.toList());
+        logger.info("pushFailOrderNotify enterpriseIdList:{}", JSON.toJSONString(enterpriseIdList));
         List<DrugsEnterprise> drugsEnterprises = drugsEnterpriseDAO.findByIds(enterpriseIdList);
         Map<Integer, DrugsEnterprise> drugsEnterpriseMap = drugsEnterprises.stream().collect(Collectors.toMap(DrugsEnterprise::getId, a -> a, (k1, k2) -> k1));
         Map<Integer, List<RecipeOrder>> recipeOrderMap = recipeOrderList.stream().collect(Collectors.groupingBy(RecipeOrder::getEnterpriseId));
@@ -910,9 +911,12 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
         while (iterator.hasNext()) {
             Integer  enterpriseId = iterator.next();
             List<RecipeOrder> recipeOrders = recipeOrderMap.get(enterpriseId);
+            RecipeOrder recipeOrder = recipeOrders.get(0);
+            List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
+            List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIdList);
             DrugsEnterprise drugsEnterprise = drugsEnterpriseMap.get(enterpriseId);
             //消息推送
-            enterpriseManager.pushEnterpriseFailOrderNotify(new Recipe(), drugsEnterprise, recipeOrders.size());
+            enterpriseManager.pushEnterpriseFailOrderNotify(recipes.get(0), drugsEnterprise, recipeOrders.size());
         }
     }
 

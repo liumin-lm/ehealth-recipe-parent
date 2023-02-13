@@ -12,6 +12,13 @@ import java.io.Serializable;
 @Data
 public class HisSettleReqDTO implements Serializable {
     private static final long serialVersionUID = -1005734441026438477L;
+    /**
+     * 医保id
+     */
     private String ybId;
+
+    /**
+     * 获取支付状态使用
+     */
     private String hisBusId;
 }
