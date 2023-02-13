@@ -747,7 +747,7 @@ public class RecipeOrderService extends RecipeBaseService {
         orderFeeManager.setExpressFee(order);
         //设置合并物流单号
         RecipeOrder mergeTrackingNumber = orderManager.getMergeTrackingNumber(order);
-        if (Objects.nonNull(order.getExpressFee()) && Objects.nonNull(mergeTrackingNumber) && !ExpressFeePayMethodEnum.CASHONDELIVERYOFFLINE.getType().equals(order.getExpressFeePayMethod())) {
+        if (Objects.nonNull(order.getExpressFee()) && Objects.nonNull(mergeTrackingNumber)) {
             order.setExpressFee(BigDecimal.ZERO);
         }
         // 更新处方代缴费用
