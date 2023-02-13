@@ -421,6 +421,10 @@ public class RecipeDetailManager extends BaseManager {
             recipeDetailDAO.updateNonNullFieldByPrimaryKey(updateRecipeDetail);
             list.add(updateRecipeDetail);
         }
+        //todo 兼容老代码 如果返回orderID就没啥用
+        if (CollectionUtils.isEmpty(list) && CollectionUtils.isNotEmpty(recipeDrugFee)) {
+            this.saveRecipeDetailBySendSuccess(recipeDrugFee, recipe.getRecipeId());
+        }
         return list;
     }
 }
