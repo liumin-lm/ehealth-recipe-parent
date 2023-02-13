@@ -537,7 +537,7 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                 StringBuilder hql = new StringBuilder("From DrugList where status = 1 ");
                 //平台药品目录
                 if (organIds.contains(0)) {
-                    hql.append("and sourceOrgan in :organIds or sourceOrgan is null or sourceOrgan = 0 ");
+                    hql.append("and (sourceOrgan in :organIds or sourceOrgan is null or sourceOrgan = 0) ");
                 }else {
                     hql.append("and sourceOrgan in :organIds ");
                 }
