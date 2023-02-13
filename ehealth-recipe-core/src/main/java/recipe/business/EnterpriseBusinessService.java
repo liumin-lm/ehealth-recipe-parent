@@ -904,6 +904,9 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
         List<RecipeOrder> recipeOrderList = recipeOrderDAO.findByPushFlag(startDate, new Date());
         List<Integer> enterpriseIdList = recipeOrderList.stream().map(RecipeOrder::getEnterpriseId).collect(Collectors.toList());
         logger.info("pushFailOrderNotify enterpriseIdList:{}", JSON.toJSONString(enterpriseIdList));
+        if (CollectionUtils.isEmpty(enterpriseIdList)) {
+            return;
+        }
         List<DrugsEnterprise> drugsEnterprises = drugsEnterpriseDAO.findByIds(enterpriseIdList);
         Map<Integer, DrugsEnterprise> drugsEnterpriseMap = drugsEnterprises.stream().collect(Collectors.toMap(DrugsEnterprise::getId, a -> a, (k1, k2) -> k1));
         Map<Integer, List<RecipeOrder>> recipeOrderMap = recipeOrderList.stream().collect(Collectors.groupingBy(RecipeOrder::getEnterpriseId));
