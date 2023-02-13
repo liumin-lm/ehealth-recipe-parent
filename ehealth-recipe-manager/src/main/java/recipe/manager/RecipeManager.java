@@ -1463,7 +1463,7 @@ public class RecipeManager extends BaseManager {
         if (StringUtils.isNotEmpty(medicalTypeText) && StringUtils.isEmpty(recipeExtend.getMedicalTypeText())) {
             updateRecipeExtend.setMedicalTypeText(medicalTypeText);
         }
-        logger.info("RecipeManager sendSuccessRecipe, recipeExtend:{}", JSON.toJSONString(recipeExtend));
-        recipeExtendDAO.updateNonNullFieldByPrimaryKey(recipeExtend);
+        logger.info("RecipeManager sendSuccessRecipe, recipeExtend:{}", JSON.toJSONString(updateRecipeExtend));
+        recipeExtendDAO.updateNonNullFieldByPrimaryKey(updateRecipeExtend);
     }
 }
