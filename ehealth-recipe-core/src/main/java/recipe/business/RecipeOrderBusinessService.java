@@ -1904,6 +1904,7 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
                 if (forceRecipeRefundFlag) {
                     //表示配置管理员可强制
                     recipeRefund.setStatus(0);
+                    recipeRefund.setReason("");
                     recipeRefund.setNode(RecipeRefundRoleConstant.RECIPE_REFUND_ROLE_ADMIN);
                     orderFeeManager.recipeReFundSave(recipeOrder.getOrderCode(), recipeRefund);
                 }
