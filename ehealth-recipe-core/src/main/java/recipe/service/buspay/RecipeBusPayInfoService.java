@@ -1,5 +1,6 @@
 package recipe.service.buspay;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
@@ -979,14 +980,22 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
             }
             busBillDateAccountDTOS.stream().forEach(busBillDateAccountDTO -> {
                 RecipeOrder recipeOrder = recipeOrderDAO.get(busBillDateAccountDTO.getBusId());
-                if(Objects.nonNull(recipeOrder)){
+                if (Objects.nonNull(recipeOrder)) {
                     String medicalInsurance = recipeOrder.getMedicalInsurance();
-                    if(StringUtils.isNotEmpty(medicalInsurance)){
+                    if (StringUtils.isNotEmpty(medicalInsurance)) {
                         medicalInsurance = new String(Base64.decode(medicalInsurance, 1));
-                        Map<String, String> medicalInsuranceMap = JSONUtils.parse(medicalInsurance, Map.class);
-                        busBillDateAccountDTO.setPsnNo(medicalInsuranceMap.get("psn_no"));
-                        busBillDateAccountDTO.setMdtrtId(medicalInsuranceMap.get("mdtrt_id"));
-                        busBillDateAccountDTO.setSetlId(medicalInsuranceMap.get("setl_id"));
+                        JSONObject medicalInsuranceMap = JSONArray.parseObject(medicalInsurance);
+                        String responseContent = medicalInsuranceMap.get("response_content").toString();
+                        if (StringUtils.isNotEmpty(responseContent)) {
+                            JSONObject responseContentMap = JSONArray.parseObject(responseContent);
+                            String setlinfo = responseContentMap.get("setlinfo").toString();
+                            if (StringUtils.isNotEmpty(setlinfo)) {
+                                JSONObject setlinfoMap = JSONArray.parseObject(setlinfo);
+                                busBillDateAccountDTO.setPsnNo(setlinfoMap.get("psn_no").toString());
+                                busBillDateAccountDTO.setMdtrtId(setlinfoMap.get("mdtrt_id").toString());
+                                busBillDateAccountDTO.setSetlId(setlinfoMap.get("setl_id").toString());
+                            }
+                        }
                     }
 
                 }
