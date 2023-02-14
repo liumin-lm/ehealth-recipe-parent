@@ -168,7 +168,8 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
         SaleDrugList saleDrug = saleDrugListDAO.getByDrugIdAndOrganId(drugId, drugsEnterprise.getId());
         Pharmacy pharmacy = new Pharmacy();
         if (YT_SY.equals(drugsEnterprise.getAccount())) {
-            pharmacy.setPharmacyCode("YK45286");
+            String store = recipeParameterDao.getByName(organId + "_yt_sy_store_code");
+            pharmacy.setPharmacyCode(store);
         } else {
             //设置指定药店配送
             String store = recipeParameterDao.getByName(organId + "_yt_store_code");
