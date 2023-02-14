@@ -980,24 +980,28 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
             }
             busBillDateAccountDTOS.stream().forEach(busBillDateAccountDTO -> {
                 RecipeOrder recipeOrder = recipeOrderDAO.get(busBillDateAccountDTO.getBusId());
-                if (Objects.nonNull(recipeOrder)) {
-                    String medicalInsurance = recipeOrder.getMedicalInsurance();
-                    if (StringUtils.isNotEmpty(medicalInsurance)) {
-                        medicalInsurance = new String(Base64.decode(medicalInsurance, 1));
-                        JSONObject medicalInsuranceMap = JSONArray.parseObject(medicalInsurance);
-                        String responseContent = medicalInsuranceMap.get("response_content").toString();
-                        if (StringUtils.isNotEmpty(responseContent)) {
-                            JSONObject responseContentMap = JSONArray.parseObject(responseContent);
-                            String setlinfo = responseContentMap.get("setlinfo").toString();
-                            if (StringUtils.isNotEmpty(setlinfo)) {
-                                JSONObject setlinfoMap = JSONArray.parseObject(setlinfo);
-                                busBillDateAccountDTO.setPsnNo(setlinfoMap.get("psn_no").toString());
-                                busBillDateAccountDTO.setMdtrtId(setlinfoMap.get("mdtrt_id").toString());
-                                busBillDateAccountDTO.setSetlId(setlinfoMap.get("setl_id").toString());
+                try {
+                    if (Objects.nonNull(recipeOrder)) {
+                        String medicalInsurance = recipeOrder.getMedicalInsurance();
+                        if (StringUtils.isNotEmpty(medicalInsurance)) {
+                            medicalInsurance = new String(Base64.decode(medicalInsurance, 1));
+                            JSONObject medicalInsuranceMap = JSONArray.parseObject(medicalInsurance);
+                            String responseContent = medicalInsuranceMap.get("response_content").toString();
+                            if (StringUtils.isNotEmpty(responseContent)) {
+                                JSONObject responseContentMap = JSONArray.parseObject(responseContent);
+                                String setlinfo = responseContentMap.get("setlinfo").toString();
+                                if (StringUtils.isNotEmpty(setlinfo)) {
+                                    JSONObject setlinfoMap = JSONArray.parseObject(setlinfo);
+                                    busBillDateAccountDTO.setPsnNo(setlinfoMap.get("psn_no").toString());
+                                    busBillDateAccountDTO.setMdtrtId(setlinfoMap.get("mdtrt_id").toString());
+                                    busBillDateAccountDTO.setSetlId(setlinfoMap.get("setl_id").toString());
+                                }
                             }
                         }
                     }
-
+                }catch (Exception e){
+                    log.error("ybcc 解析错误 orderId={}", busBillDateAccountDTO.getBusId());
+                    e.printStackTrace();
                 }
                 if (StringUtils.isNotEmpty(busBillDateAccountDTO.getMpiid())) {
                     PatientBean patientBean = iPatientService.get(busBillDateAccountDTO.getMpiid());
