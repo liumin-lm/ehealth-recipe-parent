@@ -127,4 +127,21 @@ public class BusBillDateAccountDTO implements Serializable {
      * 支付平台实际收款的支付机构ID
      */
     private String payOrganId;
+
+    /**
+     * 医保人员编号
+     */
+    private String psnNo;
+
+    /**
+     * 医保就诊Id
+     */
+    private String mdtrtId;
+
+    /**
+     * 医保结算ID
+     */
+    private String setlId;
+
+
 }

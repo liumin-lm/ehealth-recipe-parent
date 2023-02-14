@@ -978,6 +978,18 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
                 return busBillDateAccountDTOS;
             }
             busBillDateAccountDTOS.stream().forEach(busBillDateAccountDTO -> {
+                RecipeOrder recipeOrder = recipeOrderDAO.get(busBillDateAccountDTO.getBusId());
+                if(Objects.nonNull(recipeOrder)){
+                    String medicalInsurance = recipeOrder.getMedicalInsurance();
+                    if(StringUtils.isNotEmpty(medicalInsurance)){
+                        medicalInsurance = new String(Base64.decode(medicalInsurance, 1));
+                        Map<String, String> medicalInsuranceMap = JSONUtils.parse(medicalInsurance, Map.class);
+                        busBillDateAccountDTO.setPsnNo(medicalInsuranceMap.get("psn_no"));
+                        busBillDateAccountDTO.setMdtrtId(medicalInsuranceMap.get("mdtrt_id"));
+                        busBillDateAccountDTO.setSetlId(medicalInsuranceMap.get("setl_id"));
+                    }
+
+                }
                 if (StringUtils.isNotEmpty(busBillDateAccountDTO.getMpiid())) {
                     PatientBean patientBean = iPatientService.get(busBillDateAccountDTO.getMpiid());
                     if (patientBean != null) {
