@@ -70,11 +70,11 @@ public class ListValueUtil {
             return Collections.emptyList();
         }
         //生产穷举 排列组合
-        List<List<PermutationDTO>> permutationList = Generator.subset(source).simple().stream().sorted(Comparator.comparing(List::size)).collect(Collectors.toList());
+        List<List<PermutationDTO>> permutationList = Generator.subset(source).simple().stream().collect(Collectors.toList());
         //遍历每种排列组合获取结果
         List<List<List<Integer>>> result = new ArrayList<>();
         permutationList.forEach(a -> {
-            //每种排列组合数据源的value列表
+            //每种排列组合数据源的value列表-排序是为了从最小数组优先拿数据
             List<List<Integer>> valueList = a.stream().map(PermutationDTO::getValue).sorted(Comparator.comparing(List::size)).collect(Collectors.toList());
             //获取每种排列组合的-目标值拆分集合
             List<List<Integer>> list = targetSplit(target, valueList);
@@ -90,8 +90,10 @@ public class ListValueUtil {
     }
 
     /**
-     * @param target    对比获取目标值
-     * @param valueList 每种排列组合数据源的value列表
+     * 判断目标值是否在 对比数组中全部包含，包含则返回新集合
+     *
+     * @param target    目标值
+     * @param valueList 对比数组
      * @return 目标值拆分集合
      */
     private static List<List<Integer>> targetSplit(List<Integer> target, List<List<Integer>> valueList) {
