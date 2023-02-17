@@ -222,7 +222,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             return;
         }
         HisSendResTO response = (HisSendResTO) request.getData();
-        if (null == response || null == response.getData() || StringUtils.isEmpty(response.getRecipeId())) {
+        if (null == response || CollectionUtils.isEmpty(response.getData()) || StringUtils.isEmpty(response.getRecipeId())) {
             return;
         }
         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);

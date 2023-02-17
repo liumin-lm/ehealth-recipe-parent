@@ -4,6 +4,8 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.ngari.base.organconfig.model.OrganConfigBean;
 import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.consult.ConsultAPI;
 import com.ngari.consult.common.model.ConsultExDTO;
@@ -104,6 +106,12 @@ public class OrderManager extends BaseManager {
     private RecipeParameterDao parameterDao;
     @Autowired
     private RecipeHisClient recipeHisClient;
+    @Autowired
+    private OrganClient organClient;
+    @Autowired
+    private IConfigurationClient configurationClient;
+    @Autowired
+    private OrganDrugsSaleConfigDAO organDrugsSaleConfigDAO;
 
     /**
      * 合并预下单信息
@@ -1172,6 +1180,46 @@ public class OrderManager extends BaseManager {
             logger.error("OrderManager getMergeTrackingNumber recipeId:{}, error ", JSON.toJSONString(order.getRecipeIdList()), e);
         }
         return null;
+    }
+
+    /**
+     * 设置确认订单扩展信息
+     * @param recipeOrder
+     * @return
+     */
+    public Map<String, Object> getOrderExtDesc(RecipeOrder recipeOrder){
+        Map<String, Object> map = Maps.newHashMap();
+        if (Objects.isNull(recipeOrder)) {
+            return Maps.newHashMap();
+        }
+        OrganConfigBean organConfig = organClient.getOrganConfigBean(recipeOrder.getOrganId());
+        if (Objects.nonNull(organConfig)) {
+            map.put("serviceChargeDesc", organConfig.getServiceChargeDesc());
+            map.put("serviceChargeRemark", organConfig.getServiceChargeRemark());
+        }
+        if (Objects.nonNull(recipeOrder.getOtherFee()) && recipeOrder.getOtherFee().compareTo(BigDecimal.ZERO) == 1) {
+            String otherServiceChargeDesc = configurationClient.getValueCatch(recipeOrder.getOrganId(), "otherServiceChargeDesc", "");
+            String otherServiceChargeRemark = configurationClient.getValueCatch(recipeOrder.getOrganId(), "otherServiceChargeRemark", "");
+            map.put("otherServiceChargeDesc", otherServiceChargeDesc);
+            map.put("otherServiceChargeRemark", otherServiceChargeRemark);
+        }
+        if (Objects.isNull(recipeOrder.getEnterpriseId())) {
+            return map;
+        }
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipeOrder.getEnterpriseId());
+        if (Objects.isNull(drugsEnterprise)) {
+            return map;
+        }
+        map.put("showLogisticsType", drugsEnterprise.getShowLogisticsType());
+        map.put("showLogisticsLink", drugsEnterprise.getShowLogisticsLink());
+        if (RecipeSupportGiveModeEnum.SUPPORT_TFDS.getText().equals(recipeOrder.getGiveModeKey())) {
+            OrganDrugsSaleConfig organDrugsSaleConfig = organDrugsSaleConfigDAO.getOrganDrugsSaleConfig(recipeOrder.getEnterpriseId());
+            if (Objects.nonNull(organDrugsSaleConfig)) {
+                map.put("storePayFlag", organDrugsSaleConfig.getStorePaymentWay());
+            }
+        }
+        logger.info("OrderManager getOrderExtDesc map:{}", JSON.toJSONString(map));
+        return map;
     }
 
     /**

@@ -1389,9 +1389,9 @@ public class RecipeManager extends BaseManager {
     public void sendSuccessRecipe(Integer recipeId, String recipeCode, String patientId, Integer writeHisState,
                                   String amount, BigDecimal recipeFee, Integer detailSize) {
         Recipe recipe = recipeDAO.get(recipeId);
-
         Recipe updateRecipe = new Recipe();
         updateRecipe.setRecipeId(recipe.getRecipeId());
+        updateRecipe.setWriteHisState(null == writeHisState ? WriteHisEnum.WRITE_HIS_STATE_ORDER.getType() : writeHisState);
         //医院处方号
         if (StringUtils.isNotEmpty(recipeCode)) {
             updateRecipe.setRecipeCode(recipeCode);
@@ -1404,15 +1404,8 @@ public class RecipeManager extends BaseManager {
         if (Integer.valueOf(1).equals(recipe.getMedicalFlag())) {
             updateRecipe.setGiveMode(RecipeBussConstant.GIVEMODE_SEND_TO_HOME);
         }
-        updateRecipe.setWriteHisState(null == writeHisState ? WriteHisEnum.WRITE_HIS_STATE_ORDER.getType() : writeHisState);
         //医院处方费
-        BigDecimal totalMoney = null;
-        if (StringUtils.isNotEmpty(amount)) {
-            totalMoney = new BigDecimal(amount);
-        }
-        if (Objects.nonNull(recipeFee)) {
-            totalMoney = recipeFee;
-        }
+        BigDecimal totalMoney = StringUtils.isNotEmpty(amount) ? new BigDecimal(amount) : Objects.nonNull(recipeFee) ? recipeFee : null;
         List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
         //处方总金额， 外带药处方不做处理
         if (null != totalMoney && recipeDetails.size() == detailSize) {
@@ -1440,6 +1433,10 @@ public class RecipeManager extends BaseManager {
     @LogRecord
     public void sendSuccessRecipeExt(Integer recipeId, String recipeCostNumber, String pharmNo, String hisOrderCode, String hisDiseaseSerial
             , String registerId, String medicalType, String medicalTypeText,String hisBusId) {
+        if (ValidateUtil.validateObjectsIsEmpty(recipeCostNumber, pharmNo, hisOrderCode, hisDiseaseSerial, registerId,
+                medicalType, medicalTypeText, hisBusId)) {
+            return;
+        }
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
         if (null == recipeExtend) {
             return;

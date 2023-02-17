@@ -387,6 +387,10 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
         return enterpriseBusinessService.updateEnterprisePriorityLevel(organId, depId, level);
     }
 
+    /**
+     * 校验手机号
+     * @param mobilePhones 手机列表
+     */
     private void validatePhoneInfo(String mobilePhones) {
         mobilePhones = mobilePhones.replace(" ","");
         List<String> mobilePhoneList = Arrays.asList(mobilePhones.split(","));

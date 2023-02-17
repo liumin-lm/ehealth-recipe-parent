@@ -1046,6 +1046,27 @@ public class EnterpriseManager extends BaseManager {
     }
 
     /**
+     * 获取药店支持购药方式
+     * @param depId
+     * @return
+     */
+    public Integer getStorePaymentWay(Integer depId){
+        if (Objects.isNull(depId)) {
+            return StorePaymentWayEnum.STORE_PAYMENT_WAY_OFFLINE.getType();
+        }
+        OrganDrugsSaleConfig organDrugsSaleConfig = organDrugsSaleConfigDAO.getOrganDrugsSaleConfig(depId);
+        if (Objects.isNull(organDrugsSaleConfig) || StringUtils.isEmpty(organDrugsSaleConfig.getStorePaymentWay())) {
+            return StorePaymentWayEnum.STORE_PAYMENT_WAY_OFFLINE.getType();
+        }
+        String storePaymentWay = organDrugsSaleConfig.getStorePaymentWay();
+        String[] storePaymentWayArr = storePaymentWay.split(",");
+        if (storePaymentWayArr.length == 2) {
+            return StorePaymentWayEnum.STORE_PAYMENT_WAY_ONLINE.getType();
+        }
+        return Integer.parseInt(storePaymentWayArr[0]);
+    }
+
+    /**
      * 机构配置转换
      *
      * @param configurationByKeyList

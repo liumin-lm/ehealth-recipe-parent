@@ -180,55 +180,6 @@ public class RecipeUtil {
     }
 
     /**
-     * 从机构配置表中获取配置(可根据不同机构做不同配置)
-     *
-     * @param order
-     * @param recipeList
-     * @return
-     */
-    public static Map<String, Object> getParamFromOgainConfig(RecipeOrder order, List<Recipe> recipeList) {
-        IOrganConfigService iOrganConfigService = ApplicationUtils.getBaseService(IOrganConfigService.class);
-        Integer organId = order.getOrganId();
-        Map<String, Object> map = Maps.newHashMap();
-        if (null != organId) {
-            OrganConfigBean organConfig = iOrganConfigService.get(organId);
-            if (null != organConfig) {
-                map.put("serviceChargeDesc", organConfig.getServiceChargeDesc());
-                map.put("serviceChargeRemark", organConfig.getServiceChargeRemark());
-            }
-            IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-            BigDecimal otherFee = order.getOtherFee();
-            if (null != otherFee && otherFee.compareTo(BigDecimal.ZERO) == 1 && null != configurationService.getConfiguration(organId, "otherServiceChargeDesc") && null != configurationService.getConfiguration(organId, "otherServiceChargeRemark")) {
-                map.put("otherServiceChargeDesc", configurationService.getConfiguration(organId, "otherServiceChargeDesc").toString());
-                map.put("otherServiceChargeRemark", configurationService.getConfiguration(organId, "otherServiceChargeRemark").toString());
-            }
-            if (order.getLogisticsCompany() != null) {
-                try {
-                    String logComStr = DictionaryController.instance().get("eh.cdr.dictionary.KuaiDiNiaoCode")
-                            .getText(order.getLogisticsCompany());
-                    map.put("logisticsCompanyPY", logComStr);
-                } catch (Exception e) {
-                    LOGGER.info("getParamFromOgainConfig error msg:{}.", e.getMessage());
-                }
-
-            }
-        }
-        if (null != order.getEnterpriseId()) {
-            DrugsEnterpriseDAO drugsEnterpriseDAO = getDAO(DrugsEnterpriseDAO.class);
-            DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
-            if (null != drugsEnterprise) {
-                if (RecipeBussConstant.GIVEMODE_TFDS.equals(recipeList.get(0).getGiveMode())) {
-                    //@ItemProperty(alias = "0:不支付药品费用，1:全部支付 【 1线上支付  非1就是线下支付】")
-                    map.put("storePayFlag", drugsEnterprise.getStorePayFlag());
-                }
-                map.put("showLogisticsType", drugsEnterprise.getShowLogisticsType());
-                map.put("showLogisticsLink", drugsEnterprise.getShowLogisticsLink());
-            }
-        }
-        return map;
-    }
-
-    /**
      * 判断是否中药类处方
      *
      * @return

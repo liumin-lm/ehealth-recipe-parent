@@ -1,6 +1,5 @@
 package com.ngari.recipe.vo;
 
-import ctd.schema.annotation.ItemProperty;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -23,6 +22,10 @@ public class SearchDrugReqVO implements Serializable {
      * 机构id
      */
     private Integer organId;
+    /**
+     * 就诊序号(对应来源的业务id)
+     */
+    private Integer clinicId;
     /**
      * 药房
      */
