@@ -1769,7 +1769,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
             query.setParameter("logisticsState", recipeOrderRefundReqDTO.getLogisticsState());
         }
         if (StringUtils.isNotEmpty(recipeOrderRefundReqDTO.getReceiver())) {
-            query.setParameter("receiver", recipeOrderRefundReqDTO.getReceiver());
+            query.setParameter("receiver","%" + recipeOrderRefundReqDTO.getReceiver() + "%" );
         }
     }
 
