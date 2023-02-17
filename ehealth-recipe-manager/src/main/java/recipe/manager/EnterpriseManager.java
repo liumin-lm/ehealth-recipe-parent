@@ -32,15 +32,18 @@ import recipe.client.*;
 import recipe.constant.DrugEnterpriseConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.dao.*;
-import recipe.enumerate.status.*;
+import recipe.enumerate.status.GiveModeEnum;
+import recipe.enumerate.status.RecipeSourceTypeEnum;
+import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.status.YesOrNoEnum;
 import recipe.enumerate.type.*;
 import recipe.third.IFileDownloadService;
 import recipe.util.LocalStringUtil;
+import recipe.util.RecipeBusiThreadPool;
 import recipe.util.ValidateUtil;
 
 import javax.annotation.Resource;
 import java.util.*;
-import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 /**
@@ -461,9 +464,9 @@ public class EnterpriseManager extends BaseManager {
             recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeNew.getRecipeId(), ImmutableMap.of("charge_item_code", skipThirdDTO.getChargeItemCode()));
         }
         if (StringUtils.isNotEmpty(skipThirdDTO.getRecipeCode())) {
-            recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeNew.getRecipeId(), ImmutableMap.of( "charge_id", skipThirdDTO.getRecipeCode()));
+            recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeNew.getRecipeId(), ImmutableMap.of("charge_id", skipThirdDTO.getRecipeCode()));
         }
-        Executors.newSingleThreadExecutor().execute(() -> enterpriseClient.uploadRecipePdfToHis(recipeNew));
+        RecipeBusiThreadPool.execute(() -> enterpriseClient.uploadRecipePdfToHis(recipeNew));
         return skipThirdDTO;
     }
 
@@ -1064,6 +1067,47 @@ public class EnterpriseManager extends BaseManager {
             return StorePaymentWayEnum.STORE_PAYMENT_WAY_ONLINE.getType();
         }
         return Integer.parseInt(storePaymentWayArr[0]);
+    }
+
+    /**
+     * 获取到店取药跟到院取药的 支付标识
+     * @param organId
+     * @param drugsEnterpriseId
+     * @param giveMode
+     */
+    public Integer getStorePayFlag(Integer organId, Integer drugsEnterpriseId, Integer giveMode){
+        if (!GiveModeEnum.GIVE_MODE_HOSPITAL_DRUG.getType().equals(giveMode) && !GiveModeEnum.GIVE_MODE_PHARMACY_DRUG.getType().equals(giveMode)) {
+            return null;
+        }
+        Integer storePayFlag = StorePaymentWayEnum.STORE_PAYMENT_WAY_OFFLINE.getType();
+        // 到院自取是否采用药企管理模式
+        Boolean drugToHosByEnterprise = configurationClient.getValueBooleanCatch(organId, "drugToHosByEnterprise", false);
+        if (!drugToHosByEnterprise) {
+            Boolean takeOneselfPayment = configurationClient.getValueBooleanCatch(organId, "supportToHosPayFlag", false);
+            if (takeOneselfPayment) {
+                storePayFlag = StorePaymentWayEnum.STORE_PAYMENT_WAY_ONLINE.getType();
+            }
+            return storePayFlag;
+        }
+        if (Objects.isNull(drugsEnterpriseId)) {
+            throw new DAOException("采用药企销售配置模式药企id不能为空");
+        }
+        OrganDrugsSaleConfig organDrugsSaleConfig = organDrugsSaleConfigDAO.getOrganDrugsSaleConfig(drugsEnterpriseId);
+        if (Objects.isNull(organDrugsSaleConfig)) {
+            throw new DAOException("未配置药企销售配置");
+        }
+        String storePaymentWay = organDrugsSaleConfig.getStorePaymentWay();
+        if (StringUtils.isNotEmpty(storePaymentWay)) {
+            List<Integer> storePayment = JSONUtils.parse(storePaymentWay, List.class);
+            if (storePayment.size() == 1) {
+                // 销售配置了一个按销售配置走
+                storePayFlag = storePayment.get(0);
+            } else if (storePayment.size() == 2) {
+                // 配了两个 默认在线支付
+                storePayFlag = StorePaymentWayEnum.STORE_PAYMENT_WAY_ONLINE.getType();
+            }
+        }
+        return storePayFlag;
     }
 
     /**

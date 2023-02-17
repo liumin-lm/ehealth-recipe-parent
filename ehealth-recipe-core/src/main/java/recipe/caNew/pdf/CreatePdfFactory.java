@@ -240,8 +240,8 @@ public class CreatePdfFactory {
      * @param recipeId
      */
     public void updateCheckNamePdf(Integer recipeId) {
-        Recipe recipe = validate(recipeId);
         logger.info("CreatePdfFactory updateCheckNamePdf recipeId:{}", recipeId);
+        Recipe recipe = validate(recipeId);
         boolean usePlatform = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "recipeUsePlatformCAPDF", true);
         if (!usePlatform) {
             return;
@@ -709,5 +709,7 @@ public class CreatePdfFactory {
         }
         return address.toString();
     }
+
+
 
 }

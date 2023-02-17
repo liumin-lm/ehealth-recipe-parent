@@ -2,7 +2,6 @@ package recipe.service.buspay;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -52,6 +51,7 @@ import eh.utils.MapValueUtil;
 import eh.wxpay.constant.PayConstant;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.curator.shaded.com.google.common.base.Joiner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,10 +71,6 @@ import recipe.enumerate.status.RecipeSourceTypeEnum;
 import recipe.enumerate.type.CashDeskSettleUseCodeTypeEnum;
 import recipe.enumerate.type.ForceCashTypeEnum;
 import recipe.enumerate.type.MedicalTypeEnum;
-import recipe.manager.ButtonManager;
-import recipe.manager.DepartManager;
-import recipe.manager.EnterpriseManager;
-import recipe.manager.RecipeOrderPayFlowManager;
 import recipe.manager.*;
 import recipe.service.PayModeGiveModeUtil;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
@@ -179,6 +175,21 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
                 order1 = recipeOrderService.getOrderByRecipeId(busId);
                 if (null == order1) {
                     //这里为了组装创建订单时的一些订单数据--此时还未生成处方订单
+                    Integer storePayFlag = MapValueUtil.getInteger(extInfo, "storePayFlag");
+                    if (Objects.nonNull(storePayFlag)) {
+                        map.put("storePayFlag", storePayFlag.toString());
+                    }else {
+                        Integer depId = MapValueUtil.getInteger(extInfo, "depId");
+                        Integer organId = MapValueUtil.getInteger(extInfo, "organId");
+                        Integer payMode = recipe.util.MapValueUtil.getInteger(extInfo, "payMode");
+                        Integer giveMode = PayModeGiveModeUtil.getGiveMode(payMode);
+                        Integer storePayFlag1 = enterpriseManager.getStorePayFlag(organId, depId, giveMode);
+                        if(Objects.nonNull(storePayFlag1)){
+                            map.put("storePayFlag", storePayFlag1.toString());
+                            extInfo.put("storePayFlag", storePayFlag1.toString());
+                        }
+                    }
+
                     RecipeBussResTO<RecipeOrderBean> resTO = recipeOrderService.createBlankOrder(recipeIdLists, extInfo);
                     if (null != resTO) {
                         order1 = resTO.getData();
@@ -371,11 +382,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
                 map.put("reviewType", nowRecipeBean.getReviewType().toString());
             }
             log.info("setConfirmOrderExtInfo payMode:{}, drugsEnterpriseBean:{}.", payMode, JSONUtils.toString(drugsEnterpriseBean));
-            //药店取药 支付方式
-            if (new Integer(4).equals(payMode) && drugsEnterpriseBean != null) {
-                //@ItemProperty(alias = "0:不支付药品费用，1:全部支付 【 1线上支付  非1就是线下支付】")
-                map.put("storePayFlag", drugsEnterpriseBean.getStorePayFlag() == null ? null : drugsEnterpriseBean.getStorePayFlag().toString());
-            }
+
             OrganDTO organ = organService.getByManageUnit("eh3301");
             String cardType = "";
             if (!ObjectUtils.isEmpty(organ)) {

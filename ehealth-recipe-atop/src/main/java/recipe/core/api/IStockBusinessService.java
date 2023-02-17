@@ -5,6 +5,7 @@ import com.ngari.recipe.dto.EnterpriseStock;
 import com.ngari.recipe.dto.RecipeDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import recipe.vo.doctor.DrugEnterpriseStockVO;
 import recipe.vo.doctor.DrugForGiveModeListVO;
 import recipe.vo.doctor.DrugQueryVO;
@@ -112,4 +113,13 @@ public interface IStockBusinessService {
      * @return
      */
     List<EnterpriseStock> drugsStock(RecipeDTO recipeDTO, Integer stockCheckType);
+
+    /**
+     * 算法拆方，拆分可下单处方
+     * 穷举药企 动态规划药品取值最优处方==最小拆分组数
+     *
+     * @param recipeDTO
+     * @return
+     */
+    List<List<RecipeDetailBean>> retailsSplitList(RecipeDTO recipeDTO);
 }

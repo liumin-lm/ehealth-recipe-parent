@@ -17,7 +17,6 @@ import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -262,17 +261,10 @@ public class RecipeTimedTaskService {
      */
     @RpcService
     public void recipeInvalidRemindTask(){
-        String organ = recipeParameterDao.getByName("recipeInvalidOrgan");
-        Integer organId = 0;
-        if (StringUtils.isEmpty(organ)) {
-            organId = 1;
-        } else {
-            organId = Integer.parseInt(organ);
-        }
         List<Recipe> recipes = new ArrayList<>();
         String currentTime = DateConversion.getDateFormatter(new Date(), DateConversion.DEFAULT_DATE_TIME);
-        List<Recipe> invalidRecipe = recipeDAO.findInvalidRecipeByOrganId(organId, new Date());
-        List<Recipe> invalidOrder = recipeDAO.findInvalidOrderByOrganId(organId, new Date());
+        List<Recipe> invalidRecipe = recipeDAO.findInvalidRecipeByOrganId( new Date());
+        List<Recipe> invalidOrder = recipeDAO.findInvalidOrderByOrganId( new Date());
         recipes.addAll(invalidRecipe);
         recipes.addAll(invalidOrder);
         LOGGER.info("recipeInvalidRemindTask recipes:{}.", JSONUtils.toString(recipes));

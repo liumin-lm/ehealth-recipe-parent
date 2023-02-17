@@ -1,10 +1,13 @@
 package recipe.util;
 
+import com.google.common.collect.Lists;
+import com.ngari.recipe.dto.PermutationDTO;
 import org.apache.commons.collections.CollectionUtils;
+import org.paukov.combinatorics3.Generator;
 
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * list 工具类 用于处理list相关公共操作
@@ -51,4 +54,96 @@ public class ListValueUtil {
         }
         return resultList;
     }
+
+    /**
+     * 根据数据源 找出 符合目标值的 数组排列组合集合
+     *
+     * @param source 排列组合数据源
+     * @param target 对比获取目标值
+     * @return 目标值，数据源集合
+     */
+    public static List<List<Integer>> permutationTarget(List<PermutationDTO> source, List<Integer> target) {
+        if (CollectionUtils.isEmpty(source)) {
+            return Collections.emptyList();
+        }
+        if (CollectionUtils.isEmpty(target)) {
+            return Collections.emptyList();
+        }
+        //生产穷举 排列组合
+        List<List<PermutationDTO>> permutationList = Generator.subset(source).simple().stream().collect(Collectors.toList());
+        //遍历每种排列组合获取结果
+        List<List<List<Integer>>> result = new ArrayList<>();
+        permutationList.forEach(a -> {
+            //每种排列组合数据源的value列表-排序是为了从最小数组优先拿数据
+            List<List<Integer>> valueList = a.stream().map(PermutationDTO::getValue).sorted(Comparator.comparing(List::size)).collect(Collectors.toList());
+            //获取每种排列组合的-目标值拆分集合
+            List<List<Integer>> list = targetSplit(target, valueList);
+            if (CollectionUtils.isNotEmpty(list)) {
+                result.add(list);
+            }
+        });
+        if (CollectionUtils.isEmpty(result)) {
+            return Collections.emptyList();
+        }
+        //排序拿到最小的目标值拆分集合
+        return result.stream().sorted(Comparator.comparing(List::size)).collect(Collectors.toList()).get(0);
+    }
+
+    /**
+     * 判断目标值是否在 对比数组中全部包含，包含则返回新集合
+     *
+     * @param target    目标值
+     * @param valueList 对比数组
+     * @return 目标值拆分集合
+     */
+    private static List<List<Integer>> targetSplit(List<Integer> target, List<List<Integer>> valueList) {
+        if (CollectionUtils.isEmpty(valueList)) {
+            return Collections.emptyList();
+        }
+        List<List<Integer>> targetGroup = new ArrayList<>();
+        for (List<Integer> value : valueList) {
+            //value与目标值取交集，交集为目标值拆分集合
+            List<Integer> targetList = value.stream().filter(target::contains).collect(Collectors.toList());
+            if (CollectionUtils.isEmpty(targetList)) {
+                continue;
+            }
+            //拆分每个目标值组成的集合不能超过5
+            if (targetList.size() > 5) {
+                targetGroup.addAll(Lists.partition(targetList, 5));
+            } else {
+                targetGroup.add(targetList);
+            }
+            //value与目标值取差集 ，把差集赋值给本次遍历的目标值
+            target = target.stream().filter(b -> !value.contains(b)).collect(Collectors.toList());
+        }
+        //差集为空则所有目标数据都已匹配
+        if (CollectionUtils.isEmpty(target)) {
+            return targetGroup;
+        }
+        return Collections.emptyList();
+    }
+
+    public static void main(String[] args) {
+        List<PermutationDTO> list = new ArrayList<>();
+        PermutationDTO b = new PermutationDTO("A", Arrays.asList(1, 2, 3, 4, 5, 6));
+        list.add(b);
+        PermutationDTO b1 = new PermutationDTO("B", Arrays.asList(7, 8, 9, 10));
+        list.add(b1);
+        PermutationDTO b2 = new PermutationDTO("C", Arrays.asList(1, 2, 3, 4));
+        list.add(b2);
+        PermutationDTO b3 = new PermutationDTO("D", Arrays.asList(5, 6, 7, 8));
+        list.add(b3);
+        PermutationDTO b4 = new PermutationDTO("E", Arrays.asList(9));
+        list.add(b4);
+        PermutationDTO b5 = new PermutationDTO("F", Arrays.asList(10));
+        list.add(b5);
+        PermutationDTO b7 = new PermutationDTO("H", Arrays.asList(7, 8, 9, 10, 6));
+        list.add(b7);
+        List<Integer> target = Stream.of(1, 2, 3, 4, 5, 6, 7, 8, 9, 10).sorted().collect(Collectors.toList());
+        List<List<Integer>> drugIdsList = ListValueUtil.permutationTarget(list, target);
+        System.out.println(drugIdsList);
+
+    }
+
+
 }
