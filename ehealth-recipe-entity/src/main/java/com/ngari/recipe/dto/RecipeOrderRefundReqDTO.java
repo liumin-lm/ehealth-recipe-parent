@@ -54,4 +54,7 @@ public class RecipeOrderRefundReqDTO implements Serializable {
 
     @ItemProperty(alias = "发药状态 0: 默认 1 待发药 2 配送中 3 待取药")
     private Integer logisticsState;
+
+    @ItemProperty(alias = "收货人")
+    private String receiver;
 }
