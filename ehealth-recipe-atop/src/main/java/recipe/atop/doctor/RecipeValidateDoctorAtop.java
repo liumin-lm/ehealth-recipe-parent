@@ -302,7 +302,7 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
         validateAtop(validateDetailVO, validateDetailVO.getRecipeBean(), validateDetailVO.getRecipeExtendBean(), validateDetailVO.getRecipeDetails());
         //判断数量
         if (validateDetailVO.getRecipeDetails().size() > 5) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "因为【药品数量是否＞5】，需要进行拆分，请确认");
+            throw new DAOException(ErrorCode.SERVICE_CONFIRM, "因为【处方的药品数量>5个】，需要进行拆分，请确认");
         }
         recipeDetailService.validateSplitRecipe(validateDetailVO);
         RecipeDTO recipeDTO = new RecipeDTO();
@@ -313,7 +313,7 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
         boolean stock = result.stream().anyMatch(EnterpriseStock::getStock);
         //查看库存是否满足
         if (!stock) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "因为【不可以在同一个药企或者药房（同一个供药方）购到药品（库存校验）】，需要进行拆分，请确认");
+            throw new DAOException(ErrorCode.SERVICE_CONFIRM, "因为【无一个供药方可以供应所有药品】，需要进行拆分，请确认");
         }
     }
 }
