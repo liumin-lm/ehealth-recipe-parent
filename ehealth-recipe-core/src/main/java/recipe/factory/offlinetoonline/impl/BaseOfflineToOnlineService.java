@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSON;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
-import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.his.recipe.mode.ExtInfoTO;
 import com.ngari.his.recipe.mode.MedicalInfo;
 import com.ngari.his.recipe.mode.QueryHisRecipResTO;
@@ -47,6 +46,7 @@ import recipe.aop.LogRecord;
 import recipe.business.StockBusinessService;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.DepartClient;
+import recipe.client.IConfigurationClient;
 import recipe.client.RevisitClient;
 import recipe.constant.HisRecipeConstant;
 import recipe.constant.PayConstant;
@@ -54,11 +54,11 @@ import recipe.dao.*;
 import recipe.dao.bean.HisRecipeListBean;
 import recipe.enumerate.status.*;
 import recipe.enumerate.type.AppointEnterpriseTypeEnum;
+import recipe.enumerate.type.SignImageTypeEnum;
 import recipe.factory.offlinetoonline.IOfflineToOnlineStrategy;
 import recipe.factory.offlinetoonline.OfflineToOnlineFactory;
 import recipe.manager.*;
 import recipe.service.RecipeService;
-import recipe.service.RecipeServiceEsignExt;
 import recipe.util.RecipeUtil;
 import recipe.vo.patient.RecipeGiveModeButtonRes;
 
@@ -148,6 +148,9 @@ public class BaseOfflineToOnlineService {
 
     @Autowired
     private CreatePdfFactory createPdfFactory;
+
+    @Autowired
+    protected IConfigurationClient configurationClient;
 
     /**
      * 获取购药按钮
@@ -586,12 +589,7 @@ public class BaseOfflineToOnlineService {
                 revisitManager.saveRevisitTracesList(recipe);
                 revisitManager.updateRecipeIdByConsultId(recipe.getRecipeId(), recipe.getClinicId());
             }
-            //生成处方笺
-            try {
-                createRecipePdf(recipe);
-            }catch (Exception e){
-                LOGGER.error("BaseOfflineToOnlineService 线上转线上生成处方笺失败", e);
-            }
+            createRecipePdf(recipe);
             return recipe.getRecipeId();
         }
         return null;
@@ -1375,14 +1373,21 @@ public class BaseOfflineToOnlineService {
      *
      */
     private void createRecipePdf(Recipe recipe){
-        LOGGER.info("BaseOfflineToOnlineService createRecipePdf recipe={}",JSONUtils.toString(recipe));
-        //医生
-        createPdfFactory.updateDoctorNamePdf(recipe, null);
-        //RecipeServiceEsignExt.updateInitRecipePDF(true, recipe, doctorRequestSealTO.getPdfBase64Str());
-        //药师
-        createPdfFactory.updateCheckNamePdf(recipe.getRecipeId());
-        //RecipeServiceEsignExt.updateInitRecipePDF(false, recipe, checkerRequestSealTO.getPdfBase64Str());
-        LOGGER.info("BaseOfflineToOnlineService createRecipePdf 方法结束");
+        try {
+            LOGGER.info("BaseOfflineToOnlineService createRecipePdf recipe={}",JSONUtils.toString(recipe));
+            Boolean isCreateRecipePdf = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "isCreateRecipePdf",false);
+            if (!isCreateRecipePdf) {
+                return;
+            }
+            //医生
+            createPdfFactory.updateDoctorNamePdf(recipe, null);
+            //药师
+            createPdfFactory.updateCheckNamePdf(recipe.getRecipeId());
+            createPdfFactory.updatePdfToImg(recipe.getRecipeId(), SignImageTypeEnum.SIGN_IMAGE_TYPE_CHEMIST.getType());
+            LOGGER.info("BaseOfflineToOnlineService createRecipePdf 方法结束");
+        }catch (Exception e){
+            LOGGER.error("createRecipePdf 线上转线上生成处方笺失败", e);
+        }
     }
 
 }
