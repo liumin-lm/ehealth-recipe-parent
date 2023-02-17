@@ -80,4 +80,10 @@ public class RecipeOrderRefundVO implements Serializable {
 
     @ItemProperty(alias = "快递单号")
     private String trackingNumber;
+
+    @ItemProperty(alias = "收货人")
+    private String receiver;
+
+    @ItemProperty(alias = "收货人手机号")
+    private String recMobile;
 }

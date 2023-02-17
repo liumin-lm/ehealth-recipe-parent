@@ -186,6 +186,8 @@ public class OrderFeeService implements IRecipeOrderRefundService {
             recipeOrderRefundVO.setPrintExpressBillFlag(recipeOrder.getPrintExpressBillFlag());
             recipeOrderRefundVO.setLogisticsCompany(recipeOrder.getLogisticsCompany());
             recipeOrderRefundVO.setTrackingNumber(recipeOrder.getTrackingNumber());
+            recipeOrderRefundVO.setReceiver(recipeOrder.getReceiver());
+            recipeOrderRefundVO.setRecMobile(recipeOrder.getRecMobile());
             recipeOrderRefundVOList.add(recipeOrderRefundVO);
         });
         recipeOrderRefundPageVO.setRecipeOrderRefundVOList(recipeOrderRefundVOList);
