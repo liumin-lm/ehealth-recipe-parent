@@ -185,6 +185,9 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
         if (Objects.nonNull(organDrugsSaleConfigVo.getStorePaymentWay())) {
             organDrugsSaleConfig.setStorePaymentWay(JSON.toJSONString(organDrugsSaleConfigVo.getStorePaymentWay()));
         }
+        if (Objects.nonNull(organDrugsSaleConfigVo.getTakeOneselfPaymentWay())) {
+            organDrugsSaleConfig.setTakeOneselfPaymentWay(JSON.toJSONString(organDrugsSaleConfigVo.getTakeOneselfPaymentWay()));
+        }
         BeanUtils.copyProperties(organDrugsSaleConfigVo, organDrugsSaleConfig);
         enterpriseManager.saveOrganDrugsSaleConfig(organDrugsSaleConfig);
     }

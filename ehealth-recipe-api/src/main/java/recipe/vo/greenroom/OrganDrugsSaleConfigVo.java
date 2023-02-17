@@ -40,6 +40,9 @@ public class OrganDrugsSaleConfigVo implements Serializable {
      */
     private Integer takeOneselfPayment;
 
+    @ItemProperty(alias = "自取支付方式 1 在线支付 2 线下支付")
+    private List<Integer> takeOneselfPaymentWay;
+
     /**
      * 自取支付通道 1平台支付 2卫宁支付
      */
