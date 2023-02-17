@@ -162,6 +162,7 @@ public class DrugDoctorAtop extends BaseAtop {
      * @return
      */
     @RpcService
+    @Deprecated
     public boolean drugRecipeStock(DrugQueryVO drugQueryVO) {
         RecipeDTO recipeDTO = this.recipeDTO(drugQueryVO);
         List<EnterpriseStock> result = iStockBusinessService.drugRecipeStock(recipeDTO, StockCheckSourceTypeEnum.DOCTOR_STOCK.getType());

@@ -310,6 +310,11 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     }
 
     @Override
+    public void deleteByRecipeIds(List<Integer> recipeIds) {
+        recipeDAO.deleteByRecipeIds(recipeIds);
+    }
+
+    @Override
     public List<PatientOptionalDrugVO> findPatientOptionalDrugDTO(Integer clinicId) {
         logger.info("RecipeBusinessService findPatientOptionalDrugDTO req clinicId= {}", JSON.toJSONString(clinicId));
         List<PatientOptionalDrug> patientOptionalDrugs = patientOptionalDrugDAO.findPatientOptionalDrugByClinicId(clinicId);

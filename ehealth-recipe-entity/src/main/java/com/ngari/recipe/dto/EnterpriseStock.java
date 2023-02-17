@@ -51,6 +51,11 @@ public class EnterpriseStock {
     private List<DrugInfoDTO> drugInfoList;
 
     /**
+     * 有库存药品id
+     */
+    private List<Integer> drugIds;
+
+    /**
      * 药企是否支持配送标识
      */
     private Boolean sendFlag = true;
