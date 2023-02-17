@@ -1803,6 +1803,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                     break;
             }
         }
+        if(StringUtils.isNotEmpty(recipesQueryVO.getRecipeCode())){
+            hql.append(" and r.recipeCode = ").append(recipesQueryVO.getRecipeCode());
+        }
         LOGGER.info("generateRecipeOderWhereHQLforStatistics hql:{}", hql);
         return hql;
     }
