@@ -533,9 +533,9 @@ public class DrugManager extends BaseManager {
     public List<DrugCommon> commonDrugList(Integer organId, Integer doctorId, List<Integer> drugTypes, String drugForm) {
         List<DrugCommon> drugCommonList;
         if (drugTypes.contains(RecipeBussConstant.RECIPETYPE_TCM)) {
-            drugCommonList = drugCommonDAO.findByOrganIdAndDoctorIdAndDrugForm(organId, doctorId, drugForm, 0, 30);
+            drugCommonList = drugCommonDAO.findByOrganIdAndDoctorIdAndDrugForm(organId, doctorId, drugForm, 0, 20);
         }else {
-            drugCommonList = drugCommonDAO.findByOrganIdAndDoctorIdAndTypes(organId, doctorId, drugTypes, 0, 30);
+            drugCommonList = drugCommonDAO.findByOrganIdAndDoctorIdAndTypes(organId, doctorId, drugTypes, 0, 20);
         }
         logger.info("DrugManager commonDrugList organId={},doctorId-{},drugTypes={}, list={}"
                 , organId, doctorId, JSON.toJSONString(drugTypes), JSON.toJSONString(drugCommonList));

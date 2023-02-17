@@ -36,6 +36,25 @@ public class ValidateUtil {
     }
 
     /**
+     * 全部为空
+     *
+     * @param args
+     * @return 全部为空 = true
+     */
+    public static boolean validateObjectsIsEmpty(Object... args) {
+        if (null == args) {
+            return true;
+        }
+        for (Object i : args) {
+            if (!validateObject(i)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+
+    /**
      * todo 新方法使用  validateObjects
      *
      * @param i
