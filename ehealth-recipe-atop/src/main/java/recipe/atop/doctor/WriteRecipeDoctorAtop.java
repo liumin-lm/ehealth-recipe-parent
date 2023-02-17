@@ -98,6 +98,7 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
         recipeInfoVO.getRecipeBean().setRecipeId(null);
         recipeInfoVO.getRecipeBean().setTargetedDrugType(0);
         RecipeBusiThreadPool.execute(() -> {
+            logger.info("WriteRecipeDoctorAtop splitRecipe execute start");
             //智能拆方知识库规则-拆分药品
             List<List<RecipeDetailBean>> retailsList = recipeDetailBusinessService.splitRecipe(recipeInfoVO);
             //算法拆方，拆分可下单处方
@@ -128,6 +129,7 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
             if (!ValidateUtil.integerIsEmpty(recipeId)) {
                 recipeBusinessService.deleteByRecipeIds(Collections.singletonList(recipeId));
             }
+            logger.info("WriteRecipeDoctorAtop splitRecipe execute end");
         });
         //返回同组处方id
         return recipeInfoVO.getRecipeBean().getGroupCode();
