@@ -181,6 +181,7 @@ public class PayModeTFDS implements IPurchaseService {
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
+        OrganDrugsSaleConfigDAO organDrugsSaleConfigDAO = getDAO(OrganDrugsSaleConfigDAO.class);
         DrugsEnterprise dep = drugsEnterpriseDAO.getById(depId);
         Integer patientIsDecoction = MapValueUtil.getInteger(extInfo, "patientIsDecoction");
         enterpriseManager.checkSupportDecoction(dbRecipes, depId, patientIsDecoction, GiveModeTextEnum.SUPPORTTFDS.getGiveMode());
