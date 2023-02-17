@@ -179,10 +179,12 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
         }
     }
 
-
     @Override
     public void saveOrganDrugsSaleConfig(OrganDrugsSaleConfigVo organDrugsSaleConfigVo) {
         OrganDrugsSaleConfig organDrugsSaleConfig = new OrganDrugsSaleConfig();
+        if (Objects.nonNull(organDrugsSaleConfigVo.getStorePaymentWay())) {
+            organDrugsSaleConfig.setStorePaymentWay(JSON.toJSONString(organDrugsSaleConfigVo.getStorePaymentWay()));
+        }
         BeanUtils.copyProperties(organDrugsSaleConfigVo, organDrugsSaleConfig);
         enterpriseManager.saveOrganDrugsSaleConfig(organDrugsSaleConfig);
     }

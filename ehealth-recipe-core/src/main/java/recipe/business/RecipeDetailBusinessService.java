@@ -381,12 +381,12 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
         if (validateSplitRecipe.contains("1")) {
             boolean targetedDrugType = recipeDetails.stream().anyMatch(a -> Integer.valueOf(1).equals(a.getTargetedDrugType()));
             if (targetedDrugType && recipeDetails.size() > 1) {
-                throw new DAOException(ErrorCode.SERVICE_ERROR, "因为【存在靶向药】，需要进行拆分，请确认");
+                throw new DAOException(ErrorCode.SERVICE_CONFIRM, "因为【存在靶向药】，需要进行拆分，请确认");
             }
         }
         //调用HIS拆分判断服务
         if (validateSplitRecipe.contains("2")) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "因为【配置了his拆方】，需要进行拆分，请确认");
+            throw new DAOException(ErrorCode.SERVICE_CONFIRM, "因为【HIS判断需要拆分处方】，需要进行拆分，请确认");
         }
     }
 
