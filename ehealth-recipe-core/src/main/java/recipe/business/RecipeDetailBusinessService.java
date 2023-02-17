@@ -266,7 +266,6 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
         if (CollectionUtils.isEmpty(recipeDetails)) {
             return new ArrayList<>();
         }
-        //"1": "大病权限", "2": "靶向药权限"
         List<String> hisDrugRule = configurationClient.getValueListCatch(recipe.getClinicOrgan(), "validateHisDrugRule", null);
         logger.info("RecipeDetailBusinessService validateHisDrugRule hisDrugRule={}", JSON.toJSONString(hisDrugRule));
         if (CollectionUtils.isEmpty(hisDrugRule)) {
@@ -376,6 +375,7 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
     public void validateSplitRecipe(ValidateDetailVO validateDetailVO) {
         RecipeBean recipeBean = validateDetailVO.getRecipeBean();
         List<String> validateSplitRecipe = configurationClient.getValueListCatch(recipeBean.getClinicOrgan(), "validateSplitRecipe", new ArrayList<>());
+        logger.info("RecipeDetailBusinessService validateSplitRecipe validateSplitRecipe={}", JSON.toJSONString(validateSplitRecipe));
         List<RecipeDetailBean> recipeDetails = validateDetailVO.getRecipeDetails();
         //靶向药单独成方
         if (validateSplitRecipe.contains("1")) {
