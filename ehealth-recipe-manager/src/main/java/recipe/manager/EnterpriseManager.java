@@ -32,15 +32,18 @@ import recipe.client.*;
 import recipe.constant.DrugEnterpriseConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.dao.*;
-import recipe.enumerate.status.*;
+import recipe.enumerate.status.GiveModeEnum;
+import recipe.enumerate.status.RecipeSourceTypeEnum;
+import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.status.YesOrNoEnum;
 import recipe.enumerate.type.*;
 import recipe.third.IFileDownloadService;
 import recipe.util.LocalStringUtil;
+import recipe.util.RecipeBusiThreadPool;
 import recipe.util.ValidateUtil;
 
 import javax.annotation.Resource;
 import java.util.*;
-import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 /**
@@ -461,9 +464,9 @@ public class EnterpriseManager extends BaseManager {
             recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeNew.getRecipeId(), ImmutableMap.of("charge_item_code", skipThirdDTO.getChargeItemCode()));
         }
         if (StringUtils.isNotEmpty(skipThirdDTO.getRecipeCode())) {
-            recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeNew.getRecipeId(), ImmutableMap.of( "charge_id", skipThirdDTO.getRecipeCode()));
+            recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeNew.getRecipeId(), ImmutableMap.of("charge_id", skipThirdDTO.getRecipeCode()));
         }
-        Executors.newSingleThreadExecutor().execute(() -> enterpriseClient.uploadRecipePdfToHis(recipeNew));
+        RecipeBusiThreadPool.execute(() -> enterpriseClient.uploadRecipePdfToHis(recipeNew));
         return skipThirdDTO;
     }
 

@@ -1768,6 +1768,9 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         if (null != recipeOrderRefundReqDTO.getLogisticsState()) {
             query.setParameter("logisticsState", recipeOrderRefundReqDTO.getLogisticsState());
         }
+        if (StringUtils.isNotEmpty(recipeOrderRefundReqDTO.getReceiver())) {
+            query.setParameter("receiver","%" + recipeOrderRefundReqDTO.getReceiver() + "%" );
+        }
     }
 
     private StringBuilder generateWaitApplyRecipeHQL(RecipeOrderRefundReqDTO recipeOrderRefundReqDTO) {
@@ -1903,7 +1906,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
             hql.append(" AND a.TrackingNumber =:trackingNumber ");
         }
         if(StringUtils.isNotEmpty(recipeOrderRefundReqDTO.getReceiver())){
-            hql.append(" AND a.Receiver =:Receiver ");
+            hql.append(" AND a.Receiver like :receiver ");
         }
         logger.info("RecipeOrderDAO getRefundStringBuilder hql:{}", hql);
         return hql;

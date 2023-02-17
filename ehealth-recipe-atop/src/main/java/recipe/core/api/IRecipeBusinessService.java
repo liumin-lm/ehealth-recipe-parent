@@ -107,6 +107,13 @@ public interface IRecipeBusinessService {
     List<Recipe> findRecipesByStatusAndInvalidTime(List<Integer> status, Date invalidTime);
 
     /**
+     * 物理删除处方
+     *
+     * @param recipeIds
+     */
+    void deleteByRecipeIds(List<Integer> recipeIds);
+
+    /**
      * 医生端获取处方指定药品
      *
      * @param clinicId 复诊id

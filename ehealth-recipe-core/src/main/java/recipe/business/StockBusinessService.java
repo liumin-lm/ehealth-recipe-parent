@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.persistence.exception.DAOException;
 import ctd.util.event.GlobalEventExecFactory;
 import org.apache.commons.collections.CollectionUtils;
@@ -24,6 +25,7 @@ import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.enumerate.type.StockCheckSourceTypeEnum;
 import recipe.manager.EnterpriseManager;
 import recipe.manager.RecipeManager;
+import recipe.util.ListValueUtil;
 import recipe.util.MapValueUtil;
 import recipe.util.ObjectCopyUtils;
 import recipe.util.ValidateUtil;
@@ -211,6 +213,50 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
             result.add(organStock);
         }
         logger.info("StockBusinessService drugStock result={}", JSON.toJSONString(result));
+        return result;
+    }
+
+    @Override
+    public List<List<RecipeDetailBean>> retailsSplitList(RecipeDTO recipeDTO) {
+        if (CollectionUtils.isEmpty(recipeDTO.getRecipeDetails())) {
+            return null;
+        }
+        if (1 == recipeDTO.getRecipeDetails().size()) {
+            return Collections.singletonList(ObjectCopyUtils.convert(recipeDTO.getRecipeDetails(), RecipeDetailBean.class));
+        }
+        //查询库存
+        List<EnterpriseStock> enterpriseStockList = this.stockList(recipeDTO);
+        //药企药品库存
+        List<PermutationDTO> source = new ArrayList<>();
+        enterpriseStockList.forEach(a -> {
+            PermutationDTO permutation = new PermutationDTO();
+            permutation.setKey(a.getDeliveryCode());
+            permutation.setValue(a.getDrugInfoList().stream().filter(DrugInfoDTO::getStock).map(DrugInfoDTO::getDrugId).collect(Collectors.toList()));
+            source.add(permutation);
+        });
+        //计算-最优处方,最小拆分组数
+        List<Integer> target = recipeDTO.getRecipeDetails().stream().map(Recipedetail::getDrugId).distinct().sorted().collect(Collectors.toList());
+        List<List<Integer>> drugIdsList = ListValueUtil.permutationTarget(source, target);
+        if (CollectionUtils.isEmpty(drugIdsList)) {
+            return null;
+        }
+        //合组返回结果
+        List<List<RecipeDetailBean>> result = new ArrayList<>();
+        Map<Integer, Recipedetail> detailBeanMap = recipeDTO.getRecipeDetails().stream().collect(Collectors.toMap(Recipedetail::getDrugId, a -> a, (k1, k2) -> k1));
+        drugIdsList.forEach(drugIds -> {
+            if (CollectionUtils.isEmpty(drugIds)) {
+                return;
+            }
+            List<RecipeDetailBean> recipeDetails = new ArrayList<>();
+            drugIds.forEach(a -> {
+                Recipedetail recipeDetail = detailBeanMap.get(a);
+                if (null == recipeDetail) {
+                    return;
+                }
+                recipeDetails.add(ObjectCopyUtils.convert(recipeDetail, RecipeDetailBean.class));
+            });
+            result.add(recipeDetails);
+        });
         return result;
     }
 

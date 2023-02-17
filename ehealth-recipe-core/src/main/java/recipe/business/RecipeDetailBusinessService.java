@@ -11,6 +11,7 @@ import com.ngari.recipe.recipe.model.OrderRepTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.vo.RecipeSkipVO;
+import ctd.persistence.exception.DAOException;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +20,7 @@ import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.client.IConfigurationClient;
+import recipe.constant.ErrorCode;
 import recipe.core.api.IRecipeDetailBusinessService;
 import recipe.drugTool.validate.RecipeDetailValidateTool;
 import recipe.enumerate.status.RecipeStateEnum;
@@ -264,7 +266,6 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
         if (CollectionUtils.isEmpty(recipeDetails)) {
             return new ArrayList<>();
         }
-        //"1": "大病权限", "2": "靶向药权限"
         List<String> hisDrugRule = configurationClient.getValueListCatch(recipe.getClinicOrgan(), "validateHisDrugRule", null);
         logger.info("RecipeDetailBusinessService validateHisDrugRule hisDrugRule={}", JSON.toJSONString(hisDrugRule));
         if (CollectionUtils.isEmpty(hisDrugRule)) {
@@ -368,6 +369,51 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
         }
         List<RecipePreSettleDrugFeeDTO> recipeDrugFee = null == response.getRecipePreSettleDrugFeeDTOS() ? Lists.newArrayList() : response.getRecipePreSettleDrugFeeDTOS();
         return recipeDetailManager.sendSuccessDetail(details, recipeDrugFee, recipe);
+    }
+
+    @Override
+    public void validateSplitRecipe(ValidateDetailVO validateDetailVO) {
+        RecipeBean recipeBean = validateDetailVO.getRecipeBean();
+        List<String> validateSplitRecipe = configurationClient.getValueListCatch(recipeBean.getClinicOrgan(), "validateSplitRecipe", new ArrayList<>());
+        logger.info("RecipeDetailBusinessService validateSplitRecipe validateSplitRecipe={}", JSON.toJSONString(validateSplitRecipe));
+        List<RecipeDetailBean> recipeDetails = validateDetailVO.getRecipeDetails();
+        //靶向药单独成方
+        if (validateSplitRecipe.contains("1")) {
+            boolean targetedDrugType = recipeDetails.stream().anyMatch(a -> Integer.valueOf(1).equals(a.getTargetedDrugType()));
+            if (targetedDrugType && recipeDetails.size() > 1) {
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "因为【存在靶向药】，需要进行拆分，请确认");
+            }
+        }
+        //调用HIS拆分判断服务
+        if (validateSplitRecipe.contains("2")) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "因为【配置了his拆方】，需要进行拆分，请确认");
+        }
+    }
+
+    @Override
+    public List<List<RecipeDetailBean>> splitRecipe(RecipeInfoVO recipeInfoVO) {
+        RecipeBean recipeBean = recipeInfoVO.getRecipeBean();
+        List<String> validateSplitRecipe = configurationClient.getValueListCatch(recipeBean.getClinicOrgan(), "validateSplitRecipe", new ArrayList<>());
+        List<RecipeDetailBean> recipeDetails = recipeInfoVO.getRecipeDetails();
+
+        List<List<RecipeDetailBean>> result = new ArrayList<>();
+        //靶向药单独成方
+        if (validateSplitRecipe.contains("1")) {
+            List<RecipeDetailBean> targetedDrugDetails = recipeDetails.stream().filter(a -> Integer.valueOf(1).equals(a.getTargetedDrugType())).collect(Collectors.toList());
+            if (CollectionUtils.isNotEmpty(targetedDrugDetails)) {
+                result.addAll(Lists.partition(targetedDrugDetails, 1));
+            }
+            recipeDetails = recipeDetails.stream().filter(a -> !Integer.valueOf(1).equals(a.getTargetedDrugType())).collect(Collectors.toList());
+        }
+        //调用HIS拆分判断服务
+        if (validateSplitRecipe.contains("2")) {
+            result.add(recipeDetails);
+        }
+        
+        if (CollectionUtils.isEmpty(result)) {
+            result.add(recipeDetails);
+        }
+        return result;
     }
 
     /**
