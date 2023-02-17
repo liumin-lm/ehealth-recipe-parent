@@ -86,4 +86,15 @@ public class RecipeOrderRefundVO implements Serializable {
 
     @ItemProperty(alias = "收货人手机号")
     private String recMobile;
+
+    @ItemProperty(alias = "订单状态")
+    @Dictionary(id = "eh.cdr.dictionary.RecipeOrderStatus")
+    private Integer status;
+
+    @ItemProperty(alias = "发药药师姓名")
+    private String dispensingApothecaryName;
+
+    @ItemProperty(alias = "是否可以打印快递面单")
+    private Boolean printWaybillByLogisticsOrderNo;
+
 }

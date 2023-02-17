@@ -90,6 +90,8 @@ public class OrderFeeService implements IRecipeOrderRefundService {
     private RecipeOrderBillDAO recipeOrderBillDAO;
     @Autowired
     private IConfigurationClient configurationClient;
+    @Autowired
+    private ILogisticsOrderService logisticsOrderService;
 
 
     @Override
@@ -188,6 +190,16 @@ public class OrderFeeService implements IRecipeOrderRefundService {
             recipeOrderRefundVO.setTrackingNumber(recipeOrder.getTrackingNumber());
             recipeOrderRefundVO.setReceiver(recipeOrder.getReceiver());
             recipeOrderRefundVO.setRecMobile(recipeOrder.getRecMobile());
+            recipeOrderRefundVO.setStatus(recipeOrder.getStatus());
+            recipeOrderRefundVO.setDispensingApothecaryName(recipeOrder.getDispensingApothecaryName());
+            try {
+                //查是否可以打印快递面单
+                logisticsOrderService.printWaybillByLogisticsOrderNo(1, recipeOrder.getOrderCode());
+                recipeOrderRefundVO.setPrintWaybillByLogisticsOrderNo(true);
+            }catch (Exception e){
+                recipeOrderRefundVO.setPrintWaybillByLogisticsOrderNo(false);
+                logger.error("orderFeeService findRefundRecipeOrder error", e);
+            }
             recipeOrderRefundVOList.add(recipeOrderRefundVO);
         });
         recipeOrderRefundPageVO.setRecipeOrderRefundVOList(recipeOrderRefundVOList);
@@ -223,10 +235,6 @@ public class OrderFeeService implements IRecipeOrderRefundService {
 
         List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
         List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIdList);
-        //获取机构配置：打印发药清单之前是否需要先发药
-        Boolean isNeedSendDrugWithPrientBefore = configurationClient.getValueBooleanCatch(recipeList.get(0).getClinicOrgan(), "isNeedSendDrugWithPrientBefore", null);
-        recipeOrderRefundDetailVO.setIsNeedSendDrugWithPrientBefore(isNeedSendDrugWithPrientBefore);
-
         orderRefundInfoVO.setAuditNodeType(orderFeeManager.getRecipeRefundNode(recipeIdList.get(0), recipeOrder.getOrganId()));
         List<RecipeRefund> recipeRefundList = recipeRefundDAO.findRecipeRefundByRecipeIdAndNodeAndStatus(recipeIdList.get(0), RecipeRefundRoleConstant.RECIPE_REFUND_ROLE_ADMIN);
         List<RecipeRefund> recipeRefunds = recipeRefundDAO.findRefundListByRecipeId(recipeIdList.get(0));
@@ -305,7 +313,6 @@ public class OrderFeeService implements IRecipeOrderRefundService {
         }
         try {
             //查是否可以打印快递面单
-            ILogisticsOrderService logisticsOrderService = AppContextHolder.getBean("infra.logisticsOrderService", ILogisticsOrderService.class);
             String logisticsOrderPrintWaybill = logisticsOrderService.printWaybillByLogisticsOrderNo(1, orderCode);
             recipeOrderRefundDetailVO.setLogisticsOrderPrintWaybill(logisticsOrderPrintWaybill);
             recipeOrderRefundDetailVO.setPrintWaybillByLogisticsOrderNo(true);
