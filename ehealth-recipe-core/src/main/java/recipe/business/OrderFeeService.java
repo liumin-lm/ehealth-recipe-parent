@@ -224,7 +224,7 @@ public class OrderFeeService implements IRecipeOrderRefundService {
         List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
         List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIdList);
         //获取机构配置：打印发药清单之前是否需要先发药
-        String isNeedSendDrugWithPrientBefore = configurationClient.getValueCatch(recipeList.get(0).getClinicOrgan(), "isNeedSendDrugWithPrientBefore", "");
+        Boolean isNeedSendDrugWithPrientBefore = configurationClient.getValueBooleanCatch(recipeList.get(0).getClinicOrgan(), "isNeedSendDrugWithPrientBefore", null);
         recipeOrderRefundDetailVO.setIsNeedSendDrugWithPrientBefore(isNeedSendDrugWithPrientBefore);
 
         orderRefundInfoVO.setAuditNodeType(orderFeeManager.getRecipeRefundNode(recipeIdList.get(0), recipeOrder.getOrganId()));

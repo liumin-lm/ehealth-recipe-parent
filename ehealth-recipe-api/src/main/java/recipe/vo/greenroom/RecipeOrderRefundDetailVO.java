@@ -37,6 +37,6 @@ public class RecipeOrderRefundDetailVO implements Serializable {
     private String logisticsOrderPrintWaybill;
 
     //打印发药清单之前是否需要先发药
-    private String isNeedSendDrugWithPrientBefore;
+    private Boolean isNeedSendDrugWithPrientBefore;
 
 }
