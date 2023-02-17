@@ -1906,7 +1906,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
             hql.append(" AND a.TrackingNumber =:trackingNumber ");
         }
         if(StringUtils.isNotEmpty(recipeOrderRefundReqDTO.getReceiver())){
-            hql.append(" AND a.Receiver =:receiver ");
+            hql.append(" AND a.Receiver like :receiver ");
         }
         logger.info("RecipeOrderDAO getRefundStringBuilder hql:{}", hql);
         return hql;
