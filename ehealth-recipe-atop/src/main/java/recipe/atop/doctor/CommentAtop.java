@@ -11,10 +11,12 @@ import org.slf4j.LoggerFactory;
 import recipe.atop.BaseAtop;
 import recipe.core.api.IRecipeCommentService;
 import recipe.util.ObjectCopyUtils;
+import recipe.util.ValidateUtil;
 
 import javax.annotation.Resource;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @Description
@@ -30,9 +32,13 @@ public class CommentAtop extends BaseAtop {
 
     @RpcService
     public Integer addRecipeComment(RecipeCommentTO recipeCommentTO) {
-        logger.info("addRecipeComment recipeCommentTO={}", JSON.toJSONString(recipeCommentTO));
+        logger.info("addRecipeComment recipeCommentTO = {}", JSON.toJSONString(recipeCommentTO));
+        validateAtop(recipeCommentTO, recipeCommentTO.getRecipeId(), recipeCommentTO.getCommentResultCode());
         UserRoleToken urt = UserRoleToken.getCurrent();
-        logger.info("addRecipeComment urt={}", JSON.toJSONString(urt));
+        logger.info("addRecipeComment urt = {}", JSON.toJSONString(urt));
+        if (Objects.nonNull(recipeCommentTO.getId())) {
+            recipeCommentTO.setId(null);
+        }
         RecipeComment recipeComment = ObjectCopyUtils.convert(recipeCommentTO, RecipeComment.class);
         recipeComment.setCreateDate(new Date());
         recipeComment.setLastModify(new Date());
