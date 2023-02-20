@@ -60,4 +60,13 @@ public class RecipeOrderRefundGmAtop extends BaseAtop {
     public String logisticsOrderNo(String orderCode) {
         return recipeOrderService.logisticsOrderNo(orderCode);
     }
+
+    /**
+     * 订单退费
+     * @param orderId
+     */
+    @RpcService
+    public boolean orderRefund(Integer orderId){
+        return true;
+    }
 }
