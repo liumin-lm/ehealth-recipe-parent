@@ -1,7 +1,6 @@
-package recipe.core.api;
+package com.ngari.recipe.comment.service;
 
 import com.ngari.recipe.comment.model.RecipeCommentTO;
-import com.ngari.recipe.entity.comment.RecipeComment;
 import ctd.util.annotation.RpcService;
 
 import java.util.List;
@@ -13,7 +12,7 @@ public interface IRecipeCommentService {
      * @param recipeComment
      * @return
      */
-    Integer addRecipeComment(RecipeComment recipeComment);
+    Integer addRecipeComment(RecipeCommentTO recipeComment);
 
     /**
      * 查询点评列表
