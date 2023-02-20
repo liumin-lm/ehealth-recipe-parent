@@ -8,7 +8,7 @@ import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import recipe.core.api.IRecipeCommentService;
+import com.ngari.recipe.comment.service.IRecipeCommentService;
 import recipe.dao.comment.RecipeCommentDAO;
 
 import java.util.Date;
@@ -53,7 +53,8 @@ public class RecipeCommentService implements IRecipeCommentService {
     }
 
     @Override
-    public Integer addRecipeComment(RecipeComment recipeComment) {
+    public Integer addRecipeComment(RecipeCommentTO recipeCommentTO) {
+        RecipeComment recipeComment = ObjectCopyUtils.convert(recipeCommentTO, RecipeComment.class);
         return recipeCommentDAO.save(recipeComment).getId();
     }
 }

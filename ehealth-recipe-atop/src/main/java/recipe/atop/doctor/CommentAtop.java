@@ -11,13 +11,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.atop.BaseAtop;
-import recipe.core.api.IRecipeCommentService;
+import com.ngari.recipe.comment.service.IRecipeCommentService;
 import recipe.util.ObjectCopyUtils;
-import recipe.util.ValidateUtil;
 
 import javax.annotation.Resource;
 import java.util.Date;
-import java.util.List;
 import java.util.Objects;
 
 /**
@@ -49,10 +47,9 @@ public class CommentAtop extends BaseAtop {
         recipeCommentTO.setCommentUserName(urt.getUserName());
         recipeCommentTO.setCommentUserUrt(urt.getId().toString());
         recipeCommentTO.setCommentUserType(urt.getRoleId());
-        RecipeComment recipeComment = ObjectCopyUtils.convert(recipeCommentTO, RecipeComment.class);
-        recipeComment.setCreateDate(new Date());
-        recipeComment.setLastModify(new Date());
-        return recipeCommentService.addRecipeComment(recipeComment);
+        recipeCommentTO.setCreateDate(new Date());
+        recipeCommentTO.setLastModify(new Date());
+        return recipeCommentService.addRecipeComment(recipeCommentTO);
     }
 
     @RpcService

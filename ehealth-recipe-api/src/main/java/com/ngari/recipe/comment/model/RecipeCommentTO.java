@@ -38,5 +38,5 @@ public class RecipeCommentTO {
     private Date createDate;
 
     @ItemProperty(alias = "最后修改时间")
-    private Date lastmodify;
+    private Date lastModify;
 }
