@@ -257,6 +257,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
             });
             result.add(recipeDetails);
         });
+        logger.info("StockBusinessService drugStock retailsSplitList={}", JSON.toJSONString(result));
         return result;
     }
 

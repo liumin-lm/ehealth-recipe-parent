@@ -401,7 +401,7 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
         if (validateSplitRecipe.contains("1")) {
             List<RecipeDetailBean> targetedDrugDetails = recipeDetails.stream().filter(a -> Integer.valueOf(1).equals(a.getTargetedDrugType())).collect(Collectors.toList());
             if (CollectionUtils.isNotEmpty(targetedDrugDetails)) {
-                result.addAll(Lists.partition(targetedDrugDetails, 1));
+                result.add(targetedDrugDetails);
             }
             recipeDetails = recipeDetails.stream().filter(a -> !Integer.valueOf(1).equals(a.getTargetedDrugType())).collect(Collectors.toList());
         }
@@ -413,6 +413,7 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
         if (CollectionUtils.isEmpty(result)) {
             result.add(recipeDetails);
         }
+        logger.info("RecipeDetailBusinessService splitRecipe result={}", JSON.toJSONString(result));
         return result;
     }
 
