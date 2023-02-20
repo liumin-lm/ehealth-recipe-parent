@@ -401,15 +401,18 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
         if (validateSplitRecipe.contains("1")) {
             List<RecipeDetailBean> targetedDrugDetails = recipeDetails.stream().filter(a -> Integer.valueOf(1).equals(a.getTargetedDrugType())).collect(Collectors.toList());
             if (CollectionUtils.isNotEmpty(targetedDrugDetails)) {
-                result.add(targetedDrugDetails);
+                result.addAll(Lists.partition(targetedDrugDetails, 1));
             }
             recipeDetails = recipeDetails.stream().filter(a -> !Integer.valueOf(1).equals(a.getTargetedDrugType())).collect(Collectors.toList());
+            if (CollectionUtils.isNotEmpty(recipeDetails)) {
+                result.add(recipeDetails);
+            }
         }
         //调用HIS拆分判断服务
         if (validateSplitRecipe.contains("2")) {
             result.add(recipeDetails);
+            return result;
         }
-        
         if (CollectionUtils.isEmpty(result)) {
             result.add(recipeDetails);
         }
