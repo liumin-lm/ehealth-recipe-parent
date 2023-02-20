@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.comment.model.RecipeCommentTO;
 import com.ngari.recipe.entity.comment.RecipeComment;
 import ctd.account.UserRoleToken;
+import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.slf4j.Logger;
@@ -32,13 +33,18 @@ public class CommentAtop extends BaseAtop {
 
     @RpcService
     public Integer addRecipeComment(RecipeCommentTO recipeCommentTO) {
-        logger.info("addRecipeComment recipeCommentTO = {}", JSON.toJSONString(recipeCommentTO));
         validateAtop(recipeCommentTO, recipeCommentTO.getRecipeId(), recipeCommentTO.getCommentResultCode());
         UserRoleToken urt = UserRoleToken.getCurrent();
         logger.info("addRecipeComment urt = {}", JSON.toJSONString(urt));
+        if (Objects.isNull(urt)) {
+            throw new DAOException("未获取到点评用户信息！");
+        }
         if (Objects.nonNull(recipeCommentTO.getId())) {
             recipeCommentTO.setId(null);
         }
+        recipeCommentTO.setCommentUserName(urt.getUserName());
+        recipeCommentTO.setCommentUserUrt(urt.getId().toString());
+        recipeCommentTO.setCommentUserType(urt.getRoleId());
         RecipeComment recipeComment = ObjectCopyUtils.convert(recipeCommentTO, RecipeComment.class);
         recipeComment.setCreateDate(new Date());
         recipeComment.setLastModify(new Date());
@@ -47,7 +53,6 @@ public class CommentAtop extends BaseAtop {
 
     @RpcService
     public RecipeCommentTO getRecipeCommentByRecipeId(Integer recipeId) {
-        logger.info("getRecipeCommentByRecipeId recipeId={}", recipeId);
         return recipeCommentService.getRecipeCommentByRecipeId(recipeId);
     }
 }
