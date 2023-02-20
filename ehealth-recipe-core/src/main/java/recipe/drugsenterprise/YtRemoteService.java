@@ -390,7 +390,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
             String hospitalCode = DictionaryUtil.getDictionary("eh.recipe.hospitalCode", nowRecipe.getClinicOrgan());
             sendYtRecipe.setHospitalCode(hospitalCode);
         }
-        sendYtRecipe.setHospitalName(nowRecipe.getOrganName());
+        sendYtRecipe.setHospitalName(organ.getName());
         //检验并组装处方信息（上面已经校验过了）
         assembleRecipeMsg(sendYtRecipe, nowRecipe, enterprise);
         //检验并组装处方对应的医生信息

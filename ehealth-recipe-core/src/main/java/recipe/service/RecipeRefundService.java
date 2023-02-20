@@ -43,6 +43,7 @@ import recipe.client.IConfigurationClient;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.enumerate.status.OrderStateEnum;
+import recipe.enumerate.type.CashDeskSettleUseCodeTypeEnum;
 import recipe.manager.EnterpriseManager;
 import recipe.manager.OrderManager;
 import recipe.manager.RecipeManager;
@@ -263,13 +264,8 @@ public class RecipeRefundService extends RecipeBaseService {
         //记录操作日志
         IBusActionLogService busActionLogService = AppDomainContext.getBean("opbase.busActionLogService", IBusActionLogService.class);
         if (refundRequestBean != null) {
-            Recipe recipe;
-            if (StringUtils.isNotEmpty(refundRequestBean.getRecipeCode())) {
-                recipe = recipeDAO.getByHisRecipeCodeAndClinicOrgan(refundRequestBean.getRecipeCode(), refundRequestBean.getOrganId());
-            } else {
-                recipe = recipeDAO.getByRecipeId(refundRequestBean.getRecipeId());
-            }
-            if (recipe == null) {
+            Recipe recipe = getRecipe(refundRequestBean);
+            if (Objects.isNull(recipe)) {
                 LOGGER.info("RecipeRefundService.refundResultCallBack recipe is null.");
                 return;
             }
@@ -278,7 +274,6 @@ public class RecipeRefundService extends RecipeBaseService {
                 LOGGER.info("RecipeRefundService.refundResultCallBack order is null OrderCode = {}", recipe.getOrderCode());
                 return;
             }
-
             if (refundRequestBean.getRefundFlag()) {
                 //退费申请记录保存
                 RecipeRefund recipeRefund = new RecipeRefund();
@@ -352,6 +347,38 @@ public class RecipeRefundService extends RecipeBaseService {
                 }
             }
         }
+    }
+
+    /**
+     * 根据配置项获取处方
+     * @param refundRequestBean
+     * @return
+     */
+    private Recipe getRecipe(RefundRequestBean refundRequestBean) {
+        if (null != refundRequestBean.getRecipeId()) {
+            return recipeDAO.getByRecipeId(refundRequestBean.getRecipeId());
+        }
+        Recipe recipe;
+        Integer cashDeskSettleUseCode = configurationClient.getValueCatchReturnInteger(refundRequestBean.getOrganId(), "cashDeskSettleUseCode", CashDeskSettleUseCodeTypeEnum.HIS_RECIPE_CODE.getType());
+        if (CashDeskSettleUseCodeTypeEnum.HIS_RECIPE_CODE.getType().equals(cashDeskSettleUseCode)) {
+            recipe = recipeDAO.getByHisRecipeCodeAndClinicOrgan(refundRequestBean.getRecipeCode(), refundRequestBean.getOrganId());
+            if (Objects.nonNull(recipe)) {
+                return recipe;
+            }
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeIdAndRecipeCostNumber(refundRequestBean.getRecipeCode());
+            if (Objects.nonNull(recipeExtend)) {
+                return recipeDAO.getByRecipeId(recipeExtend.getRecipeId());
+            }
+        } else {
+            List<Recipe> recipes = recipeDAO.getByChargeIdAndOrganId(refundRequestBean.getRecipeCode(), refundRequestBean.getOrganId());
+            if (CollectionUtils.isEmpty(recipes)) {
+                List<Recipe> recipeList = recipeDAO.getByChargeItemCodeAndOrganId(refundRequestBean.getRecipeCode(), refundRequestBean.getOrganId());
+                if (CollectionUtils.isNotEmpty(recipeList)) {
+                    return recipeList.get(0);
+                }
+            }
+        }
+        return null;
     }
 
     /**
