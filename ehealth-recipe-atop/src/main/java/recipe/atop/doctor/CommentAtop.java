@@ -7,6 +7,7 @@ import ctd.account.UserRoleToken;
 import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.atop.BaseAtop;
@@ -33,11 +34,14 @@ public class CommentAtop extends BaseAtop {
 
     @RpcService
     public Integer addRecipeComment(RecipeCommentTO recipeCommentTO) {
-        validateAtop(recipeCommentTO, recipeCommentTO.getRecipeId(), recipeCommentTO.getCommentResultCode());
+        validateAtop(recipeCommentTO, recipeCommentTO.getRecipeId());
         UserRoleToken urt = UserRoleToken.getCurrent();
         logger.info("addRecipeComment urt = {}", JSON.toJSONString(urt));
         if (Objects.isNull(urt)) {
             throw new DAOException("未获取到点评用户信息！");
+        }
+        if (Objects.isNull(recipeCommentTO.getCommentResultCode()) || StringUtils.isEmpty(recipeCommentTO.getCommentResult())) {
+            throw new DAOException("请选择点评结果！");
         }
         if (Objects.nonNull(recipeCommentTO.getId())) {
             recipeCommentTO.setId(null);
