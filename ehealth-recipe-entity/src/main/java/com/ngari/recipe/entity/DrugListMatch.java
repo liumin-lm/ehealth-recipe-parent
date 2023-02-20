@@ -275,6 +275,9 @@ public class DrugListMatch implements java.io.Serializable {
     @ItemProperty(alias = "开药数量限制")
     private Integer maximum;
 
+    @ItemProperty(alias = "医保类别")
+    private String medicalInsuranceCategory;
+
 //    @ItemProperty(alias = "是否冷链运输 0 否 1 是")
 //    private Integer coldChainTransportationFlag;
 //
@@ -920,5 +923,14 @@ public class DrugListMatch implements java.io.Serializable {
 
     public void setUseDoseSmallestUnitHisCode(String useDoseSmallestUnitHisCode) {
         this.useDoseSmallestUnitHisCode = useDoseSmallestUnitHisCode;
+    }
+
+    @Column(name = "medical_insurance_category")
+    public String getMedicalInsuranceCategory() {
+        return medicalInsuranceCategory;
+    }
+
+    public void setMedicalInsuranceCategory(String medicalInsuranceCategory) {
+        this.medicalInsuranceCategory = medicalInsuranceCategory;
     }
 }

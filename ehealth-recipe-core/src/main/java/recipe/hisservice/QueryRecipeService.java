@@ -1152,7 +1152,7 @@ public class QueryRecipeService implements IQueryRecipeService {
             request.setHisDrugClassCode(organDrugChangeBean.getHisDrugClassCode());
             request.setHisDrugClassName(organDrugChangeBean.getHisDrugClassName());
             request.setMaximum(organDrugChangeBean.getMaximum());
-
+            request.setMedicalInsuranceCategory(organDrugChangeBean.getMedicalInsuranceCategory());
         } catch (Exception e) {
             //抛出异常信息，返回空数组
             LOGGER.error("updateOrSaveOrganDrug 当前更新操作异常：", e);

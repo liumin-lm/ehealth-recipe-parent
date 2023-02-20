@@ -4423,6 +4423,10 @@ public class RecipeService extends RecipeBaseService {
             drugListMatch.setMaximum(drug.getMaximum());
         }
 
+        if(StringUtils.isNotEmpty(drug.getMedicalInsuranceCategory())){
+            drugListMatch.setMedicalInsuranceCategory(drug.getMedicalInsuranceCategory());
+        }
+
 //        if(drug.getColdChainTransportationFlag() != null){
 //            drugListMatch.setColdChainTransportationFlag(drug.getColdChainTransportationFlag());
 //        }
@@ -4731,7 +4735,9 @@ public class RecipeService extends RecipeBaseService {
 //        if(drug.getColdChainTransportationFlag() != null){
 //            organDrug.setColdChainTransportationFlag(drug.getColdChainTransportationFlag());
 //        }
-
+        if(StringUtils.isNotEmpty(drug.getMedicalInsuranceCategory())){
+            organDrug.setMedicalInsuranceCategory(drug.getMedicalInsuranceCategory());
+        }
         if (isAllowSyncField(organDrugListSyncFieldMap.get(SyncDrugConstant.drugsEnterpriseIds))
                 && !ObjectUtils.isEmpty(drug.getDrugsEnterpriseCode())) {
             String drugsEnterpriseCodeHis = drug.getDrugsEnterpriseCode();
@@ -5189,6 +5195,10 @@ public class RecipeService extends RecipeBaseService {
                 }
             }
         }
+        if (!ObjectUtils.isEmpty(drug.getMedicalInsuranceCategory())) {
+            organDrug.setMedicalInsuranceCategory(drug.getMedicalInsuranceCategory());
+        }
+
         LOGGER.info("updateHisDrug 更新后药品信息 organDrug：{}", JSONUtils.toString(organDrug));
         OrganDrugList update = organDrugListDAO.update(organDrug);
         //同步药品到监管备案
