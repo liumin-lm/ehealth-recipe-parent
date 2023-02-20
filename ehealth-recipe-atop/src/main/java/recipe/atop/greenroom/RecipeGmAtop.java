@@ -219,7 +219,7 @@ public class RecipeGmAtop extends BaseAtop {
      * @param invoiceType
      */
     @RpcService
-    public Boolean BatchUpdateInvoiceStatus(List<String> orderCodes, Integer invoiceType){
+    public Boolean batchUpdateInvoiceStatus(List<String> orderCodes, Integer invoiceType){
         Boolean flag = null;
         for (String orderCode : orderCodes){
             flag = recipeOrderService.updateInvoiceStatus(orderCode, invoiceType);
