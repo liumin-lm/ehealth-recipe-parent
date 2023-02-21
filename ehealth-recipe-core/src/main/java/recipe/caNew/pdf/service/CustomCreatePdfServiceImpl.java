@@ -546,7 +546,7 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
         }
         List<RecipeLabelDTO> list = new LinkedList<>();
         List<String> drugCodeList = recipeDetails.stream().filter(recipeDetail -> StringUtils.isNotEmpty(recipeDetail.getOrganDrugCode())).map(Recipedetail::getOrganDrugCode).collect(Collectors.toList());
-        List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugCodes(recipe.getClinicId(), drugCodeList);
+        List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugCodes(recipe.getClinicOrgan(), drugCodeList);
         Map<String, List<OrganDrugList>> organDrugListMap = organDrugList.stream().collect(Collectors.groupingBy(OrganDrugList::getOrganDrugCode));
         Recipedetail recipeDetail = recipeDetails.get(0);
 
@@ -588,7 +588,7 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
         }
         logger.info("createMedicinePDF recipeInfoDTO:{}",JsonUtil.toString(recipeInfoDTO));
         List<String> drugCodeList = recipeDetails.stream().filter(recipeDetail -> StringUtils.isNotEmpty(recipeDetail.getOrganDrugCode())).map(Recipedetail::getOrganDrugCode).collect(Collectors.toList());
-        List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugCodes(recipe.getClinicId(), drugCodeList);
+        List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugCodes(recipe.getClinicOrgan(), drugCodeList);
         Map<String, List<OrganDrugList>> organDrugListMap = organDrugList.stream().collect(Collectors.groupingBy(OrganDrugList::getOrganDrugCode));
         List<RecipeLabelDTO> list = new LinkedList<>();
         Recipedetail recipedetail = recipeDetails.get(0);
