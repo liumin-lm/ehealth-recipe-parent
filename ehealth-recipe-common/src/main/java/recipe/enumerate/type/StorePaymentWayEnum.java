@@ -5,7 +5,7 @@ package recipe.enumerate.type;
  */
 public enum StorePaymentWayEnum {
 
-    STORE_PAYMENT_WAY_OFFLINE(0, "货到付款"),
+    STORE_PAYMENT_WAY_OFFLINE(2, "货到付款"),
     STORE_PAYMENT_WAY_ONLINE(1, "在线支付");
     private Integer type;
     private String name;
