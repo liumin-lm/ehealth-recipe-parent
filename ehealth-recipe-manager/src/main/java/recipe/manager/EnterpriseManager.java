@@ -1083,15 +1083,13 @@ public class EnterpriseManager extends BaseManager {
         Integer storePayFlag = StorePaymentWayEnum.STORE_PAYMENT_WAY_OFFLINE.getType();
         // 到院自取是否采用药企管理模式
         Boolean drugToHosByEnterprise = configurationClient.getValueBooleanCatch(organId, "drugToHosByEnterprise", false);
-        if (GiveModeEnum.GIVE_MODE_HOSPITAL_DRUG.getType().equals(giveMode)) {
+        if (GiveModeEnum.GIVE_MODE_HOSPITAL_DRUG.getType().equals(giveMode) && !drugToHosByEnterprise) {
             // 到院自取
-            if (!drugToHosByEnterprise) {
-                Boolean takeOneselfPayment = configurationClient.getValueBooleanCatch(organId, "supportToHosPayFlag", false);
-                if (takeOneselfPayment) {
-                    storePayFlag = StorePaymentWayEnum.STORE_PAYMENT_WAY_ONLINE.getType();
-                }
-                return storePayFlag;
+            Boolean takeOneselfPayment = configurationClient.getValueBooleanCatch(organId, "supportToHosPayFlag", false);
+            if (takeOneselfPayment) {
+                storePayFlag = StorePaymentWayEnum.STORE_PAYMENT_WAY_ONLINE.getType();
             }
+            return storePayFlag;
         }
         if (Objects.isNull(drugsEnterpriseId)) {
             throw new DAOException("采用药企销售配置模式药企id不能为空");
