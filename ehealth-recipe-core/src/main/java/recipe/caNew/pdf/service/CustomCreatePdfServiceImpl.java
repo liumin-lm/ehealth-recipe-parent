@@ -586,7 +586,7 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
         if (CollectionUtils.isEmpty(recipeDetails)) {
             return null;
         }
-        logger.info("createMedicinePDF recipeInfoDTO",JsonUtil.toString(recipeInfoDTO));
+        logger.info("createMedicinePDF recipeInfoDTO:{}",JsonUtil.toString(recipeInfoDTO));
         List<String> drugCodeList = recipeDetails.stream().filter(recipeDetail -> StringUtils.isNotEmpty(recipeDetail.getOrganDrugCode())).map(Recipedetail::getOrganDrugCode).collect(Collectors.toList());
         List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugCodes(recipe.getClinicId(), drugCodeList);
         Map<String, List<OrganDrugList>> organDrugListMap = organDrugList.stream().collect(Collectors.groupingBy(OrganDrugList::getOrganDrugCode));
