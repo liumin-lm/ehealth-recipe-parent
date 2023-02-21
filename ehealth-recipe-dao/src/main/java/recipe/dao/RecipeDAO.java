@@ -1803,6 +1803,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                     break;
             }
         }
+        if(StringUtils.isNotEmpty(recipesQueryVO.getRecipeCode())){
+            hql.append(" and r.recipeCode = ").append(recipesQueryVO.getRecipeCode());
+        }
         LOGGER.info("generateRecipeOderWhereHQLforStatistics hql:{}", hql);
         return hql;
     }
@@ -4186,11 +4189,11 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         return action.getResult();
     }
 
-    @DAOMethod(sql = "from Recipe where ClinicOrgan =:ClinicOrgan and orderCode is null and status = 2 and invalidTime >:currentTime", limit = 0)
-    public abstract List<Recipe> findInvalidRecipeByOrganId(@DAOParam("ClinicOrgan") Integer ClinicOrgan, @DAOParam("currentTime") Date currentTime);
+    @DAOMethod(sql = "from Recipe where  orderCode is null and status = 2 and invalidTime >:currentTime", limit = 0)
+    public abstract List<Recipe> findInvalidRecipeByOrganId(@DAOParam("currentTime") Date currentTime);
 
-    @DAOMethod(sql = "from Recipe where ClinicOrgan =:ClinicOrgan and orderCode is not null and PayFlag = 0 and invalidTime >:currentTime ", limit = 0)
-    public abstract List<Recipe> findInvalidOrderByOrganId(@DAOParam("ClinicOrgan") Integer ClinicOrgan, @DAOParam("currentTime") Date currentTime);
+    @DAOMethod(sql = "from Recipe where orderCode is not null and PayFlag = 0 and invalidTime >:currentTime ", limit = 0)
+    public abstract List<Recipe> findInvalidOrderByOrganId( @DAOParam("currentTime") Date currentTime);
 
 
     /**

@@ -234,8 +234,20 @@ public class OrganDrugListBean implements java.io.Serializable {
 
     @ItemProperty(alias = "中药国标编码")
     private String tcmNationalStandardCode;
+
     @ItemProperty(alias = "开药数量限制")
     private Integer maximum;
+
+    @ItemProperty(alias = "医保类别")
+    private String medicalInsuranceCategory;
+
+    public String getMedicalInsuranceCategory() {
+        return medicalInsuranceCategory;
+    }
+
+    public void setMedicalInsuranceCategory(String medicalInsuranceCategory) {
+        this.medicalInsuranceCategory = medicalInsuranceCategory;
+    }
 
     public Integer getMaximum() {
         return maximum;

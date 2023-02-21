@@ -237,6 +237,9 @@ public class OrganDrugList implements java.io.Serializable {
 
     @ItemProperty(alias = "开药数量限制")
     private Integer maximum;
+
+    @ItemProperty(alias = "医保类别")
+    private String medicalInsuranceCategory;
     
     @Column(name = "maximum")
     public Integer getMaximum() {
@@ -901,16 +904,16 @@ public class OrganDrugList implements java.io.Serializable {
         this.useDoseSmallestUnitHisCode = useDoseSmallestUnitHisCode;
     }
 
-    //    @Transient
-//    public String getType() {
-//        return type;
-//    }
-//
-//    public void setType(String type) {
-//        this.type = type;
-//    }
-
     public void setDrugItemCode(String drugItemCode) {
         this.drugItemCode = drugItemCode;
+    }
+
+    @Column(name = "medical_insurance_category")
+    public String getMedicalInsuranceCategory() {
+        return medicalInsuranceCategory;
+    }
+
+    public void setMedicalInsuranceCategory(String medicalInsuranceCategory) {
+        this.medicalInsuranceCategory = medicalInsuranceCategory;
     }
 }

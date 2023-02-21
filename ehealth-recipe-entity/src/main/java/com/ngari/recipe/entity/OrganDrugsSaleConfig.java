@@ -37,7 +37,11 @@ public class OrganDrugsSaleConfig implements Serializable {
     private Integer isSupportSendToStation;
 
     @ItemProperty(alias = "自取支付方式 1 在线支付 2 线下支付")
+    @Deprecated
     private Integer takeOneselfPayment;
+
+    @ItemProperty(alias = "自取支付方式 1 在线支付 2 线下支付")
+    private String takeOneselfPaymentWay;
 
     @ItemProperty(alias = "自取支付通道 1平台支付 2卫宁支付")
     private Integer takeOneselfPaymentChannel;
@@ -325,5 +329,14 @@ public class OrganDrugsSaleConfig implements Serializable {
 
     public void setPaymentWayTips(String paymentWayTips) {
         this.paymentWayTips = paymentWayTips;
+    }
+
+    @Column(name = "take_oneself_payment_way")
+    public String getTakeOneselfPaymentWay() {
+        return takeOneselfPaymentWay;
+    }
+
+    public void setTakeOneselfPaymentWay(String takeOneselfPaymentWay) {
+        this.takeOneselfPaymentWay = takeOneselfPaymentWay;
     }
 }

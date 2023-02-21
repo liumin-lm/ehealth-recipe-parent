@@ -1,5 +1,6 @@
 package recipe.atop.doctor;
 
+import com.alibaba.fastjson.JSON;
 import com.ngari.patient.dto.HealthCardDTO;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.dto.OutPatientRecordResDTO;
@@ -109,6 +110,7 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
                 recipeDTO.setRecipeExtend(recipe.util.ObjectCopyUtils.convert(recipeInfoVO.getRecipeExtendBean(), RecipeExtend.class));
                 retailsSplitList.addAll(iStockBusinessService.retailsSplitList(recipeDTO));
             });
+            logger.info("WriteRecipeDoctorAtop splitRecipe retailsSplitList={}", JSON.toJSONString(retailsSplitList));
             //生成暂存处方
             retailsSplitList.forEach(a -> {
                 if (CollectionUtils.isEmpty(a)) {
@@ -124,9 +126,11 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
                 }
                 recipeInfoVO.setRecipeDetails(a);
                 this.stagingRecipe(recipeInfoVO);
+                logger.info("WriteRecipeDoctorAtop splitRecipe recipeInfoVO={}", JSON.toJSONString(recipeInfoVO));
             });
             if (!ValidateUtil.integerIsEmpty(recipeId)) {
                 recipeBusinessService.deleteByRecipeIds(Collections.singletonList(recipeId));
+                logger.info("WriteRecipeDoctorAtop splitRecipe recipeId ={}", recipeId);
             }
         });
         //返回同组处方id

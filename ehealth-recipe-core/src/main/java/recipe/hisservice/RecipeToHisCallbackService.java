@@ -206,6 +206,7 @@ public class RecipeToHisCallbackService {
      */
     @RpcService
     @LogRecord
+    @Deprecated
     public void sendFail(HisSendResTO response) {
         LOGGER.error("recipeSend recive fail. recipeId={}, response={}", response.getRecipeId(), JSONUtils.toString(response));
         if (StringUtils.isEmpty(response.getRecipeId())) {

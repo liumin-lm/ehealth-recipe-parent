@@ -49,8 +49,6 @@ import recipe.core.api.IDrugBusinessService;
 import recipe.dao.*;
 import recipe.drugTool.service.DrugToolService;
 import recipe.enumerate.status.RecipeAuditStateEnum;
-import recipe.enumerate.type.RecipeSendTypeEnum;
-import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.manager.EnterpriseManager;
 import recipe.manager.OrderManager;
@@ -105,10 +103,6 @@ public class RecipeTestService {
     @Autowired
     private RecipeParameterDao recipeParameterDao;
     @Autowired
-    private OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO;
-    @Autowired
-    private OrganDrugsSaleConfigDAO drugsSaleConfigDAO;
-    @Autowired
     private RecipeDetailDAO recipeDetailDAO;
     @Autowired
     private RecipeExtendDAO recipeExtendDAO;
@@ -118,6 +112,8 @@ public class RecipeTestService {
     private FastRecipeDAO fastRecipeDAO;
     @Autowired
     private RecipeManager recipeManager;
+    @Autowired
+    private OrganDrugsSaleConfigDAO drugsSaleConfigDAO;
 
     /**
      * 状态通知补偿方法
@@ -708,185 +704,10 @@ public class RecipeTestService {
         recipeDAO.updateRecipeByOrganIdAndPushFlag(organId, depId, beginTime, endTime);
     }
 
-    /**
-     * 处理购药方式历史数据
-     */
-    @RpcService
-    public void handleGiveModeEnt(){
-        List<OrganAndDrugsepRelation> organAndDrugsDepRelationList = organAndDrugsepRelationDAO.findAllData();
-        LOGGER.info("handleGiveModeEnt organAndDrugsDepRelationList:{}", JSON.toJSONString(organAndDrugsDepRelationList));
-        organAndDrugsDepRelationList.forEach(organAndDrugsDepRelation -> {
-            DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(organAndDrugsDepRelation.getDrugsEnterpriseId());
-            LOGGER.info("handleGiveModeEnt drugsEnterprise:{}", JSON.toJSONString(drugsEnterprise));
-            OrganDrugsSaleConfig organDrugsSaleConfig = drugsSaleConfigDAO.getOrganDrugsSaleConfig(organAndDrugsDepRelation.getDrugsEnterpriseId());
-            LOGGER.info("handleGiveModeEnt organDrugsSaleConfig:{}", JSON.toJSONString(organDrugsSaleConfig));
-            Integer payModeSupport = drugsEnterprise.getPayModeSupport();
-            Set<String> supportGiveModeList = new HashSet<>();
-            switch (payModeSupport) {
-                case 1:
-                    //在线支付
-                    if (RecipeSendTypeEnum.ALRAEDY_PAY.getSendType().equals(drugsEnterprise.getSendType())) {
-                        //医院配送
-                        supportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType().toString());
-                    } else {
-                        //药企配送
-                        supportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType().toString());
-                    }
-                    if (StringUtils.isNotEmpty(organAndDrugsDepRelation.getDrugsEnterpriseSupportGiveMode())) {
-                        String[] giveMode = organAndDrugsDepRelation.getDrugsEnterpriseSupportGiveMode().split(",");
-                        supportGiveModeList.addAll(Arrays.asList(giveMode));
-                    }
-                    organAndDrugsDepRelation.setDrugsEnterpriseSupportGiveMode(StringUtils.join(supportGiveModeList,","));
-                    organAndDrugsepRelationDAO.updateNonNullFieldByPrimaryKey(organAndDrugsDepRelation);
-                    if (Objects.nonNull(organDrugsSaleConfig)) {
-                        if (StringUtils.isEmpty(organDrugsSaleConfig.getStandardPaymentWay())) {
-                            organDrugsSaleConfig.setStandardPaymentWay("1");
-                            drugsSaleConfigDAO.updateNonNullFieldByPrimaryKey(organDrugsSaleConfig);
-                        }
-                    } else {
-                        saveDrugSaleConfig(organAndDrugsDepRelation, "1", drugsEnterprise.getIsHosDep());
-                    }
-                    break;
-                case 2:
-                    //货到付款
-                    if (RecipeSendTypeEnum.ALRAEDY_PAY.getSendType().equals(drugsEnterprise.getSendType())) {
-                        //医院配送
-                        supportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType().toString());
-                    } else {
-                        //药企配送
-                        supportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType().toString());
-                    }
-                    if (StringUtils.isNotEmpty(organAndDrugsDepRelation.getDrugsEnterpriseSupportGiveMode())) {
-                        String[] giveMode = organAndDrugsDepRelation.getDrugsEnterpriseSupportGiveMode().split(",");
-                        supportGiveModeList.addAll(Arrays.asList(giveMode));
-                    }
-                    organAndDrugsDepRelation.setDrugsEnterpriseSupportGiveMode(StringUtils.join(supportGiveModeList,","));
-                    organAndDrugsepRelationDAO.updateNonNullFieldByPrimaryKey(organAndDrugsDepRelation);
-                    if (Objects.nonNull(organDrugsSaleConfig)) {
-                        if (StringUtils.isEmpty(organDrugsSaleConfig.getStandardPaymentWay())) {
-                            organDrugsSaleConfig.setStandardPaymentWay("2");
-                            drugsSaleConfigDAO.updateNonNullFieldByPrimaryKey(organDrugsSaleConfig);
-                        }
-                    } else {
-                        saveDrugSaleConfig(organAndDrugsDepRelation, "2", drugsEnterprise.getIsHosDep());
-                    }
-                    break;
-                case 3:
-                    //药店取药
-                    supportGiveModeList.add(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getType().toString());
-                    organAndDrugsDepRelation.setDrugsEnterpriseSupportGiveMode(StringUtils.join(supportGiveModeList,","));
-                    organAndDrugsepRelationDAO.updateNonNullFieldByPrimaryKey(organAndDrugsDepRelation);
-                    break;
-                case 4:
-                    //例外支付
-                    supportGiveModeList.add(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getType().toString());
-                    organAndDrugsDepRelation.setDrugsEnterpriseSupportGiveMode(StringUtils.join(supportGiveModeList,","));
-                    organAndDrugsepRelationDAO.updateNonNullFieldByPrimaryKey(organAndDrugsDepRelation);
-                    break;
-                case 7:
-                    //配送到家+药店取药
-                    //在线支付
-                    if (RecipeSendTypeEnum.ALRAEDY_PAY.getSendType().equals(drugsEnterprise.getSendType())) {
-                        //医院配送
-                        supportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType().toString());
-                    } else {
-                        //药企配送
-                        supportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType().toString());
-                    }
-                    supportGiveModeList.add(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getType().toString());
-                    if (StringUtils.isNotEmpty(organAndDrugsDepRelation.getDrugsEnterpriseSupportGiveMode())) {
-                        String[] giveMode = organAndDrugsDepRelation.getDrugsEnterpriseSupportGiveMode().split(",");
-                        supportGiveModeList.addAll(Arrays.asList(giveMode));
-                    }
-                    organAndDrugsDepRelation.setDrugsEnterpriseSupportGiveMode(StringUtils.join(supportGiveModeList,","));
-                    organAndDrugsepRelationDAO.updateNonNullFieldByPrimaryKey(organAndDrugsDepRelation);
-                    if (Objects.nonNull(organDrugsSaleConfig)) {
-                        if (StringUtils.isEmpty(organDrugsSaleConfig.getStandardPaymentWay())) {
-                            organDrugsSaleConfig.setStandardPaymentWay("1");
-                            drugsSaleConfigDAO.updateNonNullFieldByPrimaryKey(organDrugsSaleConfig);
-                        }
-                    } else {
-                        saveDrugSaleConfig(organAndDrugsDepRelation, "1", drugsEnterprise.getIsHosDep());
-                    }
-                    break;
-                case 8:
-                    //货到付款+药店取药
-                    if (RecipeSendTypeEnum.ALRAEDY_PAY.getSendType().equals(drugsEnterprise.getSendType())) {
-                        //医院配送
-                        supportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType().toString());
-                    } else {
-                        //药企配送
-                        supportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType().toString());
-                    }
-                    supportGiveModeList.add(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getType().toString());
-                    if (StringUtils.isNotEmpty(organAndDrugsDepRelation.getDrugsEnterpriseSupportGiveMode())) {
-                        String[] giveMode = organAndDrugsDepRelation.getDrugsEnterpriseSupportGiveMode().split(",");
-                        supportGiveModeList.addAll(Arrays.asList(giveMode));
-                    }
-                    organAndDrugsDepRelation.setDrugsEnterpriseSupportGiveMode(StringUtils.join(supportGiveModeList,","));
-                    organAndDrugsepRelationDAO.updateNonNullFieldByPrimaryKey(organAndDrugsDepRelation);
-                    if (Objects.nonNull(organDrugsSaleConfig)) {
-                        if (StringUtils.isEmpty(organDrugsSaleConfig.getStandardPaymentWay())) {
-                            organDrugsSaleConfig.setStandardPaymentWay("2");
-                            drugsSaleConfigDAO.updateNonNullFieldByPrimaryKey(organDrugsSaleConfig);
-                        }
-                    } else {
-                        saveDrugSaleConfig(organAndDrugsDepRelation, "2", drugsEnterprise.getIsHosDep());
-                    }
-                    break;
-                case 9:
-                    //都支持
-                    if (RecipeSendTypeEnum.ALRAEDY_PAY.getSendType().equals(drugsEnterprise.getSendType())) {
-                        //医院配送
-                        supportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType().toString());
-                    } else {
-                        //药企配送
-                        supportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType().toString());
-                    }
-                    supportGiveModeList.add(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getType().toString());
-                    supportGiveModeList.add(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getType().toString());
-                    if (StringUtils.isNotEmpty(organAndDrugsDepRelation.getDrugsEnterpriseSupportGiveMode())) {
-                        String[] giveMode = organAndDrugsDepRelation.getDrugsEnterpriseSupportGiveMode().split(",");
-                        supportGiveModeList.addAll(Arrays.asList(giveMode));
-                    }
-                    organAndDrugsDepRelation.setDrugsEnterpriseSupportGiveMode(StringUtils.join(supportGiveModeList,","));
-                    organAndDrugsepRelationDAO.updateNonNullFieldByPrimaryKey(organAndDrugsDepRelation);
-                    if (Objects.nonNull(organDrugsSaleConfig)) {
-                        if (StringUtils.isEmpty(organDrugsSaleConfig.getStandardPaymentWay())) {
-                            organDrugsSaleConfig.setStandardPaymentWay("1,2");
-                            drugsSaleConfigDAO.updateNonNullFieldByPrimaryKey(organDrugsSaleConfig);
-                        }
-                    } else {
-                        saveDrugSaleConfig(organAndDrugsDepRelation, "1,2", drugsEnterprise.getIsHosDep());
-                    }
-                    break;
-            }
-        });
-    }
-
     @RpcService
     public void drugTakeChangeForHis(List<Integer> recipeIdList){
         RecipeHisService recipeHisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
         recipeHisService.drugTakeChangeForHis(recipeIdList);
-    }
-
-    @RpcService
-    public void stock(){
-        List<DrugsEnterprise> canEnterpriseList = drugsEnterpriseDAO.findAllDrugsEnterpriseByStatus(1);
-        List<DrugsEnterprise> noCanEnterpriseList = drugsEnterpriseDAO.findAllDrugsEnterpriseByStatus(0);
-        canEnterpriseList.addAll(noCanEnterpriseList);
-        canEnterpriseList.forEach(drugsEnterprise -> {
-            if (0 == drugsEnterprise.getCheckInventoryFlag()) {
-                drugsEnterprise.setCheckInventoryType(0);
-            } else if (1 == drugsEnterprise.getCheckInventoryFlag()) {
-                drugsEnterprise.setCheckInventoryType(3);
-                drugsEnterprise.setCheckInventoryWay(1);
-            } else if (3 == drugsEnterprise.getCheckInventoryFlag()) {
-                drugsEnterprise.setCheckInventoryType(3);
-                drugsEnterprise.setCheckInventoryWay(2);
-            }
-            drugsEnterpriseDAO.update(drugsEnterprise);
-        });
     }
 
     @RpcService
@@ -949,25 +770,15 @@ public class RecipeTestService {
         });
     }
 
-    private void saveDrugSaleConfig(OrganAndDrugsepRelation organAndDrugsDepRelation, String standardPaymentWay, Integer isHosDep) {
-        OrganDrugsSaleConfig drugsSaleConfig = new OrganDrugsSaleConfig();
-        drugsSaleConfig.setStandardPaymentWay(standardPaymentWay);
-        drugsSaleConfig.setCreateTime(new Date());
-        drugsSaleConfig.setOrganId(0);
-        drugsSaleConfig.setDrugsEnterpriseId(organAndDrugsDepRelation.getDrugsEnterpriseId());
-        drugsSaleConfig.setIsSupportSendToStation(0);
-        drugsSaleConfig.setTakeOneselfPayment(1);
-        drugsSaleConfig.setTakeOneselfPaymentChannel(1);
-        drugsSaleConfig.setTakeOneselfPlanDate(0);
-        drugsSaleConfig.setTakeOneselfPlanAmTime("08:00:00,12:00:00");
-        drugsSaleConfig.setTakeOneselfPlanPmTime("15:00:00,17:00:00");
-        drugsSaleConfig.setUseDrugDispenserFlag(0);
-        drugsSaleConfig.setPrintUsageLabelFlag(0);
-        drugsSaleConfig.setInvoiceRequestFlag(0);
-        drugsSaleConfig.setInvoiceSupportFlag(0);
-        drugsSaleConfig.setIsHosDep(isHosDep);
-        drugsSaleConfig.setTakeDrugsVoucher(1);
-        drugsSaleConfig.setSpecialTips("");
-        drugsSaleConfigDAO.save(drugsSaleConfig);
+    @RpcService
+    public void storePaymentWay(){
+        List<DrugsEnterprise> drugsEnterprises = drugsEnterpriseDAO.findAllDrugsEnterpriseByStatus(1);
+        drugsEnterprises.forEach(drugsEnterprise -> {
+            OrganDrugsSaleConfig drugsSaleConfig = drugsSaleConfigDAO.getOrganDrugsSaleConfig(drugsEnterprise.getId());
+            List list = Arrays.asList(drugsEnterprise.getStorePayFlag());
+            drugsSaleConfig.setStorePaymentWay(JSON.toJSONString(list));
+            drugsSaleConfigDAO.updateNonNullFieldByPrimaryKey(drugsSaleConfig);
+        });
     }
+
 }

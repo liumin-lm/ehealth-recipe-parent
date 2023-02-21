@@ -11,7 +11,6 @@ import com.ngari.recipe.recipe.model.OrderRepTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.vo.RecipeSkipVO;
-import ctd.persistence.exception.DAOException;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +19,6 @@ import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.client.IConfigurationClient;
-import recipe.constant.ErrorCode;
 import recipe.core.api.IRecipeDetailBusinessService;
 import recipe.drugTool.validate.RecipeDetailValidateTool;
 import recipe.enumerate.status.RecipeStateEnum;
@@ -372,7 +370,7 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
     }
 
     @Override
-    public void validateSplitRecipe(ValidateDetailVO validateDetailVO) {
+    public String validateSplitRecipe(ValidateDetailVO validateDetailVO) {
         RecipeBean recipeBean = validateDetailVO.getRecipeBean();
         List<String> validateSplitRecipe = configurationClient.getValueListCatch(recipeBean.getClinicOrgan(), "validateSplitRecipe", new ArrayList<>());
         logger.info("RecipeDetailBusinessService validateSplitRecipe validateSplitRecipe={}", JSON.toJSONString(validateSplitRecipe));
@@ -381,13 +379,14 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
         if (validateSplitRecipe.contains("1")) {
             boolean targetedDrugType = recipeDetails.stream().anyMatch(a -> Integer.valueOf(1).equals(a.getTargetedDrugType()));
             if (targetedDrugType && recipeDetails.size() > 1) {
-                throw new DAOException(ErrorCode.SERVICE_ERROR, "因为【存在靶向药】，需要进行拆分，请确认");
+                return "因为【存在靶向药】，需要进行拆分，请确认";
             }
         }
         //调用HIS拆分判断服务
         if (validateSplitRecipe.contains("2")) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "因为【配置了his拆方】，需要进行拆分，请确认");
+            return "因为【HIS判断需要拆分处方】，需要进行拆分，请确认";
         }
+        return null;
     }
 
     @Override
@@ -404,15 +403,19 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
                 result.addAll(Lists.partition(targetedDrugDetails, 1));
             }
             recipeDetails = recipeDetails.stream().filter(a -> !Integer.valueOf(1).equals(a.getTargetedDrugType())).collect(Collectors.toList());
+            if (CollectionUtils.isNotEmpty(recipeDetails)) {
+                result.add(recipeDetails);
+            }
         }
         //调用HIS拆分判断服务
         if (validateSplitRecipe.contains("2")) {
             result.add(recipeDetails);
+            return result;
         }
-        
         if (CollectionUtils.isEmpty(result)) {
             result.add(recipeDetails);
         }
+        logger.info("RecipeDetailBusinessService splitRecipe result={}", JSON.toJSONString(result));
         return result;
     }
 

@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * @description： 机构药企销售配置
@@ -38,6 +39,9 @@ public class OrganDrugsSaleConfigVo implements Serializable {
      * 自取支付方式 1 在线支付 2 线下支付
      */
     private Integer takeOneselfPayment;
+
+    @ItemProperty(alias = "自取支付方式 1 在线支付 2 线下支付")
+    private List<Integer> takeOneselfPaymentWay;
 
     /**
      * 自取支付通道 1平台支付 2卫宁支付
@@ -106,7 +110,7 @@ public class OrganDrugsSaleConfigVo implements Serializable {
     private String orderPushFailPhone;
 
     @ItemProperty(alias = "到店取药收款方式  0 货到付款 1 在线支付 ")
-    private String storePaymentWay;
+    private List<Integer> storePaymentWay;
 
     @ItemProperty(alias = "取药收款提示文案")
     private String paymentWayTips;

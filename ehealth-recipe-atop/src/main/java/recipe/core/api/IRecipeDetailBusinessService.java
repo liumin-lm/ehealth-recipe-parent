@@ -128,7 +128,7 @@ public interface IRecipeDetailBusinessService {
      *
      * @param validateDetailVO
      */
-    void validateSplitRecipe(ValidateDetailVO validateDetailVO);
+    String validateSplitRecipe(ValidateDetailVO validateDetailVO);
 
     /**
      * 智能拆方知识库规则-拆分药品

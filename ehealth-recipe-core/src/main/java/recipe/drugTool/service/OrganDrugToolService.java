@@ -1,6 +1,5 @@
 package recipe.drugTool.service;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.UsePathwaysDTO;
@@ -14,15 +13,12 @@ import com.ngari.recipe.entity.*;
 import ctd.persistence.DAOFactory;
 import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
-import ctd.util.FileAuth;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import recipe.aop.LogRecord;
 import recipe.bussutil.ExcelUtil;
@@ -36,13 +32,10 @@ import recipe.vo.greenroom.ImportDrugRecordVO;
 
 import javax.annotation.Resource;
 import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 
 /**
  * liumin
@@ -752,23 +745,31 @@ public class OrganDrugToolService implements IOrganDrugToolService {
             }
             try {
                 if (StringUtils.isNotEmpty(getStrFromCell(cells.get(35)))) {
-                    drug.setHisFormCode(getStrFromCell(cells.get(35)));
+                    drug.setMedicalInsuranceCategory(getStrFromCell(cells.get(35)));
+                }
+            } catch (Exception e) {
+                LOGGER.error("医保类别有误 ," + e.getMessage(), e);
+                validMsg.append("医保类别有误").append(";");
+            }
+            try {
+                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(36)))) {
+                    drug.setHisFormCode(getStrFromCell(cells.get(36)));
                 }
             } catch (Exception e) {
                 LOGGER.error("药品HIS剂型代码有误 ," + e.getMessage(), e);
                 validMsg.append("药品HIS剂型代码有误").append(";");
             }
             try {
-                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(36)))) {
-                    drug.setLicenseNumber(getStrFromCell(cells.get(36)));
+                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(37)))) {
+                    drug.setLicenseNumber(getStrFromCell(cells.get(37)));
                 }
             } catch (Exception e) {
                 LOGGER.error("药品国药准字有误 ," + e.getMessage(), e);
                 validMsg.append("药品国药准字有误").append(";");
             }
             try {
-                if (!StringUtils.isEmpty(getStrFromCell(cells.get(37)))) {
-                    String strFromCell = getStrFromCell(cells.get(37));
+                if (!StringUtils.isEmpty(getStrFromCell(cells.get(38)))) {
+                    String strFromCell = getStrFromCell(cells.get(38));
                     StringBuilder ss = new StringBuilder();
                     //对中文逗号进行校验
                     if(!strFromCell.contains("，")){
@@ -801,10 +802,10 @@ public class OrganDrugToolService implements IOrganDrugToolService {
             }
 
             try {
-                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(38)))) {
-                    if (("是").equals(getStrFromCell(cells.get(38)))) {
+                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(39)))) {
+                    if (("是").equals(getStrFromCell(cells.get(39)))) {
                         drug.setTargetedDrugType(1);
-                    } else if (("否").equals(getStrFromCell(cells.get(38)))) {
+                    } else if (("否").equals(getStrFromCell(cells.get(39)))) {
                         drug.setTargetedDrugType(0);
                     } else {
                         validMsg.append("是否靶向药格式错误").append(";");
@@ -816,8 +817,8 @@ public class OrganDrugToolService implements IOrganDrugToolService {
             }
             //TODO 最后一个字段空列问题
             try {
-                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(39)))) {
-                    drug.setSmallestSaleMultiple(Integer.parseInt(getStrFromCell(cells.get(39)).trim()));
+                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(40)))) {
+                    drug.setSmallestSaleMultiple(Integer.parseInt(getStrFromCell(cells.get(40)).trim()));
                 }
             } catch (Exception e) {
                 LOGGER.error("出售单位的销售倍数有误 ," + e.getMessage(), e);
@@ -825,10 +826,10 @@ public class OrganDrugToolService implements IOrganDrugToolService {
             }
 
             try {
-                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(40)))) {
-                    if (("是").equals(getStrFromCell(cells.get(40)))) {
+                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(41)))) {
+                    if (("是").equals(getStrFromCell(cells.get(41)))) {
                         drug.setUnavailable(1);
-                    } else if (("否").equals(getStrFromCell(cells.get(40)))) {
+                    } else if (("否").equals(getStrFromCell(cells.get(41)))) {
                         drug.setUnavailable(0);
                     } else {
                         validMsg.append("不可在线开具有误").append(";");
@@ -842,10 +843,10 @@ public class OrganDrugToolService implements IOrganDrugToolService {
             }
 
             try {
-                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(41)))) {
-                    if (("是").equals(getStrFromCell(cells.get(41)))) {
+                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(42)))) {
+                    if (("是").equals(getStrFromCell(cells.get(42)))) {
                         drug.setPsychotropicDrugFlag(1);
-                    } else if (("否").equals(getStrFromCell(cells.get(41)))) {
+                    } else if (("否").equals(getStrFromCell(cells.get(42)))) {
                         drug.setPsychotropicDrugFlag(0);
                     } else {
                         validMsg.append("是否精神药物格式错误").append(";");
@@ -857,10 +858,10 @@ public class OrganDrugToolService implements IOrganDrugToolService {
             }
 
             try {
-                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(42)))) {
-                    if (("是").equals(getStrFromCell(cells.get(42)))) {
+                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(43)))) {
+                    if (("是").equals(getStrFromCell(cells.get(43)))) {
                         drug.setNarcoticDrugFlag(1);
-                    } else if (("否").equals(getStrFromCell(cells.get(42)))) {
+                    } else if (("否").equals(getStrFromCell(cells.get(43)))) {
                         drug.setNarcoticDrugFlag(0);
                     } else {
                         validMsg.append("是否麻醉药物格式错误").append(";");
@@ -872,10 +873,10 @@ public class OrganDrugToolService implements IOrganDrugToolService {
             }
 
             try {
-                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(43)))) {
-                    if (("是").equals(getStrFromCell(cells.get(43)))) {
+                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(44)))) {
+                    if (("是").equals(getStrFromCell(cells.get(44)))) {
                         drug.setToxicDrugFlag(1);
-                    } else if (("否").equals(getStrFromCell(cells.get(43)))) {
+                    } else if (("否").equals(getStrFromCell(cells.get(44)))) {
                         drug.setToxicDrugFlag(0);
                     } else {
                         validMsg.append("是否毒性药物格式错误").append(";");
@@ -887,10 +888,10 @@ public class OrganDrugToolService implements IOrganDrugToolService {
             }
 
             try {
-                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(44)))) {
-                    if (("是").equals(getStrFromCell(cells.get(44)))) {
+                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(45)))) {
+                    if (("是").equals(getStrFromCell(cells.get(45)))) {
                         drug.setRadioActivityDrugFlag(1);
-                    } else if (("否").equals(getStrFromCell(cells.get(44)))) {
+                    } else if (("否").equals(getStrFromCell(cells.get(45)))) {
                         drug.setRadioActivityDrugFlag(0);
                     } else {
                         validMsg.append("是否放射性药物格式错误").append(";");
@@ -902,10 +903,10 @@ public class OrganDrugToolService implements IOrganDrugToolService {
             }
 
             try {
-                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(45)))) {
-                    if (("是").equals(getStrFromCell(cells.get(45)))) {
+                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(46)))) {
+                    if (("是").equals(getStrFromCell(cells.get(46)))) {
                         drug.setSpecialUseAntibioticDrugFlag(1);
-                    } else if (("否").equals(getStrFromCell(cells.get(45)))) {
+                    } else if (("否").equals(getStrFromCell(cells.get(46)))) {
                         drug.setSpecialUseAntibioticDrugFlag(0);
                     } else {
                         validMsg.append("是否特殊使用级抗生素药物格式错误").append(";");
@@ -917,14 +918,14 @@ public class OrganDrugToolService implements IOrganDrugToolService {
             }
 
             try {
-                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(46)))) {
-                    if (("无").equals(getStrFromCell(cells.get(46)))) {
+                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(47)))) {
+                    if (("无").equals(getStrFromCell(cells.get(47)))) {
                         drug.setAntibioticsDrugLevel(0);
-                    } else if (("1级").equals(getStrFromCell(cells.get(46)))) {
+                    } else if (("1级").equals(getStrFromCell(cells.get(47)))) {
                         drug.setAntibioticsDrugLevel(1);
-                    } else if (("2级").equals(getStrFromCell(cells.get(46)))) {
+                    } else if (("2级").equals(getStrFromCell(cells.get(47)))) {
                         drug.setAntibioticsDrugLevel(2);
-                    } else if (("3级").equals(getStrFromCell(cells.get(46)))) {
+                    } else if (("3级").equals(getStrFromCell(cells.get(47)))) {
                         drug.setAntibioticsDrugLevel(3);
                     } else {
                         validMsg.append("抗菌素药物等级格式错误").append(";");
@@ -936,10 +937,10 @@ public class OrganDrugToolService implements IOrganDrugToolService {
             }
 
             try {
-                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(47)))) {
-                    if (("是").equals(getStrFromCell(cells.get(47)))) {
+                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(48)))) {
+                    if (("是").equals(getStrFromCell(cells.get(48)))) {
                         drug.setAntiTumorDrugFlag(1);
-                    } else if (("否").equals(getStrFromCell(cells.get(47)))) {
+                    } else if (("否").equals(getStrFromCell(cells.get(48)))) {
                         drug.setAntiTumorDrugFlag(0);
                     } else {
                         validMsg.append("是否抗肿瘤药物格式错误").append(";");
@@ -951,13 +952,13 @@ public class OrganDrugToolService implements IOrganDrugToolService {
             }
 
             try {
-                if(new Integer(1).equals(drug.getAntiTumorDrugFlag()) && StringUtils.isEmpty(getStrFromCell(cells.get(48)))){
+                if(new Integer(1).equals(drug.getAntiTumorDrugFlag()) && StringUtils.isEmpty(getStrFromCell(cells.get(49)))){
                         validMsg.append("抗肿瘤药物等级未填写").append(";");
                 }else{
-                    if (StringUtils.isNotEmpty(getStrFromCell(cells.get(48)))) {
-                        if (("普通级").equals(getStrFromCell(cells.get(48)))) {
+                    if (StringUtils.isNotEmpty(getStrFromCell(cells.get(49)))) {
+                        if (("普通级").equals(getStrFromCell(cells.get(49)))) {
                             drug.setAntiTumorDrugLevel(1);
-                        } else if (("限制级").equals(getStrFromCell(cells.get(48)))) {
+                        } else if (("限制级").equals(getStrFromCell(cells.get(49)))) {
                             drug.setAntiTumorDrugLevel(2);
                         } else {
                             validMsg.append("抗肿瘤药物等级格式错误").append(";");
@@ -970,8 +971,8 @@ public class OrganDrugToolService implements IOrganDrugToolService {
             }
 
             try {
-                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(49)))) {
-                    drug.setUnitHisCode(getStrFromCell(cells.get(49)));
+                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(50)))) {
+                    drug.setUnitHisCode(getStrFromCell(cells.get(50)));
                 }
             } catch (Exception e) {
                 LOGGER.error("出售单位HIS编码有误 ," + e.getMessage(), e);
@@ -979,8 +980,8 @@ public class OrganDrugToolService implements IOrganDrugToolService {
             }
 
             try {
-                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(50)))) {
-                    drug.setUseDoseUnitHisCode(getStrFromCell(cells.get(50)));
+                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(51)))) {
+                    drug.setUseDoseUnitHisCode(getStrFromCell(cells.get(51)));
                 }
             } catch (Exception e) {
                 LOGGER.error("注册规格单位HIS编码有误 ," + e.getMessage(), e);
@@ -988,8 +989,8 @@ public class OrganDrugToolService implements IOrganDrugToolService {
             }
 
             try {
-                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(51)))) {
-                    drug.setUseDoseSmallestUnitHisCode(getStrFromCell(cells.get(51)));
+                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(52)))) {
+                    drug.setUseDoseSmallestUnitHisCode(getStrFromCell(cells.get(52)));
                 }
             } catch (Exception e) {
                 LOGGER.error("通用开方单位HIS编码有误 ," + e.getMessage(), e);
@@ -997,10 +998,10 @@ public class OrganDrugToolService implements IOrganDrugToolService {
             }
 
             try {
-                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(52)))) {
-                    if (("是").equals(getStrFromCell(cells.get(52)))) {
+                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(53)))) {
+                    if (("是").equals(getStrFromCell(cells.get(53)))) {
                         drug.setSkinTestDrugFlag(1);
-                    } else if (("否").equals(getStrFromCell(cells.get(52)))) {
+                    } else if (("否").equals(getStrFromCell(cells.get(53)))) {
                         drug.setSkinTestDrugFlag(0);
                     } else {
                         validMsg.append("是否皮试格式错误").append(";");
@@ -1012,8 +1013,8 @@ public class OrganDrugToolService implements IOrganDrugToolService {
             }
 
             try {
-                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(53)))) {
-                    drug.setHisDrugClassName(getStrFromCell(cells.get(53)));
+                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(54)))) {
+                    drug.setHisDrugClassName(getStrFromCell(cells.get(54)));
                 }
             } catch (Exception e) {
                 LOGGER.error("his药品分类有误 ," + e.getMessage(), e);
@@ -1021,8 +1022,8 @@ public class OrganDrugToolService implements IOrganDrugToolService {
             }
 
             try {
-                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(54)))) {
-                    drug.setHisDrugClassCode(getStrFromCell(cells.get(54)));
+                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(55)))) {
+                    drug.setHisDrugClassCode(getStrFromCell(cells.get(55)));
                 }
             } catch (Exception e) {
                 LOGGER.error("his药品分类编码有误 ," + e.getMessage(), e);
@@ -1045,10 +1046,10 @@ public class OrganDrugToolService implements IOrganDrugToolService {
 //            }
 
             try {
-                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(55)))) {
+                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(56)))) {
                     if (("是").equals(getStrFromCell(cells.get(55)))) {
                         drug.setNationalStandardDrugFlag(1);
-                    } else if (("否").equals(getStrFromCell(cells.get(55)))) {
+                    } else if (("否").equals(getStrFromCell(cells.get(56)))) {
                         drug.setNationalStandardDrugFlag(0);
                     } else {
                         validMsg.append("国家标准药品格式错误").append(";");
@@ -1060,13 +1061,14 @@ public class OrganDrugToolService implements IOrganDrugToolService {
             }
 
             try {
-                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(56)))) {
-                    drug.setMaximum(Integer.parseInt(getStrFromCell(cells.get(56))));
+                if (StringUtils.isNotEmpty(getStrFromCell(cells.get(57)))) {
+                    drug.setMaximum(Integer.parseInt(getStrFromCell(cells.get(57))));
                 }
             } catch (Exception e) {
                 LOGGER.error("单次就诊开药上限有误 ," + e.getMessage(), e);
                 validMsg.append("单次就诊开药上限有误").append(";");
             }
+
 
             if (!ObjectUtils.isEmpty(organId)) {
                 DrugSourcesDAO dao = DAOFactory.getDAO(DrugSourcesDAO.class);

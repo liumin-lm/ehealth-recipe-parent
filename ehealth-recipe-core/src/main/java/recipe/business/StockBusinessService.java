@@ -225,7 +225,11 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
             return Collections.singletonList(ObjectCopyUtils.convert(recipeDTO.getRecipeDetails(), RecipeDetailBean.class));
         }
         //查询库存
-        List<EnterpriseStock> enterpriseStockList = this.stockList(recipeDTO);
+        List<EnterpriseStock> enterpriseStockList = this.drugsStock(recipeDTO, StockCheckSourceTypeEnum.DOCTOR_STOCK.getType());
+        if (CollectionUtils.isEmpty(enterpriseStockList)) {
+            logger.info("StockBusinessService drugStock enterpriseStockList={}", JSON.toJSONString(enterpriseStockList));
+            return null;
+        }
         //药企药品库存
         List<PermutationDTO> source = new ArrayList<>();
         enterpriseStockList.forEach(a -> {
@@ -238,6 +242,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         List<Integer> target = recipeDTO.getRecipeDetails().stream().map(Recipedetail::getDrugId).distinct().sorted().collect(Collectors.toList());
         List<List<Integer>> drugIdsList = ListValueUtil.permutationTarget(source, target);
         if (CollectionUtils.isEmpty(drugIdsList)) {
+            logger.info("StockBusinessService drugStock source={}, target={}", JSON.toJSONString(source), JSON.toJSONString(target));
             return null;
         }
         //合组返回结果
@@ -257,6 +262,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
             });
             result.add(recipeDetails);
         });
+
         return result;
     }
 
@@ -336,9 +342,9 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
      * @param enterpriseList 药企信息
      * @return 药品信息 一定存在于出参
      */
-    private List<EnterpriseStock> enterpriseStockCheck(Integer organId, List<EnterpriseStock> enterpriseList, Integer id, List<Recipedetail> recipeDetails, Integer stockCheckType) {
-        if (!ValidateUtil.integerIsEmpty(id)) {
-            enterpriseList = enterpriseList.stream().filter(a -> a.getDrugsEnterpriseId().equals(id)).collect(Collectors.toList());
+    private List<EnterpriseStock> enterpriseStockCheck(Integer organId, List<EnterpriseStock> enterpriseList, Integer enterpriseId, List<Recipedetail> recipeDetails, Integer stockCheckType) {
+        if (!ValidateUtil.integerIsEmpty(enterpriseId)) {
+            enterpriseList = enterpriseList.stream().filter(a -> a.getDrugsEnterpriseId().equals(enterpriseId)).collect(Collectors.toList());
             if (CollectionUtils.isEmpty(enterpriseList)) {
                 return enterpriseList;
             }
@@ -370,6 +376,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         if (CollectionUtils.isEmpty(enterpriseStockList)) {
             return enterpriseStockList;
         }
+        //是否存在指定药企
         if (!ValidateUtil.integerIsEmpty(enterpriseId)) {
             enterpriseStockList = enterpriseStockList.stream().filter(a -> a.getDrugsEnterpriseId().equals(enterpriseId)).collect(Collectors.toList());
             if (CollectionUtils.isEmpty(enterpriseStockList)) {
@@ -399,8 +406,8 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
      * @param enterpriseDrugIdGroup 验证能否药品配送以及能否开具到一张处方单上
      * @return
      */
-    private EnterpriseStock enterpriseStockFutureTask(EnterpriseStock enterpriseStock, Recipe recipe,
-                                                      List<Recipedetail> recipeDetails, Map<Integer, List<Integer>> enterpriseDrugIdGroup, Integer stockCheckType) {
+    private EnterpriseStock enterpriseStockFutureTask(EnterpriseStock enterpriseStock, Recipe recipe, List<Recipedetail> recipeDetails,
+                                                      Map<Integer, List<Integer>> enterpriseDrugIdGroup, Integer stockCheckType) {
         enterpriseStock.setStock(false);
         try {
             //药企无对应的购药按钮则 无需查询库存-返回无库存
@@ -421,7 +428,6 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
             enterpriseStock(enterpriseStock, recipe, recipeDetails, stockCheckType);
             return enterpriseStock;
         } catch (Exception e) {
-            logger.error("StockBusinessService enterpriseStockFutureTask  e", e);
             logger.error("StockBusinessService enterpriseStockFutureTask enterpriseStock = {},recipe = {}, recipeDetails ={} , enterpriseDrugIdGroup = {} , e"
                     , JSON.toJSONString(enterpriseStock), JSON.toJSONString(recipe), JSON.toJSONString(recipeDetails), JSON.toJSONString(enterpriseDrugIdGroup), e);
             enterpriseStock.setDrugInfoList(DrugStockClient.getDrugInfoDTO(recipeDetails, false));

@@ -36,4 +36,6 @@ public class RecipeOrderRefundDetailVO implements Serializable {
     //打印面单图片
     private String logisticsOrderPrintWaybill;
 
+    //是否退单标志
+    private Boolean refundOrderFlag;
 }

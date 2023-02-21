@@ -90,6 +90,8 @@ public class OrderFeeService implements IRecipeOrderRefundService {
     private RecipeOrderBillDAO recipeOrderBillDAO;
     @Autowired
     private IConfigurationClient configurationClient;
+    @Autowired
+    private ILogisticsOrderService logisticsOrderService;
 
 
     @Override
@@ -188,6 +190,16 @@ public class OrderFeeService implements IRecipeOrderRefundService {
             recipeOrderRefundVO.setTrackingNumber(recipeOrder.getTrackingNumber());
             recipeOrderRefundVO.setReceiver(recipeOrder.getReceiver());
             recipeOrderRefundVO.setRecMobile(recipeOrder.getRecMobile());
+            recipeOrderRefundVO.setStatus(recipeOrder.getStatus());
+            recipeOrderRefundVO.setDispensingApothecaryName(recipeOrder.getDispensingApothecaryName());
+            try {
+                //查是否可以打印快递面单
+                logisticsOrderService.printWaybillByLogisticsOrderNo(1, recipeOrder.getOrderCode());
+                recipeOrderRefundVO.setPrintWaybillByLogisticsOrderNo(true);
+            }catch (Exception e){
+                recipeOrderRefundVO.setPrintWaybillByLogisticsOrderNo(false);
+                logger.error("orderFeeService findRefundRecipeOrder error", e);
+            }
             recipeOrderRefundVOList.add(recipeOrderRefundVO);
         });
         recipeOrderRefundPageVO.setRecipeOrderRefundVOList(recipeOrderRefundVOList);
@@ -258,7 +270,7 @@ public class OrderFeeService implements IRecipeOrderRefundService {
         } else {
             recipeOrderBean.setMedicalInsuranceFlag(0);
         }
-
+        recipeOrderRefundDetailVO.setRefundOrderFlag(recipeOrder.getPayFlag()==1);
         Map<Integer, List<Recipedetail>> detailMap = recipeDetailList.stream().collect(Collectors.groupingBy(Recipedetail::getRecipeId));
         List<RecipeBean> recipeBeanList = new ArrayList<>();
         recipeList.forEach(recipe -> {
@@ -301,7 +313,6 @@ public class OrderFeeService implements IRecipeOrderRefundService {
         }
         try {
             //查是否可以打印快递面单
-            ILogisticsOrderService logisticsOrderService = AppContextHolder.getBean("infra.logisticsOrderService", ILogisticsOrderService.class);
             String logisticsOrderPrintWaybill = logisticsOrderService.printWaybillByLogisticsOrderNo(1, orderCode);
             recipeOrderRefundDetailVO.setLogisticsOrderPrintWaybill(logisticsOrderPrintWaybill);
             recipeOrderRefundDetailVO.setPrintWaybillByLogisticsOrderNo(true);

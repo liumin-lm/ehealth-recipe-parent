@@ -12,10 +12,7 @@ import com.ngari.recipe.dto.AttachSealPicDTO;
 import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.dto.RecipeLabelDTO;
 import com.ngari.recipe.dto.SignImgNode;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeExtend;
-import com.ngari.recipe.entity.RecipeOrder;
-import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.entity.*;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.annotation.DesensitizationsType;
 import ctd.util.DesensitizationsUtil;
@@ -30,6 +27,7 @@ import recipe.bussutil.WordToPdfBean;
 import recipe.constant.ErrorCode;
 import recipe.constant.OperationConstant;
 import recipe.constant.birthdayToAgeConstant;
+import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.enumerate.type.DrugBelongTypeEnum;
@@ -46,6 +44,7 @@ import java.io.InputStream;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static recipe.constant.OperationConstant.*;
 import static recipe.util.ByteUtils.DOT_EN;
@@ -78,6 +77,8 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
     private CaManager caManager;
     @Autowired
     private RecipeDetailDAO recipeDetailDAO;
+    @Autowired
+    private OrganDrugListDAO organDrugListDAO;
 
     @Override
     public byte[] queryPdfByte(Recipe recipe) throws Exception {
@@ -542,24 +543,31 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
             return null;
         }
         List<RecipeLabelDTO> list = new LinkedList<>();
+        List<String> drugCodeList = recipeDetails.stream().filter(recipeDetail -> StringUtils.isNotEmpty(recipeDetail.getOrganDrugCode())).map(Recipedetail::getOrganDrugCode).collect(Collectors.toList());
+        List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugCodes(recipeInfoDTO.getRecipeTherapy().getClinicId(), drugCodeList);
+        Map<String, List<OrganDrugList>> organDrugListMap = organDrugList.stream().collect(Collectors.groupingBy(OrganDrugList::getOrganDrugCode));
+
         Recipedetail recipeDetail = recipeDetails.get(0);
+        Recipe recipe = recipeInfoDTO.getRecipe();
+        RecipeExtend recipeExtend = recipeInfoDTO.getRecipeExtend();
         for (int i = 0; i < recipeDetails.size(); i++) {
             String drugShowName = RecipeUtil.drugChineShowName(recipeDetails.get(i));
             list.add(new RecipeLabelDTO("药品名称", "recipeDetail.drugName_" + i, drugShowName));
+            List<OrganDrugList> organDrugLists = organDrugListMap.get(recipeDetails.get(0).getOrganDrugCode());
+            list.add(new RecipeLabelDTO("医保类别", "recipeDetail.medicalInsuranceCategory_"+i, !CollectionUtils.isEmpty(organDrugLists)&&!"未维护".equals(organDrugLists.get(0).getMedicalInsuranceCategory())?organDrugLists.get(0).getMedicalInsuranceCategory():""));
         }
         list.add(new RecipeLabelDTO("药房", "recipeDetail.pharmacyName", recipeDetail.getPharmacyName()));
         list.add(new RecipeLabelDTO("天数", "recipeDetail.useDays", getUseDays(recipeDetail.getUseDaysB(), recipeDetail.getUseDays())));
         list.add(new RecipeLabelDTO("用药途径", "recipeDetail.usePathways", DictionaryUtil.getDictionary("eh.cdr.dictionary.UsePathways", recipeDetail.getUsePathways())));
         list.add(new RecipeLabelDTO("用药频次", "recipeDetail.usingRate", DictionaryUtil.getDictionary("eh.cdr.dictionary.UsingRate", recipeDetail.getUsingRate())));
-        Recipe recipe = recipeInfoDTO.getRecipe();
         list.add(new RecipeLabelDTO("帖数", "recipeDetail.copyNum", recipe.getCopyNum() + "帖"));
         list.add(new RecipeLabelDTO("嘱托", "recipeDetail.recipeMemo", ByteUtils.objValueOfString(recipe.getRecipeMemo())));
-        RecipeExtend recipeExtend = recipeInfoDTO.getRecipeExtend();
         list.add(new RecipeLabelDTO("煎法", "recipeDetail.decoctionText", ByteUtils.objValueOfString(recipeExtend.getDecoctionText())));
         list.add(new RecipeLabelDTO("制法", "recipeDetail.makeMethodText", ByteUtils.objValueOfString(recipeExtend.getMakeMethodText())));
         //TODO everyTcmNumFre 写pdf??
         list.add(new RecipeLabelDTO("每付取汁", "recipeDetail.juice", ByteUtils.objValueOfString(recipeExtend.getJuice()) + ByteUtils.objValueOfString(recipeExtend.getJuiceUnit())));
         list.add(new RecipeLabelDTO("每次用汁", "recipeDetail.minor", ByteUtils.objValueOfString(recipeExtend.getMinor()) + ByteUtils.objValueOfString(recipeExtend.getMinorUnit())));
+
         logger.info("CreateRecipePdfUtil createChineMedicinePDF list :{} ", JSON.toJSONString(list));
         return list.stream().collect(HashMap::new, (m, v) -> m.put(v.getEnglishName(), v.getValue()), HashMap::putAll);
     }
@@ -576,6 +584,10 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
         if (CollectionUtils.isEmpty(recipeDetails)) {
             return null;
         }
+        List<String> drugCodeList = recipeDetails.stream().filter(recipeDetail -> StringUtils.isNotEmpty(recipeDetail.getOrganDrugCode())).map(Recipedetail::getOrganDrugCode).collect(Collectors.toList());
+        List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugCodes(recipeInfoDTO.getRecipeTherapy().getClinicId(), drugCodeList);
+        Map<String, List<OrganDrugList>> organDrugListMap = organDrugList.stream().collect(Collectors.groupingBy(OrganDrugList::getOrganDrugCode));
+
         List<RecipeLabelDTO> list = new LinkedList<>();
         Recipedetail recipedetail = recipeDetails.get(0);
         for (int i = 0; i < recipeDetails.size(); i++) {
@@ -595,6 +607,8 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
             list.add(new RecipeLabelDTO("嘱托", "recipeDetail.memo_" + i, StringUtils.isNotEmpty(detail.getMemo()) ? "嘱托：" + detail.getMemo() : ""));
             list.add(new RecipeLabelDTO("药品单价（西药）", "recipeDetail.salePrice_" + i, detail.getSalePrice().stripTrailingZeros().toPlainString() + "元/" + detail.getDrugUnit()));
             list.add(new RecipeLabelDTO("单药品总价（西药）", "recipeDetail.drugCost_" + i, detail.getDrugCost().stripTrailingZeros().toPlainString() + "元"));
+            List<OrganDrugList> organDrugLists = organDrugListMap.get(recipedetail.getOrganDrugCode());
+            list.add(new RecipeLabelDTO("医保类别", "recipeDetail.medicalInsuranceCategory_"+i, !CollectionUtils.isEmpty(organDrugLists)&&!"未维护".equals(organDrugLists.get(0).getMedicalInsuranceCategory())?organDrugLists.get(0).getMedicalInsuranceCategory():""));
         }
         list.add(new RecipeLabelDTO("药房", "recipeDetail.pharmacyName", recipedetail.getPharmacyName()));
         logger.info("CreateRecipePdfUtil createMedicinePDF list :{} ", JSON.toJSONString(list));
