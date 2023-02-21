@@ -632,6 +632,11 @@ public class RecipeOrderService extends RecipeBaseService {
         String operMpiId = MapValueUtil.getString(extInfo, "operMpiId");
         Integer takeMedicineWay = MapValueUtil.getInteger(extInfo, "takeMedicineWay");
         Integer storePayFlag = eh.utils.MapValueUtil.getInteger(extInfo, "storePayFlag");
+        Integer payMode = MapValueUtil.getInteger(extInfo, "payMode");
+        Integer giveMode = PayModeGiveModeUtil.getGiveMode(payMode);
+        if (Objects.isNull(storePayFlag)){
+             storePayFlag = enterpriseManager.getStorePayFlag(order.getOrganId(), order.getEnterpriseId(), giveMode);
+        }
 
         //设置挂号费（之前是区分购药方式的，要去区分购药方式来挂号费，现在不区分根据配置项来）
         orderFeeManager.setRegisterFee(order);
@@ -755,7 +760,6 @@ public class RecipeOrderService extends RecipeBaseService {
         //判断计算扣掉运费的总金额----等于线下支付----总计要先算上运费，实际支付时再不支付运费
         BigDecimal totalFee;
         //配送到家并且线下支付
-        Integer payMode = MapValueUtil.getInteger(extInfo, "payMode");
         if (ExpressFeePayWayEnum.OFFLINE.getType().equals(order.getExpressFeePayWay()) && RecipeBussConstant.PAYMODE_ONLINE.equals(payMode)) {
             if (order.getExpressFee() != null && order.getTotalFee().compareTo(order.getExpressFee()) > -1) {
                 totalFee = order.getTotalFee().subtract(order.getExpressFee());
