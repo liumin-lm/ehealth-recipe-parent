@@ -45,7 +45,7 @@ public class RecipeCommentService implements IRecipeCommentService {
 
     @Override
     public List<RecipeCommentTO> findCommentByRecipeIds(List<Integer> recipeIds) {
-        if (recipeIds == null || recipeIds.size() == 0) {
+        if (CollectionUtils.isEmpty(recipeIds)) {
             return Lists.newArrayList();
         }
         List<RecipeComment> list = recipeCommentDAO.findCommentByRecipeIds(recipeIds);
