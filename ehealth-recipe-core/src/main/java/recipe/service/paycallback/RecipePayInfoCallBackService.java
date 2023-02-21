@@ -242,19 +242,6 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
             if(StringUtils.isNotEmpty(settleMode)){
                 attr.put("settleMode", Integer.valueOf(settleMode));
             }
-            // 医保结算内容
-            String ybbody = StringUtils.defaultString(notifyMap.get("ybbody"), "");
-            if(StringUtils.isNotEmpty(ybbody)){
-                attr.put("healthInsurancePayContent", ybbody);
-                // 深圳儿童医院 少儿医保支付金额 或者 家庭统筹的支付金额
-                try {
-                    JSONObject ybbodys = JSONArray.parseObject(ybbody);
-                    attr.put("familyMedicalFee", new BigDecimal(ybbodys.get("ybtczf").toString()));
-                    attr.put("childMedicalFee", new BigDecimal(ybbodys.get("grzhzf").toString()));
-                } catch (Exception e) {
-                    logger.error("少儿医保支付金额 或者 家庭统筹的支付金额 解析错误");
-                }
-            }
             // 商保结算内容
             String sbbody = StringUtils.defaultString(notifyMap.get("sbbody"), "");
             Map<String, String> sbbodyMap = JSONUtils.parse(sbbody, Map.class);
@@ -372,6 +359,25 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
                 }
             }
 
+            // 医保结算内容
+            String ybbody = StringUtils.defaultString(notifyMap.get("ybbody"), "");
+            if(StringUtils.isNotEmpty(ybbody)){
+                attr.put("healthInsurancePayContent", ybbody);
+                // 深圳儿童医院 少儿医保支付金额 或者 家庭统筹的支付金额
+                try {
+                    JSONObject ybbodys = JSONArray.parseObject(ybbody);
+                    if (ybbodys.get("ybzf") != null) {
+                        attr.put("fundAmount", new BigDecimal(ybbodys.get("ybzf").toString()));
+                    }
+                    if (ybbodys.get("zifei") != null) {
+                        attr.put("cashAmount", new BigDecimal(ybbodys.get("zifei").toString()));
+                    }
+                    attr.put("familyMedicalFee", new BigDecimal(ybbodys.get("ybtczf").toString()));
+                    attr.put("childMedicalFee", new BigDecimal(ybbodys.get("grzhzf").toString()));
+                } catch (Exception e) {
+                    logger.error("少儿医保支付金额 或者 家庭统筹的支付金额 解析错误");
+                }
+            }
             attr.put("PayBackPrice", payBackPrice);
             try {
                 medicalSettleInfo = new String(Base64.decode(medicalSettleInfo, 1));

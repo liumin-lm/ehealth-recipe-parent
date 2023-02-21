@@ -137,7 +137,10 @@ public class DrugDoctorAtop extends BaseAtop {
             recipedetail.setDrugId(a.getDrugId());
             recipedetail.setOrganDrugCode(a.getOrganDrugCode());
             recipedetail.setPharmacyId(drugQueryVO.getPharmacyId());
-            recipedetail.setUseTotalDose(1D);
+            recipedetail.setUseTotalDose(a.getUseTotalDose());
+            if (ValidateUtil.validateObjects(a.getUseTotalDose())) {
+                recipedetail.setUseTotalDose(1D);
+            }
             detailList.add(recipedetail);
         });
         return iStockBusinessService.stockList(drugQueryVO, detailList, StockCheckSourceTypeEnum.DOCTOR_STOCK.getType());
