@@ -18,9 +18,8 @@ import java.util.concurrent.TimeUnit;
  * @date:2016/6/14.
  */
 public class RecipeBusiThreadPool {
-
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipeBusiThreadPool.class);
-
+    private static final ThreadPoolTaskExecutor SERVICE = AppContextHolder.getBean("busTaskExecutor", ThreadPoolTaskExecutor.class);
     public static void execute(Runnable runnable) {
         ThreadPoolTaskExecutor service = AppContextHolder.getBean("busTaskExecutor", ThreadPoolTaskExecutor.class);
         printThreadPoolInfo(service);
@@ -47,12 +46,11 @@ public class RecipeBusiThreadPool {
     }
 
     public static <T> List<Future<T>> submitListReturn(List<Callable<T>> callableList, long timeout) throws Exception {
-        ThreadPoolTaskExecutor service = AppContextHolder.getBean("busTaskExecutor", ThreadPoolTaskExecutor.class);
-        if (null == service) {
+        if (null == SERVICE) {
             return null;
         }
-        printThreadPoolInfo(service);
-        return service.getThreadPoolExecutor().invokeAll(callableList, timeout, TimeUnit.MILLISECONDS);
+        printThreadPoolInfo(SERVICE);
+        return SERVICE.getThreadPoolExecutor().invokeAll(callableList, timeout, TimeUnit.MILLISECONDS);
     }
 
     /**

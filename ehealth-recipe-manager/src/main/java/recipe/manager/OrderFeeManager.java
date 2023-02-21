@@ -3,6 +3,9 @@ package recipe.manager;
 import com.alibaba.fastjson.JSONArray;
 import com.google.common.collect.Lists;
 import com.ngari.base.organconfig.model.OrganConfigBean;
+import com.ngari.base.property.service.IConfigurationCenterUtilsService;
+import com.ngari.base.serviceconfig.mode.ServiceConfigResponseTO;
+import com.ngari.base.serviceconfig.service.IHisServiceConfigService;
 import com.ngari.his.recipe.mode.RecipeCashPreSettleInfo;
 import com.ngari.his.recipe.mode.RecipeCashPreSettleReqTO;
 import com.ngari.his.visit.mode.NeedPaymentRecipeReqTo;
@@ -14,6 +17,7 @@ import coupon.api.vo.Coupon;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.exception.DAOException;
+import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
@@ -27,10 +31,13 @@ import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeRefundRoleConstant;
 import recipe.constant.ReviewTypeConstant;
 import recipe.dao.*;
+import recipe.enumerate.status.GiveModeEnum;
+import recipe.enumerate.status.PayModeEnum;
 import recipe.enumerate.status.RecipeSourceTypeEnum;
 import recipe.enumerate.type.DecoctionDeployTypeEnum;
 import recipe.enumerate.type.ExpressFeePayWayEnum;
 import recipe.enumerate.type.RecipeOrderFeeTypeEnum;
+import recipe.enumerate.type.StorePaymentWayEnum;
 import recipe.util.LocalStringUtil;
 
 import java.math.BigDecimal;
@@ -67,6 +74,8 @@ public class OrderFeeManager extends BaseManager {
     private RecipeRefundDAO recipeRefundDAO;
     @Autowired
     private CouponClient couponClient;
+    @Autowired
+    private OrganDrugsSaleConfigDAO organDrugsSaleConfigDAO;
 
     @LogRecord
     public void setSHWFAccountFee(RecipeOrder order) {
@@ -690,6 +699,58 @@ public class OrderFeeManager extends BaseManager {
     }
 
     /**
+     *  获取实际支付金额
+     * @param order
+     * @return
+     */
+    @LogRecord
+    public void setActualPrice(RecipeOrder order,Integer giveMode,BigDecimal totalFee,Integer storePayFlag) {
+        // 江苏监管平台
+        if(isJSOrgan(order.getOrganId())){
+            order.setActualPrice(totalFee.doubleValue());
+            return;
+        }
+        switch (GiveModeEnum.getGiveModeEnum(giveMode)){
+            case GIVE_MODE_HOSPITAL_DRUG:
+                // 卫宁或在线支付
+                if (getToHosPayConfig(order.getOrganId(), order.getEnterpriseId()) || StorePaymentWayEnum.STORE_PAYMENT_WAY_ONLINE.getType().equals(storePayFlag)) {
+                    order.setActualPrice(totalFee.doubleValue());
+                } else {
+                    //此时的实际费用是不包含药品费用的
+                    order.setActualPrice(order.getAuditFee().doubleValue());
+                }
+                break;
+            case GIVE_MODE_PHARMACY_DRUG:
+                //药店取药的
+                Integer depId = order.getEnterpriseId();
+                DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(depId);
+                if (drugsEnterprise != null && StorePaymentWayEnum.STORE_PAYMENT_WAY_ONLINE.getType().equals(storePayFlag)) {
+                    order.setActualPrice(totalFee.doubleValue());
+                } else {
+                    order.setActualPrice(order.getAuditFee().doubleValue());
+                }
+                break;
+            case GIVE_MODE_PATIENTS_OPTIONAL:
+            case GIVE_MODE_DOWNLOAD_RECIPE:
+                //此时的实际费用是不包含药品费用的
+                order.setActualPrice(order.getAuditFee().doubleValue());
+                break;
+            case GIVE_MODE_HOME_DELIVERY:
+                // 配送到家分在线支付与线下支付
+                if (PayModeEnum.OFFLINE_PAY.getType().equals(order.getPayMode())) {
+                    order.setActualPrice(totalFee.doubleValue());
+                } else {
+                    order.setActualPrice(order.getAuditFee().doubleValue());
+                }
+                break;
+            default:
+                order.setActualPrice(totalFee.doubleValue());
+                break;
+
+        }
+    }
+
+    /**
      * 设置线上中医辨证论证费
      *
      * @param organId       机构ID
@@ -776,5 +837,58 @@ public class OrderFeeManager extends BaseManager {
     //设置金额
     private double getFee(Object fee) {
         return null != fee ? Double.parseDouble(fee.toString()) : 0d;
+    }
+
+
+    /**
+     * 是否是配置了江苏监管平台的机构
+     *
+     * @param clinicOrgan
+     * @return
+     */
+    private boolean isJSOrgan(Integer clinicOrgan) {
+        try {
+            IHisServiceConfigService configService = AppContextHolder.getBean("his.hisServiceConfig", IHisServiceConfigService.class);
+            List<ServiceConfigResponseTO> serviceConfigResponseTOS = configService.findAllRegulationOrgan();
+            if (CollectionUtils.isEmpty(serviceConfigResponseTOS)) {
+                return false;
+            }
+            //判断机构是否关联了江苏监管平台
+            List<Integer> organList = serviceConfigResponseTOS.stream().filter(regulation -> regulation.getRegulationAppDomainId().startsWith("jssjgpt")).map(ServiceConfigResponseTO::getOrganid).collect(Collectors.toList());
+            logger.info("isJSOrgan organId={}", JSONUtils.toString(organList));
+            if (organList.contains(clinicOrgan)) {
+                return true;
+            }
+        } catch (Exception e) {
+            logger.error("isJSOrgan error", e);
+            return false;
+        }
+        return false;
+    }
+
+
+    /**
+     * 机构是否卫宁付
+     * @param clinicOrgan
+     * @param enterpriseId
+     * @return
+     */
+    private boolean getToHosPayConfig(Integer clinicOrgan, Integer enterpriseId) {
+        Boolean drugToHosByEnterprise = configurationClient.getValueBooleanCatch(clinicOrgan, "drugToHosByEnterprise", false);
+        Integer payModeToHosOnlinePayConfig = null;
+        if (drugToHosByEnterprise) {
+            // 获取药企机构配
+            OrganDrugsSaleConfig organDrugsSaleConfigs = organDrugsSaleConfigDAO.getOrganDrugsSaleConfig(enterpriseId);
+            if (Objects.nonNull(organDrugsSaleConfigs)) {
+                payModeToHosOnlinePayConfig = organDrugsSaleConfigs.getTakeOneselfPaymentChannel();
+            }
+        } else {
+            payModeToHosOnlinePayConfig = configurationClient.getValueCatch(clinicOrgan, "payModeToHosOnlinePayConfig", 1);
+        }
+        //1平台付 2卫宁付
+        if (new Integer(2).equals(payModeToHosOnlinePayConfig)) {
+            return true;
+        }
+        return false;
     }
 }

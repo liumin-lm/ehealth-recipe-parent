@@ -338,6 +338,7 @@ public class RecipeRefundService extends RecipeBaseService {
                 if (forceRecipeRefundFlag) {
                     //表示配置管理员可强制
                     recipeRefund.setStatus(0);
+                    recipeRefund.setReason("");
                     recipeRefund.setNode(RecipeRefundRoleConstant.RECIPE_REFUND_ROLE_ADMIN);
                     recipeReFundSave(recipe, recipeRefund);
                 } else {

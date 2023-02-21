@@ -1221,8 +1221,11 @@ public class RecipeManager extends BaseManager {
         com.ngari.recipe.dto.PatientDTO patientBean = patientClient.getPatientDTO(recipes.get(0).getMpiid());
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeIdList.get(0));
         List<HisOrderCodeResTO> hisOrderCodeResTOS = null;
+        Boolean getAliPayYb = configurationClient.getValueBooleanCatch(clinicOrgan, "getAliPayYb", false);
         try {
-            hisOrderCodeResTOS = recipeHisClient.queryHisOrderCodeByRecipeCode(recipes.get(0).getPatientID(), clinicOrgan, recipes,patientBean,recipeExtend);
+            if (getAliPayYb) {
+                hisOrderCodeResTOS = recipeHisClient.queryHisOrderCodeByRecipeCode(recipes.get(0).getPatientID(), clinicOrgan, recipes, patientBean, recipeExtend);
+            }
         } catch (Exception e) {
             logger.error("获取医保id错误");
             return null;
@@ -1404,17 +1407,20 @@ public class RecipeManager extends BaseManager {
         if (Integer.valueOf(1).equals(recipe.getMedicalFlag())) {
             updateRecipe.setGiveMode(RecipeBussConstant.GIVEMODE_SEND_TO_HOME);
         }
-        //医院处方费
-        BigDecimal totalMoney = StringUtils.isNotEmpty(amount) ? new BigDecimal(amount) : Objects.nonNull(recipeFee) ? recipeFee : null;
-        List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
-        //处方总金额， 外带药处方不做处理
-        if (null != totalMoney && recipeDetails.size() == detailSize) {
-            updateRecipe.setTotalMoney(totalMoney);
-            updateRecipe.setActualPrice(totalMoney);
-        } else {
-            BigDecimal money = drugClient.totalMoney(recipe.getRecipeType(), recipeDetails, recipe);
-            updateRecipe.setTotalMoney(money);
-            updateRecipe.setActualPrice(money);
+        boolean recipeSendUpdatePrice = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "recipeSendUpdatePrice", false);
+        if (recipeSendUpdatePrice) {
+            //医院处方费
+            BigDecimal totalMoney = StringUtils.isNotEmpty(amount) ? new BigDecimal(amount) : Objects.nonNull(recipeFee) ? recipeFee : null;
+            List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
+            //处方总金额， 外带药处方不做处理
+            if (null != totalMoney && recipeDetails.size() == detailSize) {
+                updateRecipe.setTotalMoney(totalMoney);
+                updateRecipe.setActualPrice(totalMoney);
+            } else {
+                BigDecimal money = drugClient.totalMoney(recipe.getRecipeType(), recipeDetails, recipe);
+                updateRecipe.setTotalMoney(money);
+                updateRecipe.setActualPrice(money);
+            }
         }
         logger.info("RecipeManager sendSuccessRecipe, updateRecipe:{}", JSON.toJSONString(updateRecipe));
         recipeDAO.updateNonNullFieldByPrimaryKey(updateRecipe);

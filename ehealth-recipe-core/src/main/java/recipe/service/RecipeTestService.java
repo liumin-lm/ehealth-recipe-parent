@@ -112,6 +112,8 @@ public class RecipeTestService {
     private FastRecipeDAO fastRecipeDAO;
     @Autowired
     private RecipeManager recipeManager;
+    @Autowired
+    private OrganDrugsSaleConfigDAO drugsSaleConfigDAO;
 
     /**
      * 状态通知补偿方法
@@ -765,6 +767,17 @@ public class RecipeTestService {
             } catch (DAOException e) {
                 LOGGER.error("fastRecipeHandle recipeId:{},error ", recipeId, e);
             }
+        });
+    }
+
+    @RpcService
+    public void storePaymentWay(){
+        List<DrugsEnterprise> drugsEnterprises = drugsEnterpriseDAO.findAllDrugsEnterpriseByStatus(1);
+        drugsEnterprises.forEach(drugsEnterprise -> {
+            OrganDrugsSaleConfig drugsSaleConfig = drugsSaleConfigDAO.getOrganDrugsSaleConfig(drugsEnterprise.getId());
+            List list = Arrays.asList(drugsEnterprise.getStorePayFlag());
+            drugsSaleConfig.setStorePaymentWay(JSON.toJSONString(list));
+            drugsSaleConfigDAO.updateNonNullFieldByPrimaryKey(drugsSaleConfig);
         });
     }
 

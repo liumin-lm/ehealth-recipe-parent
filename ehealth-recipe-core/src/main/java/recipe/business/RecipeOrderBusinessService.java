@@ -189,6 +189,8 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
     private RecipeLogDAO recipeLogDAO;
     @Autowired
     private RecipeHisService recipeHisService;
+    @Autowired
+    private RecipeOrderPayFlowManager recipeOrderPayFlowManager;
 
 
     @Override
@@ -679,7 +681,7 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
             order.setDrugStoreCode(thirdCreateOrderReqDTO.getGysCode());
         }
         order.setEffective(1);
-        order.setRecipeIdList(JSONUtils.toString(Arrays.asList(recipe.getRecipeId())));
+        order.setRecipeIdList(JSONUtils.toString(Arrays.asList(recipeList)));
         order.setPayFlag(0);
         //设置订单各个费用
         thirdOrderSetFee(order, recipeList, thirdCreateOrderReqDTO);
@@ -1693,7 +1695,7 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
             Map<Integer, PharmacyTcm> pharmacyIdMap = pharmacyManager.pharmacyIdMap(recipe.getClinicOrgan());
             RecipeBeforeOrder orderByRecipeId = recipeBeforeOrderDAO.getRecipeBeforeOrderByRecipeId(recipeId);
             try {
-                RecipeInfoDTO result = hisRecipeManager.pushRecipe(recipePdfDTO, CommonConstant.RECIPE_PUSH_TYPE, pharmacyIdMap, CommonConstant.RECIPE_PATIENT_TYPE, orderByRecipeId.getGiveModeKey());
+                RecipeInfoDTO result = hisRecipeManager.pushRecipe(recipePdfDTO, CommonConstant.RECIPE_PUSH_TYPE, pharmacyIdMap, CommonConstant.RECIPE_PATIENT_TYPE, orderByRecipeId.getGiveModeKey(), null);
                 logger.info("submitRecipeHisV1 pushRecipe result={}", ngari.openapi.util.JSONUtils.toString(result));
                 result.getRecipe().setBussSource(recipe.getBussSource());
                 result.getRecipe().setClinicId(recipe.getClinicId());
@@ -1926,12 +1928,10 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
             List<Date> remindDates = new ArrayList<>();
             Date sourceTime = new Date();
             List<String> revisitRementAppointDepart =new ArrayList<>();
-//            RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(orderCode);
             List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIds);
             if(CollectionUtils.isEmpty(recipes)){
                 return null;
             }
-//            List<Integer> recipeIds = recipes.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
             List<Recipe> tcmRecipeList = recipes.stream().filter(recipe -> RecipeTypeEnum.RECIPETYPE_TCM.getType().equals(recipe.getRecipeType())).collect(Collectors.toList());
             List<RecipeExtend> recipeExtendList = recipeExtendDAO.queryRecipeExtendByRecipeIds(recipeIds);
             //获取长处方的处方单号
@@ -2061,6 +2061,31 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
         hlwTbParamReq.setHisBusId(settleReqDTO.getHisBusId());
         hlwTbParamReq.setYbId(settleReqDTO.getYbId());
         return hlwTbParamReq;
+    }
+
+    @Override
+    public boolean orderRefund(Integer orderId) {
+        RecipeOrder recipeOrder = recipeOrderDAO.get(orderId);
+        if (Objects.isNull(recipeOrder)) {
+            return false;
+        }
+        try {
+            RecipeOrderPayFlow recipeOtherOrderPayFlow = recipeOrderPayFlowManager.getByOrderIdAndType(orderId, PayFlowTypeEnum.RECIPE_AUDIT.getType());
+            if (Objects.nonNull(recipeOtherOrderPayFlow)) {
+                RefundResultDTO resultDTO = payClient.refund(orderId, PayBusTypeEnum.OTHER_BUS_TYPE.getName());
+                if (resultDTO.getStatus() != 0) {
+                    return false;
+                }
+            }
+            RefundResultDTO refundResultDTO = payClient.refund(orderId, PayBusTypeEnum.RECIPE_BUS_TYPE.getName());
+            if (refundResultDTO.getStatus() != 0) {
+                return false;
+            }
+        } catch (Exception e) {
+            logger.error("RecipeOrderBusinessService orderRefund error", e);
+            return false;
+        }
+        return true;
     }
 
     private static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {

@@ -1075,6 +1075,7 @@ public class EnterpriseManager extends BaseManager {
      * @param drugsEnterpriseId
      * @param giveMode
      */
+    @LogRecord
     public Integer getStorePayFlag(Integer organId, Integer drugsEnterpriseId, Integer giveMode){
         if (!GiveModeEnum.GIVE_MODE_HOSPITAL_DRUG.getType().equals(giveMode) && !GiveModeEnum.GIVE_MODE_PHARMACY_DRUG.getType().equals(giveMode)) {
             return null;
@@ -1082,7 +1083,8 @@ public class EnterpriseManager extends BaseManager {
         Integer storePayFlag = StorePaymentWayEnum.STORE_PAYMENT_WAY_OFFLINE.getType();
         // 到院自取是否采用药企管理模式
         Boolean drugToHosByEnterprise = configurationClient.getValueBooleanCatch(organId, "drugToHosByEnterprise", false);
-        if (!drugToHosByEnterprise) {
+        if (GiveModeEnum.GIVE_MODE_HOSPITAL_DRUG.getType().equals(giveMode) && !drugToHosByEnterprise) {
+            // 到院自取
             Boolean takeOneselfPayment = configurationClient.getValueBooleanCatch(organId, "supportToHosPayFlag", false);
             if (takeOneselfPayment) {
                 storePayFlag = StorePaymentWayEnum.STORE_PAYMENT_WAY_ONLINE.getType();
@@ -1097,8 +1099,15 @@ public class EnterpriseManager extends BaseManager {
             throw new DAOException("未配置药企销售配置");
         }
         String storePaymentWay = organDrugsSaleConfig.getStorePaymentWay();
-        if (StringUtils.isNotEmpty(storePaymentWay)) {
-            List<Integer> storePayment = JSONUtils.parse(storePaymentWay, List.class);
+        String takeOneselfPaymentWay = organDrugsSaleConfig.getTakeOneselfPaymentWay();
+        List<Integer> storePayment = null;
+        if (GiveModeEnum.GIVE_MODE_HOSPITAL_DRUG.getType().equals(giveMode) && StringUtils.isNotEmpty(takeOneselfPaymentWay)){
+            storePayment = JSONUtils.parse(takeOneselfPaymentWay, List.class);
+        }
+        if (GiveModeEnum.GIVE_MODE_PHARMACY_DRUG.getType().equals(giveMode) && StringUtils.isNotEmpty(storePaymentWay)){
+            storePayment = JSONUtils.parse(storePaymentWay, List.class);
+        }
+        if (CollectionUtils.isNotEmpty(storePayment)) {
             if (storePayment.size() == 1) {
                 // 销售配置了一个按销售配置走
                 storePayFlag = storePayment.get(0);

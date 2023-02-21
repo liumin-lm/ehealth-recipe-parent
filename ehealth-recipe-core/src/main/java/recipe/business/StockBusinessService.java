@@ -227,6 +227,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         //查询库存
         List<EnterpriseStock> enterpriseStockList = this.drugsStock(recipeDTO, StockCheckSourceTypeEnum.DOCTOR_STOCK.getType());
         if (CollectionUtils.isEmpty(enterpriseStockList)) {
+            logger.info("StockBusinessService drugStock enterpriseStockList={}", JSON.toJSONString(enterpriseStockList));
             return null;
         }
         //药企药品库存
@@ -241,6 +242,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         List<Integer> target = recipeDTO.getRecipeDetails().stream().map(Recipedetail::getDrugId).distinct().sorted().collect(Collectors.toList());
         List<List<Integer>> drugIdsList = ListValueUtil.permutationTarget(source, target);
         if (CollectionUtils.isEmpty(drugIdsList)) {
+            logger.info("StockBusinessService drugStock source={}, target={}", JSON.toJSONString(source), JSON.toJSONString(target));
             return null;
         }
         //合组返回结果
@@ -260,7 +262,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
             });
             result.add(recipeDetails);
         });
-        logger.info("StockBusinessService drugStock retailsSplitList={}", JSON.toJSONString(result));
+
         return result;
     }
 
