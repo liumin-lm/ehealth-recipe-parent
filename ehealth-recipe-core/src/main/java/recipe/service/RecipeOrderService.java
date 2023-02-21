@@ -631,6 +631,7 @@ public class RecipeOrderService extends RecipeBaseService {
         //当前操作人的编码，用于获取地址列表信息等
         String operMpiId = MapValueUtil.getString(extInfo, "operMpiId");
         Integer takeMedicineWay = MapValueUtil.getInteger(extInfo, "takeMedicineWay");
+        Integer storePayFlag = eh.utils.MapValueUtil.getInteger(extInfo, "storePayFlag");
 
         //设置挂号费（之前是区分购药方式的，要去区分购药方式来挂号费，现在不区分根据配置项来）
         orderFeeManager.setRegisterFee(order);
