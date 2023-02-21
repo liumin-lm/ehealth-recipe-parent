@@ -48,13 +48,16 @@ import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.CommonRemoteService;
+import recipe.enumerate.status.PayWayEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.PayFlagEnum;
+import recipe.enumerate.type.PayFlowTypeEnum;
 import recipe.enumerate.type.RecipeDistributionFlagEnum;
 import recipe.enumerate.type.RecipeSendTypeEnum;
 import recipe.manager.DepartManager;
 import recipe.manager.EmrRecipeManager;
 import recipe.manager.EnterpriseManager;
+import recipe.manager.RecipeOrderPayFlowManager;
 import recipe.util.ByteUtils;
 import recipe.util.DateConversion;
 import recipe.util.ValidateUtil;
@@ -74,6 +77,8 @@ import static ctd.persistence.DAOFactory.getDAO;
 @Service
 public class HisRequestInit {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(HisRequestInit.class);
+
     @Autowired
     private DocIndexClient docIndexClient;
 
@@ -83,7 +88,8 @@ public class HisRequestInit {
     @Autowired
     private DepartManager departManager;
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(HisRequestInit.class);
+    @Autowired
+    private RecipeOrderPayFlowManager recipeOrderPayFlowManager;
 
     public RecipeSendRequestTO initRecipeSendRequestTOForWuChang(Recipe recipe, List<Recipedetail> details, PatientBean patient) {
         RecipeSendRequestTO requestTO = new RecipeSendRequestTO();
@@ -181,13 +187,6 @@ public class HisRequestInit {
                 requestTO.setMobile(patient.getMobile());
                 requestTO.setCertificateType(patient.getCertificateType());
             }
-            /*if (null != card) {
-                requestTO.setCardType(card.getCardType());//2-医保卡
-                requestTO.setCardNo(card.getCardId());
-            }else {
-                requestTO.setCardType("4");//武昌-4-身份证
-                requestTO.setCardNo(patient.getIdcard());
-            }*/
             requestTO.setCardType("4");//武昌-4-身份证
             requestTO.setCardNo(patient.getIdcard());
             //根据处方单设置配送方式
@@ -225,12 +224,7 @@ public class HisRequestInit {
                         orderItem.setDosage((null != detail.getUseDose()) ? Double.toString(detail.getUseDose()) : null);
                     }
                     orderItem.setDrunit(detail.getUseDoseUnit());
-                    /*
-                     * //每日剂量 转换成两位小数 DecimalFormat df = new DecimalFormat("0.00");
-                     * String dosageDay =
-                     * df.format(getFrequency(detail.getUsingRate(
-                     * ))*detail.getUseDose());
-                     */
+
                     // 传用药总量 药品包装 * 开药数量
                     Double dos = detail.getUseTotalDose() * detail.getPack();
                     orderItem.setDosageDay(dos.toString());
@@ -662,7 +656,14 @@ public class HisRequestInit {
                         default:
                             requestTO.setIsMedicalSettle("0");
                     }
-                    if ("40".equals(order.getWxPayWay())) {
+                    RecipeOrderPayFlow recipeOrderPayFlow = recipeOrderPayFlowManager.getByOrderIdAndType(order.getOrderId(), PayFlowTypeEnum.RECIPE_FLOW.getType());
+                    String wxPayWay;
+                    if (Objects.nonNull(recipeOrderPayFlow)) {
+                        wxPayWay = recipeOrderPayFlow.getWxPayWay();
+                    } else {
+                        wxPayWay = order.getWxPayWay();
+                    }
+                    if (PayWayEnum.WEIXIN_JSAPI.getCode().equals(wxPayWay)) {
                         requestTO.setPayType("C");
                     } else {
                         requestTO.setPayType("E");
@@ -1141,14 +1142,6 @@ public class HisRequestInit {
 
             IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
             PatientBean patientBean = iPatientService.get(recipe.getMpiid());
-            /*HealthCardBean cardBean = iPatientService.getHealthCard(recipe.getMpiid(), recipe.getClinicOrgan(), "2");
-            if (null != cardBean) {
-                requestTO.setCardType(cardBean.getCardType());//2-医保卡
-                requestTO.setCardCode(cardBean.getCardId());
-            }else {
-                requestTO.setCardType("4");//武昌-4-身份证
-                requestTO.setCardCode(patientBean.getIdcard());
-            }*/
             requestTO.setCardType("4");//武昌-4-身份证
             requestTO.setCardCode(patientBean.getIdcard());
             requestTO.setPatientIdCard(patientBean.getIdcard());
