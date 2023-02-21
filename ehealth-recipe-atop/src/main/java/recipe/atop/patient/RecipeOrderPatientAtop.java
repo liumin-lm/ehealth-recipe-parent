@@ -12,11 +12,13 @@ import com.ngari.recipe.vo.UpdateOrderStatusVO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.common.CommonConstant;
 import recipe.constant.ErrorCode;
+import recipe.constant.ParameterConstant;
 import recipe.core.api.IOrganBusinessService;
 import recipe.core.api.patient.IOfflineRecipeBusinessService;
 import recipe.core.api.patient.IRecipeOrderBusinessService;
@@ -184,10 +186,23 @@ public class RecipeOrderPatientAtop extends BaseAtop {
             logger.info("RecipeOrderPatientAtop submitRecipeHis orderId = {} , giveModeKey = {}", patientSubmitRecipeVO.getOrganId(), patientSubmitRecipeVO.getGiveModeKey());
             return;
         }
+        int pushDest = 1;
+        try {
+            String parameter = organBusinessService.getRecipeParameterValue("patientRecipePushEnterprise");
+            List<Integer> orderIds = JSON.parseArray(parameter, Integer.class);
+            if (CollectionUtils.isNotEmpty(orderIds) && orderIds.contains(patientSubmitRecipeVO.getOrganId())) {
+                //推送药企
+                pushDest = 2;
+            }
+        } catch (Exception e) {
+            logger.error("getRecipeParameterValue patientRecipePushEnterprise error");
+        }
+
         //推送his
+        Integer finalPushDest = pushDest;
         patientSubmitRecipeVO.getRecipeIds().forEach(recipeId -> {
             offlineToOnlineService.pushRecipe(recipeId, CommonConstant.RECIPE_PUSH_TYPE, CommonConstant.RECIPE_PATIENT_TYPE,
-                    patientSubmitRecipeVO.getExpressFeePayType(), patientSubmitRecipeVO.getExpressFee(), patientSubmitRecipeVO.getGiveModeKey());
+                    patientSubmitRecipeVO.getExpressFeePayType(), patientSubmitRecipeVO.getExpressFee(), patientSubmitRecipeVO.getGiveModeKey(), finalPushDest);
             recipeOrderService.updatePdfForSubmitOrderAfter(recipeId);
         });
     }
@@ -221,7 +236,7 @@ public class RecipeOrderPatientAtop extends BaseAtop {
 
         //推送his
         recipeIds.forEach(recipeId -> offlineToOnlineService.pushRecipe(recipeId, CommonConstant.RECIPE_CANCEL_TYPE,
-                CommonConstant.RECIPE_PATIENT_TYPE, null, null, null));
+                CommonConstant.RECIPE_PATIENT_TYPE, null, null, null, 1));
 
     }
 
