@@ -673,7 +673,7 @@ public class HisRecipeManager extends BaseManager {
      * @throws Exception
      */
     public RecipeInfoDTO pushRecipe(RecipeInfoDTO recipePdfDTO, Integer pushType, Map<Integer, PharmacyTcm> pharmacyIdMap,
-                                    Integer sysType, String giveModeKey) throws Exception {
+                                    Integer sysType, String giveModeKey, Integer pushDest) throws Exception {
         EmrDetailDTO emrDetail = emrDetail(recipePdfDTO);
         Integer clinicId = recipePdfDTO.getRecipe().getClinicId();
         RevisitExDTO revisitEx = revisitClient.getByClinicId(clinicId);
@@ -694,7 +694,7 @@ public class HisRecipeManager extends BaseManager {
             return offlineRecipeClient.pushRecipe(pushType, recipePdfDTO, emrDetail, pharmacyIdMap, giveModeKey, revisitEx);
         } else {
             return offlineRecipeClient.patientPushRecipe(pushType, recipePdfDTO, emrDetail, pharmacyIdMap,
-                    giveModeKey, revisitEx, decoctionWay, makingMethod);
+                    giveModeKey, revisitEx, decoctionWay, makingMethod, pushDest);
         }
     }
 

@@ -76,7 +76,7 @@ public interface IOfflineRecipeBusinessService {
      * @return RecipeInfoDTO 处方信息
      */
     RecipeInfoDTO pushRecipe(Integer recipeId, Integer pushType, Integer sysType, Integer expressFeePayType,
-                             Double expressFee, String giveModeKey);
+                             Double expressFee, String giveModeKey, Integer pushDest);
 
     void offlineToOnlineForRecipe(FindHisRecipeDetailReqVO request);
 

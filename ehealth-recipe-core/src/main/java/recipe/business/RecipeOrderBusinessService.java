@@ -1695,7 +1695,7 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
             Map<Integer, PharmacyTcm> pharmacyIdMap = pharmacyManager.pharmacyIdMap(recipe.getClinicOrgan());
             RecipeBeforeOrder orderByRecipeId = recipeBeforeOrderDAO.getRecipeBeforeOrderByRecipeId(recipeId);
             try {
-                RecipeInfoDTO result = hisRecipeManager.pushRecipe(recipePdfDTO, CommonConstant.RECIPE_PUSH_TYPE, pharmacyIdMap, CommonConstant.RECIPE_PATIENT_TYPE, orderByRecipeId.getGiveModeKey());
+                RecipeInfoDTO result = hisRecipeManager.pushRecipe(recipePdfDTO, CommonConstant.RECIPE_PUSH_TYPE, pharmacyIdMap, CommonConstant.RECIPE_PATIENT_TYPE, orderByRecipeId.getGiveModeKey(), null);
                 logger.info("submitRecipeHisV1 pushRecipe result={}", ngari.openapi.util.JSONUtils.toString(result));
                 result.getRecipe().setBussSource(recipe.getBussSource());
                 result.getRecipe().setClinicId(recipe.getClinicId());
