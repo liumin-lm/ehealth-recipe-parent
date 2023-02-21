@@ -1,10 +1,13 @@
 package recipe.thread;
 
+import com.aliyun.openservices.shade.com.alibaba.fastjson.JSON;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.Recipedetail;
 import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.client.IConfigurationClient;
 import recipe.dao.RecipeExtendDAO;
@@ -22,6 +25,7 @@ import java.util.List;
  */
 
 public class RecipeSendSuccessRunnable implements Runnable {
+    private static final Logger logger = LoggerFactory.getLogger(RecipeSendSuccessRunnable.class);
     private List<Recipedetail> recipeDetails;
     private Recipe recipe;
 
@@ -32,6 +36,7 @@ public class RecipeSendSuccessRunnable implements Runnable {
 
     @Override
     public void run() {
+        logger.info("RecipeSendSuccessRunnable run recipeDetails={}", JSON.toJSONString(recipeDetails));
         /**更新药品最新的价格等*/
         IConfigurationClient configurationClient = AppContextHolder.getBean("IConfigurationClient", IConfigurationClient.class);
         boolean recipeSendUpdatePrice = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "recipeSendUpdatePrice", false);

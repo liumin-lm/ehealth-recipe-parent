@@ -185,8 +185,9 @@ public class OfflineRecipeClient extends BaseClient {
      */
     public RecipeInfoDTO patientPushRecipe(Integer pushType, RecipeInfoDTO recipePdfDTO, EmrDetailDTO emrDetail,
                                            Map<Integer, PharmacyTcm> pharmacyIdMap, String giveModeKey, RevisitExDTO revisitBean,
-                                           DecoctionWay decoctionWay, DrugMakingMethod makingMethod) throws Exception {
+                                           DecoctionWay decoctionWay, DrugMakingMethod makingMethod, Integer pushDest) throws Exception {
         com.ngari.platform.recipe.mode.RecipeDTO recipeDTO = packageRecipeDTO(pushType, recipePdfDTO, emrDetail, pharmacyIdMap, giveModeKey, decoctionWay, makingMethod);
+        recipeDTO.setPushDest(pushDest);
         recipeDTO.setRevisitEx(ObjectCopyUtils.convert(revisitBean, com.ngari.platform.revisit.model.RevisitExDTO.class));
         logger.info("OfflineRecipeClient patientPushRecipe recipeDTO：{}", JSON.toJSONString(recipeDTO));
         try {

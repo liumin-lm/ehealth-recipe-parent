@@ -1,5 +1,6 @@
 package recipe.atop.patient;
 
+import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.dto.EnterpriseStock;
 import com.ngari.recipe.dto.RecipeDTO;
 import com.ngari.recipe.entity.OrganDrugsSaleConfig;
@@ -91,6 +92,14 @@ public class DrugEnterprisePatientAtop extends BaseAtop {
         OrganDrugsSaleConfig organDrugsSaleConfig = enterpriseBusinessService.getOrganDrugsSaleConfig(organId, drugsEnterpriseId);
         OrganDrugsSaleConfigVo organDrugsSaleConfigVo = new OrganDrugsSaleConfigVo();
         BeanUtils.copyProperties(organDrugsSaleConfig,organDrugsSaleConfigVo);
+        if (StringUtils.isNotEmpty(organDrugsSaleConfig.getStorePaymentWay())) {
+            List<Integer> storePaymentWayList = JSON.parseArray(organDrugsSaleConfig.getStorePaymentWay(), Integer.class);
+            organDrugsSaleConfigVo.setStorePaymentWay(storePaymentWayList);
+        }
+        if (StringUtils.isNotEmpty(organDrugsSaleConfig.getTakeOneselfPaymentWay())) {
+            List<Integer> takeOneselfPaymentWayList = JSON.parseArray(organDrugsSaleConfig.getTakeOneselfPaymentWay(), Integer.class);
+            organDrugsSaleConfigVo.setTakeOneselfPaymentWay(takeOneselfPaymentWayList);
+        }
         return organDrugsSaleConfigVo;
     }
 

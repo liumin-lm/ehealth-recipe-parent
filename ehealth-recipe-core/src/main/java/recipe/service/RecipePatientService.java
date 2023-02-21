@@ -888,7 +888,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), RecipeStatusEnum.RECIPE_STATUS_READY_CHECK_YS.getType(), RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType(), "药师审核通过，等待患者处理");
         try {
             //将处方写入HIS
-            offlineRecipeBusinessService.pushRecipe(recipe.getRecipeId(), CommonConstant.RECIPE_PUSH_TYPE, CommonConstant.RECIPE_PATIENT_TYPE, null, null, null);
+            offlineRecipeBusinessService.pushRecipe(recipe.getRecipeId(), CommonConstant.RECIPE_PUSH_TYPE, CommonConstant.RECIPE_PATIENT_TYPE, null, null, null, 1);
             RecipeLogService.saveRecipeLog(recipe.getRecipeId(), RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType(), RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType(), "处方写入HIS成功");
         } catch (Exception e) {
             LOGGER.error("RecipePatientService pushRecipe error,recipeId:{}", recipe.getRecipeId(), e);
