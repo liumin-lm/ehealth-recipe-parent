@@ -5,7 +5,9 @@ import com.alibaba.fastjson.JSONArray;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.ngari.base.organ.model.OrganBean;
+import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.base.patient.model.PatientBean;
+import com.ngari.constant.RecipeHisStatusEnum;
 import com.ngari.his.recipe.mode.DrugTakeChangeReqTO;
 import com.ngari.his.recipe.mode.FTYSendTimeReqDTO;
 import com.ngari.patient.service.AddrAreaService;
@@ -21,6 +23,7 @@ import com.ngari.recipe.dto.OrganDTO;
 import com.ngari.recipe.dto.PatientDTO;
 import com.ngari.recipe.entity.*;
 import ctd.account.UserRoleToken;
+import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
@@ -45,16 +48,18 @@ import recipe.client.EnterpriseClient;
 import recipe.client.OrganClient;
 import recipe.client.PatientClient;
 import recipe.constant.ErrorCode;
+import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeMsgEnum;
 import recipe.constant.RecipeStatusConstant;
 import recipe.core.api.IEnterpriseBusinessService;
 import recipe.dao.*;
+import recipe.drugsenterprise.CommonRemoteService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.enumerate.status.*;
 import recipe.enumerate.type.AppointEnterpriseTypeEnum;
 import recipe.enumerate.type.PayFlagEnum;
+import recipe.enumerate.type.RecipeSendTypeEnum;
 import recipe.enumerate.type.RecipeSupportGiveModeEnum;
-import recipe.hisservice.HisRequestInit;
 import recipe.hisservice.RecipeToHisService;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.hisservice.syncdata.SyncExecutorService;
@@ -129,6 +134,8 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
     private StateManager stateManager;
     @Resource
     private OrganAndDrugsepRelationDAO drugsDepRelationDAO;
+    @Resource
+    private RecipeExtendDAO recipeExtendDAO;
 
 
     @Override
@@ -1010,7 +1017,7 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
                     RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
                     PatientDTO patientDTO = patientClient.getPatientDTO(recipe.getMpiid());
                     PatientBean patientBean = ObjectCopyUtils.convert(patientDTO, PatientBean.class);
-                    DrugTakeChangeReqTO request = HisRequestInit.initDrugTakeChangeReqTO(recipe, recipeDetailMap.get(recipe.getRecipeId()), patientBean, null);
+                    DrugTakeChangeReqTO request = initDrugTakeChangeReqTO(recipe, recipeDetailMap.get(recipe.getRecipeId()), patientBean, null);
                     service.drugTakeChange(request);
 
                     //监管平台上传配送信息(派药)
@@ -1089,6 +1096,170 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
             }
         }
         return "200";
+    }
+
+    private DrugTakeChangeReqTO initDrugTakeChangeReqTO(Recipe recipe, List<Recipedetail> list, PatientBean patient, HealthCardBean card) {
+        logger.info("initDrugTakeChangeReqTO recipe ={}", recipe.getRecipeId());
+        DrugTakeChangeReqTO requestTO = new DrugTakeChangeReqTO();
+        try {
+            requestTO.setOrganID((null != recipe.getClinicOrgan()) ? Integer.toString(recipe.getClinicOrgan()) : null);
+            if (null != card) {
+                requestTO.setCardType(card.getCardType());
+                requestTO.setCardNo(card.getCardId());
+            }
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+            requestTO.setPatientID(recipe.getPatientID());
+            if (Objects.isNull(recipeExtend)) {
+                return requestTO;
+            }
+            requestTO.setRegisterID(recipeExtend.getRegisterID());
+            if (StringUtils.isNotBlank(recipeExtend.getDecoctionId())) {
+                DecoctionWay decoctionWay = drugDecoctionWayDao.get(Integer.parseInt(recipeExtend.getDecoctionId()));
+                //是否代煎
+                requestTO.setGenerationisOfDecoction(decoctionWay.getGenerationisOfDecoction());
+                requestTO.setDecoctionCode(decoctionWay.getDecoctionCode());
+                requestTO.setDecoctionText(decoctionWay.getDecoctionText());
+            }
+            requestTO.setRecipeCostNumber(recipeExtend.getRecipeCostNumber());
+            requestTO.setChargeItemCode(recipeExtend.getChargeItemCode());
+            requestTO.setChargeId(recipeExtend.getChargeId());
+            if (Objects.isNull(patient)) {
+                return requestTO;
+            }
+            requestTO.setPatientName(patient.getPatientName());
+            requestTO.setCertID(patient.getCertificate());
+            requestTO.setCertificateType(patient.getCertificateType());
+            requestTO.setMobile(patient.getMobile());
+            if (StringUtils.isEmpty(recipe.getOrderCode())) {
+                return requestTO;
+            }
+            RecipeOrder order = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+            if (Objects.isNull(order)) {
+                return requestTO;
+            }
+            //期待配送时间
+            requestTO.setPlanDate(order.getExpectSendDate());
+            requestTO.setPlanTime(order.getExpectSendTime());
+            //设置预约取药开始和结束时间
+            // 数据库默认设置取药时间为 "1970-01-01 00:00:01" 所以只有当取药时间不等于 1970-01-01 00:00:01才给前置机传
+            String defaultTime = "1970-01-01 00:00:01";
+            if (!defaultTime.equals(order.getExpectStartTakeTime())) {
+                requestTO.setExpectStartTakeTime(order.getExpectStartTakeTime());
+                requestTO.setExpectEndTakeTime(order.getExpectEndTakeTime());
+            }
+            //收货人
+            requestTO.setConsignee(order.getReceiver());
+            //联系电话
+            requestTO.setContactTel(order.getRecMobile());
+            //收货地址
+            CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
+            requestTO.setAddress(commonRemoteService.getCompleteAddress(order));
+            requestTO.setTrackingNumber(order.getTrackingNumber());
+            if (order.getLogisticsCompany() != null) {
+                String logisticsCompany = DictionaryController.instance().get("eh.cdr.dictionary.LogisticsCompany").getText(order.getLogisticsCompany());
+                requestTO.setLogisticsCompany(logisticsCompany);
+            }
+            //设置省市区编码
+            if (StringUtils.isNotEmpty(order.getAddress1())) {
+                requestTO.setProvinceCode(ValidateUtil.isEmpty(order.getAddress1()) + "0000");
+                requestTO.setCityCode(ValidateUtil.isEmpty(order.getAddress2()) + "00");
+                requestTO.setDistrictCode(ValidateUtil.isEmpty(order.getAddress3()));
+                requestTO.setStreetCode(ValidateUtil.isEmpty(order.getStreetAddress()));
+                requestTO.setCommunityCode(ValidateUtil.isEmpty(order.getAddress5()));
+                requestTO.setCommunityName(ValidateUtil.isEmpty(order.getAddress5Text()));
+            }
+            //合并支付的处方需要将所有his处方编码传过去
+            RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+            List<Recipe> recipeS = recipeDAO.findRecipeListByOrderCode(recipe.getOrderCode());
+            if (CollectionUtils.isNotEmpty(recipeS)) {
+                List<String> recipeNoS = recipeS.stream().map(Recipe::getRecipeCode).collect(Collectors.toList());
+                requestTO.setRecipeNoS(recipeNoS);
+            }
+            if (Objects.nonNull(order.getEnterpriseId())) {
+                DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+                DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
+                requestTO.setThirdEnterpriseCode(drugsEnterprise.getThirdEnterpriseCode());
+                requestTO.setEnterpriseCode(drugsEnterprise.getEnterpriseCode());
+            }
+            requestTO.setOrderId(order.getOrderId());
+            requestTO.setOrderCode(order.getOrderCode());
+
+            //此处就行改造
+            if (null != recipe.getGiveMode()) {
+                if (RecipeBussConstant.GIVEMODE_TO_HOS.equals(recipe.getGiveMode())) {
+                    requestTO.setTakeDrugsType("0");
+                }
+                if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(recipe.getGiveMode())) {
+                    if (order != null) {
+                        Integer depId = order.getEnterpriseId();
+                        if (depId != null) {
+                            DrugsEnterpriseDAO enterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+                            DrugsEnterprise drugsEnterprise = enterpriseDAO.getById(depId);
+                            EnterpriseManager enterpriseManager = AppContextHolder.getBean("enterpriseManager", EnterpriseManager.class);
+                            Integer sendType = enterpriseManager.getEnterpriseSendType(order.getOrganId(), depId);
+                            if (drugsEnterprise != null && sendType == RecipeSendTypeEnum.NO_PAY.getSendType()) {
+                                //药企配送
+                                requestTO.setTakeDrugsType("2");
+                            } else {
+                                //医院配送
+                                requestTO.setTakeDrugsType("1");
+                            }
+                        }
+                    }
+                }
+                if (RecipeBussConstant.GIVEMODE_TFDS.equals(recipe.getGiveMode())) {
+                    requestTO.setTakeDrugsType("3");
+                }
+            }
+            requestTO.setRecipeNo(recipe.getRecipeCode());
+            requestTO.setRecipeType((null != recipe.getRecipeType()) ? Integer.toString(recipe.getRecipeType()) : null);
+            Recipe nowRecipe = recipeDAO.getByRecipeId(recipe.getRecipeId());
+            logger.info("initDrugTakeChangeReqTO recipe:{},order:{}.", JSONUtils.toString(nowRecipe), JSONUtils.toString(order));
+            RecipeHisStatusEnum recipeHisStatusEnum = RecipeHisStatusEnum.getRecipeHisStatusEnum(nowRecipe.getStatus());
+            if (Objects.nonNull(recipeHisStatusEnum)) {
+                requestTO.setRecipeStatus(recipeHisStatusEnum.getValue());
+            }
+            if (null == requestTO.getRecipeStatus() && null != order && PayFlagEnum.PAYED.getType().equals(order.getPayFlag())
+                    && (RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType().equals(nowRecipe.getStatus()) ||
+                    RecipeStatusEnum.RECIPE_STATUS_WAIT_SEND.getType().equals(nowRecipe.getStatus()))) {
+                requestTO.setRecipeStatus(0);
+            }
+            //设置药房信息
+            requestTO.setPharmacyCode("");
+            requestTO.setPharmacyName("");
+            if (CollectionUtils.isNotEmpty(list)) {
+                Recipedetail recipeDetail = list.get(0);
+                if (null != recipeDetail && null != recipeDetail.getPharmacyId()) {
+                    PharmacyTcmDAO pharmacyTcmDAO = DAOFactory.getDAO(PharmacyTcmDAO.class);
+                    PharmacyTcm pharmacyTcm = pharmacyTcmDAO.get(recipeDetail.getPharmacyId());
+                    if (null != pharmacyTcm) {
+                        requestTO.setPharmacyCode(pharmacyTcm.getPharmacyCode());
+                        requestTO.setPharmacyName(pharmacyTcm.getPharmacyName());
+                    }
+                }
+            }
+            if (null != recipe.getFastRecipeFlag()) {
+                requestTO.setFastRecipeFlag(recipe.getFastRecipeFlag());
+            } else {
+                requestTO.setFastRecipeFlag(0);
+            }
+            // 医院系统医嘱号（一张处方多条记录用|分隔）
+            StringBuilder str = new StringBuilder("");
+            if (null != list && list.size() != 0) {
+                for (int i = 0; i < list.size(); i++) {
+                    if (i < list.size() - 1) {
+                        str.append(list.get(i).getOrderNo() + "|");
+                    } else {
+                        str.append(list.get(i).getOrderNo());
+                    }
+                }
+            }
+            requestTO.setOrderNo(str.toString());
+        } catch (Exception e) {
+            logger.error("initDrugTakeChangeReqTO error", e);
+        }
+        logger.info("initDrugTakeChangeReqTO requestTO:{}.", JSONUtils.toString(requestTO));
+        return requestTO;
     }
 
 }
