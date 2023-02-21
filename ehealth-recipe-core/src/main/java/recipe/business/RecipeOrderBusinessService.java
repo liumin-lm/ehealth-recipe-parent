@@ -679,7 +679,7 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
             order.setDrugStoreCode(thirdCreateOrderReqDTO.getGysCode());
         }
         order.setEffective(1);
-        order.setRecipeIdList(JSONUtils.toString(Arrays.asList(recipe.getRecipeId())));
+        order.setRecipeIdList(JSONUtils.toString(Arrays.asList(recipeList)));
         order.setPayFlag(0);
         //设置订单各个费用
         thirdOrderSetFee(order, recipeList, thirdCreateOrderReqDTO);
