@@ -67,7 +67,6 @@ public class RecipeOrderRefundGmAtop extends BaseAtop {
      */
     @RpcService
     public boolean orderRefund(Integer orderId){
-
-        return true;
+        return recipeOrderService.orderRefund(orderId);
     }
 }
