@@ -1221,8 +1221,11 @@ public class RecipeManager extends BaseManager {
         com.ngari.recipe.dto.PatientDTO patientBean = patientClient.getPatientDTO(recipes.get(0).getMpiid());
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeIdList.get(0));
         List<HisOrderCodeResTO> hisOrderCodeResTOS = null;
+        Boolean getAliPayYb = configurationClient.getValueBooleanCatch(clinicOrgan, "getAliPayYb", false);
         try {
-            hisOrderCodeResTOS = recipeHisClient.queryHisOrderCodeByRecipeCode(recipes.get(0).getPatientID(), clinicOrgan, recipes,patientBean,recipeExtend);
+            if (getAliPayYb) {
+                hisOrderCodeResTOS = recipeHisClient.queryHisOrderCodeByRecipeCode(recipes.get(0).getPatientID(), clinicOrgan, recipes, patientBean, recipeExtend);
+            }
         } catch (Exception e) {
             logger.error("获取医保id错误");
             return null;
