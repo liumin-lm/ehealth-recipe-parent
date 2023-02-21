@@ -704,7 +704,7 @@ public class OrderFeeManager extends BaseManager {
      * @return
      */
     @LogRecord
-    public void getActualPrice(RecipeOrder order,Integer giveMode,BigDecimal totalFee,Integer storePayFlag) {
+    public void setActualPrice(RecipeOrder order,Integer giveMode,BigDecimal totalFee,Integer storePayFlag) {
         // 江苏监管平台
         if(isJSOrgan(order.getOrganId())){
             order.setActualPrice(totalFee.doubleValue());

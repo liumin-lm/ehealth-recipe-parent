@@ -773,40 +773,7 @@ public class RecipeOrderService extends RecipeBaseService {
         if (isUsefulCoupon(order.getCouponId())) {
             orderFeeManager.setCouponFee(order,firstRecipe);
         } else {
-            if (payMode != RecipeBussConstant.PAYMODE_ONLINE && !RecipeServiceSub.isJSOrgan(order.getOrganId())) {
-
-                if (RecipeBussConstant.PAYMODE_TO_HOS.equals(payMode)) {
-                    PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
-                    //卫宁付
-                    // 到院取药是否支持线上支付
-                    OrganDrugsSaleConfig organDrugsSaleConfig = enterpriseManager.getOrganDrugsSaleConfig(order.getOrganId(), order.getEnterpriseId(), GiveModeEnum.GIVE_MODE_HOSPITAL_DRUG.getType());
-                    Integer takeOneselfPayment = organDrugsSaleConfig.getTakeOneselfPayment();
-                    if (purchaseService.getToHosPayConfig(firstRecipe.getClinicOrgan(), order.getEnterpriseId()) || new Integer(1).equals(takeOneselfPayment)) {
-                        order.setActualPrice(totalFee.doubleValue());
-                    } else {
-                        //此时的实际费用是不包含药品费用的
-                        order.setActualPrice(order.getAuditFee().doubleValue());
-                    }
-                } else {
-                    if (RecipeBussConstant.PAYMODE_TFDS.equals(payMode)) {
-                        //药店取药的
-                        Integer depId = order.getEnterpriseId();
-                        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(depId);
-                        if (drugsEnterprise != null && drugsEnterprise.getStorePayFlag() != null && drugsEnterprise.getStorePayFlag() == 1) {
-                            //storePayFlag = 1 表示线上支付但到店取药
-                            order.setActualPrice(totalFee.doubleValue());
-                        } else {
-                            //此时的实际费用是不包含药品费用的
-                            order.setActualPrice(order.getAuditFee().doubleValue());
-                        }
-                    } else {
-                        //此时的实际费用是不包含药品费用的
-                        order.setActualPrice(order.getAuditFee().doubleValue());
-                    }
-                }
-            } else {
-                order.setActualPrice(totalFee.doubleValue());
-            }
+            orderFeeManager.setActualPrice(order,giveMode,totalFee,storePayFlag);
         }
     }
 
