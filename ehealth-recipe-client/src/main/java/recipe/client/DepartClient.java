@@ -38,6 +38,7 @@ public class DepartClient extends BaseClient {
 
     @Autowired
     private DepartmentService departmentService;
+
     @Autowired
     private IRevisitService revisitService;
 

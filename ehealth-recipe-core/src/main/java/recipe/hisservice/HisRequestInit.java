@@ -23,8 +23,10 @@ import com.ngari.platform.recipe.mode.RecipeOrderBean;
 import com.ngari.recipe.dto.EmrDetailDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.revisit.RevisitAPI;
+import com.ngari.revisit.RevisitBean;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.service.IRevisitExService;
+import com.ngari.revisit.common.service.IRevisitService;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
@@ -43,6 +45,7 @@ import recipe.bean.CheckYsInfoBean;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.UsePathwaysFilter;
 import recipe.bussutil.UsingRateFilter;
+import recipe.client.DepartClient;
 import recipe.client.DocIndexClient;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
@@ -87,6 +90,9 @@ public class HisRequestInit {
 
     @Autowired
     private DepartManager departManager;
+
+    @Autowired
+    private DepartClient departClient;
 
     @Autowired
     private RecipeOrderPayFlowManager recipeOrderPayFlowManager;
@@ -389,9 +395,12 @@ public class HisRequestInit {
         requestTO.setIcdName(recipe.getOrganDiseaseName());
         requestTO.setDiseasesHistory(recipe.getOrganDiseaseName());
         try {
-            if (recipe.getClinicId() != null) {
+            if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipe.getBussSource()) && eh.utils.ValidateUtil.notNullAndZeroInteger(recipe.getClinicId())) {
                 requestTO.setClinicId(recipe.getClinicId());
                 requestTO.setBussSource(recipe.getBussSource());
+
+                IRevisitService revisitService = RevisitAPI.getService(IRevisitService.class);
+                RevisitBean revisit = revisitService.getById(recipe.getClinicId());
                 IRevisitExService iRevisitExService = RevisitAPI.getService(IRevisitExService.class);
                 RevisitExDTO revisitExDTO = iRevisitExService.getByConsultId(recipe.getClinicId());
                 if (null != revisitExDTO) {
@@ -404,9 +413,23 @@ public class HisRequestInit {
                     requestTO.setTreatmentId(revisitExDTO.getTreatmentId());
                     requestTO.setSerialNumberOfReception(revisitExDTO.getSerialNumberOfReception());
                 }
+
+                if (Objects.nonNull(revisit) && revisit.getTeams()) {
+                    Integer consultDepart = revisit.getConsultDepart();
+                    DepartmentDTO departmentDTO = departClient.getDepartmentByDepart(consultDepart);
+                    if (Objects.nonNull(departmentDTO)) {
+                        requestTO.setTeamDepartCode(departmentDTO.getCode());
+                        requestTO.setTeamDepartName(departmentDTO.getName());
+                        AppointDepartDTO appointDepartDTO = departClient.getAppointDepartByOrganIdAndDepart(recipe.getClinicOrgan(), consultDepart);
+                        if (Objects.nonNull(appointDepartDTO)) {
+                            requestTO.setTeamAppointDepartCode(appointDepartDTO.getAppointDepartCode());
+                            requestTO.setTeamAppointDepartName(appointDepartDTO.getAppointDepartName());
+                        }
+                    }
+                }
             }
         } catch (Exception e) {
-            LOGGER.error("initRecipeSendRequestTO recipeid:{}, clinicId:{} error", recipe.getRecipeId(), recipe.getClinicId(), e);
+            LOGGER.error("initRecipeSendRequestTO recipeId:{}, clinicId:{} error", recipe.getRecipeId(), recipe.getClinicId(), e);
         }
         //科室代码
         AppointDepartDTO appointDepart = departManager.getAppointDepartByOrganIdAndDepart(recipe);
