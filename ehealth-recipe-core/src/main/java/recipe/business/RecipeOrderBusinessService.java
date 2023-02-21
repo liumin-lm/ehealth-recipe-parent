@@ -2072,9 +2072,15 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
         try {
             RecipeOrderPayFlow recipeOtherOrderPayFlow = recipeOrderPayFlowManager.getByOrderIdAndType(orderId, PayFlowTypeEnum.RECIPE_AUDIT.getType());
             if (Objects.nonNull(recipeOtherOrderPayFlow)) {
-                payClient.refund(orderId, PayBusTypeEnum.OTHER_BUS_TYPE.getName());
+                RefundResultDTO resultDTO = payClient.refund(orderId, PayBusTypeEnum.OTHER_BUS_TYPE.getName());
+                if (resultDTO.getStatus() != 0) {
+                    return false;
+                }
             }
-            payClient.refund(orderId, PayBusTypeEnum.RECIPE_BUS_TYPE.getName());
+            RefundResultDTO refundResultDTO = payClient.refund(orderId, PayBusTypeEnum.RECIPE_BUS_TYPE.getName());
+            if (refundResultDTO.getStatus() != 0) {
+                return false;
+            }
         } catch (Exception e) {
             logger.error("RecipeOrderBusinessService orderRefund error", e);
             return false;
