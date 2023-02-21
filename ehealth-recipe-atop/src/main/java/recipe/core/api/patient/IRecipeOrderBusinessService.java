@@ -336,4 +336,11 @@ public interface IRecipeOrderBusinessService {
      * @return
      */
     HlwTbParamReq getHlwYbInfo(Integer busId);
+
+    /**
+     * 订单退款
+     * @param orderId
+     * @return
+     */
+    boolean orderRefund(Integer orderId);
 }

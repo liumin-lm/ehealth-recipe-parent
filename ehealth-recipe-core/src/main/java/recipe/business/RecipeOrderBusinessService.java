@@ -189,6 +189,8 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
     private RecipeLogDAO recipeLogDAO;
     @Autowired
     private RecipeHisService recipeHisService;
+    @Autowired
+    private RecipeOrderPayFlowManager recipeOrderPayFlowManager;
 
 
     @Override
@@ -1926,12 +1928,10 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
             List<Date> remindDates = new ArrayList<>();
             Date sourceTime = new Date();
             List<String> revisitRementAppointDepart =new ArrayList<>();
-//            RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(orderCode);
             List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIds);
             if(CollectionUtils.isEmpty(recipes)){
                 return null;
             }
-//            List<Integer> recipeIds = recipes.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
             List<Recipe> tcmRecipeList = recipes.stream().filter(recipe -> RecipeTypeEnum.RECIPETYPE_TCM.getType().equals(recipe.getRecipeType())).collect(Collectors.toList());
             List<RecipeExtend> recipeExtendList = recipeExtendDAO.queryRecipeExtendByRecipeIds(recipeIds);
             //获取长处方的处方单号
@@ -2061,6 +2061,25 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
         hlwTbParamReq.setHisBusId(settleReqDTO.getHisBusId());
         hlwTbParamReq.setYbId(settleReqDTO.getYbId());
         return hlwTbParamReq;
+    }
+
+    @Override
+    public boolean orderRefund(Integer orderId) {
+        RecipeOrder recipeOrder = recipeOrderDAO.get(orderId);
+        if (Objects.isNull(recipeOrder)) {
+            return false;
+        }
+        try {
+            RecipeOrderPayFlow recipeOtherOrderPayFlow = recipeOrderPayFlowManager.getByOrderIdAndType(orderId, PayFlowTypeEnum.RECIPE_AUDIT.getType());
+            if (Objects.nonNull(recipeOtherOrderPayFlow)) {
+                payClient.refund(orderId, PayBusTypeEnum.OTHER_BUS_TYPE.getName());
+            }
+            payClient.refund(orderId, PayBusTypeEnum.RECIPE_BUS_TYPE.getName());
+        } catch (Exception e) {
+            logger.error("RecipeOrderBusinessService orderRefund error", e);
+            return false;
+        }
+        return true;
     }
 
     private static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {
