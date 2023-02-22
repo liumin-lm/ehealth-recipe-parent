@@ -8,6 +8,7 @@ import com.ngari.recipe.vo.CodeEnum;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
@@ -15,10 +16,16 @@ import recipe.core.api.IDrugBusinessService;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.core.api.greenroom.IRecipeOrderRefundService;
 import recipe.core.api.patient.IRecipeOrderBusinessService;
+import recipe.util.RecipeBusiThreadPool;
 import recipe.vo.ResultBean;
 import recipe.vo.greenroom.*;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
 
 /**
  * @Description
@@ -190,25 +197,47 @@ public class RecipeGmAtop extends BaseAtop {
     public List<DrugDistributionListInfoVO> batchPrintDrugDistributionList(List<String> orderCodes, Integer busType) {
         validateAtop(orderCodes);
         List<DrugDistributionListInfoVO> drugDistributionListInfoVOList = new ArrayList<>();
-        for(String orderCode: orderCodes){
-            DrugDistributionListInfoVO drugDistributionListInfoVO = new DrugDistributionListInfoVO();
-            //1、处方详情、审核信息
-            List<Map<String, Object>> recipeDetailsAndCheckInfo = recipeBusinessService.findRecipeDetailsByOrderCode(orderCode);
-            if(recipeDetailsAndCheckInfo.size() != 0){
-                drugDistributionListInfoVO.setRecipeDetailsAndCheckInfo(recipeDetailsAndCheckInfo);
-            }
-            //2、药品订单详情
-            RecipeOrderRefundDetailVO refundOrderDetail = recipeOrderRefundService.getRefundOrderDetail(orderCode, busType);
-            if(Objects.nonNull(refundOrderDetail)){
-                drugDistributionListInfoVO.setRecipeOrderRefundDetailVO(refundOrderDetail);
-            }
-            //3、物流编码文件流
-            String logisticsOrderNo = recipeOrderService.logisticsOrderNo(orderCode);
-            if(Objects.nonNull(logisticsOrderNo)){
-                drugDistributionListInfoVO.setLogisticsOrderNo(logisticsOrderNo);
-            }
-            drugDistributionListInfoVOList.add(drugDistributionListInfoVO);
+        List<DrugDistributionCallable> callAbles = new ArrayList<>();
+
+        for (String orderCode : orderCodes) {
+            callAbles.add(new DrugDistributionCallable(orderCode, busType));
         }
+
+        if (CollectionUtils.isNotEmpty(callAbles)) {
+            try {
+                List<Future<DrugDistributionListInfoVO>> list = RecipeBusiThreadPool.submitListReturn(callAbles, 20000);
+                list.forEach(a -> {
+                    try {
+                        drugDistributionListInfoVOList.add(a.get());
+                    } catch (Exception e) {
+                        logger.error("Future<DrugDistributionListInfoVO>异常", e);
+                    }
+                });
+            } catch (Exception e) {
+                logger.error("submitListReturn 线程池异常", e);
+            }
+        }
+//
+//            DrugDistributionListInfoVO drugDistributionListInfoVO = new DrugDistributionListInfoVO();
+//            //1、处方详情、审核信息
+//            List<Map<String, Object>> recipeDetailsAndCheckInfo = recipeBusinessService.findRecipeDetailsByOrderCode(orderCode);
+//            if (recipeDetailsAndCheckInfo.size() != 0) {
+//                drugDistributionListInfoVO.setRecipeDetailsAndCheckInfo(recipeDetailsAndCheckInfo);
+//            }
+//            //2、药品订单详情
+//            RecipeOrderRefundDetailVO refundOrderDetail = recipeOrderRefundService.getRefundOrderDetail(orderCode, busType);
+//            if (Objects.nonNull(refundOrderDetail)) {
+//                drugDistributionListInfoVO.setRecipeOrderRefundDetailVO(refundOrderDetail);
+//            }
+//            //3、物流编码文件流
+//            String logisticsOrderNo = recipeOrderService.logisticsOrderNo(orderCode);
+//            if(Objects.nonNull(logisticsOrderNo)){
+//                drugDistributionListInfoVO.setLogisticsOrderNo(logisticsOrderNo);
+//            }
+//
+//
+//            drugDistributionListInfoVOList.add(drugDistributionListInfoVO);
+        //  }
         return drugDistributionListInfoVOList;
     }
 
@@ -219,12 +248,42 @@ public class RecipeGmAtop extends BaseAtop {
      * @param invoiceType
      */
     @RpcService
-    public Boolean batchUpdateInvoiceStatus(List<String> orderCodes, Integer invoiceType){
+    public Boolean batchUpdateInvoiceStatus(List<String> orderCodes, Integer invoiceType) {
         Boolean flag = null;
-        for (String orderCode : orderCodes){
+        for (String orderCode : orderCodes) {
             flag = recipeOrderService.updateInvoiceStatus(orderCode, invoiceType);
         }
         return flag;
     }
 
+    class DrugDistributionCallable implements Callable<DrugDistributionListInfoVO> {
+        private String orderCode;
+        private Integer busType;
+
+        public DrugDistributionCallable(String orderCode, Integer busType) {
+            this.orderCode = orderCode;
+            this.busType = busType;
+        }
+
+        @Override
+        public DrugDistributionListInfoVO call() throws Exception {
+            DrugDistributionListInfoVO drugDistributionListInfoVO = new DrugDistributionListInfoVO();
+            //1、处方详情、审核信息
+            List<Map<String, Object>> recipeDetailsAndCheckInfo = recipeBusinessService.findRecipeDetailsByOrderCode(orderCode);
+            if (recipeDetailsAndCheckInfo.size() != 0) {
+                drugDistributionListInfoVO.setRecipeDetailsAndCheckInfo(recipeDetailsAndCheckInfo);
+            }
+            //2、药品订单详情
+            RecipeOrderRefundDetailVO refundOrderDetail = recipeOrderRefundService.getRefundOrderDetail(orderCode, busType);
+            if (Objects.nonNull(refundOrderDetail)) {
+                drugDistributionListInfoVO.setRecipeOrderRefundDetailVO(refundOrderDetail);
+            }
+            //3、物流编码文件流
+            String logisticsOrderNo = recipeOrderService.logisticsOrderNo(orderCode);
+            if (Objects.nonNull(logisticsOrderNo)) {
+                drugDistributionListInfoVO.setLogisticsOrderNo(logisticsOrderNo);
+            }
+            return drugDistributionListInfoVO;
+        }
+    }
 }
