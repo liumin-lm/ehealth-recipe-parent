@@ -41,7 +41,7 @@ public class OrganDrugsSaleConfigVo implements Serializable {
     private Integer takeOneselfPayment;
 
     @ItemProperty(alias = "自取支付方式 1 在线支付 2 线下支付")
-    private List<String> takeOneselfPaymentWay;
+    private List<Integer> takeOneselfPaymentWay;
 
     /**
      * 自取支付通道 1平台支付 2卫宁支付
@@ -110,7 +110,7 @@ public class OrganDrugsSaleConfigVo implements Serializable {
     private String orderPushFailPhone;
 
     @ItemProperty(alias = "到店取药收款方式  2 货到付款 1 在线支付 ")
-    private List<String> storePaymentWay;
+    private List<Integer> storePaymentWay;
 
     @ItemProperty(alias = "取药收款提示文案")
     private String paymentWayTips;
