@@ -36,6 +36,8 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * liumin
@@ -80,7 +82,10 @@ public class OrganDrugToolService implements IOrganDrugToolService {
     private OrganDrugListService organDrugListService;
 
     private static final String SUFFIX_2003 = ".xls";
+
     private static final String SUFFIX_2007 = ".xlsx";
+
+    private List medicalInsuranceCategoryList= Stream.of("甲","乙","丙","未维护").collect(Collectors.toList());
 
     @Override
     @LogRecord
@@ -213,6 +218,7 @@ public class OrganDrugToolService implements IOrganDrugToolService {
                     if(StringUtils.isEmpty(drug.getOrganDrugCode())){
                         return;
                     }
+                    LOGGER.info("drug2:{}",JSONUtils.toString(drug));
                     DrugListMatch save = drugListMatchDAO.save(drug);
                     drugToolService.automaticDrugMatch(save, operator);
                 } catch (Exception e) {
@@ -745,8 +751,12 @@ public class OrganDrugToolService implements IOrganDrugToolService {
             }
             try {
                 if (StringUtils.isNotEmpty(getStrFromCell(cells.get(35)))) {
-                    drug.setMedicalInsuranceCategory(getStrFromCell(cells.get(35)));
-                }
+                    if(medicalInsuranceCategoryList.contains(getStrFromCell(cells.get(35)))){
+                        drug.setMedicalInsuranceCategory(getStrFromCell(cells.get(35)));
+                    }else {
+                        validMsg.append("医保类别有误").append(";");
+                    }                }
+                LOGGER.info("drug:{}",JSONUtils.toString(drug));
             } catch (Exception e) {
                 LOGGER.error("医保类别有误 ," + e.getMessage(), e);
                 validMsg.append("医保类别有误").append(";");
@@ -815,7 +825,6 @@ public class OrganDrugToolService implements IOrganDrugToolService {
                 LOGGER.error("是否靶向药有误 ," + e.getMessage(), e);
                 validMsg.append("是否靶向药有误").append(";");
             }
-            //TODO 最后一个字段空列问题
             try {
                 if (StringUtils.isNotEmpty(getStrFromCell(cells.get(40)))) {
                     drug.setSmallestSaleMultiple(Integer.parseInt(getStrFromCell(cells.get(40)).trim()));
@@ -1089,6 +1098,7 @@ public class OrganDrugToolService implements IOrganDrugToolService {
             drug.setOperator(operator);
             drug.setDrugSource(0);
         }
+        LOGGER.info("obtainDrugListMatchFromReadExcel drug:{}",JSONUtils.toString(drug));
         return drug;
     }
 
