@@ -300,6 +300,9 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
     @RpcService
     public String validateSplitRecipe(ValidateDetailVO validateDetailVO) {
         validateAtop(validateDetailVO, validateDetailVO.getRecipeBean(), validateDetailVO.getRecipeExtendBean(), validateDetailVO.getRecipeDetails());
+        if (RecipeUtil.isTcmType(validateDetailVO.getRecipeBean().getRecipeType())) {
+            return null;
+        }
         //判断数量
         if (validateDetailVO.getRecipeDetails().size() > 5) {
             return "因为【处方的药品数量>5个】，需要进行拆分，请确认";

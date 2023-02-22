@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
@@ -45,7 +46,7 @@ public class RecipeBusiThreadPool {
         }
     }
 
-    public static <T> List<Future<T>> submitListReturn(List<Callable<T>> callableList, long timeout) throws Exception {
+    public static <T> List<Future<T>> submitListReturn(Collection<? extends Callable<T>> callableList, long timeout) throws Exception {
         if (null == SERVICE) {
             return null;
         }
