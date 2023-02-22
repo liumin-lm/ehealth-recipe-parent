@@ -747,6 +747,7 @@ public class OrganDrugToolService implements IOrganDrugToolService {
                 if (StringUtils.isNotEmpty(getStrFromCell(cells.get(35)))) {
                     drug.setMedicalInsuranceCategory(getStrFromCell(cells.get(35)));
                 }
+                LOGGER.info("drug:{}",JSONUtils.toString(drug));
             } catch (Exception e) {
                 LOGGER.error("医保类别有误 ," + e.getMessage(), e);
                 validMsg.append("医保类别有误").append(";");
