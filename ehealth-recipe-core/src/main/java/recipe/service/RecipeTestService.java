@@ -775,8 +775,14 @@ public class RecipeTestService {
         List<DrugsEnterprise> drugsEnterprises = drugsEnterpriseDAO.findAllDrugsEnterpriseByStatus(1);
         drugsEnterprises.forEach(drugsEnterprise -> {
             OrganDrugsSaleConfig drugsSaleConfig = drugsSaleConfigDAO.getOrganDrugsSaleConfig(drugsEnterprise.getId());
-            List list = Arrays.asList(drugsEnterprise.getStorePayFlag());
+            List list = Arrays.asList(drugsEnterprise.getStorePayFlag()+1);
             drugsSaleConfig.setStorePaymentWay(JSON.toJSONString(list));
+
+            OrganDrugsSaleConfig organDrugsSaleConfig = drugsSaleConfigDAO.getOrganDrugsSaleConfig(drugsEnterprise.getId());
+            if (Objects.nonNull(organDrugsSaleConfig)) {
+                List list1 = Arrays.asList(organDrugsSaleConfig.getTakeOneselfPayment());
+                drugsSaleConfig.setTakeOneselfPaymentWay(JSON.toJSONString(list1));
+            }
             drugsSaleConfigDAO.updateNonNullFieldByPrimaryKey(drugsSaleConfig);
         });
     }
