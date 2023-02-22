@@ -772,19 +772,22 @@ public class RecipeTestService {
 
     @RpcService
     public void storePaymentWay(){
-        List<DrugsEnterprise> drugsEnterprises = drugsEnterpriseDAO.findAllDrugsEnterpriseByStatus(1);
-        drugsEnterprises.forEach(drugsEnterprise -> {
-            OrganDrugsSaleConfig drugsSaleConfig = drugsSaleConfigDAO.getOrganDrugsSaleConfig(drugsEnterprise.getId());
-            List list = Arrays.asList(drugsEnterprise.getStorePayFlag()+1);
-            drugsSaleConfig.setStorePaymentWay(JSON.toJSONString(list));
+        try {
+            List<DrugsEnterprise> drugsEnterprises = drugsEnterpriseDAO.findAllDrugsEnterpriseByStatus(1);
+            drugsEnterprises.forEach(drugsEnterprise -> {
+                OrganDrugsSaleConfig drugsSaleConfig = drugsSaleConfigDAO.getOrganDrugsSaleConfig(drugsEnterprise.getId());
+                List list = Arrays.asList(drugsEnterprise.getStorePayFlag()+1);
+                drugsSaleConfig.setStorePaymentWay(JSON.toJSONString(list));
 
-            OrganDrugsSaleConfig organDrugsSaleConfig = drugsSaleConfigDAO.getOrganDrugsSaleConfig(drugsEnterprise.getId());
-            if (Objects.nonNull(organDrugsSaleConfig)) {
-                List list1 = Arrays.asList(organDrugsSaleConfig.getTakeOneselfPayment());
-                drugsSaleConfig.setTakeOneselfPaymentWay(JSON.toJSONString(list1));
-            }
-            drugsSaleConfigDAO.updateNonNullFieldByPrimaryKey(drugsSaleConfig);
-        });
+                if (Objects.nonNull(drugsSaleConfig)) {
+                    List list1 = Arrays.asList(drugsSaleConfig.getTakeOneselfPayment());
+                    drugsSaleConfig.setTakeOneselfPaymentWay(JSON.toJSONString(list1));
+                }
+                drugsSaleConfigDAO.updateNonNullFieldByPrimaryKey(drugsSaleConfig);
+            });
+        } catch (Exception e) {
+            LOGGER.error("storePaymentWay e", e);
+        }
     }
 
 }
