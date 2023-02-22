@@ -89,7 +89,7 @@ public class RecipeExtendBean implements Serializable {
     private String chronicDiseaseName;
     @ItemProperty(alias = "并发症")
     private String complication;
-    @ItemProperty(alias = "用药医嘱")
+    @ItemProperty(alias = "用药医嘱（药师审方）")
     private String drugEntrustment;
     //用户页面选择
     @ItemProperty(alias = "是否长处方")
