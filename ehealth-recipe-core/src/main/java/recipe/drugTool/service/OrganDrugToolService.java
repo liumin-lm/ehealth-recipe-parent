@@ -1089,6 +1089,7 @@ public class OrganDrugToolService implements IOrganDrugToolService {
             drug.setOperator(operator);
             drug.setDrugSource(0);
         }
+        LOGGER.info("obtainDrugListMatchFromReadExcel drug:{}",JSONUtils.toString(drug));
         return drug;
     }
 
