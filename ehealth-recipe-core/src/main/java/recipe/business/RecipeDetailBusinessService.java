@@ -408,10 +408,10 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
             }
         }
         //调用HIS拆分判断服务
-        if (validateSplitRecipe.contains("2")) {
-            result.add(recipeDetails);
-            return result;
-        }
+//        if (validateSplitRecipe.contains("2")) {
+//            result.add(recipeDetails);
+//            return result;
+//        }
         if (CollectionUtils.isEmpty(result)) {
             result.add(recipeDetails);
         }
