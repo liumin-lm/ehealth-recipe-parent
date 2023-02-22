@@ -205,7 +205,7 @@ public class RecipeGmAtop extends BaseAtop {
 
         if (CollectionUtils.isNotEmpty(callAbles)) {
             try {
-                List<Future<DrugDistributionListInfoVO>> list = RecipeBusiThreadPool.submitListReturn(callAbles, 20000);
+                List<Future<DrugDistributionListInfoVO>> list = RecipeBusiThreadPool.submitListReturn(callAbles, 15000);
                 list.forEach(a -> {
                     try {
                         drugDistributionListInfoVOList.add(a.get());
