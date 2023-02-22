@@ -2,7 +2,9 @@ package recipe.comment;
 
 import com.google.common.collect.Lists;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.platform.regulation.mode.QueryRegulationUnitReq;
 import com.ngari.recipe.comment.model.RecipeCommentTO;
+import com.ngari.recipe.comment.model.RegulationRecipeCommentBean;
 import com.ngari.recipe.entity.comment.RecipeComment;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -41,6 +43,11 @@ public class RecipeCommentService implements IRecipeCommentService {
             return ObjectCopyUtils.convert(recipeCommentList.get(0), RecipeCommentTO.class);
         }
         return null;
+    }
+
+    @Override
+    public List<RegulationRecipeCommentBean> queryRegulationDrug(QueryRegulationUnitReq req) {
+        return Lists.newArrayList();
     }
 
     @Override
