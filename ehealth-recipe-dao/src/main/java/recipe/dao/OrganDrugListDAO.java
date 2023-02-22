@@ -1529,4 +1529,8 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
     }
 
 
+    @DAOMethod(sql = "from OrganDrugList where organId IN :organIds AND lastModify >= :startTime AND lastModify <= :endTime ", limit = 0)
+    public abstract List<OrganDrugList> findByOrganIdsAndDate(@DAOParam("organIds") List<Integer> organIds,
+                                                              @DAOParam("startTime") Date startTime,
+                                                              @DAOParam("endTime") Date endTime);
 }

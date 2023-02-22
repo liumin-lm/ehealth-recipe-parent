@@ -1,5 +1,6 @@
 package com.ngari.recipe.drug.service;
 
+import com.ngari.platform.regulation.mode.QueryRegulationUnitReq;
 import com.ngari.recipe.drug.model.*;
 import ctd.persistence.bean.QueryResult;
 import ctd.util.annotation.RpcService;
@@ -15,7 +16,11 @@ import java.util.Map;
 public interface IOrganDrugListService {
 
     @RpcService
+    @Deprecated
     List<RegulationDrugCategoryBean> queryRegulationDrug(Map<String, Object> params);
+
+    @RpcService
+    List<RegulationDrugCategoryBean> queryRegulationDrugs(QueryRegulationUnitReq queryParams);
 
     @RpcService
     List<OrganDrugListBean> findByOrganIdAndDrugIdAndOrganDrugCode(int organId,
