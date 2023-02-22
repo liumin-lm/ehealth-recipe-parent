@@ -502,15 +502,15 @@ public class HisRecipeManager extends BaseManager {
     public String obtainPayStatus(String recipeCode, Integer clinicOrgan) {
         String realPayFlag = "";
         Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeCode, clinicOrgan);
-        logger.info("recipe:{}",JSONUtils.toString(recipe));
+        logger.info("obtainPayStatus recipe:{}",JSONUtils.toString(recipe));
         if (recipe != null && StringUtils.isNotEmpty(recipe.getOrderCode())) {
             RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
-            logger.info("recipeOrder:{}",JSONUtils.toString(recipeOrder));
+            logger.info("obtainPayStatus recipeOrder:{}",JSONUtils.toString(recipeOrder));
             if (recipeOrder != null&&!Objects.isNull(recipeOrder.getWxPayWay())) {
                 realPayFlag = payClient.orderQuery(recipeOrder);
             }
         }
-        logger.info("payflag:{}",JSONUtils.toString(realPayFlag));
+        logger.info("obtainPayStatus payflag:{}",JSONUtils.toString(realPayFlag));
         return realPayFlag;
 
     }

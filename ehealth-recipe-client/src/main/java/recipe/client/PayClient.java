@@ -39,6 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.aop.LogRecord;
 import recipe.constant.ErrorCode;
+import recipe.constant.PayConstant;
 import recipe.constant.PayServiceConstant;
 import recipe.enumerate.status.PayWayEnum;
 import recipe.third.IEasyPayService;
@@ -142,12 +143,16 @@ public class PayClient extends BaseClient {
             String code = (String) jsonObject.get("code");
             String msg = (String) jsonObject.get("msg");
             Map<String, Object> resultMap = new HashMap<String, Object>();
+            //WAIT_BUYER_PAY（交易等待支付）、CLOSED（未付款交易超时关闭，或支付完成后全额退款）、SUCCESS（交易支付成功）、FINISHED（交易结束，不可退款）
             if (code != null && code.equals("200")) {
-                //WAIT_BUYER_PAY（交易等待支付）、CLOSED（未付款交易超时关闭，或支付完成后全额退款）、SUCCESS（交易支付成功）、FINISHED（交易结束，不可退款）
                 tradeStatus = (String) jsonObject.getJSONObject("data").get("trade_status");
             } else if (code != null && code.equals("406")) {//订单不存在
 //                tradeStatus = "ORDER_NOT_EXIST";
+            } else if (code != null && code.equals("517")) {
+                //order.query result="{\"msg\":\"结算失败\",\"code\":\"517\",\"succ\":false,\"timestamp\":1676859482}"
+                tradeStatus= PayConstant.RESULT_WAIT;
             } else {
+
                 //支付平台异常，调用失败
                 logger.info("order.query 调用失败");
             }
