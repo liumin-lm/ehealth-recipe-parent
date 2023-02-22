@@ -308,11 +308,11 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
         OrganDrugsSaleConfigVo organDrugsSaleConfigVo = new OrganDrugsSaleConfigVo();
         BeanUtils.copyProperties(organDrugsSaleConfig, organDrugsSaleConfigVo);
         if (StringUtils.isNotEmpty(organDrugsSaleConfig.getStorePaymentWay())) {
-            List<String> storePaymentWayList = JSON.parseArray(organDrugsSaleConfig.getStorePaymentWay(), String.class);
+            List<Integer> storePaymentWayList = JSON.parseArray(organDrugsSaleConfig.getStorePaymentWay(), Integer.class);
             organDrugsSaleConfigVo.setStorePaymentWay(storePaymentWayList);
         }
         if (StringUtils.isNotEmpty(organDrugsSaleConfig.getTakeOneselfPaymentWay())) {
-            List<String> takeOneselfPaymentWayList = JSON.parseArray(organDrugsSaleConfig.getTakeOneselfPaymentWay(), String.class);
+            List<Integer> takeOneselfPaymentWayList = JSON.parseArray(organDrugsSaleConfig.getTakeOneselfPaymentWay(), Integer.class);
             organDrugsSaleConfigVo.setTakeOneselfPaymentWay(takeOneselfPaymentWayList);
         }
         return organDrugsSaleConfigVo;
