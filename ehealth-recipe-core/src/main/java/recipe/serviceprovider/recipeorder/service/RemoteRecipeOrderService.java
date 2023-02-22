@@ -48,6 +48,7 @@ import recipe.enumerate.status.OrderStateEnum;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RefundNodeStatusEnum;
+import recipe.enumerate.type.OrderRefundWayTypeEnum;
 import recipe.enumerate.type.PayBusTypeEnum;
 import recipe.manager.OrderManager;
 import recipe.manager.RecipeManager;
@@ -314,7 +315,12 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
                 recipes.forEach(recipe1 -> {
                     recipeDAO.updateRecipeInfoByRecipeId(recipe1.getRecipeId(), RecipeStatusConstant.REVOKE, ImmutableMap.of("payFlag", 3));
                     StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
-                    stateManager.updateRecipeState(recipe1.getRecipeId(), RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_REFUND);
+                    if (OrderRefundWayTypeEnum.DRUG_ORDER.getType().equals(recipeOrder.getOrderRefundWay())) {
+                        stateManager.updateRecipeState(recipe1.getRecipeId(), RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_RETURN_DRUG);
+                    } else {
+                        stateManager.updateRecipeState(recipe1.getRecipeId(), RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_REFUND);
+                    }
+
                     LOGGER.info("退款完成修改处方状态：{}", recipe1.getRecipeId());
                 });
                 //订单状态修改
@@ -327,7 +333,11 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
                 orderAttrMap.put("refundTime", new Date());
                 orderAttrMap.put("refund_amount",refundAmount);
                 recipeOrderDAO.updateByOrdeCode(recipeOrder.getOrderCode(), orderAttrMap);
-                stateManager.updateOrderState(recipeOrder.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION,OrderStateEnum.SUB_CANCELLATION_REFUND);
+                if (OrderRefundWayTypeEnum.DRUG_ORDER.getType().equals(recipeOrder.getOrderRefundWay())) {
+                    stateManager.updateOrderState(recipeOrder.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION,OrderStateEnum.SUB_CANCELLATION_RETURN_DRUG);
+                } else {
+                    stateManager.updateOrderState(recipeOrder.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION,OrderStateEnum.SUB_CANCELLATION_REFUND);
+                }
 
                 LOGGER.info("存储退款完成记录-remoteRecipeOrderService：{}", recipe.getRecipeId());
                 if (PayBusTypeEnum.RECIPE_BUS_TYPE.getType().equals(busType)) {
