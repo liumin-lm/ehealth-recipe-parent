@@ -415,6 +415,9 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "订单来源终端")
     private String terminalSource;
 
+    @ItemProperty(alias = "订单退费途径")
+    private Integer orderRefundWay;
+
     //todo 默认构造器不要给init默认值啊 此方法慎用
     @Deprecated
     public RecipeOrder() {
@@ -1583,5 +1586,14 @@ public class RecipeOrder implements Serializable {
 
     public void setRevisitRemindTime(Date revisitRemindTime) {
         this.revisitRemindTime = revisitRemindTime;
+    }
+
+    @Column(name = "order_refund_way")
+    public Integer getOrderRefundWay() {
+        return orderRefundWay;
+    }
+
+    public void setOrderRefundWay(Integer orderRefundWay) {
+        this.orderRefundWay = orderRefundWay;
     }
 }

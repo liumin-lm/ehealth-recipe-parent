@@ -1675,6 +1675,7 @@ public class DrugToolService implements IDrugToolService {
                         if(drugListMatch.getUnavailable() != null){
                             organDrugList.setUnavailable(drugListMatch.getUnavailable());
                         }
+                        organDrugList.setMedicalInsuranceCategory(drugListMatch.getMedicalInsuranceCategory());
                         //updateFlag为1时更新药品信息，否则不更新
                         //防止既更新又新增的时候把更新的数据又保存一编
                         boolean handleFlag = false; //数据操作标识

@@ -109,7 +109,7 @@ public class OrganDrugsSaleConfigVo implements Serializable {
     @ItemProperty(alias = "药品订单推送失败通知电话")
     private String orderPushFailPhone;
 
-    @ItemProperty(alias = "到店取药收款方式  0 货到付款 1 在线支付 ")
+    @ItemProperty(alias = "到店取药收款方式  2 货到付款 1 在线支付 ")
     private List<Integer> storePaymentWay;
 
     @ItemProperty(alias = "取药收款提示文案")

@@ -1,16 +1,17 @@
 package recipe.enumerate.type;
 
 /**
- * 到店取药收款方式  0 货到付款 1 在线支付
+ * 退款途径
  */
-public enum StorePaymentWayEnum {
-
-    STORE_PAYMENT_WAY_OFFLINE(2, "货到付款"),
-    STORE_PAYMENT_WAY_ONLINE(1, "在线支付");
+public enum OrderRefundWayTypeEnum {
+    DEFAULT(0, "默认"),
+    PATIENT_APPLY(1, "患者端申请"),
+    HIS_SETTLE_FAiL(2, "his结算失败"),
+    DRUG_ORDER(3, "药品订单退单处理");
     private Integer type;
     private String name;
 
-    StorePaymentWayEnum(Integer type, String name){
+    OrderRefundWayTypeEnum(Integer type, String name){
         this.type = type;
         this.name = name;
     }

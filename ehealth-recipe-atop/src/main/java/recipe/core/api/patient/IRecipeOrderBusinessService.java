@@ -339,8 +339,8 @@ public interface IRecipeOrderBusinessService {
 
     /**
      * 订单退款
-     * @param orderId
+     * @param orderCode
      * @return
      */
-    boolean orderRefund(Integer orderId);
+    boolean orderRefund(String orderCode);
 }

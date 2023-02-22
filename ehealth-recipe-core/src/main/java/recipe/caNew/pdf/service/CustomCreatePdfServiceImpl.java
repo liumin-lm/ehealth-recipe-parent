@@ -539,17 +539,17 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
      */
     private Map<String, Object> createChineMedicinePDF(RecipeInfoDTO recipeInfoDTO) {
         List<Recipedetail> recipeDetails = recipeInfoDTO.getRecipeDetails();
+        Recipe recipe = recipeInfoDTO.getRecipe();
+        RecipeExtend recipeExtend = recipeInfoDTO.getRecipeExtend();
         if (CollectionUtils.isEmpty(recipeDetails)) {
             return null;
         }
         List<RecipeLabelDTO> list = new LinkedList<>();
         List<String> drugCodeList = recipeDetails.stream().filter(recipeDetail -> StringUtils.isNotEmpty(recipeDetail.getOrganDrugCode())).map(Recipedetail::getOrganDrugCode).collect(Collectors.toList());
-        List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugCodes(recipeInfoDTO.getRecipeTherapy().getClinicId(), drugCodeList);
+        List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugCodes(recipe.getClinicOrgan(), drugCodeList);
         Map<String, List<OrganDrugList>> organDrugListMap = organDrugList.stream().collect(Collectors.groupingBy(OrganDrugList::getOrganDrugCode));
-
         Recipedetail recipeDetail = recipeDetails.get(0);
-        Recipe recipe = recipeInfoDTO.getRecipe();
-        RecipeExtend recipeExtend = recipeInfoDTO.getRecipeExtend();
+
         for (int i = 0; i < recipeDetails.size(); i++) {
             String drugShowName = RecipeUtil.drugChineShowName(recipeDetails.get(i));
             list.add(new RecipeLabelDTO("药品名称", "recipeDetail.drugName_" + i, drugShowName));
@@ -562,6 +562,7 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
         list.add(new RecipeLabelDTO("用药频次", "recipeDetail.usingRate", DictionaryUtil.getDictionary("eh.cdr.dictionary.UsingRate", recipeDetail.getUsingRate())));
         list.add(new RecipeLabelDTO("帖数", "recipeDetail.copyNum", recipe.getCopyNum() + "帖"));
         list.add(new RecipeLabelDTO("嘱托", "recipeDetail.recipeMemo", ByteUtils.objValueOfString(recipe.getRecipeMemo())));
+        list.add(new RecipeLabelDTO("医保类型", "recipe.medicalFlag", new Integer(1).equals(recipe.getMedicalFlag())?"医保":"自费"));
         list.add(new RecipeLabelDTO("煎法", "recipeDetail.decoctionText", ByteUtils.objValueOfString(recipeExtend.getDecoctionText())));
         list.add(new RecipeLabelDTO("制法", "recipeDetail.makeMethodText", ByteUtils.objValueOfString(recipeExtend.getMakeMethodText())));
         //TODO everyTcmNumFre 写pdf??
@@ -581,15 +582,17 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
      */
     private Map<String, Object> createMedicinePDF(RecipeInfoDTO recipeInfoDTO) {
         List<Recipedetail> recipeDetails = recipeInfoDTO.getRecipeDetails();
+        Recipe recipe = recipeInfoDTO.getRecipe();
         if (CollectionUtils.isEmpty(recipeDetails)) {
             return null;
         }
+        logger.info("createMedicinePDF recipeInfoDTO:{}",JsonUtil.toString(recipeInfoDTO));
         List<String> drugCodeList = recipeDetails.stream().filter(recipeDetail -> StringUtils.isNotEmpty(recipeDetail.getOrganDrugCode())).map(Recipedetail::getOrganDrugCode).collect(Collectors.toList());
-        List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugCodes(recipeInfoDTO.getRecipeTherapy().getClinicId(), drugCodeList);
+        List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugCodes(recipe.getClinicOrgan(), drugCodeList);
         Map<String, List<OrganDrugList>> organDrugListMap = organDrugList.stream().collect(Collectors.groupingBy(OrganDrugList::getOrganDrugCode));
-
         List<RecipeLabelDTO> list = new LinkedList<>();
         Recipedetail recipedetail = recipeDetails.get(0);
+
         for (int i = 0; i < recipeDetails.size(); i++) {
             Recipedetail detail = recipeDetails.get(i);
             list.add(new RecipeLabelDTO("药品名称", "recipeDetail.drugName_" + i, detail.getDrugName()));
@@ -611,6 +614,8 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
             list.add(new RecipeLabelDTO("医保类别", "recipeDetail.medicalInsuranceCategory_"+i, !CollectionUtils.isEmpty(organDrugLists)&&!"未维护".equals(organDrugLists.get(0).getMedicalInsuranceCategory())?organDrugLists.get(0).getMedicalInsuranceCategory():""));
         }
         list.add(new RecipeLabelDTO("药房", "recipeDetail.pharmacyName", recipedetail.getPharmacyName()));
+        list.add(new RecipeLabelDTO("医保类型", "recipe.medicalFlag", new Integer(1).equals(recipe.getMedicalFlag())?"医保":"自费"));
+
         logger.info("CreateRecipePdfUtil createMedicinePDF list :{} ", JSON.toJSONString(list));
         return list.stream().collect(HashMap::new, (m, v) -> m.put(v.getEnglishName(), v.getValue()), HashMap::putAll);
     }

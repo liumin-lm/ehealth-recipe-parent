@@ -1099,8 +1099,15 @@ public class EnterpriseManager extends BaseManager {
             throw new DAOException("未配置药企销售配置");
         }
         String storePaymentWay = organDrugsSaleConfig.getStorePaymentWay();
-        if (StringUtils.isNotEmpty(storePaymentWay)) {
-            List<Integer> storePayment = JSONUtils.parse(storePaymentWay, List.class);
+        String takeOneselfPaymentWay = organDrugsSaleConfig.getTakeOneselfPaymentWay();
+        List<Integer> storePayment = null;
+        if (GiveModeEnum.GIVE_MODE_HOSPITAL_DRUG.getType().equals(giveMode) && StringUtils.isNotEmpty(takeOneselfPaymentWay)){
+            storePayment = JSONUtils.parse(takeOneselfPaymentWay, List.class);
+        }
+        if (GiveModeEnum.GIVE_MODE_PHARMACY_DRUG.getType().equals(giveMode) && StringUtils.isNotEmpty(storePaymentWay)){
+            storePayment = JSONUtils.parse(storePaymentWay, List.class);
+        }
+        if (CollectionUtils.isNotEmpty(storePayment)) {
             if (storePayment.size() == 1) {
                 // 销售配置了一个按销售配置走
                 storePayFlag = storePayment.get(0);
