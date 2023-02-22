@@ -773,7 +773,7 @@ public class RecipeOrderService extends RecipeBaseService {
         if (isUsefulCoupon(order.getCouponId())) {
             orderFeeManager.setCouponFee(order,firstRecipe);
         } else {
-            orderFeeManager.setActualPrice(order,giveMode,totalFee,storePayFlag);
+            orderFeeManager.setActualPrice(order,giveMode,totalFee,storePayFlag,payMode);
         }
     }
 

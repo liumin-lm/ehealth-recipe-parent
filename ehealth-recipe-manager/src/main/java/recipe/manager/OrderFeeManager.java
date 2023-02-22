@@ -704,7 +704,7 @@ public class OrderFeeManager extends BaseManager {
      * @return
      */
     @LogRecord
-    public void setActualPrice(RecipeOrder order,Integer giveMode,BigDecimal totalFee,Integer storePayFlag) {
+    public void setActualPrice(RecipeOrder order,Integer giveMode,BigDecimal totalFee,Integer storePayFlag,Integer payMode) {
         // 江苏监管平台
         if(isJSOrgan(order.getOrganId())){
             order.setActualPrice(totalFee.doubleValue());
@@ -737,7 +737,7 @@ public class OrderFeeManager extends BaseManager {
                 break;
             case GIVE_MODE_HOME_DELIVERY:
                 // 配送到家分在线支付与线下支付
-                if (PayModeEnum.OFFLINE_PAY.getType().equals(order.getPayMode())) {
+                if (PayModeEnum.OFFLINE_PAY.getType().equals(payMode)) {
                     order.setActualPrice(totalFee.doubleValue());
                 } else {
                     order.setActualPrice(order.getAuditFee().doubleValue());
