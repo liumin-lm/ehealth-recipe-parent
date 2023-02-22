@@ -1,6 +1,8 @@
 package com.ngari.recipe.comment.service;
 
+import com.ngari.platform.regulation.mode.QueryRegulationUnitReq;
 import com.ngari.recipe.comment.model.RecipeCommentTO;
+import com.ngari.recipe.comment.model.RegulationRecipeCommentBean;
 import ctd.util.annotation.RpcService;
 
 import java.util.List;
@@ -12,6 +14,7 @@ public interface IRecipeCommentService {
      * @param recipeComment
      * @return
      */
+    @RpcService
     Integer addRecipeComment(RecipeCommentTO recipeComment);
 
     /**
@@ -29,5 +32,15 @@ public interface IRecipeCommentService {
      * @param recipeId
      * @return
      */
+    @RpcService
     RecipeCommentTO getRecipeCommentByRecipeId(Integer recipeId);
+
+    /**
+     * 点评信息上传监管（前置机定时任务反查）
+     *
+     * @param req
+     * @return
+     */
+    @RpcService
+    List<RegulationRecipeCommentBean> queryRegulationDrug(QueryRegulationUnitReq req);
 }
