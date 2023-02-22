@@ -2064,20 +2064,20 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
     }
 
     @Override
-    public boolean orderRefund(Integer orderId) {
-        RecipeOrder recipeOrder = recipeOrderDAO.get(orderId);
+    public boolean orderRefund(String orderCode) {
+        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(orderCode);
         if (Objects.isNull(recipeOrder)) {
             return false;
         }
         try {
-            RecipeOrderPayFlow recipeOtherOrderPayFlow = recipeOrderPayFlowManager.getByOrderIdAndType(orderId, PayFlowTypeEnum.RECIPE_AUDIT.getType());
+            RecipeOrderPayFlow recipeOtherOrderPayFlow = recipeOrderPayFlowManager.getByOrderIdAndType(recipeOrder.getOrderId(), PayFlowTypeEnum.RECIPE_AUDIT.getType());
             if (Objects.nonNull(recipeOtherOrderPayFlow)) {
-                RefundResultDTO resultDTO = payClient.refund(orderId, PayBusTypeEnum.OTHER_BUS_TYPE.getName());
+                RefundResultDTO resultDTO = payClient.refund(recipeOrder.getOrderId(), PayBusTypeEnum.OTHER_BUS_TYPE.getName());
                 if (resultDTO.getStatus() != 0) {
                     return false;
                 }
             }
-            RefundResultDTO refundResultDTO = payClient.refund(orderId, PayBusTypeEnum.RECIPE_BUS_TYPE.getName());
+            RefundResultDTO refundResultDTO = payClient.refund(recipeOrder.getOrderId(), PayBusTypeEnum.RECIPE_BUS_TYPE.getName());
             if (refundResultDTO.getStatus() != 0) {
                 return false;
             }
