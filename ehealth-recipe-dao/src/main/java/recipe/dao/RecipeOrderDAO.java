@@ -1729,7 +1729,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
             query.setParameter("orderCode", orderCode);
         }
         if (StringUtils.isNotEmpty(patientName)) {
-            query.setParameter("patientName", "%" + patientName + "%");
+            query.setParameter("patientName", patientName);
         }
         if (CollectionUtils.isNotEmpty(organIds)) {
             query.setParameterList("organIds", organIds);
@@ -1769,7 +1769,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
             query.setParameter("logisticsState", recipeOrderRefundReqDTO.getLogisticsState());
         }
         if (StringUtils.isNotEmpty(recipeOrderRefundReqDTO.getReceiver())) {
-            query.setParameter("receiver","%" + recipeOrderRefundReqDTO.getReceiver() + "%" );
+            query.setParameter("receiver", recipeOrderRefundReqDTO.getReceiver());
         }
     }
 
@@ -1817,7 +1817,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
             hql.append(" AND a.orderCode =:orderCode ");
         }
         if (StringUtils.isNotEmpty(recipeOrderRefundReqDTO.getPatientName())) {
-            hql.append(" AND b.patientName like :patientName ");
+            hql.append(" AND b.patientName  =:patientName ");
         }
         if (CollectionUtils.isEmpty(recipeOrderRefundReqDTO.getOrganIds())) {
             if (null != recipeOrderRefundReqDTO.getOrganId()) {
