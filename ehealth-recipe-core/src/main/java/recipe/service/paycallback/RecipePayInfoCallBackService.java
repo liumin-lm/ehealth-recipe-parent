@@ -367,10 +367,10 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
                 try {
                     JSONObject ybbodys = JSONArray.parseObject(ybbody);
                     if (ybbodys.get("ybzf") != null) {
-                        attr.put("fundAmount", new BigDecimal(ybbodys.get("ybzf").toString()));
+                        attr.put("fundAmount", ybbodys.getDoubleValue("ybzf"));
                     }
                     if (ybbodys.get("zifei") != null) {
-                        attr.put("cashAmount", new BigDecimal(ybbodys.get("zifei").toString()));
+                        attr.put("cashAmount", ybbodys.getDoubleValue("zifei"));
                     }
                     attr.put("familyMedicalFee", new BigDecimal(ybbodys.get("ybtczf").toString()));
                     attr.put("childMedicalFee", new BigDecimal(ybbodys.get("grzhzf").toString()));
