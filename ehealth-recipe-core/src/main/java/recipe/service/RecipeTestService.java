@@ -776,14 +776,15 @@ public class RecipeTestService {
             List<DrugsEnterprise> drugsEnterprises = drugsEnterpriseDAO.findAllDrugsEnterpriseByStatus(1);
             drugsEnterprises.forEach(drugsEnterprise -> {
                 OrganDrugsSaleConfig drugsSaleConfig = drugsSaleConfigDAO.getOrganDrugsSaleConfig(drugsEnterprise.getId());
-                List list = Arrays.asList(drugsEnterprise.getStorePayFlag()+1);
-                drugsSaleConfig.setStorePaymentWay(JSON.toJSONString(list));
-
                 if (Objects.nonNull(drugsSaleConfig)) {
-                    List list1 = Arrays.asList(drugsSaleConfig.getTakeOneselfPayment());
-                    drugsSaleConfig.setTakeOneselfPaymentWay(JSON.toJSONString(list1));
+                    List list = Arrays.asList(drugsEnterprise.getStorePayFlag()+1);
+                    drugsSaleConfig.setStorePaymentWay(JSON.toJSONString(list));
+                    if (Objects.nonNull(drugsSaleConfig)) {
+                        List list1 = Arrays.asList(drugsSaleConfig.getTakeOneselfPayment());
+                        drugsSaleConfig.setTakeOneselfPaymentWay(JSON.toJSONString(list1));
+                    }
+                    drugsSaleConfigDAO.updateNonNullFieldByPrimaryKey(drugsSaleConfig);
                 }
-                drugsSaleConfigDAO.updateNonNullFieldByPrimaryKey(drugsSaleConfig);
             });
         } catch (Exception e) {
             LOGGER.error("storePaymentWay e", e);
