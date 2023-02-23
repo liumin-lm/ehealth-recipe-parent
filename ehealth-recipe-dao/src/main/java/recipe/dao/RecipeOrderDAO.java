@@ -1982,14 +1982,27 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
     public List<RecipeOrderDetailExportDTO> getRecipeOrderDetail(RecipeOrderRefundReqDTO recipeOrderRefundReqDTO) {
         final StringBuilder orderCodeHQL = generateOrderCodeHQL(recipeOrderRefundReqDTO);
         final StringBuilder sbHql = this.generateRecipeOrderDetailHQL(recipeOrderRefundReqDTO);
-        logger.info("RecipeOderDAO getRecipeOrderDetail sbHql = {} ", sbHql.toString());
         HibernateStatelessResultAction<List<RecipeOrderDetailExportDTO>> action = new AbstractHibernateStatelessResultAction<List<RecipeOrderDetailExportDTO>>() {
             @Override
             public void execute(StatelessSession ss) {
+                if(new Integer("1").equals(recipeOrderRefundReqDTO.getDateType())){
+                    sbHql.append(" order by a.CreateTime DESC ");
+                    orderCodeHQL.append(" order by a.CreateTime DESC ");
+                }else if(new Integer("2").equals(recipeOrderRefundReqDTO.getDateType())){
+                    sbHql.append(" order by a.PayTime  DESC ");
+                    orderCodeHQL.append(" order by a.PayTime  DESC ");
+                }
+                if(null != recipeOrderRefundReqDTO.getStart()){
+                    orderCodeHQL.append(" limit ").append(recipeOrderRefundReqDTO.getStart());
+                }
+                if(null != recipeOrderRefundReqDTO.getLimit()){
+                    orderCodeHQL.append(" , ").append(recipeOrderRefundReqDTO.getLimit());
+                }
                 Query orderCodeQuery = ss.createSQLQuery(orderCodeHQL.toString());
                 setRefundParameter(orderCodeQuery, recipeOrderRefundReqDTO);
                 List<String> orderCodeList = orderCodeQuery.list();
 
+                logger.info("RecipeOderDAO getRecipeOrderDetail sbHql = {} ", sbHql.toString());
                 Query query = ss.createSQLQuery(sbHql.toString()).addEntity(RecipeOrderDetailExportDTO.class);
                 if(CollectionUtils.isNotEmpty(orderCodeList)){
                     query.setParameterList("orderCodeList",orderCodeList);
@@ -2010,13 +2023,6 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         hql.append("LEFT JOIN cdr_recipe_ext c on c.recipeId = b.recipeId ");
         hql.append(" where 1=1 ");
         getRefundStringBuilder(recipeOrderRefundReqDTO, hql);
-        hql.append(" order by a.CreateTime DESC");
-        if(null != recipeOrderRefundReqDTO.getStart()){
-            hql.append(" limit ").append(recipeOrderRefundReqDTO.getStart());
-        }
-        if(null != recipeOrderRefundReqDTO.getLimit()){
-            hql.append(" , ").append(recipeOrderRefundReqDTO.getLimit());
-        }
         return hql;
     }
 
@@ -2040,7 +2046,6 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         hql.append("LEFT JOIN cdr_drugsenterprise cd ON cd.id = a.EnterpriseId ");
         hql.append(" where 1= 1 and b.orderCode in (:orderCodeList) ");
         getRefundStringBuilder(recipeOrderRefundReqDTO, hql);
-        hql.append(" order by a.CreateTime DESC");
         return hql;
     }
 
