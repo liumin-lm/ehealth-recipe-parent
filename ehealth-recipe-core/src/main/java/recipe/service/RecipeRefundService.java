@@ -44,6 +44,7 @@ import recipe.constant.*;
 import recipe.dao.*;
 import recipe.enumerate.status.OrderStateEnum;
 import recipe.enumerate.type.CashDeskSettleUseCodeTypeEnum;
+import recipe.enumerate.type.OrderRefundWayTypeEnum;
 import recipe.manager.EnterpriseManager;
 import recipe.manager.OrderManager;
 import recipe.manager.RecipeManager;
@@ -287,6 +288,8 @@ public class RecipeRefundService extends RecipeBaseService {
                 if (new Integer(1).equals(recipeOrder.getPayFlag()) || new Integer(4).equals(recipeOrder.getPayFlag())) {
                     //表示费用在线上支付
                     if (StringUtils.isNotEmpty(recipeOrder.getOutTradeNo())) {
+                        recipeOrder.setOrderRefundWay(OrderRefundWayTypeEnum.PATIENT_APPLY.getType());
+                        recipeOrderDAO.updateNonNullFieldByPrimaryKey(recipeOrder);
                         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
                         recipeService.wxPayRefundForRecipe(4, recipe.getRecipeId(), "");
                     } else {
