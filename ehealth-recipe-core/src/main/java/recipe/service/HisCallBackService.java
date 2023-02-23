@@ -57,6 +57,7 @@ public class HisCallBackService {
     private static StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
 
     private static IConfigurationClient configurationClient = AppContextHolder.getBean("IConfigurationClient", IConfigurationClient.class);
+
     /**
      * 处方HIS审核通过成功
      *
@@ -342,7 +343,7 @@ public class HisCallBackService {
             order.setStatus(RecipeOrderStatusEnum.ORDER_STATUS_CANCEL_MANUAL.getType());
             orderDAO.updateNonNullFieldByPrimaryKey(order);
             recipeDAO.updateStatusByOrderCode(order.getOrderCode());
-            RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.CHECK_PASS, RecipeStatusConstant.REVOKE,"结算失败，取消处方");
+            RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.CHECK_PASS, RecipeStatusConstant.REVOKE, "结算失败，取消处方");
             stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION, OrderStateEnum.SUB_CANCELLATION_SETTLE_FAIL);
         }
     }
@@ -398,17 +399,17 @@ public class HisCallBackService {
                             if (null == recipe.getPayDate()) {
                                 attrMap.put("payDate", DateTime.now().toDate());
                             }
-                            attrMap.put("giveMode", RecipeBussConstant.GIVEMODE_TO_HOS);
+//                            attrMap.put("giveMode", RecipeBussConstant.GIVEMODE_TO_HOS);
                             attrMap.put("enterpriseId", null);
 
                             Boolean rs = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.HAVE_PAY, attrMap);
                             if (rs) {
                                 //线下支付完成后取消订单
-                                RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
+//                                RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
                                 StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
-                                orderService.cancelOrderByRecipeId(recipeId, OrderStatusConstant.CANCEL_AUTO);
-
+//                                orderService.cancelOrderByRecipeId(recipeId, OrderStatusConstant.CANCEL_AUTO);
                                 if (Objects.nonNull(recipeOrder)) {
+                                    cancelOrderWithListQuery(recipeOrder, recipeId);
                                     stateManager.updateOrderState(recipeOrder.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION, OrderStateEnum.SUB_DONE_HOS_PAY);
                                 }
                                 //日志记录
@@ -416,7 +417,7 @@ public class HisCallBackService {
                                 //消息推送
                                 RecipeMsgService.batchSendMsg(recipeId, msgStatus);
                                 //更新处方父子状态
-                                stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_DISPENSING, RecipeStateEnum.SUB_ORDER_DELIVERED_MEDICINE);
+                                stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_DONE, RecipeStateEnum.SUB_DONE_HOS_PAY);
                             }
                         }
                     }
@@ -462,20 +463,20 @@ public class HisCallBackService {
                     // 已支付,只对到院取药的数据更新 未支付,全部都更新
                     String orderCode = recipe.getOrderCode();
                     if (Objects.isNull(orderCode)) {
-                        finishForHis(recipe, attrMap, recipeDAO,null);
+                        finishForHis(recipe, attrMap, recipeDAO, null);
                         continue;
                     }
                     RecipeOrder byOrderCode = recipeOrderDAO.getByOrderCode(orderCode);
                     if (Objects.isNull(byOrderCode)) {
-                        finishForHis(recipe, attrMap, recipeDAO,null);
+                        finishForHis(recipe, attrMap, recipeDAO, null);
                         continue;
                     }
                     if (Integer.valueOf(1).equals(byOrderCode.getPayFlag()) && RecipeBussConstant.GIVEMODE_TO_HOS.equals(recipe.getGiveMode())) {
-                        finishForHis(recipe, attrMap, recipeDAO,byOrderCode);
+                        finishForHis(recipe, attrMap, recipeDAO, byOrderCode);
                         continue;
                     }
                     if (Integer.valueOf(0).equals(byOrderCode.getPayFlag())) {
-                        finishForHis(recipe, attrMap, recipeDAO,byOrderCode);
+                        finishForHis(recipe, attrMap, recipeDAO, byOrderCode);
                         continue;
                     }
                     StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
@@ -485,7 +486,7 @@ public class HisCallBackService {
         }
     }
 
-    private static void finishForHis(Recipe recipe, Map<String, Object> attrMap, RecipeDAO recipeDAO,RecipeOrder order) {
+    private static void finishForHis(Recipe recipe, Map<String, Object> attrMap, RecipeDAO recipeDAO, RecipeOrder order) {
         Integer recipeId = recipe.getRecipeId();
         Integer beforeStatus = recipe.getStatus();
 
@@ -555,7 +556,7 @@ public class HisCallBackService {
      * @param order
      * @return
      */
-    public static void cancelOrderWithListQuery(RecipeOrder order,Integer recipeId) {
+    public static void cancelOrderWithListQuery(RecipeOrder order, Integer recipeId) {
         LOGGER.info("cancelOrderWithListQuery order= {}，recipeId= {}", JSON.toJSONString(order), recipeId);
 
         if (null != order) {
