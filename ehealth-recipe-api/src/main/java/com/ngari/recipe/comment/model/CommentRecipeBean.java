@@ -20,6 +20,9 @@ public class CommentRecipeBean implements Serializable {
 
     private String visitId;
 
+    @ItemProperty(alias = "复诊挂号序号")
+    private String registerNo;
+
     @ItemProperty(alias = "平台科室Id")
     private String departmentId;
 

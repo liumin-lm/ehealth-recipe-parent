@@ -19,11 +19,9 @@ public class RegulationRecipeCommentBean implements Serializable {
 
     private String unitId;
 
-    private String organId;
+    private Integer organId;
 
     private String organName;
-
-
 
     @ItemProperty(alias = "处方信息")
     private CommentRecipeBean recipeMsg;

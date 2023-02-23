@@ -14,7 +14,7 @@ import java.io.Serializable;
 public class CommentRecipeDetailBean implements Serializable {
     private static final long serialVersionUID = -2639419624205356479L;
 
-    private String drugId;
+    private Integer drugId;
 
     private String drugCode;
 
@@ -23,14 +23,21 @@ public class CommentRecipeDetailBean implements Serializable {
     private String drugName;
 
     private String drugSpec;
+
     private String drugPack;
+
     private String drugPackUnit;
+
     private String drugPlace;
 
     @ItemProperty(alias = "药品用法")
     private String drugUsage;
 
-    private String drugFrequency;
+    @ItemProperty(alias = "药物使用频次")
+    private String usingRate;
+
+    @ItemProperty(alias = "药物使用途径")
+    private String usePathways;
 
     @ItemProperty(alias = "药品剂量")
     private String drugDose;
