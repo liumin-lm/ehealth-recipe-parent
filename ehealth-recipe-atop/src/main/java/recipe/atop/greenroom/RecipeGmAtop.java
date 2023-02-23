@@ -217,27 +217,6 @@ public class RecipeGmAtop extends BaseAtop {
                 logger.error("submitListReturn 线程池异常", e);
             }
         }
-//
-//            DrugDistributionListInfoVO drugDistributionListInfoVO = new DrugDistributionListInfoVO();
-//            //1、处方详情、审核信息
-//            List<Map<String, Object>> recipeDetailsAndCheckInfo = recipeBusinessService.findRecipeDetailsByOrderCode(orderCode);
-//            if (recipeDetailsAndCheckInfo.size() != 0) {
-//                drugDistributionListInfoVO.setRecipeDetailsAndCheckInfo(recipeDetailsAndCheckInfo);
-//            }
-//            //2、药品订单详情
-//            RecipeOrderRefundDetailVO refundOrderDetail = recipeOrderRefundService.getRefundOrderDetail(orderCode, busType);
-//            if (Objects.nonNull(refundOrderDetail)) {
-//                drugDistributionListInfoVO.setRecipeOrderRefundDetailVO(refundOrderDetail);
-//            }
-//            //3、物流编码文件流
-//            String logisticsOrderNo = recipeOrderService.logisticsOrderNo(orderCode);
-//            if(Objects.nonNull(logisticsOrderNo)){
-//                drugDistributionListInfoVO.setLogisticsOrderNo(logisticsOrderNo);
-//            }
-//
-//
-//            drugDistributionListInfoVOList.add(drugDistributionListInfoVO);
-        //  }
         return drugDistributionListInfoVOList;
     }
 
