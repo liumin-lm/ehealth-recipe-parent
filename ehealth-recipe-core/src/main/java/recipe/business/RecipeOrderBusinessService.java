@@ -2070,6 +2070,7 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
             return false;
         }
         recipeOrder.setOrderRefundWay(OrderRefundWayTypeEnum.DRUG_ORDER.getType());
+        recipeOrderDAO.updateNonNullFieldByPrimaryKey(recipeOrder);
         if (recipeOrder.getActualPrice() <= 0.0D) {
             //没有发起支付
             List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
@@ -2102,7 +2103,6 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
             if (refundResultDTO.getStatus() != 0) {
                 return false;
             }
-            recipeOrderDAO.updateNonNullFieldByPrimaryKey(recipeOrder);
         } catch (Exception e) {
             logger.error("RecipeOrderBusinessService orderRefund error", e);
             return false;
