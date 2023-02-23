@@ -15,7 +15,7 @@ public class CommentDoctorBean implements Serializable {
     private static final long serialVersionUID = 4797761150503386137L;
 
     @ItemProperty(alias = "平台医生Id")
-    private String doctorId;
+    private Integer doctorId;
 
     @ItemProperty(alias = "医生姓名")
     private String doctorName;
