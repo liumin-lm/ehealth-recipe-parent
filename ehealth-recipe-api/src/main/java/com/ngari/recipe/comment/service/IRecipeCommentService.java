@@ -42,5 +42,5 @@ public interface IRecipeCommentService {
      * @return
      */
     @RpcService
-    List<RegulationRecipeCommentBean> queryRegulationDrug(QueryRegulationUnitReq req);
+    List<RegulationRecipeCommentBean> queryRegulationRecipeComment(QueryRegulationUnitReq req);
 }

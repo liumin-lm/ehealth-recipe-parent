@@ -46,7 +46,7 @@ public class RecipeCommentService implements IRecipeCommentService {
     }
 
     @Override
-    public List<RegulationRecipeCommentBean> queryRegulationDrug(QueryRegulationUnitReq req) {
+    public List<RegulationRecipeCommentBean> queryRegulationRecipeComment(QueryRegulationUnitReq req) {
         return Lists.newArrayList();
     }
 
