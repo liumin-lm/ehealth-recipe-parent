@@ -1,26 +1,40 @@
 package recipe.comment;
 
+import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
+import com.ngari.his.regulation.entity.RegulationNotifyDataReq;
+import com.ngari.his.regulation.service.IRegulationService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.regulation.mode.QueryRegulationUnitReq;
 import com.ngari.recipe.comment.model.RecipeCommentTO;
 import com.ngari.recipe.comment.model.RegulationRecipeCommentBean;
+import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.comment.RecipeComment;
+import ctd.spring.AppDomainContext;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.ngari.recipe.comment.service.IRecipeCommentService;
+import recipe.dao.RecipeDAO;
 import recipe.dao.comment.RecipeCommentDAO;
+import recipe.presettle.condition.DoctorForceCashHandler;
 
 import java.util.Date;
 import java.util.List;
 
 @RpcBean
 public class RecipeCommentService implements IRecipeCommentService {
+    private static final Logger logger = LoggerFactory.getLogger(DoctorForceCashHandler.class);
 
     @Autowired
     private RecipeCommentDAO recipeCommentDAO;
+
+    @Autowired
+    private RecipeDAO recipeDAO;
+
 
     @Deprecated
     @RpcService
@@ -62,6 +76,17 @@ public class RecipeCommentService implements IRecipeCommentService {
     @Override
     public Integer addRecipeComment(RecipeCommentTO recipeCommentTO) {
         RecipeComment recipeComment = ObjectCopyUtils.convert(recipeCommentTO, RecipeComment.class);
-        return recipeCommentDAO.save(recipeComment).getId();
+        Recipe recipe = recipeDAO.getByRecipeId(recipeComment.getRecipeId());
+
+        Integer id = recipeCommentDAO.save(recipeComment).getId();
+        IRegulationService iRegulationService = AppDomainContext.getBean("his.regulationService", IRegulationService.class);
+        RegulationNotifyDataReq req = new RegulationNotifyDataReq();
+        req.setBussId(id.toString());
+        req.setBussType("recipeComment");
+        req.setNotifyTime(System.currentTimeMillis() - 1000);
+        req.setOrganId(recipe.getClinicOrgan());
+        logger.info("addRecipeComment notifyData req = {}", JSON.toJSONString(req));
+        iRegulationService.notifyData(recipe.getClinicOrgan(), req);
+        return id;
     }
 }
