@@ -935,6 +935,12 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
         }
     }
 
+    @Override
+    public OrganDrugsSaleConfig getOrganDrugsSaleConfigV1(FindOrganDrugsSaleConfigResVo findOrganDrugsSaleConfigResVo) {
+        return enterpriseManager.getOrganDrugsSaleConfig(findOrganDrugsSaleConfigResVo.getOrganId(), findOrganDrugsSaleConfigResVo.getDrugsEnterpriseId(), findOrganDrugsSaleConfigResVo.getGiveMode());
+
+    }
+
     private Integer getEnterpriseSendFlag(DrugsEnterprise enterprise, CheckOrderAddressVo checkOrderAddressVo) {
         Integer flag = 0;
 

@@ -26,10 +26,7 @@ import recipe.util.RecipeUtil;
 import recipe.vo.doctor.EnterpriseStockVO;
 import recipe.vo.doctor.ValidateDetailVO;
 import recipe.vo.greenroom.OrganDrugsSaleConfigVo;
-import recipe.vo.patient.CheckAddressReq;
-import recipe.vo.patient.CheckAddressRes;
-import recipe.vo.patient.FTYSendTimeReq;
-import recipe.vo.patient.MedicineStationVO;
+import recipe.vo.patient.*;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -90,6 +87,28 @@ public class DrugEnterprisePatientAtop extends BaseAtop {
     public OrganDrugsSaleConfigVo getOrganDrugsSaleConfig(Integer organId , Integer drugsEnterpriseId){
         validateAtop(organId);
         OrganDrugsSaleConfig organDrugsSaleConfig = enterpriseBusinessService.getOrganDrugsSaleConfig(organId, drugsEnterpriseId);
+        OrganDrugsSaleConfigVo organDrugsSaleConfigVo = new OrganDrugsSaleConfigVo();
+        BeanUtils.copyProperties(organDrugsSaleConfig,organDrugsSaleConfigVo);
+        if (StringUtils.isNotEmpty(organDrugsSaleConfig.getStorePaymentWay())) {
+            List<Integer> storePaymentWayList = JSON.parseArray(organDrugsSaleConfig.getStorePaymentWay(), Integer.class);
+            organDrugsSaleConfigVo.setStorePaymentWay(storePaymentWayList);
+        }
+        if (StringUtils.isNotEmpty(organDrugsSaleConfig.getTakeOneselfPaymentWay())) {
+            List<Integer> takeOneselfPaymentWayList = JSON.parseArray(organDrugsSaleConfig.getTakeOneselfPaymentWay(), Integer.class);
+            organDrugsSaleConfigVo.setTakeOneselfPaymentWay(takeOneselfPaymentWayList);
+        }
+        return organDrugsSaleConfigVo;
+    }
+
+    /**
+     * 获取机构药企销售配置
+     * @param organId 机构id
+     * @param drugsEnterpriseId 药企id
+     */
+    @RpcService
+    public OrganDrugsSaleConfigVo getOrganDrugsSaleConfigV1(FindOrganDrugsSaleConfigResVo findOrganDrugsSaleConfigResVo){
+        validateAtop(findOrganDrugsSaleConfigResVo,findOrganDrugsSaleConfigResVo.getOrganId(),findOrganDrugsSaleConfigResVo.getGiveMode());
+        OrganDrugsSaleConfig organDrugsSaleConfig = enterpriseBusinessService.getOrganDrugsSaleConfigV1(findOrganDrugsSaleConfigResVo);
         OrganDrugsSaleConfigVo organDrugsSaleConfigVo = new OrganDrugsSaleConfigVo();
         BeanUtils.copyProperties(organDrugsSaleConfig,organDrugsSaleConfigVo);
         if (StringUtils.isNotEmpty(organDrugsSaleConfig.getStorePaymentWay())) {
