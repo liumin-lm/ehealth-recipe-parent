@@ -1032,20 +1032,20 @@ public class EnterpriseManager extends BaseManager {
                 "toHosPlanAmTime", "toHosPlanPmTime", "getQrTypeForRecipe", "getQrTypeForRecipeRemind", "isShowPlanTime");
         // 到院自取是否采用药企管理模式
         Boolean drugToHosByEnterprise = configurationClient.getValueBooleanCatch(organId, "drugToHosByEnterprise", false);
-        if (drugToHosByEnterprise && GiveModeEnum.GIVE_MODE_HOSPITAL_DRUG.getType().equals(giveMode)) {
-            if (Objects.isNull(drugsEnterpriseId)) {
-                throw new DAOException("采用药企销售配置模式药企id不能为空");
-            }
-            OrganDrugsSaleConfig organDrugsSaleConfig = organDrugsSaleConfigDAO.getOrganDrugsSaleConfig(drugsEnterpriseId);
-            if (Objects.isNull(organDrugsSaleConfig)) {
-                throw new DAOException("未配置药企销售配置");
-            }
-            organDrugsSaleConfig.setOrganId(organId);
-            organDrugsSaleConfig.setDrugsEnterpriseId(drugsEnterpriseId);
-            return organDrugsSaleConfig;
+        if (!drugToHosByEnterprise && GiveModeEnum.GIVE_MODE_HOSPITAL_DRUG.getType().equals(giveMode)) {
+            Map<String, Object> configurationByKeyList = configurationClient.getConfigurationByKeyList(organId, key);
+            return coverConfig(configurationByKeyList, organId);
         }
-        Map<String, Object> configurationByKeyList = configurationClient.getConfigurationByKeyList(organId, key);
-        return coverConfig(configurationByKeyList, organId);
+        if (Objects.isNull(drugsEnterpriseId)) {
+            throw new DAOException("采用药企销售配置模式药企id不能为空");
+        }
+        OrganDrugsSaleConfig organDrugsSaleConfig = organDrugsSaleConfigDAO.getOrganDrugsSaleConfig(drugsEnterpriseId);
+        if (Objects.isNull(organDrugsSaleConfig)) {
+            throw new DAOException("未配置药企销售配置");
+        }
+        organDrugsSaleConfig.setOrganId(organId);
+        organDrugsSaleConfig.setDrugsEnterpriseId(drugsEnterpriseId);
+        return organDrugsSaleConfig;
     }
 
     /**

@@ -14,10 +14,7 @@ import recipe.vo.greenroom.DrugsEnterpriseVO;
 import recipe.vo.greenroom.OrganDrugsSaleConfigVo;
 import recipe.vo.greenroom.OrganEnterpriseRelationVo;
 import recipe.vo.greenroom.PharmacyVO;
-import recipe.vo.patient.CheckAddressReq;
-import recipe.vo.patient.CheckAddressRes;
-import recipe.vo.patient.FTYSendTimeReq;
-import recipe.vo.patient.MedicineStationVO;
+import recipe.vo.patient.*;
 import recipe.vo.second.CheckAddressVo;
 import recipe.vo.second.CheckOrderAddressVo;
 import recipe.vo.second.enterpriseOrder.EnterpriseConfirmOrderVO;
@@ -319,4 +316,10 @@ public interface IEnterpriseBusinessService {
      */
     void pushFailOrderNotify();
 
+    /**
+     * 获取销售配置
+     * @param findOrganDrugsSaleConfigResVo
+     * @return
+     */
+    OrganDrugsSaleConfig getOrganDrugsSaleConfigV1(FindOrganDrugsSaleConfigResVo findOrganDrugsSaleConfigResVo);
 }
