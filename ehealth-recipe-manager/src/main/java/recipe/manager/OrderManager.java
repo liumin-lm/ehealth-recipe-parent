@@ -1213,7 +1213,8 @@ public class OrderManager extends BaseManager {
         }
         map.put("showLogisticsType", drugsEnterprise.getShowLogisticsType());
         map.put("showLogisticsLink", drugsEnterprise.getShowLogisticsLink());
-        if (RecipeSupportGiveModeEnum.SUPPORT_TFDS.getText().equals(recipeOrder.getGiveModeKey())) {
+        if (RecipeSupportGiveModeEnum.SUPPORT_TFDS.getText().equals(recipeOrder.getGiveModeKey()) ||
+                RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getText().equals(recipeOrder.getGiveModeKey())) {
             if (PayModeEnum.ONLINE_PAY.getType().equals(recipeOrder.getPayMode())) {
                 map.put("storePayFlag", 0);
             } else {
