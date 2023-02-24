@@ -2072,39 +2072,23 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
         recipeOrder.setOrderRefundWay(OrderRefundWayTypeEnum.DRUG_ORDER.getType());
         recipeOrderDAO.updateNonNullFieldByPrimaryKey(recipeOrder);
         if (recipeOrder.getActualPrice() <= 0.0D) {
-            //没有发起支付
-            List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
-            List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIdList);
-            recipeList.forEach(recipe -> {
-                recipe.setStatus(RecipeStatusConstant.REVOKE);
-                recipe.setLastModify(new Date());
-                recipe.setPayFlag(PayFlagEnum.REFUND_SUCCESS.getType());
-                recipeDAO.updateNonNullFieldByPrimaryKey(recipe);
-                stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_RETURN_DRUG);
+            List<Integer> recipeIdList = recipeManager.setRecipeCancelState(recipeOrder);
+            recipeIdList.forEach(recipeId -> {
+                stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_RETURN_DRUG);
             });
-            recipeOrder.setStatus(OrderStatusConstant.CANCEL_MANUAL);
-            recipeOrder.setEffective(0);
-            recipeOrder.setPayFlag(PayFlagEnum.REFUND_SUCCESS.getType());
-            recipeOrder.setRefundFlag(1);
-            recipeOrder.setRefundTime(new Date());
-            recipeOrderDAO.updateNonNullFieldByPrimaryKey(recipeOrder);
+            orderManager.setOrderCancelState(recipeOrder);
             stateManager.updateOrderState(recipeOrder.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION, OrderStateEnum.SUB_CANCELLATION_RETURN_DRUG);
             return true;
         }
-        try {
-            RecipeOrderPayFlow recipeOtherOrderPayFlow = recipeOrderPayFlowManager.getByOrderIdAndType(recipeOrder.getOrderId(), PayFlowTypeEnum.RECIPE_AUDIT.getType());
-            if (Objects.nonNull(recipeOtherOrderPayFlow)) {
-                RefundResultDTO resultDTO = payClient.refund(recipeOrder.getOrderId(), PayBusTypeEnum.OTHER_BUS_TYPE.getName());
-                if (resultDTO.getStatus() != 0) {
-                    return false;
-                }
-            }
-            RefundResultDTO refundResultDTO = payClient.refund(recipeOrder.getOrderId(), PayBusTypeEnum.RECIPE_BUS_TYPE.getName());
-            if (refundResultDTO.getStatus() != 0) {
+        RecipeOrderPayFlow recipeOtherOrderPayFlow = recipeOrderPayFlowManager.getByOrderIdAndType(recipeOrder.getOrderId(), PayFlowTypeEnum.RECIPE_AUDIT.getType());
+        if (Objects.nonNull(recipeOtherOrderPayFlow)) {
+            RefundResultDTO resultDTO = payClient.refund(recipeOrder.getOrderId(), PayBusTypeEnum.OTHER_BUS_TYPE.getName());
+            if (Objects.isNull(resultDTO) || resultDTO.getStatus() != 0) {
                 return false;
             }
-        } catch (Exception e) {
-            logger.error("RecipeOrderBusinessService orderRefund error", e);
+        }
+        RefundResultDTO refundResultDTO = payClient.refund(recipeOrder.getOrderId(), PayBusTypeEnum.RECIPE_BUS_TYPE.getName());
+        if (Objects.isNull(refundResultDTO) || refundResultDTO.getStatus() != 0) {
             return false;
         }
         return true;
