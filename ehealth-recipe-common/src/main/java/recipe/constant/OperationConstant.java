@@ -79,6 +79,11 @@ public class OperationConstant {
      * 处方-卡号
      */
     public static final String OP_RECIPE_CARD_NO = "cardNo";
+
+    /**
+     * 处方-医保类型
+     */
+    public static final String OP_RECIPE_MEDICAL_FLAG = "medicalFlag";
     /**
      * 监管流水号
      */
@@ -93,5 +98,7 @@ public class OperationConstant {
      * 处方扩展-陪诊人姓名
      */
     public static final String OP_RECIPE_EXTEND_NAME = "guardianName";
+
+
 
 }
