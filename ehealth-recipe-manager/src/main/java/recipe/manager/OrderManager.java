@@ -1218,7 +1218,6 @@ public class OrderManager extends BaseManager {
             } else {
                 map.put("storePayFlag", 1);
             }
-
         }
         logger.info("OrderManager getOrderExtDesc map:{}", JSON.toJSONString(map));
         return map;
