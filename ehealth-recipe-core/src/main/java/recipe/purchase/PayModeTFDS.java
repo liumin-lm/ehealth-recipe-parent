@@ -65,9 +65,7 @@ public class PayModeTFDS implements IPurchaseService {
     @Autowired
     private OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO;
 
-    public PayModeTFDS() {
-
-    }
+    public PayModeTFDS() {}
 
     @Override
     public RecipeResultBean findSupportDepList(Recipe recipe, Map<String, String> extInfo) {
@@ -182,7 +180,6 @@ public class PayModeTFDS implements IPurchaseService {
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
-        OrganDrugsSaleConfigDAO organDrugsSaleConfigDAO = getDAO(OrganDrugsSaleConfigDAO.class);
         DrugsEnterprise dep = drugsEnterpriseDAO.getById(depId);
         Integer patientIsDecoction = MapValueUtil.getInteger(extInfo, "patientIsDecoction");
         enterpriseManager.checkSupportDecoction(dbRecipes, depId, patientIsDecoction, GiveModeTextEnum.SUPPORTTFDS.getGiveMode());
