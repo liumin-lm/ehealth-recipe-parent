@@ -238,11 +238,6 @@ public class PayModeTFDS implements IPurchaseService {
         }
         int payModeNew = 2;
         Integer storePayFlag = eh.utils.MapValueUtil.getInteger(extInfo, "storePayFlag");
-        Integer giveMode = PayModeGiveModeUtil.getGiveMode(payMode);
-        if (Objects.isNull(storePayFlag)) {
-            storePayFlag = enterpriseManager.getStorePayFlag(order.getOrganId(), order.getEnterpriseId(), giveMode);
-            extInfo.put("storePayFlag", storePayFlag.toString());
-        }
         if (storePayFlag == 1) {
             payModeNew = RecipeBussConstant.PAYMODE_ONLINE;
         }
