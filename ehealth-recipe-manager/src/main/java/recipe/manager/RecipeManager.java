@@ -41,6 +41,7 @@ import recipe.common.CommonConstant;
 import recipe.common.OnsConfig;
 import recipe.common.UrlConfig;
 import recipe.constant.RecipeBussConstant;
+import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RequirementsForTakingDao;
 import recipe.enumerate.status.RecipeAuditStateEnum;
@@ -48,6 +49,7 @@ import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.status.WriteHisEnum;
 import recipe.enumerate.type.AppointEnterpriseTypeEnum;
+import recipe.enumerate.type.PayFlagEnum;
 import recipe.enumerate.type.RecipeShowQrConfigEnum;
 import recipe.util.*;
 
@@ -1365,7 +1367,6 @@ public class RecipeManager extends BaseManager {
             redisClient.setEX(redisKey, 30 * 24 * 3600L, String.valueOf(recipeId));
             RecipeDTO recipeDTO = super.getRecipeDTO(recipeId);
             com.ngari.platform.recipe.mode.RecipeInfoDTO recipeDTO1=new com.ngari.platform.recipe.mode.RecipeInfoDTO();
-//            BeanUtils.copyProperties(recipeDTO, recipeDTO1);
             recipeDTO1.setRecipe(ObjectCopyUtils.convert(recipeDTO.getRecipe(),RecipeBean.class));
             recipeDTO1.setRecipeExtend(ObjectCopyUtils.convert(recipeDTO.getRecipeExtend(),RecipeExtendBean.class));
             recipeDTO1.setRecipeDetails(ObjectCopyUtils.convert(recipeDTO.getRecipeDetails(),RecipeDetailBean.class));
@@ -1468,5 +1469,23 @@ public class RecipeManager extends BaseManager {
         }
         logger.info("RecipeManager sendSuccessRecipe, recipeExtend:{}", JSON.toJSONString(updateRecipeExtend));
         recipeExtendDAO.updateNonNullFieldByPrimaryKey(updateRecipeExtend);
+    }
+
+    /**
+     * 设置处方取消状态
+     *
+     * @param recipeOrder
+     * @return
+     */
+    public List<Integer> setRecipeCancelState(RecipeOrder recipeOrder) {
+        List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
+        List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIdList);
+        recipeList.forEach(recipe -> {
+            recipe.setStatus(RecipeStatusConstant.REVOKE);
+            recipe.setLastModify(new Date());
+            recipe.setPayFlag(PayFlagEnum.REFUND_SUCCESS.getType());
+            recipeDAO.updateNonNullFieldByPrimaryKey(recipe);
+        });
+        return recipeIdList;
     }
 }
