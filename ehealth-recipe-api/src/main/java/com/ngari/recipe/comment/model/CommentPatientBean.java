@@ -14,14 +14,17 @@ import java.io.Serializable;
 public class CommentPatientBean implements Serializable {
     private static final long serialVersionUID = 2435793659857228426L;
 
-    @ItemProperty(alias = "就诊人电子健康卡")
-    private String cardId;
+    @ItemProperty(alias = "就诊人卡号")
+    private String cardNo;
+
+    @ItemProperty(alias = "就诊人卡类型")
+    private String cardType;
 
     @ItemProperty(alias = "就诊人证件类型")
     private Integer certType;
 
     @ItemProperty(alias = "就诊人证件号")
-    private String certNo;
+    private String certId;
 
     @ItemProperty(alias = "姓名")
     private String patientName;

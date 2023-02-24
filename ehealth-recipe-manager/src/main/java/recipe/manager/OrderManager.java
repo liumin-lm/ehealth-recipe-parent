@@ -1213,9 +1213,10 @@ public class OrderManager extends BaseManager {
         map.put("showLogisticsType", drugsEnterprise.getShowLogisticsType());
         map.put("showLogisticsLink", drugsEnterprise.getShowLogisticsLink());
         if (RecipeSupportGiveModeEnum.SUPPORT_TFDS.getText().equals(recipeOrder.getGiveModeKey())) {
-            OrganDrugsSaleConfig organDrugsSaleConfig = organDrugsSaleConfigDAO.getOrganDrugsSaleConfig(recipeOrder.getEnterpriseId());
-            if (Objects.nonNull(organDrugsSaleConfig)) {
-                map.put("storePayFlag", organDrugsSaleConfig.getStorePaymentWay());
+            if (PayModeEnum.ONLINE_PAY.getType().equals(recipeOrder.getPayMode())) {
+                map.put("storePayFlag", 0);
+            } else {
+                map.put("storePayFlag", 1);
             }
         }
         logger.info("OrderManager getOrderExtDesc map:{}", JSON.toJSONString(map));

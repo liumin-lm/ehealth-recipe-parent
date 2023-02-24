@@ -4,6 +4,7 @@ import ctd.schema.annotation.ItemProperty;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.Date;
 
 /**
  * @Description
@@ -33,5 +34,5 @@ public class CommentBean implements Serializable {
     private String commentUserType;
 
     @ItemProperty(alias = "点评时间")
-    private String commentTime;
+    private Date commentTime;
 }
