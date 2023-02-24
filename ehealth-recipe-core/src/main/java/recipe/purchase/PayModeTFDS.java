@@ -32,6 +32,7 @@ import recipe.enumerate.type.StockCheckSourceTypeEnum;
 import recipe.enumerate.type.TakeMedicineWayEnum;
 import recipe.manager.EnterpriseManager;
 import recipe.manager.OrderManager;
+import recipe.service.PayModeGiveModeUtil;
 import recipe.service.RecipeOrderService;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
@@ -239,7 +240,13 @@ public class PayModeTFDS implements IPurchaseService {
             order.setRevisitRemindTime(DateConversion.parseDate(MapValueUtil.getString(extInfo, "revisitRemindTime"),DateConversion.DEFAULT_DATE_TIME));
         }
         int payModeNew = 2;
-        if (dep.getStorePayFlag() == 1) {
+        Integer storePayFlag = eh.utils.MapValueUtil.getInteger(extInfo, "storePayFlag");
+        Integer giveMode = PayModeGiveModeUtil.getGiveMode(payMode);
+        if (Objects.isNull(storePayFlag)) {
+            storePayFlag = enterpriseManager.getStorePayFlag(order.getOrganId(), order.getEnterpriseId(), giveMode);
+            extInfo.put("storePayFlag", storePayFlag.toString());
+        }
+        if (storePayFlag == 1) {
             payModeNew = RecipeBussConstant.PAYMODE_ONLINE;
         }
         //如果是医保支付前端目前传的orderType都是1,杭州市医保得特殊处理
