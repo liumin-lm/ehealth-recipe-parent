@@ -2091,20 +2091,15 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
             stateManager.updateOrderState(recipeOrder.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION, OrderStateEnum.SUB_CANCELLATION_RETURN_DRUG);
             return true;
         }
-        try {
-            RecipeOrderPayFlow recipeOtherOrderPayFlow = recipeOrderPayFlowManager.getByOrderIdAndType(recipeOrder.getOrderId(), PayFlowTypeEnum.RECIPE_AUDIT.getType());
-            if (Objects.nonNull(recipeOtherOrderPayFlow)) {
-                RefundResultDTO resultDTO = payClient.refund(recipeOrder.getOrderId(), PayBusTypeEnum.OTHER_BUS_TYPE.getName());
-                if (resultDTO.getStatus() != 0) {
-                    return false;
-                }
-            }
-            RefundResultDTO refundResultDTO = payClient.refund(recipeOrder.getOrderId(), PayBusTypeEnum.RECIPE_BUS_TYPE.getName());
-            if (refundResultDTO.getStatus() != 0) {
+        RecipeOrderPayFlow recipeOtherOrderPayFlow = recipeOrderPayFlowManager.getByOrderIdAndType(recipeOrder.getOrderId(), PayFlowTypeEnum.RECIPE_AUDIT.getType());
+        if (Objects.nonNull(recipeOtherOrderPayFlow)) {
+            RefundResultDTO resultDTO = payClient.refund(recipeOrder.getOrderId(), PayBusTypeEnum.OTHER_BUS_TYPE.getName());
+            if (Objects.isNull(resultDTO) || resultDTO.getStatus() != 0) {
                 return false;
             }
-        } catch (Exception e) {
-            logger.error("RecipeOrderBusinessService orderRefund error", e);
+        }
+        RefundResultDTO refundResultDTO = payClient.refund(recipeOrder.getOrderId(), PayBusTypeEnum.RECIPE_BUS_TYPE.getName());
+        if (Objects.isNull(refundResultDTO) || refundResultDTO.getStatus() != 0) {
             return false;
         }
         return true;
