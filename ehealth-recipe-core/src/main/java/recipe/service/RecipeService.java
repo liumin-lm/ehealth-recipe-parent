@@ -606,6 +606,7 @@ public class RecipeService extends RecipeBaseService {
      * @return
      */
     @RpcService
+    @Deprecated
     public List<RecipeDetailBean> reCreatedRecipe(Integer recipeId) {
         LOGGER.info("recipeService reCreatedRecipe recipeId = {}", JSON.toJSONString(recipeId));
         RecipeResultBean resultBean = RecipeResultBean.getSuccess();
