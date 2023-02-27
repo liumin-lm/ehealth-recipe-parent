@@ -369,7 +369,7 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
                     if (ybbodys.get("ybzf") != null) {
                         attr.put("fundAmount", ybbodys.getDoubleValue("ybzf"));
                     }
-                    if (ybbodys.get("zifei") != null) {
+                    if (ybbodys.get("xjzf") != null) {
                         attr.put("cashAmount", ybbodys.getDoubleValue("zifei"));
                     }
                     attr.put("familyMedicalFee", new BigDecimal(ybbodys.get("ybtczf").toString()));
