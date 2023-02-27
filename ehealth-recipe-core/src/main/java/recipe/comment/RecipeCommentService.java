@@ -97,12 +97,9 @@ public class RecipeCommentService implements IRecipeCommentService {
         if (Objects.isNull(req.getBussId())) {
             return Lists.newArrayList();
         }
-        RecipeComment recipeComment = recipeCommentDAO.get(req.getBussId());
+        RecipeComment recipeComment = recipeCommentDAO.get(Integer.valueOf(req.getBussId()));
         RecipeInfoDTO recipeInfoDTO = recipeManager.getRecipeInfoDTO(recipeComment.getRecipeId());
         RegulationRecipeCommentBean regulationRecipeCommentBean = packageParam(recipeComment, recipeInfoDTO);
-        if (Objects.isNull(regulationRecipeCommentBean)) {
-            return Lists.newArrayList();
-        }
         return Lists.newArrayList(regulationRecipeCommentBean);
     }
 
