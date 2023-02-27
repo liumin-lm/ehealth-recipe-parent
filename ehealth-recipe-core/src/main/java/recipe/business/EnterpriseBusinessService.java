@@ -479,8 +479,8 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
 
     @Override
     public EnterpriseResultBean confirmOrder(EnterpriseConfirmOrderVO enterpriseConfirmOrderVO) {
-        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getByAppKey(enterpriseConfirmOrderVO.getAppKey());
-        if (null == drugsEnterprise) {
+        List<DrugsEnterprise> drugsEnterpriseList = drugsEnterpriseDAO.findByAppKey(enterpriseConfirmOrderVO.getAppKey());
+        if (CollectionUtils.isEmpty(drugsEnterpriseList)) {
             return EnterpriseResultBean.getFail("当前appKey错误");
         }
         List<String> orderCodeList = enterpriseConfirmOrderVO.getOrderCodeList();
@@ -488,14 +488,16 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
         if (CollectionUtils.isEmpty(recipeOrderList)) {
             return EnterpriseResultBean.getFail("没有查询到订单信息");
         }
+        List<Integer> drugsEnterprises = drugsEnterpriseList.stream().map(DrugsEnterprise::getId).collect(Collectors.toList());
         recipeOrderList.forEach(recipeOrder -> {
             List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
-            recipeDAO.updateRecipeByDepIdAndRecipes(drugsEnterprise.getId(), recipeIdList);
+            recipeDAO.updateRecipeByDepIdsAndRecipes(drugsEnterprises, recipeIdList);
         });
         //记录日志
+        Map<Integer, DrugsEnterprise> drugsEnterpriseMap = drugsEnterpriseList.stream().collect(Collectors.toMap(DrugsEnterprise::getId,a->a,(k1,k2)->k1));
         List<Recipe> recipeList = recipeDAO.findByOrderCode(orderCodeList);
         recipeList.forEach(recipe -> {
-            recipeManager.saveRecipeLog(recipe.getRecipeId(), RecipeStatusEnum.getRecipeStatusEnum(recipe.getStatus()), RecipeStatusEnum.getRecipeStatusEnum(recipe.getStatus()), drugsEnterprise.getName() + "获取处方成功");
+            recipeManager.saveRecipeLog(recipe.getRecipeId(), RecipeStatusEnum.getRecipeStatusEnum(recipe.getStatus()), RecipeStatusEnum.getRecipeStatusEnum(recipe.getStatus()), drugsEnterpriseMap.get(recipe.getEnterpriseId()).getName() + "获取处方成功");
         });
         return EnterpriseResultBean.getSuccess("成功");
     }
