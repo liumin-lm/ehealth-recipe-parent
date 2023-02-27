@@ -10,6 +10,7 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.regulation.mode.QueryRegulationUnitReq;
 import com.ngari.recipe.comment.model.*;
 import com.ngari.recipe.dto.RecipeInfoDTO;
+import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.Recipedetail;
@@ -23,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.ngari.recipe.comment.service.IRecipeCommentService;
 import recipe.client.DepartClient;
+import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.comment.RecipeCommentDAO;
 import recipe.manager.RecipeManager;
@@ -63,6 +65,9 @@ public class RecipeCommentService implements IRecipeCommentService {
     @Autowired
     private PatientService patientService;
 
+    @Autowired
+    private OrganDrugListDAO organDrugListDAO;
+
 
     @Deprecated
     @RpcService
@@ -92,12 +97,9 @@ public class RecipeCommentService implements IRecipeCommentService {
         if (Objects.isNull(req.getBussId())) {
             return Lists.newArrayList();
         }
-        RecipeComment recipeComment = recipeCommentDAO.get(req.getBussId());
+        RecipeComment recipeComment = recipeCommentDAO.get(Integer.valueOf(req.getBussId()));
         RecipeInfoDTO recipeInfoDTO = recipeManager.getRecipeInfoDTO(recipeComment.getRecipeId());
         RegulationRecipeCommentBean regulationRecipeCommentBean = packageParam(recipeComment, recipeInfoDTO);
-        if (Objects.isNull(regulationRecipeCommentBean)) {
-            return Lists.newArrayList();
-        }
         return Lists.newArrayList(regulationRecipeCommentBean);
     }
 
@@ -105,7 +107,7 @@ public class RecipeCommentService implements IRecipeCommentService {
         RegulationRecipeCommentBean result = new RegulationRecipeCommentBean();
         Recipe recipe = recipeInfoDTO.getRecipe();
         RecipeExtend recipeExt = recipeInfoDTO.getRecipeExtend();
-        List<Recipedetail> recipedetailList = recipeInfoDTO.getRecipeDetails();
+        List<Recipedetail> recipeDetailList = recipeInfoDTO.getRecipeDetails();
         OrganDTO organDTO = organService.getByOrganId(recipe.getClinicOrgan());
 
         //1.基本信息
@@ -180,13 +182,30 @@ public class RecipeCommentService implements IRecipeCommentService {
 
         //6.药品详情信息
         List<CommentRecipeDetailBean> commentRecipeDetailBeanList = Lists.newArrayList();
-        recipedetailList.forEach(recipedetail -> {
+        recipeDetailList.forEach(recipeDetail -> {
             CommentRecipeDetailBean commentRecipeDetailBean = new CommentRecipeDetailBean();
-            commentRecipeDetailBean.setDrugId(recipedetail.getDrugId());
-            commentRecipeDetailBean.setDrugName(recipedetail.getDrugName());
-            commentRecipeDetailBean.setDrugCode(recipedetail.getDrugCode());
-            //commentRecipeDetailBean.setDrugPack(recipedetail.getPack().toString());
-            //commentRecipeDetailBean.setDrugPackUnit(recipedetail.getDrugUnit());
+            OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(recipe.getClinicOrgan(),
+                    recipeDetail.getOrganDrugCode(), recipeDetail.getDrugId());
+            commentRecipeDetailBean.setDrugId(recipeDetail.getDrugId());
+            commentRecipeDetailBean.setDrugName(recipeDetail.getDrugName());
+            commentRecipeDetailBean.setDrugPack(recipeDetail.getPack().toString());
+            commentRecipeDetailBean.setDrugPackUnit(recipeDetail.getDrugUnit());
+            commentRecipeDetailBean.setDrugPlace(recipeDetail.getProducer());
+            commentRecipeDetailBean.setDrugDose(Objects.toString(recipeDetail.getUseDose(), ""));
+            commentRecipeDetailBean.setDrugUsage(recipeDetail.getUsePathways());
+            commentRecipeDetailBean.setDrugSpec(recipeDetail.getDrugSpec());
+            commentRecipeDetailBean.setDrugBatch(recipeDetail.getDrugBatch());
+            commentRecipeDetailBean.setRemark(recipeDetail.getMemo());
+            commentRecipeDetailBean.setUseDays(recipeDetail.getUseDays());
+            commentRecipeDetailBean.setUsePathways(recipeDetail.getUsePathways());
+            commentRecipeDetailBean.setUseTotalDose(Objects.toString(recipeDetail.getUseTotalDose(), ""));
+            commentRecipeDetailBean.setUseTotalDoseUnit(recipeDetail.getUseDoseUnit());
+            commentRecipeDetailBean.setUsingRate(recipeDetail.getUsingRate());
+            if (Objects.nonNull(organDrugList)) {
+                commentRecipeDetailBean.setDrugCode(organDrugList.getRegulationDrugCode());
+                commentRecipeDetailBean.setHospDrugCode(organDrugList.getOrganDrugCode());
+                commentRecipeDetailBean.setOtcMark(organDrugList.getBaseDrug());
+            }
             commentRecipeDetailBeanList.add(commentRecipeDetailBean);
         });
         result.setRecipeDetailList(commentRecipeDetailBeanList);
@@ -206,7 +225,6 @@ public class RecipeCommentService implements IRecipeCommentService {
     public Integer addRecipeComment(RecipeCommentTO recipeCommentTO) {
         RecipeComment recipeComment = ObjectCopyUtils.convert(recipeCommentTO, RecipeComment.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeComment.getRecipeId());
-
         Integer id = recipeCommentDAO.save(recipeComment).getId();
         IRegulationService iRegulationService = AppDomainContext.getBean("his.regulationService", IRegulationService.class);
         RegulationNotifyDataReq req = new RegulationNotifyDataReq();

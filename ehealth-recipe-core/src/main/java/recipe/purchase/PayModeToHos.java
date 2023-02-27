@@ -213,13 +213,9 @@ public class PayModeToHos implements IPurchaseService {
         //设置为有效订单
         order.setEffective(1);
         // 目前paymode传入还是老版本 除线上支付外全都算线下支付,下个版本与前端配合修改
-        Integer payModeNew = payMode;
         // 到院取药是否支持线上支付
         Integer storePayFlag = eh.utils.MapValueUtil.getInteger(extInfo, "storePayFlag");
-        if (storePayFlag == 1) {
-            payModeNew = RecipeBussConstant.PAYMODE_ONLINE;
-        }
-        order.setPayMode(payModeNew);
+        order.setPayMode(storePayFlag);
         if(StringUtils.isNotEmpty(MapValueUtil.getString(extInfo, "revisitRemindTime")))   {
             order.setRevisitRemindTime(DateConversion.parseDate(MapValueUtil.getString(extInfo, "revisitRemindTime"),DateConversion.DEFAULT_DATE_TIME));
         }
