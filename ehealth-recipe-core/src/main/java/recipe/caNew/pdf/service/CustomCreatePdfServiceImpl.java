@@ -509,7 +509,7 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
                 value = configurationClient.getValueCatch(recipePdfDTO.getRecipe().getClinicOrgan(), "recipeDetailRemark", "");
             }
             if (OP_RECIPE_MEDICAL_FLAG.equals(fieldName)) {
-                value = new Integer(1).equals(value)?"医保":"自费";
+                value = "1".equals(value)?"医保":"自费";
             }
             return new WordToPdfBean(key, value, null);
         }
