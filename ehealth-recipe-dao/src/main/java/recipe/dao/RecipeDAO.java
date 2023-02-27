@@ -3352,6 +3352,15 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     @DAOMethod(sql = "update Recipe set pushFlag=1 where enterpriseId=:enterpriseId and recipeId in (:recipeIds)")
     public abstract void updateRecipeByDepIdAndRecipes(@DAOParam("enterpriseId") Integer enterpriseId, @DAOParam("recipeIds") List recipeIds);
 
+    /**
+     * 根据配送商和处方号更新是否已推送药企(支持相同appKey的多个药企)
+     *
+     * @param enterpriseId 药企ID
+     * @param recipeIds    处方单号
+     */
+    @DAOMethod(sql = "update Recipe set pushFlag=1 where enterpriseId in (:enterpriseIds) and recipeId in (:recipeIds)")
+    public abstract void updateRecipeByDepIdsAndRecipes(@DAOParam("enterpriseIds") List<Integer> enterpriseIds, @DAOParam("recipeIds") List<Integer> recipeIds);
+
     @DAOMethod(sql = "update Recipe set status=9 where orderCode=:orderCode ")
     public abstract void updateStatusByOrderCode(@DAOParam("orderCode") String orderCode);
 
