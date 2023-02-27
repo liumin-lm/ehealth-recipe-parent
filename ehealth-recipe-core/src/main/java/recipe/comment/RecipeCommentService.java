@@ -15,6 +15,8 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.entity.comment.RecipeComment;
+import ctd.controller.exception.ControllerException;
+import ctd.dictionary.DictionaryController;
 import ctd.spring.AppDomainContext;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -159,8 +161,13 @@ public class RecipeCommentService implements IRecipeCommentService {
         commentDoctorBean.setDoctorJobNumber(iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipe.getDoctor(), recipe.getClinicOrgan(), recipe.getDepart()));
         DoctorDTO doctorDTO = doctorService.getByDoctorId(recipe.getDoctor());
         if (Objects.nonNull(doctorDTO)) {
-            //commentDoctorBean.setDoctorTitleId(doctorDTO.getDoctorTitles());
-            //commentDoctorBean.setDoctorTitle(doctorDTO.getDoctorTitles());
+            commentDoctorBean.setDoctorTitleId(doctorDTO.getProTitle());
+            try {
+                String doctorTile = DictionaryController.instance().get("eh.base.dictionary.ProTitle").getText(doctorDTO.getProTitle());
+                commentDoctorBean.setDoctorTitle(doctorTile);
+            } catch (ControllerException e) {
+                logger.error("queryRegulationRecipeComment setDoctorTitle error:", e);
+            }
             commentDoctorBean.setDoctorMobile(doctorDTO.getMobile());
         }
         result.setDoctorMsg(commentDoctorBean);
@@ -178,7 +185,7 @@ public class RecipeCommentService implements IRecipeCommentService {
             try {
                 commentPatientBean.setPatientAge(String.valueOf(ChinaIDNumberUtil.getStringAgeFromIDNumber(patientDTO.getCertificate())));
             } catch (Exception e) {
-                logger.error("getStringAgeFromIDNumber e", e);
+                logger.error("queryRegulationRecipeComment getStringAgeFromIDNumber error:", e);
             }
         }
         result.setPatientMsg(commentPatientBean);
