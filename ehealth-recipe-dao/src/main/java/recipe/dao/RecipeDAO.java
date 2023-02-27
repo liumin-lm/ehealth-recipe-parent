@@ -345,6 +345,34 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder("update Recipe set ");
 
+                //药师
+                if (flag == 2) {
+                    hql.append(" status = 8, ");
+                } else {
+                    hql.append(" status = 2, ");
+                }
+                if(canCancelOrderCode){
+                    //非北京互联网模式设置为null
+                    if (!new Integer(2).equals(recipe.getRecipeSource())) {
+                        hql.append(" giveMode = null, ");
+                    }
+                    hql.append(" orderCode=null ,");
+                }
+                hql.append(" chooseFlag=0 where recipeId=:recipeId");
+                Query q = ss.createQuery(hql.toString());
+
+                q.setParameter("recipeId", recipe.getRecipeId());
+                q.executeUpdate();
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+    }
+
+    public void updateOrderCodeToNullByRecipeIdAndStatus(Recipe recipe, int flag,boolean canCancelOrderCode) {
+        HibernateStatelessResultAction<Boolean> action = new AbstractHibernateStatelessResultAction<Boolean>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder("update Recipe set ");
 
                 hql.append(" status = 6, ");
                 if(canCancelOrderCode){
