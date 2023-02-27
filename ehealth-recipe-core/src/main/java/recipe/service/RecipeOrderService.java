@@ -2027,7 +2027,7 @@ public class RecipeOrderService extends RecipeBaseService {
                             }
                         }
                     } catch (Exception e) {
-                        LOGGER.error("getOrderDetailById needFee计算需支付 error :{}", e);
+                        LOGGER.error("getOrderDetailById needFee计算需支付 error", e);
                     }
                 }
                 orderBean.setNeedFee(needFee.compareTo(BigDecimal.ZERO) >= 0 ? needFee : BigDecimal.ZERO);

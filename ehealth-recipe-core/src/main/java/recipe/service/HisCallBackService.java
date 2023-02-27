@@ -57,7 +57,6 @@ public class HisCallBackService {
     private static StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
 
     private static IConfigurationClient configurationClient = AppContextHolder.getBean("IConfigurationClient", IConfigurationClient.class);
-    private static RecipeOrderDAO recipeOrderDAO = AppContextHolder.getBean("RecipeOrderDAO", RecipeOrderDAO.class);
 
     /**
      * 处方HIS审核通过成功
@@ -564,6 +563,7 @@ public class HisCallBackService {
             // 取消订单
             order.setEffective(0);
             order.setStatus(RecipeOrderStatusEnum.ORDER_STATUS_CANCEL_AUTO.getType());
+            RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
             recipeOrderDAO.updateNonNullFieldByPrimaryKey(order);
             //如果有正在进行中的合并处方单应该还原
             RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
