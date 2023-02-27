@@ -820,7 +820,7 @@ public class RecipeHisService extends RecipeBaseService {
             Integer status = service.listSingleQuery(requestList);
             if (status != null) {
                 if (status == eh.cdr.constant.RecipeStatusConstant.HAVE_PAY) {
-                    recipeDAO.updateRecipeInfoByRecipeId(recipeId, eh.cdr.constant.RecipeStatusConstant.HAVE_PAY, null);
+                    recipeDAO.updateRecipeInfoByRecipeId(recipeId, eh.cdr.constant.RecipeStatusConstant.FINISH, null);
                     LOGGER.info("getRecipeSinglePayStatusQuery update success");
                     return status;
                 } else if (status == eh.cdr.constant.RecipeStatusConstant.FINISH) {
