@@ -769,19 +769,28 @@ public class OrganDrugListService implements IOrganDrugListService {
         drugCategoryReq.setDrugPrice(organDrugList.getSalePrice());
         drugCategoryReq.setHospDrugName(organDrugList.getDrugName());
         drugCategoryReq.setHospTradeName(organDrugList.getSaleName());
+        //此处HospDrugPacking按理应该传pack+unit, 之前传的有问题，暂时不改
         if (StringUtils.isNotEmpty(organDrugList.getDrugSpec())) {
+            drugCategoryReq.setHospDrugSpec(organDrugList.getDrugSpec());
             drugCategoryReq.setHospDrugPacking(organDrugList.getDrugSpec());
         } else {
             if (StringUtils.isNotEmpty(drugList.getDrugSpec())) {
+                drugCategoryReq.setHospDrugSpec(drugList.getDrugSpec());
                 drugCategoryReq.setHospDrugPacking(drugList.getDrugSpec());
             } else {
+                drugCategoryReq.setHospDrugSpec("/");
                 drugCategoryReq.setHospDrugPacking("/");
             }
         }
+        //配送企业暂时传生产商
         if (StringUtils.isNotEmpty(organDrugList.getProducer())) {
             drugCategoryReq.setHospDrugManuf(organDrugList.getProducer());
+            drugCategoryReq.setProductionEnterprise(organDrugList.getProducer());
+            drugCategoryReq.setDistributionEnterprise(organDrugList.getProducer());
         } else {
             drugCategoryReq.setHospDrugManuf(drugList.getProducer());
+            drugCategoryReq.setProductionEnterprise(drugList.getProducer());
+            drugCategoryReq.setDistributionEnterprise(drugList.getProducer());
         }
 
         drugCategoryReq.setUseFlag(organDrugList.getStatus() + "");
