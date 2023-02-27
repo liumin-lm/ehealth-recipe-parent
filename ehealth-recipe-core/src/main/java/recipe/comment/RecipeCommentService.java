@@ -29,10 +29,12 @@ import recipe.dao.RecipeDAO;
 import recipe.dao.comment.RecipeCommentDAO;
 import recipe.manager.RecipeManager;
 import recipe.presettle.condition.DoctorForceCashHandler;
+import recipe.util.ChinaIDNumberUtil;
 
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
 
 @RpcBean
 public class RecipeCommentService implements IRecipeCommentService {
@@ -116,12 +118,6 @@ public class RecipeCommentService implements IRecipeCommentService {
         result.setUnitId(organDTO.getMinkeUnitID());
         result.setUpdateTime(new Date());
 
-        result.setAntibacterialDrugNum(0);
-        result.setBaseDrugNum(0);
-        result.setCommonNameNum(0);
-        result.setHormoneNum(0);
-        result.setInjectionNum(0);
-
         //2.处方信息
         CommentRecipeBean commentRecipeBean = new CommentRecipeBean();
         commentRecipeBean.setRecipeId(recipe.getRecipeId());
@@ -143,13 +139,15 @@ public class RecipeCommentService implements IRecipeCommentService {
 
         //3.点评信息
         CommentBean commentBean = new CommentBean();
-        commentBean.setCommentId(recipeComment.getId());
-        commentBean.setCommentRemark(recipeComment.getCommentRemark());
-        commentBean.setCommentResult(recipeComment.getCommentResult());
-        commentBean.setCommentResultCode(recipeComment.getCommentResultCode());
-        commentBean.setCommentTime(recipeComment.getCreateDate());
-        commentBean.setCommentUserName(recipeComment.getCommentUserName());
-        commentBean.setCommentUserType(recipeComment.getCommentUserType());
+        if (Objects.nonNull(recipeComment)) {
+            commentBean.setCommentId(recipeComment.getId());
+            commentBean.setCommentRemark(recipeComment.getCommentRemark());
+            commentBean.setCommentResult(recipeComment.getCommentResult());
+            commentBean.setCommentResultCode(recipeComment.getCommentResultCode());
+            commentBean.setCommentTime(recipeComment.getCreateDate());
+            commentBean.setCommentUserName(recipeComment.getCommentUserName());
+            commentBean.setCommentUserType(recipeComment.getCommentUserType());
+        }
         result.setCommentMsg(commentBean);
 
         //4.医生信息
@@ -176,11 +174,17 @@ public class RecipeCommentService implements IRecipeCommentService {
             commentPatientBean.setCertId(patientDTO.getCertificate());
             commentPatientBean.setCertType(patientDTO.getCertificateType());
             commentPatientBean.setPatientSex(Integer.valueOf(patientDTO.getPatientSex()));
-            commentPatientBean.setPatientAge(patientDTO.getAge().toString());
+            try {
+                commentPatientBean.setPatientAge(String.valueOf(ChinaIDNumberUtil.getStringAgeFromIDNumber(patientDTO.getCertificate())));
+            } catch (Exception e) {
+                logger.error("getStringAgeFromIDNumber e", e);
+            }
         }
         result.setPatientMsg(commentPatientBean);
 
         //6.药品详情信息
+        AtomicReference<Integer> antibacterialDrugNum = new AtomicReference<>(0);
+        AtomicReference<Integer> baseDrugNum = new AtomicReference<>(0);
         List<CommentRecipeDetailBean> commentRecipeDetailBeanList = Lists.newArrayList();
         recipeDetailList.forEach(recipeDetail -> {
             CommentRecipeDetailBean commentRecipeDetailBean = new CommentRecipeDetailBean();
@@ -205,9 +209,22 @@ public class RecipeCommentService implements IRecipeCommentService {
                 commentRecipeDetailBean.setDrugCode(organDrugList.getRegulationDrugCode());
                 commentRecipeDetailBean.setHospDrugCode(organDrugList.getOrganDrugCode());
                 commentRecipeDetailBean.setOtcMark(organDrugList.getBaseDrug());
+
+                if (Objects.nonNull(organDrugList.getAntibioticsDrugLevel()) && !organDrugList.getAntibioticsDrugLevel().equals(0)) {
+                    antibacterialDrugNum.updateAndGet(v -> v + 1);
+                }
+                if (Objects.nonNull(organDrugList.getBaseDrug()) && organDrugList.getBaseDrug().equals(1)) {
+                    baseDrugNum.updateAndGet(v -> v + 1);
+                }
             }
             commentRecipeDetailBeanList.add(commentRecipeDetailBean);
         });
+
+        result.setAntibacterialDrugNum(antibacterialDrugNum.get());
+        result.setBaseDrugNum(baseDrugNum.get());
+        result.setCommonNameNum(0);
+        result.setHormoneNum(0);
+        result.setInjectionNum(0);
         result.setRecipeDetailList(commentRecipeDetailBeanList);
         return result;
     }
