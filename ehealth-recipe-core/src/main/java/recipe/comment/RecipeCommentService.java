@@ -96,12 +96,14 @@ public class RecipeCommentService implements IRecipeCommentService {
 
     @Override
     public List<RegulationRecipeCommentBean> queryRegulationRecipeComment(QueryRegulationUnitReq req) {
+        logger.info("queryRegulationRecipeComment req = {}", JSON.toJSONString(req));
         if (Objects.isNull(req.getBussId())) {
             return Lists.newArrayList();
         }
         RecipeComment recipeComment = recipeCommentDAO.get(Integer.valueOf(req.getBussId()));
         RecipeInfoDTO recipeInfoDTO = recipeManager.getRecipeInfoDTO(recipeComment.getRecipeId());
         RegulationRecipeCommentBean regulationRecipeCommentBean = packageParam(recipeComment, recipeInfoDTO);
+        logger.info("queryRegulationRecipeComment regulationRecipeCommentBean = {}", JSON.toJSONString(regulationRecipeCommentBean));
         return Lists.newArrayList(regulationRecipeCommentBean);
     }
 
@@ -161,7 +163,6 @@ public class RecipeCommentService implements IRecipeCommentService {
             //commentDoctorBean.setDoctorTitle(doctorDTO.getDoctorTitles());
             commentDoctorBean.setDoctorMobile(doctorDTO.getMobile());
         }
-
         result.setDoctorMsg(commentDoctorBean);
 
         //5.患者信息
@@ -197,14 +198,17 @@ public class RecipeCommentService implements IRecipeCommentService {
             commentRecipeDetailBean.setDrugPlace(recipeDetail.getProducer());
             commentRecipeDetailBean.setDrugDose(Objects.toString(recipeDetail.getUseDose(), ""));
             commentRecipeDetailBean.setDrugUsage(recipeDetail.getUsePathways());
+            commentRecipeDetailBean.setDrugUsageText(recipeDetail.getUsePathwaysTextFromHis());
             commentRecipeDetailBean.setDrugSpec(recipeDetail.getDrugSpec());
             commentRecipeDetailBean.setDrugBatch(recipeDetail.getDrugBatch());
             commentRecipeDetailBean.setRemark(recipeDetail.getMemo());
             commentRecipeDetailBean.setUseDays(recipeDetail.getUseDays());
             commentRecipeDetailBean.setUsePathways(recipeDetail.getUsePathways());
+            commentRecipeDetailBean.setUsePathwaysText(recipeDetail.getUsePathwaysTextFromHis());
             commentRecipeDetailBean.setUseTotalDose(Objects.toString(recipeDetail.getUseTotalDose(), ""));
             commentRecipeDetailBean.setUseTotalDoseUnit(recipeDetail.getUseDoseUnit());
             commentRecipeDetailBean.setUsingRate(recipeDetail.getUsingRate());
+            commentRecipeDetailBean.setUsingRateText(recipeDetail.getUsingRateTextFromHis());
             if (Objects.nonNull(organDrugList)) {
                 commentRecipeDetailBean.setDrugCode(organDrugList.getRegulationDrugCode());
                 commentRecipeDetailBean.setHospDrugCode(organDrugList.getOrganDrugCode());
