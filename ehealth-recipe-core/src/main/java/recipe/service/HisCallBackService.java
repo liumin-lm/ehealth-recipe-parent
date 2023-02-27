@@ -579,7 +579,7 @@ public class HisCallBackService {
                     if (recipe.getRecipeId().equals(recipeId)) {
                         canCancelOrderCode = false;
                     }
-                    recipeDAO.updateOrderCodeToNullByRecipeId(recipe, 1, canCancelOrderCode);
+                    recipeDAO.updateOrderCodeToNullByRecipeId(recipe, 2, canCancelOrderCode);
                     String decoctionDeploy = configurationClient.getValueEnumCatch(recipe.getClinicOrgan(), "decoctionDeploy", "0");
                     if ("2".equals(decoctionDeploy) && canCancelOrderCode) {
                         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
