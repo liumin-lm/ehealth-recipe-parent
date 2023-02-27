@@ -749,6 +749,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         List<DrugUsageLabelResp> deploy = recipeList.stream().map(recipe -> {
             DrugUsageLabelResp drugUsageLabelResp = new DrugUsageLabelResp();
             drugUsageLabelResp.setEnterpriseName(drugsEnterprise.getName());
+            drugUsageLabelResp.setOrganName(recipe.getOrganName());
             //患者信息
             if (Objects.nonNull(patientDTO)) {
                 drugUsageLabelResp.setPatientName(patientDTO.getPatientName());
