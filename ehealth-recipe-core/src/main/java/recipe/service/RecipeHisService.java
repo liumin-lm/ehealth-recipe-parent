@@ -818,22 +818,23 @@ public class RecipeHisService extends RecipeBaseService {
             recipeListQueryReqTO.setSignDate(recipe.getSignDate());
             requestList.add(recipeListQueryReqTO);
             Integer status = service.listSingleQuery(requestList);
-            if (status != null) {
-                if (status == eh.cdr.constant.RecipeStatusConstant.HAVE_PAY) {
-                    recipeDAO.updateRecipeInfoByRecipeId(recipeId, eh.cdr.constant.RecipeStatusConstant.FINISH, null);
-                    LOGGER.info("getRecipeSinglePayStatusQuery update success");
-                    return status;
-                } else if (status == eh.cdr.constant.RecipeStatusConstant.FINISH) {
-                    recipeDAO.updateRecipeInfoByRecipeId(recipeId, eh.cdr.constant.RecipeStatusConstant.FINISH, null);
-                    LOGGER.info("getRecipeSinglePayStatusQuery update success");
-                    return status;
-                }
-            }
+            return status;
+//            if (status != null) {
+//                if (status == eh.cdr.constant.RecipeStatusConstant.HAVE_PAY) {
+//                    recipeDAO.updateRecipeInfoByRecipeId(recipeId, eh.cdr.constant.RecipeStatusConstant.FINISH, null);
+//                    LOGGER.info("getRecipeSinglePayStatusQuery update success");
+//                    return status;
+//                } else if (status == eh.cdr.constant.RecipeStatusConstant.FINISH) {
+//                    recipeDAO.updateRecipeInfoByRecipeId(recipeId, eh.cdr.constant.RecipeStatusConstant.FINISH, null);
+//                    LOGGER.info("getRecipeSinglePayStatusQuery update success");
+//                    return status;
+//                }
+//            }
         } else {
             LOGGER.error("recipeSingleQuery 医院HIS未启用[organId:" + recipe.getClinicOrgan() + ",recipeId:" + recipeId + "]");
             return null;
         }
-        return null;
+
     }
 
     /**
