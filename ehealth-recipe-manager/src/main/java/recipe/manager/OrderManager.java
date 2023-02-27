@@ -1215,11 +1215,7 @@ public class OrderManager extends BaseManager {
         map.put("showLogisticsLink", drugsEnterprise.getShowLogisticsLink());
         if (RecipeSupportGiveModeEnum.SUPPORT_TFDS.getText().equals(recipeOrder.getGiveModeKey()) ||
                 RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getText().equals(recipeOrder.getGiveModeKey())) {
-            if (PayModeEnum.ONLINE_PAY.getType().equals(recipeOrder.getPayMode())) {
-                map.put("storePayFlag", 0);
-            } else {
-                map.put("storePayFlag", 1);
-            }
+            map.put("storePayFlag", recipeOrder.getPayMode());
         }
         logger.info("OrderManager getOrderExtDesc map:{}", JSON.toJSONString(map));
         return map;
