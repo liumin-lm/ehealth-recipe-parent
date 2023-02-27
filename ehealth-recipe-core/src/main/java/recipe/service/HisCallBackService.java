@@ -571,7 +571,6 @@ public class HisCallBackService {
             List<Integer> recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
             //合并处方订单取消
             List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIdList);
-            //订单手动取消，处方单可以进行重新支付
             //更新处方的orderCode
             for (Recipe recipe : recipes) {
                 if (recipe != null) {

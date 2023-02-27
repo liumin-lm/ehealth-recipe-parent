@@ -345,12 +345,8 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder("update Recipe set ");
 
-                //药师
-                if (flag == 2) {
-                    hql.append(" status = 8, ");
-                } else {
-                    hql.append(" status = 2, ");
-                }
+
+                hql.append(" status = 6, ");
                 if(canCancelOrderCode){
                     //非北京互联网模式设置为null
                     if (!new Integer(2).equals(recipe.getRecipeSource())) {
