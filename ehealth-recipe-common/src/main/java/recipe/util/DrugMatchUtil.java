@@ -2,6 +2,8 @@ package recipe.util;
 
 import com.huaban.analysis.jieba.JiebaSegmenter;
 import com.huaban.analysis.jieba.WordDictionary;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -12,7 +14,7 @@ import java.util.List;
  * created by shiyuping on 2019/2/12
  */
 public class DrugMatchUtil {
-
+    private static final Logger logger = LoggerFactory.getLogger(DrugMatchUtil.class);
     private static JiebaSegmenter segmenter;
 
     static {
@@ -25,6 +27,7 @@ public class DrugMatchUtil {
     }
 
     public static String match(String drugname){
+        logger.info("DrugMatchUtil match drugname={}", drugname);
         boolean needReplace = -1 != drugname.indexOf("(") && -1 != drugname.indexOf(")");
         if(needReplace){
             StringBuilder sb = new StringBuilder();
