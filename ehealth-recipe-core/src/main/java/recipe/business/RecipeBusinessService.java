@@ -1646,5 +1646,11 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         //修改处方状态
         stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_SUBMIT, RecipeStateEnum.NONE);
     }
+
+    @Override
+    public RecipeDTO getRecipeInfoByRecipeId(Integer recipeId) {
+        RecipeDTO recipeDTO = recipeManager.getRecipeDTO(recipeId);
+        return recipeDTO;
+    }
 }
 
