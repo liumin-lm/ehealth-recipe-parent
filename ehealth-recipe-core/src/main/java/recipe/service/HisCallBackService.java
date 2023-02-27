@@ -57,6 +57,7 @@ public class HisCallBackService {
     private static StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
 
     private static IConfigurationClient configurationClient = AppContextHolder.getBean("IConfigurationClient", IConfigurationClient.class);
+    private static RecipeOrderDAO recipeOrderDAO = AppContextHolder.getBean("RecipeOrderDAO", RecipeOrderDAO.class);
 
     /**
      * 处方HIS审核通过成功
@@ -402,7 +403,7 @@ public class HisCallBackService {
 //                            attrMap.put("giveMode", RecipeBussConstant.GIVEMODE_TO_HOS);
                             attrMap.put("enterpriseId", null);
 
-                            Boolean rs = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.HAVE_PAY, attrMap);
+                            Boolean rs = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusEnum.RECIPE_STATUS_FINISH.getType(), attrMap);
                             if (rs) {
                                 //线下支付完成后取消订单
 //                                RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
@@ -560,6 +561,10 @@ public class HisCallBackService {
         LOGGER.info("cancelOrderWithListQuery order= {}，recipeId= {}", JSON.toJSONString(order), recipeId);
 
         if (null != order) {
+            // 取消订单
+            order.setEffective(0);
+            order.setStatus(RecipeOrderStatusEnum.ORDER_STATUS_CANCEL_AUTO.getType());
+            recipeOrderDAO.updateNonNullFieldByPrimaryKey(order);
             //如果有正在进行中的合并处方单应该还原
             RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
             RecipeExtendDAO recipeExtendDAO = getDAO(RecipeExtendDAO.class);
