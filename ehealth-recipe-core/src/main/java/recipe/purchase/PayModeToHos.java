@@ -213,17 +213,9 @@ public class PayModeToHos implements IPurchaseService {
         //设置为有效订单
         order.setEffective(1);
         // 目前paymode传入还是老版本 除线上支付外全都算线下支付,下个版本与前端配合修改
-        Integer payModeNew = payMode;
         // 到院取药是否支持线上支付
-        OrganDrugsSaleConfig organDrugsSaleConfig = enterpriseManager.getOrganDrugsSaleConfig(order.getOrganId(), order.getEnterpriseId(), GiveModeEnum.GIVE_MODE_HOSPITAL_DRUG.getType());
-        Integer takeOneselfPayment = organDrugsSaleConfig.getTakeOneselfPayment();
-        if (!payMode.equals(1)) {
-            payModeNew = 2;
-        }
-        if (new Integer(1).equals(takeOneselfPayment)) {
-            payModeNew = 1;
-        }
-        order.setPayMode(payModeNew);
+        Integer storePayFlag = eh.utils.MapValueUtil.getInteger(extInfo, "storePayFlag");
+        order.setPayMode(storePayFlag);
         if(StringUtils.isNotEmpty(MapValueUtil.getString(extInfo, "revisitRemindTime")))   {
             order.setRevisitRemindTime(DateConversion.parseDate(MapValueUtil.getString(extInfo, "revisitRemindTime"),DateConversion.DEFAULT_DATE_TIME));
         }

@@ -3352,6 +3352,15 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     @DAOMethod(sql = "update Recipe set pushFlag=1 where enterpriseId=:enterpriseId and recipeId in (:recipeIds)")
     public abstract void updateRecipeByDepIdAndRecipes(@DAOParam("enterpriseId") Integer enterpriseId, @DAOParam("recipeIds") List recipeIds);
 
+    /**
+     * 根据配送商和处方号更新是否已推送药企(支持相同appKey的多个药企)
+     *
+     * @param enterpriseId 药企ID
+     * @param recipeIds    处方单号
+     */
+    @DAOMethod(sql = "update Recipe set pushFlag=1 where enterpriseId in (:enterpriseIds) and recipeId in (:recipeIds)")
+    public abstract void updateRecipeByDepIdsAndRecipes(@DAOParam("enterpriseIds") List<Integer> enterpriseIds, @DAOParam("recipeIds") List<Integer> recipeIds);
+
     @DAOMethod(sql = "update Recipe set status=9 where orderCode=:orderCode ")
     public abstract void updateStatusByOrderCode(@DAOParam("orderCode") String orderCode);
 
@@ -4751,7 +4760,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     @DAOMethod(sql = "from Recipe where mpiid =:mpiId and clinicOrgan=:organId and writeHisState != 3 and processState=3 and recipeSourceType=1")
     public abstract List<Recipe> findByOrganIdAndMpiId(@DAOParam("organId") Integer organId, @DAOParam("mpiId") String mpiId);
 
-    @DAOMethod(sql = "update Recipe set pushFlag = 1 where clinicOrgan=:organId and pushFlag = 0 and enterpriseId=:depId and signDate :startDt and :endDt ", limit = 0)
+    @DAOMethod(sql = "update Recipe set pushFlag = 1 where clinicOrgan=:organId and pushFlag = 0 and enterpriseId=:depId and between signDate :startDt and :endDt ", limit = 0)
     public abstract void updateRecipeByOrganIdAndPushFlag(@DAOParam("organId") Integer organId, @DAOParam("depId") Integer depId,
                                                           @DAOParam("startDt") String startDt, @DAOParam("endDt") String endDt);
 

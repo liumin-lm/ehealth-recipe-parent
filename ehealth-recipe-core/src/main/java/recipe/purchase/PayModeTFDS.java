@@ -32,6 +32,7 @@ import recipe.enumerate.type.StockCheckSourceTypeEnum;
 import recipe.enumerate.type.TakeMedicineWayEnum;
 import recipe.manager.EnterpriseManager;
 import recipe.manager.OrderManager;
+import recipe.service.PayModeGiveModeUtil;
 import recipe.service.RecipeOrderService;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
@@ -64,9 +65,7 @@ public class PayModeTFDS implements IPurchaseService {
     @Autowired
     private OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO;
 
-    public PayModeTFDS() {
-
-    }
+    public PayModeTFDS() {}
 
     @Override
     public RecipeResultBean findSupportDepList(Recipe recipe, Map<String, String> extInfo) {
@@ -181,7 +180,6 @@ public class PayModeTFDS implements IPurchaseService {
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
-        OrganDrugsSaleConfigDAO organDrugsSaleConfigDAO = getDAO(OrganDrugsSaleConfigDAO.class);
         DrugsEnterprise dep = drugsEnterpriseDAO.getById(depId);
         Integer patientIsDecoction = MapValueUtil.getInteger(extInfo, "patientIsDecoction");
         enterpriseManager.checkSupportDecoction(dbRecipes, depId, patientIsDecoction, GiveModeTextEnum.SUPPORTTFDS.getGiveMode());
@@ -238,10 +236,7 @@ public class PayModeTFDS implements IPurchaseService {
         if(StringUtils.isNotEmpty(MapValueUtil.getString(extInfo, "revisitRemindTime")))   {
             order.setRevisitRemindTime(DateConversion.parseDate(MapValueUtil.getString(extInfo, "revisitRemindTime"),DateConversion.DEFAULT_DATE_TIME));
         }
-        int payModeNew = 2;
-        if (dep.getStorePayFlag() == 1) {
-            payModeNew = RecipeBussConstant.PAYMODE_ONLINE;
-        }
+        Integer storePayFlag = eh.utils.MapValueUtil.getInteger(extInfo, "storePayFlag");
         //如果是医保支付前端目前传的orderType都是1,杭州市医保得特殊处理
         if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(dbRecipes.get(0).getRecipeMode())
                 && RecipeBussConstant.ORDERTYPE_ZJS.equals(orderType)) {
@@ -259,7 +254,7 @@ public class PayModeTFDS implements IPurchaseService {
             order.setInvoiceRecordId(invoiceRecordId);
             extInfo.put("invoiceRecordId", invoiceRecordId.toString());
         }
-        order.setPayMode(payModeNew);
+        order.setPayMode(storePayFlag);
         boolean saveFlag = orderService.saveOrderToDB(order, dbRecipes, payMode, result, recipeDAO, orderDAO);
         if (!saveFlag) {
             result.setCode(RecipeResultBean.FAIL);

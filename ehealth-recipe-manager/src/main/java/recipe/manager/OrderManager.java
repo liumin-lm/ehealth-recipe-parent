@@ -54,6 +54,7 @@ import recipe.aop.LogRecord;
 import recipe.client.*;
 import recipe.common.OnsConfig;
 import recipe.constant.DrugEnterpriseConstant;
+import recipe.constant.OrderStatusConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.dao.*;
 import recipe.enumerate.status.*;
@@ -1212,14 +1213,26 @@ public class OrderManager extends BaseManager {
         }
         map.put("showLogisticsType", drugsEnterprise.getShowLogisticsType());
         map.put("showLogisticsLink", drugsEnterprise.getShowLogisticsLink());
-        if (RecipeSupportGiveModeEnum.SUPPORT_TFDS.getText().equals(recipeOrder.getGiveModeKey())) {
-            OrganDrugsSaleConfig organDrugsSaleConfig = organDrugsSaleConfigDAO.getOrganDrugsSaleConfig(recipeOrder.getEnterpriseId());
-            if (Objects.nonNull(organDrugsSaleConfig)) {
-                map.put("storePayFlag", organDrugsSaleConfig.getStorePaymentWay());
-            }
+        if (RecipeSupportGiveModeEnum.SUPPORT_TFDS.getText().equals(recipeOrder.getGiveModeKey()) ||
+                RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getText().equals(recipeOrder.getGiveModeKey())) {
+            map.put("storePayFlag", recipeOrder.getPayMode());
         }
         logger.info("OrderManager getOrderExtDesc map:{}", JSON.toJSONString(map));
         return map;
+    }
+
+    /**
+     * 设置订单取消状态
+     *
+     * @param recipeOrder
+     */
+    public void setOrderCancelState(RecipeOrder recipeOrder) {
+        recipeOrder.setStatus(OrderStatusConstant.CANCEL_MANUAL);
+        recipeOrder.setEffective(0);
+        recipeOrder.setPayFlag(PayFlagEnum.REFUND_SUCCESS.getType());
+        recipeOrder.setRefundFlag(1);
+        recipeOrder.setRefundTime(new Date());
+        recipeOrderDAO.updateNonNullFieldByPrimaryKey(recipeOrder);
     }
 
     /**

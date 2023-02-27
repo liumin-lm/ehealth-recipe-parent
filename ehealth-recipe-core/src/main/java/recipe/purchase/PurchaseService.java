@@ -534,6 +534,13 @@ public class PurchaseService {
             }
             // 根据paymode 换算givemode
             Integer giveMode = PayModeGiveModeUtil.getGiveMode(payMode);
+            Integer storePayFlag = eh.utils.MapValueUtil.getInteger(extInfo, "storePayFlag");
+            if (Objects.isNull(storePayFlag)) {
+                storePayFlag = enterpriseManager.getStorePayFlag(dbRecipe.getClinicOrgan(), Integer.valueOf(depId), giveMode);
+                if (Objects.nonNull(storePayFlag)) {
+                    extInfo.put("storePayFlag", storePayFlag.toString());
+                }
+            }
             IPurchaseService purchaseService = getService(giveMode);
             result = purchaseService.order(recipeList, extInfo);
             // 生成订单后删除预下单信息
