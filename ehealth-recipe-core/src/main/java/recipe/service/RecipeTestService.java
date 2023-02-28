@@ -701,7 +701,7 @@ public class RecipeTestService {
 
     @RpcService
     public void handlePushFlag(Integer organId, Integer depId, String beginTime, String endTime){
-        recipeDAO.updateRecipeByOrganIdAndPushFlag(organId, depId, beginTime, endTime);
+        recipeDAO.updateRecipeByOrganIdAndPushFlag(organId, depId, DateConversion.parseDate(beginTime, DateConversion.DEFAULT_DATE_TIME), DateConversion.parseDate(endTime, DateConversion.DEFAULT_DATE_TIME));
     }
 
     @RpcService
