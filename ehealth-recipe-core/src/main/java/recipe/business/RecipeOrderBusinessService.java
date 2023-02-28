@@ -2074,12 +2074,14 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
         recipeOrder.setOrderRefundWay(OrderRefundWayTypeEnum.DRUG_ORDER.getType());
         recipeOrderDAO.updateNonNullFieldByPrimaryKey(recipeOrder);
         List<Integer> recipeIdList = recipeManager.setRecipeCancelState(recipeOrder);
+        saveRefund(recipeOrder, recipeIdList);
         if (recipeOrder.getActualPrice() <= 0.0D) {
             recipeIdList.forEach(recipeId -> {
                 stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_RETURN_DRUG);
             });
             orderManager.setOrderCancelState(recipeOrder);
             stateManager.updateOrderState(recipeOrder.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION, OrderStateEnum.SUB_CANCELLATION_RETURN_DRUG);
+            RecipeMsgService.batchSendMsg(recipeIdList.get(0), RecipeStatusConstant.RECIPE_REFUND_SUCC);
             return true;
         }
         RecipeOrderPayFlow recipeOtherOrderPayFlow = recipeOrderPayFlowManager.getByOrderIdAndType(recipeOrder.getOrderId(), PayFlowTypeEnum.RECIPE_AUDIT.getType());
@@ -2093,6 +2095,10 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
         if (Objects.isNull(refundResultDTO) || refundResultDTO.getStatus() != 0) {
             return false;
         }
+        return true;
+    }
+
+    private void saveRefund(RecipeOrder recipeOrder, List<Integer> recipeIdList) {
         Recipe recipe = recipeDAO.getByRecipeId(recipeIdList.get(0));
         RecipeRefund recipeRefund = new RecipeRefund();
         recipeRefund.setTradeNo(recipeOrder.getTradeNo());
@@ -2106,8 +2112,6 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
         recipeRefund.setOrganId(recipe.getClinicOrgan());
         recipeRefund.setPatientName(recipe.getPatientName());
         recipeRefundDAO.saveRefund(recipeRefund);
-        RecipeMsgService.batchSendMsg(recipeIdList.get(0), RecipeStatusConstant.RECIPE_REFUND_SUCC);
-        return true;
     }
 
     private static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {
