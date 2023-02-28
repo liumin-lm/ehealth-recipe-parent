@@ -4786,7 +4786,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
 
     @DAOMethod(sql = "update Recipe set pushFlag = 1 where clinicOrgan=:organId and pushFlag = 0 and enterpriseId=:depId and signDate between :startDt and :endDt ", limit = 0)
     public abstract void updateRecipeByOrganIdAndPushFlag(@DAOParam("organId") Integer organId, @DAOParam("depId") Integer depId,
-                                                          @DAOParam("startDt") String startDt, @DAOParam("endDt") String endDt);
+                                                          @DAOParam("startDt") Date startDt, @DAOParam("endDt") Date endDt);
 
     public  Integer getRecipeCountForAutomaton(AutomatonVO param){
         HibernateStatelessResultAction<Integer> action = new AbstractHibernateStatelessResultAction<Integer>() {

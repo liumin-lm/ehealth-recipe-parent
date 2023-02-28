@@ -5892,6 +5892,7 @@ public class RecipeService extends RecipeBaseService {
     }
 
     @RpcService
+    @LogRecord
     public String getGiveModeTextByKey(String supportType, Integer organId) {
         //设置购药方式文案
         return getGiveModeText(supportType, organId);
