@@ -1083,6 +1083,10 @@ public class EnterpriseManager extends BaseManager {
         Integer storePayFlag = StorePaymentWayEnum.STORE_PAYMENT_WAY_OFFLINE.getType();
         // 到院自取是否采用药企管理模式
         Boolean drugToHosByEnterprise = configurationClient.getValueBooleanCatch(organId, "drugToHosByEnterprise", false);
+        // 卫宁付 默认在线支付
+        if (getToHosPayConfig(organId, drugToHosByEnterprise,drugsEnterpriseId) && GiveModeEnum.GIVE_MODE_HOSPITAL_DRUG.getType().equals(giveMode)) {
+            return StorePaymentWayEnum.STORE_PAYMENT_WAY_ONLINE.getType();
+        }
         if (GiveModeEnum.GIVE_MODE_HOSPITAL_DRUG.getType().equals(giveMode) && !drugToHosByEnterprise) {
             // 到院自取
             Boolean takeOneselfPayment = configurationClient.getValueBooleanCatch(organId, "supportToHosPayFlag", false);
@@ -1305,6 +1309,30 @@ public class EnterpriseManager extends BaseManager {
                 }
             }
         }
+    }
+
+    /**
+     * 机构是否卫宁付
+     * @param clinicOrgan
+     * @param enterpriseId
+     * @return
+     */
+    private boolean getToHosPayConfig(Integer clinicOrgan, Boolean drugToHosByEnterprise,Integer enterpriseId) {
+        Integer payModeToHosOnlinePayConfig = null;
+        if (drugToHosByEnterprise) {
+            // 获取药企机构配
+            OrganDrugsSaleConfig organDrugsSaleConfigs = organDrugsSaleConfigDAO.getOrganDrugsSaleConfig(enterpriseId);
+            if (Objects.nonNull(organDrugsSaleConfigs)) {
+                payModeToHosOnlinePayConfig = organDrugsSaleConfigs.getTakeOneselfPaymentChannel();
+            }
+        } else {
+            payModeToHosOnlinePayConfig = configurationClient.getValueCatch(clinicOrgan, "payModeToHosOnlinePayConfig", 1);
+        }
+        //1平台付 2卫宁付
+        if (new Integer(2).equals(payModeToHosOnlinePayConfig)) {
+            return true;
+        }
+        return false;
     }
 }
 
