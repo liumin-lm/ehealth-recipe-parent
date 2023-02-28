@@ -4760,7 +4760,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     @DAOMethod(sql = "from Recipe where mpiid =:mpiId and clinicOrgan=:organId and writeHisState != 3 and processState=3 and recipeSourceType=1")
     public abstract List<Recipe> findByOrganIdAndMpiId(@DAOParam("organId") Integer organId, @DAOParam("mpiId") String mpiId);
 
-    @DAOMethod(sql = "update Recipe set pushFlag = 1 where clinicOrgan=:organId and pushFlag = 0 and enterpriseId=:depId and between signDate :startDt and :endDt ", limit = 0)
+    @DAOMethod(sql = "update Recipe set pushFlag = 1 where clinicOrgan=:organId and pushFlag = 0 and enterpriseId=:depId and signDate between :startDt and :endDt ", limit = 0)
     public abstract void updateRecipeByOrganIdAndPushFlag(@DAOParam("organId") Integer organId, @DAOParam("depId") Integer depId,
                                                           @DAOParam("startDt") String startDt, @DAOParam("endDt") String endDt);
 
