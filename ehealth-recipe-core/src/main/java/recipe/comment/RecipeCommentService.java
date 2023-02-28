@@ -139,6 +139,8 @@ public class RecipeCommentService implements IRecipeCommentService {
             commentRecipeBean.setAppointDepartmentCode(appointDepartDTO.getAppointDepartCode());
             commentRecipeBean.setAppointDepartmentName(appointDepartDTO.getAppointDepartName());
         }
+        commentRecipeBean.setIcdCode(recipe.getOrganDiseaseId());
+        commentRecipeBean.setIcdName(recipe.getOrganDiseaseName());
         result.setRecipeMsg(commentRecipeBean);
 
         //3.点评信息
