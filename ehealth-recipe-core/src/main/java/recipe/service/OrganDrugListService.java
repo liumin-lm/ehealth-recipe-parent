@@ -1091,6 +1091,7 @@ public class OrganDrugListService implements IOrganDrugListService {
             bean.setBaseDrug(Objects.toString(organDrugList.getBaseDrug(), ""));
             //批准文号:licenseNumber批准文号
             bean.setLicenseNumber(organDrugList.getLicenseNumber());
+            bean.setHospDrugSpec(organDrugList.getDrugSpec());
 
             String producer = organDrugList.getProducer();
             String drugClass = StringUtils.defaultString(drugListMap.get(organDrugList.getDrugId()), "");
@@ -1106,6 +1107,8 @@ public class OrganDrugListService implements IOrganDrugListService {
             bean.setHospDrugAlias("");
             bean.setHospDrugPacking(organDrugList.getDrugSpec());
             bean.setHospDrugManuf(producer);
+            bean.setProductionEnterprise(producer);
+            bean.setDistributionEnterprise(producer);
             bean.setDrugClass(drugClass);
             bean.setDrugPrice(organDrugList.getSalePrice());
             bean.setDrugFormCode(organDrugList.getDrugFormCode());
