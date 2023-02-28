@@ -1326,7 +1326,7 @@ public class EnterpriseManager extends BaseManager {
                 payModeToHosOnlinePayConfig = organDrugsSaleConfigs.getTakeOneselfPaymentChannel();
             }
         } else {
-            payModeToHosOnlinePayConfig = configurationClient.getValueCatch(clinicOrgan, "payModeToHosOnlinePayConfig", 1);
+            payModeToHosOnlinePayConfig = configurationClient.getValueCatchReturnInteger(clinicOrgan, "payModeToHosOnlinePayConfig", 1);
         }
         //1平台付 2卫宁付
         if (new Integer(2).equals(payModeToHosOnlinePayConfig)) {
