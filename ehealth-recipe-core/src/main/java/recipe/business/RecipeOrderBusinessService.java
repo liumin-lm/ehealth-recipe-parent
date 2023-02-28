@@ -2071,8 +2071,8 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
         }
         recipeOrder.setOrderRefundWay(OrderRefundWayTypeEnum.DRUG_ORDER.getType());
         recipeOrderDAO.updateNonNullFieldByPrimaryKey(recipeOrder);
+        List<Integer> recipeIdList = recipeManager.setRecipeCancelState(recipeOrder);
         if (recipeOrder.getActualPrice() <= 0.0D) {
-            List<Integer> recipeIdList = recipeManager.setRecipeCancelState(recipeOrder);
             recipeIdList.forEach(recipeId -> {
                 stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_RETURN_DRUG);
             });
@@ -2091,6 +2091,7 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
         if (Objects.isNull(refundResultDTO) || refundResultDTO.getStatus() != 0) {
             return false;
         }
+        RecipeMsgService.batchSendMsg(recipeIdList.get(0), RecipeStatusConstant.RECIPE_REFUND_SUCC);
         return true;
     }
 
