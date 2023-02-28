@@ -2098,7 +2098,7 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
         recipeRefund.setTradeNo(recipeOrder.getTradeNo());
         recipeRefund.setPrice(recipeOrder.getActualPrice());
         recipeRefund.setNode(RecipeRefundRoleConstant.RECIPE_REFUND_ROLE_PATIENT);
-        recipeRefund.setStatus(0);
+        recipeRefund.setStatus(1);
         recipeRefund.setBusId(recipeIdList.get(0));
         recipeRefund.setApplyTime(new Date());
         recipeRefund.setCheckTime(new Date());
