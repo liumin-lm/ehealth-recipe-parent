@@ -191,6 +191,8 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
     private RecipeHisService recipeHisService;
     @Autowired
     private RecipeOrderPayFlowManager recipeOrderPayFlowManager;
+    @Autowired
+    private RecipeRefundDAO recipeRefundDAO;
 
 
     @Override
@@ -2091,6 +2093,14 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
         if (Objects.isNull(refundResultDTO) || refundResultDTO.getStatus() != 0) {
             return false;
         }
+        RecipeRefund recipeRefund = new RecipeRefund();
+        recipeRefund.setTradeNo(recipeOrder.getTradeNo());
+        recipeRefund.setPrice(recipeOrder.getActualPrice());
+        recipeRefund.setNode(RecipeRefundRoleConstant.RECIPE_REFUND_ROLE_PATIENT);
+        recipeRefund.setStatus(0);
+        recipeRefund.setApplyTime(new Date());
+        recipeRefund.setCheckTime(new Date());
+        recipeRefundDAO.saveRefund(recipeRefund);
         RecipeMsgService.batchSendMsg(recipeIdList.get(0), RecipeStatusConstant.RECIPE_REFUND_SUCC);
         return true;
     }
