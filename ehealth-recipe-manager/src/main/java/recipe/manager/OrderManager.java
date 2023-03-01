@@ -1204,6 +1204,10 @@ public class OrderManager extends BaseManager {
             map.put("otherServiceChargeDesc", otherServiceChargeDesc);
             map.put("otherServiceChargeRemark", otherServiceChargeRemark);
         }
+        if (RecipeSupportGiveModeEnum.SUPPORT_TFDS.getText().equals(recipeOrder.getGiveModeKey()) ||
+                RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getText().equals(recipeOrder.getGiveModeKey())) {
+            map.put("storePayFlag", recipeOrder.getPayMode());
+        }
         if (Objects.isNull(recipeOrder.getEnterpriseId())) {
             return map;
         }
@@ -1213,10 +1217,6 @@ public class OrderManager extends BaseManager {
         }
         map.put("showLogisticsType", drugsEnterprise.getShowLogisticsType());
         map.put("showLogisticsLink", drugsEnterprise.getShowLogisticsLink());
-        if (RecipeSupportGiveModeEnum.SUPPORT_TFDS.getText().equals(recipeOrder.getGiveModeKey()) ||
-                RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getText().equals(recipeOrder.getGiveModeKey())) {
-            map.put("storePayFlag", recipeOrder.getPayMode());
-        }
         logger.info("OrderManager getOrderExtDesc map:{}", JSON.toJSONString(map));
         return map;
     }
