@@ -41,6 +41,10 @@ public class PatientRecipeListResVo implements Serializable {
     @Dictionary(id = "eh.base.dictionary.Depart")
     private Integer depart;
 
+    @ItemProperty(alias = "开方医生（医生Id）")
+    @Dictionary(id = "eh.base.dictionary.Doctor")
+    private Integer doctor;
+
     @ItemProperty(alias = "机构疾病名称")
     private String organDiseaseName;
 
@@ -53,9 +57,6 @@ public class PatientRecipeListResVo implements Serializable {
 
     @ItemProperty(alias = "处方来源类型 1 平台处方 2 线下转线上的处方 3诊疗处方 4常用方")
     private Integer recipeSourceType;
-
-    @ItemProperty(alias = "是否医保 0自费 1医保")
-    private Integer medicalFlag;
 
     @ItemProperty(alias = "处方号码，处方回写")
     private String recipeCode;
@@ -73,7 +74,7 @@ public class PatientRecipeListResVo implements Serializable {
 
 
     /******************************** 以下数据 需要代码判断 ****************************/
-    @ItemProperty(alias = "处方业务查询来源 1 线上  2 线下 3 门诊处方")
+    @ItemProperty(alias = "处方业务查询来源 1 线上  2 线下 3 院内门诊")
     private Integer recipeBusType;
 
     @ItemProperty(alias = "是否保密方 0 否 1 是")
