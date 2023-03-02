@@ -4,7 +4,8 @@ import com.alibaba.fastjson.JSON;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.OutPatientRecipeDTO;
-import com.ngari.recipe.recipe.model.*;
+import com.ngari.recipe.recipe.model.OutPatientRecipeDetailVO;
+import com.ngari.recipe.recipe.model.OutPatientRecipeVO;
 import com.ngari.recipe.vo.*;
 import ctd.persistence.exception.DAOException;
 import ctd.util.BeanUtils;
@@ -22,14 +23,18 @@ import recipe.enumerate.type.DrugBelongTypeEnum;
 import recipe.enumerate.type.OutRecipeGiveModeEnum;
 import recipe.enumerate.type.OutRecipeRecipeTypeEnum;
 import recipe.util.ObjectCopyUtils;
+import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.patient.ReadyRecipeVO;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * 门诊处方服务
+ * 患者处方服务
  *
  * @author yinsheng
  * @date 2021\7\16 0016 14:04
@@ -225,6 +230,11 @@ public class RecipePatientAtop extends BaseAtop {
     @RpcService
     public List<Map<String, Object>> findFormWorkRecipe(Map<String, Object> formWorkRecipeReqVO) {
         return new ArrayList<>();
+    }
+
+
+    public List<RecipeInfoVO> xxxx(RecipeInfoVO recipeInfoVO) {
+        return null;
     }
 
 }
