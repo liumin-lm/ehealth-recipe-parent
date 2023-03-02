@@ -24,6 +24,8 @@ import recipe.enumerate.type.OutRecipeGiveModeEnum;
 import recipe.enumerate.type.OutRecipeRecipeTypeEnum;
 import recipe.util.ObjectCopyUtils;
 import recipe.vo.doctor.RecipeInfoVO;
+import recipe.vo.patient.PatientRecipeListReqVo;
+import recipe.vo.patient.PatientRecipeListResVo;
 import recipe.vo.patient.ReadyRecipeVO;
 
 import java.math.BigDecimal;
@@ -232,8 +234,15 @@ public class RecipePatientAtop extends BaseAtop {
         return new ArrayList<>();
     }
 
-
-    public List<RecipeInfoVO> xxxx(RecipeInfoVO recipeInfoVO) {
+    /**
+     * todo 鸿芳自己写备注 实现代码
+     *
+     * @param patientRecipeListReq
+     * @return
+     */
+    @RpcService
+    public List<PatientRecipeListResVo> patientRecipeList(PatientRecipeListReqVo patientRecipeListReq) {
+        List<RecipeInfoVO> list = recipeBusinessService.patientRecipeList(patientRecipeListReq);
         return null;
     }
 

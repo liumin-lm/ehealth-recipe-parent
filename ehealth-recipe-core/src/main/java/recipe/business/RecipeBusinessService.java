@@ -83,6 +83,7 @@ import recipe.vo.doctor.PharmacyTcmVO;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.greenroom.*;
 import recipe.vo.patient.PatientOptionalDrugVo;
+import recipe.vo.patient.PatientRecipeListReqVo;
 import recipe.vo.second.*;
 
 import javax.annotation.Resource;
@@ -1638,7 +1639,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         String medicalTypeText = repList.get(0).getMedicalTypeText();
         String hisBusId = repList.get(0).getHisBusId();
         recipeManager.sendSuccessRecipeExt(recipeId, recipeCostNumber, pharmNo, response.getYbid(), hisDiseaseSerial,
-                registerId, medicalType, medicalTypeText,hisBusId);
+                registerId, medicalType, medicalTypeText, hisBusId);
         //病人医院病历号
         String patientId = repList.get(0).getPatientID();
         String amount = repList.get(0).getAmount();
@@ -1646,6 +1647,12 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
                 amount, response.getRecipeFee(), repList.size());
         //修改处方状态
         stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_SUBMIT, RecipeStateEnum.NONE);
+    }
+
+    @Override
+    public List<RecipeInfoVO> patientRecipeList(PatientRecipeListReqVo req) {
+        List<RecipeInfoDTO> recipeInfo1 = recipeManager.patientRecipeList(req.getOrganId(), req.getMpiId(), req.getState(), req.getStartTime(), req.getStartTime());
+        return null;
     }
 }
 

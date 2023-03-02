@@ -1488,4 +1488,18 @@ public class RecipeManager extends BaseManager {
         });
         return recipeIdList;
     }
+
+    /**
+     * todo 鸿芳自己写备注 实现代码
+     *
+     * @param organId
+     * @param mpiId
+     * @param state
+     * @param startTime
+     * @param startTime1
+     * @return
+     */
+    public List<RecipeInfoDTO> patientRecipeList(Integer organId, String mpiId, String state, Date startTime, Date startTime1) {
+        return null;
+    }
 }
