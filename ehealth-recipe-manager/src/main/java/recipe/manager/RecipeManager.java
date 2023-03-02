@@ -1496,10 +1496,10 @@ public class RecipeManager extends BaseManager {
      * @param mpiId
      * @param state
      * @param startTime
-     * @param startTime1
+     * @param endTime
      * @return
      */
-    public List<RecipeInfoDTO> patientRecipeList(Integer organId, String mpiId, String state, Date startTime, Date startTime1) {
+    public List<RecipeInfoDTO> patientRecipeList(Integer organId, String mpiId, String state, Date startTime, Date endTime) {
         return null;
     }
 }

@@ -842,4 +842,20 @@ public class HisRecipeManager extends BaseManager {
         }
         return hisResponseTO;
     }
+
+    /**
+     * todo 隋晓宇实现
+     *
+     * @param organId
+     * @param mpiId
+     * @param startTime
+     * @param endTime
+     * @return
+     */
+    public List<RecipeInfoDTO> patientRecipeList(Integer organId, String mpiId, Date startTime, Date endTime) {
+        List<RecipeInfoDTO> awaitFeeRecipeList = offlineRecipeClient.patientAwaitFeeRecipeList(organId, mpiId, startTime, endTime);
+        List<RecipeInfoDTO> doneFeeRecipeList = offlineRecipeClient.patientDoneFeeRecipeList(organId, mpiId, startTime, endTime);
+        List<RecipeInfoDTO> cancellaFeeRecipeList = offlineRecipeClient.patientCancellaFeeRecipeList(organId, mpiId, startTime, endTime);
+        return null;
+    }
 }

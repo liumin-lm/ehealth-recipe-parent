@@ -20,8 +20,8 @@ import com.ngari.platform.recipe.mode.*;
 import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.DrugSpecificationInfoDTO;
 import com.ngari.recipe.dto.EmrDetailDTO;
-import com.ngari.recipe.dto.*;
 import com.ngari.recipe.dto.RecipeInfoDTO;
+import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import ctd.persistence.exception.DAOException;
@@ -847,4 +847,42 @@ public class OfflineRecipeClient extends BaseClient {
         return recipeDTO;
     }
 
+    /**
+     * todo 刘敏自己写备注 实现代码
+     *
+     * @param organId
+     * @param mpiId
+     * @param startTime
+     * @param endTime
+     * @return
+     */
+    public List<RecipeInfoDTO> patientAwaitFeeRecipeList(Integer organId, String mpiId, Date startTime, Date endTime) {
+        return null;
+    }
+
+    /**
+     * todo 刘敏自己写备注 实现代码
+     *
+     * @param organId
+     * @param mpiId
+     * @param startTime
+     * @param endTime
+     * @return
+     */
+    public List<RecipeInfoDTO> patientDoneFeeRecipeList(Integer organId, String mpiId, Date startTime, Date endTime) {
+        return null;
+    }
+
+    /**
+     * todo 刘敏自己写备注 实现代码
+     *
+     * @param organId
+     * @param mpiId
+     * @param startTime
+     * @param endTime
+     * @return
+     */
+    public List<RecipeInfoDTO> patientCancellaFeeRecipeList(Integer organId, String mpiId, Date startTime, Date endTime) {
+        return null;
+    }
 }

@@ -172,7 +172,8 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     private OrganAndDrugsepRelationDAO drugsDepRelationDAO;
     @Autowired
     private RevisitClient revisitClient;
-
+    @Autowired
+    private HisRecipeManager hisRecipeManager;
 
     /**
      * 获取线下门诊处方诊断信息
@@ -1649,9 +1650,24 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_SUBMIT, RecipeStateEnum.NONE);
     }
 
+    /**
+     * todo 隋晓宇实现
+     *
+     * @param req
+     * @return
+     */
     @Override
     public List<RecipeInfoVO> patientRecipeList(PatientRecipeListReqVo req) {
-        List<RecipeInfoDTO> recipeInfo1 = recipeManager.patientRecipeList(req.getOrganId(), req.getMpiId(), req.getState(), req.getStartTime(), req.getStartTime());
+        List<RecipeInfoDTO> recipeInfo1 = recipeManager.patientRecipeList(req.getOrganId(), req.getMpiId(), req.getState(), req.getStartTime(), req.getEndTime());
+
+        List<RecipeInfoDTO> recipeList = hisRecipeManager.patientRecipeList(req.getOrganId(), req.getMpiId(), req.getStartTime(), req.getEndTime());
+//
+//
+//        List<RecipeInfoDTO> awaitFeeRecipeList = hisRecipeManager.patientAwaitFeeRecipeList(req.getOrganId(), req.getMpiId(), req.getStartTime(), req.getStartTime());
+//        List<RecipeInfoDTO> doneFeeRecipeList = hisRecipeManager.patientDoneFeeRecipeList(req.getOrganId(), req.getMpiId(), req.getStartTime(), req.getStartTime());
+//        List<RecipeInfoDTO> cancellaFeeRecipeList = hisRecipeManager.patientCancellaFeeRecipeList(req.getOrganId(), req.getMpiId(), req.getStartTime(), req.getStartTime());
+
+
         return null;
     }
 }
