@@ -16,6 +16,7 @@ import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.EmploymentService;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.platform.recipe.mode.RecipeDTO;
 import com.ngari.platform.recipe.mode.*;
 import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.DrugSpecificationInfoDTO;
@@ -856,7 +857,7 @@ public class OfflineRecipeClient extends BaseClient {
      * @param endTime
      * @return
      */
-    public List<RecipeInfoDTO> patientAwaitFeeRecipeList(Integer organId, String mpiId, Date startTime, Date endTime) {
+    public List<RecipeDTO> patientAwaitFeeRecipeList(Integer organId, String mpiId, Date startTime, Date endTime) {
         return null;
     }
 
@@ -869,7 +870,7 @@ public class OfflineRecipeClient extends BaseClient {
      * @param endTime
      * @return
      */
-    public List<RecipeInfoDTO> patientDoneFeeRecipeList(Integer organId, String mpiId, Date startTime, Date endTime) {
+    public List<RecipeDTO> patientDoneFeeRecipeList(Integer organId, String mpiId, Date startTime, Date endTime) {
         return null;
     }
 
@@ -882,7 +883,7 @@ public class OfflineRecipeClient extends BaseClient {
      * @param endTime
      * @return
      */
-    public List<RecipeInfoDTO> patientCancellaFeeRecipeList(Integer organId, String mpiId, Date startTime, Date endTime) {
+    public List<RecipeDTO> patientCancellaFeeRecipeList(Integer organId, String mpiId, Date startTime, Date endTime) {
         return null;
     }
 }
