@@ -7,6 +7,7 @@ import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.QueryHisRecipResTO;
 import com.ngari.his.recipe.mode.RecipeDetailTO;
 import com.ngari.patient.dto.PatientDTO;
+import com.ngari.platform.recipe.mode.RecipeDTO;
 import com.ngari.recipe.dto.EmrDetailDTO;
 import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.entity.*;
@@ -852,10 +853,10 @@ public class HisRecipeManager extends BaseManager {
      * @param endTime
      * @return
      */
-    public List<RecipeInfoDTO> patientRecipeList(Integer organId, String mpiId, Date startTime, Date endTime) {
-        List<RecipeInfoDTO> awaitFeeRecipeList = offlineRecipeClient.patientAwaitFeeRecipeList(organId, mpiId, startTime, endTime);
-        List<RecipeInfoDTO> doneFeeRecipeList = offlineRecipeClient.patientDoneFeeRecipeList(organId, mpiId, startTime, endTime);
-        List<RecipeInfoDTO> cancellaFeeRecipeList = offlineRecipeClient.patientCancellaFeeRecipeList(organId, mpiId, startTime, endTime);
+    public List<RecipeDTO> patientRecipeList(Integer organId, String mpiId, Date startTime, Date endTime) {
+        List<RecipeDTO> awaitFeeRecipeList = offlineRecipeClient.patientAwaitFeeRecipeList(organId, mpiId, startTime, endTime);
+        List<RecipeDTO> doneFeeRecipeList = offlineRecipeClient.patientDoneFeeRecipeList(organId, mpiId, startTime, endTime);
+        List<RecipeDTO> cancellaFeeRecipeList = offlineRecipeClient.patientCancellaFeeRecipeList(organId, mpiId, startTime, endTime);
         return null;
     }
 }

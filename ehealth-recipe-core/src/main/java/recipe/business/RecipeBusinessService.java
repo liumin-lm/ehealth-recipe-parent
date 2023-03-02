@@ -1660,7 +1660,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     public List<RecipeInfoVO> patientRecipeList(PatientRecipeListReqVo req) {
         List<RecipeInfoDTO> recipeInfo1 = recipeManager.patientRecipeList(req.getOrganId(), req.getMpiId(), req.getState(), req.getStartTime(), req.getEndTime());
 
-        List<RecipeInfoDTO> recipeList = hisRecipeManager.patientRecipeList(req.getOrganId(), req.getMpiId(), req.getStartTime(), req.getEndTime());
+        List<com.ngari.platform.recipe.mode.RecipeDTO> recipeList = hisRecipeManager.patientRecipeList(req.getOrganId(), req.getMpiId(), req.getStartTime(), req.getEndTime());
 //
 //
 //        List<RecipeInfoDTO> awaitFeeRecipeList = hisRecipeManager.patientAwaitFeeRecipeList(req.getOrganId(), req.getMpiId(), req.getStartTime(), req.getStartTime());
