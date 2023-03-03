@@ -419,7 +419,7 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
     }
 
     /**
-     * 组装线上 线下数据
+     * 去重返回 组装线上 线下数据 （相同数据优先返回线上数据）
      *
      * @param recipeList    线上处方列表
      * @param hisRecipeList 线下处方列表
