@@ -110,6 +110,11 @@ public interface IOfflineRecipeBusinessService {
      */
     HisRecipeDTO getOffLineRecipeDetailsV1(Integer organId, String recipeCode, String createDate);
 
-
+    /**
+     * 查询处方列表（线上+线下）
+     *
+     * @param patientRecipeListReq
+     * @return
+     */
     List<RecipeInfoVO> patientRecipeList(PatientRecipeListReqVO patientRecipeListReq);
 }

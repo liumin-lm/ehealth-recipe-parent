@@ -846,24 +846,28 @@ public class HisRecipeManager extends BaseManager {
     }
 
     /**
-     * todo 隋晓宇实现
+     * 查询线下处方
      *
      * @param req
      * @return
      */
+    @LogRecord
     public List<RecipeDTO> patientRecipeList(PatientRecipeListReqDTO req, Integer type) {
         List<String> isHisRecipe = configurationClient.getValueListCatch(req.getOrganId(), "xxxxxxx", Collections.emptyList());
         if (!isHisRecipe.contains("2")) {
             return Collections.emptyList();
         }
+        List<RecipeDTO> list = null;
         if (1 == type) {
-            return offlineRecipeClient.patientAwaitFeeRecipeList(req.getOrganId(), req.getMpiId(), req.getStartTime(), req.getEndTime());
+            list = offlineRecipeClient.patientAwaitFeeRecipeList(req.getOrganId(), req.getMpiId(), req.getStartTime(), req.getEndTime());
         } else if (2 == type) {
-            return offlineRecipeClient.patientDoneFeeRecipeList(req.getOrganId(), req.getMpiId(), req.getStartTime(), req.getEndTime());
+            list = offlineRecipeClient.patientDoneFeeRecipeList(req.getOrganId(), req.getMpiId(), req.getStartTime(), req.getEndTime());
         } else if (3 == type) {
-            return offlineRecipeClient.patientCancellaFeeRecipeList(req.getOrganId(), req.getMpiId(), req.getStartTime(), req.getEndTime());
-        } else {
-            return Collections.emptyList();
+            list = offlineRecipeClient.patientCancellaFeeRecipeList(req.getOrganId(), req.getMpiId(), req.getStartTime(), req.getEndTime());
         }
+        if (CollectionUtils.isEmpty(list)) {
+            list = Collections.emptyList();
+        }
+        return list;
     }
 }
