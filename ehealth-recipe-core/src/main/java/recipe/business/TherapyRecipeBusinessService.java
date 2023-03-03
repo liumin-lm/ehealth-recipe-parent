@@ -17,6 +17,7 @@ import org.springframework.util.CollectionUtils;
 import recipe.client.OrganClient;
 import recipe.client.PatientClient;
 import recipe.client.RevisitClient;
+import recipe.client.SmsClient;
 import recipe.common.CommonConstant;
 import recipe.core.api.doctor.ITherapyRecipeBusinessService;
 import recipe.enumerate.status.TherapyStatusEnum;
@@ -58,6 +59,8 @@ public class TherapyRecipeBusinessService extends BaseService implements ITherap
     private EmrRecipeManager emrRecipeManager;
     @Resource
     private RevisitClient revisitClient;
+    @Resource
+    private SmsClient smsClient;
 
     @Override
     public Integer saveTherapyRecipe(RecipeInfoVO recipeInfoVO) {
@@ -144,6 +147,8 @@ public class TherapyRecipeBusinessService extends BaseService implements ITherap
             emrRecipeManager.updateDisease(recipeId);
             Recipe recipe = recipeManager.getRecipeById(recipeId);
             RecipeServiceSub.sendRecipeTagToPatient(recipe, null, null, true);
+            //给患者推送微信模板消息
+            smsClient.therapyRecipeApplyToPatient(recipe);
         }
         recipeTherapyManager.updatePushTherapyRecipe(recipeTherapy, pushType);
     }
