@@ -401,7 +401,6 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
     @Override
     public Set<RecipeInfoVO> patientRecipeList(PatientRecipeListReqVO req) {
         PatientRecipeListReqDTO reqDTO = ObjectCopyUtils.convert(req, PatientRecipeListReqDTO.class);
-
         //线下异步任务
         List<Integer> hisTypes = PatientRecipeListReqDTO.hisState(reqDTO.getState());
         List<FutureTask<List<com.ngari.platform.recipe.mode.RecipeDTO>>> futureTasks = new LinkedList<>();
@@ -414,7 +413,7 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
         //查询线上处方
         List<RecipeInfoDTO> recipeList = recipeManager.patientRecipeList(reqDTO);
         //查询线下处方
-        List<List<com.ngari.platform.recipe.mode.RecipeDTO>> hisRecipeList = super.futureTaskCallbackBeanList(futureTasks, null);
+        List<List<com.ngari.platform.recipe.mode.RecipeDTO>> hisRecipeList = super.futureTaskCallbackBeanList(futureTasks, 15000);
         //去重返回 组装线上 线下数据
         return recipeList(recipeList, hisRecipeList);
     }

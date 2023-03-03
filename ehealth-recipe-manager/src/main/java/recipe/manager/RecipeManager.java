@@ -1518,7 +1518,7 @@ public class RecipeManager extends BaseManager {
             default:
                 break;
         }
-        //List<Recipe> recipes = recipeDAO.findPatientRecipeList(req);
+        List<Recipe> recipes = recipeDAO.findPatientRecipeList(req);
 
         return null;
     }
