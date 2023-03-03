@@ -138,6 +138,21 @@ public enum RecipeStateEnum {
      */
     public static final List<Integer> RECIPE_REPEAT_VALIDATE = Arrays.asList(PROCESS_STATE_CANCELLATION.type);
 
+    /**
+     * 收取中
+     */
+    public static final List<Integer> RECIPE_COLLECT = Arrays.asList(PROCESS_STATE_DISPENSING.type,PROCESS_STATE_DISTRIBUTION.type,PROCESS_STATE_MEDICINE.type);
+
+    /**
+     * 已结束
+     */
+    public static final List<Integer> RECIPE_OVER = Arrays.asList(PROCESS_STATE_DONE.type,PROCESS_STATE_CANCELLATION.type);
+
+    /**
+     * 全部
+     */
+    public static final List<Integer> RECIPE_ALL = Arrays.asList(PROCESS_STATE_AUDIT.type,PROCESS_STATE_ORDER.type,PROCESS_STATE_DISPENSING.type,PROCESS_STATE_DISTRIBUTION.type,PROCESS_STATE_MEDICINE.type,PROCESS_STATE_DONE.type,PROCESS_STATE_CANCELLATION.type);
+
 
     /**
      * 根据类型 获取枚举类型
