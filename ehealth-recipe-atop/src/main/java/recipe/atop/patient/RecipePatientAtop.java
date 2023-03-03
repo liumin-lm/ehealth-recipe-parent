@@ -24,7 +24,7 @@ import recipe.enumerate.type.OutRecipeGiveModeEnum;
 import recipe.enumerate.type.OutRecipeRecipeTypeEnum;
 import recipe.util.ObjectCopyUtils;
 import recipe.vo.doctor.RecipeInfoVO;
-import recipe.vo.patient.PatientRecipeListReqVo;
+import recipe.vo.patient.PatientRecipeListReqVO;
 import recipe.vo.patient.PatientRecipeListResVo;
 import recipe.vo.patient.ReadyRecipeVO;
 
@@ -241,7 +241,7 @@ public class RecipePatientAtop extends BaseAtop {
      * @return
      */
     @RpcService
-    public List<PatientRecipeListResVo> patientRecipeList(PatientRecipeListReqVo patientRecipeListReq) {
+    public List<PatientRecipeListResVo> patientRecipeList(PatientRecipeListReqVO patientRecipeListReq) {
         List<RecipeInfoVO> list = recipeBusinessService.patientRecipeList(patientRecipeListReq);
         return null;
     }

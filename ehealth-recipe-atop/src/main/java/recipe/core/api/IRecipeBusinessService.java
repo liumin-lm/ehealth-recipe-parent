@@ -26,7 +26,7 @@ import recipe.vo.greenroom.FindRecipeListForPatientVO;
 import recipe.vo.greenroom.RecipeRefundInfoReqVO;
 import recipe.vo.greenroom.logisticsOrderInfoVO;
 import recipe.vo.patient.PatientOptionalDrugVo;
-import recipe.vo.patient.PatientRecipeListReqVo;
+import recipe.vo.patient.PatientRecipeListReqVO;
 import recipe.vo.second.*;
 
 import java.util.Date;
@@ -493,5 +493,5 @@ public interface IRecipeBusinessService {
      */
     void sendSuccessRecipe(HisSendResTO response);
 
-    List<RecipeInfoVO> patientRecipeList(PatientRecipeListReqVo patientRecipeListReq);
+    List<RecipeInfoVO> patientRecipeList(PatientRecipeListReqVO patientRecipeListReq);
 }

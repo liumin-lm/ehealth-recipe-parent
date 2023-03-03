@@ -1492,14 +1492,14 @@ public class RecipeManager extends BaseManager {
     /**
      * todo 鸿芳自己写备注 实现代码
      *
-     * @param organId
-     * @param mpiId
-     * @param state
-     * @param startTime
-     * @param endTime
+     * @param req
      * @return
      */
-    public List<RecipeInfoDTO> patientRecipeList(Integer organId, String mpiId, String state, Date startTime, Date endTime) {
+    public List<RecipeInfoDTO> patientRecipeList(PatientRecipeListReqDTO req) {
+        List<String> isHisRecipe = configurationClient.getValueListCatch(req.getOrganId(), "xxxxxxx", Collections.emptyList());
+        if (!isHisRecipe.contains("1")) {
+            return Collections.emptyList();
+        }
         return null;
     }
 }
