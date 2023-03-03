@@ -851,39 +851,30 @@ public class OfflineRecipeClient extends BaseClient {
     /**
      * todo 刘敏自己写备注 实现代码
      *
-     * @param organId
-     * @param mpiId
-     * @param startTime
-     * @param endTime
+     * @param req
      * @return
      */
-    public List<RecipeDTO> patientAwaitFeeRecipeList(Integer organId, String mpiId, Date startTime, Date endTime) {
+    public List<RecipeDTO> patientAwaitFeeRecipeList(PatientRecipeListReqDTO req) {
         return null;
     }
 
     /**
      * todo 刘敏自己写备注 实现代码
      *
-     * @param organId
-     * @param mpiId
-     * @param startTime
-     * @param endTime
+     * @param req
      * @return
      */
-    public List<RecipeDTO> patientDoneFeeRecipeList(Integer organId, String mpiId, Date startTime, Date endTime) {
+    public List<RecipeDTO> patientDoneFeeRecipeList(PatientRecipeListReqDTO req) {
         return null;
     }
 
     /**
      * todo 刘敏自己写备注 实现代码
      *
-     * @param organId
-     * @param mpiId
-     * @param startTime
-     * @param endTime
+     * @param req
      * @return
      */
-    public List<RecipeDTO> patientCancellaFeeRecipeList(Integer organId, String mpiId, Date startTime, Date endTime) {
+    public List<RecipeDTO> patientCancellaFeeRecipeList(PatientRecipeListReqDTO req) {
         return null;
     }
 }

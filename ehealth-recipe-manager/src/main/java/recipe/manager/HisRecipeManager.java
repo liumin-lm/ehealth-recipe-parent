@@ -859,11 +859,11 @@ public class HisRecipeManager extends BaseManager {
         }
         List<RecipeDTO> list = null;
         if (1 == type) {
-            list = offlineRecipeClient.patientAwaitFeeRecipeList(req.getOrganId(), req.getMpiId(), req.getStartTime(), req.getEndTime());
+            list = offlineRecipeClient.patientAwaitFeeRecipeList(req);
         } else if (2 == type) {
-            list = offlineRecipeClient.patientDoneFeeRecipeList(req.getOrganId(), req.getMpiId(), req.getStartTime(), req.getEndTime());
+            list = offlineRecipeClient.patientDoneFeeRecipeList(req);
         } else if (3 == type) {
-            list = offlineRecipeClient.patientCancellaFeeRecipeList(req.getOrganId(), req.getMpiId(), req.getStartTime(), req.getEndTime());
+            list = offlineRecipeClient.patientCancellaFeeRecipeList(req);
         }
         if (CollectionUtils.isEmpty(list)) {
             list = Collections.emptyList();
