@@ -432,6 +432,7 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
                 return;
             }
             RecipeInfoVO recipeInfo = new RecipeInfoVO();
+            recipeInfo.setRecipeCode(a.getRecipe().getRecipeCode());
             recipeInfo.setRecipeBean(ObjectCopyUtils.convert(a.getRecipe(), RecipeBean.class));
             recipeInfo.setRecipeExtendBean(ObjectCopyUtils.convert(a.getRecipeExtend(), RecipeExtendBean.class));
             recipeInfo.setRecipeDetails(ObjectCopyUtils.convert(a.getRecipeDetails(), RecipeDetailBean.class));
@@ -446,6 +447,7 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
                     return;
                 }
                 RecipeInfoVO recipeInfo = new RecipeInfoVO();
+                recipeInfo.setRecipeCode(b.getRecipeBean().getRecipeCode());
                 recipeInfo.setRecipeBean(ObjectCopyUtils.convert(b.getRecipeBean(), RecipeBean.class));
                 recipeInfo.setRecipeExtendBean(ObjectCopyUtils.convert(b.getRecipeExtendBean(), RecipeExtendBean.class));
                 recipeInfo.setRecipeDetails(ObjectCopyUtils.convert(b.getRecipeDetails(), RecipeDetailBean.class));
