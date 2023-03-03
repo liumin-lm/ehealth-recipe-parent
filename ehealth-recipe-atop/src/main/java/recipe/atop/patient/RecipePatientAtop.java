@@ -241,6 +241,7 @@ public class RecipePatientAtop extends BaseAtop {
      */
     @RpcService
     public List<PatientRecipeListResVo> patientRecipeList(PatientRecipeListReqVO patientRecipeListReq) {
+        patientRecipeListReq.setUuid(UUID.randomUUID().toString());
         Set<RecipeInfoVO> list = iOfflineRecipeBusinessService.patientRecipeList(patientRecipeListReq);
         return null;
     }

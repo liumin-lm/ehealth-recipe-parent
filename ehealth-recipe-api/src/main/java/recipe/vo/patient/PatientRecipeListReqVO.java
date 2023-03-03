@@ -30,4 +30,5 @@ public class PatientRecipeListReqVO implements Serializable {
     @ItemProperty(alias = "0 全部 1 待审方 2 待缴费 3 收取中 4 已结束")
     private Integer state;
 
+    private String uuid;
 }
