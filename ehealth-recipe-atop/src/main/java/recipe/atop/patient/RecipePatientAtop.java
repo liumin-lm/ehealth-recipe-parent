@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
 import recipe.core.api.IRecipeBusinessService;
+import recipe.core.api.patient.IOfflineRecipeBusinessService;
 import recipe.core.api.patient.IPatientBusinessService;
 import recipe.enumerate.status.OutRecipeStatusEnum;
 import recipe.enumerate.type.DrugBelongTypeEnum;
@@ -46,7 +47,8 @@ public class RecipePatientAtop extends BaseAtop {
 
     @Autowired
     private IRecipeBusinessService recipeBusinessService;
-
+    @Autowired
+    private IOfflineRecipeBusinessService iOfflineRecipeBusinessService;
     @Autowired
     private IPatientBusinessService recipePatientService;
 
@@ -242,7 +244,7 @@ public class RecipePatientAtop extends BaseAtop {
      */
     @RpcService
     public List<PatientRecipeListResVo> patientRecipeList(PatientRecipeListReqVO patientRecipeListReq) {
-        List<RecipeInfoVO> list = recipeBusinessService.patientRecipeList(patientRecipeListReq);
+        List<RecipeInfoVO> list = iOfflineRecipeBusinessService.patientRecipeList(patientRecipeListReq);
         return null;
     }
 

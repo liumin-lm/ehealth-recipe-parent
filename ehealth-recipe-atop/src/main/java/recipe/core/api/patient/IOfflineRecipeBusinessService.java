@@ -10,6 +10,8 @@ import com.ngari.recipe.offlinetoonline.model.FindHisRecipeListVO;
 import com.ngari.recipe.offlinetoonline.model.SettleForOfflineToOnlineVO;
 import com.ngari.recipe.recipe.model.MergeRecipeVO;
 import com.ngari.recipe.vo.OffLineRecipeDetailVO;
+import recipe.vo.doctor.RecipeInfoVO;
+import recipe.vo.patient.PatientRecipeListReqVO;
 import recipe.vo.patient.RecipeGiveModeButtonRes;
 
 import java.util.Date;
@@ -107,4 +109,7 @@ public interface IOfflineRecipeBusinessService {
      * @param recipeCode 处方code
      */
     HisRecipeDTO getOffLineRecipeDetailsV1(Integer organId, String recipeCode, String createDate);
+
+
+    List<RecipeInfoVO> patientRecipeList(PatientRecipeListReqVO patientRecipeListReq);
 }

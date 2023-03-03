@@ -43,11 +43,9 @@ import recipe.enumerate.type.PayFlagEnum;
 import recipe.enumerate.type.RecipeDrugFormTypeEnum;
 import recipe.util.JsonUtil;
 import recipe.util.MapValueUtil;
-import recipe.util.RecipeBusiThreadPool;
 
 import java.math.BigDecimal;
 import java.util.*;
-import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -853,57 +851,19 @@ public class HisRecipeManager extends BaseManager {
      * @param req
      * @return
      */
-    public List<RecipeDTO> patientRecipeList(PatientRecipeListReqDTO req) {
+    public List<RecipeDTO> patientRecipeList(PatientRecipeListReqDTO req, Integer type) {
         List<String> isHisRecipe = configurationClient.getValueListCatch(req.getOrganId(), "xxxxxxx", Collections.emptyList());
         if (!isHisRecipe.contains("2")) {
             return Collections.emptyList();
         }
-        List<offlineRecipeCallable> callAbles = new ArrayList<>();
-        callAbles.add(new offlineRecipeCallable(req, 1));
-        callAbles.add(new offlineRecipeCallable(req, 2));
-        callAbles.add(new offlineRecipeCallable(req, 3));
-        List<RecipeDTO> list = new ArrayList<>();
-        try {
-            List<Future<List<RecipeDTO>>> future = RecipeBusiThreadPool.submitListReturn(callAbles, 15000);
-            if (CollectionUtils.isEmpty(future)) {
-                return Collections.emptyList();
-            }
-            future.forEach(a ->
-                    {
-                        try {
-                            list.addAll(a.get());
-                        } catch (Exception e) {
-                            logger.error("submitListReturn 线程池异常", e);
-                        }
-                    }
-            );
-        } catch (Exception e) {
-            logger.error("submitListReturn 线程池异常", e);
-        }
-        return list;
-    }
-
-
-    class offlineRecipeCallable implements Callable<List<RecipeDTO>> {
-        private PatientRecipeListReqDTO req;
-        private Integer type;
-
-        public offlineRecipeCallable(PatientRecipeListReqDTO req, Integer type) {
-            this.req = req;
-            this.type = type;
-        }
-
-        @Override
-        public List<RecipeDTO> call() throws Exception {
-            if (1 == type) {
-                return offlineRecipeClient.patientAwaitFeeRecipeList(req.getOrganId(), req.getMpiId(), req.getStartTime(), req.getEndTime());
-            } else if (2 == type) {
-                return offlineRecipeClient.patientDoneFeeRecipeList(req.getOrganId(), req.getMpiId(), req.getStartTime(), req.getEndTime());
-            } else if (3 == type) {
-                return offlineRecipeClient.patientCancellaFeeRecipeList(req.getOrganId(), req.getMpiId(), req.getStartTime(), req.getEndTime());
-            } else {
-                return Collections.emptyList();
-            }
+        if (1 == type) {
+            return offlineRecipeClient.patientAwaitFeeRecipeList(req.getOrganId(), req.getMpiId(), req.getStartTime(), req.getEndTime());
+        } else if (2 == type) {
+            return offlineRecipeClient.patientDoneFeeRecipeList(req.getOrganId(), req.getMpiId(), req.getStartTime(), req.getEndTime());
+        } else if (3 == type) {
+            return offlineRecipeClient.patientCancellaFeeRecipeList(req.getOrganId(), req.getMpiId(), req.getStartTime(), req.getEndTime());
+        } else {
+            return Collections.emptyList();
         }
     }
 }

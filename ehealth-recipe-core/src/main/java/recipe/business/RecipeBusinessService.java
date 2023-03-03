@@ -83,7 +83,6 @@ import recipe.vo.doctor.PharmacyTcmVO;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.greenroom.*;
 import recipe.vo.patient.PatientOptionalDrugVo;
-import recipe.vo.patient.PatientRecipeListReqVO;
 import recipe.vo.second.*;
 
 import javax.annotation.Resource;
@@ -1648,28 +1647,6 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
                 amount, response.getRecipeFee(), repList.size());
         //修改处方状态
         stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_SUBMIT, RecipeStateEnum.NONE);
-    }
-
-    /**
-     * todo 隋晓宇实现
-     *
-     * @param req
-     * @return
-     */
-    @Override
-    public List<RecipeInfoVO> patientRecipeList(PatientRecipeListReqVO req) {
-        PatientRecipeListReqDTO reqDTO = ObjectCopyUtils.convert(req, PatientRecipeListReqDTO.class);
-        List<RecipeInfoDTO> recipeList = recipeManager.patientRecipeList(reqDTO);
-
-        List<com.ngari.platform.recipe.mode.RecipeDTO> hisRecipeList = hisRecipeManager.patientRecipeList(reqDTO);
-//
-//
-//        List<RecipeInfoDTO> awaitFeeRecipeList = hisRecipeManager.patientAwaitFeeRecipeList(req.getOrganId(), req.getMpiId(), req.getStartTime(), req.getStartTime());
-//        List<RecipeInfoDTO> doneFeeRecipeList = hisRecipeManager.patientDoneFeeRecipeList(req.getOrganId(), req.getMpiId(), req.getStartTime(), req.getStartTime());
-//        List<RecipeInfoDTO> cancellaFeeRecipeList = hisRecipeManager.patientCancellaFeeRecipeList(req.getOrganId(), req.getMpiId(), req.getStartTime(), req.getStartTime());
-
-
-        return null;
     }
 }
 

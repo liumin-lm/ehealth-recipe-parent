@@ -4,7 +4,10 @@ import ctd.schema.annotation.ItemProperty;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @description： 患者端 处方列表请求入参
@@ -28,5 +31,19 @@ public class PatientRecipeListReqDTO implements Serializable {
     private Date endTime;
 
     @ItemProperty(alias = "0 全部 1 待审方 2 待缴费 3 收取中 4 已结束")
-    private String state;
+    private Integer state;
+
+
+    public static List<Integer> hisState(Integer state) {
+        switch (state) {
+            case 0:
+                return Arrays.asList(1, 2, 3);
+            case 2:
+                return Collections.singletonList(1);
+            case 4:
+                return Arrays.asList(2, 3);
+            default:
+                return Collections.emptyList();
+        }
+    }
 }

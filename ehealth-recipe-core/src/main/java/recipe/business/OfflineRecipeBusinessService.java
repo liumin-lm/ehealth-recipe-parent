@@ -24,6 +24,7 @@ import com.ngari.recipe.vo.OffLineRecipeDetailVO;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.BeanUtils;
+import ctd.util.event.GlobalEventExecFactory;
 import ngari.openapi.util.JSONUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -48,10 +49,14 @@ import recipe.factory.offlinetoonline.OfflineToOnlineFactory;
 import recipe.manager.*;
 import recipe.service.RecipeLogService;
 import recipe.util.MapValueUtil;
+import recipe.util.ObjectCopyUtils;
+import recipe.vo.doctor.RecipeInfoVO;
+import recipe.vo.patient.PatientRecipeListReqVO;
 import recipe.vo.patient.RecipeGiveModeButtonRes;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.concurrent.FutureTask;
 
 /**
  * 线下处方核心逻辑
@@ -387,5 +392,32 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
     @Override
     public HisRecipeDTO getOffLineRecipeDetailsV1(Integer organId, String recipeCode, String createDate) {
         return offlineRecipeClient.getOffLineRecipeDetailsV1(organId, recipeCode, createDate);
+    }
+
+    /**
+     * todo 隋晓宇实现
+     *
+     * @param req
+     * @return
+     */
+    @Override
+    public List<RecipeInfoVO> patientRecipeList(PatientRecipeListReqVO req) {
+        PatientRecipeListReqDTO reqDTO = ObjectCopyUtils.convert(req, PatientRecipeListReqDTO.class);
+
+        //线下异步任务
+        List<Integer> hisState = PatientRecipeListReqDTO.hisState(reqDTO.getState());
+        List<FutureTask<List<com.ngari.platform.recipe.mode.RecipeDTO>>> futureTasks = new LinkedList<>();
+        //根据药企配置查询 库存
+        for (Integer i : hisState) {
+            FutureTask<List<com.ngari.platform.recipe.mode.RecipeDTO>> ft = new FutureTask<>(() -> hisRecipeManager.patientRecipeList(reqDTO, i));
+            futureTasks.add(ft);
+            GlobalEventExecFactory.instance().getExecutor().submit(ft);
+        }
+        //查询线上处方
+        List<RecipeInfoDTO> recipeList = recipeManager.patientRecipeList(reqDTO);
+        //查询线下处方
+        List<List<com.ngari.platform.recipe.mode.RecipeDTO>> list = super.futureTaskCallbackBeanList(futureTasks, null);
+
+        return null;
     }
 }
