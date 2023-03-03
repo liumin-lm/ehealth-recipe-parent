@@ -16,6 +16,7 @@ import recipe.vo.patient.RecipeGiveModeButtonRes;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @Author liumin
@@ -116,5 +117,5 @@ public interface IOfflineRecipeBusinessService {
      * @param patientRecipeListReq
      * @return
      */
-    List<RecipeInfoVO> patientRecipeList(PatientRecipeListReqVO patientRecipeListReq);
+    Set<RecipeInfoVO> patientRecipeList(PatientRecipeListReqVO patientRecipeListReq);
 }

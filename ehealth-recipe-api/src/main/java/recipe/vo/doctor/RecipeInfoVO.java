@@ -4,12 +4,12 @@ import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.model.RecipeExtendBean;
-import ctd.schema.annotation.ItemProperty;
 import lombok.Getter;
 import lombok.Setter;
 import recipe.vo.second.OrganVO;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author fuzi
@@ -72,4 +72,19 @@ public class RecipeInfoVO {
      * 老常用方id
      */
     private Integer commonRecipeId;
+
+    private String recipeCode;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        RecipeInfoVO that = (RecipeInfoVO) o;
+        return Objects.equals(recipeCode, that.recipeCode);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(recipeCode);
+    }
 }

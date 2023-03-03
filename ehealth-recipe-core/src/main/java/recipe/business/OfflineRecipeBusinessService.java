@@ -61,7 +61,6 @@ import recipe.vo.patient.RecipeGiveModeButtonRes;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.FutureTask;
-import java.util.stream.Collectors;
 
 /**
  * 线下处方核心逻辑
@@ -400,7 +399,7 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
     }
 
     @Override
-    public List<RecipeInfoVO> patientRecipeList(PatientRecipeListReqVO req) {
+    public Set<RecipeInfoVO> patientRecipeList(PatientRecipeListReqVO req) {
         PatientRecipeListReqDTO reqDTO = ObjectCopyUtils.convert(req, PatientRecipeListReqDTO.class);
 
         //线下异步任务
@@ -416,11 +415,8 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
         List<RecipeInfoDTO> recipeList = recipeManager.patientRecipeList(reqDTO);
         //查询线下处方
         List<List<com.ngari.platform.recipe.mode.RecipeDTO>> hisRecipeList = super.futureTaskCallbackBeanList(futureTasks, null);
-        //组装线上 线下数据
-        List<RecipeInfoVO> list = recipeList(recipeList, hisRecipeList);
-        //去重返回
-        return list.stream().collect(Collectors.collectingAndThen(Collectors.toCollection(() ->
-                new TreeSet<>(Comparator.comparing(a -> a.getRecipeBean().getRecipeCode()))), ArrayList::new));
+        //去重返回 组装线上 线下数据
+        return recipeList(recipeList, hisRecipeList);
     }
 
     /**
@@ -430,8 +426,8 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
      * @param hisRecipeList 线下处方列表
      * @return
      */
-    private List<RecipeInfoVO> recipeList(List<RecipeInfoDTO> recipeList, List<List<com.ngari.platform.recipe.mode.RecipeDTO>> hisRecipeList) {
-        List<RecipeInfoVO> list = new ArrayList<>();
+    private Set<RecipeInfoVO> recipeList(List<RecipeInfoDTO> recipeList, List<List<com.ngari.platform.recipe.mode.RecipeDTO>> hisRecipeList) {
+        Set<RecipeInfoVO> set = new HashSet<>();
         recipeList.forEach(a -> {
             if (null == a.getRecipe() || StringUtils.isEmpty(a.getRecipe().getRecipeCode())) {
                 return;
@@ -440,7 +436,7 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
             recipeInfo.setRecipeBean(ObjectCopyUtils.convert(a.getRecipe(), RecipeBean.class));
             recipeInfo.setRecipeExtendBean(ObjectCopyUtils.convert(a.getRecipeExtend(), RecipeExtendBean.class));
             recipeInfo.setRecipeDetails(ObjectCopyUtils.convert(a.getRecipeDetails(), RecipeDetailBean.class));
-            list.add(recipeInfo);
+            set.add(recipeInfo);
         });
         hisRecipeList.forEach(a -> {
             if (CollectionUtils.isEmpty(a)) {
@@ -454,9 +450,9 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
                 recipeInfo.setRecipeBean(ObjectCopyUtils.convert(b.getRecipeBean(), RecipeBean.class));
                 recipeInfo.setRecipeExtendBean(ObjectCopyUtils.convert(b.getRecipeExtendBean(), RecipeExtendBean.class));
                 recipeInfo.setRecipeDetails(ObjectCopyUtils.convert(b.getRecipeDetails(), RecipeDetailBean.class));
-                list.add(recipeInfo);
+                set.add(recipeInfo);
             });
         });
-        return list;
+        return set;
     }
 }
