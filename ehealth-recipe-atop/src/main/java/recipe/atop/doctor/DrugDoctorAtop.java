@@ -258,7 +258,7 @@ public class DrugDoctorAtop extends BaseAtop {
         if (RecipeUtil.isTcmType(searchDrugReq.getDrugType())) {
             drugInfoDTO.setDrugForm(RecipeDrugFormTypeEnum.getDrugForm(searchDrugReq.getRecipeDrugForm()));
         }
-        List<SearchDrugDetailDTO> drugWithEsByPatient = drugBusinessService.searchOrganDrugEs(drugInfoDTO, searchDrugReq.getStart(), searchDrugReq.getLimit());
+        List<SearchDrugDetailDTO> drugWithEsByPatient = drugBusinessService.searchOrganDrugEs(drugInfoDTO, searchDrugReq.getStart(), searchDrugReq.getLimit(), searchDrugReq.getClinicId());
         List<Integer> drugIds = drugWithEsByPatient.stream().map(SearchDrugDetailDTO::getDrugId).distinct().collect(Collectors.toList());
         List<DrugList> drugs = drugBusinessService.drugList(drugIds);
         Map<Integer, DrugList> drugMap = drugs.stream().collect(Collectors.toMap(DrugList::getDrugId, a -> a, (k1, k2) -> k1));

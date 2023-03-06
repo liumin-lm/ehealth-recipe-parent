@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.aop.LogRecord;
 import recipe.dao.PharmacyTcmDAO;
+import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.type.DrugBelongTypeEnum;
 import recipe.util.JsonUtil;
 import recipe.util.ObjectCopyUtils;
@@ -428,5 +429,15 @@ public class RecipeDetailManager extends BaseManager {
             this.saveRecipeDetailBySendSuccess(recipeDrugFee, recipe.getRecipeId());
         }
         return list;
+    }
+
+    public Map<String, Double> sumTotalMap(Integer clinicId) {
+        List<Recipe> recipeList = recipeDAO.findRecipeClinicIdAndProcessState(clinicId, RecipeStateEnum.RECIPE_REPEAT);
+        List<Integer> recipeIds = recipeList.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
+        Map<String, Double> map = this.findRecipeDetailSumTotalDose(recipeIds);
+        if (null == map) {
+            return new HashMap<>();
+        }
+        return map;
     }
 }
