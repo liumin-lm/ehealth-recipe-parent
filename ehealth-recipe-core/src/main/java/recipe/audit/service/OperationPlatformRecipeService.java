@@ -229,6 +229,7 @@ public class OperationPlatformRecipeService {
         r.setSubStateText(RecipeStateEnum.getRecipeStateEnum(recipe.getSubState()).getName());
         //是否医保 0自费 1医保
         r.setMedicalFlag(recipe.getMedicalFlag());
+        r.setOfflineRecipeName(recipe.getOfflineRecipeName());
         LOGGER.info("findRecipeAndDetailsAndCheckById reicpeid={},r={}", recipeId, JSONUtils.toString(r));
         //取医生的手机号
         DoctorDTO doctor = doctorClient.getDoctor(r.getDoctor());
