@@ -965,7 +965,7 @@ public class OfflineRecipeClient extends BaseClient {
      * @return
      */
     public List<RecipeDTO> patientDoneFeeRecipeList(PatientRecipeListReqDTO req) {
-        logger.info("patientAwaitFeeRecipeList req:{},{}",req.getUuid(),JSONUtils.toString(req));
+        logger.info("patientDoneFeeRecipeList req:{},{}",req.getUuid(),JSONUtils.toString(req));
         List<RecipeDTO> recipeDTOS=new ArrayList<>();
         HisResponseTO<List<QueryHisRecipResTO>> hisResponseTO=new HisResponseTO<List<QueryHisRecipResTO>>();
         Integer flag= HisRecipeConstant.HISRECIPESTATUS_ALREADYIDEAL;
@@ -976,7 +976,7 @@ public class OfflineRecipeClient extends BaseClient {
         }
         hisResponseTO=queryData(req.getOrganId(), patient, null, flag, null,req.getStartTime(),req.getEndTime());
         recipeDTOS= covertRecipeDTOFromQueryHisRecipResTO(hisResponseTO,patient,flag);
-        logger.info("patientAwaitFeeRecipeList res:{},{}",req.getUuid(),JSONUtils.toString(recipeDTOS));
+        logger.info("patientDoneFeeRecipeList res:{},{}",req.getUuid(),JSONUtils.toString(recipeDTOS));
         return recipeDTOS;
     }
 
@@ -987,7 +987,7 @@ public class OfflineRecipeClient extends BaseClient {
      * @return
      */
     public List<RecipeDTO> patientCancellaFeeRecipeList(PatientRecipeListReqDTO req) {
-        logger.info("patientAwaitFeeRecipeList req:{},{}",req.getUuid(),JSONUtils.toString(req));
+        logger.info("patientCancellaFeeRecipeList req:{},{}",req.getUuid(),JSONUtils.toString(req));
         List<RecipeDTO> recipeDTOS=new ArrayList<>();
         HisResponseTO<List<QueryHisRecipResTO>> hisResponseTO=new HisResponseTO<List<QueryHisRecipResTO>>();
         Integer flag= HisRecipeConstant.HISRECIPESTATUS_EXPIRED;
@@ -998,7 +998,7 @@ public class OfflineRecipeClient extends BaseClient {
         }
         hisResponseTO=queryData(req.getOrganId(), patient, null, flag, null,req.getStartTime(),req.getEndTime());
         recipeDTOS= covertRecipeDTOFromQueryHisRecipResTO(hisResponseTO,patient,flag);
-        logger.info("patientAwaitFeeRecipeList res:{},{}",req.getUuid(),JSONUtils.toString(recipeDTOS));
+        logger.info("patientCancellaFeeRecipeList res:{},{}",req.getUuid(),JSONUtils.toString(recipeDTOS));
         return recipeDTOS;
     }
 }
