@@ -8,7 +8,10 @@ import com.ngari.his.recipe.mode.RecipeInfoTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.platform.recipe.mode.OutpatientPaymentRecipeDTO;
 import com.ngari.platform.recipe.mode.QueryRecipeInfoHisDTO;
+import com.ngari.platform.recipe.mode.RecipeExtendBean;
+import com.ngari.platform.recipe.mode.RecipeInfoDTO;
 import com.ngari.recipe.dto.PatientDTO;
+import com.ngari.recipe.dto.RecipeDTO;
 import com.ngari.recipe.dto.ServiceLogDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
@@ -27,7 +30,6 @@ import eh.utils.BeanCopyUtils;
 import eh.utils.ValidateUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import recipe.aop.LogRecord;
 import recipe.api.open.IRecipeAtopService;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
@@ -444,6 +446,27 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
     @Override
     public void auditRecipeNoticeRevisit(Integer recipeId, Boolean failFlag) {
         recipeBusinessService.auditRecipeNoticeRevisit(recipeId, failFlag);
+    }
+
+    @Override
+    public RecipeInfoDTO getRecipeInfoByRecipeId(Integer recipeId) {
+        logger.info("RecipeOpenAtop getByRecipeId recipeId={}", recipeId);
+        validateAtop(recipeId);
+        try {
+            RecipeDTO recipeDTO = recipeBusinessService.getRecipeInfoByRecipeId(recipeId);
+            RecipeInfoDTO recipeDTO1=new com.ngari.platform.recipe.mode.RecipeInfoDTO();
+            recipeDTO1.setRecipe(ObjectCopyUtils.convert(recipeDTO.getRecipe(), com.ngari.platform.recipe.mode.RecipeBean.class));
+            recipeDTO1.setRecipeExtend(ObjectCopyUtils.convert(recipeDTO.getRecipeExtend(), RecipeExtendBean.class));
+            recipeDTO1.setRecipeDetails(ObjectCopyUtils.convert(recipeDTO.getRecipeDetails(), com.ngari.platform.recipe.mode.RecipeDetailBean.class));
+            logger.info("RecipeOpenAtop getByRecipeId  result = {}", JSONUtils.toString(recipeDTO1));
+            return recipeDTO1;
+        } catch (DAOException e1) {
+            logger.warn("RecipeOpenAtop getByRecipeId error", e1);
+            throw new DAOException(e1.getCode(), e1.getMessage());
+        } catch (Exception e) {
+            logger.error("RecipeOpenAtop getByRecipeId error e", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
     }
 
 }
