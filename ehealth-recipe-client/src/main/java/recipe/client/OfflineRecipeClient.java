@@ -10,10 +10,8 @@ import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.recipe.mode.EmrDetailValueDTO;
 import com.ngari.his.recipe.mode.*;
 import com.ngari.his.recipe.service.IRecipeToTestService;
-import com.ngari.patient.dto.AppointDepartDTO;
-import com.ngari.patient.dto.DepartmentDTO;
-import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.dto.*;
 import com.ngari.patient.service.EmploymentService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.RecipeDTO;
@@ -24,7 +22,9 @@ import com.ngari.recipe.dto.EmrDetailDTO;
 import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
+import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.common.model.RevisitExDTO;
+import com.ngari.revisit.common.service.IRevisitExService;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
@@ -33,8 +33,11 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
+import recipe.aop.LogRecord;
 import recipe.common.CommonConstant;
 import recipe.constant.ErrorCode;
+import recipe.constant.HisRecipeConstant;
+import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.util.DateConversion;
 import recipe.util.ValidateUtil;
@@ -59,6 +62,64 @@ public class OfflineRecipeClient extends BaseClient {
     private IConfigurationClient configurationClient;
     @Autowired
     private IRecipeToTestService recipeToTestService;
+    @Autowired
+    private PatientClient patientClient;
+
+    /**
+     * @param organId
+     * @param patientDTO
+     * @param timeQuantum
+     * @param flag
+     * @return
+     * @Author liumin
+     * @Desciption 从 his查询待缴费已缴费的处方信息
+     */
+    public HisResponseTO<List<QueryHisRecipResTO>> queryData(Integer organId, PatientDTO patientDTO, Integer timeQuantum, Integer flag, String recipeCode,Date startDate,Date endDate) {
+        logger.info("OfflineRecipeClient queryData param organId:{},patientDTO:{},timeQuantum:{},flag:{},recipeCode:{},startDate:{},endDate:{}", organId, JSONUtils.toString(patientDTO), timeQuantum, flag, recipeCode,startDate,endDate);
+        PatientBaseInfo patientBaseInfo = new PatientBaseInfo();
+        patientBaseInfo.setBirthday(patientDTO.getBirthday());
+        patientBaseInfo.setPatientID(patientDTO.getPatId());
+        patientBaseInfo.setPatientName(patientDTO.getPatientName());
+        patientBaseInfo.setPatientSex(patientDTO.getPatientSex());
+        patientBaseInfo.setMobile(patientDTO.getMobile());
+        patientBaseInfo.setMpi(patientDTO.getMpiId());
+        patientBaseInfo.setCardID(patientDTO.getCardId());
+        patientBaseInfo.setCertificate(patientDTO.getCertificate());
+        patientBaseInfo.setCertificateType(patientDTO.getCertificateType());
+
+        QueryRecipeRequestTO queryRecipeRequestTo = new QueryRecipeRequestTO();
+        queryRecipeRequestTo.setPatientInfo(patientBaseInfo);
+        //根据flag转化日期 1 代表一个月  3 代表三个月 6 代表6个月 23:代表3天 24:代表7天
+        if (timeQuantum != null) {
+            if (new Integer(23).equals(timeQuantum)) {
+                queryRecipeRequestTo.setStartDate(DateConversion.getDateTimeDaysAgo(3));
+            } else if (new Integer(24).equals(timeQuantum)) {
+                queryRecipeRequestTo.setStartDate(DateConversion.getDateTimeDaysAgo(7));
+            } else {
+                queryRecipeRequestTo.setStartDate(DateConversion.getMonthsAgo(timeQuantum));
+            }
+        }
+        if(null!=startDate){
+            queryRecipeRequestTo.setStartDate(startDate);
+        }
+        if(null!=endDate){
+            queryRecipeRequestTo.setEndDate(endDate);
+        }else{
+            queryRecipeRequestTo.setEndDate(new Date());
+        }
+        queryRecipeRequestTo.setOrgan(organId);
+        queryRecipeRequestTo.setQueryType(flag);
+        if (StringUtils.isNotEmpty(recipeCode)) {
+            queryRecipeRequestTo.setRecipeCode(recipeCode);
+        }
+
+        queryRecipeRequestTo.setJsonConfig(configurationClient.getOfflineRecipeQueryConfig(organId));
+        logger.info("queryHisRecipeInfo input:" + JSONUtils.toString(queryRecipeRequestTo, QueryRecipeRequestTO.class));
+        HisResponseTO<List<QueryHisRecipResTO>> responseTo = recipeHisService.queryHisRecipeInfo(queryRecipeRequestTo);
+        logger.info("queryHisRecipeInfo output:" + JSONUtils.toString(responseTo, HisResponseTO.class));
+
+        return responseTo;
+    }
 
     /**
      * @param organId   机构id
@@ -263,61 +324,7 @@ public class OfflineRecipeClient extends BaseClient {
         }
     }
 
-    /**
-     * @param organId
-     * @param patientDTO
-     * @param timeQuantum
-     * @param flag
-     * @return
-     * @Author liumin
-     * @Desciption 从 his查询待缴费已缴费的处方信息
-     */
-    public HisResponseTO<List<QueryHisRecipResTO>> queryData(Integer organId, PatientDTO patientDTO, Integer timeQuantum, Integer flag, String recipeCode,Date startDate,Date endDate) {
-        logger.info("OfflineRecipeClient queryData param organId:{},patientDTO:{},timeQuantum:{},flag:{},recipeCode:{},startDate:{},endDate:{}", organId, JSONUtils.toString(patientDTO), timeQuantum, flag, recipeCode,startDate,endDate);
-        PatientBaseInfo patientBaseInfo = new PatientBaseInfo();
-        patientBaseInfo.setBirthday(patientDTO.getBirthday());
-        patientBaseInfo.setPatientID(patientDTO.getPatId());
-        patientBaseInfo.setPatientName(patientDTO.getPatientName());
-        patientBaseInfo.setPatientSex(patientDTO.getPatientSex());
-        patientBaseInfo.setMobile(patientDTO.getMobile());
-        patientBaseInfo.setMpi(patientDTO.getMpiId());
-        patientBaseInfo.setCardID(patientDTO.getCardId());
-        patientBaseInfo.setCertificate(patientDTO.getCertificate());
-        patientBaseInfo.setCertificateType(patientDTO.getCertificateType());
 
-        QueryRecipeRequestTO queryRecipeRequestTo = new QueryRecipeRequestTO();
-        queryRecipeRequestTo.setPatientInfo(patientBaseInfo);
-        //根据flag转化日期 1 代表一个月  3 代表三个月 6 代表6个月 23:代表3天 24:代表7天
-        if (timeQuantum != null) {
-            if (new Integer(23).equals(timeQuantum)) {
-                queryRecipeRequestTo.setStartDate(DateConversion.getDateTimeDaysAgo(3));
-            } else if (new Integer(24).equals(timeQuantum)) {
-                queryRecipeRequestTo.setStartDate(DateConversion.getDateTimeDaysAgo(7));
-            } else {
-                queryRecipeRequestTo.setStartDate(DateConversion.getMonthsAgo(timeQuantum));
-            }
-        }
-        if(null!=startDate){
-            queryRecipeRequestTo.setStartDate(startDate);
-        }
-        if(null!=endDate){
-            queryRecipeRequestTo.setEndDate(endDate);
-        }else{
-            queryRecipeRequestTo.setEndDate(new Date());
-        }
-        queryRecipeRequestTo.setOrgan(organId);
-        queryRecipeRequestTo.setQueryType(flag);
-        if (StringUtils.isNotEmpty(recipeCode)) {
-            queryRecipeRequestTo.setRecipeCode(recipeCode);
-        }
-
-        queryRecipeRequestTo.setJsonConfig(configurationClient.getOfflineRecipeQueryConfig(organId));
-        logger.info("queryHisRecipeInfo input:" + JSONUtils.toString(queryRecipeRequestTo, QueryRecipeRequestTO.class));
-        HisResponseTO<List<QueryHisRecipResTO>> responseTo = recipeHisService.queryHisRecipeInfo(queryRecipeRequestTo);
-        logger.info("queryHisRecipeInfo output:" + JSONUtils.toString(responseTo, HisResponseTO.class));
-
-        return responseTo;
-    }
 
     /**
      * 获取线下处方的发药流水号
@@ -849,17 +856,110 @@ public class OfflineRecipeClient extends BaseClient {
     }
 
     /**
-     * todo 刘敏自己写备注 实现代码
+     * 待缴费
      *
      * @param req
      * @return
      */
+    @LogRecord
     public List<RecipeDTO> patientAwaitFeeRecipeList(PatientRecipeListReqDTO req) {
-        return null;
+        logger.info("patientAwaitFeeRecipeList req:{},{}",req.getUuid(),JSONUtils.toString(req));
+        List<RecipeDTO> recipeDTOS=new ArrayList<>();
+        HisResponseTO<List<QueryHisRecipResTO>> hisResponseTO=new HisResponseTO<List<QueryHisRecipResTO>>();
+        Integer flag= HisRecipeConstant.HISRECIPESTATUS_ALREADYIDEAL;
+        PatientDTO patient = patientClient.getPatient(req.getMpiId());
+        if (ObjectUtils.isEmpty(patient)) {
+            logger.info("患者信息不存在");
+            return recipeDTOS;
+        }
+        hisResponseTO=queryData(req.getOrganId(), patient, null, flag, null,req.getStartTime(),req.getEndTime());
+        recipeDTOS= covertRecipeDTOFromQueryHisRecipResTO(hisResponseTO,patient,flag);
+        logger.info("patientAwaitFeeRecipeList res:{},{}",req.getUuid(),JSONUtils.toString(recipeDTOS));
+        return recipeDTOS;
     }
 
     /**
-     * todo 刘敏自己写备注 实现代码
+     *
+     * @param hisResponseTO
+     * @param patient
+     * @param
+     * @return
+     */
+    private List<RecipeDTO> covertRecipeDTOFromQueryHisRecipResTO(HisResponseTO<List<QueryHisRecipResTO>> hisResponseTO, PatientDTO patient, Integer flag) {
+        //PatientRecipeListResVo
+        List<RecipeDTO> recipeDTOS=new ArrayList<>();
+        if (null == hisResponseTO || CollectionUtils.isEmpty(hisResponseTO.getData())) {
+            return null;
+        }
+        List<QueryHisRecipResTO> queryHisRecipResTOs=hisResponseTO.getData();
+        queryHisRecipResTOs.forEach(a -> {
+            RecipeDTO recipeDTO=new RecipeDTO();
+            RecipeBean recipe=ObjectCopyUtils.convert(a, RecipeBean.class);
+            RecipeExtendBean recipeExt=ObjectCopyUtils.convert(a, RecipeExtendBean.class);
+            List<RecipeDetailBean> recipeDetailBeans=ObjectCopyUtils.convert(a.getDrugList(), RecipeDetailBean.class);
+            recipe.setBussSource(0);
+            if (!new Integer("0").equals(a.getRevisitType())) {
+                try {
+                    IRevisitExService exService = RevisitAPI.getService(IRevisitExService.class);
+                    RevisitExDTO revisitExDTO = exService.getByRegisterId(a.getRegisteredId());
+                    if (revisitExDTO != null) {
+                        recipe.setBussSource(2);
+                        recipe.setClinicId(revisitExDTO.getConsultId());
+                        //优先级his->复诊
+                        if (null == a.getIllnessType()) {
+                            recipeExt.setIllnessType(revisitExDTO.getDbType());
+                            recipeExt.setIllnessName(revisitExDTO.getInsureTypeName());
+                        }
+
+                    } else{
+                        logger.error("无关联复诊:{},{}", a.getRecipeCode());
+                    }
+                } catch (Exception e) {
+                    logger.error("通过挂号序号关联复诊 error", e);
+                }
+            } else {
+                recipe.setBussSource(5);
+            }
+            recipe.setMpiid(patient.getMpiId());
+            AppointDepartDTO appointDepartDTO = departClient.getAppointDepartByOrganIdAndAppointDepartCode(a.getClinicOrgan(), a.getDepartCode());
+            if (appointDepartDTO != null) {
+                recipe.setDepart(appointDepartDTO.getDepartId());
+            } else {
+                logger.info("无法查询到开方科室:{},{}", a.getDepartCode(),a.getRecipeCode());
+            }
+            if (StringUtils.isNotEmpty(a.getDoctorCode())) {
+                EmploymentDTO employmentDTO = employmentService.getEmploymentByJobNumberAndOrganId(a.getDoctorCode(), a.getClinicOrgan());
+                if (employmentDTO != null && employmentDTO.getDoctorId() != null) {
+                    recipe.setDoctor(employmentDTO.getDoctorId());
+                } else {
+                    logger.error("请确认医院的医生工号和纳里维护的是否一致:{},{}" + a.getDoctorCode(),a.getRecipeCode());
+                }
+            }
+            recipe.setOrganDiseaseName(a.getDiseaseName());
+            if(HisRecipeConstant.HISRECIPESTATUS_NOIDEAL.equals(flag)){
+                recipe.setProcessState(RecipeStateEnum.PROCESS_STATE_ORDER.getType());
+            }else if(HisRecipeConstant.HISRECIPESTATUS_ALREADYIDEAL.equals(flag)){
+                recipe.setProcessState(RecipeStateEnum.PROCESS_STATE_DONE.getType());
+            }else if(HisRecipeConstant.HISRECIPESTATUS_NOIDEAL.equals(flag)){
+                recipe.setProcessState(RecipeStateEnum.PROCESS_STATE_CANCELLATION.getType());
+            }
+            recipe.setSignDate(a.getCreateDate());
+            recipe.setRecipeSourceType(2);
+            recipeExt.setRegisterID(a.getRegisteredId());
+
+            //recipeType recipeCode illnessType illnessName
+            //TODO recipeBusType secrecyRecipe 这两组装数据的人自己搞
+            recipeDTO.setPatientDTO(patient);
+            recipeDTO.setRecipeBean(recipe);
+            recipeDTO.setRecipeExtendBean(recipeExt);
+            recipeDTO.setRecipeDetails(recipeDetailBeans);
+            recipeDTOS.add(recipeDTO);
+        });
+        return recipeDTOS;
+    }
+
+    /**
+     * 已缴费
      *
      * @param req
      * @return
@@ -869,7 +969,7 @@ public class OfflineRecipeClient extends BaseClient {
     }
 
     /**
-     * todo 刘敏自己写备注 实现代码
+     * 已失效
      *
      * @param req
      * @return
