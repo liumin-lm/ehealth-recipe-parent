@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
 import recipe.core.api.IRecipeBusinessService;
+import recipe.core.api.patient.IOfflineRecipeBusinessService;
 import recipe.core.api.patient.IPatientBusinessService;
 import recipe.enumerate.status.OutRecipeStatusEnum;
 import recipe.enumerate.type.DrugBelongTypeEnum;
@@ -24,15 +25,12 @@ import recipe.enumerate.type.OutRecipeGiveModeEnum;
 import recipe.enumerate.type.OutRecipeRecipeTypeEnum;
 import recipe.util.ObjectCopyUtils;
 import recipe.vo.doctor.RecipeInfoVO;
-import recipe.vo.patient.PatientRecipeListReqVo;
+import recipe.vo.patient.PatientRecipeListReqVO;
 import recipe.vo.patient.PatientRecipeListResVo;
 import recipe.vo.patient.ReadyRecipeVO;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -46,7 +44,8 @@ public class RecipePatientAtop extends BaseAtop {
 
     @Autowired
     private IRecipeBusinessService recipeBusinessService;
-
+    @Autowired
+    private IOfflineRecipeBusinessService iOfflineRecipeBusinessService;
     @Autowired
     private IPatientBusinessService recipePatientService;
 
@@ -241,8 +240,9 @@ public class RecipePatientAtop extends BaseAtop {
      * @return
      */
     @RpcService
-    public List<PatientRecipeListResVo> patientRecipeList(PatientRecipeListReqVo patientRecipeListReq) {
-        List<RecipeInfoVO> list = recipeBusinessService.patientRecipeList(patientRecipeListReq);
+    public List<PatientRecipeListResVo> patientRecipeList(PatientRecipeListReqVO patientRecipeListReq) {
+        patientRecipeListReq.setUuid(UUID.randomUUID().toString());
+        Set<RecipeInfoVO> list = iOfflineRecipeBusinessService.patientRecipeList(patientRecipeListReq);
         return null;
     }
 

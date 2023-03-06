@@ -12,7 +12,7 @@ import java.util.Date;
  * @date： 2023-03-01 9:43
  */
 @Data
-public class PatientRecipeListReqVo implements Serializable {
+public class PatientRecipeListReqVO implements Serializable {
     private static final long serialVersionUID = 6248950698119140423L;
 
     @ItemProperty(alias = "机构id")
@@ -28,7 +28,7 @@ public class PatientRecipeListReqVo implements Serializable {
     private Date endTime;
 
     @ItemProperty(alias = "0 全部 1 待审方 2 待缴费 3 收取中 4 已结束")
-    private String state;
+    private Integer state;
 
-
+    private String uuid;
 }

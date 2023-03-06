@@ -88,4 +88,14 @@ public class SmsClient extends BaseClient {
         smsInfoBean.setOrganId(organId);
         this.pushMsgData2OnsExtendValue(smsInfoBean);
     }
+
+
+    public void therapyRecipeApplyToPatient(Recipe recipe) {
+        SmsInfoBean smsInfoBean = new SmsInfoBean();
+        smsInfoBean.setBusType("therapyRecipeApply");
+        smsInfoBean.setSmsType("therapyRecipeApply");
+        smsInfoBean.setBusId(recipe.getRecipeId());
+        smsInfoBean.setOrganId(recipe.getClinicOrgan());
+        this.pushMsgData2OnsExtendValue(smsInfoBean);
+    }
 }

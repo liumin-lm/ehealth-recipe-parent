@@ -3,6 +3,7 @@ package recipe.manager;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.dto.UsingRateDTO;
 import com.ngari.consult.common.model.ConsultExDTO;
@@ -1490,16 +1491,35 @@ public class RecipeManager extends BaseManager {
     }
 
     /**
-     * todo 鸿芳自己写备注 实现代码
+     * 线上处方 患者端列表查询
      *
-     * @param organId
-     * @param mpiId
-     * @param state
-     * @param startTime
-     * @param endTime
+     * @param req
      * @return
      */
-    public List<RecipeInfoDTO> patientRecipeList(Integer organId, String mpiId, String state, Date startTime, Date endTime) {
+    public List<RecipeInfoDTO> patientRecipeList(PatientRecipeListReqDTO req) {
+        List<String> isHisRecipe = configurationClient.getValueListCatch(req.getOrganId(), "xxxxxxx", Collections.emptyList());
+        if (!isHisRecipe.contains("1")) {
+            return Collections.emptyList();
+        }
+        List<Integer> recipeState = RecipeStateEnum.RECIPE_ALL;
+        switch (req.getState()) {
+            case 0:
+                recipeState = RecipeStateEnum.RECIPE_ALL;
+                break;
+            case 1:
+                recipeState = Lists.newArrayList(RecipeStateEnum.PROCESS_STATE_AUDIT.getType());
+                break;
+            case 2:
+                recipeState = Lists.newArrayList(RecipeStateEnum.PROCESS_STATE_ORDER.getType());
+                break;
+            case 4:
+                recipeState = RecipeStateEnum.RECIPE_OVER;
+                break;
+            default:
+                break;
+        }
+        //List<Recipe> recipes = recipeDAO.findPatientRecipeList(req);
+
         return null;
     }
 }

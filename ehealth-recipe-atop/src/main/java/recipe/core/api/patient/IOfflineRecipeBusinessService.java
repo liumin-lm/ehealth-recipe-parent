@@ -10,10 +10,13 @@ import com.ngari.recipe.offlinetoonline.model.FindHisRecipeListVO;
 import com.ngari.recipe.offlinetoonline.model.SettleForOfflineToOnlineVO;
 import com.ngari.recipe.recipe.model.MergeRecipeVO;
 import com.ngari.recipe.vo.OffLineRecipeDetailVO;
+import recipe.vo.doctor.RecipeInfoVO;
+import recipe.vo.patient.PatientRecipeListReqVO;
 import recipe.vo.patient.RecipeGiveModeButtonRes;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @Author liumin
@@ -107,4 +110,12 @@ public interface IOfflineRecipeBusinessService {
      * @param recipeCode 处方code
      */
     HisRecipeDTO getOffLineRecipeDetailsV1(Integer organId, String recipeCode, String createDate);
+
+    /**
+     * 查询处方列表（线上+线下）
+     *
+     * @param patientRecipeListReq
+     * @return
+     */
+    Set<RecipeInfoVO> patientRecipeList(PatientRecipeListReqVO patientRecipeListReq);
 }

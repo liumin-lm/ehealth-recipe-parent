@@ -9,6 +9,7 @@ import com.ngari.his.recipe.mode.RecipeDetailTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.platform.recipe.mode.RecipeDTO;
 import com.ngari.recipe.dto.EmrDetailDTO;
+import com.ngari.recipe.dto.PatientRecipeListReqDTO;
 import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.revisit.common.model.RevisitExDTO;
@@ -845,18 +846,28 @@ public class HisRecipeManager extends BaseManager {
     }
 
     /**
-     * todo 隋晓宇实现
+     * 查询线下处方
      *
-     * @param organId
-     * @param mpiId
-     * @param startTime
-     * @param endTime
+     * @param req
      * @return
      */
-    public List<RecipeDTO> patientRecipeList(Integer organId, String mpiId, Date startTime, Date endTime) {
-        List<RecipeDTO> awaitFeeRecipeList = offlineRecipeClient.patientAwaitFeeRecipeList(organId, mpiId, startTime, endTime);
-        List<RecipeDTO> doneFeeRecipeList = offlineRecipeClient.patientDoneFeeRecipeList(organId, mpiId, startTime, endTime);
-        List<RecipeDTO> cancellaFeeRecipeList = offlineRecipeClient.patientCancellaFeeRecipeList(organId, mpiId, startTime, endTime);
-        return null;
+    @LogRecord
+    public List<RecipeDTO> patientRecipeList(PatientRecipeListReqDTO req, Integer type) {
+        List<String> isHisRecipe = configurationClient.getValueListCatch(req.getOrganId(), "xxxxxxx", Collections.emptyList());
+        if (!isHisRecipe.contains("2")) {
+            return Collections.emptyList();
+        }
+        List<RecipeDTO> list = null;
+        if (1 == type) {
+            list = offlineRecipeClient.patientAwaitFeeRecipeList(req);
+        } else if (2 == type) {
+            list = offlineRecipeClient.patientDoneFeeRecipeList(req);
+        } else if (3 == type) {
+            list = offlineRecipeClient.patientCancellaFeeRecipeList(req);
+        }
+        if (CollectionUtils.isEmpty(list)) {
+            list = Collections.emptyList();
+        }
+        return list;
     }
 }

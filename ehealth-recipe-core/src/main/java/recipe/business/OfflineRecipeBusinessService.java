@@ -20,16 +20,21 @@ import com.ngari.recipe.offlinetoonline.model.FindHisRecipeListVO;
 import com.ngari.recipe.offlinetoonline.model.SettleForOfflineToOnlineVO;
 import com.ngari.recipe.recipe.constant.RecipeTypeEnum;
 import com.ngari.recipe.recipe.model.MergeRecipeVO;
+import com.ngari.recipe.recipe.model.RecipeBean;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import com.ngari.recipe.vo.OffLineRecipeDetailVO;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.BeanUtils;
+import ctd.util.event.GlobalEventExecFactory;
 import ngari.openapi.util.JSONUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
@@ -48,10 +53,14 @@ import recipe.factory.offlinetoonline.OfflineToOnlineFactory;
 import recipe.manager.*;
 import recipe.service.RecipeLogService;
 import recipe.util.MapValueUtil;
+import recipe.util.ObjectCopyUtils;
+import recipe.vo.doctor.RecipeInfoVO;
+import recipe.vo.patient.PatientRecipeListReqVO;
 import recipe.vo.patient.RecipeGiveModeButtonRes;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.concurrent.FutureTask;
 
 /**
  * 线下处方核心逻辑
@@ -387,5 +396,64 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
     @Override
     public HisRecipeDTO getOffLineRecipeDetailsV1(Integer organId, String recipeCode, String createDate) {
         return offlineRecipeClient.getOffLineRecipeDetailsV1(organId, recipeCode, createDate);
+    }
+
+    @Override
+    public Set<RecipeInfoVO> patientRecipeList(PatientRecipeListReqVO req) {
+        PatientRecipeListReqDTO reqDTO = ObjectCopyUtils.convert(req, PatientRecipeListReqDTO.class);
+        //线下异步任务
+        List<Integer> hisTypes = PatientRecipeListReqDTO.hisState(reqDTO.getState());
+        List<FutureTask<List<com.ngari.platform.recipe.mode.RecipeDTO>>> futureTasks = new LinkedList<>();
+        //根据药企配置查询 库存
+        for (Integer type : hisTypes) {
+            FutureTask<List<com.ngari.platform.recipe.mode.RecipeDTO>> ft = new FutureTask<>(() -> hisRecipeManager.patientRecipeList(reqDTO, type));
+            futureTasks.add(ft);
+            GlobalEventExecFactory.instance().getExecutor().submit(ft);
+        }
+        //查询线上处方
+        List<RecipeInfoDTO> recipeList = recipeManager.patientRecipeList(reqDTO);
+        //查询线下处方
+        List<List<com.ngari.platform.recipe.mode.RecipeDTO>> hisRecipeList = super.futureTaskCallbackBeanList(futureTasks, 15000);
+        //去重返回 组装线上 线下数据
+        return recipeList(recipeList, hisRecipeList);
+    }
+
+    /**
+     * 去重返回 组装线上 线下数据 （相同数据优先返回线上数据）
+     *
+     * @param recipeList    线上处方列表
+     * @param hisRecipeList 线下处方列表
+     * @return
+     */
+    private Set<RecipeInfoVO> recipeList(List<RecipeInfoDTO> recipeList, List<List<com.ngari.platform.recipe.mode.RecipeDTO>> hisRecipeList) {
+        Set<RecipeInfoVO> set = new HashSet<>();
+        recipeList.forEach(a -> {
+            if (null == a.getRecipe() || StringUtils.isEmpty(a.getRecipe().getRecipeCode())) {
+                return;
+            }
+            RecipeInfoVO recipeInfo = new RecipeInfoVO();
+            recipeInfo.setRecipeCode(a.getRecipe().getRecipeCode());
+            recipeInfo.setRecipeBean(ObjectCopyUtils.convert(a.getRecipe(), RecipeBean.class));
+            recipeInfo.setRecipeExtendBean(ObjectCopyUtils.convert(a.getRecipeExtend(), RecipeExtendBean.class));
+            recipeInfo.setRecipeDetails(ObjectCopyUtils.convert(a.getRecipeDetails(), RecipeDetailBean.class));
+            set.add(recipeInfo);
+        });
+        hisRecipeList.forEach(a -> {
+            if (CollectionUtils.isEmpty(a)) {
+                return;
+            }
+            a.forEach(b -> {
+                if (null == b.getRecipeBean() || StringUtils.isEmpty(b.getRecipeBean().getRecipeCode())) {
+                    return;
+                }
+                RecipeInfoVO recipeInfo = new RecipeInfoVO();
+                recipeInfo.setRecipeCode(b.getRecipeBean().getRecipeCode());
+                recipeInfo.setRecipeBean(ObjectCopyUtils.convert(b.getRecipeBean(), RecipeBean.class));
+                recipeInfo.setRecipeExtendBean(ObjectCopyUtils.convert(b.getRecipeExtendBean(), RecipeExtendBean.class));
+                recipeInfo.setRecipeDetails(ObjectCopyUtils.convert(b.getRecipeDetails(), RecipeDetailBean.class));
+                set.add(recipeInfo);
+            });
+        });
+        return set;
     }
 }
