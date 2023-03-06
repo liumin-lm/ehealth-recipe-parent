@@ -132,20 +132,6 @@ public class RecipeDetailValidateTool {
             recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
             recipeDetail.setValidateStatusText("机构药品药物单位错误DrugUnit");
         }
-        //校验皮试属性
-        Integer skinTestDrugFlag = organDrug.getSkinTestDrugFlag();
-        if (Integer.valueOf("1").equals(skinTestDrugFlag) && eh.utils.ValidateUtil.nullOrZeroInteger(recipeDetail.getSkinTestFlag())) {
-            recipeDetail.setSkinTestFlag(0);
-            recipeDetail.setSkinTestDrugFlag(skinTestDrugFlag);
-            recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
-            recipeDetail.setValidateStatusText("机构药品【" + organDrug.getDrugName() + "】为皮试药品");
-        }
-        if (Integer.valueOf("0").equals(skinTestDrugFlag) && eh.utils.ValidateUtil.notNullAndZeroInteger(recipeDetail.getSkinTestFlag())) {
-            recipeDetail.setSkinTestFlag(0);
-            recipeDetail.setSkinTestDrugFlag(skinTestDrugFlag);
-            recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
-            recipeDetail.setValidateStatusText("机构药品【" + organDrug.getDrugName() + "】为非皮试药品");
-        }
 
         //开药天数
         useDayValidate(recipeType, recipeDay, recipeDetail);
@@ -162,6 +148,13 @@ public class RecipeDetailValidateTool {
             medicationsValidate(organDrug.getOrganId(), recipeDetail);
         } else {
             /**校验西药 数据是否完善*/
+            //校验皮试属性
+            if (Integer.valueOf(1).equals(organDrug.getSkinTestDrugFlag()) && ValidateUtil.integerIsEmpty(recipeDetail.getSkinTestFlag())) {
+                recipeDetail.setSkinTestFlag(0);
+                recipeDetail.setSkinTestDrugFlag(organDrug.getSkinTestDrugFlag());
+                recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
+                recipeDetail.setValidateStatusText("机构药品【" + organDrug.getDrugName() + "】为皮试药品");
+            }
             //超量原因
             if (null != version && drugSuperScalarValidate(organId, recipeDetail)) {
                 recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
