@@ -1,6 +1,5 @@
 package recipe.serviceprovider.recipe.service;
 
-
 import ca.vo.CaSignResultVo;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
@@ -2387,24 +2386,28 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @Override
     public Map<String, String> getPatientInfo(Integer busId) {
         Map<String, String> map = new HashMap<>();
-        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         RecipeOrder recipeOrder = recipeOrderDAO.get(busId);
-        if (recipeOrder != null) {
-            if (StringUtils.isNotEmpty(recipeOrder.getRecipeIdList())) {
-                List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
-                List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIdList);
-                RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeIdList.get(0));
-                if (recipeExtend.getRegisterID() != null) {
-                    map.put("ghxh", recipeExtend.getRegisterID());
-                }
-                if (recipes.get(0).getPatientID() != null) {
-                    map.put("patid", recipes.get(0).getPatientID());
-                }
-                map.put("cfxhhj", "");
-            }
+        if (Objects.isNull(recipeOrder) || StringUtils.isEmpty(recipeOrder.getRecipeIdList())) {
             return map;
+        }
+        List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
+        List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIdList);
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeIdList.get(0));
+        List<RecipeExtend> recipeExtendList = recipeExtendDAO.queryRecipeExtendByRecipeIds(recipeIdList);
+        List<String> recipeCostNumberList = recipeExtendList.stream().map(RecipeExtend::getRecipeCostNumber).collect(Collectors.toList());
+        if (recipeExtend.getRegisterID() != null) {
+            map.put("ghxh", recipeExtend.getRegisterID());
+        }
+        if (recipes.get(0).getPatientID() != null) {
+            map.put("patid", recipes.get(0).getPatientID());
+        }
+        String noSupport = recipeParameterDao.getByName("no_support_cfxhhj");
+        List<Integer> noSupportList = JSONUtils.parse(noSupport, List.class);
+        if (noSupportList.contains(recipeOrder.getOrganId())) {
+            map.put("cfxhhj", "");
+        } else {
+            String recipeCostNumbers = String.join(",", recipeCostNumberList);
+            map.put("cfxhhj", recipeCostNumbers);
         }
         return map;
     }
