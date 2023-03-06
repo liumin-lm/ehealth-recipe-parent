@@ -89,39 +89,30 @@ public class QueryRecipeService implements IQueryRecipeService {
 
     @Resource
     private RecipeExtendDAO recipeExtendDAO;
-
     @Resource
     private IDocIndexService docIndexService;
-
     @Autowired
     private CreatePdfFactory createPdfFactory;
-
     @Autowired
     private DocIndexClient docIndexClient;
-
     @Autowired
     private DepartManager departManager;
-
     @Autowired
     private DrugEntrustDAO drugEntrustDAO;
-
     @Autowired
     private DrugDecoctionWayDao drugDecoctionWayDao;
-
     @Autowired
     private IAuditMedicinesService iAuditMedicinesService;
-
     @Autowired
     private PharmacyTcmDAO pharmacyTcmDAO;
-
     @Autowired
     private PharmacyTcmService pharmacyTcmService;
-
     @Autowired
     private DrugListDAO drugListDAO;
-
     @Autowired
     private SaleDrugListDAO saleDrugListDAO;
+    @Autowired
+    private RecipeOrderDAO recipeOrderDAO;
 
     /**
      * 用于sendRecipeToHIS 推送处方mq后 查询接口
@@ -395,7 +386,14 @@ public class QueryRecipeService implements IQueryRecipeService {
             recipeDTO.setRecipeFee(String.valueOf(recipe.getActualPrice()));
             //自付比例
             /*recipeDTO.setPayScale("");*/
-
+            if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
+                RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+                if (Objects.nonNull(recipeOrder) && Objects.nonNull(recipeOrder.getDecoctionFee())
+                        && recipeOrder.getDecoctionFee().compareTo(BigDecimal.ZERO) > 0) {
+                    //设置代煎费
+                    recipeDTO.setDecoctionFee(recipeOrder.getDecoctionFee());
+                }
+            }
             if (null != patient) {
                 // 患者信息
                 String idCard = patient.getCertificate();

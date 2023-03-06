@@ -28,6 +28,10 @@
             <version>${project.parent.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>ngari</groupId>
+            <artifactId>s3-support</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>ngari</groupId>

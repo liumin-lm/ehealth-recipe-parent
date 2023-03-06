@@ -218,6 +218,17 @@ public class DrugsEnterpriseBean implements Serializable {
     @ItemProperty(alias = "库存校验途径 1 校验药企 2 校验医院库存")
     private Integer checkInventoryWay;
 
+    @ItemProperty(alias = "药柜编码")
+    private String medicineChestCode;
+
+    public String getMedicineChestCode() {
+        return medicineChestCode;
+    }
+
+    public void setMedicineChestCode(String medicineChestCode) {
+        this.medicineChestCode = medicineChestCode;
+    }
+
     private List<String> supportGiveModeNameList;
 
     private PharmacyVO pharmacy;

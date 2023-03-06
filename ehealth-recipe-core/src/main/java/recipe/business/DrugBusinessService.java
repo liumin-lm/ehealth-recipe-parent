@@ -36,7 +36,6 @@ import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.client.DrugClient;
 import recipe.client.IConfigurationClient;
-import recipe.client.OrganClient;
 import recipe.constant.RecipeBussConstant;
 import recipe.core.api.IDrugBusinessService;
 import recipe.dao.*;
@@ -85,8 +84,6 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
     @Autowired
     private DrugListDAO drugListDAO;
     @Autowired
-    private OrganClient organClient;
-    @Autowired
     private OrganDrugListSyncFieldDAO organDrugListSyncFieldDAO;
     @Autowired
     private DrugOrganConfigDAO drugOrganConfigDao;
@@ -96,8 +93,6 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
     private IUsePathwaysService usePathwaysService;
     @Autowired
     private MedicationSyncConfigDAO medicationSyncConfigDAO;
-    @Autowired
-    private DrugListMatchDAO drugListMatchDAO;
 
     @Override
     public List<PatientDrugWithEsDTO> findDrugWithEsByPatient(SearchDrugReqVO searchDrugReqVo) {
@@ -105,7 +100,7 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
     }
 
     @Override
-    public List<SearchDrugDetailDTO> searchOrganDrugEs(DrugInfoDTO drugInfoDTO, int start, int limit) {
+    public List<SearchDrugDetailDTO> searchOrganDrugEs(DrugInfoDTO drugInfoDTO, int start, int limit, Integer clinicId) {
         List<String> drugInfo = drugManager.searchOrganDrugEs(drugInfoDTO, start, limit);
         Integer organId = drugInfoDTO.getOrganId();
         Integer drugType = drugInfoDTO.getDrugType();
@@ -114,10 +109,17 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
         //药品商品名拼接配置
         Map<String, Integer> configSaleNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getSaleNameConfigByDrugType(organId, drugType));
         Map<Integer, DrugEntrust> drugEntrustNameMap = drugManager.drugEntrustIdMap(organId);
+
+        Map<String, Double> map = recipeDetailManager.sumTotalMap(clinicId);
+
         List<SearchDrugDetailDTO> list = new LinkedList<>();
         drugInfo.forEach(s -> {
             SearchDrugDetailDTO drugList = JSONUtils.parse(s, SearchDrugDetailDTO.class);
             RecipeUtil.SearchDrugDetailDTO(drugList, configDrugNameMap, configSaleNameMap, drugEntrustNameMap);
+            Double num = map.get(drugList.getOrganDrugCode());
+            if (null != num) {
+                drugList.setOpenDrugNum(num.intValue());
+            }
             list.add(drugList);
         });
         logger.info("DrugBusinessService searchOrganDrugEs list= {}", JSONUtils.toString(list));

@@ -201,6 +201,8 @@ public class QueryRecipeInfoDTO implements Serializable {
     private String organDiseaseName;
     @ItemProperty(alias = "诊断编码")
     private String organDiseaseId;
+    @ItemProperty(alias = "代煎费")
+    private BigDecimal decoctionFee;
 
     public String getChronicDiseaseCode() {
         return chronicDiseaseCode;
@@ -772,5 +774,13 @@ public class QueryRecipeInfoDTO implements Serializable {
 
     public void setNeedTwoConfirmFlag(Integer needTwoConfirmFlag) {
         this.needTwoConfirmFlag = needTwoConfirmFlag;
+    }
+
+    public BigDecimal getDecoctionFee() {
+        return decoctionFee;
+    }
+
+    public void setDecoctionFee(BigDecimal decoctionFee) {
+        this.decoctionFee = decoctionFee;
     }
 }

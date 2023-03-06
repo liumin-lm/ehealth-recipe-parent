@@ -1,5 +1,6 @@
 package recipe.serviceprovider.drugsenterprise.service;
 
+import com.google.common.collect.Lists;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.drugsenterprise.service.IDrugsEnterpriseService;
@@ -14,6 +15,9 @@ import org.springframework.util.ObjectUtils;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.manager.EnterpriseManager;
 import recipe.serviceprovider.BaseService;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * company: ngarihealth
@@ -48,4 +52,22 @@ public class RemoteDrugsEnterpriseService extends BaseService<DrugsEnterpriseBea
         return ObjectCopyUtils.convert(byEnterpriseCode, DrugsEnterpriseBean.class);
     }
 
+    /**
+     * 导出批量查询药企信息
+     *
+     * @param enterIds
+     * @return
+     */
+    @Override
+    public  List<DrugsEnterpriseBean> findByEnterpriseIdList(List<Integer> enterIds) {
+        if (ObjectUtils.isEmpty(enterIds)){
+            return new ArrayList<>();
+        }
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        List<DrugsEnterprise>  enterpriseList= drugsEnterpriseDAO.findByIdIn(enterIds);
+        if (ObjectUtils.isEmpty(enterpriseList)){
+            return new ArrayList<>();
+        }
+        return ObjectCopyUtils.convert(enterpriseList, DrugsEnterpriseBean.class);
+    }
 }

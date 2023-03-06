@@ -191,6 +191,17 @@ public class SearchDrugDetailDTO implements IDrugInventory, Serializable {
     @ItemProperty(alias = "是否皮试药品 0 否 1 是")
     private Integer skinTestDrugFlag;
 
+    @ItemProperty(alias = "已开方药品数量")
+    private Integer openDrugNum;
+
+    public Integer getOpenDrugNum() {
+        return openDrugNum;
+    }
+
+    public void setOpenDrugNum(Integer openDrugNum) {
+        this.openDrugNum = openDrugNum;
+    }
+
     public Integer getSkinTestDrugFlag() {
         return skinTestDrugFlag;
     }

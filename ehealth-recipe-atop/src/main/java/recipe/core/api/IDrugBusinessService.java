@@ -44,7 +44,7 @@ public interface IDrugBusinessService {
      * @param limit    每夜条数
      * @return
      */
-    List<SearchDrugDetailDTO> searchOrganDrugEs(DrugInfoDTO drugInfo, int start, int limit);
+    List<SearchDrugDetailDTO> searchOrganDrugEs(DrugInfoDTO drugInfo, int start, int limit, Integer clinicId);
 
     /**
      * 获取药品说明书

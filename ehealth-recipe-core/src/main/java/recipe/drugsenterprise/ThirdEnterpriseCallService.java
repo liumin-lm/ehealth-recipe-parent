@@ -1251,7 +1251,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
      * @author houxr 2016-09-11
      */
     @RpcService
-    public DrugsEnterpriseBean updateDrugsEnterprise(final DrugsEnterprise drugsEnterprise) {
+    public DrugsEnterpriseBean updateDrugsEnterprise(DrugsEnterprise drugsEnterprise) {
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         if (null == drugsEnterprise) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "DrugsEnterprise is null");
@@ -1263,7 +1263,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         }
         BeanUtils.map(drugsEnterprise, target);
         target = drugsEnterpriseDAO.update(target);
-        return getBean(target, DrugsEnterpriseBean.class);
+        return ObjectCopyUtils.convert(target, DrugsEnterpriseBean.class);
     }
 
     /**

@@ -104,6 +104,9 @@ public class EnterpriseManager extends BaseManager {
     /**
      * 获取是否医院结算的药企
      *
+     * 2023-3-6
+     * export项目导出的时候，复制了一份逻辑判断过去，若修改逻辑，那边的代码逻辑也需要调整
+     * 对应类RecipeOrderExcelService
      * @param recipeOrder recipeOrder
      * @return
      */
