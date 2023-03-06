@@ -35,6 +35,8 @@ public class BaseService {
     protected PharmacyManager pharmacyManager;
     @Autowired
     protected DepartManager departManager;
+    @Autowired
+    protected RecipeDetailManager recipeDetailManager;
 
     protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 

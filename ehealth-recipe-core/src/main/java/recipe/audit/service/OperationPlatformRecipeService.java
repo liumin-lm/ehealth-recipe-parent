@@ -5,6 +5,7 @@ import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.dto.UsingRateDTO;
 import com.ngari.base.organ.model.OrganBean;
 import com.ngari.base.patient.model.PatientBean;
+import com.ngari.infra.logistics.service.ILogisticsOrderService;
 import com.ngari.patient.dto.AppointDepartDTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.PatientDTO;
@@ -101,7 +102,8 @@ public class OperationPlatformRecipeService {
     private IAuditMedicinesService iAuditMedicinesService;
     @Autowired
     private DrugClient drugClient;
-
+    @Autowired
+    private ILogisticsOrderService logisticsOrderService;
 
     /**
      * 审核平台 获取处方单详情
@@ -225,9 +227,11 @@ public class OperationPlatformRecipeService {
         //机构所属一级科室
         r.setOrganProfession((null != appointDepart) ? appointDepart.getOrganProfession() : null);
         r.setSubStateText(RecipeStateEnum.getRecipeStateEnum(recipe.getSubState()).getName());
+        //是否医保 0自费 1医保
+        r.setMedicalFlag(recipe.getMedicalFlag());
         LOGGER.info("findRecipeAndDetailsAndCheckById reicpeid={},r={}", recipeId, JSONUtils.toString(r));
         //取医生的手机号
-        DoctorDTO doctor = new DoctorDTO();
+        DoctorDTO doctor = doctorClient.getDoctor(r.getDoctor());
         RecipeExtend extend = extendDAO.getByRecipeId(recipeId);
         //监护人信息
         GuardianBean guardian = new GuardianBean();
@@ -247,6 +251,7 @@ public class OperationPlatformRecipeService {
                 p.setCertificate((patient.getCertificate()));
                 p.setMpiId(patient.getMpiId());
                 p.setCertificateType(patient.getCertificateType());
+                p.setWeight(patient.getWeight());
                 //判断该就诊人是否为儿童就诊人
                 if (new Integer(1).equals(patient.getPatientUserType()) || new Integer(2).equals(patient.getPatientUserType())) {
                     if (null != extend && StringUtils.isNotEmpty(extend.getGuardianCertificate())) {
@@ -321,6 +326,15 @@ public class OperationPlatformRecipeService {
             }
             if ((null != order.getAddressID() || TakeMedicineWayEnum.TAKE_MEDICINE_STATION.getType().equals(order.getTakeMedicineWay()))) {
                 order.setCompleteAddress(orderManager.getCompleteAddress(recipeOrder));
+            }
+            try {
+                //查是否可以打印快递面单
+                String logisticsOrderPrintWaybill = logisticsOrderService.printWaybillByLogisticsOrderNo(1, orderCode);
+                map.put("logisticsOrderPrintWaybill",logisticsOrderPrintWaybill);
+                map.put("printWaybillByLogisticsOrderNo",true);
+            }catch (Exception e){
+                map.put("printWaybillByLogisticsOrderNo",false);
+                LOGGER.error("findRecipeAndDetailsAndCheckById getPrintWaybillByLogisticsOrderNo error", e);
             }
         }
 

@@ -333,9 +333,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         Map<String, OrganDrugList> organDrugListMap = organDrugList.stream().collect(Collectors.toMap(k -> k.getDrugId() + k.getOrganDrugCode(), v -> v));
         Map<Integer, List<DrugList>> drugListMap = byDrugIds.stream().collect(Collectors.groupingBy(DrugList::getDrugId));
         // 获取当前复诊下 的有效处方
-        List<Recipedetail> detail = findEffectiveRecipeDetailByClinicId(clinicId);
-        Map<String, List<Recipedetail>> collect = detail.stream().collect(Collectors.groupingBy(k -> k.getDrugId() + k.getOrganDrugCode()));
-
+        Map<String, Double> map = recipeDetailManager.sumTotalMap(clinicId);
         List<PatientOptionalDrugVO> patientOptionalDrugDTOS = patientOptionalDrugs.stream().map(patientOptionalDrug -> {
             PatientOptionalDrugVO patientOptionalDrugDTO = new PatientOptionalDrugVO();
             org.springframework.beans.BeanUtils.copyProperties(patientOptionalDrug, patientOptionalDrugDTO);
@@ -372,16 +370,10 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
                     patientOptionalDrugDTO.setPharmacyTcms(pharmacyTcmVOS);
                 }
             }
-
-            List<Recipedetail> recipedetails = collect.get(patientOptionalDrug.getDrugId() + patientOptionalDrug.getOrganDrugCode());
-
-            Double num = 0.00;
-            if (CollectionUtils.isNotEmpty(recipedetails)) {
-                for (Recipedetail recipedetail : recipedetails) {
-                    num = num + recipedetail.getUseTotalDose();
-                }
+            Double num = map.get(patientOptionalDrug.getOrganDrugCode());
+            if (null != num) {
+                patientOptionalDrugDTO.setOpenDrugNum(num.intValue());
             }
-            patientOptionalDrugDTO.setOpenDrugNum(num.intValue());
             return patientOptionalDrugDTO;
         }).filter(Objects::nonNull).collect(Collectors.toList());
         logger.info("RecipeBusinessService findPatientOptionalDrugDTO res patientOptionalDrugDTOS= {}", JSON.toJSONString(patientOptionalDrugDTOS));
