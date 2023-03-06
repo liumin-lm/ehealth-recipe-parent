@@ -80,7 +80,7 @@ public abstract class PharmacyTcmDAO extends HibernateSupportDelegateDAO<Pharmac
      * @param organId
      * @return
      */
-    @DAOMethod(sql = "from PharmacyTcm where organId=:organId order by sort ASC " ,limit =0)
+    @DAOMethod(sql = "from PharmacyTcm where organId=:organId order by whDefault desc, sort ASC ", limit = 0)
     public abstract List<PharmacyTcm> findByOrganId(@DAOParam("organId") Integer organId);
 
     /**
