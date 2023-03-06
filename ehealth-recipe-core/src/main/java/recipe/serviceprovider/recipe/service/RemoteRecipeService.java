@@ -975,18 +975,6 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         //List<Map> recipeMap = recipeDAO.findRecipesByInfoForExcelN(recipesQueryVO);
         LOGGER.info("配送订单导出-getRecipeOrder 开始查询");
         List<Object[]> objectList = recipeDAO.findRecipesByInfoForExcelN(recipesQueryVO);
-        for(Object[] obj : objectList){
-            String recipeDetailStr = JSONObject.toJSONString(obj[2]);
-            String recipeOrderStr = JSONObject.toJSONString(obj[1]);
-            Recipedetail recipeDetail = JSON.parseObject(recipeDetailStr, Recipedetail.class);
-            RecipeOrder recipeOrder = JSON.parseObject(recipeOrderStr, RecipeOrder.class);
-            Boolean isHosSettle = enterpriseManager.getIsHosSettle(recipeOrder);
-            if(Objects.nonNull(recipeDetail.getHisReturnSalePrice()) && isHosSettle){
-                recipeDetail.setActualSalePrice(recipeDetail.getHisReturnSalePrice());
-            }
-            obj[2] = recipeDetail;
-
-        }
         LOGGER.info("配送订单导出-getRecipeOrder size={}", objectList.size());
         return objectList;
 

@@ -6,7 +6,7 @@ import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.dto.UsingRateDTO;
 import com.ngari.bus.op.service.IUsePathwaysService;
 import com.ngari.common.mode.HisResponseTO;
-import com.ngari.his.recipe.MedicationInfoReqTO;
+import com.ngari.his.recipe.mode.MedicationInfoReqTO;
 import com.ngari.his.recipe.mode.MedicationInfoResTO;
 import com.ngari.patient.service.IUsingRateService;
 import com.ngari.platform.recipe.mode.HospitalDrugListDTO;

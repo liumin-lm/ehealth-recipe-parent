@@ -10,6 +10,14 @@
 		<constructor-arg name="endpoint" value="${oss.endpoint}"/>
 		<constructor-arg name="suffix" value="${oss.suffix}"/>
 	</bean>
+
+	<bean id="s3FileRespository" class="ngari.s3.support.S3FileRespository">
+		<constructor-arg name="awsAccessKeyId" value="${oss.accessKeyId}"/>
+		<constructor-arg name="awsSecretAccessKey" value="${oss.accessKeySecret}"/>
+		<constructor-arg name="endPoint" value="${oss.endpoint}"/>
+		<constructor-arg name="suffix" value="${oss.suffix}"/>
+	</bean>
+
 	<bean id="localFileRepository" class="ctd.mvc.upload.support.LocalFileRepository">
 		<constructor-arg name="repositoryPath" value="${file.repositoryPath}"/>
 	</bean>

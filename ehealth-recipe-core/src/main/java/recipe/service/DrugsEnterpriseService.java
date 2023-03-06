@@ -39,11 +39,9 @@ import recipe.core.api.IEnterpriseBusinessService;
 import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.enumerate.type.RecipeSupportGiveModeEnum;
-import recipe.manager.ButtonManager;
 import recipe.manager.EnterpriseManager;
 import recipe.serviceprovider.BaseService;
 
-import javax.annotation.Resource;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -101,7 +99,7 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
      * @author houxr 2016-09-11
      */
     @RpcService
-    public DrugsEnterpriseBean addDrugsEnterprise(final DrugsEnterpriseBean drugsEnterpriseBean) {
+    public DrugsEnterpriseBean addDrugsEnterprise(DrugsEnterpriseBean drugsEnterpriseBean) {
         if (null == drugsEnterpriseBean) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "DrugsEnterprise is null");
         }
@@ -221,13 +219,13 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
      * @author houxr 2016-09-11
      */
     @RpcService
-    public DrugsEnterpriseBean updateDrugsEnterprise(final DrugsEnterpriseBean drugsEnterpriseBean) {
+    public DrugsEnterpriseBean updateDrugsEnterprise(DrugsEnterpriseBean drugsEnterpriseBean) {
         if (null == drugsEnterpriseBean) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "DrugsEnterprise is null");
         }
         LOGGER.info("updateDrugsEnterprise params={}", JSONUtils.toString(drugsEnterpriseBean));
         //处理xxs漏洞
-        String  enterpriseName=drugsEnterpriseBean.getName()==null?"":drugsEnterpriseBean.getName();
+        String enterpriseName = drugsEnterpriseBean.getName() == null ? "" : drugsEnterpriseBean.getName();
         drugsEnterpriseBean.setName(EscapeUtil.escapeHtml(enterpriseName));
 
         // 药企物流信息校验：平台对接物流，物流公司、寄件人信息不能为空

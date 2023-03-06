@@ -199,6 +199,18 @@ public class DrugsEnterprise implements java.io.Serializable {
     @ItemProperty(alias = "支付方式 1 线上支付 2 货到付款")
     private String payMode;
 
+    @ItemProperty(alias = "药柜编码")
+    private String medicineChestCode;
+    
+    @Column(name = "medicine_chest_code")
+    public String getMedicineChestCode() {
+        return medicineChestCode;
+    }
+
+    public void setMedicineChestCode(String medicineChestCode) {
+        this.medicineChestCode = medicineChestCode;
+    }
+
     @Column(name = "enterprise_phone")
     public String getEnterprisePhone() {
         return enterprisePhone;
