@@ -21,7 +21,6 @@ import com.ngari.revisit.common.request.ValidRevisitRequest;
 import com.ngari.revisit.common.service.*;
 import com.ngari.revisit.process.service.IRecipeOnLineRevisitService;
 import com.ngari.revisit.traces.service.IRevisitTracesSortService;
-import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -85,9 +84,14 @@ public class RevisitClient extends BaseClient {
      */
     public RevisitExDTO getByRegisterId(String registeredId) {
         logger.info("RevisitClient getByRegisterId param registeredId:{}", registeredId);
-        RevisitExDTO consultExDTO = revisitExService.getByRegisterId(registeredId);
-        logger.info("RevisitClient res consultExDTO:{} ", JSONUtils.toString(consultExDTO));
-        return consultExDTO;
+        try {
+            RevisitExDTO consultExDTO = revisitExService.getByRegisterId(registeredId);
+            logger.info("RevisitClient res consultExDTO:{} ", JSONUtils.toString(consultExDTO));
+            return consultExDTO;
+        } catch (Exception e) {
+            logger.error("RevisitClient res consultExDTO error", e);
+        }
+        return null;
     }
 
     public RevisitBean getRevisitByClinicId(Integer clinicId) {

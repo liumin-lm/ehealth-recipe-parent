@@ -39,12 +39,12 @@ public class PatientRecipeListResVo implements Serializable {
     private Integer recipeType;
 
     @ItemProperty(alias = "开方科室")
-    @Dictionary(id = "eh.base.dictionary.Depart")
     private Integer depart;
+    private String departText;
 
     @ItemProperty(alias = "开方医生（医生Id）")
-    @Dictionary(id = "eh.base.dictionary.Doctor")
     private Integer doctor;
+    private String doctorText;
 
     @ItemProperty(alias = "机构疾病名称")
     private String organDiseaseName;
@@ -68,6 +68,8 @@ public class PatientRecipeListResVo implements Serializable {
     @ItemProperty(alias = "线下处方/常用方/协定方名称")
     private String offlineRecipeName;
 
+    @ItemProperty(alias = "支付标志")
+    private Integer payFlag;
 
     /******************************** 以下数据来源 recipeExt ****************************/
     @ItemProperty(alias = "大病类型")
@@ -89,6 +91,9 @@ public class PatientRecipeListResVo implements Serializable {
 
     @ItemProperty(alias = "腹透液  空0否  1是 ")
     private Integer peritonealDialysisFluidType;
+
+    @ItemProperty(alias = "能否合并支付")
+    private Boolean mergeRecipeFlag;
 
     /******************************** 以下数据来源 recipeDetail ****************************/
     @ItemProperty(alias = "药品信息")

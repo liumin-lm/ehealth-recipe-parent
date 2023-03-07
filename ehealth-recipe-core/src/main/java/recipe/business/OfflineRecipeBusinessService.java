@@ -1,6 +1,7 @@
 package recipe.business;
 
 import com.google.common.collect.Lists;
+import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.QueryHisRecipResTO;
@@ -52,6 +53,7 @@ import recipe.factory.offlinetoonline.IOfflineToOnlineStrategy;
 import recipe.factory.offlinetoonline.OfflineToOnlineFactory;
 import recipe.manager.*;
 import recipe.service.RecipeLogService;
+import recipe.util.DictionaryUtil;
 import recipe.util.MapValueUtil;
 import recipe.util.ObjectCopyUtils;
 import recipe.vo.doctor.RecipeInfoVO;
@@ -100,6 +102,8 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
     private OrganDrugListManager organDrugListManager;
     @Autowired
     private RecipeParameterDao recipeParameterDao;
+    @Autowired
+    private ICurrentUserInfoService currentUserInfoService;
 
     @Override
     public List<MergeRecipeVO> findHisRecipeList(FindHisRecipeListVO request) {
@@ -457,15 +461,20 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
     }
 
     private List<PatientRecipeListResVo> recipeInfoVOSCoverPatientRecipeListResVo(Set<RecipeInfoVO> recipeInfoVOS) {
+        List<Integer> organIds = currentUserInfoService.getCurrentOrganIds();
+        Boolean mergeRecipeFlag = organIds.stream().allMatch(a -> configurationClient.getValueBooleanCatch(a, "mergeRecipeFlag", false));
         List<PatientRecipeListResVo> patientRecipeListResVos = recipeInfoVOS.stream().map(recipeInfoVO -> {
             PatientRecipeListResVo patientRecipeListResVo = new PatientRecipeListResVo();
             RecipeBean recipeBean = recipeInfoVO.getRecipeBean();
             RecipeExtendBean recipeExtendBean = recipeInfoVO.getRecipeExtendBean();
             List<RecipeDetailBean> recipeDetails = recipeInfoVO.getRecipeDetails();
+            patientRecipeListResVo.setPayFlag(recipeBean.getPayFlag());
             patientRecipeListResVo.setRecipeId(recipeBean.getRecipeId());
             patientRecipeListResVo.setBussSource(recipeBean.getBussSource());
             patientRecipeListResVo.setClinicId(recipeBean.getClinicId());
             patientRecipeListResVo.setDepart(recipeBean.getDepart());
+            patientRecipeListResVo.setDepartText(DictionaryUtil.getDictionary("eh.base.dictionary.Depart", recipeBean.getDepart()));
+            patientRecipeListResVo.setDoctorText(DictionaryUtil.getDictionary("eh.base.dictionary.Doctor", recipeBean.getDoctor()));
             patientRecipeListResVo.setDoctor(recipeBean.getDoctor());
             patientRecipeListResVo.setIllnessType(recipeExtendBean.getIllnessType());
             patientRecipeListResVo.setIllnessName(recipeExtendBean.getIllnessName());
@@ -479,6 +488,7 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
             patientRecipeListResVo.setRecipeType(recipeBean.getRecipeType());
             patientRecipeListResVo.setSignDate(recipeBean.getSignDate());
             patientRecipeListResVo.setTargetedDrugType(recipeBean.getTargetedDrugType());
+            patientRecipeListResVo.setMergeRecipeFlag(mergeRecipeFlag);
             Integer secrecyRecipe = 0;
             Integer peritonealDialysisFluidType = 0;
             List<RecipeDetailForRecipeListResVo> recipeDetailForRecipeListResVos = new ArrayList<>();

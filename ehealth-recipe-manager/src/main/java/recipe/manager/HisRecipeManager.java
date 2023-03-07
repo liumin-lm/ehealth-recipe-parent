@@ -7,7 +7,11 @@ import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.QueryHisRecipResTO;
 import com.ngari.his.recipe.mode.RecipeDetailTO;
 import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.platform.recipe.mode.RecipeBean;
 import com.ngari.platform.recipe.mode.RecipeDTO;
+import com.ngari.platform.recipe.mode.RecipeDetailBean;
+import com.ngari.platform.recipe.mode.RecipeExtendBean;
 import com.ngari.recipe.dto.EmrDetailDTO;
 import com.ngari.recipe.dto.PatientRecipeListReqDTO;
 import com.ngari.recipe.dto.RecipeInfoDTO;
@@ -857,17 +861,82 @@ public class HisRecipeManager extends BaseManager {
         if (!isHisRecipe.contains("offLine")) {
             return Collections.emptyList();
         }
-        List<RecipeDTO> list = null;
-        if (1 == type) {
-            list = offlineRecipeClient.patientAwaitFeeRecipeList(req);
-        } else if (2 == type) {
-            list = offlineRecipeClient.patientDoneFeeRecipeList(req);
-        } else if (3 == type) {
-            list = offlineRecipeClient.patientCancellaFeeRecipeList(req);
-        }
+        PatientDTO patient = patientClient.getPatient(req.getMpiId());
+        List<QueryHisRecipResTO> list = offlineRecipeClient.patientFeeRecipeList(req, patient, type);
         if (CollectionUtils.isEmpty(list)) {
-            list = Collections.emptyList();
+            return Collections.emptyList();
         }
-        return list;
+        return covertRecipeDTOFromQueryHisRecipResTO(list, patient, type);
     }
+
+    /**
+     * @param queryHisRecipResTOs
+     * @param patient
+     * @param flag                1 代缴费，2，已缴费，3 已失效
+     * @return
+     */
+    private List<RecipeDTO> covertRecipeDTOFromQueryHisRecipResTO(List<QueryHisRecipResTO> queryHisRecipResTOs, PatientDTO patient, Integer flag) {
+        if (CollectionUtils.isEmpty(queryHisRecipResTOs)) {
+            return null;
+        }
+        List<RecipeDTO> recipeDTOS = new ArrayList<>();
+        queryHisRecipResTOs.forEach(a -> {
+            RecipeDTO recipeDTO = new RecipeDTO();
+            RecipeBean recipe = ObjectCopyUtils.convert(a, RecipeBean.class);
+            RecipeExtendBean recipeExt = ObjectCopyUtils.convert(a, RecipeExtendBean.class);
+            List<RecipeDetailBean> recipeDetailBeans = ObjectCopyUtils.convert(a.getDrugList(), RecipeDetailBean.class);
+            recipe.setBussSource(0);
+            if (!new Integer(0).equals(a.getRevisitType())) {
+                RevisitExDTO revisitExDTO = revisitClient.getByRegisterId(a.getRegisteredId());
+                if (revisitExDTO != null) {
+                    recipe.setBussSource(2);
+                    recipe.setClinicId(revisitExDTO.getConsultId());
+                    //优先级his->复诊
+                    if (null == a.getIllnessType()) {
+                        recipeExt.setIllnessType(revisitExDTO.getDbType());
+                        recipeExt.setIllnessName(revisitExDTO.getInsureTypeName());
+                    }
+                }
+            } else {
+                recipe.setBussSource(5);
+            }
+            recipe.setMpiid(patient.getMpiId());
+//            AppointDepartDTO appointDepartDTO = departClient.getAppointDepartByOrganIdAndAppointDepartCode(a.getClinicOrgan(), a.getDepartCode());
+//            if (appointDepartDTO != null) {
+//                recipe.setDepart(appointDepartDTO.getDepartId());
+//            } else {
+//                logger.info("无法查询到开方科室:{},{}", a.getDepartCode(), a.getRecipeCode());
+//            }
+//            if (StringUtils.isNotEmpty(a.getDoctorCode())) {
+//                EmploymentDTO employmentDTO = employmentService.getEmploymentByJobNumberAndOrganId(a.getDoctorCode(), a.getClinicOrgan());
+//                if (employmentDTO != null && employmentDTO.getDoctorId() != null) {
+//                    recipe.setDoctor(employmentDTO.getDoctorId());
+//                } else {
+//                    logger.error("请确认医院的医生工号和纳里维护的是否一致:{},{}" + a.getDoctorCode(), a.getRecipeCode());
+//                }
+//            }
+            recipe.setOrganDiseaseName(a.getDiseaseName());
+            if (HisRecipeConstant.HISRECIPESTATUS_NOIDEAL.equals(flag)) {
+                recipe.setProcessState(RecipeStateEnum.PROCESS_STATE_ORDER.getType());
+            } else if (HisRecipeConstant.HISRECIPESTATUS_ALREADYIDEAL.equals(flag)) {
+                recipe.setProcessState(RecipeStateEnum.PROCESS_STATE_DONE.getType());
+            } else if (HisRecipeConstant.HISRECIPESTATUS_NOIDEAL.equals(flag)) {
+                recipe.setProcessState(RecipeStateEnum.PROCESS_STATE_CANCELLATION.getType());
+            }
+            recipe.setSignDate(a.getCreateDate());
+            recipe.setRecipeSourceType(2);
+            recipeExt.setRegisterID(a.getRegisteredId());
+
+            //recipeType recipeCode illnessType illnessName
+            //TODO recipeBusType secrecyRecipe 这两组装数据的人自己搞
+            recipeDTO.setPatientDTO(patient);
+            recipeDTO.setRecipeBean(recipe);
+            recipeDTO.setRecipeExtendBean(recipeExt);
+            recipeDTO.setRecipeDetails(recipeDetailBeans);
+            recipeDTOS.add(recipeDTO);
+        });
+        return recipeDTOS;
+    }
+
+
 }
