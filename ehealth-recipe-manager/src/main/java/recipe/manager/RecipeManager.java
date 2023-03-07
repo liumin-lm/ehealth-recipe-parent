@@ -1497,8 +1497,8 @@ public class RecipeManager extends BaseManager {
      * @return
      */
     public List<RecipeInfoDTO> patientRecipeList(PatientRecipeListReqDTO req) {
-        List<String> isHisRecipe = configurationClient.getValueListCatch(req.getOrganId(), "xxxxxxx", Collections.emptyList());
-        if (!isHisRecipe.contains("1")) {
+        List<String> isHisRecipe = configurationClient.getPropertyByStringList("findRecipeListType");
+        if (!isHisRecipe.contains("onLine")) {
             return Collections.emptyList();
         }
         List<Integer> recipeState = RecipeStateEnum.RECIPE_ALL;

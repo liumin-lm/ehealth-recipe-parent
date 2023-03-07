@@ -93,6 +93,28 @@ public class IConfigurationClient extends BaseClient {
         }
     }
 
+    /**
+     * 获取终端配置
+     *
+     * @param medicalPayConfigKey      机构id
+     * @return list
+     */
+    public List<String> getPropertyByStringList(String medicalPayConfigKey) {
+        try {
+            Client client = currentUserInfoService.getCurrentClient();
+            logger.info("IConfigurationClient getPropertyByClientId  client:{}", JSONArray.toJSONString(client));
+            String[] invalidInfoObject = (String[]) configService.getPropertyByClientId(client.getClientConfigId(), medicalPayConfigKey);
+            logger.info("IConfigurationClient getPropertyByClientId  invalidInfoObject:{}", invalidInfoObject);
+            if (null == invalidInfoObject || 0 == invalidInfoObject.length) {
+                return null;
+            }
+            return Arrays.asList(invalidInfoObject);
+        } catch (Exception e) {
+            logger.error("IConfigurationClient getPropertyByClientId", e);
+            return null;
+        }
+    }
+
 
     /**
      * 获取多个机构配置
