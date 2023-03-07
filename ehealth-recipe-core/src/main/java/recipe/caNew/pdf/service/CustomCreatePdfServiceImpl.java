@@ -548,16 +548,16 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
             return null;
         }
         List<RecipeLabelDTO> list = new LinkedList<>();
-        List<String> drugCodeList = recipeDetails.stream().filter(recipeDetail -> StringUtils.isNotEmpty(recipeDetail.getOrganDrugCode())).map(Recipedetail::getOrganDrugCode).collect(Collectors.toList());
-        List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugCodes(recipe.getClinicOrgan(), drugCodeList);
-        Map<String, List<OrganDrugList>> organDrugListMap = organDrugList.stream().collect(Collectors.groupingBy(OrganDrugList::getOrganDrugCode));
+        //List<String> drugCodeList = recipeDetails.stream().filter(recipeDetail -> StringUtils.isNotEmpty(recipeDetail.getOrganDrugCode())).map(Recipedetail::getOrganDrugCode).collect(Collectors.toList());
+        //List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugCodes(recipe.getClinicOrgan(), drugCodeList);
+        //Map<String, List<OrganDrugList>> organDrugListMap = organDrugList.stream().collect(Collectors.groupingBy(OrganDrugList::getOrganDrugCode));
         Recipedetail recipeDetail = recipeDetails.get(0);
 
         for (int i = 0; i < recipeDetails.size(); i++) {
             String drugShowName = RecipeUtil.drugChineShowName(recipeDetails.get(i));
             list.add(new RecipeLabelDTO("药品名称", "recipeDetail.drugName_" + i, drugShowName));
-            List<OrganDrugList> organDrugLists = organDrugListMap.get(recipeDetails.get(0).getOrganDrugCode());
-            list.add(new RecipeLabelDTO("医保类别", "recipeDetail.medicalInsuranceCategory_"+i, !CollectionUtils.isEmpty(organDrugLists)&&!"未维护".equals(organDrugLists.get(0).getMedicalInsuranceCategory())?organDrugLists.get(0).getMedicalInsuranceCategory():""));
+            //List<OrganDrugList> organDrugLists = organDrugListMap.get(recipeDetails.get(0).getOrganDrugCode());
+            list.add(new RecipeLabelDTO("医保类别", "recipeDetail.medicalInsuranceCategory_"+i,recipeDetails.get(i).getMedicalInsuranceCategory()));
         }
         list.add(new RecipeLabelDTO("药房", "recipeDetail.pharmacyName", recipeDetail.getPharmacyName()));
         list.add(new RecipeLabelDTO("天数", "recipeDetail.useDays", getUseDays(recipeDetail.getUseDaysB(), recipeDetail.getUseDays())));
@@ -589,9 +589,9 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
             return null;
         }
         logger.info("createMedicinePDF recipeInfoDTO:{}",JsonUtil.toString(recipeInfoDTO));
-        List<String> drugCodeList = recipeDetails.stream().filter(recipeDetail -> StringUtils.isNotEmpty(recipeDetail.getOrganDrugCode())).map(Recipedetail::getOrganDrugCode).collect(Collectors.toList());
-        List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugCodes(recipe.getClinicOrgan(), drugCodeList);
-        Map<String, List<OrganDrugList>> organDrugListMap = organDrugList.stream().collect(Collectors.groupingBy(OrganDrugList::getOrganDrugCode));
+        //List<String> drugCodeList = recipeDetails.stream().filter(recipeDetail -> StringUtils.isNotEmpty(recipeDetail.getOrganDrugCode())).map(Recipedetail::getOrganDrugCode).collect(Collectors.toList());
+        //List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugCodes(recipe.getClinicOrgan(), drugCodeList);
+        //Map<String, List<OrganDrugList>> organDrugListMap = organDrugList.stream().collect(Collectors.groupingBy(OrganDrugList::getOrganDrugCode));
         List<RecipeLabelDTO> list = new LinkedList<>();
         Recipedetail recipedetail = recipeDetails.get(0);
 
@@ -616,8 +616,8 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
             if (Objects.nonNull(detail.getDrugCost())) {
                 list.add(new RecipeLabelDTO("单药品总价（西药）", "recipeDetail.drugCost_" + i, detail.getDrugCost().stripTrailingZeros().toPlainString() + "元"));
             }
-            List<OrganDrugList> organDrugLists = organDrugListMap.get(recipedetail.getOrganDrugCode());
-            list.add(new RecipeLabelDTO("医保类别", "recipeDetail.medicalInsuranceCategory_"+i, !CollectionUtils.isEmpty(organDrugLists)&&!"未维护".equals(organDrugLists.get(0).getMedicalInsuranceCategory())?organDrugLists.get(0).getMedicalInsuranceCategory():""));
+            //List<OrganDrugList> organDrugLists = organDrugListMap.get(recipedetail.getOrganDrugCode());
+            list.add(new RecipeLabelDTO("医保类别", "recipeDetail.medicalInsuranceCategory_"+i,detail.getMedicalInsuranceCategory() ));
         }
         list.add(new RecipeLabelDTO("药房", "recipeDetail.pharmacyName", recipedetail.getPharmacyName()));
         logger.info("CreateRecipePdfUtil createMedicinePDF list :{} ", JSON.toJSONString(list));
