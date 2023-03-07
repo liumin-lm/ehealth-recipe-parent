@@ -89,8 +89,12 @@ public class EnterpriseOpenAtop  extends BaseAtop implements IEnterpriseOpenAtop
     }
 
     @Override
-    public Boolean setEnterpriseAddressAndPrice(List<EnterpriseAddressVO> enterpriseAddressList) {
-        return enterpriseBusinessService.setEnterpriseAddressAndPrice(enterpriseAddressList);
+    public EnterpriseResultBean setEnterpriseAddressAndPrice(List<EnterpriseAddressVO> enterpriseAddressList) {
+        Boolean result = enterpriseBusinessService.setEnterpriseAddressAndPrice(enterpriseAddressList);
+        if (result) {
+            return EnterpriseResultBean.getSuccess();
+        }
+        return EnterpriseResultBean.getFail();
     }
 
 }
