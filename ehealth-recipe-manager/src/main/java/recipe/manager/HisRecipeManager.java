@@ -52,6 +52,7 @@ import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -876,6 +877,7 @@ public class HisRecipeManager extends BaseManager {
      * @return
      */
     private List<RecipeDTO> covertRecipeDTOFromQueryHisRecipResTO(List<QueryHisRecipResTO> queryHisRecipResTOs, PatientDTO patient, Integer flag) {
+        //PatientRecipeListResVo
         if (CollectionUtils.isEmpty(queryHisRecipResTOs)) {
             return null;
         }
@@ -896,25 +898,13 @@ public class HisRecipeManager extends BaseManager {
                         recipeExt.setIllnessType(revisitExDTO.getDbType());
                         recipeExt.setIllnessName(revisitExDTO.getInsureTypeName());
                     }
+                }else{
+                    logger.error("无关联复诊:{},{}", a.getRecipeCode());
                 }
             } else {
                 recipe.setBussSource(5);
             }
             recipe.setMpiid(patient.getMpiId());
-//            AppointDepartDTO appointDepartDTO = departClient.getAppointDepartByOrganIdAndAppointDepartCode(a.getClinicOrgan(), a.getDepartCode());
-//            if (appointDepartDTO != null) {
-//                recipe.setDepart(appointDepartDTO.getDepartId());
-//            } else {
-//                logger.info("无法查询到开方科室:{},{}", a.getDepartCode(), a.getRecipeCode());
-//            }
-//            if (StringUtils.isNotEmpty(a.getDoctorCode())) {
-//                EmploymentDTO employmentDTO = employmentService.getEmploymentByJobNumberAndOrganId(a.getDoctorCode(), a.getClinicOrgan());
-//                if (employmentDTO != null && employmentDTO.getDoctorId() != null) {
-//                    recipe.setDoctor(employmentDTO.getDoctorId());
-//                } else {
-//                    logger.error("请确认医院的医生工号和纳里维护的是否一致:{},{}" + a.getDoctorCode(), a.getRecipeCode());
-//                }
-//            }
             recipe.setOrganDiseaseName(a.getDiseaseName());
             if (HisRecipeConstant.HISRECIPESTATUS_NOIDEAL.equals(flag)) {
                 recipe.setProcessState(RecipeStateEnum.PROCESS_STATE_ORDER.getType());
@@ -925,6 +915,23 @@ public class HisRecipeManager extends BaseManager {
             }
             recipe.setSignDate(a.getCreateDate());
             recipe.setRecipeSourceType(2);
+            //靶向药
+            AtomicReference<Integer> targetedDrugType = new AtomicReference<>(0);
+            List<String> drugCodeList = recipeDetailBeans.stream().filter(b -> StringUtils.isNotEmpty(b.getDrugCode())).map(RecipeDetailBean::getDrugCode).collect(Collectors.toList());
+            List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugCodes(recipe.getClinicOrgan(), drugCodeList);
+            Map<String, List<OrganDrugList>> organDrugListMap = organDrugList.stream().collect(Collectors.groupingBy(OrganDrugList::getOrganDrugCode));
+            recipeDetailBeans.forEach(b->{
+                List<OrganDrugList> organDrugLists = organDrugListMap.get(b.getDrugCode());
+                if (CollectionUtils.isEmpty(organDrugLists)) {
+                    logger.info("处方中的药品信息未维护到线上平台药品目录:{},{},{}", recipe.getRecipeCode(), b.getDrugCode(), recipe.getClinicOrgan());
+                }
+                if (new Integer("1").equals(organDrugLists.get(0).getTargetedDrugType())) {
+                    targetedDrugType.set(1);
+                    return;
+                }
+            });
+
+            recipe.setTargetedDrugType(targetedDrugType);
             recipeExt.setRegisterID(a.getRegisteredId());
 
             //recipeType recipeCode illnessType illnessName
@@ -938,5 +945,34 @@ public class HisRecipeManager extends BaseManager {
         return recipeDTOS;
     }
 
+    /**
+     *
+     * @param hisResponseTO
+     * @param patient
+     * @param
+     * @return
+     */
+    private List<RecipeDTO> covertRecipeDTOFromQueryHisRecipResTO(HisResponseTO<List<QueryHisRecipResTO>> hisResponseTO, PatientDTO patient, Integer flag) {
+        //PatientRecipeListResVo
+        List<RecipeDTO> recipeDTOS=new ArrayList<>();
+        if (null == hisResponseTO || CollectionUtils.isEmpty(hisResponseTO.getData())) {
+            return null;
+        }
+        List<QueryHisRecipResTO> queryHisRecipResTOs=hisResponseTO.getData();
+        queryHisRecipResTOs.forEach(a -> {
+
+
+
+
+            //recipeType recipeCode illnessType illnessName
+            //TODO recipeBusType secrecyRecipe 这两组装数据的人自己搞
+            recipeDTO.setPatientDTO(patient);
+            recipeDTO.setRecipeBean(recipe);
+            recipeDTO.setRecipeExtendBean(recipeExt);
+            recipeDTO.setRecipeDetails(recipeDetailBeans);
+            recipeDTOS.add(recipeDTO);
+        });
+        return recipeDTOS;
+    }
 
 }
