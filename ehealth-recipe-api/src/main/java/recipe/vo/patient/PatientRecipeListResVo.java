@@ -84,6 +84,9 @@ public class PatientRecipeListResVo implements Serializable {
     @ItemProperty(alias = "是否保密方 0 否 1 是")
     private Integer secrecyRecipe;
 
+    @ItemProperty(alias = "腹透液  空0否  1是 ")
+    private Integer peritonealDialysisFluidType;
+
     /******************************** 以下数据来源 recipeDetail ****************************/
     @ItemProperty(alias = "药品信息")
     private List<RecipeDetailForRecipeListResVo> recipeDetail;
