@@ -106,10 +106,10 @@ public class OrderFeeService implements IRecipeOrderRefundService {
             logger.info("RecipeOrderRefundService findRefundRecipeOrder organIds:{}", JSON.toJSONString(organIds));
             recipeOrderRefundReqVO.setOrganIds(organIds);
         }
-        if(new Integer("1").equals(recipeOrderRefundReqVO.getDateType())){
+        if (new Integer("1").equals(recipeOrderRefundReqVO.getDateType())) {
             recipeOrderRefundReqVO.setPayTimeStart(null);
             recipeOrderRefundReqVO.setPayTimeEnd(null);
-        }else if(new Integer("2").equals(recipeOrderRefundReqVO.getDateType())){
+        } else if (new Integer("2").equals(recipeOrderRefundReqVO.getDateType())) {
             recipeOrderRefundReqVO.setBeginTime(null);
             recipeOrderRefundReqVO.setEndTime(null);
         }
@@ -121,7 +121,7 @@ public class OrderFeeService implements IRecipeOrderRefundService {
         }
         List<RecipeOrder> recipeOrderList = recipeOrderQueryResult.getItems();
         long total = recipeOrderQueryResult.getTotal();
-        if (null != new Long(total)) {
+        if (Objects.nonNull(total)) {
             recipeOrderRefundPageVO.setTotal(new Long(total).intValue());
         }
         List<String> orderCodeList = recipeOrderList.stream().map(RecipeOrder::getOrderCode).collect(Collectors.toList());
@@ -135,10 +135,9 @@ public class OrderFeeService implements IRecipeOrderRefundService {
         Map<Integer, DrugsEnterprise> drugsEnterpriseMap = drugsEnterpriseList.stream().collect(Collectors.toMap(DrugsEnterprise::getId, a -> a, (k1, k2) -> k1));
         List<RecipeOrderRefundVO> recipeOrderRefundVOList = new ArrayList<>();
 
-
         recipeOrderList.forEach(recipeOrder -> {
             String appName = configurationClient.getAppName(recipeOrder.getTerminalSource());
-            logger.info("findRefundRecipeOrder APPID={},APPname={}",recipeOrder.getTerminalSource(),appName);
+            logger.info("findRefundRecipeOrder APP ID={},APP name={}", recipeOrder.getTerminalSource(), appName);
             RecipeOrderRefundVO recipeOrderRefundVO = new RecipeOrderRefundVO();
             recipeOrderRefundVO.setOrderCode(recipeOrder.getOrderCode());
             recipeOrderRefundVO.setActualPrice(recipeOrder.getTotalFee().doubleValue());
@@ -150,6 +149,7 @@ public class OrderFeeService implements IRecipeOrderRefundService {
                     DrugsEnterprise drugsEnterprise = drugsEnterpriseMap.get(recipeOrder.getEnterpriseId());
                     if (null != drugsEnterprise) {
                         recipeOrderRefundVO.setDepName(drugsEnterprise.getName());
+                        recipeOrderRefundVO.setLogisticsType(drugsEnterprise.getLogisticsType());
                     }
                 }
             }
@@ -165,17 +165,17 @@ public class OrderFeeService implements IRecipeOrderRefundService {
             recipeOrderRefundVO.setChannel(appName);
             recipeOrderRefundVO.setPayModeText(PayModeEnum.getPayModeEnumName(recipeOrder.getPayMode()));
             recipeOrderRefundVO.setGiveModeText(recipeOrder.getGiveModeText());
-            if(null!=recipeOrder.getPayTime()){
+            if (null != recipeOrder.getPayTime()) {
                 recipeOrderRefundVO.setPayTime(DateConversion.getDateFormatter(recipeOrder.getPayTime(), DateConversion.DEFAULT_DATE_TIME));
             }
             //订单类型归属
             // 便捷购药订单(=1):便捷购药处方
             // 普通订单(=0)：普通复诊=0/医嘱申请复诊=2/null值/一键续方复诊=3
-            Integer fastRecipeFlag=recipeOrderCodeMap.get(recipeOrder.getOrderCode()).getFastRecipeFlag();
-            if(fastRecipeFlag!=null && Integer.valueOf(1).equals(fastRecipeFlag)){
-                fastRecipeFlag=1;
-            }else {
-                fastRecipeFlag=0;
+            Integer fastRecipeFlag = recipeOrderCodeMap.get(recipeOrder.getOrderCode()).getFastRecipeFlag();
+            if (Integer.valueOf(1).equals(fastRecipeFlag)) {
+                fastRecipeFlag = 1;
+            } else {
+                fastRecipeFlag = 0;
             }
             recipeOrderRefundVO.setFastRecipeFlag(fastRecipeFlag);
 
@@ -196,7 +196,7 @@ public class OrderFeeService implements IRecipeOrderRefundService {
                 //查是否可以打印快递面单
                 logisticsOrderService.printWaybillByLogisticsOrderNo(1, recipeOrder.getOrderCode());
                 recipeOrderRefundVO.setPrintWaybillByLogisticsOrderNo(true);
-            }catch (Exception e){
+            } catch (Exception e) {
                 recipeOrderRefundVO.setPrintWaybillByLogisticsOrderNo(false);
                 logger.error("orderFeeService findRefundRecipeOrder error", e);
             }

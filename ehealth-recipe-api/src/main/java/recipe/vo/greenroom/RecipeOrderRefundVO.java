@@ -1,16 +1,12 @@
 package recipe.vo.greenroom;
 
-import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 import lombok.Getter;
 import lombok.Setter;
-import recipe.vo.PageVO;
 
 import java.io.Serializable;
-import java.math.BigDecimal;
-import java.util.List;
 
 /**
  * 运营平台处方订单退费
@@ -96,5 +92,8 @@ public class RecipeOrderRefundVO implements Serializable {
 
     @ItemProperty(alias = "是否可以打印快递面单")
     private Boolean printWaybillByLogisticsOrderNo;
+
+    @ItemProperty(alias = "快递类型")
+    private Integer logisticsType;
 
 }
