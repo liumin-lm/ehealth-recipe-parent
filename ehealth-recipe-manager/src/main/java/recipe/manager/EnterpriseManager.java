@@ -10,9 +10,12 @@ import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.TakeMedicineByToHos;
 import com.ngari.infra.logistics.mode.WriteBackLogisticsOrderDto;
 import com.ngari.infra.logistics.service.ILogisticsOrderService;
+import com.ngari.patient.dto.AddrAreaDTO;
 import com.ngari.patient.dto.AppointDepartDTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.DoctorExtendDTO;
+import com.ngari.patient.service.AddrAreaService;
+import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.*;
 import com.ngari.recipe.dto.*;
@@ -100,6 +103,8 @@ public class EnterpriseManager extends BaseManager {
     private PatientClient patientClient;
     @Autowired
     private SmsClient smsClient;
+    @Autowired
+    private EnterpriseAddressDAO enterpriseAddressDAO;
 
     /**
      * 获取是否医院结算的药企
@@ -1312,6 +1317,42 @@ public class EnterpriseManager extends BaseManager {
                 }
             }
         }
+    }
+
+    /**
+     * 获取该地区及下属地区
+     * @param area
+     * @return
+     */
+    public List<AddrAreaDTO> findAddrArea(String area) {
+        if (StringUtils.isEmpty(area)) {
+            return new ArrayList<>();
+        }
+        AddrAreaService addrAreaService = BasicAPI.getService(AddrAreaService.class);
+        List<AddrAreaDTO> addrAreaList = addrAreaService.findChildByIdForOther(area);
+        return addrAreaList;
+    }
+
+    /**
+     * 设置配送地址和配送费
+     * @param addrAreaList
+     * @param enterpriseAddress
+     */
+    public void setEnterpriseAddressAndPrice(List<AddrAreaDTO> addrAreaList, EnterpriseAddress enterpriseAddress) {
+        List<List<AddrAreaDTO>> addrAreaLists = Lists.partition(addrAreaList, 150);
+        addrAreaLists.forEach(addrAreaDTOS -> {
+            List<String> addressList = addrAreaDTOS.stream().map(AddrAreaDTO::getId).collect(Collectors.toList());
+            enterpriseAddressDAO.deleteByEnterpriseIdAndAddress(enterpriseAddress.getEnterpriseId(), addressList);
+            if (null == enterpriseAddress.getStatus() || new Integer(1).equals(enterpriseAddress.getStatus())) {
+                addrAreaDTOS.forEach(addrAreaDTO -> {
+                    enterpriseAddress.setAddress(addrAreaDTO.getId());
+                    enterpriseAddress.setCreateTime(new Date());
+                    enterpriseAddress.setLastModify(new Date());
+                    enterpriseAddress.setStatus(1);
+                    enterpriseAddressDAO.save(enterpriseAddress);
+                });
+            }
+        });
     }
 
     /**
