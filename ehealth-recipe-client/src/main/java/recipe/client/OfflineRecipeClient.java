@@ -872,6 +872,7 @@ public class OfflineRecipeClient extends BaseClient {
             logger.info("患者信息不存在");
             return recipeDTOS;
         }
+        patient.setCardId(StringUtils.isNotEmpty(req.getCardId()) ? req.getCardId() : req.getCardId());
         hisResponseTO=queryData(req.getOrganId(), patient, null, flag, null,req.getStartTime(),req.getEndTime());
         recipeDTOS= covertRecipeDTOFromQueryHisRecipResTO(hisResponseTO,patient,flag);
         logger.info("patientAwaitFeeRecipeList res:{},{}",req.getUuid(),JSONUtils.toString(recipeDTOS));
@@ -974,6 +975,7 @@ public class OfflineRecipeClient extends BaseClient {
             logger.info("患者信息不存在");
             return recipeDTOS;
         }
+        patient.setCardId(StringUtils.isNotEmpty(req.getCardId()) ? req.getCardId() : req.getCardId());
         hisResponseTO=queryData(req.getOrganId(), patient, null, flag, null,req.getStartTime(),req.getEndTime());
         recipeDTOS= covertRecipeDTOFromQueryHisRecipResTO(hisResponseTO,patient,flag);
         logger.info("patientDoneFeeRecipeList res:{},{}",req.getUuid(),JSONUtils.toString(recipeDTOS));
@@ -992,6 +994,7 @@ public class OfflineRecipeClient extends BaseClient {
         HisResponseTO<List<QueryHisRecipResTO>> hisResponseTO=new HisResponseTO<List<QueryHisRecipResTO>>();
         Integer flag= HisRecipeConstant.HISRECIPESTATUS_EXPIRED;
         PatientDTO patient = patientClient.getPatient(req.getMpiId());
+        patient.setCardId(StringUtils.isNotEmpty(req.getCardId()) ? req.getCardId() : req.getCardId());
         if (ObjectUtils.isEmpty(patient)) {
             logger.info("患者信息不存在");
             return recipeDTOS;
