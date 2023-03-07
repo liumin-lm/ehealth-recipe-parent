@@ -291,6 +291,9 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
         }
         //校验精麻毒放、特殊使用级抗生素
         organDrugListManager.validateOtherDrug(recipe,recipeDetails);
+        //"6"：判断药品的医保报销类型
+        organDrugListManager.validateMedicalReimbursementTypeOfDrugs(hisDrugRule,recipe, recipeDetails);
+
         logger.info("RecipeDetailBusinessService validateOtherDrug recipeDetails={}", JSON.toJSONString(recipeDetails));
         return recipeDetails;
     }

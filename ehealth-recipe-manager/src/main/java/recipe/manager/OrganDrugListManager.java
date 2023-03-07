@@ -2,6 +2,8 @@ package recipe.manager;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
+import com.ngari.his.recipe.mode.MedicalReimbursementTypeReqTO;
+import com.ngari.his.recipe.mode.MedicalReimbursementTypeResTO;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.PharmacyTcm;
@@ -13,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.client.DrugClient;
 import recipe.client.DrugStockClient;
 import recipe.client.IConfigurationClient;
 import recipe.client.OperationClient;
@@ -42,6 +45,8 @@ public class OrganDrugListManager extends BaseManager {
     private OperationClient operationClient;
     @Autowired
     private IConfigurationClient configurationClient;
+    @Autowired
+    private DrugClient drugClient;
 
     /**
      * 校验机构药品库存 用于 药品展示
@@ -517,5 +522,48 @@ public class OrganDrugListManager extends BaseManager {
         });
         logger.info("OrganDrugListManager pharmacyDrug lists={}", JSON.toJSONString(lists));
         return lists;
+    }
+
+    /**
+     * 判断药品的医保报销类型
+     *
+     * @param hisDrugRule
+     * @param recipe
+     * @param recipeDetails
+     * @return
+     */
+    public void validateMedicalReimbursementTypeOfDrugs(List<String> hisDrugRule, Recipe recipe, List<RecipeDetailDTO> recipeDetails) {
+        //"6": "判断药品的医保报销类型"
+        if (hisDrugRule.contains("6")) {
+            //医保属性,从医保获取
+            String medicalInsuranceAttribute = null;
+            List<MedicalReimbursementTypeReqTO> medicalReimbursementTypeReqTOList = new ArrayList<>();
+            for (RecipeDetailDTO recipeDetail : recipeDetails) {
+                MedicalReimbursementTypeReqTO medicalReimbursementTypeReqTO = new MedicalReimbursementTypeReqTO();
+                OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(recipe.getClinicOrgan(), recipeDetail.getOrganDrugCode(), recipeDetail.getDrugId());
+                if(organDrugList != null){
+                    medicalReimbursementTypeReqTO.setProducerCode(organDrugList.getProducerCode());
+                }
+                medicalReimbursementTypeReqTO.setMedicalInsuranceAttribute(medicalInsuranceAttribute);
+                medicalReimbursementTypeReqTO.setOrganDrugCode(recipeDetail.getOrganDrugCode());
+                medicalReimbursementTypeReqTO.setOrganId(recipe.getClinicOrgan());
+                medicalReimbursementTypeReqTOList.add(medicalReimbursementTypeReqTO);
+            }
+            logger.info("OrganDrugListManager validateMedicalReimbursementTypeOfDrugs medicalReimbursementTypeReqTOList={}", JSON.toJSONString(medicalReimbursementTypeReqTOList));
+            List<MedicalReimbursementTypeResTO> medicalReimbursementTypeResTOList = drugClient.validateMedicalReimbursementTypeOfDrugs(medicalReimbursementTypeReqTOList);
+            Map<String, MedicalReimbursementTypeResTO> organDrugMap = medicalReimbursementTypeResTOList.stream().collect(Collectors.toMap(MedicalReimbursementTypeResTO::getOrganDrugCode, a -> a, (k1, k2) -> k1));
+            for (RecipeDetailDTO recipeDetail : recipeDetails) {
+                MedicalReimbursementTypeResTO medicalReimbursementTypeResTO = organDrugMap.get(recipeDetail.getOrganDrugCode());
+                recipeDetail.setMedicalInsuranceCategory(medicalReimbursementTypeResTO.getMedicalInsuranceCategory());
+            }
+        }
+        else {
+            for (RecipeDetailDTO recipeDetail : recipeDetails) {
+                OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(recipe.getClinicOrgan(), recipeDetail.getOrganDrugCode(), recipeDetail.getDrugId());
+                if(organDrugList != null){
+                    recipeDetail.setMedicalInsuranceCategory(organDrugList.getMedicalInsuranceCategory());
+                }
+            }
+        }
     }
 }

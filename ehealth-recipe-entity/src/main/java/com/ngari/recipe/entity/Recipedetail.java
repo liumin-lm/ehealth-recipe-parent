@@ -291,6 +291,9 @@ public class Recipedetail implements java.io.Serializable {
 	@ItemProperty(alias = "皮试药品标识： 0-非皮试药品， 1-皮试药品且需要皮试，2-皮试药品免试")
 	private Integer skinTestFlag;
 
+	@ItemProperty(alias = "医保类别")
+	private String medicalInsuranceCategory;
+
 	@Transient
 	public String getUnitHisCode() {
 		return unitHisCode;
@@ -991,5 +994,14 @@ public class Recipedetail implements java.io.Serializable {
 
 	public void setSkinTestFlag(Integer skinTestFlag) {
 		this.skinTestFlag = skinTestFlag;
+	}
+
+	@Column(name = "medical_insurance_category")
+	public String getMedicalInsuranceCategory() {
+		return medicalInsuranceCategory;
+	}
+
+	public void setMedicalInsuranceCategory(String medicalInsuranceCategory) {
+		this.medicalInsuranceCategory = medicalInsuranceCategory;
 	}
 }
