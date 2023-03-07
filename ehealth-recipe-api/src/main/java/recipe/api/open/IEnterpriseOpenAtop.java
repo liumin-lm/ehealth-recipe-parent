@@ -1,5 +1,6 @@
 package recipe.api.open;
 
+import com.ngari.recipe.drugsenterprise.model.EnterpriseAddressVO;
 import ctd.util.annotation.RpcService;
 import recipe.vo.second.CheckAddressVo;
 import recipe.vo.second.CheckOrderAddressVo;
@@ -80,4 +81,12 @@ public interface IEnterpriseOpenAtop {
      */
     @RpcService
     EnterpriseResultBean renewDrugInfo(List<EnterpriseDrugVO> enterpriseDrugVOList);
+
+    /**
+     * 第三方药企更新配送地址和配送费用
+     * @param enterpriseAddressList
+     * @return
+     */
+    @RpcService
+    Boolean setEnterpriseAddressAndPrice(List<EnterpriseAddressVO> enterpriseAddressList);
 }

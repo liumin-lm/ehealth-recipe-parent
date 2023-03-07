@@ -1,5 +1,6 @@
 package recipe.atop.open;
 
+import com.ngari.recipe.drugsenterprise.model.EnterpriseAddressVO;
 import ctd.util.annotation.RpcBean;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -8,6 +9,8 @@ import recipe.api.open.IEnterpriseOpenAtop;
 import recipe.atop.BaseAtop;
 import recipe.core.api.IEnterpriseBusinessService;
 import recipe.util.DateConversion;
+import recipe.vo.patient.AddrAreaVO;
+import recipe.vo.patient.AddressAreaVo;
 import recipe.vo.second.CheckAddressVo;
 import recipe.vo.second.CheckOrderAddressVo;
 import recipe.vo.second.enterpriseOrder.EnterpriseConfirmOrderVO;
@@ -33,7 +36,6 @@ public class EnterpriseOpenAtop  extends BaseAtop implements IEnterpriseOpenAtop
         validateAtop(checkAddressVo, checkAddressVo.getEnterpriseId());
         return enterpriseBusinessService.checkSendAddressForOrder(checkAddressVo);
     }
-
 
     @Override
     public Integer checkSendAddressForEnterprises(CheckOrderAddressVo checkOrderAddressVo) {
@@ -86,6 +88,11 @@ public class EnterpriseOpenAtop  extends BaseAtop implements IEnterpriseOpenAtop
             return EnterpriseResultBean.getFail("入参为空");
         }
         return enterpriseBusinessService.renewDrugInfo(enterpriseDrugVOList);
+    }
+
+    @Override
+    public Boolean setEnterpriseAddressAndPrice(List<EnterpriseAddressVO> enterpriseAddressList) {
+        return enterpriseBusinessService.setEnterpriseAddressAndPrice(enterpriseAddressList);
     }
 
 }

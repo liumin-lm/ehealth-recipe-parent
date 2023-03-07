@@ -76,30 +76,6 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
     }
 
     /**
-     * 根据药企获取药企配送地址快递费
-     *
-     * @param enterpriseId
-     */
-//    @RpcService
-//    public DrugDistributionPriceBean findEnterpriseAddressFeeList(Integer enterpriseId,String addrArea) {
-//        validateAtop(enterpriseId);
-//        DrugDistributionPriceBean enterpriseIdAndAddrArea = drugDistributionPriceService.getByEnterpriseIdAndAddrArea(enterpriseId, addrArea);
-//        return enterpriseIdAndAddrArea;
-//    }
-
-    /**
-     * 添加药企配送地址快递费
-     *
-     * @param list
-     */
-//    @RpcService
-//    public List<DrugDistributionPriceBean> addEnterpriseAddressFeeList(List<DrugDistributionPriceBean> list) {
-//        validateAtop(list);
-//        drugDistributionPriceService.savePriceList(list);
-//        return list;
-//    }
-
-    /**
      * 根据药企机构查询煎法
      *
      * @param enterpriseId
