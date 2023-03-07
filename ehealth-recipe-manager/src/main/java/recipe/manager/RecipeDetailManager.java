@@ -432,7 +432,13 @@ public class RecipeDetailManager extends BaseManager {
     }
 
     public Map<String, Double> sumTotalMap(Integer clinicId) {
+        if (ValidateUtil.integerIsEmpty(clinicId)) {
+            return new HashMap<>();
+        }
         List<Recipe> recipeList = recipeDAO.findRecipeClinicIdAndProcessState(clinicId, RecipeStateEnum.RECIPE_REPEAT);
+        if (CollectionUtils.isEmpty(recipeList)) {
+            return new HashMap<>();
+        }
         List<Integer> recipeIds = recipeList.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
         Map<String, Double> map = this.findRecipeDetailSumTotalDose(recipeIds);
         if (null == map) {
