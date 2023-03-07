@@ -554,7 +554,9 @@ public class OrganDrugListManager extends BaseManager {
             Map<String, MedicalReimbursementTypeResTO> organDrugMap = medicalReimbursementTypeResTOList.stream().collect(Collectors.toMap(MedicalReimbursementTypeResTO::getOrganDrugCode, a -> a, (k1, k2) -> k1));
             for (RecipeDetailDTO recipeDetail : recipeDetails) {
                 MedicalReimbursementTypeResTO medicalReimbursementTypeResTO = organDrugMap.get(recipeDetail.getOrganDrugCode());
-                recipeDetail.setMedicalInsuranceCategory(medicalReimbursementTypeResTO.getMedicalInsuranceCategory());
+                if(medicalReimbursementTypeResTO != null){
+                    recipeDetail.setMedicalInsuranceCategory(medicalReimbursementTypeResTO.getMedicalInsuranceCategory());
+                }
             }
         }
         else {
