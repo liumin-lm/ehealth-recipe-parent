@@ -1343,15 +1343,16 @@ public class EnterpriseManager extends BaseManager {
         addrAreaLists.forEach(addrAreaDTOS -> {
             List<String> addressList = addrAreaDTOS.stream().map(AddrAreaDTO::getId).collect(Collectors.toList());
             enterpriseAddressDAO.deleteByEnterpriseIdAndAddress(enterpriseAddress.getEnterpriseId(), addressList);
-            if (null == enterpriseAddress.getStatus() || new Integer(1).equals(enterpriseAddress.getStatus())) {
-                addrAreaDTOS.forEach(addrAreaDTO -> {
-                    enterpriseAddress.setAddress(addrAreaDTO.getId());
-                    enterpriseAddress.setCreateTime(new Date());
-                    enterpriseAddress.setLastModify(new Date());
-                    enterpriseAddress.setStatus(1);
-                    enterpriseAddressDAO.save(enterpriseAddress);
-                });
+            if (new Integer(0).equals(enterpriseAddress.getStatus())) {
+                return;
             }
+            addrAreaDTOS.forEach(addrAreaDTO -> {
+                enterpriseAddress.setAddress(addrAreaDTO.getId());
+                enterpriseAddress.setCreateTime(new Date());
+                enterpriseAddress.setLastModify(new Date());
+                enterpriseAddress.setStatus(1);
+                enterpriseAddressDAO.save(enterpriseAddress);
+            });
         });
     }
 
