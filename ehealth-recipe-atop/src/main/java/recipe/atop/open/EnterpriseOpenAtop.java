@@ -9,8 +9,6 @@ import recipe.api.open.IEnterpriseOpenAtop;
 import recipe.atop.BaseAtop;
 import recipe.core.api.IEnterpriseBusinessService;
 import recipe.util.DateConversion;
-import recipe.vo.patient.AddrAreaVO;
-import recipe.vo.patient.AddressAreaVo;
 import recipe.vo.second.CheckAddressVo;
 import recipe.vo.second.CheckOrderAddressVo;
 import recipe.vo.second.enterpriseOrder.EnterpriseConfirmOrderVO;
