@@ -5015,11 +5015,12 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                StringBuilder hql = new StringBuilder("SELECT * FROM `cdr_recipe` WHERE `ClinicOrgan` =  :organId ");
-                hql.append(" AND `MPIID` = :mpiId  ");
-                hql.append(" AND `SignDate` BETWEEN ':startTime' AND ':endTime' ");
-                hql.append(" AND `process_state` IN ( : recipeState)  ");
-                hql.append(" and (r.delete_flag = 0 or r.delete_flag  is null)");
+                StringBuilder hql = new StringBuilder("SELECT * FROM cdr_recipe WHERE ClinicOrgan =  :organId ");
+                hql.append(" AND MPIID = :mpiId  ");
+                hql.append(" AND SignDate BETWEEN :startTime AND :endTime ");
+                hql.append(" AND process_state IN ( :recipeState)  ");
+                hql.append(" AND recipeSourceType IN ( 1,2)  ");
+                hql.append(" and (delete_flag = 0 or delete_flag  is null)");
                 Query q = ss.createSQLQuery(hql.toString()).addEntity(Recipe.class);
                 q.setParameter("organId", req.getOrganId());
                 q.setParameter("mpiId", req.getMpiId());
