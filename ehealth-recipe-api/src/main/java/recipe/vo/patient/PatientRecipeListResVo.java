@@ -7,6 +7,7 @@ import lombok.Data;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @description： 患者端 处方列表出参
@@ -61,6 +62,9 @@ public class PatientRecipeListResVo implements Serializable {
     @ItemProperty(alias = "处方号码，处方回写")
     private String recipeCode;
 
+    @ItemProperty(alias = "是否靶向药  0否  1是 ")
+    private Integer targetedDrugType;
+
 
     /******************************** 以下数据来源 recipeExt ****************************/
     @ItemProperty(alias = "大病类型")
@@ -79,4 +83,8 @@ public class PatientRecipeListResVo implements Serializable {
 
     @ItemProperty(alias = "是否保密方 0 否 1 是")
     private Integer secrecyRecipe;
+
+    /******************************** 以下数据来源 recipeDetail ****************************/
+    @ItemProperty(alias = "药品信息")
+    private List<RecipeDetailForRecipeListResVo> recipeDetail;
 }
