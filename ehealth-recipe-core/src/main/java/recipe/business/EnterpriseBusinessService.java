@@ -10,6 +10,7 @@ import com.ngari.base.patient.model.PatientBean;
 import com.ngari.constant.RecipeHisStatusEnum;
 import com.ngari.his.recipe.mode.DrugTakeChangeReqTO;
 import com.ngari.his.recipe.mode.FTYSendTimeReqDTO;
+import com.ngari.patient.dto.AddrAreaDTO;
 import com.ngari.patient.service.AddrAreaService;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.platform.recipe.mode.DrugsEnterpriseBean;
@@ -951,9 +952,15 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
             return false;
         }
         Map<String, DrugsEnterprise> drugsEnterpriseMap = drugsEnterprises.stream().collect((Collectors.toMap(DrugsEnterprise::getAppKey, a -> a, (k1, k2) -> k1)));
-        enterpriseAddressList.forEach(enterpriseAddress -> {
-            DrugsEnterprise drugsEnterprise = drugsEnterpriseMap.get(enterpriseAddress.getAppKey());
-
+        enterpriseAddressList.forEach(enterpriseAddressVO -> {
+            DrugsEnterprise drugsEnterprise = drugsEnterpriseMap.get(enterpriseAddressVO.getAppKey());
+            enterpriseAddressVO.setEnterpriseId(drugsEnterprise.getId());
+            //获取省市区地址
+            List<AddrAreaDTO> addrAreaList = enterpriseManager.findAddrArea(enterpriseAddressVO.getAddress());
+            //设置配送地址及费用
+            EnterpriseAddress enterpriseAddress = new EnterpriseAddress();
+            ObjectCopyUtils.copyProperties(enterpriseAddress, enterpriseAddressVO);
+            enterpriseManager.setEnterpriseAddressAndPrice(addrAreaList, enterpriseAddress);
         });
         return true;
     }

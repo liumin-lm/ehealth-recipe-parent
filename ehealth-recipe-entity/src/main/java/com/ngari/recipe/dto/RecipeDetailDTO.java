@@ -163,6 +163,9 @@ public class RecipeDetailDTO implements Serializable {
      */
     private Integer residueDay;
 
+    @ItemProperty(alias = "医保类别")
+    private String medicalInsuranceCategory;
+
 
     public String getUsePathways() {
         return usePathways;

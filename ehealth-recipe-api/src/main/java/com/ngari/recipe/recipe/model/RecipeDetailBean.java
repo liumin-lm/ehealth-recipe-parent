@@ -285,6 +285,9 @@ public class RecipeDetailBean implements java.io.Serializable {
     @ItemProperty(alias = "是否皮试药品 0 否 1 是")
     private Integer skinTestDrugFlag;
 
+    @ItemProperty(alias = "医保类别")
+    private String medicalInsuranceCategory;
+
 
     public Integer getResidueDay() {
         return residueDay;
@@ -962,5 +965,13 @@ public class RecipeDetailBean implements java.io.Serializable {
 
     public void setSkinTestDrugFlag(Integer skinTestDrugFlag) {
         this.skinTestDrugFlag = skinTestDrugFlag;
+    }
+
+    public String getMedicalInsuranceCategory() {
+        return medicalInsuranceCategory;
+    }
+
+    public void setMedicalInsuranceCategory(String medicalInsuranceCategory) {
+        this.medicalInsuranceCategory = medicalInsuranceCategory;
     }
 }

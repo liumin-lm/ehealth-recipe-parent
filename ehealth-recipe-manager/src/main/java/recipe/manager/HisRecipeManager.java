@@ -857,8 +857,8 @@ public class HisRecipeManager extends BaseManager {
      */
     @LogRecord
     public List<RecipeDTO> patientRecipeList(PatientRecipeListReqDTO req, Integer type) {
-        List<String> isHisRecipe = configurationClient.getValueListCatch(req.getOrganId(), "xxxxxxx", Collections.emptyList());
-        if (!isHisRecipe.contains("2")) {
+        List<String> isHisRecipe = configurationClient.getPropertyByStringList("findRecipeListType");
+        if (!isHisRecipe.contains("offLine")) {
             return Collections.emptyList();
         }
         PatientDTO patient = patientClient.getPatient(req.getMpiId());

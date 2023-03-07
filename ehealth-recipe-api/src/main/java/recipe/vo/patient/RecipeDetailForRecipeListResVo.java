@@ -37,4 +37,7 @@ public class RecipeDetailForRecipeListResVo implements Serializable {
 
     @ItemProperty(alias = "腹透液  空0否  1是  ")
     private Integer peritonealDialysisFluidType;
+
+    @ItemProperty(alias = "1:药品，2:诊疗项目，3 保密药品  ")
+    private Integer type;
 }

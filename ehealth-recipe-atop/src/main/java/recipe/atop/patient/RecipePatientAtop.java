@@ -234,16 +234,17 @@ public class RecipePatientAtop extends BaseAtop {
     }
 
     /**
-     * todo 鸿芳自己写备注 实现代码
+     * 患者端获取处方列表 (新)
      *
      * @param patientRecipeListReq
      * @return
      */
     @RpcService
-    public List<PatientRecipeListResVo> patientRecipeList(PatientRecipeListReqVO patientRecipeListReq) {
+    public List<List<PatientRecipeListResVo>> patientRecipeList(PatientRecipeListReqVO patientRecipeListReq) {
         patientRecipeListReq.setUuid(UUID.randomUUID().toString());
-        Set<RecipeInfoVO> list = iOfflineRecipeBusinessService.patientRecipeList(patientRecipeListReq);
-        return null;
+        List<List<PatientRecipeListResVo>> lists = iOfflineRecipeBusinessService.patientRecipeList(patientRecipeListReq);
+
+        return lists;
     }
 
 }

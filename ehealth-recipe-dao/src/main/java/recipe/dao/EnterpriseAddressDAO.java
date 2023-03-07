@@ -113,6 +113,10 @@ public abstract class EnterpriseAddressDAO extends HibernateSupportDelegateDAO<E
 
     @DAOMethod(sql="delete from EnterpriseAddress  where enterpriseId=:enterpriseId")
     public abstract void deleteByEnterpriseId(@DAOParam("enterpriseId") Integer enterpriseId);
+
+    @DAOMethod(sql="delete from EnterpriseAddress  where enterpriseId=:enterpriseId and address in (:address)")
+    public abstract void deleteByEnterpriseIdAndAddress(@DAOParam("enterpriseId") Integer enterpriseId, @DAOParam("address") List<String> addressList);
+
     /**
      * 删除药企配送区域地址
      *

@@ -65,6 +65,9 @@ public class PatientRecipeListResVo implements Serializable {
     @ItemProperty(alias = "是否靶向药  0否  1是 ")
     private Integer targetedDrugType;
 
+    @ItemProperty(alias = "线下处方/常用方/协定方名称")
+    private String offlineRecipeName;
+
 
     /******************************** 以下数据来源 recipeExt ****************************/
     @ItemProperty(alias = "大病类型")
@@ -83,6 +86,12 @@ public class PatientRecipeListResVo implements Serializable {
 
     @ItemProperty(alias = "是否保密方 0 否 1 是")
     private Integer secrecyRecipe;
+
+    @ItemProperty(alias = "腹透液  空0否  1是 ")
+    private Integer peritonealDialysisFluidType;
+
+    @ItemProperty(alias = "能否合并支付")
+    private Boolean mergeRecipeFlag;
 
     /******************************** 以下数据来源 recipeDetail ****************************/
     @ItemProperty(alias = "药品信息")

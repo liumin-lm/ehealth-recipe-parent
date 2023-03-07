@@ -20,6 +20,9 @@ public class EnterpriseAddressVO implements java.io.Serializable {
     @ItemProperty(alias = "药企appKey")
     private String appKey;
 
+    @ItemProperty(alias = "药企序号")
+    private Integer enterpriseId;
+
     @ItemProperty(alias = "药企配送地址")
     private String address;
 

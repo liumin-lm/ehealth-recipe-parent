@@ -12,6 +12,7 @@ import com.ngari.recipe.recipe.model.MergeRecipeVO;
 import com.ngari.recipe.vo.OffLineRecipeDetailVO;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.patient.PatientRecipeListReqVO;
+import recipe.vo.patient.PatientRecipeListResVo;
 import recipe.vo.patient.RecipeGiveModeButtonRes;
 
 import java.util.Date;
@@ -117,5 +118,5 @@ public interface IOfflineRecipeBusinessService {
      * @param patientRecipeListReq
      * @return
      */
-    Set<RecipeInfoVO> patientRecipeList(PatientRecipeListReqVO patientRecipeListReq);
+    List<List<PatientRecipeListResVo>> patientRecipeList(PatientRecipeListReqVO patientRecipeListReq);
 }

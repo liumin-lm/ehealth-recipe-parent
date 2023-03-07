@@ -87,6 +87,6 @@ public interface IEnterpriseOpenAtop {
      * @param enterpriseAddressList
      * @return
      */
-    @RpcService
-    Boolean setEnterpriseAddressAndPrice(List<EnterpriseAddressVO> enterpriseAddressList);
+    @RpcService(timeout = 100)
+    EnterpriseResultBean setEnterpriseAddressAndPrice(List<EnterpriseAddressVO> enterpriseAddressList);
 }
