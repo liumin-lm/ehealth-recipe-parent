@@ -7,6 +7,7 @@
 						http://www.ngarihealth.com/schema/ngari/ngari.xsd">
 
     <reference interface="com.ngari.his.recipe.service.IRecipeHisService" id="his.iRecipeHisService"/>
+    <reference interface="com.ngari.his.consult.service.IConsultHisService" id="his.iConsultHisService"/>
     <reference interface="com.ngari.his.recipe.service.IRecipeToTestService" id="his.iRecipeToTestService"/>
     <reference interface="com.ngari.his.visit.service.IVisitService" id="his.visitService"/>
     <reference interface="com.ngari.platform.sync.service.IProvinceIndicatorsDateUpdateService" id="his.provinceDataUploadService"/>

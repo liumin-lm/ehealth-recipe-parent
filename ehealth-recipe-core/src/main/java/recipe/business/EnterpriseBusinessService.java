@@ -14,11 +14,9 @@ import com.ngari.patient.service.AddrAreaService;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.platform.recipe.mode.DrugsEnterpriseBean;
 import com.ngari.platform.recipe.mode.MedicineStationDTO;
-import com.ngari.recipe.drugsenterprise.model.EnterpriseAddressAndPrice;
-import com.ngari.recipe.drugsenterprise.model.EnterpriseAddressDTO;
-import com.ngari.recipe.drugsenterprise.model.EnterpriseDecoctionAddressReq;
-import com.ngari.recipe.drugsenterprise.model.EnterpriseDecoctionList;
+import com.ngari.recipe.drugsenterprise.model.*;
 import com.ngari.recipe.dto.EnterpriseStock;
+import com.ngari.recipe.dto.GiveModeButtonDTO;
 import com.ngari.recipe.dto.OrganDTO;
 import com.ngari.recipe.dto.PatientDTO;
 import com.ngari.recipe.entity.*;
@@ -940,7 +938,24 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
     @Override
     public OrganDrugsSaleConfig getOrganDrugsSaleConfigV1(FindOrganDrugsSaleConfigResVo findOrganDrugsSaleConfigResVo) {
         return enterpriseManager.getOrganDrugsSaleConfig(findOrganDrugsSaleConfigResVo.getOrganId(), findOrganDrugsSaleConfigResVo.getDrugsEnterpriseId(), findOrganDrugsSaleConfigResVo.getGiveMode());
+    }
 
+    @Override
+    public Boolean setEnterpriseAddressAndPrice(List<EnterpriseAddressVO> enterpriseAddressList) {
+        Set<String> appKeySet = enterpriseAddressList.stream().map(EnterpriseAddressVO::getAppKey).collect(Collectors.toSet());
+        if (CollectionUtils.isEmpty(appKeySet)) {
+            return false;
+        }
+        List<DrugsEnterprise> drugsEnterprises = drugsEnterpriseDAO.findByAppKeyList(appKeySet);
+        if (CollectionUtils.isEmpty(drugsEnterprises)) {
+            return false;
+        }
+        Map<String, DrugsEnterprise> drugsEnterpriseMap = drugsEnterprises.stream().collect((Collectors.toMap(DrugsEnterprise::getAppKey, a -> a, (k1, k2) -> k1)));
+        enterpriseAddressList.forEach(enterpriseAddress -> {
+            DrugsEnterprise drugsEnterprise = drugsEnterpriseMap.get(enterpriseAddress.getAppKey());
+
+        });
+        return true;
     }
 
     private Integer getEnterpriseSendFlag(DrugsEnterprise enterprise, CheckOrderAddressVo checkOrderAddressVo) {
