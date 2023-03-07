@@ -16,6 +16,7 @@ import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.dto.GiveModeButtonDTO;
 import com.ngari.recipe.dto.GiveModeShowButtonDTO;
 import com.ngari.recipe.dto.GroupRecipeConfDTO;
+import com.ngari.recipe.dto.PatientRecipeListReqDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeListVO;
 import com.ngari.recipe.recipe.model.HisPatientTabStatusMergeRecipeVO;
@@ -2082,5 +2083,9 @@ public class HisRecipeService {
         hisRecipeManager.obtainPayStatus(recipeCode, organId);
     }
 
+    @RpcService
+    public void testPatientRecipeList(PatientRecipeListReqDTO req, Integer type) throws JsonProcessingException {
+        hisRecipeManager.patientRecipeList(req, type);
+    }
 
 }
