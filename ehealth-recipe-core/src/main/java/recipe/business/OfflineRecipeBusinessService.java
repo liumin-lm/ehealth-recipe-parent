@@ -1,6 +1,7 @@
 package recipe.business;
 
 import com.google.common.collect.Lists;
+import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.QueryHisRecipResTO;
@@ -100,6 +101,8 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
     private OrganDrugListManager organDrugListManager;
     @Autowired
     private RecipeParameterDao recipeParameterDao;
+    @Autowired
+    private ICurrentUserInfoService currentUserInfoService;
 
     @Override
     public List<MergeRecipeVO> findHisRecipeList(FindHisRecipeListVO request) {
@@ -457,6 +460,8 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
     }
 
     private List<PatientRecipeListResVo> recipeInfoVOSCoverPatientRecipeListResVo(Set<RecipeInfoVO> recipeInfoVOS) {
+        List<Integer> organIds = currentUserInfoService.getCurrentOrganIds();
+        Boolean mergeRecipeFlag = organIds.stream().allMatch(a -> configurationClient.getValueBooleanCatch(a, "mergeRecipeFlag", false));
         List<PatientRecipeListResVo> patientRecipeListResVos = recipeInfoVOS.stream().map(recipeInfoVO -> {
             PatientRecipeListResVo patientRecipeListResVo = new PatientRecipeListResVo();
             RecipeBean recipeBean = recipeInfoVO.getRecipeBean();
@@ -479,6 +484,7 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
             patientRecipeListResVo.setRecipeType(recipeBean.getRecipeType());
             patientRecipeListResVo.setSignDate(recipeBean.getSignDate());
             patientRecipeListResVo.setTargetedDrugType(recipeBean.getTargetedDrugType());
+            patientRecipeListResVo.setMergeRecipeFlag(mergeRecipeFlag);
             Integer secrecyRecipe = 0;
             Integer peritonealDialysisFluidType = 0;
             List<RecipeDetailForRecipeListResVo> recipeDetailForRecipeListResVos = new ArrayList<>();
