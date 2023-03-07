@@ -10,11 +10,12 @@ import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.recipe.mode.EmrDetailValueDTO;
 import com.ngari.his.recipe.mode.*;
 import com.ngari.his.recipe.service.IRecipeToTestService;
+import com.ngari.patient.dto.AppointDepartDTO;
+import com.ngari.patient.dto.DepartmentDTO;
+import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.PatientDTO;
-import com.ngari.patient.dto.*;
 import com.ngari.patient.service.EmploymentService;
 import com.ngari.patient.utils.ObjectCopyUtils;
-import com.ngari.platform.recipe.mode.RecipeDTO;
 import com.ngari.platform.recipe.mode.*;
 import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.DrugSpecificationInfoDTO;
@@ -22,9 +23,7 @@ import com.ngari.recipe.dto.EmrDetailDTO;
 import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
-import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.common.model.RevisitExDTO;
-import com.ngari.revisit.common.service.IRevisitExService;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
@@ -36,8 +35,6 @@ import org.springframework.util.ObjectUtils;
 import recipe.aop.LogRecord;
 import recipe.common.CommonConstant;
 import recipe.constant.ErrorCode;
-import recipe.constant.HisRecipeConstant;
-import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.util.DateConversion;
 import recipe.util.ValidateUtil;
@@ -856,149 +853,23 @@ public class OfflineRecipeClient extends BaseClient {
     }
 
     /**
-     * 待缴费
-     *
      * @param req
+     * @param patient
+     * @param type    1 代缴费，2，已缴费，3 已失效
      * @return
      */
     @LogRecord
-    public List<RecipeDTO> patientAwaitFeeRecipeList(PatientRecipeListReqDTO req) {
-        logger.info("patientAwaitFeeRecipeList req:{},{}",req.getUuid(),JSONUtils.toString(req));
-        List<RecipeDTO> recipeDTOS=new ArrayList<>();
-        HisResponseTO<List<QueryHisRecipResTO>> hisResponseTO=new HisResponseTO<List<QueryHisRecipResTO>>();
-        Integer flag= HisRecipeConstant.HISRECIPESTATUS_NOIDEAL;
-        PatientDTO patient = patientClient.getPatient(req.getMpiId());
+    public List<QueryHisRecipResTO> patientFeeRecipeList(PatientRecipeListReqDTO req, PatientDTO patient, Integer type) {
+        logger.info("patientFeeRecipeList req:{},{},{}", req.getUuid(), JSONUtils.toString(req), type);
         if (ObjectUtils.isEmpty(patient)) {
             logger.info("患者信息不存在");
-            return recipeDTOS;
+            return Collections.emptyList();
         }
-        hisResponseTO=queryData(req.getOrganId(), patient, null, flag, null,req.getStartTime(),req.getEndTime());
-        recipeDTOS= covertRecipeDTOFromQueryHisRecipResTO(hisResponseTO,patient,flag);
-        logger.info("patientAwaitFeeRecipeList res:{},{}",req.getUuid(),JSONUtils.toString(recipeDTOS));
-        return recipeDTOS;
-    }
-
-    /**
-     *
-     * @param hisResponseTO
-     * @param patient
-     * @param
-     * @return
-     */
-    private List<RecipeDTO> covertRecipeDTOFromQueryHisRecipResTO(HisResponseTO<List<QueryHisRecipResTO>> hisResponseTO, PatientDTO patient, Integer flag) {
-        //PatientRecipeListResVo
-        List<RecipeDTO> recipeDTOS=new ArrayList<>();
+        HisResponseTO<List<QueryHisRecipResTO>> hisResponseTO = queryData(req.getOrganId(), patient, null, type, null, req.getStartTime(), req.getEndTime());
         if (null == hisResponseTO || CollectionUtils.isEmpty(hisResponseTO.getData())) {
             return null;
         }
-        List<QueryHisRecipResTO> queryHisRecipResTOs=hisResponseTO.getData();
-        queryHisRecipResTOs.forEach(a -> {
-            RecipeDTO recipeDTO=new RecipeDTO();
-            RecipeBean recipe=ObjectCopyUtils.convert(a, RecipeBean.class);
-            RecipeExtendBean recipeExt=ObjectCopyUtils.convert(a, RecipeExtendBean.class);
-            List<RecipeDetailBean> recipeDetailBeans=ObjectCopyUtils.convert(a.getDrugList(), RecipeDetailBean.class);
-            recipe.setBussSource(0);
-            if (!new Integer("0").equals(a.getRevisitType())) {
-                try {
-                    IRevisitExService exService = RevisitAPI.getService(IRevisitExService.class);
-                    RevisitExDTO revisitExDTO = exService.getByRegisterId(a.getRegisteredId());
-                    if (revisitExDTO != null) {
-                        recipe.setBussSource(2);
-                        recipe.setClinicId(revisitExDTO.getConsultId());
-                        //优先级his->复诊
-                        if (null == a.getIllnessType()) {
-                            recipeExt.setIllnessType(revisitExDTO.getDbType());
-                            recipeExt.setIllnessName(revisitExDTO.getInsureTypeName());
-                        }
-
-                    } else{
-                        logger.error("无关联复诊:{},{}", a.getRecipeCode());
-                    }
-                } catch (Exception e) {
-                    logger.error("通过挂号序号关联复诊 error", e);
-                }
-            } else {
-                recipe.setBussSource(5);
-            }
-            recipe.setMpiid(patient.getMpiId());
-            AppointDepartDTO appointDepartDTO = departClient.getAppointDepartByOrganIdAndAppointDepartCode(a.getClinicOrgan(), a.getDepartCode());
-            if (appointDepartDTO != null) {
-                recipe.setDepart(appointDepartDTO.getDepartId());
-            } else {
-                logger.info("无法查询到开方科室:{},{}", a.getDepartCode(),a.getRecipeCode());
-            }
-            if (StringUtils.isNotEmpty(a.getDoctorCode())) {
-                EmploymentDTO employmentDTO = employmentService.getEmploymentByJobNumberAndOrganId(a.getDoctorCode(), a.getClinicOrgan());
-                if (employmentDTO != null && employmentDTO.getDoctorId() != null) {
-                    recipe.setDoctor(employmentDTO.getDoctorId());
-                } else {
-                    logger.error("请确认医院的医生工号和纳里维护的是否一致:{},{}" + a.getDoctorCode(),a.getRecipeCode());
-                }
-            }
-            recipe.setOrganDiseaseName(a.getDiseaseName());
-            if(HisRecipeConstant.HISRECIPESTATUS_NOIDEAL.equals(flag)){
-                recipe.setProcessState(RecipeStateEnum.PROCESS_STATE_ORDER.getType());
-            }else if(HisRecipeConstant.HISRECIPESTATUS_ALREADYIDEAL.equals(flag)){
-                recipe.setProcessState(RecipeStateEnum.PROCESS_STATE_DONE.getType());
-            }else if(HisRecipeConstant.HISRECIPESTATUS_NOIDEAL.equals(flag)){
-                recipe.setProcessState(RecipeStateEnum.PROCESS_STATE_CANCELLATION.getType());
-            }
-            recipe.setSignDate(a.getCreateDate());
-            recipe.setRecipeSourceType(2);
-            recipeExt.setRegisterID(a.getRegisteredId());
-
-            //recipeType recipeCode illnessType illnessName
-            //TODO recipeBusType secrecyRecipe 这两组装数据的人自己搞
-            recipeDTO.setPatientDTO(patient);
-            recipeDTO.setRecipeBean(recipe);
-            recipeDTO.setRecipeExtendBean(recipeExt);
-            recipeDTO.setRecipeDetails(recipeDetailBeans);
-            recipeDTOS.add(recipeDTO);
-        });
-        return recipeDTOS;
-    }
-
-    /**
-     * 已缴费
-     *
-     * @param req
-     * @return
-     */
-    public List<RecipeDTO> patientDoneFeeRecipeList(PatientRecipeListReqDTO req) {
-        logger.info("patientDoneFeeRecipeList req:{},{}",req.getUuid(),JSONUtils.toString(req));
-        List<RecipeDTO> recipeDTOS=new ArrayList<>();
-        HisResponseTO<List<QueryHisRecipResTO>> hisResponseTO=new HisResponseTO<List<QueryHisRecipResTO>>();
-        Integer flag= HisRecipeConstant.HISRECIPESTATUS_ALREADYIDEAL;
-        PatientDTO patient = patientClient.getPatient(req.getMpiId());
-        if (ObjectUtils.isEmpty(patient)) {
-            logger.info("患者信息不存在");
-            return recipeDTOS;
-        }
-        hisResponseTO=queryData(req.getOrganId(), patient, null, flag, null,req.getStartTime(),req.getEndTime());
-        recipeDTOS= covertRecipeDTOFromQueryHisRecipResTO(hisResponseTO,patient,flag);
-        logger.info("patientDoneFeeRecipeList res:{},{}",req.getUuid(),JSONUtils.toString(recipeDTOS));
-        return recipeDTOS;
-    }
-
-    /**
-     * 已失效
-     *
-     * @param req
-     * @return
-     */
-    public List<RecipeDTO> patientCancellaFeeRecipeList(PatientRecipeListReqDTO req) {
-        logger.info("patientCancellaFeeRecipeList req:{},{}",req.getUuid(),JSONUtils.toString(req));
-        List<RecipeDTO> recipeDTOS=new ArrayList<>();
-        HisResponseTO<List<QueryHisRecipResTO>> hisResponseTO=new HisResponseTO<List<QueryHisRecipResTO>>();
-        Integer flag= HisRecipeConstant.HISRECIPESTATUS_EXPIRED;
-        PatientDTO patient = patientClient.getPatient(req.getMpiId());
-        if (ObjectUtils.isEmpty(patient)) {
-            logger.info("患者信息不存在");
-            return recipeDTOS;
-        }
-        hisResponseTO=queryData(req.getOrganId(), patient, null, flag, null,req.getStartTime(),req.getEndTime());
-        recipeDTOS= covertRecipeDTOFromQueryHisRecipResTO(hisResponseTO,patient,flag);
-        logger.info("patientCancellaFeeRecipeList res:{},{}",req.getUuid(),JSONUtils.toString(recipeDTOS));
-        return recipeDTOS;
+        logger.info("patientFeeRecipeList res:{},{}", req.getUuid(), JSONUtils.toString(hisResponseTO));
+        return hisResponseTO.getData();
     }
 }
