@@ -76,11 +76,8 @@ import java.util.*;
 @Deprecated
 public class OperationPlatformRecipeService {
 
-    /**
-     * LOGGER
-     */
     private static final Logger LOGGER = LoggerFactory.getLogger(OperationPlatformRecipeService.class);
-    private static final Integer GRABORDER_STATUS_YES = 1;
+
     private PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
     @Autowired
     private IRecipeCheckService recipeCheckService;
@@ -138,7 +135,6 @@ public class OperationPlatformRecipeService {
     @RpcService
     @LogRecord
     public Map<String, Object> findRecipeAndDetailsAndCheckById(int recipeId, Integer checkerId) {
-
         LOGGER.info("findRecipeAndDetailsAndCheckById recipeId={}.checkerId={}", recipeId, checkerId);
         RecipeDAO rDao = DAOFactory.getDAO(RecipeDAO.class);
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
@@ -271,7 +267,6 @@ public class OperationPlatformRecipeService {
                         LOGGER.warn("监护人使用身份证号获取年龄或者性别出错.{}.", exception.getMessage(), exception);
                     }
                 }
-
             } else {
                 LOGGER.warn("findRecipeAndDetailsAndCheckById patient is null. mpiId={}", recipe.getMpiid());
             }
@@ -282,7 +277,7 @@ public class OperationPlatformRecipeService {
         Map<String, Object> map = Maps.newHashMap();
         //判断是否为儿童处方
         //兼容老版本（此版本暂时不做删除）
-        Boolean childRecipeFlag = false;
+        boolean childRecipeFlag = false;
         if (extend != null) {
             if (Integer.valueOf(1).equals(extend.getRecipeFlag())) {
                 childRecipeFlag = true;
@@ -387,6 +382,7 @@ public class OperationPlatformRecipeService {
                 e.setName(drugsEnterprise.getName());
                 e.setPayModeSupport(drugsEnterprise.getPayModeSupport());
                 e.setCreateType(drugsEnterprise.getCreateType());
+                e.setLogisticsType(drugsEnterprise.getLogisticsType());
             }
         }
 

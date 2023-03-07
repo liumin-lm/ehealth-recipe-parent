@@ -24,6 +24,9 @@ public class PatientRecipeListReqDTO implements Serializable {
     @ItemProperty(alias = "用户 mpiId")
     private String mpiId;
 
+    @ItemProperty(alias = "卡号")
+    private String cardId;
+
     @ItemProperty(alias = "开始时间")
     private Date startTime;
 
@@ -47,4 +50,7 @@ public class PatientRecipeListReqDTO implements Serializable {
                 return Collections.emptyList();
         }
     }
+
+    @ItemProperty(alias = "列表查询处方状态")
+    private List<Integer> recipeState;
 }

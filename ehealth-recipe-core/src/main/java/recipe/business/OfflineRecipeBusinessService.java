@@ -1,5 +1,6 @@
 package recipe.business;
 
+import com.google.common.collect.Lists;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.QueryHisRecipResTO;
@@ -19,17 +20,16 @@ import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailResVO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeListVO;
 import com.ngari.recipe.offlinetoonline.model.SettleForOfflineToOnlineVO;
 import com.ngari.recipe.recipe.constant.RecipeTypeEnum;
-import com.ngari.recipe.recipe.model.MergeRecipeVO;
-import com.ngari.recipe.recipe.model.RecipeBean;
-import com.ngari.recipe.recipe.model.RecipeDetailBean;
-import com.ngari.recipe.recipe.model.RecipeExtendBean;
+import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.vo.OffLineRecipeDetailVO;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.BeanUtils;
 import ctd.util.event.GlobalEventExecFactory;
+import eh.utils.BeanCopyUtils;
 import ngari.openapi.util.JSONUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,11 +56,14 @@ import recipe.util.MapValueUtil;
 import recipe.util.ObjectCopyUtils;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.patient.PatientRecipeListReqVO;
+import recipe.vo.patient.PatientRecipeListResVo;
+import recipe.vo.patient.RecipeDetailForRecipeListResVo;
 import recipe.vo.patient.RecipeGiveModeButtonRes;
 
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.FutureTask;
+import java.util.stream.Collectors;
 
 /**
  * 线下处方核心逻辑
@@ -399,7 +402,7 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
     }
 
     @Override
-    public Set<RecipeInfoVO> patientRecipeList(PatientRecipeListReqVO req) {
+    public List<List<PatientRecipeListResVo>> patientRecipeList(PatientRecipeListReqVO req) {
         PatientRecipeListReqDTO reqDTO = ObjectCopyUtils.convert(req, PatientRecipeListReqDTO.class);
         //线下异步任务
         List<Integer> hisTypes = PatientRecipeListReqDTO.hisState(reqDTO.getState());
@@ -415,7 +418,93 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
         //查询线下处方
         List<List<com.ngari.platform.recipe.mode.RecipeDTO>> hisRecipeList = super.futureTaskCallbackBeanList(futureTasks, 15000);
         //去重返回 组装线上 线下数据
-        return recipeList(recipeList, hisRecipeList);
+        Set<RecipeInfoVO> recipeInfoVOS = recipeList(recipeList, hisRecipeList);
+        // 组装返回 给前端的数据
+        List<List<PatientRecipeListResVo>> list = convertRecipeList(recipeInfoVOS);
+        return list;
+    }
+
+    /**
+     * 组装返回 给前端的数据
+     * @param recipeInfoVOS
+     * @return
+     */
+    private List<List<PatientRecipeListResVo>> convertRecipeList(Set<RecipeInfoVO> recipeInfoVOS) {
+        List<List<PatientRecipeListResVo>> result = new ArrayList<>();
+        List<PatientRecipeListResVo> patientRecipeListResVos = recipeInfoVOSCoverPatientRecipeListResVo(recipeInfoVOS);
+        // 根据创建时间排序
+        List<PatientRecipeListResVo> recipeListResVos = patientRecipeListResVos.stream().sorted(Comparator.comparing(PatientRecipeListResVo::getSignDate).reversed()).collect(Collectors.toList());
+        // 同一挂号序号的放在同一组内 挂号序号为空,单独成组
+        Map<String, List<PatientRecipeListResVo>> map = recipeListResVos.stream().collect(Collectors.groupingBy(PatientRecipeListResVo::getRegisterID));
+        Set<String> recipeIds = new HashSet<>();
+        for (PatientRecipeListResVo recipeListResVo : recipeListResVos) {
+            if (!recipeIds.contains(recipeListResVo.getRecipeCode())) {
+                if (Objects.isNull(recipeListResVo.getRegisterID())) {
+                    recipeIds.add(recipeListResVo.getRecipeCode());
+                    List<PatientRecipeListResVo> resVos = new ArrayList<>();
+                    resVos.add(recipeListResVo);
+                    result.add(resVos);
+                } else {
+                    List<PatientRecipeListResVo> patientRecipeListResVos1 = map.get(recipeListResVo.getRegisterID());
+                    patientRecipeListResVos1.forEach(patientRecipeListResVo -> {
+                        recipeIds.add(patientRecipeListResVo.getRecipeCode());
+                    });
+                    result.add(patientRecipeListResVos1);
+                }
+            }
+        }
+        return result;
+    }
+
+    private List<PatientRecipeListResVo> recipeInfoVOSCoverPatientRecipeListResVo(Set<RecipeInfoVO> recipeInfoVOS) {
+        List<PatientRecipeListResVo> patientRecipeListResVos = recipeInfoVOS.stream().map(recipeInfoVO -> {
+            PatientRecipeListResVo patientRecipeListResVo = new PatientRecipeListResVo();
+            RecipeBean recipeBean = recipeInfoVO.getRecipeBean();
+            RecipeExtendBean recipeExtendBean = recipeInfoVO.getRecipeExtendBean();
+            List<RecipeDetailBean> recipeDetails = recipeInfoVO.getRecipeDetails();
+            patientRecipeListResVo.setRecipeId(recipeBean.getRecipeId());
+            patientRecipeListResVo.setBussSource(recipeBean.getBussSource());
+            patientRecipeListResVo.setClinicId(recipeBean.getClinicId());
+            patientRecipeListResVo.setDepart(recipeBean.getDepart());
+            patientRecipeListResVo.setDoctor(recipeBean.getDoctor());
+            patientRecipeListResVo.setIllnessType(recipeExtendBean.getIllnessType());
+            patientRecipeListResVo.setIllnessName(recipeExtendBean.getIllnessName());
+            patientRecipeListResVo.setMpiid(recipeBean.getMpiid());
+            patientRecipeListResVo.setOrderCode(recipeBean.getOrderCode());
+            patientRecipeListResVo.setOrganDiseaseName(recipeBean.getOrganDiseaseName());
+            patientRecipeListResVo.setProcessState(recipeBean.getProcessState());
+            patientRecipeListResVo.setRecipeCode(recipeBean.getRecipeCode());
+            patientRecipeListResVo.setRecipeSourceType(recipeBean.getRecipeSourceType());
+            patientRecipeListResVo.setRegisterID(recipeExtendBean.getRegisterID());
+            patientRecipeListResVo.setRecipeType(recipeBean.getRecipeType());
+            patientRecipeListResVo.setSignDate(recipeBean.getSignDate());
+            patientRecipeListResVo.setTargetedDrugType(recipeBean.getTargetedDrugType());
+            Integer secrecyRecipe = 0;
+            Integer peritonealDialysisFluidType = 0;
+            List<RecipeDetailForRecipeListResVo> recipeDetailForRecipeListResVos = new ArrayList<>();
+            for (RecipeDetailBean recipeDetail : recipeDetails) {
+                RecipeDetailForRecipeListResVo recipeDetailForRecipeListResVo = new RecipeDetailForRecipeListResVo();
+                BeanCopyUtils.copy(recipeDetail, recipeDetailForRecipeListResVo);
+                if (new Integer(3).equals(recipeDetail.getType())) {
+                    secrecyRecipe = 1;
+                }
+                if (new Integer(1).equals(recipeDetail.getPeritonealDialysisFluidType())) {
+                    peritonealDialysisFluidType = 1;
+                }
+                recipeDetailForRecipeListResVos.add(recipeDetailForRecipeListResVo);
+            }
+
+            patientRecipeListResVo.setSecrecyRecipe(secrecyRecipe);
+            patientRecipeListResVo.setPeritonealDialysisFluidType(peritonealDialysisFluidType);
+            if(Objects.nonNull(recipeBean.getRecipeId())) {
+                patientRecipeListResVo.setRecipeBusType(1);
+            }else {
+                patientRecipeListResVo.setRecipeBusType(2);
+            }
+            patientRecipeListResVo.setRecipeDetail(recipeDetailForRecipeListResVos);
+            return patientRecipeListResVo;
+        }).collect(Collectors.toList());
+        return patientRecipeListResVos;
     }
 
     /**

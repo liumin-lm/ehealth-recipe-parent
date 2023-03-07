@@ -6,6 +6,7 @@ import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.RecipeInfoTO;
 import com.ngari.platform.recipe.mode.OutpatientPaymentRecipeDTO;
 import com.ngari.platform.recipe.mode.QueryRecipeInfoHisDTO;
+import com.ngari.platform.recipe.mode.RecipeInfoDTO;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
 import com.ngari.recipe.recipe.model.RecipeBean;
@@ -378,5 +379,8 @@ public interface IRecipeAtopService {
      */
     @RpcService(mvcDisabled = true)
     void auditRecipeNoticeRevisit(Integer recipeId, Boolean failFlag);
+
+    @RpcService
+    RecipeInfoDTO getRecipeInfoByRecipeId(Integer recipeId);
 
 }

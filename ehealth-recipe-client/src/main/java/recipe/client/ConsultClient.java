@@ -8,8 +8,9 @@ import com.ngari.consult.common.model.ConsultRegistrationNumberResultVO;
 import com.ngari.consult.common.service.IConsultExService;
 import com.ngari.consult.common.service.IConsultRedisService;
 import com.ngari.consult.common.service.IConsultService;
+import com.ngari.his.consult.model.BusinessLogTO;
+import com.ngari.his.consult.service.IConsultHisService;
 import com.ngari.his.recipe.mode.OutPatientRecordResTO;
-import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.his.visit.mode.*;
 import com.ngari.patient.dto.ConsultSetDTO;
 import com.ngari.patient.service.ConsultSetService;
@@ -21,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.enumerate.type.BussSourceTypeEnum;
+import recipe.util.RecipeBusiThreadPool;
 import recipe.util.ValidateUtil;
 
 import javax.annotation.Resource;
@@ -36,13 +38,10 @@ import java.util.List;
  */
 @Service
 public class ConsultClient extends BaseClient {
-
     @Autowired
     private IConsultExService consultExService;
-
     @Autowired
-    private IRecipeHisService iRecipeHisService;
-
+    private IConsultHisService iConsultHisService;
     @Autowired
     private ConsultSetService consultSetService;
     @Autowired
@@ -136,7 +135,7 @@ public class ConsultClient extends BaseClient {
         logger.info("ConsultClient getRecipePaymentFee needPaymentRecipeReqTo={}", JSON.toJSONString(needPaymentRecipeReqTo));
         NeedPaymentRecipeResTo response = null;
         try {
-            HisResponseTO<NeedPaymentRecipeResTo> hisResponseTO = iRecipeHisService.getRecipePaymentFee(needPaymentRecipeReqTo);
+            HisResponseTO<NeedPaymentRecipeResTo> hisResponseTO = recipeHisService.getRecipePaymentFee(needPaymentRecipeReqTo);
             response = this.getResponse(hisResponseTO);
         } catch (Exception e) {
             logger.error("ConsultClient getRecipePaymentFee error ", e);
@@ -155,7 +154,7 @@ public class ConsultClient extends BaseClient {
         logger.info("ConsultClient getRecipeChargeItems recipeChargeItemCodeReqTo:{}", JSON.toJSONString(recipeChargeItemCodeReqTo));
         RecipeChargeItemCodeResTo response = null;
         try {
-            HisResponseTO<RecipeChargeItemCodeResTo> hisResponseTO = iRecipeHisService.getRecipeChargeItems(recipeChargeItemCodeReqTo);
+            HisResponseTO<RecipeChargeItemCodeResTo> hisResponseTO = recipeHisService.getRecipeChargeItems(recipeChargeItemCodeReqTo);
             response = this.getResponse(hisResponseTO);
         } catch (Exception e) {
             logger.error("ConsultClient getRecipeChargeItems error ", e);
@@ -191,7 +190,7 @@ public class ConsultClient extends BaseClient {
         logger.info("ConsultClient findOutPatientRecordFromHis writeDrugRecipeReqTO={}", JSON.toJSONString(writeDrugRecipeReqTO));
         HisResponseTO<OutPatientRecordResTO> hisResponseTO = new HisResponseTO<>();
         try {
-            hisResponseTO = iRecipeHisService.findOutPatientRecordFromHis(writeDrugRecipeReqTO);
+            hisResponseTO = recipeHisService.findOutPatientRecordFromHis(writeDrugRecipeReqTO);
         } catch (Exception e) {
             logger.error("ConsultClient findOutPatientRecordFromHis error ", e);
         }
@@ -243,6 +242,22 @@ public class ConsultClient extends BaseClient {
         logger.info("ConsultClient doctorPermissionSetting doctorPermission ={}", JSON.toJSONString(doctorPermission));
         return doctorPermission;
     }
+
+    public void uploadBusinessLog(List<Recipe> recipes) {
+        RecipeBusiThreadPool.execute(() ->
+                recipes.forEach(recipe -> {
+                    logger.info("ConsultClient uploadBusinessLog recipe={}", recipe.getRecipeId());
+                    BusinessLogTO business = new BusinessLogTO();
+                    business.setOrganId(recipe.getClinicOrgan());
+                    business.setYwgnmc("医疗业务协同协同公卫随访管");
+                    business.setYwgndm("YLYWXT");
+                    business.setYwlxmc("处方流转服务");
+                    business.setYwlxdm("YLYWXT_CFLZ");
+                    business.setRzmx(JSON.toJSONString(recipe));
+                    iConsultHisService.uploadBusinessLog(business);
+                }));
+    }
+
 
     /**
      * 设置处方默认数据

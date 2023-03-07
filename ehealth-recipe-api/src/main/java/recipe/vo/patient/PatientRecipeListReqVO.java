@@ -31,4 +31,7 @@ public class PatientRecipeListReqVO implements Serializable {
     private Integer state;
 
     private String uuid;
+
+    @ItemProperty(alias = "卡号")
+    private String cardId;
 }

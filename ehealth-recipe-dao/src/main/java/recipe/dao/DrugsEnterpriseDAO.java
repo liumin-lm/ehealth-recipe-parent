@@ -18,6 +18,7 @@ import org.hibernate.SQLQuery;
 import org.hibernate.StatelessSession;
 
 import java.math.BigInteger;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
@@ -405,6 +406,14 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
      */
     @DAOMethod(sql = "from DrugsEnterprise where status=1 and appKey=:appKey")
     public abstract List<DrugsEnterprise> findByAppKey(@DAOParam("appKey") String appKey);
+
+    /**
+     * 根据appKey获取药企
+     * @param appKeys
+     * @return
+     */
+    @DAOMethod(sql = "from DrugsEnterprise where status=1 and appKey in(:appKeys)")
+    public abstract List<DrugsEnterprise> findByAppKeyList(@DAOParam("appKeys") Collection<String> appKeys);
 
     /**
      * 根据appKey获取药企

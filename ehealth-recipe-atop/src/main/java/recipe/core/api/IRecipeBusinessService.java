@@ -5,10 +5,7 @@ import com.ngari.common.dto.SyncOrderVO;
 import com.ngari.patient.dto.HealthCardDTO;
 import com.ngari.platform.recipe.mode.OutpatientPaymentRecipeDTO;
 import com.ngari.platform.recipe.mode.QueryRecipeInfoHisDTO;
-import com.ngari.recipe.dto.DiseaseInfoDTO;
-import com.ngari.recipe.dto.OutPatientRecipeDTO;
-import com.ngari.recipe.dto.OutPatientRecordResDTO;
-import com.ngari.recipe.dto.RecipeRefundDTO;
+import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Symptom;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
@@ -491,4 +488,6 @@ public interface IRecipeBusinessService {
      * @param response
      */
     void sendSuccessRecipe(HisSendResTO response);
+
+    RecipeDTO getRecipeInfoByRecipeId(Integer recipeId);
 }

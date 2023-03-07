@@ -67,12 +67,8 @@ import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.PurchaseResponse;
 import recipe.bean.RecipePayModeSupportBean;
-import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
-import recipe.client.DocIndexClient;
-import recipe.client.IConfigurationClient;
-import recipe.client.InfraClient;
-import recipe.client.PayClient;
+import recipe.client.*;
 import recipe.common.CommonConstant;
 import recipe.common.ResponseUtils;
 import recipe.constant.*;
@@ -126,7 +122,8 @@ public class RecipeOrderService extends RecipeBaseService {
 
     @Autowired
     private RecipeOrderDAO recipeOrderDAO;
-
+    @Autowired
+    private ConsultClient consultClient;
     @Autowired
     private OrderManager orderManager;
     @Autowired
@@ -2469,6 +2466,7 @@ public class RecipeOrderService extends RecipeBaseService {
         PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
         List<Recipe> recipes = recipeDAO.findRecipeListByOrderCode(orderCode);
         if (CollectionUtils.isNotEmpty(recipes)) {
+            consultClient.uploadBusinessLog(recipes);
             Recipe nowRecipe = recipes.get(0);
             Integer reviewType = nowRecipe.getReviewType();
             Integer giveMode = nowRecipe.getGiveMode();

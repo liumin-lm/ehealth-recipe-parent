@@ -1,9 +1,6 @@
 package recipe.core.api;
 
-import com.ngari.recipe.drugsenterprise.model.EnterpriseAddressAndPrice;
-import com.ngari.recipe.drugsenterprise.model.EnterpriseAddressDTO;
-import com.ngari.recipe.drugsenterprise.model.EnterpriseDecoctionAddressReq;
-import com.ngari.recipe.drugsenterprise.model.EnterpriseDecoctionList;
+import com.ngari.recipe.drugsenterprise.model.*;
 import com.ngari.recipe.dto.EnterpriseStock;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.EnterpriseDecoctionAddress;
@@ -322,4 +319,11 @@ public interface IEnterpriseBusinessService {
      * @return
      */
     OrganDrugsSaleConfig getOrganDrugsSaleConfigV1(FindOrganDrugsSaleConfigResVo findOrganDrugsSaleConfigResVo);
+
+    /**
+     * 第三方药企更新配送地址和配送费用
+     * @param enterpriseAddressList
+     * @return
+     */
+    Boolean setEnterpriseAddressAndPrice(List<EnterpriseAddressVO> enterpriseAddressList);
 }

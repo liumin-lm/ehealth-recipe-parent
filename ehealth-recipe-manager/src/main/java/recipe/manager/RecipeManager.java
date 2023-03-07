@@ -1497,8 +1497,8 @@ public class RecipeManager extends BaseManager {
      * @return
      */
     public List<RecipeInfoDTO> patientRecipeList(PatientRecipeListReqDTO req) {
-        List<String> isHisRecipe = configurationClient.getValueListCatch(req.getOrganId(), "xxxxxxx", Collections.emptyList());
-        if (!isHisRecipe.contains("1")) {
+        List<String> isHisRecipe = configurationClient.getPropertyByStringList("findRecipeListType");
+        if (!isHisRecipe.contains("onLine")) {
             return Collections.emptyList();
         }
         List<Integer> recipeState = RecipeStateEnum.RECIPE_ALL;
@@ -1518,8 +1518,27 @@ public class RecipeManager extends BaseManager {
             default:
                 break;
         }
-        //List<Recipe> recipes = recipeDAO.findPatientRecipeList(req);
-
-        return null;
+        req.setRecipeState(recipeState);
+        List<Recipe> recipes = recipeDAO.findPatientRecipeList(req);
+        if (CollectionUtils.isEmpty(recipes)) {
+            return Collections.emptyList();
+        }
+        List<Integer> recipeIdList = recipes.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
+        List<RecipeExtend> recipeExtList = recipeExtendDAO.queryRecipeExtendByRecipeIds(recipeIdList);
+        List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeIdList(recipeIdList);
+        Map<Integer, List<Recipedetail>> recipeDetailMap = recipeDetailList.stream().collect(Collectors.groupingBy(Recipedetail::getRecipeId));
+        Map<Integer, RecipeExtend> recipeExtMap = recipeExtList.stream().collect(Collectors.toMap(RecipeExtend::getRecipeId, a -> a, (k1, k2) -> k1));
+        List<RecipeInfoDTO> recipeInfoDTOS = recipes.stream().map(recipe -> {
+            RecipeInfoDTO recipeInfoDTO = new RecipeInfoDTO();
+            recipeInfoDTO.setRecipe(recipe);
+            if (MapUtils.isNotEmpty(recipeExtMap) && Objects.nonNull(recipeExtMap.get(recipe.getRecipeId()))) {
+                recipeInfoDTO.setRecipeExtend(recipeExtMap.get(recipe.getRecipeId()));
+            }
+            if (MapUtils.isNotEmpty(recipeDetailMap) && CollectionUtils.isNotEmpty(recipeDetailMap.get(recipe.getRecipeId()))) {
+                recipeInfoDTO.setRecipeDetails(recipeDetailMap.get(recipe.getRecipeId()));
+            }
+            return recipeInfoDTO;
+        }).collect(Collectors.toList());
+        return recipeInfoDTOS;
     }
 }
