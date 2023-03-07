@@ -138,7 +138,6 @@ public class OperationPlatformRecipeService {
     @RpcService
     @LogRecord
     public Map<String, Object> findRecipeAndDetailsAndCheckById(int recipeId, Integer checkerId) {
-
         LOGGER.info("findRecipeAndDetailsAndCheckById recipeId={}.checkerId={}", recipeId, checkerId);
         RecipeDAO rDao = DAOFactory.getDAO(RecipeDAO.class);
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
@@ -387,6 +386,7 @@ public class OperationPlatformRecipeService {
                 e.setName(drugsEnterprise.getName());
                 e.setPayModeSupport(drugsEnterprise.getPayModeSupport());
                 e.setCreateType(drugsEnterprise.getCreateType());
+                e.setLogisticsType(drugsEnterprise.getLogisticsType());
             }
         }
 
