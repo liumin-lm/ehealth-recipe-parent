@@ -65,6 +65,9 @@ public class PatientRecipeListResVo implements Serializable {
     @ItemProperty(alias = "是否靶向药  0否  1是 ")
     private Integer targetedDrugType;
 
+    @ItemProperty(alias = "线下处方/常用方/协定方名称")
+    private String offlineRecipeName;
+
 
     /******************************** 以下数据来源 recipeExt ****************************/
     @ItemProperty(alias = "大病类型")
