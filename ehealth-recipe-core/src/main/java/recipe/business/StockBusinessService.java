@@ -456,7 +456,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         if (CollectionUtils.isEmpty(recipeDetailList)) {
             enterpriseStock.setStock(false);
             enterpriseStock.setDrugInfoList(DrugStockClient.getDrugInfoDTO(recipeDetails, false));
-            logger.info("DrugEnterpriseBusinessService enterpriseStock recipeDetailList is null");
+            logger.info("DrugEnterpriseBusinessService enterpriseStock recipeDetailList is null recipeDetails:{}", JSON.toJSONString(recipeDetails));
             return;
         }
         boolean checkSkipStock = false;
