@@ -540,8 +540,9 @@ public class OrganDrugListManager extends BaseManager {
             }
             //医保属性,处方来源为复诊时从复诊获取
             RevisitExDTO revisitExDTO = revisitClient.getByClinicId(recipe.getClinicId());
+            Integer medicalInsuranceAttribute = null;
             if(revisitExDTO != null){
-                Integer medicalInsuranceAttribute = revisitExDTO.getMedicalCardType();
+                medicalInsuranceAttribute = revisitExDTO.getMedicalCardType();
             }
             List<MedicalReimbursementTypeReqTO> medicalReimbursementTypeReqTOList = new ArrayList<>();
             for (RecipeDetailDTO recipeDetail : recipeDetails) {
