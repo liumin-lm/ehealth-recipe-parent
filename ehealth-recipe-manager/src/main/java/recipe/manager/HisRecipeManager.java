@@ -931,7 +931,7 @@ public class HisRecipeManager extends BaseManager {
                 }
             });
 
-            recipe.setTargetedDrugType(targetedDrugType);
+            recipe.setTargetedDrugType(targetedDrugType.get());
             recipeExt.setRegisterID(a.getRegisteredId());
 
             //recipeType recipeCode illnessType illnessName
@@ -945,34 +945,6 @@ public class HisRecipeManager extends BaseManager {
         return recipeDTOS;
     }
 
-    /**
-     *
-     * @param hisResponseTO
-     * @param patient
-     * @param
-     * @return
-     */
-    private List<RecipeDTO> covertRecipeDTOFromQueryHisRecipResTO(HisResponseTO<List<QueryHisRecipResTO>> hisResponseTO, PatientDTO patient, Integer flag) {
-        //PatientRecipeListResVo
-        List<RecipeDTO> recipeDTOS=new ArrayList<>();
-        if (null == hisResponseTO || CollectionUtils.isEmpty(hisResponseTO.getData())) {
-            return null;
-        }
-        List<QueryHisRecipResTO> queryHisRecipResTOs=hisResponseTO.getData();
-        queryHisRecipResTOs.forEach(a -> {
 
-
-
-
-            //recipeType recipeCode illnessType illnessName
-            //TODO recipeBusType secrecyRecipe 这两组装数据的人自己搞
-            recipeDTO.setPatientDTO(patient);
-            recipeDTO.setRecipeBean(recipe);
-            recipeDTO.setRecipeExtendBean(recipeExt);
-            recipeDTO.setRecipeDetails(recipeDetailBeans);
-            recipeDTOS.add(recipeDTO);
-        });
-        return recipeDTOS;
-    }
 
 }
