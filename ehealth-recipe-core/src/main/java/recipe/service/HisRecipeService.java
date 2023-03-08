@@ -12,6 +12,7 @@ import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.platform.recipe.mode.RecipeDTO;
 import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.dto.GiveModeButtonDTO;
 import com.ngari.recipe.dto.GiveModeShowButtonDTO;
@@ -2084,8 +2085,8 @@ public class HisRecipeService {
     }
 
     @RpcService
-    public void testPatientRecipeList(PatientRecipeListReqDTO req, Integer type) throws JsonProcessingException {
-        hisRecipeManager.patientRecipeList(req, type);
+    public List<RecipeDTO>  testPatientRecipeList(PatientRecipeListReqDTO req, Integer type) throws JsonProcessingException {
+        return hisRecipeManager.patientRecipeList(req, type);
     }
 
 }

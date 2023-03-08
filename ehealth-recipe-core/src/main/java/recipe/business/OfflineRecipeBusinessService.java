@@ -439,11 +439,11 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
         // 根据创建时间排序
         List<PatientRecipeListResVo> recipeListResVos = patientRecipeListResVos.stream().sorted(Comparator.comparing(PatientRecipeListResVo::getSignDate).reversed()).collect(Collectors.toList());
         // 同一挂号序号的放在同一组内 挂号序号为空,单独成组
-        Map<String, List<PatientRecipeListResVo>> map = recipeListResVos.stream().collect(Collectors.groupingBy(PatientRecipeListResVo::getRegisterID));
+        Map<String, List<PatientRecipeListResVo>> map = recipeListResVos.stream().filter(patientRecipeListResVo-> StringUtils.isNotEmpty(patientRecipeListResVo.getRegisterID())).collect(Collectors.groupingBy(PatientRecipeListResVo::getRegisterID));
         Set<String> recipeIds = new HashSet<>();
         for (PatientRecipeListResVo recipeListResVo : recipeListResVos) {
             if (!recipeIds.contains(recipeListResVo.getRecipeCode())) {
-                if (Objects.isNull(recipeListResVo.getRegisterID())) {
+                if (StringUtils.isEmpty(recipeListResVo.getRegisterID())) {
                     recipeIds.add(recipeListResVo.getRecipeCode());
                     List<PatientRecipeListResVo> resVos = new ArrayList<>();
                     resVos.add(recipeListResVo);
