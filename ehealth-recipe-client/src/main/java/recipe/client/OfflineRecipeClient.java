@@ -59,8 +59,6 @@ public class OfflineRecipeClient extends BaseClient {
     private IConfigurationClient configurationClient;
     @Autowired
     private IRecipeToTestService recipeToTestService;
-    @Autowired
-    private PatientClient patientClient;
 
     /**
      * @param organId
