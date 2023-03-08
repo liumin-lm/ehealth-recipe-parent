@@ -910,7 +910,7 @@ public class HisRecipeManager extends BaseManager {
                 recipe.setProcessState(RecipeStateEnum.PROCESS_STATE_ORDER.getType());
             } else if (HisRecipeConstant.HISRECIPESTATUS_ALREADYIDEAL.equals(flag)) {
                 recipe.setProcessState(RecipeStateEnum.PROCESS_STATE_DONE.getType());
-            } else if (HisRecipeConstant.HISRECIPESTATUS_NOIDEAL.equals(flag)) {
+            } else if (HisRecipeConstant.HISRECIPESTATUS_EXPIRED.equals(flag)) {
                 recipe.setProcessState(RecipeStateEnum.PROCESS_STATE_CANCELLATION.getType());
             }
             recipe.setSignDate(a.getCreateDate());

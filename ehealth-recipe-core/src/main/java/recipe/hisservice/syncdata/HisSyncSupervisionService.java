@@ -133,6 +133,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
 
     @Autowired
     private OrganManager organManager;
+    @Autowired
+    private IUsingRateService usingRateService;
 
     /**
      * logger
@@ -1228,6 +1230,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 reqDetail.setDrugFormCode(organDrugList.getDrugFormCode());
                 reqDetail.setMedicalDrugFormCode(organDrugList.getMedicalDrugFormCode());
                 reqDetail.setRegulationDrugCode(organDrugList.getRegulationDrugCode());
+                reqDetail.setNationalStandardDrugFlag(organDrugList.getNationalStandardDrugFlag());
+                reqDetail.setSpecialUseAntibioticDrugFlag(organDrugList.getSpecialUseAntibioticDrugFlag());
             }
 
             reqDetail.setDrugType(detail.getDrugType());
@@ -1239,6 +1243,10 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             reqDetail.setFrequency(detail.getUsingRate());
             //机构频次
             reqDetail.setOrganUsingRate(detail.getOrganUsingRate());
+            UsingRateDTO usingRateDTO = usingRateService.newFindUsingRateDTOByOrganAndKey(recipe.getClinicOrgan(), detail.getOrganUsingRate());
+            if(usingRateDTO != null){
+                reqDetail.setOrganUsingRateText(usingRateDTO.getText());
+            }
             //机构频次名称
             reqDetail.setUsingRateTextFromHis(detail.getUsingRateTextFromHis());
             //药品频次名称
