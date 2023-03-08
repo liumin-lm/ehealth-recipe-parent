@@ -930,11 +930,9 @@ public class HisRecipeManager extends BaseManager {
                     return;
                 }
             });
-
             recipe.setTargetedDrugType(targetedDrugType.get());
             recipeExt.setRegisterID(a.getRegisteredId());
-
-            //recipeType recipeCode illnessType illnessName
+            //recipeType recipeCode illnessType illnessName departName doctorName
             //TODO recipeBusType secrecyRecipe 这两组装数据的人自己搞
             recipeDTO.setPatientDTO(patient);
             recipeDTO.setRecipeBean(recipe);
