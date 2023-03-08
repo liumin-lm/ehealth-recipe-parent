@@ -2084,8 +2084,8 @@ public class HisRecipeService {
     }
 
     @RpcService
-    public void testPatientRecipeList(PatientRecipeListReqDTO req, Integer type) throws JsonProcessingException {
-        hisRecipeManager.patientRecipeList(req, type);
+    public List<RecipeDTO>  testPatientRecipeList(PatientRecipeListReqDTO req, Integer type) throws JsonProcessingException {
+        return hisRecipeManager.patientRecipeList(req, type);
     }
 
 }

@@ -865,6 +865,7 @@ public class OfflineRecipeClient extends BaseClient {
             logger.info("患者信息不存在");
             return Collections.emptyList();
         }
+        patient.setCardId(StringUtils.isNotEmpty(req.getCardId()) ? req.getCardId() : patient.getCardId());
         HisResponseTO<List<QueryHisRecipResTO>> hisResponseTO = queryData(req.getOrganId(), patient, null, type, null, req.getStartTime(), req.getEndTime());
         if (null == hisResponseTO || CollectionUtils.isEmpty(hisResponseTO.getData())) {
             return null;
