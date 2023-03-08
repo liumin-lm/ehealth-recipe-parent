@@ -266,9 +266,9 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
         }
         List<String> hisDrugRule = configurationClient.getValueListCatch(recipe.getClinicOrgan(), "validateHisDrugRule", null);
         logger.info("RecipeDetailBusinessService validateHisDrugRule hisDrugRule={}", JSON.toJSONString(hisDrugRule));
-        if (CollectionUtils.isEmpty(hisDrugRule)) {
-            return recipeDetails;
-        }
+//        if (CollectionUtils.isEmpty(hisDrugRule)) {
+//            return recipeDetails;
+//        }
         //"1": "大病权限" ,"3": "机构药品规则（含余量控制）"
         if (hisDrugRule.contains("1") || hisDrugRule.contains("3")) {
             recipeDetailManager.validateHisDrugRule(recipe, recipeDetails, registerId, dbType);
