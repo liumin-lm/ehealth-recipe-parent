@@ -1496,6 +1496,7 @@ public class RecipeManager extends BaseManager {
      * @param req
      * @return
      */
+    @LogRecord
     public List<RecipeInfoDTO> patientRecipeList(PatientRecipeListReqDTO req) {
         List<String> isHisRecipe = configurationClient.getPropertyByStringList("findRecipeListType");
         if (!isHisRecipe.contains("onLine")) {
