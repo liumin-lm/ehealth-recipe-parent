@@ -473,8 +473,8 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
             patientRecipeListResVo.setBussSource(recipeBean.getBussSource());
             patientRecipeListResVo.setClinicId(recipeBean.getClinicId());
             patientRecipeListResVo.setDepart(recipeBean.getDepart());
-            patientRecipeListResVo.setDepartText(DictionaryUtil.getDictionary("eh.base.dictionary.Depart", recipeBean.getDepart()));
-            patientRecipeListResVo.setDoctorText(DictionaryUtil.getDictionary("eh.base.dictionary.Doctor", recipeBean.getDoctor()));
+            patientRecipeListResVo.setDepartName(DictionaryUtil.getDictionary("eh.base.dictionary.Depart", recipeBean.getDepart()));
+            patientRecipeListResVo.setDoctorName(DictionaryUtil.getDictionary("eh.base.dictionary.Doctor", recipeBean.getDoctor()));
             patientRecipeListResVo.setDoctor(recipeBean.getDoctor());
             patientRecipeListResVo.setIllnessType(recipeExtendBean.getIllnessType());
             patientRecipeListResVo.setIllnessName(recipeExtendBean.getIllnessName());

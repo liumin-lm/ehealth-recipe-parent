@@ -40,11 +40,11 @@ public class PatientRecipeListResVo implements Serializable {
 
     @ItemProperty(alias = "开方科室")
     private Integer depart;
-    private String departText;
+    private String departName;
 
     @ItemProperty(alias = "开方医生（医生Id）")
     private Integer doctor;
-    private String doctorText;
+    private String doctorName;
 
     @ItemProperty(alias = "机构疾病名称")
     private String organDiseaseName;

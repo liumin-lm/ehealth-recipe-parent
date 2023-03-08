@@ -1321,6 +1321,8 @@ public class RecipeListService extends RecipeBaseService {
             patientTabStatusRecipeDTO.setStatusText(getOrderStatusTabText(recipeListBean.getOrderStatus(), recipeListBean.getGiveMode(), recipeListBean.getStatus()));
             patientTabStatusRecipeDTO.setRecordType(LIST_TYPE_ORDER);
             patientTabStatusRecipeDTO.setRecordId(recipeListBean.getOrderId());
+            // 药企物流对接方式
+            Optional.ofNullable(drugsEnterpriseDAO.getById(recipeListBean.getEnterpriseId())).ifPresent(a -> patientTabStatusRecipeDTO.setLogisticsType(a.getLogisticsType()));
         } else {
             patientTabStatusRecipeDTO.setStatusCode(recipeListBean.getStatus());
             patientTabStatusRecipeDTO.setStatusText(getRecipeStatusTabText(recipeListBean.getStatus(), recipeListBean.getRecipeId()));
