@@ -9,6 +9,7 @@ import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.PharmacyTcm;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.revisit.common.model.RevisitExDTO;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -45,8 +46,6 @@ public class OrganDrugListManager extends BaseManager {
     private OperationClient operationClient;
     @Autowired
     private IConfigurationClient configurationClient;
-    @Autowired
-    private DrugClient drugClient;
 
     /**
      * 校验机构药品库存 用于 药品展示
@@ -535,8 +534,15 @@ public class OrganDrugListManager extends BaseManager {
     public void validateMedicalReimbursementTypeOfDrugs(List<String> hisDrugRule, Recipe recipe, List<RecipeDetailDTO> recipeDetails) {
         //"6": "判断药品的医保报销类型"
         if (hisDrugRule.contains("6")) {
-            //医保属性,从医保获取
-            String medicalInsuranceAttribute = null;
+            logger.info("validateMedicalReimbursementTypeOfDrugs his start ");
+            if(!new Integer(2).equals(recipe.getBussSource())){
+                return ;
+            }
+            //医保属性,处方来源为复诊时从复诊获取
+            RevisitExDTO revisitExDTO = revisitClient.getByClinicId(recipe.getClinicId());
+            if(revisitExDTO != null){
+                Integer medicalInsuranceAttribute = revisitExDTO.getMedicalCardType();
+            }
             List<MedicalReimbursementTypeReqTO> medicalReimbursementTypeReqTOList = new ArrayList<>();
             for (RecipeDetailDTO recipeDetail : recipeDetails) {
                 MedicalReimbursementTypeReqTO medicalReimbursementTypeReqTO = new MedicalReimbursementTypeReqTO();
@@ -560,6 +566,7 @@ public class OrganDrugListManager extends BaseManager {
             }
         }
         else {
+            logger.info("validateMedicalReimbursementTypeOfDrugs organDrugList start ");
             for (RecipeDetailDTO recipeDetail : recipeDetails) {
                 OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(recipe.getClinicOrgan(), recipeDetail.getOrganDrugCode(), recipeDetail.getDrugId());
                 if(organDrugList != null){
