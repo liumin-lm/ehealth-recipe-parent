@@ -17,6 +17,7 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.EmploymentService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.*;
+import com.ngari.platform.recipe.mode.RecipeDTO;
 import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.DrugSpecificationInfoDTO;
 import com.ngari.recipe.dto.EmrDetailDTO;
@@ -870,5 +871,20 @@ public class OfflineRecipeClient extends BaseClient {
         }
         logger.info("patientFeeRecipeList res:{},{}", req.getUuid(), JSONUtils.toString(hisResponseTO));
         return hisResponseTO.getData();
+    }
+
+    /**
+     * 判断药品的医保报销类型
+     * @param recipeDTO
+     * @return
+     */
+    public List<MedicalReimbursementTypeResTO> validateMedicalReimbursementTypeOfDrugs(RecipeDTO recipeDTO) {
+        try {
+            HisResponseTO<List<MedicalReimbursementTypeResTO>> medicalReimbursementTypeOfDrugs = recipeHisService.getMedicalReimbursementTypeOfDrugs(recipeDTO);
+            return getResponse(medicalReimbursementTypeOfDrugs);
+        }catch (Exception e){
+            logger.error("DrugClient validateMedicalReimbursementTypeOfDrugs hisResponse", e);
+        }
+        return new ArrayList<>();
     }
 }

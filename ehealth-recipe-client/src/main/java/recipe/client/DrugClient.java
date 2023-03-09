@@ -6,8 +6,6 @@ import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.dto.UsingRateDTO;
 import com.ngari.bus.op.service.IUsePathwaysService;
 import com.ngari.common.mode.HisResponseTO;
-import com.ngari.his.recipe.mode.MedicalReimbursementTypeReqTO;
-import com.ngari.his.recipe.mode.MedicalReimbursementTypeResTO;
 import com.ngari.his.recipe.mode.MedicationInfoReqTO;
 import com.ngari.his.recipe.mode.MedicationInfoResTO;
 import com.ngari.patient.service.IUsingRateService;
@@ -394,13 +392,4 @@ public class DrugClient extends BaseClient {
         }
     }
 
-    public List<MedicalReimbursementTypeResTO> validateMedicalReimbursementTypeOfDrugs(List<MedicalReimbursementTypeReqTO> medicalReimbursementTypeReqTOList) {
-        try {
-            HisResponseTO<List<MedicalReimbursementTypeResTO>> medicalReimbursementTypeOfDrugs = recipeHisService.getMedicalReimbursementTypeOfDrugs(medicalReimbursementTypeReqTOList);
-            return getResponse(medicalReimbursementTypeOfDrugs);
-        }catch (Exception e){
-            logger.error("DrugClient validateMedicalReimbursementTypeOfDrugs hisResponse", e);
-        }
-        return new ArrayList<>();
-    }
 }
