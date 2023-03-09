@@ -3,6 +3,8 @@ package recipe.manager;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.google.common.collect.Lists;
+import com.ngari.platform.recipe.mode.RecipeBean;
+import com.ngari.recipe.dto.RecipeDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import ctd.net.broadcast.MQHelper;
@@ -16,10 +18,10 @@ import recipe.aop.LogRecord;
 import recipe.client.CouponClient;
 import recipe.client.RecipeAuditClient;
 import recipe.common.OnsConfig;
-import recipe.constant.JKHBConstant;
 import recipe.enumerate.status.*;
 import recipe.enumerate.type.FastRecipeFlagEnum;
 import recipe.enumerate.type.PayFlagEnum;
+import recipe.util.ObjectCopyUtils;
 import recipe.util.RedisClient;
 
 import javax.annotation.Resource;
@@ -46,6 +48,8 @@ public class StateManager extends BaseManager {
 
     @Resource
     private FastRecipeManager fastRecipeManager;
+
+
 
     /**
      * 修改订单状态
@@ -132,7 +136,6 @@ public class StateManager extends BaseManager {
                         RecipeStateEnum.PROCESS_STATE_CANCELLATION.getType().equals(recipeDb.getProcessState());
                 logger.info("updateRecipeState cancelFlag={}", JSON.toJSONString(cancelFlag));
                 result = this.cancellation(recipe, processState, subState);
-                statusChangeNotify(recipe.getRecipeId(), JKHBConstant.PROCESS_STATE_CANCELLATION);
                 RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
                 if (!cancelFlag && FastRecipeFlagEnum.FAST_RECIPE_FLAG_QUICK.getType().equals(recipe.getFastRecipeFlag()) && Objects.nonNull(recipeOrder) &&
                         !PayFlagEnum.NOPAY.getType().equals(recipeOrder.getPayFlag())) {
@@ -146,6 +149,9 @@ public class StateManager extends BaseManager {
             default:
                 result = false;
                 break;
+        }
+        if(RecipeStateEnum.statusChangeNotify.contains(processState)){
+            statusChangeNotify(recipe.getRecipeId(), null);
         }
         saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), subState.getName());
         return result;
@@ -399,24 +405,38 @@ public class StateManager extends BaseManager {
      * 状态变更通知
      * @param
      */
-    public void statusChangeNotify(Integer recipeId,String orderStatus) {
-        logger.info("statusChangeNotify recipeId:{} ,orderStatus:{} ", recipeId,orderStatus);
+    public void statusChangeNotify(Integer recipeId,String otherStatus) {
+        logger.info("statusChangeNotify recipeId:{} ,orderStatus:{} ", recipeId,otherStatus);
         try {
-            String redisKey=recipeId+"statusChangeNotify"+orderStatus;
-            logger.info("statusChangeNotify statusChangeNotifyCache:{}",redisKey);
+            String redisKey="";
+            Recipe recipe=recipeDAO.get(recipeId);
+            if (StringUtils.isNotEmpty(otherStatus)){
+                redisKey=recipeId+"statusChangeNotify"+otherStatus;
+            }else{
+                redisKey=recipeId+"statusChangeNotify"+recipe.getProcessState();
+            }
+            logger.info("statusChangeNotify redisKey:{}",redisKey);
             String statusChangeNotifyCache = redisClient.get(redisKey);
             if(StringUtils.isNotEmpty(statusChangeNotifyCache)){
-                logger.info("statusChangeNotify already notify recipeId:{} ,orderStatus:{} ", recipeId,orderStatus);
+                logger.info("statusChangeNotify already notify recipeId:{} ,otherStatus:{} ", recipeId,otherStatus);
                 return;
             }
             redisClient.setEX(redisKey,7 * 24 * 3600L,String.valueOf(recipeId));
-            Recipe recipe=recipeDAO.get(recipeId);
             Map<String,Object> param=new HashMap<>();
+            /*个性化 start*/
             param.put("order_id",String.valueOf(recipeId));
             param.put("order_type","2");
-            param.put("order_status",orderStatus);
+            param.put("order_status",otherStatus);
             param.put("organ_id",String.valueOf(recipe.getClinicOrgan()));
             param.put("mpiid",String.valueOf(recipe.getMpiid()));
+            /*个性化 end*/
+            /*通用处理参数*/
+            RecipeDTO recipeDTO = super.getRecipeDTO(recipeId);
+            com.ngari.platform.recipe.mode.RecipeInfoDTO recipeDTO1=new com.ngari.platform.recipe.mode.RecipeInfoDTO();
+            recipeDTO1.setRecipe(ObjectCopyUtils.convert(recipeDTO.getRecipe(), RecipeBean.class));
+            recipeDTO1.setRecipeOrder(ObjectCopyUtils.convert(recipeOrderDAO.getByOrderCode(recipeDTO.getRecipe().getOrderCode()), com.ngari.platform.recipe.mode.RecipeOrderBean.class));
+            param.put("param",recipeDTO1);
+            param.put("otherStatus",otherStatus);
             logger.info("statusChangeNotify sendMsgToMq send to MQ start, busId:{}，param:{}", recipeId, JSONUtils.toString(param));
             MQHelper.getMqPublisher().publish(OnsConfig.statusChangeTopic, param, null);
             logger.info("statusChangeNotify sendMsgToMq send to MQ end, busId:{}", recipeId);

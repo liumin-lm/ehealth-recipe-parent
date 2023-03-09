@@ -19,7 +19,7 @@ import recipe.ApplicationUtils;
 import recipe.audit.auditmode.AuditModeContext;
 import recipe.client.DocIndexClient;
 import recipe.client.IConfigurationClient;
-import recipe.constant.JKHBConstant;
+import recipe.constant.OtherRecipeStateConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.RecipeDistributionFlagEnum;
@@ -141,7 +141,7 @@ public abstract class AbstractCaProcessType {
         //异步处理
         RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(Collections.singletonList(recipe.getRecipeId()), 1));
         if (null == recipe.getReviewType() || new Integer(0).equals(recipe.getReviewType())) {
-            recipeManager.addRecipeNotify(recipe.getRecipeId(), JKHBConstant.NO_PAY);
+            recipeManager.addRecipeNotify(recipe.getRecipeId(), OtherRecipeStateConstant.NO_PAY);
         }
         //保存电子病历
         docIndexClient.saveRecipeDocIndex(recipe);

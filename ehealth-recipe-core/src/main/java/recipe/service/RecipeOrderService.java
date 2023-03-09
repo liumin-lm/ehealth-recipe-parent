@@ -3059,7 +3059,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 break;
             }
             RecipeBusiThreadPool.execute(() -> {
-                stateManager.statusChangeNotify(recipeId,JKHBConstant.ALREADY_PAY);
+                stateManager.statusChangeNotify(recipeId, OtherRecipeStateConstant.ALREADY_PAY);
             });
         }
 
