@@ -431,6 +431,8 @@ public class RecipeDetailBusinessService extends BaseService implements IRecipeD
      * @param recipeType        处方类型
      */
     private void setRecipeDetail(RecipeDetailBean recipeDetailBean, OrganDrugList organDrug, Map<String, Integer> configDrugNameMap, Integer recipeType, PharmacyTcm pharmacy) {
+        recipeDetailBean.setDrugName(organDrug.getDrugName());
+        recipeDetailBean.setSaleName(organDrug.getSaleName());
         recipeDetailBean.setStatus(organDrug.getStatus());
         recipeDetailBean.setDrugId(organDrug.getDrugId());
         recipeDetailBean.setSalePrice(organDrug.getSalePrice());
