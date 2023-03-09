@@ -30,6 +30,7 @@ import eh.recipeaudit.model.RecipeCheckBean;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -1523,6 +1524,7 @@ public class RecipeManager extends BaseManager {
                 break;
         }
         req.setRecipeState(recipeState);
+        req.setEndTime(DateUtils.addDays(req.getEndTime(),1));
         List<Recipe> recipes = recipeDAO.findPatientRecipeList(req);
         if (CollectionUtils.isEmpty(recipes)) {
             return Collections.emptyList();
