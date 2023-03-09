@@ -34,10 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.ThirdResultBean;
 import recipe.client.InfraClient;
-import recipe.constant.OrderStatusConstant;
-import recipe.constant.RecipeBaseTrackingStatusEnum;
-import recipe.constant.RecipeStatusConstant;
-import recipe.constant.RefundNodeStatusConstant;
+import recipe.constant.*;
 import recipe.dao.*;
 import recipe.dao.bean.BillBusFeeBean;
 import recipe.dao.bean.BillDrugFeeBean;
@@ -45,7 +42,6 @@ import recipe.dao.bean.BillRecipeDetailBean;
 import recipe.dao.bean.RecipeBillBean;
 import recipe.drugsenterprise.ThirdEnterpriseCallService;
 import recipe.enumerate.status.OrderStateEnum;
-import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RefundNodeStatusEnum;
 import recipe.enumerate.type.OrderRefundWayTypeEnum;
@@ -58,7 +54,9 @@ import recipe.service.RecipeMsgService;
 import recipe.service.RecipeOrderService;
 import recipe.service.RecipeRefundService;
 import recipe.serviceprovider.BaseService;
-import recipe.util.*;
+import recipe.util.LocalStringUtil;
+import recipe.util.MapValueUtil;
+import recipe.util.ObjectCopyUtils;
 import recipe.vo.greenroom.RecipeOrderRefundReqVO;
 
 import java.math.BigDecimal;
@@ -345,6 +343,7 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
                 }
                 recipeManager.updateRecipeRefundStatus(recipes, RefundNodeStatusConstant.REFUND_NODE_SUCCESS_STATUS);
                 infraClient.cancelLogisticsOrder(recipeOrder, true);
+                stateManager.statusChangeNotify(recipeId, OtherRecipeStateConstant.SUB_CANCELLATION_REFUND);
                 break;
             case 4:
                 nowRecipeRefund.setReason("退费失败");

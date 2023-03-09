@@ -153,6 +153,13 @@ public enum RecipeStateEnum {
      */
     public static final List<Integer> RECIPE_ALL = Arrays.asList(PROCESS_STATE_AUDIT.type,PROCESS_STATE_ORDER.type,PROCESS_STATE_DISPENSING.type,PROCESS_STATE_DISTRIBUTION.type,PROCESS_STATE_MEDICINE.type,PROCESS_STATE_DONE.type,PROCESS_STATE_CANCELLATION.type);
 
+    /**
+     * 状态变更通知
+     *  处方开具，处方已支付（无），处方已发货，处方已退款（无）
+     * 已作废
+     */
+    public static final List<Integer> statusChangeNotify = Arrays.asList(PROCESS_STATE_ORDER.type, PROCESS_STATE_DISTRIBUTION.type,PROCESS_STATE_CANCELLATION.type);
+
 
     /**
      * 根据类型 获取枚举类型
