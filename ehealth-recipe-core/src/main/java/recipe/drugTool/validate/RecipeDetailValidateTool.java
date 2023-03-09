@@ -149,6 +149,10 @@ public class RecipeDetailValidateTool {
         } else {
             /**校验西药 数据是否完善*/
             //校验皮试属性
+            if (!Integer.valueOf(1).equals(organDrug.getSkinTestDrugFlag())) {
+                recipeDetail.setSkinTestFlag(0);
+                recipeDetail.setSkinTestDrugFlag(organDrug.getSkinTestDrugFlag());
+            }
             if (Integer.valueOf(1).equals(organDrug.getSkinTestDrugFlag()) && ValidateUtil.integerIsEmpty(recipeDetail.getSkinTestFlag())) {
                 recipeDetail.setSkinTestFlag(0);
                 recipeDetail.setSkinTestDrugFlag(organDrug.getSkinTestDrugFlag());

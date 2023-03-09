@@ -243,6 +243,11 @@ public class ConsultClient extends BaseClient {
         return doctorPermission;
     }
 
+    /**
+     * 互联互通平台 日志写入
+     *
+     * @param recipes
+     */
     public void uploadBusinessLog(List<Recipe> recipes) {
         RecipeBusiThreadPool.execute(() ->
                 recipes.forEach(recipe -> {
