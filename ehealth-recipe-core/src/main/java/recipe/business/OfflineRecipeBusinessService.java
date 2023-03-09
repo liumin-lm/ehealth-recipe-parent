@@ -489,6 +489,7 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
             patientRecipeListResVo.setSignDate(recipeBean.getSignDate());
             patientRecipeListResVo.setTargetedDrugType(recipeBean.getTargetedDrugType());
             patientRecipeListResVo.setMergeRecipeFlag(mergeRecipeFlag);
+            patientRecipeListResVo.setOfflineRecipeName(recipeBean.getOfflineRecipeName());
             Integer secrecyRecipe = 0;
             Integer peritonealDialysisFluidType = 0;
             List<RecipeDetailForRecipeListResVo> recipeDetailForRecipeListResVos = new ArrayList<>();
