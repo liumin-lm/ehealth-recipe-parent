@@ -95,6 +95,9 @@ public class PatientRecipeListResVo implements Serializable {
     @ItemProperty(alias = "能否合并支付")
     private Boolean mergeRecipeFlag;
 
+    @ItemProperty(alias = "隐方")
+    private Boolean isHiddenRecipeDetail = false;
+
     /******************************** 以下数据来源 recipeDetail ****************************/
     @ItemProperty(alias = "药品信息")
     private List<RecipeDetailForRecipeListResVo> recipeDetail;

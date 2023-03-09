@@ -1498,48 +1498,57 @@ public class RecipeManager extends BaseManager {
      */
     @LogRecord
     public List<RecipeInfoDTO> patientRecipeList(PatientRecipeListReqDTO req) {
-        List<String> isHisRecipe = configurationClient.getPropertyByStringList("findRecipeListType");
-        if (!isHisRecipe.contains("onLine")) {
-            return Collections.emptyList();
-        }
-        List<Integer> recipeState = RecipeStateEnum.RECIPE_ALL;
-        switch (req.getState()) {
-            case 0:
-                recipeState = RecipeStateEnum.RECIPE_ALL;
-                break;
-            case 1:
-                recipeState = Lists.newArrayList(RecipeStateEnum.PROCESS_STATE_AUDIT.getType());
-                break;
-            case 2:
-                recipeState = Lists.newArrayList(RecipeStateEnum.PROCESS_STATE_ORDER.getType());
-                break;
-            case 4:
-                recipeState = RecipeStateEnum.RECIPE_OVER;
-                break;
-            default:
-                break;
-        }
-        req.setRecipeState(recipeState);
-        List<Recipe> recipes = recipeDAO.findPatientRecipeList(req);
-        if (CollectionUtils.isEmpty(recipes)) {
-            return Collections.emptyList();
-        }
-        List<Integer> recipeIdList = recipes.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
-        List<RecipeExtend> recipeExtList = recipeExtendDAO.queryRecipeExtendByRecipeIds(recipeIdList);
-        List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeIdList(recipeIdList);
-        Map<Integer, List<Recipedetail>> recipeDetailMap = recipeDetailList.stream().collect(Collectors.groupingBy(Recipedetail::getRecipeId));
-        Map<Integer, RecipeExtend> recipeExtMap = recipeExtList.stream().collect(Collectors.toMap(RecipeExtend::getRecipeId, a -> a, (k1, k2) -> k1));
-        List<RecipeInfoDTO> recipeInfoDTOS = recipes.stream().map(recipe -> {
-            RecipeInfoDTO recipeInfoDTO = new RecipeInfoDTO();
-            recipeInfoDTO.setRecipe(recipe);
-            if (MapUtils.isNotEmpty(recipeExtMap) && Objects.nonNull(recipeExtMap.get(recipe.getRecipeId()))) {
-                recipeInfoDTO.setRecipeExtend(recipeExtMap.get(recipe.getRecipeId()));
+        try {
+            List<String> isHisRecipe = configurationClient.getPropertyByStringList("findRecipeListType");
+            if (!isHisRecipe.contains("onLine")) {
+                return Collections.emptyList();
             }
-            if (MapUtils.isNotEmpty(recipeDetailMap) && CollectionUtils.isNotEmpty(recipeDetailMap.get(recipe.getRecipeId()))) {
-                recipeInfoDTO.setRecipeDetails(recipeDetailMap.get(recipe.getRecipeId()));
+            List<Integer> recipeState = RecipeStateEnum.RECIPE_ALL;
+            switch (req.getState()) {
+                case 0:
+                    recipeState = RecipeStateEnum.RECIPE_ALL;
+                    break;
+                case 1:
+                    recipeState = Lists.newArrayList(RecipeStateEnum.PROCESS_STATE_AUDIT.getType());
+                    break;
+                case 2:
+                    recipeState = Lists.newArrayList(RecipeStateEnum.PROCESS_STATE_ORDER.getType());
+                    break;
+                case 3:
+                    recipeState = RecipeStateEnum.RECIPE_COLLECT;
+                    break;
+                case 4:
+                    recipeState = RecipeStateEnum.RECIPE_OVER;
+                    break;
+                default:
+                    break;
             }
-            return recipeInfoDTO;
-        }).collect(Collectors.toList());
-        return recipeInfoDTOS;
+            req.setRecipeState(recipeState);
+            List<Recipe> recipes = recipeDAO.findPatientRecipeList(req);
+            if (CollectionUtils.isEmpty(recipes)) {
+                return Collections.emptyList();
+            }
+            List<Integer> recipeIdList = recipes.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
+            List<RecipeExtend> recipeExtList = recipeExtendDAO.queryRecipeExtendByRecipeIds(recipeIdList);
+            List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeIdList(recipeIdList);
+            Map<Integer, List<Recipedetail>> recipeDetailMap = recipeDetailList.stream().collect(Collectors.groupingBy(Recipedetail::getRecipeId));
+            Map<Integer, RecipeExtend> recipeExtMap = recipeExtList.stream().collect(Collectors.toMap(RecipeExtend::getRecipeId, a -> a, (k1, k2) -> k1));
+            List<RecipeInfoDTO> recipeInfoDTOS = recipes.stream().map(recipe -> {
+                RecipeInfoDTO recipeInfoDTO = new RecipeInfoDTO();
+                recipeInfoDTO.setRecipe(recipe);
+                if (MapUtils.isNotEmpty(recipeExtMap) && Objects.nonNull(recipeExtMap.get(recipe.getRecipeId()))) {
+                    recipeInfoDTO.setRecipeExtend(recipeExtMap.get(recipe.getRecipeId()));
+                }
+                if (MapUtils.isNotEmpty(recipeDetailMap) && CollectionUtils.isNotEmpty(recipeDetailMap.get(recipe.getRecipeId()))) {
+                    recipeInfoDTO.setRecipeDetails(recipeDetailMap.get(recipe.getRecipeId()));
+                }
+                return recipeInfoDTO;
+            }).collect(Collectors.toList());
+            return recipeInfoDTOS;
+        } catch (Exception e) {
+            e.printStackTrace();
+            logger.info("patientRecipeList error",e);
+        }
+        return Collections.emptyList();
     }
 }
