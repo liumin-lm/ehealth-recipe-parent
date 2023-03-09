@@ -67,6 +67,10 @@ public class RecipeBean implements Serializable {
     @ItemProperty(alias = "开方科室")
     @Dictionary(id = "eh.base.dictionary.Depart")
     private Integer depart;
+    @ItemProperty(
+            alias = "开方科室名称"
+    )
+    private String departName;
 
     @ItemProperty(alias = "挂号科室")
     private String appointDepart;
@@ -1497,6 +1501,14 @@ public class RecipeBean implements Serializable {
 
     public void setAppointDepartName(String appointDepartName) {
         this.appointDepartName = appointDepartName;
+    }
+
+    public String getDepartName() {
+        return departName;
+    }
+
+    public void setDepartName(String departName) {
+        this.departName = departName;
     }
 
     public Integer getOrganProfession() {

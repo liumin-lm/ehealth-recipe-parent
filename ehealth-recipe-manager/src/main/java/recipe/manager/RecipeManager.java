@@ -1524,7 +1524,6 @@ public class RecipeManager extends BaseManager {
                 break;
         }
         req.setRecipeState(recipeState);
-        req.setEndTime(DateUtils.addDays(req.getEndTime(),1));
         List<Recipe> recipes = recipeDAO.findPatientRecipeList(req);
         if (CollectionUtils.isEmpty(recipes)) {
             return Collections.emptyList();
