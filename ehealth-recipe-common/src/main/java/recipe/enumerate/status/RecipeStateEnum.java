@@ -155,10 +155,10 @@ public enum RecipeStateEnum {
 
     /**
      * 状态变更通知
-     *  处方开具，处方已支付（无），处方已发货，处方已退款（无）
+     *  处方开具，处方已支付（无），处方已发货，处方已退款（无），已完成
      * 已作废
      */
-    public static final List<Integer> statusChangeNotify = Arrays.asList(PROCESS_STATE_ORDER.type, PROCESS_STATE_DISTRIBUTION.type,PROCESS_STATE_CANCELLATION.type);
+    public static final List<Integer> statusChangeNotify = Arrays.asList(PROCESS_STATE_ORDER.type, PROCESS_STATE_DISTRIBUTION.type,PROCESS_STATE_CANCELLATION.type,PROCESS_STATE_DONE.type);
 
 
     /**
