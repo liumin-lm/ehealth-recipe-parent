@@ -22,7 +22,6 @@ import recipe.client.OperationClient;
 import recipe.constant.ErrorCode;
 import recipe.dao.DrugDecoctionWayDao;
 import recipe.dao.DrugMakingMethodDao;
-import recipe.dao.RequirementsForTakingDao;
 import recipe.enumerate.type.RecipeDrugFormTypeEnum;
 import recipe.manager.DrugManager;
 import recipe.manager.OrganDrugListManager;
@@ -46,11 +45,9 @@ public class RecipeDetailValidateTool {
     @Autowired
     private DrugManager drugManager;
     @Autowired
-    DrugDecoctionWayDao drugDecoctionWayDao;
+    private DrugDecoctionWayDao drugDecoctionWayDao;
     @Autowired
-    DrugMakingMethodDao drugMakingMethodDao;
-    @Autowired
-    RequirementsForTakingDao requirementsForTakingDao;
+    private DrugMakingMethodDao drugMakingMethodDao;
     @Autowired
     private IConfigurationClient configurationClient;
     @Autowired
@@ -113,8 +110,6 @@ public class RecipeDetailValidateTool {
      */
     public void validateDrug(RecipeDetailBean recipeDetail, String[] recipeDay, OrganDrugList organDrug, Integer recipeType,
                              Map<String, DrugEntrust> drugEntrustNameMap, Integer organId, Integer version) {
-        recipeDetail.setDrugName(organDrug.getDrugName());
-        recipeDetail.setSaleName(organDrug.getSaleName());
         //剂量单位是否与机构药品目录单位一致
         if (StringUtils.isEmpty(OrganDrugListManager.getUseDoseUnit(recipeDetail.getUseDoseUnit(), organDrug))) {
             recipeDetail.setUseDoseUnit(null);
@@ -132,7 +127,6 @@ public class RecipeDetailValidateTool {
             recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
             recipeDetail.setValidateStatusText("机构药品药物单位错误DrugUnit");
         }
-
         //开药天数
         useDayValidate(recipeType, recipeDay, recipeDetail);
         /**校验中药 数据是否完善*/
