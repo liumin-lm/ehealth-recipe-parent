@@ -1,5 +1,7 @@
 package com.ngari.recipe.hisprescription.model;
 
+import ctd.schema.annotation.ItemProperty;
+
 import java.io.Serializable;
 import java.math.BigDecimal;
 
@@ -30,6 +32,15 @@ public class RegulationRecipeDetailIndicatorsReq implements Serializable {
     private BigDecimal totalPrice;//药品总价
     private String tcmDescribe;//中药饮片处方的详细描述
     private String  remark;//	备注
+    @ItemProperty(alias = "机构的频次名称")
+    private String organUsingRateText;
+    @ItemProperty(alias = "his剂型名称")
+    private String hisDrugForm;
+    @ItemProperty(alias = "是否国家基本药品 0 否 1 是")
+    private Integer nationalStandardDrugFlag;
+    @ItemProperty(alias = "是否特殊使用级抗生素药物  0否  1是 ")
+    private Integer specialUseAntibioticDrugFlag;
+
 
     public String getDrcode() {
         return drcode;
@@ -213,5 +224,37 @@ public class RegulationRecipeDetailIndicatorsReq implements Serializable {
 
     public void setDosageFormCode(String dosageFormCode) {
         this.dosageFormCode = dosageFormCode;
+    }
+
+    public String getOrganUsingRateText() {
+        return organUsingRateText;
+    }
+
+    public void setOrganUsingRateText(String organUsingRateText) {
+        this.organUsingRateText = organUsingRateText;
+    }
+
+    public String getHisDrugForm() {
+        return hisDrugForm;
+    }
+
+    public void setHisDrugForm(String hisDrugForm) {
+        this.hisDrugForm = hisDrugForm;
+    }
+
+    public Integer getNationalStandardDrugFlag() {
+        return nationalStandardDrugFlag;
+    }
+
+    public void setNationalStandardDrugFlag(Integer nationalStandardDrugFlag) {
+        this.nationalStandardDrugFlag = nationalStandardDrugFlag;
+    }
+
+    public Integer getSpecialUseAntibioticDrugFlag() {
+        return specialUseAntibioticDrugFlag;
+    }
+
+    public void setSpecialUseAntibioticDrugFlag(Integer specialUseAntibioticDrugFlag) {
+        this.specialUseAntibioticDrugFlag = specialUseAntibioticDrugFlag;
     }
 }
