@@ -1322,7 +1322,9 @@ public class RecipeListService extends RecipeBaseService {
             patientTabStatusRecipeDTO.setRecordType(LIST_TYPE_ORDER);
             patientTabStatusRecipeDTO.setRecordId(recipeListBean.getOrderId());
             // 药企物流对接方式
-            Optional.ofNullable(drugsEnterpriseDAO.getById(recipeListBean.getEnterpriseId())).ifPresent(a -> patientTabStatusRecipeDTO.setLogisticsType(a.getLogisticsType()));
+            if (Objects.nonNull(recipeListBean.getEnterpriseId())) {
+                Optional.ofNullable(drugsEnterpriseDAO.getById(recipeListBean.getEnterpriseId())).ifPresent(a -> patientTabStatusRecipeDTO.setLogisticsType(a.getLogisticsType()));
+            }
         } else {
             patientTabStatusRecipeDTO.setStatusCode(recipeListBean.getStatus());
             patientTabStatusRecipeDTO.setStatusText(getRecipeStatusTabText(recipeListBean.getStatus(), recipeListBean.getRecipeId()));
