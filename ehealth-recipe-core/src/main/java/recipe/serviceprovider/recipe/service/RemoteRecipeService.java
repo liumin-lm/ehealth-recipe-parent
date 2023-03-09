@@ -2403,7 +2403,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         }
         String noSupport = recipeParameterDao.getByName("no_support_cfxhhj");
         List<Integer> noSupportList = JSONUtils.parse(noSupport, List.class);
-        if (noSupportList.contains(recipeOrder.getOrganId())) {
+        if (CollectionUtils.isNotEmpty(noSupportList) && noSupportList.contains(recipeOrder.getOrganId())) {
             map.put("cfxhhj", "");
         } else {
             String recipeCostNumbers = String.join(",", recipeCostNumberList);
