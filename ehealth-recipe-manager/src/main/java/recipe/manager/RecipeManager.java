@@ -1513,6 +1513,9 @@ public class RecipeManager extends BaseManager {
             case 2:
                 recipeState = Lists.newArrayList(RecipeStateEnum.PROCESS_STATE_ORDER.getType());
                 break;
+            case 3:
+                recipeState = RecipeStateEnum.RECIPE_COLLECT;
+                break;
             case 4:
                 recipeState = RecipeStateEnum.RECIPE_OVER;
                 break;
