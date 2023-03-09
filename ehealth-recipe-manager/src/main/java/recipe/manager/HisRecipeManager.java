@@ -879,7 +879,7 @@ public class HisRecipeManager extends BaseManager {
     private List<RecipeDTO> covertRecipeDTOFromQueryHisRecipResTO(List<QueryHisRecipResTO> queryHisRecipResTOs, PatientDTO patient, Integer flag) {
         //PatientRecipeListResVo
         if (CollectionUtils.isEmpty(queryHisRecipResTOs)) {
-            return null;
+            return Collections.emptyList();
         }
         List<RecipeDTO> recipeDTOS = new ArrayList<>();
         queryHisRecipResTOs.forEach(a -> {
@@ -899,7 +899,7 @@ public class HisRecipeManager extends BaseManager {
                         recipeExt.setIllnessName(revisitExDTO.getInsureTypeName());
                     }
                 }else{
-                    logger.error("无关联复诊:{},{}", a.getRecipeCode());
+                    logger.error("无关联复诊:{},{}", a.getRecipeCode(),a.getRegisteredId());
                 }
             } else {
                 recipe.setBussSource(5);
@@ -908,10 +908,13 @@ public class HisRecipeManager extends BaseManager {
             recipe.setOrganDiseaseName(a.getDiseaseName());
             if (HisRecipeConstant.HISRECIPESTATUS_NOIDEAL.equals(flag)) {
                 recipe.setProcessState(RecipeStateEnum.PROCESS_STATE_ORDER.getType());
+                recipe.setPayFlag(0);
             } else if (HisRecipeConstant.HISRECIPESTATUS_ALREADYIDEAL.equals(flag)) {
                 recipe.setProcessState(RecipeStateEnum.PROCESS_STATE_DONE.getType());
+                recipe.setPayFlag(1);
             } else if (HisRecipeConstant.HISRECIPESTATUS_EXPIRED.equals(flag)) {
                 recipe.setProcessState(RecipeStateEnum.PROCESS_STATE_CANCELLATION.getType());
+                recipe.setPayFlag(0);
             }
             recipe.setSignDate(a.getCreateDate());
             recipe.setRecipeSourceType(2);
