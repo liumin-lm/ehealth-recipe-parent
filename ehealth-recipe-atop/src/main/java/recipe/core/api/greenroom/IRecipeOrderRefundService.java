@@ -45,4 +45,11 @@ public interface IRecipeOrderRefundService {
      * @param recipeIds
      * */
     void updateRecipePushFlag(List<Integer> recipeIds);
+
+    /**
+     * 根据订单id 查询 订单编号
+     * @param orderId
+     * @return
+     */
+    String getOrderCodeByOrderId(Integer orderId);
 }
