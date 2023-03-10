@@ -97,10 +97,7 @@ import recipe.business.CaBusinessService;
 import recipe.bussutil.RecipeUtil;
 import recipe.caNew.AbstractCaProcessType;
 import recipe.caNew.pdf.CreatePdfFactory;
-import recipe.client.DoctorClient;
-import recipe.client.PatientClient;
-import recipe.client.RevisitClient;
-import recipe.client.SmsClient;
+import recipe.client.*;
 import recipe.constant.*;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.core.api.IRecipeDetailBusinessService;
@@ -111,10 +108,7 @@ import recipe.drugsenterprise.StandardEnterpriseCallService;
 import recipe.drugsenterprise.ThirdEnterpriseCallService;
 import recipe.drugsenterprise.TmdyfRemoteService;
 import recipe.enumerate.status.*;
-import recipe.enumerate.type.BussSourceTypeEnum;
-import recipe.enumerate.type.PayFlagEnum;
-import recipe.enumerate.type.RecipeRefundConfigEnum;
-import recipe.enumerate.type.SignImageTypeEnum;
+import recipe.enumerate.type.*;
 import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
@@ -147,10 +141,8 @@ import java.util.stream.Collectors;
 @RpcBean(value = "remoteRecipeService")
 public class RemoteRecipeService extends BaseService<RecipeBean> implements IRecipeService {
 
-    /**
-     * LOGGER
-     */
     private static final Logger LOGGER = LoggerFactory.getLogger(RemoteRecipeService.class);
+
     //限制分页大小
     private static final Integer PAGESIZE = 50;
     //初始页码
@@ -202,8 +194,6 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     private OperationPlatformRecipeService operationPlatformRecipeService;
     @Autowired
     private RecipeParameterDao recipeParameterDao;
-    @Autowired
-    private EnterpriseManager enterpriseManager;
     @Resource
     private CaManager caManager;
     @Autowired
@@ -212,6 +202,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     private CaBusinessService CaBusinessService;
     @Autowired
     private RecipeBeforeOrderDAO recipeBeforeOrderDAO;
+    @Autowired
+    private IConfigurationClient configurationClient;
 
     @LogRecord
     @RpcService
@@ -253,7 +245,6 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         }
         HisSendResTO response = (HisSendResTO) request.getData();
         //异步处理回调方法，避免超时
-        //RecipeBusiThreadPool.execute(new RecipeSendFailRunnable(response));
         LOGGER.info("recipeSend recive fail. recipeId={}, response={}", response.getRecipeId(), JSONUtils.toString(response));
         if (StringUtils.isEmpty(response.getRecipeId())) {
             return;
@@ -505,7 +496,6 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
     @LogRecord
     @RpcService
-//    @Override
     public QueryResult<RecipesQueryResVO> findRecipesByInfo2(RecipesQueryVO recipesQueryVO) {
         if (recipesQueryVO.getOrganId() != null) {
             if (!OpSecurityUtil.isAuthorisedOrgan(recipesQueryVO.getOrganId())) {
@@ -2384,6 +2374,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     }
 
     @Override
+    @LogRecord
     public Map<String, String> getPatientInfo(Integer busId) {
         Map<String, String> map = new HashMap<>();
         RecipeOrder recipeOrder = recipeOrderDAO.get(busId);
@@ -2392,9 +2383,10 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         }
         List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
         List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIdList);
-        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeIdList.get(0));
         List<RecipeExtend> recipeExtendList = recipeExtendDAO.queryRecipeExtendByRecipeIds(recipeIdList);
-        List<String> recipeCostNumberList = recipeExtendList.stream().map(RecipeExtend::getRecipeCostNumber).collect(Collectors.toList());
+        Map<Integer, RecipeExtend> recipeExtendMap = recipeExtendList.stream().collect(Collectors.toMap(RecipeExtend::getRecipeId, a -> a, (k1, k2) -> k1));
+
+        RecipeExtend recipeExtend = recipeExtendList.get(0);
         if (recipeExtend.getRegisterID() != null) {
             map.put("ghxh", recipeExtend.getRegisterID());
         }
@@ -2403,11 +2395,29 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         }
         String noSupport = recipeParameterDao.getByName("no_support_cfxhhj");
         List<Integer> noSupportList = JSONUtils.parse(noSupport, List.class);
-        if (noSupportList.contains(recipeOrder.getOrganId())) {
+        if (CollectionUtils.isNotEmpty(noSupportList) && noSupportList.contains(recipeOrder.getOrganId())) {
             map.put("cfxhhj", "");
         } else {
-            String recipeCostNumbers = String.join(",", recipeCostNumberList);
-            map.put("cfxhhj", recipeCostNumbers);
+            Integer cashDeskSettleUseCode = configurationClient.getValueCatchReturnInteger(recipeOrder.getOrganId(), "cashDeskSettleUseCode", CashDeskSettleUseCodeTypeEnum.HIS_RECIPE_CODE.getType());
+            List<String> costNumbers = new ArrayList<>();
+            recipes.forEach(recipe -> {
+                String costNumber;
+                RecipeExtend extend = recipeExtendMap.get(recipe.getRecipeId());
+                if (CashDeskSettleUseCodeTypeEnum.HIS_RECIPE_CODE.getType().equals(cashDeskSettleUseCode)) {
+                    costNumber = StringUtils.isBlank(extend.getRecipeCostNumber()) ? recipe.getRecipeCode() : extend.getRecipeCostNumber();
+                } else {
+                    List<String> chargeItemCode = recipeManager.getChargeItemCode(Arrays.asList(extend));
+                    costNumber = String.join(",", chargeItemCode);
+                }
+                costNumbers.add(costNumber);
+            });
+            if (StringUtils.isNotEmpty(recipeOrder.getRegisterFeeNo())) {
+                costNumbers.add(recipeOrder.getRegisterFeeNo());
+            }
+            if (StringUtils.isNotEmpty(recipeOrder.getTcmFeeNo())) {
+                costNumbers.add(recipeOrder.getTcmFeeNo());
+            }
+            map.put("cfxhhj", String.join(",", costNumbers));
         }
         return map;
     }

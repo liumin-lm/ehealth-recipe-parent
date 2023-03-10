@@ -2,8 +2,9 @@ package recipe.manager;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
-import com.ngari.his.recipe.mode.MedicalReimbursementTypeReqTO;
 import com.ngari.his.recipe.mode.MedicalReimbursementTypeResTO;
+import com.ngari.platform.recipe.mode.RecipeDTO;
+import com.ngari.platform.recipe.mode.RecipeDetailBean;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.PharmacyTcm;
@@ -16,7 +17,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import recipe.client.DrugClient;
 import recipe.client.DrugStockClient;
 import recipe.client.IConfigurationClient;
 import recipe.client.OperationClient;
@@ -24,6 +24,7 @@ import recipe.dao.PharmacyTcmDAO;
 import recipe.enumerate.type.AppointEnterpriseTypeEnum;
 import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.util.ByteUtils;
+import recipe.util.ObjectCopyUtils;
 import recipe.util.ValidateUtil;
 
 import java.util.*;
@@ -544,20 +545,19 @@ public class OrganDrugListManager extends BaseManager {
             if(revisitExDTO != null){
                 medicalInsuranceAttribute = revisitExDTO.getMedicalCardType();
             }
-            List<MedicalReimbursementTypeReqTO> medicalReimbursementTypeReqTOList = new ArrayList<>();
+            RecipeDTO recipeDTO = new RecipeDTO();
+            List<RecipeDetailBean> recipeDetailBeanList = new ArrayList<>();
             for (RecipeDetailDTO recipeDetail : recipeDetails) {
-                MedicalReimbursementTypeReqTO medicalReimbursementTypeReqTO = new MedicalReimbursementTypeReqTO();
-                OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(recipe.getClinicOrgan(), recipeDetail.getOrganDrugCode(), recipeDetail.getDrugId());
-                if(organDrugList != null){
-                    medicalReimbursementTypeReqTO.setProducerCode(organDrugList.getProducerCode());
+                recipeDTO.setOrganId(recipe.getClinicOrgan());
+                RecipeDetailBean recipeDetailBean = ObjectCopyUtils.convert(recipeDetail, RecipeDetailBean.class);
+                if(recipeDetailBean != null){
+                    recipeDetailBean.setMedicalInsuranceAttribute(medicalInsuranceAttribute);
                 }
-                medicalReimbursementTypeReqTO.setMedicalInsuranceAttribute(medicalInsuranceAttribute);
-                medicalReimbursementTypeReqTO.setOrganDrugCode(recipeDetail.getOrganDrugCode());
-                medicalReimbursementTypeReqTO.setOrganId(recipe.getClinicOrgan());
-                medicalReimbursementTypeReqTOList.add(medicalReimbursementTypeReqTO);
+                recipeDetailBeanList.add(recipeDetailBean);
             }
-            logger.info("OrganDrugListManager validateMedicalReimbursementTypeOfDrugs medicalReimbursementTypeReqTOList={}", JSON.toJSONString(medicalReimbursementTypeReqTOList));
-            List<MedicalReimbursementTypeResTO> medicalReimbursementTypeResTOList = drugClient.validateMedicalReimbursementTypeOfDrugs(medicalReimbursementTypeReqTOList);
+            recipeDTO.setRecipeDetails(recipeDetailBeanList);
+            logger.info("OrganDrugListManager validateMedicalReimbursementTypeOfDrugs recipeDTO={}", JSON.toJSONString(recipeDTO));
+            List<MedicalReimbursementTypeResTO> medicalReimbursementTypeResTOList = offlineRecipeClient.validateMedicalReimbursementTypeOfDrugs(recipeDTO);
             Map<String, MedicalReimbursementTypeResTO> organDrugMap = medicalReimbursementTypeResTOList.stream().collect(Collectors.toMap(MedicalReimbursementTypeResTO::getOrganDrugCode, a -> a, (k1, k2) -> k1));
             for (RecipeDetailDTO recipeDetail : recipeDetails) {
                 MedicalReimbursementTypeResTO medicalReimbursementTypeResTO = organDrugMap.get(recipeDetail.getOrganDrugCode());

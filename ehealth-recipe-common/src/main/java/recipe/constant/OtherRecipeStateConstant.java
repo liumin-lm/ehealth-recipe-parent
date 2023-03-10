@@ -1,11 +1,11 @@
 package recipe.constant;
 
 /**
- * 线下处方常量类
+ * 其余处方状态
  * <p>
  * author: liumin
  */
-public class JKHBConstant {
+public class OtherRecipeStateConstant {
     /**
      * 待支付
      */
@@ -20,6 +20,12 @@ public class JKHBConstant {
      * 已作废
      */
     public static final String PROCESS_STATE_CANCELLATION = "3";
+
+    /**
+     * 已退款
+     */
+    public static final String SUB_CANCELLATION_REFUND = "10";
+
 
 
 
