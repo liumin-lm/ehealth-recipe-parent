@@ -1,35 +1,95 @@
 package com.ngari.recipe.hisprescription.model;
 
+import ctd.schema.annotation.ItemProperty;
+
 import java.io.Serializable;
 import java.math.BigDecimal;
 
 public class RegulationRecipeDetailIndicatorsReq implements Serializable {
 
-
     private static final long serialVersionUID = -8399878782184986663L;
-    private Integer recipeDetailId;//处方明细Id
-    private String  drcode;//	药品代码
-    private String  drname;//	药品名称
-    private String  drmodel;//	药品规格
-    private String  dosageForm;//药物剂型
-    private String  dosageFormCode;// 药物剂型代码
-    private Integer pack;//	药品包装
-    private String  packUnit;//	药品包装单位
-    private String  drugManf;//	药品产地名称
-    private String  admission;//	药品用法
-    private String  admissionName;//	药品用法名称
-    private String  frequency;//	用品使用频度
-    private String  frequencyName;//	用品使用频度名称
-    private String  dosage;//	每次剂量
-    private String  drunit;//	剂量单位
-    private String  useDosage;//药物使用总剂量
-    private String dosageDay; // 药品日药量
-    private String  dosageTotal;//	药品药量
-    private Integer useDays;//	用药天数
-    private BigDecimal price;//药品单价
-    private BigDecimal totalPrice;//药品总价
-    private String tcmDescribe;//中药饮片处方的详细描述
-    private String  remark;//	备注
+
+    @ItemProperty(alias = "处方明细Id")
+    private Integer recipeDetailId;
+
+    @ItemProperty(alias = "药品代码")
+    private String  drcode;
+
+    @ItemProperty(alias = "药品名称")
+    private String  drname;
+
+    @ItemProperty(alias = "药品规格")
+    private String  drmodel;
+
+    @ItemProperty(alias = "药物剂型")
+    private String  dosageForm;
+
+    @ItemProperty(alias = "药物剂型代码")
+    private String  dosageFormCode;
+
+    @ItemProperty(alias = "药品包装")
+    private Integer pack;
+
+    @ItemProperty(alias = "药品包装单位")
+    private String  packUnit;
+
+    @ItemProperty(alias = "药品产地名称")
+    private String  drugManf;
+
+    @ItemProperty(alias = "药品用法")
+    private String  admission;
+
+    @ItemProperty(alias = "药品用法名称")
+    private String  admissionName;
+
+    @ItemProperty(alias = "用品使用频度")
+    private String  frequency;
+
+    @ItemProperty(alias = "用品使用频度名称")
+    private String  frequencyName;
+
+    @ItemProperty(alias = "每次剂量")
+    private String  dosage;
+
+    @ItemProperty(alias = "剂量单位")
+    private String  drunit;
+
+    @ItemProperty(alias = "药物使用总剂量")
+    private String  useDosage;
+
+    @ItemProperty(alias = "药品日药量")
+    private String dosageDay;
+
+    @ItemProperty(alias = "药品药量")
+    private String  dosageTotal;
+
+    @ItemProperty(alias = "用药天数")
+    private Integer useDays;
+
+    @ItemProperty(alias = "药品单价")
+    private BigDecimal price;
+
+    @ItemProperty(alias = "药品总价")
+    private BigDecimal totalPrice;
+
+    @ItemProperty(alias = "中药饮片处方的详细描述")
+    private String tcmDescribe;
+
+    @ItemProperty(alias = "备注")
+    private String  remark;
+
+    @ItemProperty(alias = "机构的频次名称")
+    private String organUsingRateText;
+
+    @ItemProperty(alias = "his剂型名称")
+    private String hisDrugForm;
+
+    @ItemProperty(alias = "是否国家基本药品 0 否 1 是")
+    private Integer nationalStandardDrugFlag;
+
+    @ItemProperty(alias = "是否特殊使用级抗生素药物  0否  1是 ")
+    private Integer specialUseAntibioticDrugFlag;
+
 
     public String getDrcode() {
         return drcode;
@@ -213,5 +273,37 @@ public class RegulationRecipeDetailIndicatorsReq implements Serializable {
 
     public void setDosageFormCode(String dosageFormCode) {
         this.dosageFormCode = dosageFormCode;
+    }
+
+    public String getOrganUsingRateText() {
+        return organUsingRateText;
+    }
+
+    public void setOrganUsingRateText(String organUsingRateText) {
+        this.organUsingRateText = organUsingRateText;
+    }
+
+    public String getHisDrugForm() {
+        return hisDrugForm;
+    }
+
+    public void setHisDrugForm(String hisDrugForm) {
+        this.hisDrugForm = hisDrugForm;
+    }
+
+    public Integer getNationalStandardDrugFlag() {
+        return nationalStandardDrugFlag;
+    }
+
+    public void setNationalStandardDrugFlag(Integer nationalStandardDrugFlag) {
+        this.nationalStandardDrugFlag = nationalStandardDrugFlag;
+    }
+
+    public Integer getSpecialUseAntibioticDrugFlag() {
+        return specialUseAntibioticDrugFlag;
+    }
+
+    public void setSpecialUseAntibioticDrugFlag(Integer specialUseAntibioticDrugFlag) {
+        this.specialUseAntibioticDrugFlag = specialUseAntibioticDrugFlag;
     }
 }

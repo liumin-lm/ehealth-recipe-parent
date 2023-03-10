@@ -1406,7 +1406,7 @@ public class RecipeManager extends BaseManager {
             updateRecipe.setPatientID(patientId);
         }
         //医保处方处理
-        if (Integer.valueOf(1).equals(recipe.getMedicalFlag())) {
+        if (recipe.canMedicalPay()) {
             updateRecipe.setGiveMode(RecipeBussConstant.GIVEMODE_SEND_TO_HOME);
         }
         boolean recipeSendUpdatePrice = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "recipeSendUpdatePrice", false);

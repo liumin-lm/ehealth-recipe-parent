@@ -44,7 +44,7 @@ import recipe.aop.LogRecord;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.RevisitClient;
 import recipe.common.OnsConfig;
-import recipe.constant.JKHBConstant;
+import recipe.constant.OtherRecipeStateConstant;
 import recipe.core.api.IDrugBusinessService;
 import recipe.dao.*;
 import recipe.drugTool.service.DrugToolService;
@@ -127,7 +127,7 @@ public class RecipeTestService {
 
     @RpcService
     public void addRecipeNotify(Integer recipeId,String orderStatus){
-        recipeManager.addRecipeNotify(recipeId, JKHBConstant.NO_PAY);
+        recipeManager.addRecipeNotify(recipeId, OtherRecipeStateConstant.NO_PAY);
     }
 
     @RpcService

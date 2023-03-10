@@ -867,7 +867,9 @@ public class HisRecipeManager extends BaseManager {
         if (CollectionUtils.isEmpty(list)) {
             return Collections.emptyList();
         }
-        return covertRecipeDTOFromQueryHisRecipResTO(list, patient, type);
+        List<RecipeDTO> res=covertRecipeDTOFromQueryHisRecipResTO(list, patient, type);
+        logger.info("patientRecipeList res:{},{}",req.getUuid(),JSONUtils.toString(res));
+        return res;
     }
 
     /**

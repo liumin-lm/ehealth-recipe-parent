@@ -458,6 +458,7 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
             recipeDTO1.setRecipe(ObjectCopyUtils.convert(recipeDTO.getRecipe(), com.ngari.platform.recipe.mode.RecipeBean.class));
             recipeDTO1.setRecipeExtend(ObjectCopyUtils.convert(recipeDTO.getRecipeExtend(), RecipeExtendBean.class));
             recipeDTO1.setRecipeDetails(ObjectCopyUtils.convert(recipeDTO.getRecipeDetails(), com.ngari.platform.recipe.mode.RecipeDetailBean.class));
+            recipeDTO1.setRecipeOrder(ObjectCopyUtils.convert(recipeDTO.getRecipeOrder(), com.ngari.platform.recipe.mode.RecipeOrderBean.class));
             logger.info("RecipeOpenAtop getByRecipeId  result = {}", JSONUtils.toString(recipeDTO1));
             return recipeDTO1;
         } catch (DAOException e1) {

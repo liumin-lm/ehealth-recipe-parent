@@ -767,6 +767,8 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
         List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
         Recipe recipeBean = recipeDAO.getByRecipeId(recipeIdList.get(0));
         RecipeExtend extend = recipeExtendDAO.getByRecipeId(recipeIdList.get(0));
+        List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIdList);
+        List<RecipeExtend> recipeExtendList = recipeExtendDAO.queryRecipeExtendByRecipeIds(recipeIdList);
         log.info("newWnExtBusCdrRecipe.recipeBean={}", JSONObject.toJSONString(recipeBean));
         IRevisitExService revisitExService = RevisitAPI.getService(IRevisitExService.class);
         RevisitExDTO consultExDTO = revisitExService.getByConsultId(recipeBean.getClinicId());
@@ -831,19 +833,19 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
         wnExtBusCdrRecipe.setGhxh(registerId);
         //合并处方--序号合集处理
         List<String> costNumbers = new ArrayList<>();
-        for (Integer recipeId : recipeIdList) {
-            RecipeBean recipe = recipeService.getByRecipeId(recipeId);
-            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
-            Integer cashDeskSettleUseCode = configurationClient.getValueCatchReturnInteger(recipe.getClinicOrgan(), "cashDeskSettleUseCode", CashDeskSettleUseCodeTypeEnum.HIS_RECIPE_CODE.getType());
+        Integer cashDeskSettleUseCode = configurationClient.getValueCatchReturnInteger(recipeBean.getClinicOrgan(), "cashDeskSettleUseCode", CashDeskSettleUseCodeTypeEnum.HIS_RECIPE_CODE.getType());
+        Map<Integer, RecipeExtend> recipeExtendMap = recipeExtendList.stream().collect(Collectors.toMap(RecipeExtend::getRecipeId, a -> a, (k1, k2) -> k1));
+        recipeList.forEach(recipe -> {
+            RecipeExtend recipeExtend = recipeExtendMap.get(recipe.getRecipeId());
             String costNumber;
             if (CashDeskSettleUseCodeTypeEnum.HIS_RECIPE_CODE.getType().equals(cashDeskSettleUseCode)) {
-                costNumber = StringUtils.isBlank(recipeExtend.getRecipeCostNumber()) ? recipe.getRecipeCode() : recipe.getRecipeCostNumber();
+                costNumber = StringUtils.isBlank(recipeExtend.getRecipeCostNumber()) ? recipe.getRecipeCode() : recipeExtend.getRecipeCostNumber();
             } else {
                 List<String> chargeItemCode = recipeManager.getChargeItemCode(Arrays.asList(recipeExtend));
                 costNumber = String.join(",", chargeItemCode);
             }
             costNumbers.add(costNumber);
-        }
+        });
         RecipeOrder order = recipeOrderDAO.get(recipeOrder.getOrderId());
         if (StringUtils.isNotEmpty(order.getRegisterFeeNo())) {
             costNumbers.add(order.getRegisterFeeNo());

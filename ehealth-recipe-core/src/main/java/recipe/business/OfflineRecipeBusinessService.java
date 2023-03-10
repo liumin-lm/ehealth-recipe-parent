@@ -494,15 +494,17 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
                 patientRecipeListResVo.setDoctorName(recipeBean.getDoctorName());
             }
             patientRecipeListResVo.setDoctor(recipeBean.getDoctor());
-            patientRecipeListResVo.setIllnessType(recipeExtendBean.getIllnessType());
-            patientRecipeListResVo.setIllnessName(recipeExtendBean.getIllnessName());
+            if(Objects.nonNull(recipeExtendBean)) {
+                patientRecipeListResVo.setIllnessType(recipeExtendBean.getIllnessType());
+                patientRecipeListResVo.setIllnessName(recipeExtendBean.getIllnessName());
+                patientRecipeListResVo.setRegisterID(recipeExtendBean.getRegisterID());
+            }
             patientRecipeListResVo.setMpiid(recipeBean.getMpiid());
             patientRecipeListResVo.setOrderCode(recipeBean.getOrderCode());
             patientRecipeListResVo.setOrganDiseaseName(recipeBean.getOrganDiseaseName());
             patientRecipeListResVo.setProcessState(recipeBean.getProcessState());
             patientRecipeListResVo.setRecipeCode(recipeBean.getRecipeCode());
             patientRecipeListResVo.setRecipeSourceType(recipeBean.getRecipeSourceType());
-            patientRecipeListResVo.setRegisterID(recipeExtendBean.getRegisterID());
             patientRecipeListResVo.setRecipeType(recipeBean.getRecipeType());
             patientRecipeListResVo.setSignDate(recipeBean.getSignDate());
             patientRecipeListResVo.setTargetedDrugType(recipeBean.getTargetedDrugType());
@@ -514,18 +516,19 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
             Integer secrecyRecipe = 0;
             Integer peritonealDialysisFluidType = 0;
             List<RecipeDetailForRecipeListResVo> recipeDetailForRecipeListResVos = new ArrayList<>();
-            for (RecipeDetailBean recipeDetail : recipeDetails) {
-                RecipeDetailForRecipeListResVo recipeDetailForRecipeListResVo = new RecipeDetailForRecipeListResVo();
-                BeanCopyUtils.copy(recipeDetail, recipeDetailForRecipeListResVo);
-                if (new Integer(3).equals(recipeDetail.getType())) {
-                    secrecyRecipe = 1;
+            if (!CollectionUtils.isEmpty(recipeDetails)) {
+                for (RecipeDetailBean recipeDetail : recipeDetails) {
+                    RecipeDetailForRecipeListResVo recipeDetailForRecipeListResVo = new RecipeDetailForRecipeListResVo();
+                    BeanCopyUtils.copy(recipeDetail, recipeDetailForRecipeListResVo);
+                    if (new Integer(3).equals(recipeDetail.getType())) {
+                        secrecyRecipe = 1;
+                    }
+                    if (new Integer(1).equals(recipeDetail.getPeritonealDialysisFluidType())) {
+                        peritonealDialysisFluidType = 1;
+                    }
+                    recipeDetailForRecipeListResVos.add(recipeDetailForRecipeListResVo);
                 }
-                if (new Integer(1).equals(recipeDetail.getPeritonealDialysisFluidType())) {
-                    peritonealDialysisFluidType = 1;
-                }
-                recipeDetailForRecipeListResVos.add(recipeDetailForRecipeListResVo);
             }
-
             patientRecipeListResVo.setSecrecyRecipe(secrecyRecipe);
             patientRecipeListResVo.setPeritonealDialysisFluidType(peritonealDialysisFluidType);
             if(Objects.nonNull(recipeBean.getRecipeId())) {
