@@ -2374,6 +2374,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     }
 
     @Override
+    @LogRecord
     public Map<String, String> getPatientInfo(Integer busId) {
         Map<String, String> map = new HashMap<>();
         RecipeOrder recipeOrder = recipeOrderDAO.get(busId);
