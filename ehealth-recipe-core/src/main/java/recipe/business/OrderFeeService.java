@@ -368,6 +368,15 @@ public class OrderFeeService implements IRecipeOrderRefundService {
         recipeDAO.updateRecipePushFlag(recipeIds);
     }
 
+    @Override
+    public String getOrderCodeByOrderId(Integer orderId) {
+        RecipeOrder recipeOrder = recipeOrderDAO.get(orderId);
+        if(Objects.isNull(recipeOrder)){
+            throw new DAOException("订单查询失败");
+        }
+        return recipeOrder.getOrderCode();
+    }
+
     private String setRefundNodeStatus(Integer status) {
         if (null == status || status == 3 || status == 2) {
             return "未退款";

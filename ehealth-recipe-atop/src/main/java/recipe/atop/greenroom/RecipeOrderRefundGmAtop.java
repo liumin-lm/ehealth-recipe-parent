@@ -40,6 +40,12 @@ public class RecipeOrderRefundGmAtop extends BaseAtop {
     }
 
     @RpcService
+    public String getOrderCodeByOrderId(Integer orderId) {
+        validateAtop(orderId);
+        return recipeOrderRefundService.getOrderCodeByOrderId(orderId);
+    }
+
+    @RpcService
     public void forceRefund(AuditRefundVO auditRefundVO) {
         validateAtop(auditRefundVO, auditRefundVO.getOrderCode(), auditRefundVO.getResult());
         recipeOrderRefundService.forceRefund(auditRefundVO);
