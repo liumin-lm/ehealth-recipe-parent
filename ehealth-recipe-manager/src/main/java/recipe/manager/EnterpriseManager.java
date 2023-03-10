@@ -1339,7 +1339,7 @@ public class EnterpriseManager extends BaseManager {
      * @param enterpriseAddress
      */
     public void setEnterpriseAddressAndPrice(List<AddrAreaDTO> addrAreaList, EnterpriseAddress enterpriseAddress) {
-        List<List<AddrAreaDTO>> addrAreaLists = Lists.partition(addrAreaList, 150);
+        List<List<AddrAreaDTO>> addrAreaLists = Lists.partition(addrAreaList, 250);
         addrAreaLists.forEach(addrAreaDTOS -> {
             List<String> addressList = addrAreaDTOS.stream().map(AddrAreaDTO::getId).collect(Collectors.toList());
             enterpriseAddressDAO.deleteByEnterpriseIdAndAddress(enterpriseAddress.getEnterpriseId(), addressList);
