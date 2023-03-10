@@ -150,7 +150,7 @@ public class StateManager extends BaseManager {
                 result = false;
                 break;
         }
-        if(RecipeStateEnum.statusChangeNotify.contains(processState)){
+        if(RecipeStateEnum.statusChangeNotify.contains(processState.getType())){
             statusChangeNotify(recipe.getRecipeId(), null);
         }
         saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), subState.getName());
