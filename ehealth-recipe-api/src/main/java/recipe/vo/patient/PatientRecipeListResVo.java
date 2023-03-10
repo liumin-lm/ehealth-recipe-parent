@@ -92,9 +92,6 @@ public class PatientRecipeListResVo implements Serializable {
     @ItemProperty(alias = "腹透液  空0否  1是 ")
     private Integer peritonealDialysisFluidType;
 
-    @ItemProperty(alias = "能否合并支付")
-    private Boolean mergeRecipeFlag;
-
     @ItemProperty(alias = "隐方")
     private Boolean isHiddenRecipeDetail = false;
 

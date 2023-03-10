@@ -468,8 +468,6 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
     }
 
     private List<PatientRecipeListResVo> recipeInfoVOSCoverPatientRecipeListResVo(Set<RecipeInfoVO> recipeInfoVOS) {
-        List<Integer> organIds = currentUserInfoService.getCurrentOrganIds();
-        Boolean mergeRecipeFlag = organIds.stream().allMatch(a -> configurationClient.getValueBooleanCatch(a, "mergeRecipeFlag", false));
         RecipeBean recipe = recipeInfoVOS.iterator().next().getRecipeBean();
         List<String> hideRecipeDetail = configurationClient.getValueListCatch(recipe.getClinicOrgan(), "hideRecipeDetail", null);
         LOGGER.info("hideRecipeDetail 药品类型：{} 需要隐方的类型:{}", recipe.getRecipeType(), hideRecipeDetail);
@@ -508,7 +506,6 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
             patientRecipeListResVo.setRecipeType(recipeBean.getRecipeType());
             patientRecipeListResVo.setSignDate(recipeBean.getSignDate());
             patientRecipeListResVo.setTargetedDrugType(recipeBean.getTargetedDrugType());
-            patientRecipeListResVo.setMergeRecipeFlag(mergeRecipeFlag);
             patientRecipeListResVo.setOfflineRecipeName(recipeBean.getOfflineRecipeName());
             if (org.apache.commons.collections.CollectionUtils.isNotEmpty(hideRecipeDetail) && hideRecipeDetail.contains(recipeBean.getRecipeType().toString()) && PayFlagEnum.PAYED.getType().equals(recipeBean.getPayFlag())) {
                 patientRecipeListResVo.setIsHiddenRecipeDetail(true);
