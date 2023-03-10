@@ -380,6 +380,8 @@ public class RecipeRefundService extends RecipeBaseService {
                 if (CollectionUtils.isNotEmpty(recipeList)) {
                     return recipeList.get(0);
                 }
+            } else {
+                return recipes.get(0);
             }
         }
         return null;
