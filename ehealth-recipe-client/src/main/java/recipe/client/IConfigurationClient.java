@@ -590,4 +590,14 @@ public class IConfigurationClient extends BaseClient {
     }
 
 
+    /**
+     * 根据机构配置可key 和 value 获取打开配置的机构
+     * @param key
+     * @param value
+     * @return
+     */
+    public List<Integer> findOrganIdByKeyAndValue(String key, String value) {
+        List<Integer> organIds = configService.findOrganByPropertyKeyAndValue(key, value);
+        return organIds;
+    }
 }
