@@ -47,6 +47,7 @@ import recipe.bussutil.UsePathwaysFilter;
 import recipe.bussutil.UsingRateFilter;
 import recipe.client.DepartClient;
 import recipe.client.DocIndexClient;
+import recipe.client.IConfigurationClient;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
@@ -96,6 +97,9 @@ public class HisRequestInit {
 
     @Autowired
     private RecipeOrderPayFlowManager recipeOrderPayFlowManager;
+
+    @Autowired
+    private IConfigurationClient configurationClient;
 
     public RecipeSendRequestTO initRecipeSendRequestTOForWuChang(Recipe recipe, List<Recipedetail> details, PatientBean patient) {
         RecipeSendRequestTO requestTO = new RecipeSendRequestTO();
@@ -679,6 +683,15 @@ public class HisRequestInit {
                         default:
                             requestTO.setIsMedicalSettle("0");
                     }
+                    //设置支付来源
+                    if (StringUtils.isNotEmpty(order.getTerminalSource())) {
+                        String appType = configurationClient.getAppType(order.getTerminalSource());
+                        if ("WX".equals(appType)) {
+                            requestTO.setPayOrderSource("1");
+                        } else if("ALILIFE".equals(appType)) {
+                            requestTO.setPayOrderSource("2");
+                        }
+                    }
                     RecipeOrderPayFlow recipeOrderPayFlow = recipeOrderPayFlowManager.getByOrderIdAndType(order.getOrderId(), PayFlowTypeEnum.RECIPE_FLOW.getType());
                     String wxPayWay;
                     if (Objects.nonNull(recipeOrderPayFlow)) {
@@ -704,6 +717,12 @@ public class HisRequestInit {
                         if (extend.getTerminalType() != null ) {
                             //终端类型 1 自助机
                             requestTO.setTerminalType(extend.getTerminalType());
+                        }
+                        if (StringUtils.isNotEmpty(extend.getCardType())) {
+                            requestTO.setHisCardType(extend.getCardType());
+                        }
+                        if (StringUtils.isNotEmpty(extend.getCardNo())) {
+                            requestTO.setHisCardNo(extend.getCardNo());
                         }
                         //终端是否为自助机
                         requestTO.setSelfServiceMachineFlag(new Integer(1).equals(extend.getTerminalType()));

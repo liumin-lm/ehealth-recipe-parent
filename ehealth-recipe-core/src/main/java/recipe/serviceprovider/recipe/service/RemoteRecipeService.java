@@ -419,6 +419,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                 }
             }
             recipe.setStatus(recipeStatusReqTO.getStatus());
+            stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.getRecipeStateEnum(recipe.getProcessState()), RecipeStateEnum.getRecipeStateEnum(recipe.getSubState()));
             recipeDAO.update(recipe);
             return true;
         } catch (Exception e) {

@@ -2690,6 +2690,7 @@ public class RecipeService extends RecipeBaseService {
                             recipe.setSubState(RecipeStateEnum.SUB_DONE_UPLOAD_THIRD.getType());
                             recipe.setProcessState(RecipeStateEnum.PROCESS_STATE_DONE.getType());
                             recipeDAO.update(recipe);
+                            stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_DONE, RecipeStateEnum.SUB_DONE_UPLOAD_THIRD);
                         }
                         continue;
                     }
@@ -2842,6 +2843,7 @@ public class RecipeService extends RecipeBaseService {
                                 recipe.setSubState(RecipeStateEnum.SUB_DONE_UPLOAD_THIRD.getType());
                                 recipe.setProcessState(RecipeStateEnum.PROCESS_STATE_DONE.getType());
                                 recipeDAO.update(recipe);
+                                stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.getRecipeStateEnum(recipe.getProcessState()), RecipeStateEnum.getRecipeStateEnum(recipe.getSubState()));
                             }
                             continue;
                         }
