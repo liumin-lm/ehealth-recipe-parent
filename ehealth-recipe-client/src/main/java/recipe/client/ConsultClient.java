@@ -251,7 +251,6 @@ public class ConsultClient extends BaseClient {
     public void uploadBusinessLog(List<Recipe> recipes) {
         RecipeBusiThreadPool.execute(() ->
                 recipes.forEach(recipe -> {
-                    logger.info("ConsultClient uploadBusinessLog recipe={}", recipe.getRecipeId());
                     BusinessLogTO business = new BusinessLogTO();
                     business.setOrganId(recipe.getClinicOrgan());
                     business.setYwgnmc("医疗业务协同协同公卫随访管");
@@ -259,6 +258,7 @@ public class ConsultClient extends BaseClient {
                     business.setYwlxmc("处方流转服务");
                     business.setYwlxdm("YLYWXT_CFLZ");
                     business.setRzmx(JSON.toJSONString(recipe));
+                    logger.info("ConsultClient uploadBusinessLog recipe={}", JSON.toJSONString(business));
                     iConsultHisService.uploadBusinessLog(business);
                 }));
     }
