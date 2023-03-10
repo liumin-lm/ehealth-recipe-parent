@@ -3963,6 +3963,7 @@ public class RecipeService extends RecipeBaseService {
     @RpcService
     @LogRecord
     public RecipeResultBean changeRecipeStatusInfo(int recipeId, int status) {
+        LOGGER.info("changeRecipeStatusInfo:{},{}",recipeId,status);
         RecipeResultBean result = RecipeResultBean.getSuccess();
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.get(recipeId);
