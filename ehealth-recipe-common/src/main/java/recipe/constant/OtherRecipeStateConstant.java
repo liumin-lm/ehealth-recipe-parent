@@ -17,11 +17,6 @@ public class OtherRecipeStateConstant {
     public static final String ALREADY_PAY = "2";
 
     /**
-     * 已作废
-     */
-    public static final String PROCESS_STATE_CANCELLATION = "3";
-
-    /**
      * 已退款
      */
     public static final String SUB_CANCELLATION_REFUND = "10";

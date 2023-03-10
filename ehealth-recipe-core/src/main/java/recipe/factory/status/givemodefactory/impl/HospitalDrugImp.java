@@ -29,6 +29,7 @@ public class HospitalDrugImp extends AbstractGiveMode {
         recipeOrder.setSubState(OrderStateEnum.SUB_DONE_SELF_TAKE.getType());
         recipe.setProcessState(RecipeStateEnum.PROCESS_STATE_DONE.getType());
         recipe.setSubState(RecipeStateEnum.SUB_DONE_SELF_TAKE.getType());
+        //updateOrderByStatus有调统一改状态入口stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_DONE, RecipeStateEnum.SUB_DONE_SELF_TAKE);
         recipeOrderStatusProxy.updateOrderByStatus(orderStatus, recipeOrder, recipe);
     }
 }

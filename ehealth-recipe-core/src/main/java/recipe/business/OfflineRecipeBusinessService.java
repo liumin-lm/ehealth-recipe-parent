@@ -507,7 +507,7 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
             patientRecipeListResVo.setSignDate(recipeBean.getSignDate());
             patientRecipeListResVo.setTargetedDrugType(recipeBean.getTargetedDrugType());
             patientRecipeListResVo.setOfflineRecipeName(recipeBean.getOfflineRecipeName());
-            if (org.apache.commons.collections.CollectionUtils.isNotEmpty(hideRecipeDetail) && hideRecipeDetail.contains(recipeBean.getRecipeType().toString()) && PayFlagEnum.PAYED.getType().equals(recipeBean.getPayFlag())) {
+            if (org.apache.commons.collections.CollectionUtils.isNotEmpty(hideRecipeDetail) && hideRecipeDetail.contains(recipeBean.getRecipeType().toString()) && PayFlagEnum.NOPAY.getType().equals(recipeBean.getPayFlag())) {
                 patientRecipeListResVo.setIsHiddenRecipeDetail(true);
             }
             Integer secrecyRecipe = 0;
