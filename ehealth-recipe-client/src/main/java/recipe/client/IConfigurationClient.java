@@ -17,6 +17,7 @@ import ctd.account.Client;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
+import eh.entity.base.ClientConfig;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -587,6 +588,27 @@ public class IConfigurationClient extends BaseClient {
             return null;
         }
         return clientConfigByAppKey.getClientName();
+    }
+
+    /**
+     * 获取APP Type
+     * @param appId
+     * @return
+     */
+    public String getAppType(String appId) {
+        try {
+            if (StringUtils.isEmpty(appId)) {
+                return null;
+            }
+            ClientConfigBean clientConfigByAppKey = clientConfigService.getClientConfigByAppKey(appId);
+            if(Objects.isNull(clientConfigByAppKey)){
+                return null;
+            }
+            return clientConfigByAppKey.getType();
+        } catch (Exception e) {
+            logger.error("getAppType error", e);
+        }
+        return null;
     }
 
 
