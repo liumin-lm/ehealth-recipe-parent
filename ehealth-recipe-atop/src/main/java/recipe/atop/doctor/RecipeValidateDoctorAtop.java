@@ -163,6 +163,7 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
      * @return
      */
     @RpcService
+    @Deprecated
     public Boolean revisitValidate(String mpiId, Integer doctorId, Integer organId) {
         logger.info("RecipeValidateDoctorAtop revisitValidate mpiId: {},doctorId :{},organId :{}", mpiId, doctorId, organId);
         validateAtop(mpiId, doctorId, organId);

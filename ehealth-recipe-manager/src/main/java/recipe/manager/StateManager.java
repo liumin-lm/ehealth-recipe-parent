@@ -150,7 +150,7 @@ public class StateManager extends BaseManager {
                 result = false;
                 break;
         }
-        if(RecipeStateEnum.statusChangeNotify.contains(processState)){
+        if(RecipeStateEnum.statusChangeNotify.contains(processState.getType())){
             statusChangeNotify(recipe.getRecipeId(), null);
         }
         saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), subState.getName());
@@ -423,7 +423,7 @@ public class StateManager extends BaseManager {
             }
             redisClient.setEX(redisKey,7 * 24 * 3600L,String.valueOf(recipeId));
             Map<String,Object> param=new HashMap<>();
-            /*个性化 start*/
+            /*个性化 等健康湖北发到线上去才能注释*/
             param.put("order_id",String.valueOf(recipeId));
             param.put("order_type","2");
             param.put("order_status",otherStatus);

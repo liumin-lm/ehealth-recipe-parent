@@ -1743,11 +1743,10 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
 
     @Override
     public void findHisSettle() {
-        String hisSettleOrgan = recipeParameterDao.getByName("his_settle_zhuji");
-        if (StringUtils.isEmpty(hisSettleOrgan)) {
+        List<Integer> organIds = configurationClient.findOrganIdByKeyAndValue("isQueryHisSettle", "true");
+        if (CollectionUtils.isEmpty(organIds)) {
             return;
         }
-        List<Integer> organIds = JSONUtils.parse(hisSettleOrgan, ArrayList.class);
         organIds.forEach(organId -> {
             List<RecipeOrder> list = recipeOrderDAO.findByOrganIdAndPayStatus(organId);
             List<String> orderCodes = orderManager.hisSettleByOrder(list);
