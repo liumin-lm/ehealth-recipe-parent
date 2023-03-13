@@ -370,7 +370,7 @@ public class PurchaseService {
             if (null == patientDTO) {
                 throw new DAOException(609, "患者信息不存在");
             }
-            HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos = hisRecipeManager.queryData(dbRecipe.getClinicOrgan(), patientDTO, 6, OfflineToOnlineEnum.OFFLINE_TO_ONLINE_NO_PAY.getType(), dbRecipe.getRecipeCode());
+            HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos = hisRecipeManager.queryData(dbRecipe.getClinicOrgan(), patientDTO, 6, OfflineToOnlineEnum.OFFLINE_TO_ONLINE_NO_PAY.getType(), dbRecipe.getRecipeCode(),null,null);
             if (null == hisRecipeInfos || CollectionUtils.isEmpty(hisRecipeInfos.getData())) {
                 result.setCode(RecipeResultBean.CHECKFAIL);
                 result.setMsg("该处方单信息已变更，请退出重新获取处方信息。");

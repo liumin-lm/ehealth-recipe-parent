@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 import recipe.aop.LogRecord;
 import recipe.client.DocIndexClient;
 import recipe.client.PayClient;
@@ -93,7 +94,7 @@ public class HisRecipeManager extends BaseManager {
     }
 
     /**
-     * 查询线下处方数据
+     * 统一查询线下处方数据
      *
      * @param organId
      * @param patientDTO
@@ -102,9 +103,9 @@ public class HisRecipeManager extends BaseManager {
      * @param recipeCode
      * @return
      */
-    public HisResponseTO<List<QueryHisRecipResTO>> queryData(Integer organId, PatientDTO patientDTO, Integer timeQuantum, Integer flag, String recipeCode) {
+    public HisResponseTO<List<QueryHisRecipResTO>> queryData(Integer organId, PatientDTO patientDTO, Integer timeQuantum, Integer flag, String recipeCode,Date startDate,Date endDate) {
         LOGGER.info("HisRecipeManager queryData param organId:{},patientDTO:{},timeQuantum:{},flag:{},recipeCode:{}", organId, JSONUtils.toString(patientDTO), timeQuantum, flag, recipeCode);
-        HisResponseTO<List<QueryHisRecipResTO>> responseTo = offlineRecipeClient.queryData(organId, patientDTO, timeQuantum, flag, recipeCode,null,null);
+        HisResponseTO<List<QueryHisRecipResTO>> responseTo = offlineRecipeClient.queryData(organId, patientDTO, timeQuantum, flag, recipeCode,startDate,endDate);
         //过滤数据
         HisResponseTO<List<QueryHisRecipResTO>> res = filterData(responseTo, recipeCode, flag);
         logger.info("HisRecipeManager res:{}.", JSONUtils.toString(res));
@@ -863,7 +864,17 @@ public class HisRecipeManager extends BaseManager {
             return Collections.emptyList();
         }
         PatientDTO patient = patientClient.getPatient(req.getMpiId());
-        List<QueryHisRecipResTO> list = offlineRecipeClient.patientFeeRecipeList(req, patient, type);
+        if (ObjectUtils.isEmpty(patient)) {
+            logger.info("患者信息不存在");
+            return Collections.emptyList();
+        }
+        patient.setCardId(StringUtils.isNotEmpty(req.getCardId()) ? req.getCardId() : patient.getCardId());
+        HisResponseTO<List<QueryHisRecipResTO>> hisResponseTO =queryData(req.getOrganId(),patient,null,type,null,req.getStartTime(),req.getEndTime());
+//        List<QueryHisRecipResTO> list = offlineRecipeClient.patientFeeRecipeList(req, patient, type);
+        if (null == hisResponseTO || CollectionUtils.isEmpty(hisResponseTO.getData())) {
+            return null;
+        }
+        List<QueryHisRecipResTO> list = hisResponseTO.getData();
         if (CollectionUtils.isEmpty(list)) {
             return Collections.emptyList();
         }
