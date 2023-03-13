@@ -4,8 +4,10 @@ import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.common.mode.HisResponseTO;
+import com.ngari.his.recipe.mode.HisCheckRecipeReqTO;
 import com.ngari.his.recipe.mode.QueryHisRecipResTO;
 import com.ngari.his.recipe.mode.RecipeDetailTO;
+import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.RecipeBean;
@@ -949,5 +951,60 @@ public class HisRecipeManager extends BaseManager {
     }
 
 
+    public void hisRecipeCheck(Recipe recipe, RecipeExtend recipeExtend, List<Recipedetail> details,
+                               Map<Integer, PharmacyTcm> pharmacyTcmMap, Map<String, OrganDrugList> organDrugMap) {
+        HisCheckRecipeReqTO hisCheckRecipe = new HisCheckRecipeReqTO();
+        //医生工号
+        String jobNumber = doctorClient.jobNumber(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getDepart()).getJobNumber();
+        hisCheckRecipe.setDoctorID(jobNumber);
+        //科室代码---行政科室代码
+        DepartmentDTO department = departClient.getDepartmentByDepart(recipe.getDepart());
+        if (null != department) {
+            hisCheckRecipe.setDeptCode(department.getCode());
+            hisCheckRecipe.setDeptName(department.getName());
+        }
+        com.ngari.recipe.dto.PatientDTO patientDTO = patientClient.getPatientDTO(recipe.getMpiid());
+        if (null != patientDTO) {
+            //身份证
+            hisCheckRecipe.setCertID(patientDTO.getIdcard());
+            hisCheckRecipe.setCertificate(patientDTO.getCertificate());
+            hisCheckRecipe.setCertificateType(patientDTO.getCertificateType());
+            //患者名
+            hisCheckRecipe.setPatientName(patientDTO.getPatientName());
+            //患者性别
+            hisCheckRecipe.setPatientSex(patientDTO.getPatientSex());
+            //患者电话
+            hisCheckRecipe.setPatientTel(patientDTO.getMobile());
+            //病人类型
+        }
+        String organCode = organClient.getOrganizeCodeByOrganId(recipe.getClinicOrgan());
+        hisCheckRecipe.setOrganID(organCode);
+        try {
+            Map<String, Object> map = offlineRecipeClient.hisRecipeCheck(recipe, recipeExtend, details, pharmacyTcmMap, organDrugMap, hisCheckRecipe);
+            return "1".equals(map.get("checkResult"));
+            rMap.put("canContinueFlag", 0);
+            return true;
+        } catch (DAOException e1) {
+            //date 20200706
+            //允许继续处方:不进行校验/进行校验且校验通过0 ，进行校验校验不通过允许通过4，进行校验校验不通过不允许通过-1
+            Boolean allowContinueMakeFlag = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "allowContinueMakeRecipe", false);
+            if (allowContinueMakeFlag) {
+                rMap.put("canContinueFlag", 4);
+                rMap.put("msg", rMap.get("errorMsg"));
+            } else {
+                rMap.put("canContinueFlag", -1);
+                rMap.put("msg", rMap.get("errorMsg"));
+            }
+            return false;
+        } catch (Exception e) {
+            LOG.error("hisRecipeCheck error recipeId:{}", recipeBean.getRecipeId(), e);
+            rMap.put("signResult", false);
+            rMap.put("errorFlag", true);
+            rMap.put("errorMsg", "his处方检查异常");
+            rMap.put("canContinueFlag", -1);
+            rMap.put("msg", "his处方检查异常");
+            return false;
+        }
 
+    }
 }

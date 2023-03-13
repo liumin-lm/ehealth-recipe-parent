@@ -10,14 +10,13 @@ import com.ngari.recipe.offlinetoonline.model.FindHisRecipeListVO;
 import com.ngari.recipe.offlinetoonline.model.SettleForOfflineToOnlineVO;
 import com.ngari.recipe.recipe.model.MergeRecipeVO;
 import com.ngari.recipe.vo.OffLineRecipeDetailVO;
-import recipe.vo.doctor.RecipeInfoVO;
+import recipe.vo.doctor.ValidateDetailVO;
 import recipe.vo.patient.PatientRecipeListReqVO;
 import recipe.vo.patient.PatientRecipeListResVo;
 import recipe.vo.patient.RecipeGiveModeButtonRes;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 
 /**
  * @Author liumin
@@ -119,4 +118,11 @@ public interface IOfflineRecipeBusinessService {
      * @return
      */
     List<List<PatientRecipeListResVo>> patientRecipeList(PatientRecipeListReqVO patientRecipeListReq);
+
+    /**
+     * his处方 预校验
+     *
+     * @param validateDetailVO
+     */
+    void hisRecipeCheck(ValidateDetailVO validateDetailVO);
 }

@@ -1644,7 +1644,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     @Override
     public RecipeDTO getRecipeInfoByRecipeId(Integer recipeId) {
         RecipeDTO recipeDTO = recipeManager.getRecipeDTO(recipeId);
-        if(null!=recipeDTO.getRecipe() && StringUtils.isNotEmpty(recipeDTO.getRecipe().getOrderCode())){
+        if (null != recipeDTO.getRecipe() && StringUtils.isNotEmpty(recipeDTO.getRecipe().getOrderCode())) {
             recipeDTO.setRecipeOrder(recipeOrderDAO.getByOrderCode(recipeDTO.getRecipe().getOrderCode()));
         }
         return recipeDTO;

@@ -53,9 +53,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.bussutil.UsePathwaysFilter;
-import recipe.bussutil.UsingRateFilter;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.DocIndexClient;
+import recipe.constant.CacheConstant;
 import recipe.dao.*;
 import recipe.enumerate.type.RecipeDrugFormTypeEnum;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
@@ -64,9 +64,7 @@ import recipe.service.OrganDrugListService;
 import recipe.service.PharmacyTcmService;
 import recipe.service.RecipeServiceSub;
 import recipe.thread.RecipeBusiThreadPool;
-import recipe.util.ByteUtils;
-import recipe.util.DateConversion;
-import recipe.util.ValidateUtil;
+import recipe.util.*;
 import recipe.vo.second.EmrDetailValueVO;
 
 import javax.annotation.Resource;
@@ -559,7 +557,7 @@ public class QueryRecipeService implements IQueryRecipeService {
                 //机构的用药代码
                 orderItem.setOrganUsePathways(detail.getOrganUsePathways());
                 //医保频次
-                orderItem.setMedicalFrequency(UsingRateFilter.filterNgariByMedical(clinicOrgan, detail.getUsingRate()));
+                orderItem.setMedicalFrequency(filterNgariByMedical(clinicOrgan, detail.getUsingRate()));
                 //单次剂量
                 if (StringUtils.isNotEmpty(detail.getUseDoseStr())) {
                     orderItem.setDosage(detail.getUseDoseStr());
@@ -1418,4 +1416,35 @@ public class QueryRecipeService implements IQueryRecipeService {
         }
         return oganList;
     }
+
+    /**
+     * 根据平台的字典编码，匹配第三方的值，一般用于平台处方写入其他平台使用---杭州市互联网
+     *
+     * @param organId
+     * @param field
+     * @return
+     */
+    public static String filterNgariByMedical(int organId, String field) {
+        if (StringUtils.isEmpty(field)) {
+            return "";
+        }
+        String val = RedisClient.instance().hget(CacheConstant.KEY_MEDICAL_NGARI_USINGRATE + organId, field);
+        if (StringUtils.isEmpty(val)) {
+            OrganAndDrugsepRelationDAO dao = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
+            List<DrugsEnterprise> enterprises = dao.findDrugsEnterpriseByOrganIdAndStatus(organId, 1);
+            if (org.apache.commons.collections4.CollectionUtils.isNotEmpty(enterprises)) {
+                if ("hzInternet".equals(enterprises.get(0).getCallSys())) {
+                    val = RedisClient.instance().hget(CacheConstant.KEY_MEDICAL_NGARI_USINGRATE + "hzInternet", field);
+                    return StringUtils.isEmpty(val) ? field : val;
+                }
+            }
+        }
+        /**
+         * 查不到的原因
+         * 1 因为field有可能在平台没有新增，则返回实际值
+         * 2 没有进行字典对照，则返回实际值
+         */
+        return StringUtils.isEmpty(val) ? field : val;
+    }
+
 }
