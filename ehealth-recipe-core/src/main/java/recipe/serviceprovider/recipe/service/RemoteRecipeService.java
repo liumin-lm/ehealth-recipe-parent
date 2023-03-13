@@ -2797,9 +2797,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             PatientDTO patientDTO = patientClient.getPatientBeanByMpiId(revisitBean.getMpiid());
             List<QueryHisRecipResTO> totalHisRecipe = new ArrayList<>();
             //查询待缴费处方
-            HisResponseTO<List<QueryHisRecipResTO>> noPayRecipe = hisRecipeManager.queryData(revisitBean.getConsultOrgan(), patientDTO, timeQuantum, 1, "");
+            HisResponseTO<List<QueryHisRecipResTO>> noPayRecipe = hisRecipeManager.queryData(revisitBean.getConsultOrgan(), patientDTO, timeQuantum, 1, "",null,null);
             //查询已缴费处方
-            HisResponseTO<List<QueryHisRecipResTO>> havePayRecipe = hisRecipeManager.queryData(revisitBean.getConsultOrgan(), patientDTO, timeQuantum, 2, "");
+            HisResponseTO<List<QueryHisRecipResTO>> havePayRecipe = hisRecipeManager.queryData(revisitBean.getConsultOrgan(), patientDTO, timeQuantum, 2, "",null,null);
             if (null != noPayRecipe && null != noPayRecipe.getData()) {
                 totalHisRecipe.addAll(noPayRecipe.getData());
             }
