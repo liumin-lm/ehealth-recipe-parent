@@ -130,7 +130,12 @@ public class DrugEnterprisePatientAtop extends BaseAtop {
     @RpcService
     public OrganDrugsSaleConfig getOrganDrugsSaleConfigOfPatient(Integer organId , Integer drugsEnterpriseId){
         validateAtop(drugsEnterpriseId);
-        return enterpriseBusinessService.getOrganDrugsSaleConfigOfPatient(organId, drugsEnterpriseId);
+        OrganDrugsSaleConfig organDrugsSaleConfig = enterpriseBusinessService.getOrganDrugsSaleConfigOfPatient(organId, drugsEnterpriseId);
+        //前端未使用，返空处理
+        organDrugsSaleConfig.setSendDrugNotifyPhone(null);
+        organDrugsSaleConfig.setRefundNotifyPhone(null);
+        organDrugsSaleConfig.setOrderPushFailPhone(null);
+        return organDrugsSaleConfig;
     }
 
     /**

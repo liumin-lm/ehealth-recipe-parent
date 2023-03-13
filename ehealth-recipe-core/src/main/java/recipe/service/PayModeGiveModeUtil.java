@@ -60,7 +60,7 @@ public class PayModeGiveModeUtil {
                 break;
             case 5:
             case 6:
-                giveMode = 6;
+                giveMode = 5;
                 break;
             default:
                 break;
