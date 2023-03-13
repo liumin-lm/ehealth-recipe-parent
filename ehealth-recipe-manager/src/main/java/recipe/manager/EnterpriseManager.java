@@ -1053,6 +1053,10 @@ public class EnterpriseManager extends BaseManager {
         }
         organDrugsSaleConfig.setOrganId(organId);
         organDrugsSaleConfig.setDrugsEnterpriseId(drugsEnterpriseId);
+        //前端未使用，返空处理
+        organDrugsSaleConfig.setSendDrugNotifyPhone(null);
+        organDrugsSaleConfig.setRefundNotifyPhone(null);
+        organDrugsSaleConfig.setOrderPushFailPhone(null);
         return organDrugsSaleConfig;
     }
 
