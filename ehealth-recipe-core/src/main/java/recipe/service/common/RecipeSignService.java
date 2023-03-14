@@ -478,7 +478,7 @@ public class RecipeSignService {
         }
         // 就诊人改造：为了确保删除就诊人后历史处方不会丢失，加入主账号用户id
         //bug#46436 本人就诊人被删除保存不了导致后续微信模板消息重复推送多次
-        List<PatientDTO> requestPatients = patientService.findOwnPatient(patient.getLoginId());
+        List<PatientDTO> requestPatients = patientService.findOwnPatientLimitOne(patient.getLoginId());
         if (CollectionUtils.isNotEmpty(requestPatients)) {
             PatientDTO requestPatient = requestPatients.get(0);
             if (null != requestPatient && null != requestPatient.getMpiId()) {

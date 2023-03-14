@@ -482,7 +482,7 @@ public class PatientClient extends BaseClient {
         }
         PatientDTO patientDTO = this.getPatientDTO(recipe.getMpiid());
         recipe.setPatientName(patientDTO.getPatientName());
-        List<com.ngari.patient.dto.PatientDTO> requestPatients = patientService.findOwnPatient(patientDTO.getLoginId());
+        List<com.ngari.patient.dto.PatientDTO> requestPatients = patientService.findOwnPatientLimitOne(patientDTO.getLoginId());
         if (CollectionUtils.isEmpty(requestPatients)) {
             return;
         }
