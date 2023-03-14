@@ -1000,13 +1000,13 @@ public class OfflineRecipeClient extends BaseClient {
         hisCheckRecipeReqTO.setOrderList(list);
         HisResponseTO hisResult = recipeHisService.hisCheckRecipe(hisCheckRecipeReqTO);
         if (null == hisResult) {
-            throw new DAOException(ErrorCode.SERVICE_FAIL, "his返回结果null");
+            throw new DAOException(ErrorCode.SERVICE_FAIL, "预校验his返回结果null");
         }
         if (!"200".equals(hisResult.getMsgCode())) {
             throw new DAOException(ErrorCode.SERVICE_FAIL, hisResult.getMsg());
         }
         Map<String, Object> map = (Map<String, Object>) hisResult.getData();
-        if ("0".equals(map.get("checkResult"))) {
+        if (!"1".equals(map.get("checkResult"))) {
             throw new DAOException(ErrorCode.SERVICE_FAIL, String.valueOf(map.get("resultMark")));
         }
         return map;

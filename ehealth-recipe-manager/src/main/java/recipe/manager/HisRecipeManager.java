@@ -870,9 +870,61 @@ public class HisRecipeManager extends BaseManager {
         if (CollectionUtils.isEmpty(list)) {
             return Collections.emptyList();
         }
-        List<RecipeDTO> res=covertRecipeDTOFromQueryHisRecipResTO(list, patient, type);
-        logger.info("patientRecipeList res:{},{}",req.getUuid(),JSONUtils.toString(res));
+        List<RecipeDTO> res = covertRecipeDTOFromQueryHisRecipResTO(list, patient, type);
+        logger.info("patientRecipeList res:{},{}", req.getUuid(), JSONUtils.toString(res));
         return res;
+    }
+
+    /**
+     * his处方 预校验
+     *
+     * @param recipe
+     * @param recipeExtend
+     * @param details
+     * @param pharmacyTcmMap
+     * @param organDrugMap
+     * @return
+     */
+    public DoSignRecipeDTO hisRecipeCheck(Recipe recipe, RecipeExtend recipeExtend, List<Recipedetail> details,
+                                          Map<Integer, PharmacyTcm> pharmacyTcmMap, Map<String, OrganDrugList> organDrugMap) {
+        HisCheckRecipeReqTO hisCheckRecipe = new HisCheckRecipeReqTO();
+        //医生工号
+        String jobNumber = doctorClient.jobNumber(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getDepart()).getJobNumber();
+        hisCheckRecipe.setDoctorID(jobNumber);
+        //科室代码---行政科室代码
+        DepartmentDTO department = departClient.getDepartmentByDepart(recipe.getDepart());
+        if (null != department) {
+            hisCheckRecipe.setDeptCode(department.getCode());
+            hisCheckRecipe.setDeptName(department.getName());
+        }
+        com.ngari.recipe.dto.PatientDTO patientDTO = patientClient.getPatientDTO(recipe.getMpiid());
+        if (null != patientDTO) {
+            //身份证
+            hisCheckRecipe.setCertID(patientDTO.getIdcard());
+            hisCheckRecipe.setCertificate(patientDTO.getCertificate());
+            hisCheckRecipe.setCertificateType(patientDTO.getCertificateType());
+            //患者名
+            hisCheckRecipe.setPatientName(patientDTO.getPatientName());
+            //患者性别
+            hisCheckRecipe.setPatientSex(patientDTO.getPatientSex());
+            //患者电话
+            hisCheckRecipe.setPatientTel(patientDTO.getMobile());
+            //病人类型
+        }
+        String organCode = organClient.getOrganizeCodeByOrganId(recipe.getClinicOrgan());
+        hisCheckRecipe.setOrganID(organCode);
+        try {
+            Map<String, Object> map = offlineRecipeClient.hisRecipeCheck(recipe, recipeExtend, details, pharmacyTcmMap, organDrugMap, hisCheckRecipe);
+            DoSignRecipeDTO doSignRecipeDTO = new DoSignRecipeDTO();
+            doSignRecipeDTO.setMap(map);
+            doSignRecipeDTO.setSignResult(true);
+            doSignRecipeDTO.setCanContinueFlag("0");
+            return doSignRecipeDTO;
+        } catch (DAOException e1) {
+            return doSignRecipe(recipe.getRecipeId(), e1.getMessage(), true, recipe.getClinicOrgan());
+        } catch (Exception e) {
+            return doSignRecipe(recipe.getRecipeId(), "his处方预检查异常", false, recipe.getClinicOrgan());
+        }
     }
 
     /**
@@ -951,51 +1003,6 @@ public class HisRecipeManager extends BaseManager {
         return recipeDTOS;
     }
 
-
-    public DoSignRecipeDTO hisRecipeCheck(Recipe recipe, RecipeExtend recipeExtend, List<Recipedetail> details,
-                                          Map<Integer, PharmacyTcm> pharmacyTcmMap, Map<String, OrganDrugList> organDrugMap) {
-        HisCheckRecipeReqTO hisCheckRecipe = new HisCheckRecipeReqTO();
-        //医生工号
-        String jobNumber = doctorClient.jobNumber(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getDepart()).getJobNumber();
-        hisCheckRecipe.setDoctorID(jobNumber);
-        //科室代码---行政科室代码
-        DepartmentDTO department = departClient.getDepartmentByDepart(recipe.getDepart());
-        if (null != department) {
-            hisCheckRecipe.setDeptCode(department.getCode());
-            hisCheckRecipe.setDeptName(department.getName());
-        }
-        com.ngari.recipe.dto.PatientDTO patientDTO = patientClient.getPatientDTO(recipe.getMpiid());
-        if (null != patientDTO) {
-            //身份证
-            hisCheckRecipe.setCertID(patientDTO.getIdcard());
-            hisCheckRecipe.setCertificate(patientDTO.getCertificate());
-            hisCheckRecipe.setCertificateType(patientDTO.getCertificateType());
-            //患者名
-            hisCheckRecipe.setPatientName(patientDTO.getPatientName());
-            //患者性别
-            hisCheckRecipe.setPatientSex(patientDTO.getPatientSex());
-            //患者电话
-            hisCheckRecipe.setPatientTel(patientDTO.getMobile());
-            //病人类型
-        }
-        String organCode = organClient.getOrganizeCodeByOrganId(recipe.getClinicOrgan());
-        hisCheckRecipe.setOrganID(organCode);
-        try {
-            Map<String, Object> map = offlineRecipeClient.hisRecipeCheck(recipe, recipeExtend, details, pharmacyTcmMap, organDrugMap, hisCheckRecipe);
-            if ("1".equals(map.get("checkResult"))) {
-                DoSignRecipeDTO doSignRecipeDTO = new DoSignRecipeDTO();
-                doSignRecipeDTO.setSignResult(true);
-                doSignRecipeDTO.setCanContinueFlag("0");
-                doSignRecipeDTO.setMap(map);
-                return doSignRecipeDTO;
-            }
-            return doSignRecipe(recipe.getRecipeId(), String.valueOf(map.get("resultMark")), true, recipe.getClinicOrgan());
-        } catch (DAOException e1) {
-            return doSignRecipe(recipe.getRecipeId(), e1.getMessage(), true, recipe.getClinicOrgan());
-        } catch (Exception e) {
-            return doSignRecipe(recipe.getRecipeId(), "his处方预检查异常", false, recipe.getClinicOrgan());
-        }
-    }
 
     /**
      * 组装预校验返回结果
