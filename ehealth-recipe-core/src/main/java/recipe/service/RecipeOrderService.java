@@ -2348,7 +2348,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 if (null == patientDTO) {
                     throw new DAOException(609, "患者信息不存在");
                 }
-                HisResponseTO<List<QueryHisRecipResTO>> responseTO = hisRecipeManager.queryData(recipe.getClinicOrgan(), patientDTO, 6, 1, null);
+                HisResponseTO<List<QueryHisRecipResTO>> responseTO = hisRecipeManager.queryData(recipe.getClinicOrgan(), patientDTO, 6, 1, null,null,null);
                 List<QueryHisRecipResTO> hisRecipeTO = responseTO.getData();
                 if (CollectionUtils.isEmpty(hisRecipeTO)) {
                     LOGGER.info("checkGetOrderDetail hisRecipeTO==null orderCode:{}", orderCode);
