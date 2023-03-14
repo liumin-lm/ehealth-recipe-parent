@@ -105,6 +105,9 @@ public class RecipeListBean implements Serializable {
     @ItemProperty(alias = "是否医保 0自费 1医保")
     private Integer medicalFlag;
 
+    @ItemProperty(alias = "审核模式")
+    private Integer reviewType;
+
     /*****************************************  以下来源 ext 表 ******************************************************/
 
     @ItemProperty(alias = "挂号序号")
@@ -122,9 +125,5 @@ public class RecipeListBean implements Serializable {
 
     @ItemProperty(alias = "订单状态")
     private Integer orderStatus;
-
-    @ItemProperty(alias = "审核模式")
-    private Integer reviewType;
-
 
 }
