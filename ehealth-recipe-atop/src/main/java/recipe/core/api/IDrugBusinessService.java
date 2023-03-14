@@ -3,10 +3,7 @@ package recipe.core.api;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.MedicationInfoResTO;
 import com.ngari.platform.recipe.mode.ListOrganDrugReq;
-import com.ngari.recipe.drug.model.CommonDrugListDTO;
-import com.ngari.recipe.drug.model.DispensatoryDTO;
-import com.ngari.recipe.drug.model.DrugListBean;
-import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
+import com.ngari.recipe.drug.model.*;
 import com.ngari.recipe.dto.DrugInfoDTO;
 import com.ngari.recipe.dto.DrugSpecificationInfoDTO;
 import com.ngari.recipe.dto.PatientDrugWithEsDTO;
@@ -16,6 +13,7 @@ import com.ngari.recipe.vo.HospitalDrugListReqVO;
 import com.ngari.recipe.vo.HospitalDrugListVO;
 import com.ngari.recipe.vo.SearchDrugReqVO;
 import recipe.vo.greenroom.OrganConfigVO;
+import recipe.vo.patient.HisDrugInfoReqVO;
 import recipe.vo.patient.PatientContinueRecipeCheckDrugReq;
 import recipe.vo.patient.PatientContinueRecipeCheckDrugRes;
 
@@ -261,4 +259,11 @@ public interface IDrugBusinessService {
      * @return
      */
     List<DrugList> findDrugListByInfo(DrugListBean drugListBean);
+
+    /**
+     * 查询his药品信息
+     * @param hisDrugInfoReqVO
+     * @return
+     */
+    List<OrganDrugListBean> findHisDrugList(HisDrugInfoReqVO hisDrugInfoReqVO);
 }

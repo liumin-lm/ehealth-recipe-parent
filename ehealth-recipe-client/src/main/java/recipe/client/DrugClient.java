@@ -6,11 +6,15 @@ import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.dto.UsingRateDTO;
 import com.ngari.bus.op.service.IUsePathwaysService;
 import com.ngari.common.mode.HisResponseTO;
+import com.ngari.his.miscellany.mode.HospitalDrugInformationResponseTO;
+import com.ngari.his.miscellany.mode.HospitalInformationRequestTO;
+import com.ngari.his.miscellany.service.IWnHospitalInformationService;
 import com.ngari.his.recipe.mode.MedicationInfoReqTO;
 import com.ngari.his.recipe.mode.MedicationInfoResTO;
 import com.ngari.patient.service.IUsingRateService;
 import com.ngari.platform.recipe.mode.HospitalDrugListDTO;
 import com.ngari.platform.recipe.mode.HospitalDrugListReqDTO;
+import com.ngari.platform.recipe.mode.OrganDrugListBean;
 import com.ngari.recipe.dto.DrugInfoDTO;
 import com.ngari.recipe.dto.PatientDrugWithEsDTO;
 import com.ngari.recipe.entity.*;
@@ -23,6 +27,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import recipe.aop.LogRecord;
 import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.util.ObjectCopyUtils;
 import recipe.util.RecipeUtil;
@@ -46,6 +51,8 @@ public class DrugClient extends BaseClient {
     private IUsePathwaysService usePathwaysService;
     @Autowired
     private DrugSearchService drugSearchService;
+    @Autowired
+    private IWnHospitalInformationService hospitalInformationService;
 
 
     /**
@@ -390,6 +397,34 @@ public class DrugClient extends BaseClient {
                 detail.setUsePathways(usePathways.getRelatedPlatformKey());
             }
         }
+    }
+
+    /**
+     * 查询his药品信息
+     * @param request
+     * @return
+     */
+    @LogRecord
+    public List<OrganDrugListBean> findHisDrugList(HospitalInformationRequestTO request) {
+        try {
+            HisResponseTO<List<HospitalDrugInformationResponseTO>> response = hospitalInformationService.getHospitalDrugInformation(request);
+            List<HospitalDrugInformationResponseTO> drugInformationResponseList = getResponse(response);
+            List<OrganDrugListBean> organDrugListBeans = new ArrayList<>(drugInformationResponseList.size());
+            drugInformationResponseList.forEach(drugInformation -> {
+                OrganDrugListBean organDrugListBean = new OrganDrugListBean();
+                organDrugListBean.setDrugName(drugInformation.getYpmc());
+                organDrugListBean.setDrugSpec(drugInformation.getYpgg());
+                organDrugListBean.setUnit(drugInformation.getJldw());
+                organDrugListBean.setOrganDrugCode(drugInformation.getYpdm());
+                organDrugListBean.setPharmacyName(drugInformation.getYfmc());
+                organDrugListBean.setProducer(drugInformation.getCjmc());
+                organDrugListBean.setMedicalDrugCode(drugInformation.getYbdm());
+                organDrugListBeans.add(organDrugListBean);
+            });
+        } catch (Exception e) {
+            logger.error("DrugClient findHisDrugList error", e);
+        }
+        return new ArrayList<>();
     }
 
 }
