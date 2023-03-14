@@ -256,8 +256,6 @@ public class RecipeService extends RecipeBaseService {
     @Autowired
     private OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO;
     @Autowired
-    private OrganConfigService organConfigService;
-    @Autowired
     CaBusinessService caBusinessService;
     @Autowired
     DrugBusinessService drugBusinessService;

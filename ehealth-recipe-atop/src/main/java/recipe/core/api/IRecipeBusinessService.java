@@ -498,4 +498,6 @@ public interface IRecipeBusinessService {
      * @return
      */
     RecipeDTO getRecipeDTO(Integer recipeId);
+
+    Integer signRecipe(RecipeInfoVO recipeInfoVO);
 }

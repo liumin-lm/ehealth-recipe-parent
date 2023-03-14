@@ -52,6 +52,16 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
     @Autowired
     private IStockBusinessService iStockBusinessService;
 
+    public Integer signRecipe(RecipeInfoVO recipeInfoVO) {
+        validateAtop(recipeInfoVO, recipeInfoVO.getRecipeBean(), recipeInfoVO.getRecipeExtendBean(), recipeInfoVO.getRecipeDetails());
+        RecipeBean recipeBean = recipeInfoVO.getRecipeBean();
+        validateAtop(recipeBean.getClinicOrgan(), recipeBean.getRecipeId(), recipeBean.getSignDate());
+        if (StringUtils.isEmpty(recipeInfoVO.getRecipeBean().getRecipeSupportGiveMode())) {
+            throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, "无购药方式");
+        }
+        return recipeBusinessService.signRecipe(recipeInfoVO);
+    }
+
     /**
      * 暂存处方接口
      *
@@ -83,7 +93,7 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
     }
 
     @RpcService
-    public RecipeDTO stagingRecipeV1(RecipeInfoVO recipeInfoVO) {
+    public RecipeDTO stagingRecipeAndGet(RecipeInfoVO recipeInfoVO) {
         Integer recipeId = stagingRecipe(recipeInfoVO);
         return recipeBusinessService.getRecipeDTO(recipeId);
     }

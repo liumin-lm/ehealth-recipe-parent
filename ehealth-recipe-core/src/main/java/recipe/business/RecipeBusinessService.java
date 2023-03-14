@@ -57,6 +57,8 @@ import recipe.audit.auditmode.AuditModeContext;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
+import recipe.caNew.AbstractCaProcessType;
+import recipe.caNew.CaAfterProcessType;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.*;
 import recipe.common.OnsConfig;
@@ -75,6 +77,8 @@ import recipe.purchase.CommonOrder;
 import recipe.service.*;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.serviceprovider.recipeorder.service.RemoteRecipeOrderService;
+import recipe.thread.CardDataUploadRunable;
+import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.*;
 import recipe.vo.PageGenericsVO;
 import recipe.vo.doctor.DoctorRecipeListReqVO;
@@ -1513,6 +1517,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         return recipeDAO.get(recipeId);
     }
 
+
     @Override
     public Integer stagingRecipe(RecipeInfoVO recipeInfoVO) {
         // recipe 信息
@@ -1526,6 +1531,41 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         // 修改状态
         stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_SUBMIT, RecipeStateEnum.SUB_SUBMIT_TEMPORARY);
         return recipe.getRecipeId();
+    }
+
+    @Resource
+    private CaManager caManager;
+    @Resource
+    private CaAfterProcessType caAfterProcessType;
+
+    @Override
+    public Integer signRecipe(RecipeInfoVO recipeInfoVO) {
+        RecipeBean recipeBean = recipeInfoVO.getRecipeBean();
+        // recipeBean.setDistributionFlag(continueFlag);
+        caManager.setCaPassWord(recipeBean.getClinicOrgan(), recipeBean.getDoctor(), recipeBean.getCaPassword());
+        boolean isWriteHis = recipeManager.recipeWriteHis(recipeBean.getRecipeId());
+        if (isWriteHis) {
+            return recipeBean.getRecipeId();
+        }
+        // todo 保存处方智能预审结果 前端可以直接调用
+        //        if (getIntellectJudicialFlag(recipeBean.getClinicOrgan())) {
+        //            //更新审方信息
+        //            RecipeBusiThreadPool.execute(new SaveAutoReviewRunnable(recipeBean, detailBeanList));
+        //        }
+        Integer caType = configurationClient.getValueCatchReturnInteger(recipeBean.getClinicOrgan(), "CAProcessType", 0);
+        if (0 == caType) {
+            //老版默认走后置的逻辑，直接将处方推his
+            caAfterProcessType.signCABeforeRecipeFunction(recipeBean, recipeInfoVO.getRecipeDetails());
+        } else {
+            AbstractCaProcessType.getCaProcessFactory(recipeBean.getClinicOrgan()).signCABeforeRecipeFunction(recipeBean, recipeInfoVO.getRecipeDetails());
+        }
+        //todo 下面可以走异步
+        //健康卡数据上传
+        RecipeBusiThreadPool.execute(new CardDataUploadRunable(recipeBean.getClinicOrgan(), recipeBean.getMpiid(), "010106"));
+        // 处方失效时间处理
+        recipeManager.handleRecipeInvalidTime(recipeBean.getClinicOrgan(), recipeBean.getRecipeId(), recipeBean.getSignDate());
+        revisitManager.saveRevisitTracesList(recipeDAO.get(recipeBean.getRecipeId()));
+        return recipeBean.getRecipeId();
     }
 
     @Override
