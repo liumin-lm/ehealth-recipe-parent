@@ -1649,5 +1649,10 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         }
         return recipeDTO;
     }
+
+    @Override
+    public RecipeDTO getRecipeDTO(Integer recipeId) {
+        return recipeManager.getSuperRecipeDTO(recipeId);
+    }
 }
 

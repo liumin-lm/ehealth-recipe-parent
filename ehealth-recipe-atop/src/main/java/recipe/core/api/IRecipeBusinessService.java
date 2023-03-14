@@ -490,4 +490,12 @@ public interface IRecipeBusinessService {
     void sendSuccessRecipe(HisSendResTO response);
 
     RecipeDTO getRecipeInfoByRecipeId(Integer recipeId);
+
+    /**
+     * 获取基础处方表数据
+     *
+     * @param recipeId
+     * @return
+     */
+    RecipeDTO getRecipeDTO(Integer recipeId);
 }

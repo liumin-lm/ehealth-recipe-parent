@@ -82,6 +82,12 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
         return recipeBusinessService.stagingRecipe(recipeInfoVO);
     }
 
+    @RpcService
+    public RecipeDTO stagingRecipeV1(RecipeInfoVO recipeInfoVO) {
+        Integer recipeId = stagingRecipe(recipeInfoVO);
+        return recipeBusinessService.getRecipeDTO(recipeId);
+    }
+
     /**
      * 处方拆方
      *
