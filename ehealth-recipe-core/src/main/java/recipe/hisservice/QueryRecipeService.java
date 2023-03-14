@@ -414,7 +414,7 @@ public class QueryRecipeService implements IQueryRecipeService {
                 // 就诊人手机号
                 if (StringUtils.isNotBlank(patient.getLoginId())) {
                     PatientService patientService = BasicAPI.getService(PatientService.class);
-                    List<PatientDTO> patientList = patientService.findOwnPatient(patient.getLoginId());
+                    List<PatientDTO> patientList = patientService.findOwnPatientLimitOne(patient.getLoginId());
                     if (null != patientList && patientList.size() > 0) {
                         PatientDTO userInfo = patientList.get(0);
                         UserInfoDTO infoDTO = new UserInfoDTO();
