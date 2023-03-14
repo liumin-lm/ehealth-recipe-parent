@@ -1035,6 +1035,9 @@ public class EnterpriseManager extends BaseManager {
      */
     public OrganDrugsSaleConfig getOrganDrugsSaleConfig(Integer organId, Integer drugsEnterpriseId, Integer giveMode) {
         logger.info("EnterpriseManager getOrganDrugsSaleConfig organId:{}  drugsEnterpriseId:{} giveMode:{}", organId, drugsEnterpriseId, giveMode);
+        if (GiveModeEnum.GIVE_MODE_DOWNLOAD_RECIPE.getType().equals(giveMode)) {
+            return new OrganDrugsSaleConfig();
+        }
         // 患者端使用到的机构配置,这个接口仅这些使用
         ArrayList<String> key = Lists.newArrayList("toSendStationFlag", "payModeToHosOnlinePayConfig", "supportToHosPayFlag", "toHosPlanDate",
                 "toHosPlanAmTime", "toHosPlanPmTime", "getQrTypeForRecipe", "getQrTypeForRecipeRemind", "isShowPlanTime");
