@@ -140,11 +140,6 @@ public class RecipeBussConstant {
     public static String RECIPEMODE_ZJJGPT = "zjjgpt";
 
     /**
-     * 下载处方支付场景
-     */
-    public static Integer PAYMODE_DOWNLOAD_RECIPE = 6;
-
-    /**
      * 下载处方购药方式
      */
     public static Integer GIVEMODE_DOWNLOAD_RECIPE = 5;
@@ -153,10 +148,6 @@ public class RecipeBussConstant {
     public static Integer REQ_TYPE_QRCODE = 1;
     public static Integer REQ_TYPE_AUTO = 2;
 
-    /**
-     * 处方业务来源-无-医生直接开处方
-     */
-    public static Integer BUSS_SOURCE_NONE = 0;
     /**
      * 处方业务来源-问诊
      */
