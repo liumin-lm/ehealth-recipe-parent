@@ -2,6 +2,7 @@ package recipe.core.api.patient;
 
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.RecipeInfoTO;
+import com.ngari.recipe.dto.DoSignRecipeDTO;
 import com.ngari.recipe.dto.HisRecipeDTO;
 import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
@@ -124,5 +125,5 @@ public interface IOfflineRecipeBusinessService {
      *
      * @param validateDetailVO
      */
-    void hisRecipeCheck(ValidateDetailVO validateDetailVO);
+    DoSignRecipeDTO hisRecipeCheck(ValidateDetailVO validateDetailVO);
 }

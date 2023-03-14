@@ -23,7 +23,6 @@ import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import com.ngari.recipe.vo.OffLineRecipeDetailVO;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
-import ctd.util.AppContextHolder;
 import ctd.util.BeanUtils;
 import ctd.util.event.GlobalEventExecFactory;
 import eh.utils.BeanCopyUtils;
@@ -46,9 +45,6 @@ import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeParameterDao;
 import recipe.drugTool.validate.RecipeDetailValidateTool;
-import recipe.drugsenterprise.AccessDrugEnterpriseService;
-import recipe.drugsenterprise.CommonRemoteService;
-import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.enumerate.status.OfflineToOnlineEnum;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.WriteHisEnum;
@@ -440,35 +436,19 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
     }
 
     @Override
-    public void hisRecipeCheck(ValidateDetailVO validateDetailVO) {
+    public DoSignRecipeDTO hisRecipeCheck(ValidateDetailVO validateDetailVO) {
         Boolean isDefaultGiveModeToHos = configurationClient.getValueBooleanCatch(validateDetailVO.getRecipeBean().getClinicOrgan(), "hisRecipeCheckFlag", false);
         if (!isDefaultGiveModeToHos) {
-            return;
+            return null;
         }
-
         recipeDetailValidateTool.validateMedicalChineDrugNumber(validateDetailVO.getRecipeBean(), validateDetailVO.getRecipeExtendBean(), validateDetailVO.getRecipeDetails());
-        Recipe recipeBean = ObjectCopyUtils.convert(validateDetailVO.getRecipeBean(), Recipe.class);
+        Recipe recipe = ObjectCopyUtils.convert(validateDetailVO.getRecipeBean(), Recipe.class);
         RecipeExtend recipeExtend = ObjectCopyUtils.convert(validateDetailVO.getRecipeExtendBean(), RecipeExtend.class);
         List<Recipedetail> details = ObjectCopyUtils.convert(validateDetailVO.getRecipeDetails(), Recipedetail.class);
-        Map<Integer, PharmacyTcm> pharmacyTcmMap = pharmacyManager.pharmacyIdMap(recipeBean.getClinicOrgan());
+        Map<Integer, PharmacyTcm> pharmacyTcmMap = pharmacyManager.pharmacyIdMap(recipe.getClinicOrgan());
         List<Integer> drugIds = details.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
-        Map<String, OrganDrugList> organDrugMap = organDrugListManager.getOrganDrugByIdAndCode(recipeBean.getClinicOrgan(), drugIds);
-
-        hisRecipeManager.hisRecipeCheck(recipeBean, recipeExtend, details, pharmacyTcmMap, organDrugMap);
-
-
-        //与校验成功- 互联网 使用 存储his指定药企
-        List<DrugsEnterprise> enterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(recipeBean.getClinicOrgan(), 1);
-        AccessDrugEnterpriseService remoteService = null;
-        if (org.apache.commons.collections.CollectionUtils.isNotEmpty(enterprises)) {
-            remoteService = RemoteDrugEnterpriseService.getServiceByDep(enterprises.get(0));
-        }
-        if (null == remoteService) {
-            remoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
-        }
-        remoteService.checkRecipeGiveDeliveryMsg(recipeBean, map);
-
-
+        Map<String, OrganDrugList> organDrugMap = organDrugListManager.getOrganDrugByIdAndCode(recipe.getClinicOrgan(), drugIds);
+        return hisRecipeManager.hisRecipeCheck(recipe, recipeExtend, details, pharmacyTcmMap, organDrugMap);
     }
 
     /**

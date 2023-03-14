@@ -14,6 +14,7 @@ import com.ngari.platform.recipe.mode.RecipeBean;
 import com.ngari.platform.recipe.mode.RecipeDTO;
 import com.ngari.platform.recipe.mode.RecipeDetailBean;
 import com.ngari.platform.recipe.mode.RecipeExtendBean;
+import com.ngari.recipe.dto.DoSignRecipeDTO;
 import com.ngari.recipe.dto.EmrDetailDTO;
 import com.ngari.recipe.dto.PatientRecipeListReqDTO;
 import com.ngari.recipe.dto.RecipeInfoDTO;
@@ -951,8 +952,8 @@ public class HisRecipeManager extends BaseManager {
     }
 
 
-    public void hisRecipeCheck(Recipe recipe, RecipeExtend recipeExtend, List<Recipedetail> details,
-                               Map<Integer, PharmacyTcm> pharmacyTcmMap, Map<String, OrganDrugList> organDrugMap) {
+    public DoSignRecipeDTO hisRecipeCheck(Recipe recipe, RecipeExtend recipeExtend, List<Recipedetail> details,
+                                          Map<Integer, PharmacyTcm> pharmacyTcmMap, Map<String, OrganDrugList> organDrugMap) {
         HisCheckRecipeReqTO hisCheckRecipe = new HisCheckRecipeReqTO();
         //医生工号
         String jobNumber = doctorClient.jobNumber(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getDepart()).getJobNumber();
@@ -981,30 +982,46 @@ public class HisRecipeManager extends BaseManager {
         hisCheckRecipe.setOrganID(organCode);
         try {
             Map<String, Object> map = offlineRecipeClient.hisRecipeCheck(recipe, recipeExtend, details, pharmacyTcmMap, organDrugMap, hisCheckRecipe);
-            return "1".equals(map.get("checkResult"));
-            rMap.put("canContinueFlag", 0);
-            return true;
-        } catch (DAOException e1) {
-            //date 20200706
-            //允许继续处方:不进行校验/进行校验且校验通过0 ，进行校验校验不通过允许通过4，进行校验校验不通过不允许通过-1
-            Boolean allowContinueMakeFlag = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "allowContinueMakeRecipe", false);
-            if (allowContinueMakeFlag) {
-                rMap.put("canContinueFlag", 4);
-                rMap.put("msg", rMap.get("errorMsg"));
-            } else {
-                rMap.put("canContinueFlag", -1);
-                rMap.put("msg", rMap.get("errorMsg"));
+            if ("1".equals(map.get("checkResult"))) {
+                DoSignRecipeDTO doSignRecipeDTO = new DoSignRecipeDTO();
+                doSignRecipeDTO.setSignResult(true);
+                doSignRecipeDTO.setCanContinueFlag("0");
+                doSignRecipeDTO.setMap(map);
+                return doSignRecipeDTO;
             }
-            return false;
+            return doSignRecipe(recipe.getRecipeId(), String.valueOf(map.get("resultMark")), true, recipe.getClinicOrgan());
+        } catch (DAOException e1) {
+            return doSignRecipe(recipe.getRecipeId(), e1.getMessage(), true, recipe.getClinicOrgan());
         } catch (Exception e) {
-            LOG.error("hisRecipeCheck error recipeId:{}", recipeBean.getRecipeId(), e);
-            rMap.put("signResult", false);
-            rMap.put("errorFlag", true);
-            rMap.put("errorMsg", "his处方检查异常");
-            rMap.put("canContinueFlag", -1);
-            rMap.put("msg", "his处方检查异常");
-            return false;
+            return doSignRecipe(recipe.getRecipeId(), "his处方预检查异常", false, recipe.getClinicOrgan());
         }
+    }
 
+    /**
+     * 组装预校验返回结果
+     *
+     * @param recipeId
+     * @param msg
+     * @param flag
+     * @param organId
+     * @return
+     */
+    private DoSignRecipeDTO doSignRecipe(Integer recipeId, String msg, boolean flag, Integer organId) {
+        DoSignRecipeDTO doSignRecipeDTO = new DoSignRecipeDTO();
+        doSignRecipeDTO.setSignResult(false);
+        doSignRecipeDTO.setErrorFlag(true);
+        doSignRecipeDTO.setRecipeId(recipeId);
+        doSignRecipeDTO.setMsg(msg);
+        doSignRecipeDTO.setCanContinueFlag("-1");
+        if (flag) {
+            //允许继续处方:不进行校验/进行校验且校验通过0 ，进行校验校验不通过允许通过4，进行校验校验不通过不允许通过-1
+            Boolean allowContinueMakeFlag = configurationClient.getValueBooleanCatch(organId, "allowContinueMakeRecipe", false);
+            if (allowContinueMakeFlag) {
+                doSignRecipeDTO.setCanContinueFlag("4");
+            } else {
+                doSignRecipeDTO.setCanContinueFlag("-1");
+            }
+        }
+        return doSignRecipeDTO;
     }
 }

@@ -1,6 +1,7 @@
 package recipe.atop.doctor;
 
 import com.alibaba.fastjson.JSON;
+import com.ngari.recipe.dto.DoSignRecipeDTO;
 import com.ngari.recipe.dto.EnterpriseStock;
 import com.ngari.recipe.dto.RecipeDTO;
 import com.ngari.recipe.dto.RecipeDetailDTO;
@@ -141,10 +142,12 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
      * @param validateDetailVO
      */
     @RpcService
-    public void hisRecipeCheck(ValidateDetailVO validateDetailVO) {
+    public DoSignRecipeDTO hisRecipeCheck(ValidateDetailVO validateDetailVO) {
         validateAtop(validateDetailVO.getRecipeBean(), validateDetailVO.getRecipeExtendBean(), validateDetailVO.getRecipeDetails());
         validateAtop(validateDetailVO.getRecipeBean().getRecipeId());
-        offlineRecipeBusinessService.hisRecipeCheck(validateDetailVO);
+        DoSignRecipeDTO doSignRecipe = offlineRecipeBusinessService.hisRecipeCheck(validateDetailVO);
+        enterpriseBusinessService.checkRecipeGiveDeliveryMsg(doSignRecipe, validateDetailVO.getRecipeBean());
+        return doSignRecipe;
     }
 
     /**
