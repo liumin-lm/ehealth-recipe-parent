@@ -537,23 +537,32 @@ public class OrganDrugListManager extends BaseManager {
         //"6": "判断药品的医保报销类型"
         if (hisDrugRule.contains("6")) {
             logger.info("validateMedicalReimbursementTypeOfDrugs his start ");
-            if(!new Integer(2).equals(recipe.getBussSource())){
-                return ;
+            if (!new Integer(2).equals(recipe.getBussSource())) {
+                return;
             }
             //医保属性,处方来源为复诊时从复诊获取
             RevisitExDTO revisitExDTO = revisitClient.getByClinicId(recipe.getClinicId());
             logger.info("validateMedicalReimbursementTypeOfDrugs revisitExDTO={}", JsonUtil.toString(revisitExDTO));
             Integer medicalInsuranceAttribute = null;
-            if(revisitExDTO != null){
+            if (revisitExDTO != null) {
                 medicalInsuranceAttribute = revisitExDTO.getMedicalCardType();
             }
+
+            List<Integer> drugIds = recipeDetails.stream().map(RecipeDetailDTO::getDrugId).collect(Collectors.toList());
+            Map<String, OrganDrugList> map = getOrganDrugByIdAndCode(recipe.getClinicOrgan(), drugIds);
+
             RecipeDTO recipeDTO = new RecipeDTO();
             List<RecipeDetailBean> recipeDetailBeanList = new ArrayList<>();
             for (RecipeDetailDTO recipeDetail : recipeDetails) {
                 recipeDTO.setOrganId(recipe.getClinicOrgan());
                 RecipeDetailBean recipeDetailBean = ObjectCopyUtils.convert(recipeDetail, RecipeDetailBean.class);
-                if(recipeDetailBean != null){
+                if (recipeDetailBean != null) {
                     recipeDetailBean.setMedicalInsuranceAttribute(medicalInsuranceAttribute);
+                }
+                OrganDrugList organDrugList = map.get(recipeDetail.getDrugId() + recipeDetail.getOrganDrugCode());
+                if (null != organDrugList) {
+                    recipeDetailBean.setProducerCode(organDrugList.getProducerCode());
+                    recipeDetailBean.setDrugItemCode(organDrugList.getDrugItemCode());
                 }
                 recipeDetailBeanList.add(recipeDetailBean);
             }
