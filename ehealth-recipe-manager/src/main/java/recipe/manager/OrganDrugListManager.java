@@ -24,6 +24,7 @@ import recipe.dao.PharmacyTcmDAO;
 import recipe.enumerate.type.AppointEnterpriseTypeEnum;
 import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.util.ByteUtils;
+import recipe.util.JsonUtil;
 import recipe.util.ObjectCopyUtils;
 import recipe.util.ValidateUtil;
 
@@ -541,6 +542,7 @@ public class OrganDrugListManager extends BaseManager {
             }
             //医保属性,处方来源为复诊时从复诊获取
             RevisitExDTO revisitExDTO = revisitClient.getByClinicId(recipe.getClinicId());
+            logger.info("validateMedicalReimbursementTypeOfDrugs revisitExDTO={}", JsonUtil.toString(revisitExDTO));
             Integer medicalInsuranceAttribute = null;
             if(revisitExDTO != null){
                 medicalInsuranceAttribute = revisitExDTO.getMedicalCardType();
