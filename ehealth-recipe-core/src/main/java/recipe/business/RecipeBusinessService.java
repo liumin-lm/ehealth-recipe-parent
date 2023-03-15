@@ -194,6 +194,10 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     @Override
     public List<OutPatientRecipeDTO> queryOutPatientRecipe(OutPatientRecipeReqVO outPatientRecipeReqVO) {
         logger.info("OutPatientRecipeService queryOutPatientRecipe outPatientRecipeReq:{}.", JSON.toJSONString(outPatientRecipeReqVO));
+        if (StringUtils.isEmpty(outPatientRecipeReqVO.getPatientName()) || outPatientRecipeReqVO.getPatientName().contains("*")) {
+            PatientDTO patientDTO = patientClient.getPatientBeanByMpiId(outPatientRecipeReqVO.getMpiId());
+            outPatientRecipeReqVO.setPatientName(patientDTO.getPatientName());
+        }
         OutPatientRecipeReq outPatientRecipeReq = ObjectCopyUtil.convert(outPatientRecipeReqVO, OutPatientRecipeReq.class);
         return offlineRecipeClient.queryOutPatientRecipe(outPatientRecipeReq);
     }
