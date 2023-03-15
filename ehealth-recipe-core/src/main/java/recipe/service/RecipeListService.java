@@ -1324,6 +1324,8 @@ public class RecipeListService extends RecipeBaseService {
             // 药企物流对接方式
             if (Objects.nonNull(recipeListBean.getEnterpriseId())) {
                 Optional.ofNullable(drugsEnterpriseDAO.getById(recipeListBean.getEnterpriseId())).ifPresent(a -> patientTabStatusRecipeDTO.setLogisticsType(a.getLogisticsType()));
+                RecipeOrder recipeOrder = orderDAO.getByOrderCode(recipeListBean.getOrderCode());
+                patientTabStatusRecipeDTO.setTrackingNumber(recipeOrder.getTrackingNumber());
             }
         } else {
             patientTabStatusRecipeDTO.setStatusCode(recipeListBean.getStatus());

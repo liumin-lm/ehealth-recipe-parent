@@ -48,6 +48,8 @@ public class ConsultClient extends BaseClient {
     private IConsultRedisService iConsultRedisService;
     @Resource
     private IConsultService consultService;
+    @Autowired
+    private IConfigurationClient iConfigurationClient;
 
     /**
      * 类加载排序
@@ -251,6 +253,10 @@ public class ConsultClient extends BaseClient {
     public void uploadBusinessLog(List<Recipe> recipes) {
         RecipeBusiThreadPool.execute(() ->
                 recipes.forEach(recipe -> {
+                    Boolean isRetrySettle = iConfigurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "recipeUploadBusinessLog", false);
+                    if (!isRetrySettle) {
+                        return;
+                    }
                     BusinessLogTO business = new BusinessLogTO();
                     business.setOrganId(recipe.getClinicOrgan());
                     business.setYwgnmc("医疗业务协同协同公卫随访管");

@@ -662,7 +662,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     public Map<String, Object> findRecipeAndDetailsAndCheckById(int recipeId) {
         Boolean buttonIsShow = false;
         //平台审方详情和审方详情已隔离  平台处方直接在OperationPlatformRecipeService下面改
-        Map<String, Object> recipeDetial = operationPlatformRecipeService.findRecipeAndDetailsAndCheckById(recipeId, null);
+        Map<String, Object> recipeDetail = operationPlatformRecipeService.findRecipeAndDetailsAndCheckById(recipeId, null);
         //根据recipeId查询退款信息 判断该处方是否存在退费
         RecipePatientRefundVO recipePatientRefundVO = recipeRefundDAO.getDoctorPatientRefundByRecipeId(recipeId);
         IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
@@ -686,7 +686,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                                 if (recipeRefund != null) {
                                     //药师已经审核且未通过
                                     if (recipeRefund.getStatus() != 1) {
-                                        buttonIsShow = true;
+                                        buttonIsShow = false;
                                     }
                                 } else {
                                     //运营平台药师未审核
@@ -702,7 +702,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                         if (recipeRefund != null) {
                             //药师已经审核且未通过
                             if (recipeRefund.getStatus() != 1) {
-                                buttonIsShow = true;
+                                buttonIsShow = false;
                             }
                         } else {
                             //运营平台药师未审核
@@ -726,7 +726,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                 RecipePatientAndDoctorRefundVO recipePatientAndDoctorRefundVO = new RecipePatientAndDoctorRefundVO(doctorDTO.getName(), recipePatientRefundVO);
                 //设置第三方审核结果返回给运营平台
                 setThirdStatus(thirdRefundStatus, recipePatientAndDoctorRefundVO);
-                recipeDetial.put("recipeRefund", recipePatientAndDoctorRefundVO);
+                recipeDetail.put("recipeRefund", recipePatientAndDoctorRefundVO);
             } else {
                 //医生未审核
                 RecipePatientAndDoctorRefundVO recipePatientAndDoctorRefundVO = new RecipePatientAndDoctorRefundVO(null, recipePatientRefundVO);
@@ -734,18 +734,18 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                 recipePatientAndDoctorRefundVO.getRecipePatientRefundVO().setRefundStatusMsg(null);
                 //设置第三方审核结果返回给运营平台
                 setThirdStatus(thirdRefundStatus, recipePatientAndDoctorRefundVO);
-                recipeDetial.put("recipeRefund", recipePatientAndDoctorRefundVO);
+                recipeDetail.put("recipeRefund", recipePatientAndDoctorRefundVO);
             }
         }
-        recipeDetial.put("buttonIsShow", buttonIsShow);
-        LOGGER.info("remoteRecipeService.findRecipeAndDetailsAndCheckById 返回处方单详情返回值,{}", JSON.toJSONString(recipeDetial));
+        recipeDetail.put("buttonIsShow", buttonIsShow);
+        LOGGER.info("remoteRecipeService.findRecipeAndDetailsAndCheckById 返回处方单详情返回值,{}", JSON.toJSONString(recipeDetail));
 
-        RecipeBean recipeBean = (RecipeBean) recipeDetial.get("recipe");
+        RecipeBean recipeBean = (RecipeBean) recipeDetail.get("recipe");
         if (recipeBean != null) {
             securityService.isAuthoritiedOrganNew(recipeBean.getClinicOrgan());
         }
 
-        return recipeDetial;
+        return recipeDetail;
     }
 
     /**
@@ -2797,9 +2797,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             PatientDTO patientDTO = patientClient.getPatientBeanByMpiId(revisitBean.getMpiid());
             List<QueryHisRecipResTO> totalHisRecipe = new ArrayList<>();
             //查询待缴费处方
-            HisResponseTO<List<QueryHisRecipResTO>> noPayRecipe = hisRecipeManager.queryData(revisitBean.getConsultOrgan(), patientDTO, timeQuantum, 1, "");
+            HisResponseTO<List<QueryHisRecipResTO>> noPayRecipe = hisRecipeManager.queryData(revisitBean.getConsultOrgan(), patientDTO, timeQuantum, 1, "",null,null);
             //查询已缴费处方
-            HisResponseTO<List<QueryHisRecipResTO>> havePayRecipe = hisRecipeManager.queryData(revisitBean.getConsultOrgan(), patientDTO, timeQuantum, 2, "");
+            HisResponseTO<List<QueryHisRecipResTO>> havePayRecipe = hisRecipeManager.queryData(revisitBean.getConsultOrgan(), patientDTO, timeQuantum, 2, "",null,null);
             if (null != noPayRecipe && null != noPayRecipe.getData()) {
                 totalHisRecipe.addAll(noPayRecipe.getData());
             }

@@ -11,7 +11,7 @@ public enum PurchaseEnum {
     GIVEMODE_SEND_TO_HOME(1, "payModeOnlineService"),
     GIVEMODE_TO_HOS(2, "payModeToHosService"),
     GIVEMODE_TFDS(3, "payModeTFDSService"),
-//    PAYMODE_TFDS(4, "payModeTFDSService"),
+    GIVEMODE_DOWNLOAD_RECIPE(5, "payModeDownloadService"),
     PAYMODE_DOWNLOAD_RECIPE(6, "payModeDownloadService");
 
 

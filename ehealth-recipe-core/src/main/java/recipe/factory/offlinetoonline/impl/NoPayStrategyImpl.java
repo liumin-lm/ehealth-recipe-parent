@@ -74,7 +74,7 @@ class NoPayStrategyImpl extends BaseOfflineToOnlineService implements IOfflineTo
         if (null == patientDTO) {
             throw new DAOException(609, "患者信息不存在");
         }
-        HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos = hisRecipeManager.queryData(request.getOrganId(), patientDTO, request.getTimeQuantum(), OfflineToOnlineEnum.OFFLINE_TO_ONLINE_NO_PAY.getType(), request.getRecipeCode());
+        HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos = hisRecipeManager.queryData(request.getOrganId(), patientDTO, request.getTimeQuantum(), OfflineToOnlineEnum.OFFLINE_TO_ONLINE_NO_PAY.getType(), request.getRecipeCode(),null,null);
         if (null == hisRecipeInfos || CollectionUtils.isEmpty(hisRecipeInfos.getData())) {
             return null;
         }
@@ -127,7 +127,7 @@ class NoPayStrategyImpl extends BaseOfflineToOnlineService implements IOfflineTo
         if (null == patientDTO) {
             throw new DAOException(609, "患者信息不存在");
         }
-        HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos = hisRecipeManager.queryData(request.getOrganId(), patientDTO, request.getTimeQuantum(), OfflineToOnlineEnum.OFFLINE_TO_ONLINE_NO_PAY.getType(), request.getRecipeCode());
+        HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos = hisRecipeManager.queryData(request.getOrganId(), patientDTO, request.getTimeQuantum(), OfflineToOnlineEnum.OFFLINE_TO_ONLINE_NO_PAY.getType(), request.getRecipeCode(),null,null);
         if (null == hisRecipeInfos || CollectionUtils.isEmpty(hisRecipeInfos.getData())) {
             return;
         }

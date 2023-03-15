@@ -370,7 +370,7 @@ public class PurchaseService {
             if (null == patientDTO) {
                 throw new DAOException(609, "患者信息不存在");
             }
-            HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos = hisRecipeManager.queryData(dbRecipe.getClinicOrgan(), patientDTO, 6, OfflineToOnlineEnum.OFFLINE_TO_ONLINE_NO_PAY.getType(), dbRecipe.getRecipeCode());
+            HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos = hisRecipeManager.queryData(dbRecipe.getClinicOrgan(), patientDTO, 6, OfflineToOnlineEnum.OFFLINE_TO_ONLINE_NO_PAY.getType(), dbRecipe.getRecipeCode(),null,null);
             if (null == hisRecipeInfos || CollectionUtils.isEmpty(hisRecipeInfos.getData())) {
                 result.setCode(RecipeResultBean.CHECKFAIL);
                 result.setMsg("该处方单信息已变更，请退出重新获取处方信息。");
@@ -535,7 +535,7 @@ public class PurchaseService {
             // 根据paymode 换算givemode
             Integer giveMode = PayModeGiveModeUtil.getGiveMode(payMode);
             Integer storePayFlag = eh.utils.MapValueUtil.getInteger(extInfo, "storePayFlag");
-            if (Objects.isNull(storePayFlag)) {
+            if (Objects.isNull(storePayFlag) && Objects.nonNull(depId)) {
                 storePayFlag = enterpriseManager.getStorePayFlag(dbRecipe.getClinicOrgan(), Integer.valueOf(depId), giveMode);
                 if (Objects.nonNull(storePayFlag)) {
                     extInfo.put("storePayFlag", storePayFlag.toString());
@@ -622,31 +622,6 @@ public class PurchaseService {
         } catch (Exception e) {
             LOG.error("PayModeOnline.updateRecipeDetail error recipeId:{}.", recipeId, e);
         }
-    }
-
-    public boolean getToHosPayConfig(Integer clinicOrgan, Integer enterpriseId) {
-        Boolean drugToHosByEnterprise = configurationClient.getValueBooleanCatch(clinicOrgan, "drugToHosByEnterprise", false);
-        Integer payModeToHosOnlinePayConfig = null;
-        if (drugToHosByEnterprise) {
-            // 获取药企机构配
-            OrganDrugsSaleConfig organDrugsSaleConfigs = organDrugsSaleConfigDAO.getOrganDrugsSaleConfig(enterpriseId);
-            if (Objects.nonNull(organDrugsSaleConfigs)) {
-                payModeToHosOnlinePayConfig = organDrugsSaleConfigs.getTakeOneselfPaymentChannel();
-            }
-        } else {
-            try {
-                IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-                payModeToHosOnlinePayConfig = (Integer) configurationService.getConfiguration(clinicOrgan, "payModeToHosOnlinePayConfig");
-            } catch (Exception e) {
-                LOG.error("获取运营平台处方支付配置异常", e);
-                return false;
-            }
-        }
-        //1平台付 2卫宁付
-        if (new Integer(2).equals(payModeToHosOnlinePayConfig)) {
-            return true;
-        }
-        return false;
     }
 
     public IPurchaseService getService(Integer payMode) {
