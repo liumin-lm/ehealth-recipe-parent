@@ -266,4 +266,12 @@ public interface IDrugBusinessService {
      * @return
      */
     List<OrganDrugListBean> findHisDrugList(HisDrugInfoReqVO hisDrugInfoReqVO);
+
+    /**
+     * 校验机构药品数据
+     * @param organId
+     * @param organDrugCode
+     * @return
+     */
+    Boolean checkOrganDrugList(Integer organId, String organDrugCode);
 }

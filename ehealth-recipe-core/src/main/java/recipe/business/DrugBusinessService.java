@@ -814,4 +814,14 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
         return ObjectCopyUtils.convert(organDrugListBean, OrganDrugListBean.class);
     }
 
+    @Override
+    public Boolean checkOrganDrugList(Integer organId, String organDrugCode) {
+        List<String> organDrugCodes = Arrays.asList(organDrugCode);
+        List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugCodes(organId, organDrugCodes);
+        if (CollectionUtils.isEmpty(organDrugLists)) {
+            return false;
+        }
+        return true;
+    }
+
 }

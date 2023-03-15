@@ -266,4 +266,16 @@ public class DrugPatientAtop extends BaseAtop {
         return clinicCartService.deleteClinicCartByUserId(clinicCartVO);
     }
 
+    /**
+     * 校验机构药品数据
+     * @param organId
+     * @param organDrugCode
+     * @return
+     */
+    @RpcService
+    public Boolean checkOrganDrugList(Integer organId, String organDrugCode) {
+        validateAtop(organId, organDrugCode);
+        return drugBusinessService.checkOrganDrugList(organId, organDrugCode);
+    }
+
 }
