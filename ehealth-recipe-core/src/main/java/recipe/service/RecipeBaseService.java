@@ -96,7 +96,6 @@ public class RecipeBaseService {
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         UserRoleToken urt = UserRoleToken.getCurrent();
         String methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
-        LOGGER.info("当前用户urt[{}],methodName[{}],recipeId[{}]", JsonUtil.toString(urt) ,methodName,recipeId);
         if (recipe != null){
             if ((urt.isPatient() && patientService.isPatientBelongUser(recipe.getMpiid()))||(urt.isDoctor() && urt.isSelfDoctor(recipe.getDoctor()))) {
                 return;
