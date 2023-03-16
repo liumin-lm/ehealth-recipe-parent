@@ -227,7 +227,7 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
         List<PatientOptionalDrugVo> list = new ArrayList<>();
         if (CollectionUtils.isEmpty(organDrugListList)) {
             List<String> collect = patientOptionalDrugVos.stream().map(PatientOptionalDrugVo::getDrugName).collect(Collectors.toList());
-            getCheckText(patientContinueRecipeCheckDrugRes,collect);
+            getCheckText(patientContinueRecipeCheckDrugRes, collect, patientContinueRecipeCheckDrugReq.getShoppingCartType());
             patientContinueRecipeCheckDrugRes.setPatientOptionalDrugVo(list);
             return patientContinueRecipeCheckDrugRes;
         }
@@ -248,7 +248,7 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
         if (CollectionUtils.isEmpty(drugName)) {
             patientContinueRecipeCheckDrugRes.setCheckFlag(YesOrNoEnum.NO.getType());
         } else {
-            getCheckText(patientContinueRecipeCheckDrugRes, drugName);
+            getCheckText(patientContinueRecipeCheckDrugRes, drugName, patientContinueRecipeCheckDrugReq.getShoppingCartType());
         }
         patientContinueRecipeCheckDrugRes.setPatientOptionalDrugVo(list);
         return patientContinueRecipeCheckDrugRes;
@@ -476,65 +476,12 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
         return organConfigVO;
     }
 
-//    @Override
-//    public void setDrugOrganConfig(Integer organId, String key, String value) {
-////        UserPermissionService userPermissionService = AppContextHolder.getBean("opbase.userPermissionService",UserPermissionService.class);
-////        Boolean havePermission = userPermissionService.havePermissionNode(PropertyOrganService.ORGAN_PROPERTY_PID);
-////        if (!havePermission){
-////            throw new DAOException("无权限操作");
-////        }
-//        setOrganConfig(organId, key, value);
-//    }
-
-//    /**
-//     * 设置机构Config
-//     *
-//     * @param organId
-//     * @param key
-//     * @param value
-//     */
-//    @RpcService
-//    public void setOrganConfig(Integer organId, String key, String value) {
-//        Organ organ = ObjectCopyUtils.convert(organClient.organDTO(organId),Organ.class);
-//        if (organ == null) {
-//            throw new DAOException(DAOException.ENTITIY_NOT_FOUND, "机构不存在");
-//        }
-//        switch (key) {
-//            case "OrganConfig.enableDrugSync":
-//                setConfig(organId, "enableDrugSync", Boolean.valueOf(value));
-//                drugManager.logChangeConfig(OrganConfig.class, organ, "药品目录是否支持接口同步", Boolean.valueOf(value));
-//                break;
-//            case "OrganConfig.enableDrugSyncArtificial":
-//                setConfig(organId, "enableDrugSyncArtificial", Boolean.valueOf(value));
-//                drugManager.logChangeConfig(OrganConfig.class, organ, "药品目录同步是否需要人工审核", Boolean.valueOf(value));
-//                break;
-//            case "OrganConfig.drugFromList":
-//                setConfig(organId, "drugFromList", value);
-//                drugManager.logChangeConfig(OrganConfig.class, organ, "手动同步剂型list暂存", value);
-//                break;
-//
-//        }
-//    }
-//
-//    protected void setConfig(Integer organId, String key, Object value) {
-//        OrganConfigVO config =getConfigByOrganId(organId);
-//        switch (key) {
-//            case "enableDrugSync":
-//                config.setEnableDrugSync((Boolean) value);
-//                break;
-//            case "enableDrugSyncArtificial":
-//                config.setEnableDrugSyncArtificial((Boolean) value);
-//                break;
-//            case "drugFromList":
-//                config.setDrugFromList((String)value);
-//                break;
-//        }
-//        drugOrganConfigDao.update(ObjectCopyUtils.convert(config, DrugOrganConfig.class));
-//    }
-
-    private void getCheckText(PatientContinueRecipeCheckDrugRes patientContinueRecipeCheckDrugRes, List<String> drugName) {
+    private void getCheckText(PatientContinueRecipeCheckDrugRes patientContinueRecipeCheckDrugRes, List<String> drugName, Integer shoppingCartType) {
         patientContinueRecipeCheckDrugRes.setCheckFlag(YesOrNoEnum.YES.getType());
-        StringBuilder stringBuilder = new StringBuilder("处方内药品");
+        StringBuilder stringBuilder = new StringBuilder();
+        if (Objects.isNull(shoppingCartType)) {
+            stringBuilder.append("处方内药品");
+        }
         drugName.forEach(drug -> stringBuilder.append("【").append(drug).append("】"));
         stringBuilder.append("不支持线上开药,是否继续?");
         patientContinueRecipeCheckDrugRes.setCheckText(stringBuilder.toString());

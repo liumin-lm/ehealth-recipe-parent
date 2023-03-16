@@ -29,6 +29,9 @@ public class PatientContinueRecipeCheckDrugReq {
     @ItemProperty(alias = "处方来源类型 1 平台处方 2 线下转线上的处方")
     private Integer recipeSourceType;
 
+    @ItemProperty(alias = "购物车类型 1 线上药品-我要配药 2 线下药品-我要配药")
+    private Integer shoppingCartType;
+
     @ItemProperty(alias = "药品信息")
     private List<PatientOptionalDrugVo> patientOptionalDrugVo;
 
