@@ -425,6 +425,7 @@ public class DrugClient extends BaseClient {
                 organDrugListBean.setMedicalDrugCode(drugInformation.getYbdm());
                 organDrugListBeans.add(organDrugListBean);
             });
+            return organDrugListBeans;
         } catch (Exception e) {
             logger.error("DrugClient findHisDrugList error", e);
         }

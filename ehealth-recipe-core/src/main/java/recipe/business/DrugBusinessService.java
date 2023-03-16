@@ -760,6 +760,9 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
         request.setJsfs(hisDrugInfoReqVO.getSearchWay());
         List<com.ngari.platform.recipe.mode.OrganDrugListBean> organDrugListBeans = drugClient.findHisDrugList(request);
         List<String> organDrugCodes = organDrugListBeans.stream().map(com.ngari.platform.recipe.mode.OrganDrugListBean::getOrganDrugCode).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(organDrugCodes)) {
+            return new ArrayList<>();
+        }
         List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugCodes(hisDrugInfoReqVO.getOrganId(), organDrugCodes);
         Map<String, OrganDrugList> organDrugListMap = organDrugLists.stream().collect(Collectors.toMap(OrganDrugList::getOrganDrugCode, a -> a, (k1, k2) -> k1));
         organDrugListBeans.forEach(organDrugListBean -> {
