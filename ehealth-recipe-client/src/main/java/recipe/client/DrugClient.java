@@ -413,12 +413,15 @@ public class DrugClient extends BaseClient {
             drugInformationResponseList.forEach(drugInformation -> {
                 OrganDrugListBean organDrugListBean = new OrganDrugListBean();
                 organDrugListBean.setDrugName(drugInformation.getYpmc());
+                organDrugListBean.setSaleName(drugInformation.getSpm());
                 organDrugListBean.setDrugSpec(drugInformation.getYpgg());
                 organDrugListBean.setUnit(drugInformation.getJldw());
                 organDrugListBean.setOrganDrugCode(drugInformation.getYpdm());
                 organDrugListBean.setPharmacyName(drugInformation.getYfmc());
                 organDrugListBean.setProducer(drugInformation.getCjmc());
                 organDrugListBean.setMedicalDrugCode(drugInformation.getYbdm());
+                organDrugListBean.setSalePrice(new BigDecimal(drugInformation.getYpdj()));
+                //TODO 剂型名称
                 organDrugListBeans.add(organDrugListBean);
             });
         } catch (Exception e) {
