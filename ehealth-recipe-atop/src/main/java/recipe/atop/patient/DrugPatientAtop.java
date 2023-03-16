@@ -3,6 +3,7 @@ package recipe.atop.patient;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
+import com.ngari.recipe.drug.model.OrganDrugListBean;
 import com.ngari.recipe.dto.DrugSpecificationInfoDTO;
 import com.ngari.recipe.dto.EnterpriseStock;
 import com.ngari.recipe.dto.PatientDrugWithEsDTO;
@@ -33,6 +34,7 @@ import recipe.util.ValidateUtil;
 import recipe.vo.doctor.DrugQueryVO;
 import recipe.vo.doctor.DrugsResVo;
 import recipe.vo.doctor.RecipeInfoVO;
+import recipe.vo.patient.HisDrugInfoReqVO;
 import recipe.vo.patient.PatientContinueRecipeCheckDrugReq;
 import recipe.vo.patient.PatientContinueRecipeCheckDrugRes;
 import recipe.vo.second.ClinicCartVO;
@@ -41,6 +43,7 @@ import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @description： 患者药品查询入口
@@ -276,6 +279,21 @@ public class DrugPatientAtop extends BaseAtop {
     public Boolean checkOrganDrugList(Integer organId, String organDrugCode) {
         validateAtop(organId, organDrugCode);
         return drugBusinessService.checkOrganDrugList(organId, organDrugCode);
+    }
+
+    /**
+     * 查询his药品信息
+     * @param hisDrugInfoReqVO
+     * @return
+     */
+    @RpcService
+    public List<OrganDrugListBean> findHisDrugList(HisDrugInfoReqVO hisDrugInfoReqVO) {
+        if (Objects.isNull(hisDrugInfoReqVO.getSearchRang())) {
+            hisDrugInfoReqVO.setSearchRang(2);
+        }
+        Integer searchWay = recipe.util.ValidateUtil.matchHZ(hisDrugInfoReqVO.getSearchKeyWord())?2:recipe.util.ValidateUtil.matchYW(hisDrugInfoReqVO.getSearchKeyWord())?0:3;
+        hisDrugInfoReqVO.setSearchWay(searchWay);
+        return drugBusinessService.findHisDrugList(hisDrugInfoReqVO);
     }
 
 }

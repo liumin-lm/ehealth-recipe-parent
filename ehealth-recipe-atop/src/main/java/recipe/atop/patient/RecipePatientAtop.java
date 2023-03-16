@@ -2,7 +2,6 @@ package recipe.atop.patient;
 
 import com.alibaba.fastjson.JSON;
 import com.ngari.patient.dto.PatientDTO;
-import com.ngari.recipe.drug.model.OrganDrugListBean;
 import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.OutPatientRecipeDTO;
 import com.ngari.recipe.recipe.model.OutPatientRecipeDetailVO;
@@ -17,7 +16,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
-import recipe.core.api.IDrugBusinessService;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.core.api.patient.IOfflineRecipeBusinessService;
 import recipe.core.api.patient.IPatientBusinessService;
@@ -26,13 +24,10 @@ import recipe.enumerate.type.DrugBelongTypeEnum;
 import recipe.enumerate.type.OutRecipeGiveModeEnum;
 import recipe.enumerate.type.OutRecipeRecipeTypeEnum;
 import recipe.util.ObjectCopyUtils;
-import recipe.vo.doctor.RecipeInfoVO;
-import recipe.vo.patient.HisDrugInfoReqVO;
 import recipe.vo.patient.PatientRecipeListReqVO;
 import recipe.vo.patient.PatientRecipeListResVo;
 import recipe.vo.patient.ReadyRecipeVO;
 
-import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -52,8 +47,6 @@ public class RecipePatientAtop extends BaseAtop {
     private IOfflineRecipeBusinessService iOfflineRecipeBusinessService;
     @Autowired
     private IPatientBusinessService recipePatientService;
-    @Resource
-    private IDrugBusinessService drugBusinessService;
 
     /**
      * 查询门诊处方信息
@@ -251,21 +244,6 @@ public class RecipePatientAtop extends BaseAtop {
         List<List<PatientRecipeListResVo>> lists = iOfflineRecipeBusinessService.patientRecipeList(patientRecipeListReq);
 
         return lists;
-    }
-
-    /**
-     * 查询his药品信息
-     * @param hisDrugInfoReqVO
-     * @return
-     */
-    @RpcService
-    public List<OrganDrugListBean> findHisDrugList(HisDrugInfoReqVO hisDrugInfoReqVO) {
-        if (Objects.isNull(hisDrugInfoReqVO.getSearchRang())) {
-            hisDrugInfoReqVO.setSearchRang(2);
-        }
-        Integer searchWay = recipe.util.ValidateUtil.matchHZ(hisDrugInfoReqVO.getSearchKeyWord())?2:recipe.util.ValidateUtil.matchYW(hisDrugInfoReqVO.getSearchKeyWord())?0:3;
-        hisDrugInfoReqVO.setSearchWay(searchWay);
-        return drugBusinessService.findHisDrugList(hisDrugInfoReqVO);
     }
 
 }
