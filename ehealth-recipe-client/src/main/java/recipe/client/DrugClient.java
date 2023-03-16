@@ -423,6 +423,9 @@ public class DrugClient extends BaseClient {
                 organDrugListBean.setSalePrice(new BigDecimal(drugInformation.getYpdj()));
                 organDrugListBean.setDrugForm(drugInformation.getJxmc());
                 organDrugListBean.setMedicalDrugCode(drugInformation.getYbdm());
+                if (StringUtils.isNotEmpty(drugInformation.getKczt())) {
+                    organDrugListBean.setStockAmount(Double.parseDouble(drugInformation.getKczt()));
+                }
                 organDrugListBeans.add(organDrugListBean);
             });
             return organDrugListBeans;
