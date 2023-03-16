@@ -8,6 +8,7 @@ import lombok.Data;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @description： 患者端 处方详情出参
@@ -98,6 +99,9 @@ public class PatientRecipeDetailResVO implements Serializable {
     @ItemProperty(alias = "剂数")
     private Integer copyNum;
 
+    @ItemProperty(alias = "支付标志")
+    private Integer payFlag;
+
     /******************************** 以下数据来源 recipeExt ****************************/
 
     @ItemProperty(alias = "是否长处方")
@@ -143,8 +147,6 @@ public class PatientRecipeDetailResVO implements Serializable {
     private String decoctionId;
     @ItemProperty(alias = "煎法text")
     private String decoctionText;
-    @ItemProperty(alias = "煎法单价")
-    private Double decoctionPrice;
     @ItemProperty(alias = "服用要求")
     private String requirementsForTakingId;
     @ItemProperty(alias = "服用要求code")
@@ -160,18 +162,23 @@ public class PatientRecipeDetailResVO implements Serializable {
     private Integer pharmacyId;
     @ItemProperty(alias = "药房名称")
     private String pharmacyName;
+    @ItemProperty(alias = "药品详情")
+    private List<PatientRecipeDetailForDetailResVO> recipeDetail;
 
     /******************************** 以下数据 需要代码判断 ****************************/
     @ItemProperty(alias = "处方业务查询来源 1 线上  2 线下 3 院内门诊")
     private Integer recipeBusType;
 
+    @ItemProperty(alias = "隐方")
+    private Boolean isHiddenRecipeDetail = false;
+
     @ItemProperty(alias = "是否保密方 0 否 1 是")
     private Integer secrecyRecipe;
 
-    @ItemProperty(alias = "腹透液  空0否  1是 ")
-    private Integer peritonealDialysisFluidType;
-
-    @ItemProperty(alias = "隐方")
-    private Boolean isHiddenRecipeDetail = false;
+    /**
+     * 复诊 ex 表 orderNumStartTime 如果没有值就取复诊 主表的  PaymentDate
+     */
+    @ItemProperty(alias = "就诊时间")
+    private Date visitTime;
 
 }

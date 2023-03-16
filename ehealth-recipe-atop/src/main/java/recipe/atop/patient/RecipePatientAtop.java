@@ -25,9 +25,7 @@ import recipe.enumerate.type.OutRecipeGiveModeEnum;
 import recipe.enumerate.type.OutRecipeRecipeTypeEnum;
 import recipe.util.ObjectCopyUtils;
 import recipe.vo.doctor.RecipeInfoVO;
-import recipe.vo.patient.PatientRecipeListReqVO;
-import recipe.vo.patient.PatientRecipeListResVo;
-import recipe.vo.patient.ReadyRecipeVO;
+import recipe.vo.patient.*;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -245,6 +243,18 @@ public class RecipePatientAtop extends BaseAtop {
         List<List<PatientRecipeListResVo>> lists = iOfflineRecipeBusinessService.patientRecipeList(patientRecipeListReq);
 
         return lists;
+    }
+
+    /**
+     * 患者端获取处方信息 (新)
+     *
+     * @param patientRecipeDetailReq
+     * @return
+     */
+    @RpcService
+    public PatientRecipeDetailResVO patientRecipeDetail(PatientRecipeDetailReqVO patientRecipeDetailReq) {
+        PatientRecipeDetailResVO patientRecipeDetail = recipePatientService.patientRecipeDetail(patientRecipeDetailReq);
+        return patientRecipeDetail;
     }
 
 }
