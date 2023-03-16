@@ -23,6 +23,7 @@ import com.ngari.recipe.vo.HospitalDrugListVO;
 import com.ngari.recipe.vo.SearchDrugReqVO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
+import eh.entity.base.UsingRate;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -757,8 +758,17 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
         request.setOrganId(hisDrugInfoReqVO.getOrganId());
         request.setCxfw(hisDrugInfoReqVO.getSearchRang().toString());
         request.setJsfs(hisDrugInfoReqVO.getSearchWay());
-        List<com.ngari.platform.recipe.mode.OrganDrugListBean> organDrugListBean = drugClient.findHisDrugList(request);
-        return ObjectCopyUtils.convert(organDrugListBean, OrganDrugListBean.class);
+        List<com.ngari.platform.recipe.mode.OrganDrugListBean> organDrugListBeans = drugClient.findHisDrugList(request);
+        List<String> organDrugCodes = organDrugListBeans.stream().map(com.ngari.platform.recipe.mode.OrganDrugListBean::getOrganDrugCode).collect(Collectors.toList());
+        List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugCodes(hisDrugInfoReqVO.getOrganId(), organDrugCodes);
+        Map<String, OrganDrugList> organDrugListMap = organDrugLists.stream().collect(Collectors.toMap(OrganDrugList::getOrganDrugCode, a -> a, (k1, k2) -> k1));
+        organDrugListBeans.forEach(organDrugListBean -> {
+            OrganDrugList organDrugList = organDrugListMap.get(organDrugListBean.getOrganDrugCode());
+            if (Objects.nonNull(organDrugList)) {
+                organDrugListBean.setDrugId(organDrugList.getDrugId());
+            }
+        });
+        return ObjectCopyUtils.convert(organDrugListBeans, OrganDrugListBean.class);
     }
 
     @Override
