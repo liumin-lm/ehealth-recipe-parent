@@ -2,6 +2,7 @@ package recipe.business;
 
 import com.google.common.collect.Lists;
 import com.ngari.common.mode.HisResponseTO;
+import com.ngari.his.miscellany.mode.HospitalInformationRequestTO;
 import com.ngari.his.recipe.mode.MedicationInfoResTO;
 import com.ngari.patient.dto.UsePathwaysDTO;
 import com.ngari.patient.dto.UsingRateDTO;
@@ -10,10 +11,7 @@ import com.ngari.patient.service.IUsingRateService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.HospitalDrugListDTO;
 import com.ngari.platform.recipe.mode.HospitalDrugListReqDTO;
-import com.ngari.recipe.drug.model.CommonDrugListDTO;
-import com.ngari.recipe.drug.model.DispensatoryDTO;
-import com.ngari.recipe.drug.model.DrugListBean;
-import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
+import com.ngari.recipe.drug.model.*;
 import com.ngari.recipe.dto.DrugInfoDTO;
 import com.ngari.recipe.dto.DrugSpecificationInfoDTO;
 import com.ngari.recipe.dto.PatientDrugWithEsDTO;
@@ -48,6 +46,7 @@ import recipe.manager.OrganDrugListManager;
 import recipe.util.MapValueUtil;
 import recipe.vo.greenroom.OrganConfigVO;
 import recipe.vo.greenroom.OrganDrugListSyncFieldVo;
+import recipe.vo.patient.HisDrugInfoReqVO;
 import recipe.vo.patient.PatientContinueRecipeCheckDrugReq;
 import recipe.vo.patient.PatientContinueRecipeCheckDrugRes;
 import recipe.vo.patient.PatientOptionalDrugVo;
@@ -804,5 +803,25 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
         return msg;
     }
 
+    @Override
+    public List<OrganDrugListBean> findHisDrugList(HisDrugInfoReqVO hisDrugInfoReqVO) {
+        HospitalInformationRequestTO request = new HospitalInformationRequestTO();
+        request.setCxc(hisDrugInfoReqVO.getSearchKeyWord());
+        request.setOrganId(hisDrugInfoReqVO.getOrganId());
+        request.setCxfw(hisDrugInfoReqVO.getSearchRang().toString());
+        request.setJsfs(hisDrugInfoReqVO.getSearchWay());
+        List<com.ngari.platform.recipe.mode.OrganDrugListBean> organDrugListBean = drugClient.findHisDrugList(request);
+        return ObjectCopyUtils.convert(organDrugListBean, OrganDrugListBean.class);
+    }
+
+    @Override
+    public Boolean checkOrganDrugList(Integer organId, String organDrugCode) {
+        List<String> organDrugCodes = Arrays.asList(organDrugCode);
+        List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugCodes(organId, organDrugCodes);
+        if (CollectionUtils.isEmpty(organDrugLists)) {
+            return false;
+        }
+        return true;
+    }
 
 }
