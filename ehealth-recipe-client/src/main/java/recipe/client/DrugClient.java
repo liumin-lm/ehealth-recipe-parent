@@ -422,6 +422,7 @@ public class DrugClient extends BaseClient {
                 organDrugListBean.setMedicalDrugCode(drugInformation.getYbdm());
                 organDrugListBean.setSalePrice(new BigDecimal(drugInformation.getYpdj()));
                 //TODO 剂型名称
+                organDrugListBean.setMedicalDrugCode(drugInformation.getYbdm());
                 organDrugListBeans.add(organDrugListBean);
             });
         } catch (Exception e) {
