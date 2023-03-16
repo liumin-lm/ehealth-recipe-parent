@@ -102,10 +102,16 @@ public class PatientRecipeDetailResVO implements Serializable {
     @ItemProperty(alias = "支付标志")
     private Integer payFlag;
 
+    @ItemProperty(alias = "代煎帖数")
+    private Integer decoctionNum;
+
     /******************************** 以下数据来源 recipeExt ****************************/
 
     @ItemProperty(alias = "是否长处方")
     private String isLongRecipe;
+
+    @ItemProperty(alias = "可开长处方按钮状态、长处方开药天数、非长处方开药天数等")
+    private String recipeJsonConfig;
 
     @ItemProperty(alias = "病历索引Id")
     private Integer docIndexId;
@@ -160,6 +166,12 @@ public class PatientRecipeDetailResVO implements Serializable {
     @ItemProperty(alias = "处方剂型类型 1 饮片方 2 颗粒方")
     @Dictionary(id = "eh.cdr.dictionary.RecipeDrugForm")
     private Integer recipeDrugForm;
+
+    @ItemProperty(alias = "医生选择是否代煎（ 0:否 1：是）")
+    private String doctorIsDecoction;
+
+    @ItemProperty(alias = "代煎前端展示 0 不展示 1 展示")
+    private Integer decoctionExhibitionFlag;
 
     /******************************** 以下数据来源 recipedetail ****************************/
     @ItemProperty(alias = "药房id主键")
