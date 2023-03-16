@@ -122,6 +122,13 @@ public class PatientRecipeDetailForDetailResVO implements Serializable {
      */
     private Integer type;
 
+    @ItemProperty(alias = "中药禁忌类型(1:超量 2:十八反 3:其它)")
+    private Integer tcmContraindicationType;
+
+    @ItemProperty(alias = "中药禁忌原因")
+    private String tcmContraindicationCause;
+
+
     /******************************** 以下数据 需要代码判断 ****************************/
     @ItemProperty(alias = "医保限定药标识 0 否 1 是")
     private Integer medicalInsuranceDrugFlag;

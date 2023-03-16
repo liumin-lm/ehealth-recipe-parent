@@ -157,6 +157,10 @@ public class PatientRecipeDetailResVO implements Serializable {
     @ItemProperty(alias = "单复方表示0:无状态，1单方，2复方")
     private Integer singleOrCompoundRecipe;
 
+    @ItemProperty(alias = "处方剂型类型 1 饮片方 2 颗粒方")
+    @Dictionary(id = "eh.cdr.dictionary.RecipeDrugForm")
+    private Integer recipeDrugForm;
+
     /******************************** 以下数据来源 recipedetail ****************************/
     @ItemProperty(alias = "药房id主键")
     private Integer pharmacyId;
