@@ -535,7 +535,7 @@ public class PurchaseService {
             // 根据paymode 换算givemode
             Integer giveMode = PayModeGiveModeUtil.getGiveMode(payMode);
             Integer storePayFlag = eh.utils.MapValueUtil.getInteger(extInfo, "storePayFlag");
-            if (Objects.isNull(storePayFlag) && Objects.nonNull(depId)) {
+            if (Objects.isNull(storePayFlag) && StringUtils.isNotEmpty(depId)) {
                 storePayFlag = enterpriseManager.getStorePayFlag(dbRecipe.getClinicOrgan(), Integer.valueOf(depId), giveMode);
                 if (Objects.nonNull(storePayFlag)) {
                     extInfo.put("storePayFlag", storePayFlag.toString());
