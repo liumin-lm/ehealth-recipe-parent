@@ -14,8 +14,8 @@ public enum RecipeStateEnum {
      */
     NONE(0, "", ""),
     PROCESS_STATE_SUBMIT(1, "待提交", ""),
-    PROCESS_STATE_AUDIT(2, "待审核", ""),
-    PROCESS_STATE_ORDER(3, "待购药", ""),
+    PROCESS_STATE_AUDIT(2, "待审方", ""),
+    PROCESS_STATE_ORDER(3, "待下单", ""),
     PROCESS_STATE_DISPENSING(4, "待发药", ""),
     PROCESS_STATE_DISTRIBUTION(5, "配送中", ""),
     PROCESS_STATE_MEDICINE(6, "待取药", ""),
