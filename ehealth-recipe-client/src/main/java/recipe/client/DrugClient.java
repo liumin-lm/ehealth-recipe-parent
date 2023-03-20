@@ -405,7 +405,7 @@ public class DrugClient extends BaseClient {
      * @return
      */
     @LogRecord
-    public List<OrganDrugListBean> findHisDrugList(HospitalInformationRequestTO request) {
+    public List<OrganDrugListBean> findHisDrugList(HospitalInformationRequestTO request, String organList) {
         try {
             HisResponseTO<List<HospitalDrugInformationResponseTO>> response = hospitalInformationService.getHospitalDrugInformation(request);
             List<HospitalDrugInformationResponseTO> drugInformationResponseList = getResponse(response);
@@ -416,7 +416,11 @@ public class DrugClient extends BaseClient {
                 organDrugListBean.setSaleName(drugInformation.getSpm());
                 organDrugListBean.setDrugSpec(drugInformation.getYpgg());
                 organDrugListBean.setUnit(drugInformation.getJldw());
-                organDrugListBean.setOrganDrugCode(drugInformation.getIdm());
+                if (StringUtils.isNotEmpty(organList) && organList.contains(request.getOrganId().toString())) {
+                    organDrugListBean.setOrganDrugCode(drugInformation.getYpdm());
+                } else {
+                    organDrugListBean.setOrganDrugCode(drugInformation.getIdm());
+                }
                 organDrugListBean.setPharmacyName(drugInformation.getYfmc());
                 organDrugListBean.setProducer(drugInformation.getCjmc());
                 organDrugListBean.setMedicalDrugCode(drugInformation.getYbdm());

@@ -93,6 +93,8 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
     private IUsePathwaysService usePathwaysService;
     @Autowired
     private MedicationSyncConfigDAO medicationSyncConfigDAO;
+    @Autowired
+    private RecipeParameterDao recipeParameterDao;
 
     @Override
     public List<PatientDrugWithEsDTO> findDrugWithEsByPatient(SearchDrugReqVO searchDrugReqVo) {
@@ -758,7 +760,8 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
         request.setOrganId(hisDrugInfoReqVO.getOrganId());
         request.setCxfw(hisDrugInfoReqVO.getSearchRang().toString());
         request.setJsfs(hisDrugInfoReqVO.getSearchWay());
-        List<com.ngari.platform.recipe.mode.OrganDrugListBean> organDrugListBeans = drugClient.findHisDrugList(request);
+        String organList = recipeParameterDao.getByName("organDrugCode_idm_organId");
+        List<com.ngari.platform.recipe.mode.OrganDrugListBean> organDrugListBeans = drugClient.findHisDrugList(request, organList);
         List<String> organDrugCodes = organDrugListBeans.stream().map(com.ngari.platform.recipe.mode.OrganDrugListBean::getOrganDrugCode).collect(Collectors.toList());
         if (CollectionUtils.isEmpty(organDrugCodes)) {
             return new ArrayList<>();
