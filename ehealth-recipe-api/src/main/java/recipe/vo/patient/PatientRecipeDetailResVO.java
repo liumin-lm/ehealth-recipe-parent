@@ -105,6 +105,9 @@ public class PatientRecipeDetailResVO implements Serializable {
     @ItemProperty(alias = "代煎帖数")
     private Integer decoctionNum;
 
+    @ItemProperty(alias = "发药方式")
+    private Integer giveMode;
+
     /******************************** 以下数据来源 recipeExt ****************************/
 
     @ItemProperty(alias = "是否长处方")
@@ -173,6 +176,9 @@ public class PatientRecipeDetailResVO implements Serializable {
     @ItemProperty(alias = "代煎前端展示 0 不展示 1 展示")
     private Integer decoctionExhibitionFlag;
 
+    @ItemProperty(alias = "用药医嘱(药师审方)")
+    private String drugEntrustment;
+
     /******************************** 以下数据来源 recipedetail ****************************/
     @ItemProperty(alias = "药房id主键")
     private Integer pharmacyId;
@@ -196,5 +202,8 @@ public class PatientRecipeDetailResVO implements Serializable {
      */
     @ItemProperty(alias = "就诊时间")
     private Date visitTime;
+
+    @ItemProperty(alias = "是否可以下载处方笺")
+    private Boolean isDownload;
 
 }
