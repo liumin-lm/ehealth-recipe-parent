@@ -72,6 +72,17 @@ public class HisSendResTO implements java.io.Serializable {
     @ItemProperty(alias = "his订单编号(浙江医保小程序)")
     private String ybid;
 
+    @ItemProperty(alias = "用于支付结算结果查询")
+    private String hisBusId;
+
+    public String getHisBusId() {
+        return hisBusId;
+    }
+
+    public void setHisBusId(String hisBusId) {
+        this.hisBusId = hisBusId;
+    }
+
     public String getYbid() {
         return ybid;
     }
