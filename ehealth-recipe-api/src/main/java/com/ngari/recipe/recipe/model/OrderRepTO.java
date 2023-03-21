@@ -117,6 +117,7 @@ public class OrderRepTO implements Serializable {
 
 
     @ItemProperty(alias = "用于支付结算结果查询")
+    @Deprecated
     private String hisBusId;
 
     public String getHisBusId() {

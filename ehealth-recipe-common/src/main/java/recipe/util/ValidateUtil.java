@@ -16,6 +16,9 @@ import java.util.regex.Pattern;
 public class ValidateUtil {
 
     private static final Pattern CHINA_PATTERN = Pattern.compile("^((13[0-9])|(14[0,1,4-9])|(15[0-3,5-9])|(16[2,5,6,7])|(17[0-8])|(18[0-9])|(19[0-3,5-9]))\\d{8}$");
+    private static final   String PATTERN_HZ= "[\u4e00-\u9fa5]";
+    private static final   String PATTERN_YW= "[A-Za-z]";
+    private static final   String  PATTERN_ZF="[`~!@#$%^&●◆▲*\\-+={}':;,\\[\\].<>/?￥%…_+|‘；：”“’。，、？\\s]";
 
     /**
      * 全类型 参数类型校验工具
@@ -143,5 +146,32 @@ public class ValidateUtil {
         } catch (Exception e) {
             return false;
         }
+    }
+
+
+    public static boolean matchHZ( String keyword) {
+        String ss = Pattern.compile(PATTERN_HZ).matcher(keyword).replaceAll("");
+        if (!StringUtils.isEmpty(keyword) && StringUtils.isEmpty(ss)) {
+            return true;
+        }
+        return false;
+    }
+
+    //匹配纯英文--判断是否为纯英文
+    public static boolean matchYW( String keyword) {
+        String ss = Pattern.compile(PATTERN_YW).matcher(keyword).replaceAll("");
+        if (!StringUtils.isEmpty(keyword) && StringUtils.isEmpty(ss)) {
+            return true;
+        }
+        return false;
+    }
+
+    //过滤字符串里面的特殊符号
+    public static String filterString(String keyword){
+        String ss = "";
+        if (!StringUtils.isEmpty(keyword)) {
+            ss = Pattern.compile(PATTERN_ZF).matcher(keyword).replaceAll("");
+        }
+        return ss;
     }
 }

@@ -2,6 +2,7 @@ package recipe.business;
 
 import com.google.common.collect.Lists;
 import com.ngari.common.mode.HisResponseTO;
+import com.ngari.his.miscellany.mode.HospitalInformationRequestTO;
 import com.ngari.his.recipe.mode.MedicationInfoResTO;
 import com.ngari.patient.dto.UsePathwaysDTO;
 import com.ngari.patient.dto.UsingRateDTO;
@@ -10,10 +11,7 @@ import com.ngari.patient.service.IUsingRateService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.HospitalDrugListDTO;
 import com.ngari.platform.recipe.mode.HospitalDrugListReqDTO;
-import com.ngari.recipe.drug.model.CommonDrugListDTO;
-import com.ngari.recipe.drug.model.DispensatoryDTO;
-import com.ngari.recipe.drug.model.DrugListBean;
-import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
+import com.ngari.recipe.drug.model.*;
 import com.ngari.recipe.dto.DrugInfoDTO;
 import com.ngari.recipe.dto.DrugSpecificationInfoDTO;
 import com.ngari.recipe.dto.PatientDrugWithEsDTO;
@@ -25,6 +23,7 @@ import com.ngari.recipe.vo.HospitalDrugListVO;
 import com.ngari.recipe.vo.SearchDrugReqVO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
+import eh.entity.base.UsingRate;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -48,6 +47,7 @@ import recipe.manager.OrganDrugListManager;
 import recipe.util.MapValueUtil;
 import recipe.vo.greenroom.OrganConfigVO;
 import recipe.vo.greenroom.OrganDrugListSyncFieldVo;
+import recipe.vo.patient.HisDrugInfoReqVO;
 import recipe.vo.patient.PatientContinueRecipeCheckDrugReq;
 import recipe.vo.patient.PatientContinueRecipeCheckDrugRes;
 import recipe.vo.patient.PatientOptionalDrugVo;
@@ -93,6 +93,8 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
     private IUsePathwaysService usePathwaysService;
     @Autowired
     private MedicationSyncConfigDAO medicationSyncConfigDAO;
+    @Autowired
+    private RecipeParameterDao recipeParameterDao;
 
     @Override
     public List<PatientDrugWithEsDTO> findDrugWithEsByPatient(SearchDrugReqVO searchDrugReqVo) {
@@ -228,7 +230,7 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
         List<PatientOptionalDrugVo> list = new ArrayList<>();
         if (CollectionUtils.isEmpty(organDrugListList)) {
             List<String> collect = patientOptionalDrugVos.stream().map(PatientOptionalDrugVo::getDrugName).collect(Collectors.toList());
-            getCheckText(patientContinueRecipeCheckDrugRes,collect);
+            getCheckText(patientContinueRecipeCheckDrugRes, collect, patientContinueRecipeCheckDrugReq.getShoppingCartType());
             patientContinueRecipeCheckDrugRes.setPatientOptionalDrugVo(list);
             return patientContinueRecipeCheckDrugRes;
         }
@@ -249,7 +251,7 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
         if (CollectionUtils.isEmpty(drugName)) {
             patientContinueRecipeCheckDrugRes.setCheckFlag(YesOrNoEnum.NO.getType());
         } else {
-            getCheckText(patientContinueRecipeCheckDrugRes, drugName);
+            getCheckText(patientContinueRecipeCheckDrugRes, drugName, patientContinueRecipeCheckDrugReq.getShoppingCartType());
         }
         patientContinueRecipeCheckDrugRes.setPatientOptionalDrugVo(list);
         return patientContinueRecipeCheckDrugRes;
@@ -477,65 +479,12 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
         return organConfigVO;
     }
 
-//    @Override
-//    public void setDrugOrganConfig(Integer organId, String key, String value) {
-////        UserPermissionService userPermissionService = AppContextHolder.getBean("opbase.userPermissionService",UserPermissionService.class);
-////        Boolean havePermission = userPermissionService.havePermissionNode(PropertyOrganService.ORGAN_PROPERTY_PID);
-////        if (!havePermission){
-////            throw new DAOException("无权限操作");
-////        }
-//        setOrganConfig(organId, key, value);
-//    }
-
-//    /**
-//     * 设置机构Config
-//     *
-//     * @param organId
-//     * @param key
-//     * @param value
-//     */
-//    @RpcService
-//    public void setOrganConfig(Integer organId, String key, String value) {
-//        Organ organ = ObjectCopyUtils.convert(organClient.organDTO(organId),Organ.class);
-//        if (organ == null) {
-//            throw new DAOException(DAOException.ENTITIY_NOT_FOUND, "机构不存在");
-//        }
-//        switch (key) {
-//            case "OrganConfig.enableDrugSync":
-//                setConfig(organId, "enableDrugSync", Boolean.valueOf(value));
-//                drugManager.logChangeConfig(OrganConfig.class, organ, "药品目录是否支持接口同步", Boolean.valueOf(value));
-//                break;
-//            case "OrganConfig.enableDrugSyncArtificial":
-//                setConfig(organId, "enableDrugSyncArtificial", Boolean.valueOf(value));
-//                drugManager.logChangeConfig(OrganConfig.class, organ, "药品目录同步是否需要人工审核", Boolean.valueOf(value));
-//                break;
-//            case "OrganConfig.drugFromList":
-//                setConfig(organId, "drugFromList", value);
-//                drugManager.logChangeConfig(OrganConfig.class, organ, "手动同步剂型list暂存", value);
-//                break;
-//
-//        }
-//    }
-//
-//    protected void setConfig(Integer organId, String key, Object value) {
-//        OrganConfigVO config =getConfigByOrganId(organId);
-//        switch (key) {
-//            case "enableDrugSync":
-//                config.setEnableDrugSync((Boolean) value);
-//                break;
-//            case "enableDrugSyncArtificial":
-//                config.setEnableDrugSyncArtificial((Boolean) value);
-//                break;
-//            case "drugFromList":
-//                config.setDrugFromList((String)value);
-//                break;
-//        }
-//        drugOrganConfigDao.update(ObjectCopyUtils.convert(config, DrugOrganConfig.class));
-//    }
-
-    private void getCheckText(PatientContinueRecipeCheckDrugRes patientContinueRecipeCheckDrugRes, List<String> drugName) {
+    private void getCheckText(PatientContinueRecipeCheckDrugRes patientContinueRecipeCheckDrugRes, List<String> drugName, Integer shoppingCartType) {
         patientContinueRecipeCheckDrugRes.setCheckFlag(YesOrNoEnum.YES.getType());
-        StringBuilder stringBuilder = new StringBuilder("处方内药品");
+        StringBuilder stringBuilder = new StringBuilder();
+        if (Objects.isNull(shoppingCartType)) {
+            stringBuilder.append("处方内药品");
+        }
         drugName.forEach(drug -> stringBuilder.append("【").append(drug).append("】"));
         stringBuilder.append("不支持线上开药,是否继续?");
         patientContinueRecipeCheckDrugRes.setCheckText(stringBuilder.toString());
@@ -804,5 +753,38 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
         return msg;
     }
 
+    @Override
+    public List<OrganDrugListBean> findHisDrugList(HisDrugInfoReqVO hisDrugInfoReqVO) {
+        HospitalInformationRequestTO request = new HospitalInformationRequestTO();
+        request.setCxc(hisDrugInfoReqVO.getSearchKeyWord());
+        request.setOrganId(hisDrugInfoReqVO.getOrganId());
+        request.setCxfw(hisDrugInfoReqVO.getSearchRang().toString());
+        request.setJsfs(hisDrugInfoReqVO.getSearchWay());
+        String organList = recipeParameterDao.getByName("organDrugCode_idm_organId");
+        List<com.ngari.platform.recipe.mode.OrganDrugListBean> organDrugListBeans = drugClient.findHisDrugList(request, organList);
+        List<String> organDrugCodes = organDrugListBeans.stream().map(com.ngari.platform.recipe.mode.OrganDrugListBean::getOrganDrugCode).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(organDrugCodes)) {
+            return new ArrayList<>();
+        }
+        List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugCodes(hisDrugInfoReqVO.getOrganId(), organDrugCodes);
+        Map<String, OrganDrugList> organDrugListMap = organDrugLists.stream().collect(Collectors.toMap(OrganDrugList::getOrganDrugCode, a -> a, (k1, k2) -> k1));
+        organDrugListBeans.forEach(organDrugListBean -> {
+            OrganDrugList organDrugList = organDrugListMap.get(organDrugListBean.getOrganDrugCode());
+            if (Objects.nonNull(organDrugList)) {
+                organDrugListBean.setDrugId(organDrugList.getDrugId());
+            }
+        });
+        return ObjectCopyUtils.convert(organDrugListBeans, OrganDrugListBean.class);
+    }
+
+    @Override
+    public Boolean checkOrganDrugList(Integer organId, String organDrugCode) {
+        List<String> organDrugCodes = Arrays.asList(organDrugCode);
+        List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugCodes(organId, organDrugCodes);
+        if (CollectionUtils.isEmpty(organDrugLists)) {
+            return false;
+        }
+        return true;
+    }
 
 }

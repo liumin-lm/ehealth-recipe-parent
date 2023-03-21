@@ -241,6 +241,9 @@ public class OrganDrugListBean implements java.io.Serializable {
     @ItemProperty(alias = "医保类别")
     private String medicalInsuranceCategory;
 
+    @ItemProperty(alias = "库存数量")
+    private Double stockAmount;
+
     public String getMedicalInsuranceCategory() {
         return medicalInsuranceCategory;
     }
@@ -852,5 +855,11 @@ public class OrganDrugListBean implements java.io.Serializable {
         this.targetedDrugType = targetedDrugType;
     }
 
+    public Double getStockAmount() {
+        return stockAmount;
+    }
 
+    public void setStockAmount(Double stockAmount) {
+        this.stockAmount = stockAmount;
+    }
 }
