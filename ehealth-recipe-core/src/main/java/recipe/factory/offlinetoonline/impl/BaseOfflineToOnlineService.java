@@ -20,6 +20,7 @@ import com.ngari.recipe.dto.GroupRecipeConfDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailResVO;
+import com.ngari.recipe.offlinetoonline.model.OfflineToOnlineReqVO;
 import com.ngari.recipe.offlinetoonline.model.SettleForOfflineToOnlineVO;
 import com.ngari.recipe.recipe.model.HisRecipeVO;
 import com.ngari.recipe.recipe.model.MergeRecipeVO;
@@ -72,6 +73,7 @@ import java.util.stream.Collectors;
 /**
  * @author 刘敏
  * @date 2021\6\30
+ * 线下转线上通用服务类
  */
 @Service
 public class BaseOfflineToOnlineService {
@@ -230,6 +232,30 @@ public class BaseOfflineToOnlineService {
                 .build();
         LOGGER.info("BaseOfflineToOnlineService getFindHisRecipeDetailParam res:{}", findHisRecipeDetailReqVO);
         return findHisRecipeDetailReqVO;
+    }
+
+    /**
+     * 获取obtainOfflineToOnlineReqVO
+     * @param mpiId
+     * @param recipeCode
+     * @param organId
+     * @param cardId
+     * @param startTime
+     * @param endTime
+     * @return
+     */
+    public OfflineToOnlineReqVO obtainOfflineToOnlineReqVO(String mpiId, String recipeCode, Integer organId, String cardId, Date startTime, Date endTime) {
+        LOGGER.info("BaseOfflineToOnlineService obtainOfflineToOnlineReqVO mpiId:{},recipeCode:{},organId:{},cardId:{}", mpiId, recipeCode, organId, cardId);
+        OfflineToOnlineReqVO offlineToOnlineReqVO = OfflineToOnlineReqVO.builder()
+                .mpiId(mpiId)
+                .recipeCode(recipeCode)
+                .organId(organId)
+                .cardId(cardId)
+                .startTime(startTime)
+                .endTime(endTime)
+                .build();
+        LOGGER.info("BaseOfflineToOnlineService obtainOfflineToOnlineReqVO res:{}", offlineToOnlineReqVO);
+        return offlineToOnlineReqVO;
     }
 
     /**

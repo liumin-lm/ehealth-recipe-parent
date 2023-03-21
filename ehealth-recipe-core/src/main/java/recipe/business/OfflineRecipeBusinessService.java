@@ -171,7 +171,7 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
     }
 
     @Override
-    public List<OfflineToOnlineResVO> batchOfflineToOnline(OfflineToOnlineReqVO request) {
+    public List<OfflineToOnlineResVO> batchOfflineToOnline(BatchOfflineToOnlineReqVO request) {
         logger.info("OfflineToOnlineService batchOfflineToOnline request:{}", JSONUtils.toString(request));
         try {
             IOfflineToOnlineStrategy offlineToOnlineStrategy = offlineToOnlineFactory.getFactoryService(request.getStatus());

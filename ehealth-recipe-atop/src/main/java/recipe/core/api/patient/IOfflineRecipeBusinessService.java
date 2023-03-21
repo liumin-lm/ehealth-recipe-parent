@@ -136,5 +136,5 @@ public interface IOfflineRecipeBusinessService {
      * @param request
      * @return
      */
-    List<OfflineToOnlineResVO> batchOfflineToOnline(OfflineToOnlineReqVO request);
+    List<OfflineToOnlineResVO> batchOfflineToOnline(BatchOfflineToOnlineReqVO request);
 }

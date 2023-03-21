@@ -110,9 +110,11 @@ public class OnGoningStrategyImpl extends BaseOfflineToOnlineService implements 
     }
 
     @Override
-    public List<OfflineToOnlineResVO> batchOfflineToOnline(OfflineToOnlineReqVO request) {
+    public List<OfflineToOnlineResVO> batchOfflineToOnline(BatchOfflineToOnlineReqVO request) {
         return null;
     }
+
+
 
     /**
      * @param data 当前获取HIS的处方单集合

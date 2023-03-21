@@ -47,7 +47,7 @@ public class AlreadyPayStrategyImpl extends BaseOfflineToOnlineService implement
     }
 
     @Override
-    public List<OfflineToOnlineResVO> batchOfflineToOnline(OfflineToOnlineReqVO request) {
+    public List<OfflineToOnlineResVO> batchOfflineToOnline(BatchOfflineToOnlineReqVO request) {
         return null;
     }
 
