@@ -39,6 +39,7 @@ import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.client.OfflineRecipeClient;
 import recipe.common.CommonConstant;
 import recipe.constant.ErrorCode;
+import recipe.constant.HisErrorCodeEnum;
 import recipe.core.api.patient.IOfflineRecipeBusinessService;
 import recipe.dao.OrganAndDrugsepRelationDAO;
 import recipe.dao.RecipeDAO;
@@ -369,8 +370,19 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
             }
             logger.info("RecipeBusinessService pushRecipe end recipeId:{}", recipeId);
             return result;
+        } catch (DAOException de) {
+            logger.error("RecipeBusinessService pushRecipe DAOException, sysType={}, recipeId:{}", sysType, recipeId, de);
+            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "当前处方推送his失败:" + de.getMessage());
+            String msg;
+            if (HisErrorCodeEnum.HIS_CODE_ERROR.getCode() == de.getCode()) {
+                msg = de.getMessage();
+            } else {
+                msg = configurationClient.getValueCatch(recipe.getClinicOrgan(), "pushHisRecipeResultMsg", "当前处方推送his失败");
+            }
+            stateManager.updateWriteHisState(recipeId, WriteHisEnum.WRITE_HIS_STATE_AUDIT);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, msg);
         } catch (Exception e) {
-            logger.error("RecipeBusinessService pushRecipe error,sysType={},recipeId:{}", sysType, recipeId, e);
+            logger.error("RecipeBusinessService pushRecipe Exception, sysType={}, recipeId:{}", sysType, recipeId, e);
             RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "当前处方推送his失败:" + e.getMessage());
             String msg = configurationClient.getValueCatch(recipe.getClinicOrgan(), "pushHisRecipeResultMsg", "当前处方推送his失败");
             stateManager.updateWriteHisState(recipeId, WriteHisEnum.WRITE_HIS_STATE_AUDIT);

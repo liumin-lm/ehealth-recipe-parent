@@ -655,7 +655,7 @@ public class OfflineRecipeClient extends BaseClient {
     }
 
     private RecipeInfoDTO recipeInfoDTO(HisResponseTO<com.ngari.platform.recipe.mode.RecipeDTO> hisResponse, RecipeTherapy recipeTherapy) throws Exception {
-        com.ngari.platform.recipe.mode.RecipeDTO hisResponseData = getResponse(hisResponse);
+        com.ngari.platform.recipe.mode.RecipeDTO hisResponseData = getResponseMsg(hisResponse);
         RecipeInfoDTO recipeInfoDTO = new RecipeInfoDTO();
         recipeInfoDTO.setRecipe(ObjectCopyUtils.convert(hisResponseData.getRecipeBean(), Recipe.class));
         recipeInfoDTO.setRecipeExtend(ObjectCopyUtils.convert(hisResponseData.getRecipeExtendBean(), RecipeExtend.class));
