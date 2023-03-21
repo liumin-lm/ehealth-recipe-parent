@@ -147,6 +147,7 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
         validateAtop(validateDetailVO.getRecipeBean().getRecipeId());
         DoSignRecipeDTO doSignRecipe = offlineRecipeBusinessService.hisRecipeCheck(validateDetailVO);
         enterpriseBusinessService.checkRecipeGiveDeliveryMsg(doSignRecipe, validateDetailVO.getRecipeBean());
+        doSignRecipe.setMap(null);
         return doSignRecipe;
     }
 
