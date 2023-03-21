@@ -499,9 +499,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @RpcService
     public QueryResult<RecipesQueryResVO> findRecipesByInfo2(RecipesQueryVO recipesQueryVO) {
         if (recipesQueryVO.getOrganId() != null) {
-            if (!OpSecurityUtil.isAuthorisedOrgan(recipesQueryVO.getOrganId())) {
-                return null;
-            }
+            OpSecurityUtil.isAuthorisedOrgan(recipesQueryVO.getOrganId());
         }
         UserRoleToken urt = UserRoleToken.getCurrent();
         String manageUnit = urt.getManageUnit();
@@ -518,7 +516,6 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         QueryResult<Recipe> recipeListResult = recipeDAO.findRecipesByInfoV2(recipesQueryVO);
         List<Recipe> recipeList=recipeListResult.getItems();
         LOGGER.info("findRecipesByInfo recipeListResult:{}", JSONUtils.toString(recipeListResult));
-
 
         //组装返回参数
         List<RecipesQueryResVO> resList = Lists.newArrayList();

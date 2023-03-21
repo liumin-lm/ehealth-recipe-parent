@@ -1303,10 +1303,8 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
                 Date bDate = recipesQueryVO.getBDate();
                 Date eDate = recipesQueryVO.getEDate();
-
 
                 // 查询总记录数
                 SQLQuery sqlQuery = ss.createSQLQuery(sbHqlCount.toString());
@@ -1322,7 +1320,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 query.setMaxResults(recipesQueryVO.getLimit());
                 List<Recipe> recipeList = query.list();
 
-                setResult(new QueryResult<Recipe>(total, query.getFirstResult(), query.getMaxResults(), recipeList));
+                setResult(new QueryResult<>(total, query.getFirstResult(), query.getMaxResults(), recipeList));
             }
         };
         HibernateSessionTemplate.instance().execute(action);
@@ -1707,6 +1705,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
             case 3:
                 //发药时间
                 hql.append(" and o.dispensingTime BETWEEN :startTime" + " and :endTime ");
+                break;
+            case 4:
+                //配送时间
+                hql.append(" and r.startSendDate BETWEEN :startTime" + " and :endTime ");
                 break;
             default:
                 break;
