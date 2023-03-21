@@ -25,6 +25,7 @@ import ctd.util.JSONUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.constant.RecipeBussConstant;
 import recipe.enumerate.type.BussSourceTypeEnum;
 import recipe.enumerate.type.FastRecipeFlagEnum;
 import recipe.util.ValidateUtil;
@@ -252,6 +253,18 @@ public class RevisitClient extends BaseClient {
             return;
         }
         recipeOnLineRevisitService.sendRecipeDefeat(recipe.getRecipeId(), recipe.getClinicId());
+    }
+
+    public void sendRecipeMsg(Integer consultId, Integer bussSource) {
+        logger.info("RevisitClient sendRecipeMsg consultId={},bussSource={}", consultId, bussSource);
+        if (!RecipeBussConstant.BUSS_SOURCE_FZ.equals(bussSource)) {
+            return;
+        }
+        try {
+            recipeOnLineRevisitService.sendRecipeMsg(consultId, 2);
+        } catch (Exception e) {
+            logger.error("RevisitClient sendRecipeMsg error", e);
+        }
     }
 
     /**

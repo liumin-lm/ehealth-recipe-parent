@@ -1,5 +1,6 @@
 package recipe.util;
 
+import com.ngari.recipe.dto.RecipeInvalidDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
@@ -18,6 +19,11 @@ import recipe.enumerate.type.DrugBelongTypeEnum;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.util.Calendar;
 import java.util.Date;
 
 /**
@@ -199,6 +205,51 @@ public class RecipeUtil {
                 tips = "待取药";
         }
         return tips;
+    }
+
+
+    public static RecipeInvalidDTO getRecipeInvalidInfo(Date signDate, String recipeInvalidTime) {
+        RecipeInvalidDTO invalidDTO = new RecipeInvalidDTO();
+        try {
+            if (StringUtils.isNotEmpty(recipeInvalidTime)) {
+                // 配置格式：签名当天后某天24点前=d2-天数;签名后大于24小时=d1-小时数;签名后小于一天=h-小时数
+                // 签名后小于一天用延迟队列取消处方，其余由定时任务取消
+                String[] invalidArr = recipeInvalidTime.split("-");
+                invalidDTO.setInvalidType(invalidArr[0]);
+                Double invalidValue = Double.parseDouble(invalidArr[1]);
+                Calendar calendar = Calendar.getInstance();
+                calendar.setTime(signDate);
+                Date invalidDate = null;
+                switch (invalidArr[0]) {
+                    case "d1":
+                        // 签名时间往后推invalidValue小时
+                        calendar.add(Calendar.HOUR, invalidValue.intValue());
+                        invalidDate = calendar.getTime();
+                        break;
+                    case "d2":
+                        // 签名时间往后推invalidValue天的最大时间
+                        calendar.add(Calendar.DATE, invalidValue.intValue());
+                        Date afterDate = calendar.getTime();
+                        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(afterDate.getTime()), ZoneId.systemDefault());
+
+                        LocalDateTime endOfDay = localDateTime.with(LocalTime.MAX);
+                        invalidDate = Date.from(endOfDay.atZone(ZoneId.systemDefault()).toInstant());
+                        break;
+                    case "h":
+                        // 签名时间往后推invalidValue*60 分钟
+                        int minute = (int) (invalidValue * 60);
+                        calendar.add(Calendar.MINUTE, minute);
+                        invalidDate = calendar.getTime();
+                        break;
+                    default:
+                        break;
+                }
+                invalidDTO.setInvalidDate(invalidDate);
+            }
+        } catch (Exception e) {
+            logger.error("机构处方失效时间-计算失效失效异常 recipeInvalidTime={}", recipeInvalidTime, e);
+        }
+        return invalidDTO;
     }
 
 }

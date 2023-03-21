@@ -105,6 +105,29 @@ public abstract class BaseClient implements IRecipeDataSave {
     }
 
     /**
+     * 扩展 当 前置机没实现接口时特殊处理返回值
+     * 不建议使用，特殊处理新老医院对接问题
+     *
+     * @param hisResponse 前置机出参
+     * @param <T>         范型
+     * @return 返回封装的data
+     */
+    protected <T> T getResponseCatchMsg(HisResponseTO<T> hisResponse) {
+        try {
+            return getResponseMsg(hisResponse);
+        } catch (DAOException e) {
+            if (HisErrorCodeEnum.HIS_NULL_ERROR.getCode() == e.getCode()) {
+                logger.warn("BaseClient getResponseCatch is null ");
+                return null;
+            }
+            throw new DAOException(e);
+        } catch (Exception e1) {
+            logger.error("BaseClient getResponseCatch hisResponse= {}", JSON.toJSONString(hisResponse));
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
+        }
+    }
+
+    /**
      * 获取地址枚举
      *
      * @param area

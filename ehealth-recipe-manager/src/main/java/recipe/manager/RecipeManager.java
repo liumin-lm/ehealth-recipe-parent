@@ -43,6 +43,7 @@ import recipe.common.OnsConfig;
 import recipe.common.UrlConfig;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
+import recipe.constant.RecipeSystemConstant;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RequirementsForTakingDao;
 import recipe.enumerate.status.RecipeAuditStateEnum;
@@ -298,6 +299,10 @@ public class RecipeManager extends BaseManager {
         RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipeDTO.getRecipe().getOrderCode());
         recipeDTO.setRecipeOrder(recipeOrder);
         return recipeDTO;
+    }
+
+    public RecipeDTO getSuperRecipeDTO(Integer recipeId) {
+        return super.getRecipeDTO(recipeId);
     }
 
     /**
@@ -1277,25 +1282,6 @@ public class RecipeManager extends BaseManager {
         return reqDTO;
     }
 
-    ///**
-    // * 快捷购药是否存在库存
-    // * @param recipeId
-    // * @return
-    // */
-    //public boolean fastRecipeStock(Integer recipeId){
-    //    RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
-    //    FastRecipe fastRecipe = fastRecipeDAO.get(recipeExtend.getMouldId());
-    //    if (Objects.isNull(fastRecipe)) {
-    //        return false;
-    //    }
-    //    if (Objects.isNull(fastRecipe.getStockNum())) {
-    //        return true;
-    //    }
-    //    if (0 == fastRecipe.getStockNum()) {
-    //        return false;
-    //    }
-    //    return recipeExtend.getFastRecipeNum() <= fastRecipe.getStockNum();
-    //}
 
     /**
      * 排除 特定处方id
@@ -1547,8 +1533,38 @@ public class RecipeManager extends BaseManager {
             return recipeInfoDTOS;
         } catch (Exception e) {
             e.printStackTrace();
-            logger.info("patientRecipeList error",e);
+            logger.info("patientRecipeList error", e);
         }
         return Collections.emptyList();
+    }
+
+
+    /**
+     * 设置处方失效时间，非当天小于24小时的发送失效延迟消息
+     *
+     * @param
+     */
+    public void handleRecipeInvalidTime(Integer clinicOrgan, Integer recipeId, Date signDate) {
+        if (Objects.isNull(signDate)) {
+            signDate = recipeDAO.getByRecipeId(recipeId).getSignDate();
+        }
+        String recipeInvalidTime = configurationClient.getValueEnumCatch(clinicOrgan, "recipeInvalidTime", null);
+        // 获取失效时间及类型
+        RecipeInvalidDTO invalidDTO = RecipeUtil.getRecipeInvalidInfo(signDate, recipeInvalidTime);
+        if (null == invalidDTO.getInvalidDate()) {
+            return;
+        }
+        // 更新处方失效时间
+        Recipe recipe = new Recipe();
+        recipe.setRecipeId(recipeId);
+        recipe.setInvalidTime(invalidDTO.getInvalidDate());
+        recipeDAO.updateNonNullFieldByPrimaryKey(recipe);
+        // 未失效且为延迟队列处理类型-发送延迟消息，其他类型通过定时任务处理
+        if ("h".equals(invalidDTO.getInvalidType())) {
+            Date nowDate = new Date();
+            long millSecond = eh.utils.DateConversion.secondsBetweenDateTime(nowDate, invalidDTO.getInvalidDate()) * 1000L;
+            logger.info("机构处方失效时间-发送延迟消息内容，机构id={},处方id={},延迟时间={}毫秒", clinicOrgan, recipeId, millSecond);
+            MQHelper.getMqPublisher().publish(OnsConfig.recipeDelayTopic, String.valueOf(recipeId), RecipeSystemConstant.RECIPE_INVALID_TOPIC_TAG, String.valueOf(recipeId), millSecond);
+        }
     }
 }

@@ -318,8 +318,22 @@ public class RevisitManager extends BaseManager {
                 revisitEntrustRequest.setRegisterNo(recipeExtend.getRegisterID());
             }
             revisitClient.doHandleAfterPayForEntrust(revisitEntrustRequest);
-        }catch (Exception e){
-            logger.error("doHandleAfterPayForEntrust 通知复诊支付成功失败 orderCode={}",order.getOrderCode());
+        } catch (Exception e) {
+            logger.error("doHandleAfterPayForEntrust 通知复诊支付成功失败 orderCode={}", order.getOrderCode());
         }
+    }
+
+    /**
+     * 处方开完后发送聊天界面消息 -医院确认中
+     *
+     * @param consultId
+     * @param bussSource
+     */
+    public void sendRecipeMsg(Integer consultId, Integer bussSource) {
+        if (ValidateUtil.integerIsEmpty(consultId)) {
+            return;
+        }
+        revisitClient.sendRecipeMsg(consultId, bussSource);
+        consultClient.sendRecipeMsg(consultId, bussSource);
     }
 }

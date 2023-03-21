@@ -461,7 +461,16 @@ public interface IRecipeBusinessService {
     Integer stagingRecipe(RecipeInfoVO recipeInfoVO);
 
     /**
+     * 处方签名
+     *
+     * @param recipeInfoVO
+     * @return
+     */
+    Integer signRecipe(RecipeInfoVO recipeInfoVO);
+    
+    /**
      * 医生端获取列表接口
+     *
      * @param doctorRecipeListReqVO
      * @return
      */
@@ -490,4 +499,13 @@ public interface IRecipeBusinessService {
     void sendSuccessRecipe(HisSendResTO response);
 
     RecipeDTO getRecipeInfoByRecipeId(Integer recipeId);
+
+    /**
+     * 获取基础处方表数据
+     *
+     * @param recipeId
+     * @return
+     */
+    RecipeDTO getRecipeDTO(Integer recipeId);
+
 }

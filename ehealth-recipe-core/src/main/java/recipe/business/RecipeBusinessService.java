@@ -57,16 +57,20 @@ import recipe.audit.auditmode.AuditModeContext;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
+import recipe.caNew.AbstractCaProcessType;
+import recipe.caNew.CaAfterProcessType;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.*;
 import recipe.common.OnsConfig;
 import recipe.constant.ErrorCode;
+import recipe.constant.HisBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.constant.ReviewTypeConstant;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.dao.*;
 import recipe.enumerate.status.*;
 import recipe.enumerate.type.*;
+import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.QueryRecipeService;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.manager.*;
@@ -75,6 +79,7 @@ import recipe.purchase.CommonOrder;
 import recipe.service.*;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.serviceprovider.recipeorder.service.RemoteRecipeOrderService;
+import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.*;
 import recipe.vo.PageGenericsVO;
 import recipe.vo.doctor.DoctorRecipeListReqVO;
@@ -171,8 +176,8 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     private OrganAndDrugsepRelationDAO drugsDepRelationDAO;
     @Autowired
     private RevisitClient revisitClient;
-    @Autowired
-    private HisRecipeManager hisRecipeManager;
+    @Resource
+    private CaAfterProcessType caAfterProcessType;
 
     /**
      * 获取线下门诊处方诊断信息
@@ -1517,6 +1522,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         return recipeDAO.get(recipeId);
     }
 
+
     @Override
     public Integer stagingRecipe(RecipeInfoVO recipeInfoVO) {
         // recipe 信息
@@ -1530,6 +1536,43 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         // 修改状态
         stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_SUBMIT, RecipeStateEnum.SUB_SUBMIT_TEMPORARY);
         return recipe.getRecipeId();
+    }
+
+    @Override
+    public Integer signRecipe(RecipeInfoVO recipeInfoVO) {
+        RecipeBean recipeBean = recipeInfoVO.getRecipeBean();
+        // recipeBean.setDistributionFlag(continueFlag);
+        boolean isWriteHis = recipeManager.recipeWriteHis(recipeBean.getRecipeId());
+        if (isWriteHis) {
+            return recipeBean.getRecipeId();
+        }
+        caManager.setCaPassWord(recipeBean.getClinicOrgan(), recipeBean.getDoctor(), recipeBean.getCaPassword());
+        /**平台**/
+        if (Integer.valueOf(1).equals(recipeInfoVO.getType())) {
+            Integer caType = configurationClient.getValueCatchReturnInteger(recipeBean.getClinicOrgan(), "CAProcessType", 0);
+            if (0 == caType) {
+                //老版默认走后置的逻辑，直接将处方推his
+                caAfterProcessType.signCABeforeRecipeFunction(recipeBean, recipeInfoVO.getRecipeDetails());
+            } else {
+                AbstractCaProcessType.getCaProcessFactory(recipeBean.getClinicOrgan()).signCABeforeRecipeFunction(recipeBean, recipeInfoVO.getRecipeDetails());
+            }
+            // 处方失效时间处理
+            recipeManager.handleRecipeInvalidTime(recipeBean.getClinicOrgan(), recipeBean.getRecipeId(), recipeBean.getSignDate());
+        } else {
+            /**互联网**/
+            //MQ推送处方开成功消息 - 发送HIS处方开具消息
+            offlineRecipeClient.recipeStatusToHis(HisMqRequestInit.initRecipeStatusToHisReq(recipeBean, HisBussConstant.TOHIS_RECIPE_STATUS_ADD));
+            //处方开完后发送聊天界面消息 -医院确认中
+            revisitManager.sendRecipeMsg(recipeBean.getClinicId(), recipeBean.getBussSource());
+        }
+        //数据通知
+        RecipeBusiThreadPool.execute(() -> {
+            //健康卡数据上传
+            patientClient.cardDataUpload(recipeBean.getClinicOrgan(), recipeBean.getMpiid());
+            //通知复诊——添加处方追溯数据
+            revisitManager.saveRevisitTracesList(recipeDAO.get(recipeBean.getRecipeId()));
+        });
+        return recipeBean.getRecipeId();
     }
 
     @Override
@@ -1648,10 +1691,15 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     @Override
     public RecipeDTO getRecipeInfoByRecipeId(Integer recipeId) {
         RecipeDTO recipeDTO = recipeManager.getRecipeDTO(recipeId);
-        if(null!=recipeDTO.getRecipe() && StringUtils.isNotEmpty(recipeDTO.getRecipe().getOrderCode())){
+        if (null != recipeDTO.getRecipe() && StringUtils.isNotEmpty(recipeDTO.getRecipe().getOrderCode())) {
             recipeDTO.setRecipeOrder(recipeOrderDAO.getByOrderCode(recipeDTO.getRecipe().getOrderCode()));
         }
         return recipeDTO;
+    }
+
+    @Override
+    public RecipeDTO getRecipeDTO(Integer recipeId) {
+        return recipeManager.getSuperRecipeDTO(recipeId);
     }
 }
 

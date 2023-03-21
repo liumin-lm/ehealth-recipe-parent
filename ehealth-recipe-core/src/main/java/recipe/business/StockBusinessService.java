@@ -574,7 +574,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
      * @return
      */
     private DoSignRecipeDTO enterpriseStock(RecipeDTO recipeDTO, Integer stockCheckType) {
-        DoSignRecipeDTO doSignRecipe = new DoSignRecipeDTO(true, false, null, "", recipeDTO.getRecipe().getRecipeId(), null, null, null);
+        DoSignRecipeDTO doSignRecipe = new DoSignRecipeDTO(true, false, null, "", recipeDTO.getRecipe().getRecipeId(), null, null, null, null);
         List<EnterpriseStock> enterpriseStockList = this.drugRecipeStockV1(recipeDTO, stockCheckType);
         Recipe recipe = recipeDTO.getRecipe();
         //保存药品购药方式

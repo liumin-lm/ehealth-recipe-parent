@@ -154,4 +154,11 @@ public class OrganClient extends BaseClient {
         recipe.setOrganName(organDTO.getShortName());
     }
 
+    public String getOrganizeCodeByOrganId(Integer organId) {
+        try {
+            return organService.getOrganizeCodeByOrganId(organId);
+        } catch (Exception e) {
+            return null;
+        }
+    }
 }
