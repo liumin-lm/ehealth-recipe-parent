@@ -53,6 +53,9 @@ public class PatientRecipeDetailResVO implements Serializable {
     @ItemProperty(alias = "机构疾病名称")
     private String organDiseaseName;
 
+    @ItemProperty(alias = "机构疾病编码")
+    private String organDiseaseId;
+
     @ItemProperty(alias = "处方父状态：0：默认 ， 1：待提交，2：待审核，3：待够药，4：待发药，5：配送中，6：待取药，7：已完成，8：已删除 ，9：已作废")
     @Dictionary(id = "eh.recipe.recipeState.process")
     private Integer processState;
