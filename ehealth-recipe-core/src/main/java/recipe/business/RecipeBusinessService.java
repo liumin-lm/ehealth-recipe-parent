@@ -1613,6 +1613,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
                     if (Objects.nonNull(organDrugList)) {
                         recipeDetailBean.setSkinTestDrugFlag(organDrugList.getSkinTestDrugFlag());
                         recipeDetailBean.setTargetedDrugType(organDrugList.getTargetedDrugType());
+                        recipeDetailBean.setUseDoseAndUnitRelation(RecipeUtil.defaultUseDose(organDrugList));
                     }
                 });
                 recipeInfoVO.setRecipeDetails(recipeDetailBeans);
