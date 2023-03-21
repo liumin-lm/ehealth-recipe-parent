@@ -308,15 +308,7 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
         if (ValidateUtil.integerIsEmpty(clinicId)) {
             return true;
         }
-        try {
-            return recipeBusinessService.validateOpenRecipeNumber(clinicId, organId, recipeId);
-        } catch (DAOException e1) {
-            logger.error("RecipeValidateDoctorAtop validateOpenRecipeNumber error", e1);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
-        } catch (Exception e) {
-            logger.error("RecipeValidateDoctorAtop validateOpenRecipeNumber error e", e);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
-        }
+        return recipeBusinessService.validateOpenRecipeNumber(clinicId, organId, recipeId);
     }
 
     /**
