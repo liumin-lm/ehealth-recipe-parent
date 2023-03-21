@@ -62,7 +62,7 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
         validateAtop(recipeInfoVO, recipeInfoVO.getRecipeBean(), recipeInfoVO.getRecipeExtendBean(), recipeInfoVO.getRecipeDetails()
                 , recipeInfoVO.getType(), recipeInfoVO.getSource());
         RecipeBean recipeBean = recipeInfoVO.getRecipeBean();
-        validateAtop(recipeBean.getClinicOrgan(), recipeBean.getRecipeId(), recipeBean.getSignDate());
+        validateAtop(recipeBean.getClinicOrgan(), recipeBean.getRecipeId(), recipeBean.getSignDate(), recipeBean.getDoctor());
         if (StringUtils.isEmpty(recipeInfoVO.getRecipeBean().getRecipeSupportGiveMode())) {
             throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, "无购药方式");
         }

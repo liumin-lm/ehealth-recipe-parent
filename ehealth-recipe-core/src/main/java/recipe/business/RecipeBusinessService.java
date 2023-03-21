@@ -1541,7 +1541,6 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     @Override
     public Integer signRecipe(RecipeInfoVO recipeInfoVO) {
         RecipeBean recipeBean = recipeInfoVO.getRecipeBean();
-        // recipeBean.setDistributionFlag(continueFlag);
         boolean isWriteHis = recipeManager.recipeWriteHis(recipeBean.getRecipeId());
         if (isWriteHis) {
             return recipeBean.getRecipeId();
