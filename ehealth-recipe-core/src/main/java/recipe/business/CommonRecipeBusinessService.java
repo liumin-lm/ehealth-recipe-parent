@@ -81,11 +81,6 @@ public class CommonRecipeBusinessService extends BaseService implements ICommonR
         }
     }
 
-    public void refreshCommonValidateStatus(List<CommonRecipeDrugDTO> drugList) {
-        List<CommonRecipeDrug> commonDrugList = ObjectCopyUtils.convert(drugList, CommonRecipeDrug.class);
-        commonRecipeManager.refreshCommonValidateStatus(commonDrugList);
-    }
-
     /**
      * 删除常用方
      *
@@ -97,22 +92,6 @@ public class CommonRecipeBusinessService extends BaseService implements ICommonR
         commonRecipeManager.removeCommonRecipe(commonRecipeId);
     }
 
-    public List<CommonRecipe> commonRecipeListV2(Integer organId, Integer doctorId, List<Integer> recipeType, int start, int limit) {
-        List<CommonRecipe> list = commonRecipeManager.commonRecipeList(organId, doctorId, recipeType, start, limit);
-        if (CollectionUtils.isEmpty(list)) {
-            return Collections.emptyList();
-        }
-        //药房
-        Map<Integer, PharmacyTcm> pharmacyIdMap = pharmacyManager.pharmacyIdMap(organId);
-        list.forEach(a -> {
-            PharmacyTcm pharmacyTcm = PharmacyManager.pharmacyById(a.getPharmacyId(), pharmacyIdMap);
-            if (null != pharmacyTcm) {
-                a.setPharmacyCode(pharmacyTcm.getPharmacyCode());
-                a.setPharmacyName(pharmacyTcm.getPharmacyName());
-            }
-        });
-        return list;
-    }
 
     @Override
     public CommonDTO commonRecipeInfo(Integer commonRecipeId) {
