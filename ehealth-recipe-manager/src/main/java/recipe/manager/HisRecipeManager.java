@@ -14,10 +14,7 @@ import com.ngari.platform.recipe.mode.RecipeBean;
 import com.ngari.platform.recipe.mode.RecipeDTO;
 import com.ngari.platform.recipe.mode.RecipeDetailBean;
 import com.ngari.platform.recipe.mode.RecipeExtendBean;
-import com.ngari.recipe.dto.DoSignRecipeDTO;
-import com.ngari.recipe.dto.EmrDetailDTO;
-import com.ngari.recipe.dto.PatientRecipeListReqDTO;
-import com.ngari.recipe.dto.RecipeInfoDTO;
+import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import ctd.persistence.exception.DAOException;
@@ -723,11 +720,6 @@ public class HisRecipeManager extends BaseManager {
         if (CollectionUtils.isEmpty(organDrugFormSet)) {
             return RecipeDrugFormTypeEnum.TCM_DECOCTION_PIECES.getType();
         }
-//        if (organDrugFormSet.size() > 1) {
-//            logger.info(JsonUtil.toString(organDrugFormSet));
-//            //说明同一批药存在不同的剂型
-//            return -1;
-//        }
         return RecipeDrugFormTypeEnum.getDrugFormType((String)organDrugFormSet.toArray()[0]);
     }
 
@@ -936,6 +928,66 @@ public class HisRecipeManager extends BaseManager {
         } catch (Exception e) {
             return doSignRecipe(recipe.getRecipeId(), "his处方预检查异常", false, recipe.getClinicOrgan());
         }
+    }
+
+    /**
+     * 查询his处方详情
+     * @param patientRecipeDetailReq
+     * @return
+     */
+    public RecipeInfoDTO getHisRecipeInfoDTO (PatientRecipeDetailReqDTO patientRecipeDetailReq){
+        if (StringUtils.isEmpty(patientRecipeDetailReq.getMpiid()) || StringUtils.isEmpty(patientRecipeDetailReq.getRecipeCode())) {
+            return null;
+        }
+        PatientDTO patient = patientClient.getPatient(patientRecipeDetailReq.getMpiid());
+        if (Objects.isNull(patient)) {
+            return null;
+        }
+        HisResponseTO<List<QueryHisRecipResTO>> hisResponseTO = queryData(patientRecipeDetailReq.getOrganId(),patient ,null,1,null,patientRecipeDetailReq.getStartTime(),patientRecipeDetailReq.getEndTime());
+        if (null == hisResponseTO || CollectionUtils.isEmpty(hisResponseTO.getData())) {
+            return null;
+        }
+        RecipeInfoDTO recipeInfoDTO = new RecipeInfoDTO();
+        List<QueryHisRecipResTO> hisRecipeResTOList = hisResponseTO.getData();
+        QueryHisRecipResTO hisRecipeResTO = hisRecipeResTOList.get(0);
+        Recipe recipe = getRecipeFromHisRecipe(hisRecipeResTO);
+        RecipeExtend recipeExtend = getRecipeExtendFromHisRecipe(hisRecipeResTO);
+        List<Recipedetail> recipeDetails = getRecipeDetailsFromHisRecipe(hisRecipeResTO);
+        recipeInfoDTO.setRecipe(recipe);
+        recipeInfoDTO.setRecipeExtend(recipeExtend);
+        recipeInfoDTO.setRecipeDetails(recipeDetails);
+        recipeInfoDTO.setPatientBean(ObjectCopyUtils.convert(patient, com.ngari.recipe.dto.PatientDTO.class));
+        return recipeInfoDTO;
+    }
+
+    /**
+     * 将获取到的线下处方信息组装为线上处方对象
+     * @param hisRecipeResTO
+     * @return
+     */
+    public Recipe getRecipeFromHisRecipe(QueryHisRecipResTO hisRecipeResTO) {
+        Recipe recipe = new Recipe();
+        return recipe;
+    }
+
+    /**
+     * 将获取到的线下处方信息组装为线上处方扩展对象
+     * @param hisRecipeResTO
+     * @return
+     */
+    public RecipeExtend getRecipeExtendFromHisRecipe(QueryHisRecipResTO hisRecipeResTO) {
+        RecipeExtend recipeExtend = new RecipeExtend();
+        return recipeExtend;
+    }
+
+    /**
+     * 将获取到的线下处方药品信息组装为线上处方药品对象
+     * @param hisRecipeResTO
+     * @return
+     */
+    public List<Recipedetail> getRecipeDetailsFromHisRecipe(QueryHisRecipResTO hisRecipeResTO) {
+        List<Recipedetail> recipeDetails = new ArrayList<>();
+        return recipeDetails;
     }
 
     /**
