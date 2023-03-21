@@ -4,6 +4,7 @@ import ctd.schema.annotation.ItemProperty;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.Date;
 
 /**
  * @description：患者端 处方详情入参
@@ -25,5 +26,14 @@ public class PatientRecipeDetailReqVO implements Serializable {
 
     @ItemProperty(alias = "处方业务查询来源 1 线上  2 线下 3 院内门诊")
     private Integer recipeBusType;
+
+    @ItemProperty(alias = "主索引（患者编号）")
+    private String mpiid;
+
+    @ItemProperty(alias = "开始时间")
+    private Date startTime;
+
+    @ItemProperty(alias = "结束时间")
+    private Date endTime;
 
 }

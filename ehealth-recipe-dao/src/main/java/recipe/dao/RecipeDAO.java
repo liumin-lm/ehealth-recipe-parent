@@ -5017,6 +5017,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder("SELECT * FROM cdr_recipe WHERE ClinicOrgan =  :organId ");
                 hql.append(" AND MPIID = :mpiId  ");
+                hql.append(" AND bussSource in (:bussSource)  ");
                 hql.append(" AND SignDate BETWEEN :startTime AND :endTime ");
                 hql.append(" AND process_state IN ( :recipeState)  ");
                 hql.append(" AND recipeSourceType IN ( 1,2)  ");
@@ -5027,6 +5028,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 q.setParameter("startTime", req.getStartTime());
                 q.setParameter("endTime", req.getEndTime());
                 q.setParameterList("recipeState", req.getRecipeState());
+                q.setParameterList("bussSource", req.getBussSource());
 
                 setResult(q.list());
             }

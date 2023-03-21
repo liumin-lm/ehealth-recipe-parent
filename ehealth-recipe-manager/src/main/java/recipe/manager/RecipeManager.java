@@ -1486,8 +1486,17 @@ public class RecipeManager extends BaseManager {
     public List<RecipeInfoDTO> patientRecipeList(PatientRecipeListReqDTO req) {
         try {
             List<String> isHisRecipe = configurationClient.getPropertyByStringList("findRecipeListType");
-            if (!isHisRecipe.contains("onLine")) {
+            if (CollectionUtils.isEmpty(isHisRecipe)) {
                 return Collections.emptyList();
+            }
+            List<Integer> bussSource = new ArrayList<>();
+            if (isHisRecipe.contains("onLine")) {
+                bussSource.add(1);
+                bussSource.add(2);
+            }
+            if (isHisRecipe.contains("offLine")) {
+                bussSource.add(0);
+                bussSource.add(5);
             }
             List<Integer> recipeState = RecipeStateEnum.RECIPE_ALL;
             switch (req.getState()) {
