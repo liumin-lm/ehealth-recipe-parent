@@ -28,6 +28,8 @@ import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.DepListBean;
 import com.ngari.recipe.dto.GiveModeButtonDTO;
 import com.ngari.recipe.dto.GiveModeShowButtonDTO;
+import com.ngari.recipe.dto.RecipeDTO;
+import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RankShiftList;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
@@ -1000,6 +1002,17 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
 
     @Override
     public PatientRecipeDetailResVO patientRecipeDetail(PatientRecipeDetailReqVO patientRecipeDetailReq) {
+        RecipeInfoDTO recipe = null;
+        if (Objects.nonNull(patientRecipeDetailReq.getRecipeId())) {
+             recipe = recipeManager.getRecipeInfoDTO(patientRecipeDetailReq.getRecipeId());
+        }
+        if(Objects.isNull(recipe) && StringUtils.isNotEmpty(patientRecipeDetailReq.getRecipeCode()) && Objects.nonNull(patientRecipeDetailReq.getOrganId())){
+            // 获取线下处方
+
+        }
+        if (Objects.isNull(recipe)){
+            throw new DAOException("未查询到相关处方信息");
+        }
         return null;
     }
 

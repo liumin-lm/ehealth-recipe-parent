@@ -1,5 +1,6 @@
 package recipe.vo.patient;
 
+import com.ngari.recipe.recipe.model.GiveModeButtonBean;
 import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
@@ -125,6 +126,10 @@ public class PatientRecipeDetailResVO implements Serializable {
     @ItemProperty(alias = "是否是加急审核处方 0否 1是")
     private Integer canUrgentAuditRecipe;
 
+    @ItemProperty(alias = "病种标识")
+    @Dictionary(id = "eh.cdr.dictionary.ChronicDiseaseFlag")
+    private String chronicDiseaseFlag;
+
     @ItemProperty(alias = "病种代码")
     private String chronicDiseaseCode;
 
@@ -205,5 +210,11 @@ public class PatientRecipeDetailResVO implements Serializable {
 
     @ItemProperty(alias = "是否可以下载处方笺")
     private Boolean isDownload;
+
+    @ItemProperty(alias = "是否跳转第三方")
+    private GiveModeButtonBean showThirdOrder;
+
+    @ItemProperty(alias = "线下处方购药方式 从his获取的")
+    private String giveModeText;
 
 }

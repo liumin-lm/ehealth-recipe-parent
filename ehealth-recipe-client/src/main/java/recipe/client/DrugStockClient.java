@@ -94,6 +94,9 @@ public class DrugStockClient extends BaseClient {
         try {
             HisResponseTO<Boolean> hisResponse = recipeHisService.drugInventory(request);
             Boolean result = getResponseCatchMsg(hisResponse);
+            if(result == null){
+                return;
+            }
             if (!result) {
                 throw new DAOException(ErrorCode.SERVICE_ERROR, "his库存操作失败");
             }
