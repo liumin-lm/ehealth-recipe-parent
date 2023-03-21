@@ -449,11 +449,12 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
 
     @Override
     public DoSignRecipeDTO hisRecipeCheck(ValidateDetailVO validateDetailVO) {
+        recipeDetailValidateTool.validateMedicalChineDrugNumber(validateDetailVO.getRecipeBean(), validateDetailVO.getRecipeExtendBean(), validateDetailVO.getRecipeDetails());
+        //处方与校验
         Boolean isDefaultGiveModeToHos = configurationClient.getValueBooleanCatch(validateDetailVO.getRecipeBean().getClinicOrgan(), "hisRecipeCheckFlag", false);
         if (!isDefaultGiveModeToHos) {
             return null;
         }
-        recipeDetailValidateTool.validateMedicalChineDrugNumber(validateDetailVO.getRecipeBean(), validateDetailVO.getRecipeExtendBean(), validateDetailVO.getRecipeDetails());
         Recipe recipe = ObjectCopyUtils.convert(validateDetailVO.getRecipeBean(), Recipe.class);
         RecipeExtend recipeExtend = ObjectCopyUtils.convert(validateDetailVO.getRecipeExtendBean(), RecipeExtend.class);
         List<Recipedetail> details = ObjectCopyUtils.convert(validateDetailVO.getRecipeDetails(), Recipedetail.class);

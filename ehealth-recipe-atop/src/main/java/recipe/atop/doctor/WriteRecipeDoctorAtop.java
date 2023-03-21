@@ -53,23 +53,6 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
     private IStockBusinessService iStockBusinessService;
 
     /**
-     * 处方签名
-     *
-     * @param recipeInfoVO
-     * @return
-     */
-    public Integer signRecipe(RecipeInfoVO recipeInfoVO) {
-        validateAtop(recipeInfoVO, recipeInfoVO.getRecipeBean(), recipeInfoVO.getRecipeExtendBean(), recipeInfoVO.getRecipeDetails()
-                , recipeInfoVO.getType(), recipeInfoVO.getSource());
-        RecipeBean recipeBean = recipeInfoVO.getRecipeBean();
-        validateAtop(recipeBean.getClinicOrgan(), recipeBean.getRecipeId(), recipeBean.getSignDate());
-        if (StringUtils.isEmpty(recipeInfoVO.getRecipeBean().getRecipeSupportGiveMode())) {
-            throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, "无购药方式");
-        }
-        return recipeBusinessService.signRecipe(recipeInfoVO);
-    }
-
-    /**
      * 暂存处方接口
      *
      * @param recipeInfoVO
@@ -99,10 +82,34 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
         return recipeBusinessService.stagingRecipe(recipeInfoVO);
     }
 
+    /**
+     * 暂存并返回处方详情
+     *
+     * @param recipeInfoVO
+     * @return
+     */
     @RpcService
     public RecipeDTO stagingRecipeAndGet(RecipeInfoVO recipeInfoVO) {
         Integer recipeId = stagingRecipe(recipeInfoVO);
         return recipeBusinessService.getRecipeDTO(recipeId);
+    }
+
+    /**
+     * 处方签名
+     *
+     * @param recipeInfoVO
+     * @return
+     */
+    @RpcService
+    public Integer signRecipe(RecipeInfoVO recipeInfoVO) {
+        validateAtop(recipeInfoVO, recipeInfoVO.getRecipeBean(), recipeInfoVO.getRecipeExtendBean(), recipeInfoVO.getRecipeDetails()
+                , recipeInfoVO.getType(), recipeInfoVO.getSource());
+        RecipeBean recipeBean = recipeInfoVO.getRecipeBean();
+        validateAtop(recipeBean.getClinicOrgan(), recipeBean.getRecipeId(), recipeBean.getSignDate(), recipeBean.getDoctor());
+        if (StringUtils.isEmpty(recipeInfoVO.getRecipeBean().getRecipeSupportGiveMode())) {
+            throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, "无购药方式");
+        }
+        return recipeBusinessService.signRecipe(recipeInfoVO);
     }
 
     /**

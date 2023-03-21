@@ -288,6 +288,9 @@ public class RecipeDetailBean implements java.io.Serializable {
     @ItemProperty(alias = "医保类别")
     private String medicalInsuranceCategory;
 
+    @ItemProperty(alias = "是否国家标准药品 0 否 1 是")
+    private Integer nationalStandardDrugFlag;
+
 
     public Integer getResidueDay() {
         return residueDay;
@@ -973,5 +976,13 @@ public class RecipeDetailBean implements java.io.Serializable {
 
     public void setMedicalInsuranceCategory(String medicalInsuranceCategory) {
         this.medicalInsuranceCategory = medicalInsuranceCategory;
+    }
+
+    public Integer getNationalStandardDrugFlag() {
+        return nationalStandardDrugFlag;
+    }
+
+    public void setNationalStandardDrugFlag(Integer nationalStandardDrugFlag) {
+        this.nationalStandardDrugFlag = nationalStandardDrugFlag;
     }
 }
