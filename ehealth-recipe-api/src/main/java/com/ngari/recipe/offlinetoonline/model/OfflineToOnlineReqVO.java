@@ -29,10 +29,10 @@ public class OfflineToOnlineReqVO implements Serializable {
      */
     private String mpiId;
 
-    /**
-     * 处方cdr_his_recipe表的hisRecipeId
-     */
-    private Integer hisRecipeId;
+//    /**
+//     * 处方cdr_his_recipe表的hisRecipeId
+//     */
+//    private Integer hisRecipeId;
 
     /**
      * 处方号
@@ -45,10 +45,8 @@ public class OfflineToOnlineReqVO implements Serializable {
     @Desensitizations(type = DesensitizationsType.HEALTHCARD)
     private String cardId;
 
-    /**
-     * onready（待处理）ongoing（进行中）isover（已完成）
-     */
-    private String status;
+
+    private String processState;
 
     @ItemProperty(alias = "开始时间")
     private Date startTime;

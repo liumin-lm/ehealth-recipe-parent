@@ -159,7 +159,7 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
     public OfflineToOnlineResVO offlineToOnline(OfflineToOnlineReqVO request) {
         logger.info("OfflineToOnlineService offlineToOnline request:{}", JSONUtils.toString(request));
         try {
-            IOfflineToOnlineStrategy offlineToOnlineStrategy = offlineToOnlineFactory.getFactoryService(request.getStatus());
+            IOfflineToOnlineStrategy offlineToOnlineStrategy = offlineToOnlineFactory.getFactoryService(OfflineToOnlineEnum.OFFLINE_TO_ONLINE_NO_PAY.getName());
             return offlineToOnlineStrategy.offlineToOnline(request);
         } catch (DAOException e) {
             logger.error("OfflineToOnlineService offlineToOnline error", e);
@@ -174,7 +174,7 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
     public List<OfflineToOnlineResVO> batchOfflineToOnline(BatchOfflineToOnlineReqVO request) {
         logger.info("OfflineToOnlineService batchOfflineToOnline request:{}", JSONUtils.toString(request));
         try {
-            IOfflineToOnlineStrategy offlineToOnlineStrategy = offlineToOnlineFactory.getFactoryService(request.getStatus());
+            IOfflineToOnlineStrategy offlineToOnlineStrategy = offlineToOnlineFactory.getFactoryService(OfflineToOnlineEnum.OFFLINE_TO_ONLINE_NO_PAY.getName());
             return offlineToOnlineStrategy.batchOfflineToOnline(request);
         } catch (DAOException e) {
             logger.error("OfflineToOnlineService batchOfflineToOnline error", e);
