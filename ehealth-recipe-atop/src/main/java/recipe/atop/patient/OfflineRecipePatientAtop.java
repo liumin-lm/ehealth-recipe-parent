@@ -156,7 +156,7 @@ public class OfflineRecipePatientAtop extends BaseAtop {
      * @return
      */
     @RpcService
-    public List<OfflineToOnlineResVO> batchOfflineToOnline(SettleForOfflineToOnlineVO request) {
+    public List<OfflineToOnlineResVO> batchOfflineToOnline(OfflineToOnlineReqVO request) {
         logger.info("OfflineToOnlineAtop batchOfflineToOnline request:{}", JSONUtils.toString(request));
         validateAtop(request, request.getOrganId(), request.getMpiId());
         try {

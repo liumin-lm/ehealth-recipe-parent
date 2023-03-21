@@ -56,9 +56,6 @@ public class OfflineToOnlineReqVO implements Serializable {
     @ItemProperty(alias = "结束时间")
     private Date endTime;
 
-
-    public OfflineToOnlineReqVO() {
-    }
 }
 
 

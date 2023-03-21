@@ -193,10 +193,11 @@ class NoPayStrategyImpl extends BaseOfflineToOnlineService implements IOfflineTo
     }
 
     @Override
-    public List<OfflineToOnlineResVO> batchOfflineToOnline(SettleForOfflineToOnlineVO request) {
+    public List<OfflineToOnlineResVO> batchOfflineToOnline(OfflineToOnlineReqVO request) {
+        List<OfflineToOnlineResVO> res=new ArrayList<>();
         LOGGER.info("NoPayServiceImpl settleForOfflineToOnline request = {}", JSONUtils.toString(request));
         // 1、线下转线上
-        List<Integer> recipeIds = batchSyncRecipeFromHis(request);
+//        List<Integer> recipeIds = batchSyncRecipeFromHis(request);
         LOGGER.info("NoPayServiceImpl settleForOfflineToOnline res:{}", JSONUtils.toString(res));
         return res;
     }

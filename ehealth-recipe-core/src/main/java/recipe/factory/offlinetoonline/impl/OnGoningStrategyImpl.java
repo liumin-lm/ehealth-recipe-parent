@@ -110,7 +110,7 @@ public class OnGoningStrategyImpl extends BaseOfflineToOnlineService implements 
     }
 
     @Override
-    public List<OfflineToOnlineResVO> batchOfflineToOnline(SettleForOfflineToOnlineVO request) {
+    public List<OfflineToOnlineResVO> batchOfflineToOnline(OfflineToOnlineReqVO request) {
         return null;
     }
 

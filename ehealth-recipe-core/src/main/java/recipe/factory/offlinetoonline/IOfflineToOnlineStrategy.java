@@ -65,5 +65,5 @@ public interface IOfflineToOnlineStrategy {
      * @param request
      * @return
      */
-    List<OfflineToOnlineResVO> batchOfflineToOnline(SettleForOfflineToOnlineVO request);
+    List<OfflineToOnlineResVO> batchOfflineToOnline(OfflineToOnlineReqVO request);
 }

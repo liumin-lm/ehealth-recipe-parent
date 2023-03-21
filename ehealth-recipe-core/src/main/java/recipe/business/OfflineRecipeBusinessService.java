@@ -1,6 +1,5 @@
 package recipe.business;
 
-import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.QueryHisRecipResTO;
@@ -11,16 +10,8 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.DepartmentService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.dto.*;
-import com.ngari.recipe.entity.HisRecipe;
-import com.ngari.recipe.entity.PharmacyTcm;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeExtend;
-import com.ngari.recipe.offlinetoonline.model.*;
 import com.ngari.recipe.entity.*;
-import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
-import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailResVO;
-import com.ngari.recipe.offlinetoonline.model.FindHisRecipeListVO;
-import com.ngari.recipe.offlinetoonline.model.SettleForOfflineToOnlineVO;
+import com.ngari.recipe.offlinetoonline.model.*;
 import com.ngari.recipe.recipe.constant.RecipeTypeEnum;
 import com.ngari.recipe.recipe.model.MergeRecipeVO;
 import com.ngari.recipe.recipe.model.RecipeBean;
@@ -180,7 +171,7 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
     }
 
     @Override
-    public List<OfflineToOnlineResVO> batchOfflineToOnline(SettleForOfflineToOnlineVO request) {
+    public List<OfflineToOnlineResVO> batchOfflineToOnline(OfflineToOnlineReqVO request) {
         logger.info("OfflineToOnlineService batchOfflineToOnline request:{}", JSONUtils.toString(request));
         try {
             IOfflineToOnlineStrategy offlineToOnlineStrategy = offlineToOnlineFactory.getFactoryService(request.getStatus());
