@@ -8,6 +8,7 @@ import recipe.client.DoctorClient;
 import recipe.client.IConfigurationClient;
 import recipe.manager.*;
 
+import javax.annotation.Resource;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.FutureTask;
@@ -37,6 +38,8 @@ public class BaseService {
     protected DepartManager departManager;
     @Autowired
     protected RecipeDetailManager recipeDetailManager;
+    @Resource
+    protected CaManager caManager;
 
     protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 

@@ -8,6 +8,7 @@ import com.ngari.consult.common.model.ConsultRegistrationNumberResultVO;
 import com.ngari.consult.common.service.IConsultExService;
 import com.ngari.consult.common.service.IConsultRedisService;
 import com.ngari.consult.common.service.IConsultService;
+import com.ngari.consult.process.service.IRecipeOnLineConsultService;
 import com.ngari.his.consult.model.BusinessLogTO;
 import com.ngari.his.consult.service.IConsultHisService;
 import com.ngari.his.recipe.mode.OutPatientRecordResTO;
@@ -21,6 +22,7 @@ import ctd.util.JSONUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.constant.RecipeBussConstant;
 import recipe.enumerate.type.BussSourceTypeEnum;
 import recipe.util.RecipeBusiThreadPool;
 import recipe.util.ValidateUtil;
@@ -50,6 +52,21 @@ public class ConsultClient extends BaseClient {
     private IConsultService consultService;
     @Autowired
     private IConfigurationClient iConfigurationClient;
+    @Autowired
+    private IRecipeOnLineConsultService recipeOnLineConsultService;
+
+
+    public void sendRecipeMsg(Integer consultId, Integer bussSource) {
+        logger.info("ConsultClient sendRecipeMsg consultId={},bussSource={}", consultId, bussSource);
+        if (!RecipeBussConstant.BUSS_SOURCE_WZ.equals(bussSource)) {
+            return;
+        }
+        try {
+            recipeOnLineConsultService.sendRecipeMsg(consultId, 2);
+        } catch (Exception e) {
+            logger.error("ConsultClient sendRecipeMsg error", e);
+        }
+    }
 
     /**
      * 类加载排序

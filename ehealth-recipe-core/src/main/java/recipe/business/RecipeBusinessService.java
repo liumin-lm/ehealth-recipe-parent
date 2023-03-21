@@ -63,12 +63,14 @@ import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.*;
 import recipe.common.OnsConfig;
 import recipe.constant.ErrorCode;
+import recipe.constant.HisBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.constant.ReviewTypeConstant;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.dao.*;
 import recipe.enumerate.status.*;
 import recipe.enumerate.type.*;
+import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.QueryRecipeService;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.manager.*;
@@ -77,7 +79,6 @@ import recipe.purchase.CommonOrder;
 import recipe.service.*;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.serviceprovider.recipeorder.service.RemoteRecipeOrderService;
-import recipe.thread.CardDataUploadRunable;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.*;
 import recipe.vo.PageGenericsVO;
@@ -175,8 +176,8 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     private OrganAndDrugsepRelationDAO drugsDepRelationDAO;
     @Autowired
     private RevisitClient revisitClient;
-    @Autowired
-    private HisRecipeManager hisRecipeManager;
+    @Resource
+    private CaAfterProcessType caAfterProcessType;
 
     /**
      * 获取线下门诊处方诊断信息
@@ -1537,38 +1538,40 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         return recipe.getRecipeId();
     }
 
-    @Resource
-    private CaManager caManager;
-    @Resource
-    private CaAfterProcessType caAfterProcessType;
-
     @Override
     public Integer signRecipe(RecipeInfoVO recipeInfoVO) {
         RecipeBean recipeBean = recipeInfoVO.getRecipeBean();
         // recipeBean.setDistributionFlag(continueFlag);
-        caManager.setCaPassWord(recipeBean.getClinicOrgan(), recipeBean.getDoctor(), recipeBean.getCaPassword());
         boolean isWriteHis = recipeManager.recipeWriteHis(recipeBean.getRecipeId());
         if (isWriteHis) {
             return recipeBean.getRecipeId();
         }
-        // todo 保存处方智能预审结果 前端可以直接调用
-        //        if (getIntellectJudicialFlag(recipeBean.getClinicOrgan())) {
-        //            //更新审方信息
-        //            RecipeBusiThreadPool.execute(new SaveAutoReviewRunnable(recipeBean, detailBeanList));
-        //        }
-        Integer caType = configurationClient.getValueCatchReturnInteger(recipeBean.getClinicOrgan(), "CAProcessType", 0);
-        if (0 == caType) {
-            //老版默认走后置的逻辑，直接将处方推his
-            caAfterProcessType.signCABeforeRecipeFunction(recipeBean, recipeInfoVO.getRecipeDetails());
+        caManager.setCaPassWord(recipeBean.getClinicOrgan(), recipeBean.getDoctor(), recipeBean.getCaPassword());
+        /**平台**/
+        if (Integer.valueOf(1).equals(recipeInfoVO.getType())) {
+            Integer caType = configurationClient.getValueCatchReturnInteger(recipeBean.getClinicOrgan(), "CAProcessType", 0);
+            if (0 == caType) {
+                //老版默认走后置的逻辑，直接将处方推his
+                caAfterProcessType.signCABeforeRecipeFunction(recipeBean, recipeInfoVO.getRecipeDetails());
+            } else {
+                AbstractCaProcessType.getCaProcessFactory(recipeBean.getClinicOrgan()).signCABeforeRecipeFunction(recipeBean, recipeInfoVO.getRecipeDetails());
+            }
+            // 处方失效时间处理
+            recipeManager.handleRecipeInvalidTime(recipeBean.getClinicOrgan(), recipeBean.getRecipeId(), recipeBean.getSignDate());
         } else {
-            AbstractCaProcessType.getCaProcessFactory(recipeBean.getClinicOrgan()).signCABeforeRecipeFunction(recipeBean, recipeInfoVO.getRecipeDetails());
+            /**互联网**/
+            //MQ推送处方开成功消息 - 发送HIS处方开具消息
+            offlineRecipeClient.recipeStatusToHis(HisMqRequestInit.initRecipeStatusToHisReq(recipeBean, HisBussConstant.TOHIS_RECIPE_STATUS_ADD));
+            //处方开完后发送聊天界面消息 -医院确认中
+            revisitManager.sendRecipeMsg(recipeBean.getClinicId(), recipeBean.getBussSource());
         }
-        //todo 下面可以走异步
-        //健康卡数据上传
-        RecipeBusiThreadPool.execute(new CardDataUploadRunable(recipeBean.getClinicOrgan(), recipeBean.getMpiid(), "010106"));
-        // 处方失效时间处理
-        recipeManager.handleRecipeInvalidTime(recipeBean.getClinicOrgan(), recipeBean.getRecipeId(), recipeBean.getSignDate());
-        revisitManager.saveRevisitTracesList(recipeDAO.get(recipeBean.getRecipeId()));
+        //数据通知
+        RecipeBusiThreadPool.execute(() -> {
+            //健康卡数据上传
+            patientClient.cardDataUpload(recipeBean.getClinicOrgan(), recipeBean.getMpiid());
+            //通知复诊——添加处方追溯数据
+            revisitManager.saveRevisitTracesList(recipeDAO.get(recipeBean.getRecipeId()));
+        });
         return recipeBean.getRecipeId();
     }
 

@@ -26,8 +26,10 @@ import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import com.ngari.revisit.common.model.RevisitExDTO;
+import ctd.net.broadcast.MQHelper;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
+import eh.msg.constant.MqConstant;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -36,6 +38,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import recipe.aop.LogRecord;
 import recipe.common.CommonConstant;
+import recipe.common.OnsConfig;
 import recipe.constant.ErrorCode;
 import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.util.ByteUtils;
@@ -891,6 +894,17 @@ public class OfflineRecipeClient extends BaseClient {
         return new ArrayList<>();
     }
 
+    /**
+     * his处方 预校验
+     *
+     * @param recipe
+     * @param recipeExtend
+     * @param details
+     * @param pharmacyTcmMap
+     * @param organDrugMap
+     * @param hisCheckRecipeReqTO
+     * @return
+     */
     public Map<String, Object> hisRecipeCheck(Recipe recipe, RecipeExtend recipeExtend, List<Recipedetail> details,
                                               Map<Integer, PharmacyTcm> pharmacyTcmMap, Map<String, OrganDrugList> organDrugMap,
                                               HisCheckRecipeReqTO hisCheckRecipeReqTO) {
@@ -1010,6 +1024,17 @@ public class OfflineRecipeClient extends BaseClient {
             throw new DAOException(ErrorCode.SERVICE_FAIL, String.valueOf(map.get("resultMark")));
         }
         return map;
-
     }
+
+    /**
+     * 发送HIS处方状态
+     *
+     * @param notice
+     */
+    @LogRecord
+    public void recipeStatusToHis(NoticeHisRecipeInfoReq notice) {
+        MQHelper.getMqPublisher().publish(OnsConfig.hisCdrinfo, notice, MqConstant.HIS_CDRINFO_TAG_TO_HIS,
+                notice.getOrganizeCode() + "-" + notice.getRecipeID());
+    }
+
 }

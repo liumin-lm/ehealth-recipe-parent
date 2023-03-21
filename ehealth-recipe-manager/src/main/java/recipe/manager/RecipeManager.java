@@ -1282,25 +1282,6 @@ public class RecipeManager extends BaseManager {
         return reqDTO;
     }
 
-    ///**
-    // * 快捷购药是否存在库存
-    // * @param recipeId
-    // * @return
-    // */
-    //public boolean fastRecipeStock(Integer recipeId){
-    //    RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
-    //    FastRecipe fastRecipe = fastRecipeDAO.get(recipeExtend.getMouldId());
-    //    if (Objects.isNull(fastRecipe)) {
-    //        return false;
-    //    }
-    //    if (Objects.isNull(fastRecipe.getStockNum())) {
-    //        return true;
-    //    }
-    //    if (0 == fastRecipe.getStockNum()) {
-    //        return false;
-    //    }
-    //    return recipeExtend.getFastRecipeNum() <= fastRecipe.getStockNum();
-    //}
 
     /**
      * 排除 特定处方id
@@ -1570,20 +1551,20 @@ public class RecipeManager extends BaseManager {
         String recipeInvalidTime = configurationClient.getValueEnumCatch(clinicOrgan, "recipeInvalidTime", null);
         // 获取失效时间及类型
         RecipeInvalidDTO invalidDTO = RecipeUtil.getRecipeInvalidInfo(signDate, recipeInvalidTime);
-        if (null != invalidDTO.getInvalidDate()) {
-            // 更新处方失效时间
-            Map<String, Object> attMap = new HashMap<>();
-            attMap.put("invalidTime", invalidDTO.getInvalidDate());
-            recipeDAO.updateRecipeInfoByRecipeId(recipeId, attMap);
+        if (null == invalidDTO.getInvalidDate()) {
+            return;
+        }
+        // 更新处方失效时间
+        Recipe recipe = new Recipe();
+        recipe.setRecipeId(recipeId);
+        recipe.setInvalidTime(invalidDTO.getInvalidDate());
+        recipeDAO.updateNonNullFieldByPrimaryKey(recipe);
+        // 未失效且为延迟队列处理类型-发送延迟消息，其他类型通过定时任务处理
+        if ("h".equals(invalidDTO.getInvalidType())) {
             Date nowDate = new Date();
-            // 未失效且为延迟队列处理类型-发送延迟消息，其他类型通过定时任务处理
-            if ("h".equals(invalidDTO.getInvalidType())) {
-                long millSecond = eh.utils.DateConversion.secondsBetweenDateTime(nowDate, invalidDTO.getInvalidDate()) * 1000L;
-                logger.info("机构处方失效时间-发送延迟消息内容，机构id={},处方id={},延迟时间={}毫秒", clinicOrgan, recipeId, millSecond);
-                MQHelper.getMqPublisher().publish(OnsConfig.recipeDelayTopic, String.valueOf(recipeId), RecipeSystemConstant.RECIPE_INVALID_TOPIC_TAG, String.valueOf(recipeId), millSecond);
-
-            }
+            long millSecond = eh.utils.DateConversion.secondsBetweenDateTime(nowDate, invalidDTO.getInvalidDate()) * 1000L;
+            logger.info("机构处方失效时间-发送延迟消息内容，机构id={},处方id={},延迟时间={}毫秒", clinicOrgan, recipeId, millSecond);
+            MQHelper.getMqPublisher().publish(OnsConfig.recipeDelayTopic, String.valueOf(recipeId), RecipeSystemConstant.RECIPE_INVALID_TOPIC_TAG, String.valueOf(recipeId), millSecond);
         }
     }
-
 }

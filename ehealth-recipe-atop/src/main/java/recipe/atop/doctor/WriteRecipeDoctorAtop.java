@@ -52,8 +52,15 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
     @Autowired
     private IStockBusinessService iStockBusinessService;
 
+    /**
+     * 处方签名
+     *
+     * @param recipeInfoVO
+     * @return
+     */
     public Integer signRecipe(RecipeInfoVO recipeInfoVO) {
-        validateAtop(recipeInfoVO, recipeInfoVO.getRecipeBean(), recipeInfoVO.getRecipeExtendBean(), recipeInfoVO.getRecipeDetails());
+        validateAtop(recipeInfoVO, recipeInfoVO.getRecipeBean(), recipeInfoVO.getRecipeExtendBean(), recipeInfoVO.getRecipeDetails()
+                , recipeInfoVO.getType(), recipeInfoVO.getSource());
         RecipeBean recipeBean = recipeInfoVO.getRecipeBean();
         validateAtop(recipeBean.getClinicOrgan(), recipeBean.getRecipeId(), recipeBean.getSignDate());
         if (StringUtils.isEmpty(recipeInfoVO.getRecipeBean().getRecipeSupportGiveMode())) {
