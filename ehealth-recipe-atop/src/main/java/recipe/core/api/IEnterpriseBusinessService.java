@@ -1,11 +1,13 @@
 package recipe.core.api;
 
 import com.ngari.recipe.drugsenterprise.model.*;
+import com.ngari.recipe.dto.DoSignRecipeDTO;
 import com.ngari.recipe.dto.EnterpriseStock;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.EnterpriseDecoctionAddress;
 import com.ngari.recipe.entity.OrganAndDrugsepRelation;
 import com.ngari.recipe.entity.OrganDrugsSaleConfig;
+import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.persistence.bean.QueryResult;
 import recipe.vo.greenroom.DrugsEnterpriseVO;
 import recipe.vo.greenroom.OrganDrugsSaleConfigVo;
@@ -322,8 +324,17 @@ public interface IEnterpriseBusinessService {
 
     /**
      * 第三方药企更新配送地址和配送费用
+     *
      * @param enterpriseAddressList
      * @return
      */
     Boolean setEnterpriseAddressAndPrice(List<EnterpriseAddressVO> enterpriseAddressList);
+
+    /**
+     * 与校验成功- 互联网 使用 存储his指定药企
+     *
+     * @param doSignRecipe
+     * @param recipeBean
+     */
+    void checkRecipeGiveDeliveryMsg(DoSignRecipeDTO doSignRecipe, RecipeBean recipeBean);
 }

@@ -16,11 +16,12 @@ import com.ngari.patient.service.BasicAPI;
 import com.ngari.platform.recipe.mode.DrugsEnterpriseBean;
 import com.ngari.platform.recipe.mode.MedicineStationDTO;
 import com.ngari.recipe.drugsenterprise.model.*;
+import com.ngari.recipe.dto.DoSignRecipeDTO;
 import com.ngari.recipe.dto.EnterpriseStock;
-import com.ngari.recipe.dto.GiveModeButtonDTO;
 import com.ngari.recipe.dto.OrganDTO;
 import com.ngari.recipe.dto.PatientDTO;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.account.UserRoleToken;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -52,6 +53,7 @@ import recipe.constant.RecipeMsgEnum;
 import recipe.constant.RecipeStatusConstant;
 import recipe.core.api.IEnterpriseBusinessService;
 import recipe.dao.*;
+import recipe.drugsenterprise.AccessDrugEnterpriseService;
 import recipe.drugsenterprise.CommonRemoteService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.enumerate.status.*;
@@ -963,6 +965,23 @@ public class EnterpriseBusinessService extends BaseService implements IEnterpris
             enterpriseManager.setEnterpriseAddressAndPrice(addrAreaList, enterpriseAddress);
         });
         return true;
+    }
+
+    @Override
+    public void checkRecipeGiveDeliveryMsg(DoSignRecipeDTO doSignRecipe, RecipeBean recipeBean) {
+        if (!doSignRecipe.getSignResult()) {
+            return;
+        }
+        //与校验成功- 互联网 使用 存储his指定药企
+        List<DrugsEnterprise> enterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(recipeBean.getClinicOrgan(), 1);
+        AccessDrugEnterpriseService remoteService = null;
+        if (org.apache.commons.collections.CollectionUtils.isNotEmpty(enterprises)) {
+            remoteService = RemoteDrugEnterpriseService.getServiceByDep(enterprises.get(0));
+        }
+        if (null == remoteService) {
+            remoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
+        }
+        remoteService.checkRecipeGiveDeliveryMsg(recipeBean, doSignRecipe.getMap());
     }
 
     private Integer getEnterpriseSendFlag(DrugsEnterprise enterprise, CheckOrderAddressVo checkOrderAddressVo) {

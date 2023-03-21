@@ -1,7 +1,5 @@
 package recipe.business;
 
-import com.google.common.collect.Lists;
-import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.QueryHisRecipResTO;
@@ -12,16 +10,16 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.DepartmentService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.dto.*;
-import com.ngari.recipe.entity.HisRecipe;
-import com.ngari.recipe.entity.PharmacyTcm;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeExtend;
+import com.ngari.recipe.entity.*;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailResVO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeListVO;
 import com.ngari.recipe.offlinetoonline.model.SettleForOfflineToOnlineVO;
 import com.ngari.recipe.recipe.constant.RecipeTypeEnum;
-import com.ngari.recipe.recipe.model.*;
+import com.ngari.recipe.recipe.model.MergeRecipeVO;
+import com.ngari.recipe.recipe.model.RecipeBean;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import com.ngari.recipe.vo.OffLineRecipeDetailVO;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
@@ -30,7 +28,6 @@ import ctd.util.event.GlobalEventExecFactory;
 import eh.utils.BeanCopyUtils;
 import ngari.openapi.util.JSONUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.time.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,9 +40,11 @@ import recipe.client.OfflineRecipeClient;
 import recipe.common.CommonConstant;
 import recipe.constant.ErrorCode;
 import recipe.core.api.patient.IOfflineRecipeBusinessService;
+import recipe.dao.OrganAndDrugsepRelationDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeParameterDao;
+import recipe.drugTool.validate.RecipeDetailValidateTool;
 import recipe.enumerate.status.OfflineToOnlineEnum;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.WriteHisEnum;
@@ -53,12 +52,12 @@ import recipe.enumerate.type.PayFlagEnum;
 import recipe.factory.offlinetoonline.IOfflineToOnlineStrategy;
 import recipe.factory.offlinetoonline.OfflineToOnlineFactory;
 import recipe.manager.*;
-import recipe.service.RecipeListService;
 import recipe.service.RecipeLogService;
 import recipe.util.DictionaryUtil;
 import recipe.util.MapValueUtil;
 import recipe.util.ObjectCopyUtils;
 import recipe.vo.doctor.RecipeInfoVO;
+import recipe.vo.doctor.ValidateDetailVO;
 import recipe.vo.patient.PatientRecipeListReqVO;
 import recipe.vo.patient.PatientRecipeListResVo;
 import recipe.vo.patient.RecipeDetailForRecipeListResVo;
@@ -105,9 +104,10 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
     @Autowired
     private RecipeParameterDao recipeParameterDao;
     @Autowired
-    private ICurrentUserInfoService currentUserInfoService;
+    private RecipeDetailValidateTool recipeDetailValidateTool;
     @Autowired
-    private RecipeListService recipeListService;
+    private OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO;
+
 
     @Override
     public List<MergeRecipeVO> findHisRecipeList(FindHisRecipeListVO request) {
@@ -427,7 +427,7 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
         List<List<com.ngari.platform.recipe.mode.RecipeDTO>> hisRecipeList = super.futureTaskCallbackBeanList(futureTasks, 15000);
         //去重返回 组装线上 线下数据
         Set<RecipeInfoVO> recipeInfoVOS = recipeList(recipeList, hisRecipeList);
-        if(CollectionUtils.isEmpty(recipeInfoVOS)){
+        if (CollectionUtils.isEmpty(recipeInfoVOS)) {
             return new ArrayList<>();
         }
         // 组装返回 给前端的数据
@@ -435,8 +435,25 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
         return list;
     }
 
+    @Override
+    public DoSignRecipeDTO hisRecipeCheck(ValidateDetailVO validateDetailVO) {
+        Boolean isDefaultGiveModeToHos = configurationClient.getValueBooleanCatch(validateDetailVO.getRecipeBean().getClinicOrgan(), "hisRecipeCheckFlag", false);
+        if (!isDefaultGiveModeToHos) {
+            return null;
+        }
+        recipeDetailValidateTool.validateMedicalChineDrugNumber(validateDetailVO.getRecipeBean(), validateDetailVO.getRecipeExtendBean(), validateDetailVO.getRecipeDetails());
+        Recipe recipe = ObjectCopyUtils.convert(validateDetailVO.getRecipeBean(), Recipe.class);
+        RecipeExtend recipeExtend = ObjectCopyUtils.convert(validateDetailVO.getRecipeExtendBean(), RecipeExtend.class);
+        List<Recipedetail> details = ObjectCopyUtils.convert(validateDetailVO.getRecipeDetails(), Recipedetail.class);
+        Map<Integer, PharmacyTcm> pharmacyTcmMap = pharmacyManager.pharmacyIdMap(recipe.getClinicOrgan());
+        List<Integer> drugIds = details.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
+        Map<String, OrganDrugList> organDrugMap = organDrugListManager.getOrganDrugByIdAndCode(recipe.getClinicOrgan(), drugIds);
+        return hisRecipeManager.hisRecipeCheck(recipe, recipeExtend, details, pharmacyTcmMap, organDrugMap);
+    }
+
     /**
      * 组装返回 给前端的数据
+     *
      * @param recipeInfoVOS
      * @return
      */
