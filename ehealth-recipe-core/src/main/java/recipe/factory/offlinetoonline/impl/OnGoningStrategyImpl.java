@@ -6,10 +6,7 @@ import com.ngari.his.recipe.mode.QueryHisRecipResTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.recipe.dto.GiveModeButtonDTO;
 import com.ngari.recipe.entity.HisRecipe;
-import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
-import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailResVO;
-import com.ngari.recipe.offlinetoonline.model.FindHisRecipeListVO;
-import com.ngari.recipe.offlinetoonline.model.SettleForOfflineToOnlineVO;
+import com.ngari.recipe.offlinetoonline.model.*;
 import com.ngari.recipe.recipe.model.MergeRecipeVO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
@@ -105,6 +102,16 @@ public class OnGoningStrategyImpl extends BaseOfflineToOnlineService implements 
     @Override
     public void offlineToOnlineForRecipe(FindHisRecipeDetailReqVO request) {
 
+    }
+
+    @Override
+    public OfflineToOnlineResVO offlineToOnline(OfflineToOnlineReqVO request) {
+        return null;
+    }
+
+    @Override
+    public List<OfflineToOnlineResVO> batchOfflineToOnline(SettleForOfflineToOnlineVO request) {
+        return null;
     }
 
     /**

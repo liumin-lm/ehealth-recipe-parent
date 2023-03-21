@@ -8,12 +8,10 @@ import com.ngari.recipe.dto.GiveModeButtonDTO;
 import com.ngari.recipe.dto.GroupRecipeConfDTO;
 import com.ngari.recipe.entity.HisRecipe;
 import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
-import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailResVO;
-import com.ngari.recipe.offlinetoonline.model.FindHisRecipeListVO;
-import com.ngari.recipe.offlinetoonline.model.SettleForOfflineToOnlineVO;
+import com.ngari.recipe.offlinetoonline.model.*;
 import com.ngari.recipe.recipe.model.HisRecipeVO;
 import com.ngari.recipe.recipe.model.MergeRecipeVO;
+import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
@@ -32,6 +30,7 @@ import recipe.vo.patient.RecipeGiveModeButtonRes;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 /**
@@ -151,6 +150,55 @@ class NoPayStrategyImpl extends BaseOfflineToOnlineService implements IOfflineTo
         });
         return;
 
+    }
+
+    @Override
+    public OfflineToOnlineResVO offlineToOnline(OfflineToOnlineReqVO request) {
+        LOGGER.info("offlineToOnlineForRecipe request:{}", JSONUtils.toString(request));
+        OfflineToOnlineResVO res=new OfflineToOnlineResVO();
+        //1 获取his数据
+        PatientDTO patientDTO = hisRecipeManager.getPatientBeanByMpiId(request.getMpiId());
+        if (null == patientDTO) {
+            throw new DAOException(609, "患者信息不存在");
+        }
+        HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos = hisRecipeManager.queryData(request.getOrganId(), patientDTO, null, OfflineToOnlineEnum.OFFLINE_TO_ONLINE_NO_PAY.getType(), request.getRecipeCode(),request.getStartTime(),request.getEndTime());
+        if (null == hisRecipeInfos || CollectionUtils.isEmpty(hisRecipeInfos.getData())) {
+            return res;
+        }
+        try {
+            //2 更新数据校验
+            hisRecipeInfoCheck(hisRecipeInfos.getData(), patientDTO);
+        } catch (Exception e) {
+            LOGGER.error("queryHisRecipeInfo hisRecipeInfoCheck error ", e);
+        }
+        List<HisRecipe> hisRecipes = new ArrayList<>();
+        try {
+            //3 保存数据到cdr_his_recipe相关表（cdr_his_recipe、cdr_his_recipeExt、cdr_his_recipedetail）
+            hisRecipes = saveHisRecipeInfo(hisRecipeInfos, patientDTO, OfflineToOnlineEnum.OFFLINE_TO_ONLINE_NO_PAY.getType());
+        } catch (Exception e) {
+            LOGGER.error("queryHisRecipeInfo saveHisRecipeInfo error ", e);
+        }
+
+        //4 保存数据到cdr_recipe相关表（cdr_recipe、cdr_recipeext、cdr_recipeDetail）
+        AtomicReference<Integer> recipeId=null;
+        hisRecipes.forEach(hisRecipe -> {
+            recipeId.set(saveRecipeInfo(hisRecipe.getHisRecipeID()));
+        });
+        //5 返回出参
+        RecipeBean recipeBean=new RecipeBean();
+        recipeBean.setRecipeId(recipeId.get());
+        res.setRecipe(recipeBean);
+        return res;
+
+    }
+
+    @Override
+    public List<OfflineToOnlineResVO> batchOfflineToOnline(SettleForOfflineToOnlineVO request) {
+        LOGGER.info("NoPayServiceImpl settleForOfflineToOnline request = {}", JSONUtils.toString(request));
+        // 1、线下转线上
+        List<Integer> recipeIds = batchSyncRecipeFromHis(request);
+        LOGGER.info("NoPayServiceImpl settleForOfflineToOnline res:{}", JSONUtils.toString(res));
+        return res;
     }
 
     /**

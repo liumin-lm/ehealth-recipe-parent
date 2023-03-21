@@ -59,6 +59,7 @@ import recipe.factory.offlinetoonline.IOfflineToOnlineStrategy;
 import recipe.factory.offlinetoonline.OfflineToOnlineFactory;
 import recipe.manager.*;
 import recipe.service.RecipeService;
+import recipe.util.RecipeBusiThreadPool;
 import recipe.util.RecipeUtil;
 import recipe.vo.patient.RecipeGiveModeButtonRes;
 
@@ -1375,17 +1376,20 @@ public class BaseOfflineToOnlineService {
     private void createRecipePdf(Recipe recipe){
         try {
             LOGGER.info("BaseOfflineToOnlineService createRecipePdf recipe={}",JSONUtils.toString(recipe));
-            Boolean isCreateRecipePdf = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "isCreateRecipePdf",false);
-            if (!isCreateRecipePdf) {
-                return;
-            }
-            //医生
-            createPdfFactory.updateDoctorNamePdf(recipe, null);
-            //药师
-            createPdfFactory.updateCheckNamePdf(recipe.getRecipeId());
-            createPdfFactory.updatePdfToImg(recipe.getRecipeId(), SignImageTypeEnum.SIGN_IMAGE_TYPE_CHEMIST.getType());
-            LOGGER.info("BaseOfflineToOnlineService createRecipePdf 方法结束");
-        }catch (Exception e){
+//            Boolean isCreateRecipePdf = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "isCreateRecipePdf",false);
+//            if (!isCreateRecipePdf) {
+//                return;
+//            }
+            RecipeBusiThreadPool.execute(() -> {
+                //医生
+                createPdfFactory.updateDoctorNamePdf(recipe, null);
+                //药师
+                createPdfFactory.updateCheckNamePdf(recipe.getRecipeId());
+                //图片
+                createPdfFactory.updatePdfToImg(recipe.getRecipeId(), SignImageTypeEnum.SIGN_IMAGE_TYPE_CHEMIST.getType());
+                LOGGER.info("BaseOfflineToOnlineService createRecipePdf 方法结束");
+            });
+         }catch (Exception e){
             LOGGER.error("createRecipePdf 线上转线上生成处方笺失败", e);
         }
     }
