@@ -93,7 +93,7 @@ public class DrugStockClient extends BaseClient {
         logger.info("HisInventoryClient drugInventory request= {}", JSON.toJSONString(request));
         try {
             HisResponseTO<Boolean> hisResponse = recipeHisService.drugInventory(request);
-            Boolean result = getResponseMsg(hisResponse);
+            Boolean result = getResponseCatchMsg(hisResponse);
             if (!result) {
                 throw new DAOException(ErrorCode.SERVICE_ERROR, "his库存操作失败");
             }
