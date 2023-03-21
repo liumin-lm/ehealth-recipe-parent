@@ -300,7 +300,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         Integer openRecipeNumber = configurationClient.getValueCatch(organId, "openRecipeNumber", 999);
         logger.info("RecipeBusinessService validateOpenRecipeNumber openRecipeNumber={}", openRecipeNumber);
         if (ValidateUtil.integerIsEmpty(openRecipeNumber)) {
-            throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR, "开方张数0已超出医院限定范围，不能继续开方。");
+            throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR, "一次就诊最多开具【0】张处方，本次就诊已达上限，无法开具新处方");
         }
         //查询当前复诊存在的有效处方单
         List<Integer> recipeIds = recipeManager.findRecipeByClinicId(clinicId, recipeId, RecipeStatusEnum.RECIPE_REPEAT_COUNT);
@@ -309,7 +309,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         }
         logger.info("RecipeBusinessService validateOpenRecipeNumber recipeCount={}", recipeIds.size());
         if (recipeIds.size() >= openRecipeNumber) {
-            throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR, "开方张数已超出医院限定范围，不能继续开方。");
+            throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR, "一次就诊最多开具【" + openRecipeNumber + "】张处方，本次就诊已达上限，无法开具新处方");
         }
         return true;
     }
