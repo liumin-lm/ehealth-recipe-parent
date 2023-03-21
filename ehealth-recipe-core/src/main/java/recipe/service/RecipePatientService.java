@@ -69,6 +69,8 @@ import recipe.manager.*;
 import recipe.service.common.RecipeCacheService;
 import recipe.util.RedisClient;
 import recipe.vo.doctor.RecipeInfoVO;
+import recipe.vo.patient.PatientRecipeDetailReqVO;
+import recipe.vo.patient.PatientRecipeDetailResVO;
 import recipe.vo.patient.ReadyRecipeVO;
 
 import javax.annotation.Nullable;
@@ -994,6 +996,11 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
             readyRecipeVO.setHaveRecipe(false);
         }
         return readyRecipeVO;
+    }
+
+    @Override
+    public PatientRecipeDetailResVO patientRecipeDetail(PatientRecipeDetailReqVO patientRecipeDetailReq) {
+        return null;
     }
 
     /**
