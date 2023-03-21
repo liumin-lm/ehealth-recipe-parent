@@ -3620,29 +3620,28 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      *
      * @param organs
      * @param searchString
-     * @param searchFlag   1-审方医生 2-患者姓名 3-处方号
      * @param start
      * @param limit
      * @return
      * @author zhongzx
      */
-    public List<Recipe> searchRecipeByDepartName(final Set<Integer> organs, final Integer searchFlag, final String searchString, final List<Integer> departIds, final Integer start, final Integer limit) {
+    public List<Recipe> searchRecipeByDepartName(final Set<Integer> organs, final String searchString, final List<Integer> departIds, final Integer start, final Integer limit) {
         HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder();
-                hql.append("select distinct r from Recipe r");
-                hql.append(" where  (r.checkDateYs is not null or r.status = 8)");
+                hql.append("select r from Recipe r ");
+                hql.append("where (r.checkDateYs is not null or r.status = 8) ");
                 hql.append("and r.clinicOrgan in (:organs) ");
                 if (CollectionUtils.isNotEmpty(departIds)) {
-                    hql.append(" and (  r.appointDepartName LIKE :searchString or r.depart in (:departIds) )");
+                    hql.append("and (r.appointDepartName LIKE :searchString or r.depart in (:departIds)) ");
                 } else {
-                    hql.append("  and r.appointDepartName LIKE :searchString ");
+                    hql.append("and r.appointDepartName LIKE :searchString ");
                 }
-                hql.append("  order by r.signDate desc");
+                hql.append("order by r.signDate desc ");
 
                 Query q = ss.createQuery(hql.toString());
-                q.setParameter("searchString", "%" + searchString + "%");
+                q.setParameter("searchString", searchString + "%");
                 q.setParameterList("organs", organs);
                 if (CollectionUtils.isNotEmpty(departIds)) {
                     q.setParameterList("departIds", departIds);
@@ -3666,11 +3665,11 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 StringBuilder hql = new StringBuilder();
                 hql.append("select distinct r from Recipe r");
                 if (0 == searchFlag) {
-                    hql.append(" where r.doctorName like:searchString ");
+                    hql.append(" where r.doctorName like :searchString ");
                 } else if (2 == searchFlag) {
-                    hql.append(" where r.patientName like:searchString ");
+                    hql.append(" where r.patientName like :searchString ");
                 } else if (3 == searchFlag) {
-                    hql.append(" where r.recipeId =:searchString ");
+                    hql.append(" where r.recipeId like :searchString ");
                 } else {
                     throw new DAOException(ErrorCode.SERVICE_ERROR, "searchFlag is invalid");
                 }
@@ -3678,15 +3677,15 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
 
                 Query q = ss.createQuery(hql.toString());
                 if (3 == searchFlag) {
-                    Integer recipeId = null;
+                    int recipeId;
                     try {
                         recipeId = Integer.parseInt(searchString);
                     } catch (NumberFormatException e) {
                         recipeId = -1;
                     }
-                    q.setParameter("searchString", recipeId);
+                    q.setParameter("searchString", recipeId + "%");
                 } else {
-                    q.setParameter("searchString", "%" + searchString + "%");
+                    q.setParameter("searchString", searchString + "%");
                 }
                 q.setParameterList("organs", organs);
                 if (null != start && null != limit) {

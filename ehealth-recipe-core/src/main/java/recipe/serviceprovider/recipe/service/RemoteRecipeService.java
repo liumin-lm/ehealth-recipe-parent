@@ -1850,6 +1850,16 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         RecipeMsgService.batchSendMsg(recipe1, RecipeStatusConstant.CHECK_NOT_PASSYS_REACHPAY);
     }
 
+    /**
+     * 审方列表页面搜索接口
+     *
+     * @param organs       机构id
+     * @param searchFlag   检索类型  0-开方医生 1-审方医生 2-患者姓名 3-处方单号  4-科室名称
+     * @param searchString 检索内容
+     * @param start
+     * @param limit
+     * @return
+     */
     @Override
     public List<RecipeBean> searchRecipe(Set<Integer> organs, Integer searchFlag, String searchString, Integer start, Integer limit) {
         List<Recipe> recipes = Collections.EMPTY_LIST;
@@ -1857,7 +1867,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             if (StringUtils.isNoneBlank(searchString)) {
                 DepartmentService departService = ApplicationUtils.getBasicService(DepartmentService.class);
                 List<Integer> departIds = departService.findIdsByName(searchString);
-                recipes = recipeDAO.searchRecipeByDepartName(organs, searchFlag, searchString, departIds, start, limit);
+                recipes = recipeDAO.searchRecipeByDepartName(organs, searchString, departIds, start, limit);
             }
         } else {
             recipes = recipeDAO.searchRecipe(organs, searchFlag, searchString, start, limit);
@@ -1869,7 +1879,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
     @Override
     public List<RecipeBean> findByRecipeAndOrganId(List<Integer> recipeIds, Set<Integer> organIds) {
-        List<Recipe> recipes = null;
+        List<Recipe> recipes;
         if (CollectionUtils.isNotEmpty(organIds)) {
             recipes = recipeDAO.findByRecipeAndOrganId(recipeIds, organIds);
         } else {
