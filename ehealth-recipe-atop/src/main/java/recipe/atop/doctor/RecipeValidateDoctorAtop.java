@@ -309,7 +309,6 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
             return true;
         }
         return recipeBusinessService.validateOpenRecipeNumber(clinicId, organId, recipeId);
-
     }
 
     /**
