@@ -2288,6 +2288,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         stateManager.updateStatus(recipeId, RecipeStatusEnum.RECIPE_STATUS_SIGN_SUCCESS_CODE_DOC, SignEnum.SIGN_STATE_ORDER);
         stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_SUBMIT, RecipeStateEnum.NONE);
         createPdfFactory.updateDoctorNamePdf(recipe, resultVo.getPdfBase64());
+        //进行药师签名！！！
         caManager.caSignChecker(recipe);
     }
 

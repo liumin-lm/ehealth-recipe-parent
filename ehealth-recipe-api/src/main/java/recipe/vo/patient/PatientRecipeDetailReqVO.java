@@ -30,6 +30,9 @@ public class PatientRecipeDetailReqVO implements Serializable {
     @ItemProperty(alias = "主索引（患者编号）")
     private String mpiid;
 
+    @ItemProperty(alias = "处方父状态：0：默认 ， 1：待提交，2：待审核，3：待够药，4：待发药，5：配送中，6：待取药，7：已完成，8：已删除 ，9：已作废")
+    private Integer processState;
+
     @ItemProperty(alias = "开始时间")
     private Date startTime;
 
