@@ -32,6 +32,7 @@ import com.ngari.recipe.dto.GiveModeShowButtonDTO;
 import com.ngari.recipe.dto.RecipeDTO;
 import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.recipe.model.GiveModeButtonBean;
 import com.ngari.recipe.recipe.model.RankShiftList;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.vo.*;
@@ -1065,8 +1066,36 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         }
         boolean downConfig = getDownConfig(returnRecipe, recipe.getRecipeOrder());
         patientRecipeDetailResVO.setIsDownload(downConfig);
+        GiveModeButtonBean showThirdOrder = getShowThirdOrder(returnRecipe);
+        patientRecipeDetailResVO.setShowThirdOrder(showThirdOrder);
 
         return patientRecipeDetailResVO;
+    }
+
+    private GiveModeButtonBean getShowThirdOrder(Recipe recipe) {
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        //设置第三方订单跳转的按钮
+        Integer enterpriseId = recipe.getEnterpriseId();
+        if (null == enterpriseId) {
+            return null;
+        }
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(enterpriseId);
+        if (null == drugsEnterprise.getOrderType() || new Integer(1).equals(drugsEnterprise.getOrderType())) {
+            return null;
+        }
+        if (RecipeStatusEnum.RECIPE_STATUS_WAIT_SEND.getType().equals(recipe.getStatus())
+                || RecipeStatusEnum.RECIPE_STATUS_IN_SEND.getType().equals(recipe.getStatus())
+                || RecipeStatusEnum.RECIPE_STATUS_FINISH.getType().equals(recipe.getStatus())
+                || RecipeStatusEnum.RECIPE_STATUS_REVOKE.getType().equals(recipe.getStatus())
+                || RecipeStatusEnum.RECIPE_STATUS_HAVE_PAY.getType().equals(recipe.getStatus())) {
+            //orderType=0表示订单在第三方生成
+            GiveModeButtonBean giveModeButton = new GiveModeButtonBean();
+            giveModeButton.setButtonSkipType("3");
+            giveModeButton.setShowButtonName("查看订单");
+            giveModeButton.setShowButtonKey("supportThirdOrder");
+            return giveModeButton;
+        }
+        return null;
     }
 
     public boolean getDownConfig(Recipe recipe, RecipeOrder order) {

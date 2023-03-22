@@ -220,4 +220,10 @@ public class PatientRecipeDetailResVO implements Serializable {
     @ItemProperty(alias = "线下处方购药方式 从his获取的")
     private String giveModeText;
 
+    @ItemProperty(alias = "线下处方温馨提示")
+    private String showText;
+
+    @ItemProperty(alias = "线上处方温馨提示")
+    private String bottomText;
+
 }
