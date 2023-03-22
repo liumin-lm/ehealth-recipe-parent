@@ -172,4 +172,6 @@ public class OfflineRecipePatientAtop extends BaseAtop {
         }
     }
 
+    //TODO 校验线下和线上是否已支付
+
 }
