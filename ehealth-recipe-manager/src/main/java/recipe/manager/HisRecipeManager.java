@@ -924,8 +924,10 @@ public class HisRecipeManager extends BaseManager {
             doSignRecipeDTO.setCanContinueFlag("0");
             return doSignRecipeDTO;
         } catch (DAOException e1) {
+            logger.error("HisRecipeManager hisRecipeCheck e1 RecipeId ={} ", recipe.getRecipeId(), e1);
             return doSignRecipe(recipe.getRecipeId(), e1.getMessage(), true, recipe.getClinicOrgan());
         } catch (Exception e) {
+            logger.error("HisRecipeManager hisRecipeCheck e RecipeId ={} ", recipe.getRecipeId(), e);
             return doSignRecipe(recipe.getRecipeId(), "his处方预检查异常", false, recipe.getClinicOrgan());
         }
     }
