@@ -2,6 +2,7 @@ package recipe.vo.patient;
 
 import com.ngari.recipe.recipe.model.GiveModeButtonBean;
 import ctd.schema.annotation.Dictionary;
+import ctd.schema.annotation.FileToken;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 import lombok.Data;
@@ -111,6 +112,20 @@ public class PatientRecipeDetailResVO implements Serializable {
 
     @ItemProperty(alias = "发药方式")
     private Integer giveMode;
+
+    @ItemProperty(alias = "签名的处方PDF")
+    @FileToken(expires = 3600)
+    private String signFile;
+
+    @ItemProperty(alias = "药师签名的处方PDF")
+    @FileToken(expires = 3600)
+    private String chemistSignFile;
+
+    @ItemProperty(alias = "处方支付类型 0 普通支付 1 不选择购药方式直接去支付")
+    private Integer recipePayType;
+
+    @ItemProperty(alias = "审核模式")
+    private Integer reviewType;
 
     /******************************** 以下数据来源 recipeExt ****************************/
 
