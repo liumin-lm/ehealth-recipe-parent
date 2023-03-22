@@ -18,7 +18,7 @@ import java.util.List;
 public class BatchOfflineToOnlineReqVO implements Serializable {
     private static final long serialVersionUID = -7727248592234567484L;
 
-    private List<SubBatchOfflineToOnlineReqVO> subParams;
+    public List<SubBatchOfflineToOnlineReqVO> subParams;
 
     /**
      * 机构
@@ -54,12 +54,12 @@ public class BatchOfflineToOnlineReqVO implements Serializable {
         /**
          * 开始时间
          */
-        private Date startTime;
+        public Date startTime;
 
         /**
          * 结束时间
          */
-        private Date endTime;
+        public Date endTime;
 
         public SubBatchOfflineToOnlineReqVO() {
         }
