@@ -1053,6 +1053,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
             patientRecipeDetailResVO.setIsHiddenRecipeDetail(true);
         }
 
+        patientRecipeDetailResVO.setSubStateText(RecipeStateEnum.getRecipeStateEnum(returnRecipe.getSubState()).getName());
         if (Objects.nonNull(returnRecipe.getDepart())) {
             patientRecipeDetailResVO.setDepartName(DictionaryUtil.getDictionary("eh.base.dictionary.Depart", returnRecipe.getDepart()));
         }else {
