@@ -27,10 +27,7 @@ import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.DepListBean;
-import com.ngari.recipe.dto.GiveModeButtonDTO;
-import com.ngari.recipe.dto.GiveModeShowButtonDTO;
-import com.ngari.recipe.dto.RecipeDTO;
-import com.ngari.recipe.dto.RecipeInfoDTO;
+import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.GiveModeButtonBean;
 import com.ngari.recipe.recipe.model.RankShiftList;
@@ -130,6 +127,8 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
     private StateManager stateManager;
     @Autowired
     private CaManager caManager;
+    @Autowired
+    private HisRecipeManager  hisRecipeManager;
 
     /**
      * 根据取药方式过滤药企
@@ -1011,6 +1010,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         }
         if(Objects.isNull(recipe) && StringUtils.isNotEmpty(patientRecipeDetailReq.getRecipeCode()) && Objects.nonNull(patientRecipeDetailReq.getOrganId())){
             // 获取线下处方
+            recipe = hisRecipeManager.getHisRecipeInfoDTO(BeanCopyUtils.copyProperties(patientRecipeDetailReq, PatientRecipeDetailReqDTO::new));
             recipeBusType = 2;
         }
         if (Objects.isNull(recipe)){
@@ -1028,8 +1028,8 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
     private PatientRecipeDetailResVO coverPatientRecipeDetailResVO(RecipeInfoDTO recipe,Integer recipeBusType) {
         PatientRecipeDetailResVO patientRecipeDetailResVO = new PatientRecipeDetailResVO();
         Recipe returnRecipe = recipe.getRecipe();
-        BeanCopyUtils.copy(patientRecipeDetailResVO, returnRecipe);
-        BeanCopyUtils.copy(patientRecipeDetailResVO,recipe.getRecipeExtend());
+        BeanCopyUtils.copy(returnRecipe,patientRecipeDetailResVO);
+        BeanCopyUtils.copy(recipe.getRecipeExtend(),patientRecipeDetailResVO);
         List<Recipedetail> recipeDetails = recipe.getRecipeDetails();
         Recipedetail recipedetail = recipeDetails.get(0);
         patientRecipeDetailResVO.setPharmacyId(recipedetail.getPharmacyId());
@@ -1044,15 +1044,35 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         Integer secrecyRecipe = 0;
         List<PatientRecipeDetailForDetailResVO> patientRecipeDetailForDetailResVOS = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(recipeDetails)) {
+            List<String> organDrugCodes = recipeDetails.stream().map(Recipedetail::getOrganDrugCode).collect(Collectors.toList());
+            List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugCodes(returnRecipe.getClinicOrgan(), organDrugCodes);
+            if (CollectionUtils.isEmpty(organDrugList)) {
+                organDrugList = new LinkedList<>();
+            }
+            Map<String, OrganDrugList> organDrugListMap = organDrugList.stream().collect(Collectors.toMap(k -> k.getOrganDrugCode() + k.getDrugId(), a -> a, (k1, k2) -> k1));
+
             for (Recipedetail recipeDetail : recipeDetails) {
                 PatientRecipeDetailForDetailResVO patientRecipeDetailForDetailResVO = new PatientRecipeDetailForDetailResVO();
                 BeanCopyUtils.copy(recipeDetail, patientRecipeDetailForDetailResVO);
                 if (new Integer(3).equals(recipeDetail.getType())) {
                     secrecyRecipe = 1;
                 }
+                if (recipeDetail.getDrugMedicalFlag() != null && recipeDetail.getDrugMedicalFlag() >= 0) {
+                    //医保限定药标识 0 否  1 是
+                    patientRecipeDetailForDetailResVO.setMedicalInsuranceDrugFlag(1);
+                } else {
+                    patientRecipeDetailForDetailResVO.setMedicalInsuranceDrugFlag(0);
+                }
+                OrganDrugList organDrugList1 = organDrugListMap.get(recipeDetail.getOrganDrugCode() + recipedetail.getDrugId());
+                patientRecipeDetailForDetailResVO.setTargetedDrugType(organDrugList1.getTargetedDrugType());
+                patientRecipeDetailForDetailResVO.setAntiTumorDrugFlag(organDrugList1.getAntiTumorDrugFlag());
+                patientRecipeDetailForDetailResVO.setAntibioticsDrugLevel(organDrugList1.getAntiTumorDrugLevel());
+                patientRecipeDetailForDetailResVO.setNationalStandardDrugFlag(organDrugList1.getNationalStandardDrugFlag());
+
                 patientRecipeDetailForDetailResVOS.add(patientRecipeDetailForDetailResVO);
             }
         }
+        patientRecipeDetailResVO.setRecipeDetail(patientRecipeDetailForDetailResVOS);
         patientRecipeDetailResVO.setSecrecyRecipe(secrecyRecipe);
         if (RecipeBusinessTypeEnum.BUSINESS_RECIPE_REVISIT.getType().equals(returnRecipe.getBussSource())) {
             RevisitExDTO revisitExDTO = revisitClient.getByClinicId(returnRecipe.getClinicId());
@@ -1068,10 +1088,16 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         patientRecipeDetailResVO.setIsDownload(downConfig);
         GiveModeButtonBean showThirdOrder = getShowThirdOrder(returnRecipe);
         patientRecipeDetailResVO.setShowThirdOrder(showThirdOrder);
-
+        String recipeInfoBottomText = configurationClient.getValueCatch(returnRecipe.getClinicOrgan(), "RecipeInfoBottomText", "");
+        patientRecipeDetailResVO.setBottomText(recipeInfoBottomText);
         return patientRecipeDetailResVO;
     }
 
+    /**
+     * 获取跳转第三方查看订单信息
+     * @param recipe
+     * @return
+     */
     private GiveModeButtonBean getShowThirdOrder(Recipe recipe) {
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         //设置第三方订单跳转的按钮
@@ -1083,11 +1109,12 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         if (null == drugsEnterprise.getOrderType() || new Integer(1).equals(drugsEnterprise.getOrderType())) {
             return null;
         }
-        if (RecipeStatusEnum.RECIPE_STATUS_WAIT_SEND.getType().equals(recipe.getStatus())
-                || RecipeStatusEnum.RECIPE_STATUS_IN_SEND.getType().equals(recipe.getStatus())
-                || RecipeStatusEnum.RECIPE_STATUS_FINISH.getType().equals(recipe.getStatus())
-                || RecipeStatusEnum.RECIPE_STATUS_REVOKE.getType().equals(recipe.getStatus())
-                || RecipeStatusEnum.RECIPE_STATUS_HAVE_PAY.getType().equals(recipe.getStatus())) {
+
+        if (RecipeStateEnum.PROCESS_STATE_DISPENSING.getType().equals(recipe.getProcessState()) ||
+                RecipeStateEnum.PROCESS_STATE_DISTRIBUTION.getType().equals(recipe.getProcessState()) ||
+                RecipeStateEnum.PROCESS_STATE_DONE.getType().equals(recipe.getProcessState()) ||
+                RecipeStateEnum.PROCESS_STATE_ORDER.getType().equals(recipe.getProcessState()) ||
+                RecipeStateEnum.PROCESS_STATE_CANCELLATION.getType().equals(recipe.getProcessState()) ) {
             //orderType=0表示订单在第三方生成
             GiveModeButtonBean giveModeButton = new GiveModeButtonBean();
             giveModeButton.setButtonSkipType("3");
@@ -1098,6 +1125,12 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         return null;
     }
 
+    /**
+     * 获取是否展示下载处方笺
+     * @param recipe
+     * @param order
+     * @return
+     */
     public boolean getDownConfig(Recipe recipe, RecipeOrder order) {
         //互联网的不需要下载处方笺
         if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())) {
@@ -1105,9 +1138,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         }
         Boolean isDownload = false;
         //获取配置项
-        IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
-        //添加按钮配置项key
-        Object downloadPrescription = configService.getConfiguration(recipe.getClinicOrgan(), "downloadPrescription");
+        Integer downloadPrescription = configurationClient.getValueCatchReturnInteger(recipe.getClinicOrgan(), "downloadPrescription", 0);
         //date 2020/1/9
         //逻辑修改成：如果是下载处方购药方式的，无需判断配不配置【患者展示下载处方笺】
         //非下载处方的购药方式，只有配置了【患者展示下载处方笺】才判断是否展示下载按钮
@@ -1115,8 +1146,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
             isDownload = canDown(recipe, order,Lists.newArrayList(RecipeStateEnum.PROCESS_STATE_ORDER.getType(),RecipeStateEnum.PROCESS_STATE_DONE.getType()), true);
         } else {
             if (null != downloadPrescription) {
-                boolean canDown = 0 != (Integer) downloadPrescription;
-                if (canDown) {
+                if (new Integer(1).equals(downloadPrescription)) {
                     ArrayList<Integer> list = Lists.newArrayList(RecipeStateEnum.PROCESS_STATE_ORDER.getType(), RecipeStateEnum.PROCESS_STATE_DONE.getType(), RecipeStateEnum.PROCESS_STATE_DISTRIBUTION.getType(), RecipeStateEnum.PROCESS_STATE_DISPENSING.getType());
                     isDownload = canDown(recipe, order, list, false);
                 } else {
@@ -1128,6 +1158,14 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         return isDownload;
     }
 
+    /**
+     * 获取是否下载处方
+     * @param recipe
+     * @param order
+     * @param status
+     * @param isDownLoad
+     * @return
+     */
     private boolean canDown(Recipe recipe, RecipeOrder order, List<Integer> status, Boolean isDownLoad) {
         boolean isDownload = false;
         //后置的时候判断处方的状态是一些状态的时候是展示按钮的

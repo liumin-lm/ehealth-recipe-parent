@@ -40,10 +40,8 @@ import recipe.constant.HisRecipeConstant;
 import recipe.constant.OrderStatusConstant;
 import recipe.constant.PayConstant;
 import recipe.dao.*;
-import recipe.enumerate.status.OfflineToOnlineEnum;
-import recipe.enumerate.status.OrderStateEnum;
-import recipe.enumerate.status.RecipeStateEnum;
-import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.status.*;
+import recipe.enumerate.type.BussSourceTypeEnum;
 import recipe.enumerate.type.PayFlagEnum;
 import recipe.enumerate.type.RecipeDrugFormTypeEnum;
 import recipe.util.JsonUtil;
@@ -920,12 +918,15 @@ public class HisRecipeManager extends BaseManager {
             Map<String, Object> map = offlineRecipeClient.hisRecipeCheck(recipe, recipeExtend, details, pharmacyTcmMap, organDrugMap, hisCheckRecipe);
             DoSignRecipeDTO doSignRecipeDTO = new DoSignRecipeDTO();
             doSignRecipeDTO.setMap(map);
+            doSignRecipeDTO.setRecipeId(recipe.getRecipeId());
             doSignRecipeDTO.setSignResult(true);
             doSignRecipeDTO.setCanContinueFlag("0");
             return doSignRecipeDTO;
         } catch (DAOException e1) {
+            logger.error("HisRecipeManager hisRecipeCheck e1 RecipeId ={} ", recipe.getRecipeId(), e1);
             return doSignRecipe(recipe.getRecipeId(), e1.getMessage(), true, recipe.getClinicOrgan());
         } catch (Exception e) {
+            logger.error("HisRecipeManager hisRecipeCheck e RecipeId ={} ", recipe.getRecipeId(), e);
             return doSignRecipe(recipe.getRecipeId(), "his处方预检查异常", false, recipe.getClinicOrgan());
         }
     }
@@ -950,8 +951,9 @@ public class HisRecipeManager extends BaseManager {
         RecipeInfoDTO recipeInfoDTO = new RecipeInfoDTO();
         List<QueryHisRecipResTO> hisRecipeResTOList = hisResponseTO.getData();
         QueryHisRecipResTO hisRecipeResTO = hisRecipeResTOList.get(0);
-        Recipe recipe = getRecipeFromHisRecipe(hisRecipeResTO);
-        RecipeExtend recipeExtend = getRecipeExtendFromHisRecipe(hisRecipeResTO);
+        RecipeExtend recipeExtend = new RecipeExtend();
+        recipeExtend = getRecipeExtendFromHisRecipe(hisRecipeResTO, recipeExtend);
+        Recipe recipe = getRecipeFromHisRecipe(hisRecipeResTO, patient, recipeExtend, 1);
         List<Recipedetail> recipeDetails = getRecipeDetailsFromHisRecipe(hisRecipeResTO);
         recipeInfoDTO.setRecipe(recipe);
         recipeInfoDTO.setRecipeExtend(recipeExtend);
@@ -963,20 +965,63 @@ public class HisRecipeManager extends BaseManager {
     /**
      * 将获取到的线下处方信息组装为线上处方对象
      * @param hisRecipeResTO
+     * @param patient
+     * @param recipeExtend
+     * @param flag
      * @return
      */
-    public Recipe getRecipeFromHisRecipe(QueryHisRecipResTO hisRecipeResTO) {
-        Recipe recipe = new Recipe();
+    public Recipe getRecipeFromHisRecipe(QueryHisRecipResTO hisRecipeResTO, PatientDTO patient, RecipeExtend recipeExtend, Integer flag) {
+        Recipe recipe = ObjectCopyUtils.convert(hisRecipeResTO, Recipe.class);
+        recipe.setMpiid(patient.getMpiId());
+        recipe.setOrganDiseaseName(hisRecipeResTO.getDiseaseName());
+        recipe.setSignDate(hisRecipeResTO.getCreateDate());
+        recipe.setRecipeSourceType(RecipeSourceTypeEnum.OFFLINE_RECIPE.getType());
+        //设置复诊单
+        recipe.setBussSource(BussSourceTypeEnum.BUSSSOURCE_NO.getType());
+        if (!BussSourceTypeEnum.BUSSSOURCE_NO.getType().equals(hisRecipeResTO.getRevisitType())) {
+            RevisitExDTO revisitExDTO = revisitClient.getByRegisterId(hisRecipeResTO.getRegisteredId());
+            if (Objects.nonNull(revisitExDTO)) {
+                recipe.setBussSource(BussSourceTypeEnum.BUSSSOURCE_REVISIT.getType());
+                recipe.setClinicId(revisitExDTO.getConsultId());
+                if (Objects.isNull(hisRecipeResTO.getIllnessType())) {
+                    recipeExtend.setIllnessType(revisitExDTO.getDbType());
+                    recipeExtend.setIllnessName(revisitExDTO.getInsureTypeName());
+                }
+            } else {
+                logger.error("无关联复诊:{},{}", hisRecipeResTO.getRecipeCode(), hisRecipeResTO.getRegisteredId());
+            }
+        } else {
+            recipe.setBussSource(BussSourceTypeEnum.BUSSSOURCE_OUTPATIENT.getType());
+        }
+        //设置处方状态
+        if (HisRecipeConstant.HISRECIPESTATUS_NOIDEAL.equals(flag)) {
+            recipe.setProcessState(RecipeStateEnum.PROCESS_STATE_ORDER.getType());
+            recipe.setPayFlag(PayFlagEnum.NOPAY.getType());
+        } else if (HisRecipeConstant.HISRECIPESTATUS_ALREADYIDEAL.equals(flag)) {
+            recipe.setProcessState(RecipeStateEnum.PROCESS_STATE_DONE.getType());
+            recipe.setPayFlag(PayFlagEnum.PAYED.getType());
+        } else if (HisRecipeConstant.HISRECIPESTATUS_EXPIRED.equals(flag)) {
+            recipe.setProcessState(RecipeStateEnum.PROCESS_STATE_CANCELLATION.getType());
+            recipe.setPayFlag(PayFlagEnum.NOPAY.getType());
+        }
+        //设置处方单靶向药
+        List<RecipeDetailTO> recipeDetailTOList = hisRecipeResTO.getDrugList();
+        List<String> drugCodeList = recipeDetailTOList.stream().filter(b -> StringUtils.isNotEmpty(b.getDrugCode())).map(RecipeDetailTO::getDrugCode).collect(Collectors.toList());
+        List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugCodes(recipe.getClinicOrgan(), drugCodeList);
+        boolean targetedDrug = organDrugList.stream().anyMatch(organDrug -> new Integer("1").equals(organDrug.getTargetedDrugType()));
+        recipe.setTargetedDrugType(targetedDrug?1:0);
         return recipe;
     }
 
     /**
      * 将获取到的线下处方信息组装为线上处方扩展对象
      * @param hisRecipeResTO
+     * @param recipeExtend
      * @return
      */
-    public RecipeExtend getRecipeExtendFromHisRecipe(QueryHisRecipResTO hisRecipeResTO) {
-        RecipeExtend recipeExtend = new RecipeExtend();
+    public RecipeExtend getRecipeExtendFromHisRecipe(QueryHisRecipResTO hisRecipeResTO, RecipeExtend recipeExtend) {
+        recipeExtend = ObjectCopyUtils.convert(hisRecipeResTO, RecipeExtend.class);
+        recipeExtend.setRegisterID(hisRecipeResTO.getRegisteredId());
         return recipeExtend;
     }
 
@@ -986,7 +1031,8 @@ public class HisRecipeManager extends BaseManager {
      * @return
      */
     public List<Recipedetail> getRecipeDetailsFromHisRecipe(QueryHisRecipResTO hisRecipeResTO) {
-        List<Recipedetail> recipeDetails = new ArrayList<>();
+        List<RecipeDetailTO> recipeDetailTOList = hisRecipeResTO.getDrugList();
+        List<Recipedetail> recipeDetails = ObjectCopyUtils.convert(recipeDetailTOList, Recipedetail.class);
         return recipeDetails;
     }
 
