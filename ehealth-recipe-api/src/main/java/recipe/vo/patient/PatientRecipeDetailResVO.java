@@ -121,6 +121,12 @@ public class PatientRecipeDetailResVO implements Serializable {
     @FileToken(expires = 3600)
     private String chemistSignFile;
 
+    @ItemProperty(alias = "处方支付类型 0 普通支付 1 不选择购药方式直接去支付")
+    private Integer recipePayType;
+
+    @ItemProperty(alias = "审核模式")
+    private Integer reviewType;
+
     /******************************** 以下数据来源 recipeExt ****************************/
 
     @ItemProperty(alias = "是否长处方")
