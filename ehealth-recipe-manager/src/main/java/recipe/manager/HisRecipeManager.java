@@ -42,6 +42,7 @@ import recipe.constant.PayConstant;
 import recipe.dao.*;
 import recipe.enumerate.status.*;
 import recipe.enumerate.type.BussSourceTypeEnum;
+import recipe.enumerate.type.OfflineRecipePayFlagEnum;
 import recipe.enumerate.type.PayFlagEnum;
 import recipe.enumerate.type.RecipeDrugFormTypeEnum;
 import recipe.util.JsonUtil;
@@ -994,16 +995,9 @@ public class HisRecipeManager extends BaseManager {
             recipe.setBussSource(BussSourceTypeEnum.BUSSSOURCE_OUTPATIENT.getType());
         }
         //设置处方状态
-        if (HisRecipeConstant.HISRECIPESTATUS_NOIDEAL.equals(flag)) {
-            recipe.setProcessState(RecipeStateEnum.PROCESS_STATE_ORDER.getType());
-            recipe.setPayFlag(PayFlagEnum.NOPAY.getType());
-        } else if (HisRecipeConstant.HISRECIPESTATUS_ALREADYIDEAL.equals(flag)) {
-            recipe.setProcessState(RecipeStateEnum.PROCESS_STATE_DONE.getType());
-            recipe.setPayFlag(PayFlagEnum.PAYED.getType());
-        } else if (HisRecipeConstant.HISRECIPESTATUS_EXPIRED.equals(flag)) {
-            recipe.setProcessState(RecipeStateEnum.PROCESS_STATE_CANCELLATION.getType());
-            recipe.setPayFlag(PayFlagEnum.NOPAY.getType());
-        }
+        OfflineRecipePayFlagEnum offlineRecipePayFlagEnum = OfflineRecipePayFlagEnum.getByType(flag);
+        recipe.setProcessState(offlineRecipePayFlagEnum.getState());
+        recipe.setPayFlag(offlineRecipePayFlagEnum.getPayFlag());
         //设置处方单靶向药
         List<RecipeDetailTO> recipeDetailTOList = hisRecipeResTO.getDrugList();
         List<String> drugCodeList = recipeDetailTOList.stream().filter(b -> StringUtils.isNotEmpty(b.getDrugCode())).map(RecipeDetailTO::getDrugCode).collect(Collectors.toList());

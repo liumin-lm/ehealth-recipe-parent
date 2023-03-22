@@ -5,17 +5,19 @@ package recipe.enumerate.type;
  */
 public enum OfflineRecipePayFlagEnum {
 
-    OFFLINE_RECIPE_NO_PAY(0, 3, "代缴费"),
-    OFFLINE_RECIPE_PAY(1, 7, "已缴费"),
-    OFFLINE_RECIPE_CANCELLATION(3, 9, "已退费");
+    OFFLINE_RECIPE_NO_PAY(0, 3, 0, "代缴费"),
+    OFFLINE_RECIPE_PAY(1, 7, 1, "已缴费"),
+    OFFLINE_RECIPE_CANCELLATION(3, 9, 0, "已退费");
 
     private Integer type;
     private Integer state;
+    private Integer payFlag;
     private String name;
 
-    OfflineRecipePayFlagEnum(Integer type, Integer state, String name){
+    OfflineRecipePayFlagEnum(Integer type, Integer state, Integer payFlag, String name){
         this.type = type;
         this.state = state;
+        this.payFlag = payFlag;
         this.name = name;
     }
 
@@ -61,5 +63,13 @@ public enum OfflineRecipePayFlagEnum {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Integer getPayFlag() {
+        return payFlag;
+    }
+
+    public void setPayFlag(Integer payFlag) {
+        this.payFlag = payFlag;
     }
 }
