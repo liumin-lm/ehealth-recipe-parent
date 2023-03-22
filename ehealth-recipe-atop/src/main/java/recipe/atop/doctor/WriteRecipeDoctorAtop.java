@@ -102,6 +102,7 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
     public Integer signRecipe(Integer recipeId, Integer type) {
         validateAtop(recipeId, type);
         RecipeDTO recipeDTO = recipeBusinessService.getRecipeDTO(recipeId);
+        logger.info("WriteRecipeDoctorAtop signRecipe recipeDTO={}", JSON.toJSONString(recipeDTO));
         validateAtop(recipeDTO, recipeDTO.getRecipe(), recipeDTO.getRecipeExtend(), recipeDTO.getRecipeDetails());
         Recipe recipeBean = recipeDTO.getRecipe();
         recipeBean.setSignDate(new Date());
