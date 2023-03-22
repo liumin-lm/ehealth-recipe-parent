@@ -81,6 +81,8 @@ public class HisRecipeManager extends BaseManager {
     private PayClient payClient;
     @Autowired
     private RecipeBeforeOrderDAO recipeBeforeOrderDAO;
+    @Autowired
+    private RecipeManager recipeManager;
 
     /**
      * 获取患者信息
@@ -1047,6 +1049,11 @@ public class HisRecipeManager extends BaseManager {
             RecipeBean recipe = ObjectCopyUtils.convert(a, RecipeBean.class);
             RecipeExtendBean recipeExt = ObjectCopyUtils.convert(a, RecipeExtendBean.class);
             List<RecipeDetailBean> recipeDetailBeans = ObjectCopyUtils.convert(a.getDrugList(), RecipeDetailBean.class);
+            Recipe dbRecipe=recipeManager.getByRecipeCodeAndClinicOrganAndMpiid(a.getRecipeCode(),a.getClinicOrgan(),patient.getMpiId());
+            if(dbRecipe!=null){
+                //说明被当前人转过
+                recipe.setRecipeId(dbRecipe.getRecipeId());
+            }
             recipe.setBussSource(0);
             if (!new Integer(0).equals(a.getRevisitType())) {
                 RevisitExDTO revisitExDTO = revisitClient.getByRegisterId(a.getRegisteredId());
