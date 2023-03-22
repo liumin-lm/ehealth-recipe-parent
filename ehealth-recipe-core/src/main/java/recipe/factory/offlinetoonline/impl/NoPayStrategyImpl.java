@@ -190,8 +190,10 @@ class NoPayStrategyImpl extends BaseOfflineToOnlineService implements IOfflineTo
         });
         //5 返回出参
         RecipeBean recipeBean=new RecipeBean();
-        recipeBean.setRecipeId(recipeId.get());
-        res.setRecipe(recipeBean);
+        if(null!=recipeId.get()){
+            recipeBean.setRecipeId(recipeId.get());
+            res.setRecipe(recipeBean);
+        }
         return res;
 
     }
@@ -199,7 +201,7 @@ class NoPayStrategyImpl extends BaseOfflineToOnlineService implements IOfflineTo
 
     @Override
     public List<OfflineToOnlineResVO> batchOfflineToOnline(BatchOfflineToOnlineReqVO request) {
-        List<OfflineToOnlineResVO> res=new ArrayList<>();
+        List<OfflineToOnlineResVO> res=new ArrayList<OfflineToOnlineResVO>();
         LOGGER.info("NoPayServiceImpl batchOfflineToOnline request = {}", JSONUtils.toString(request));
         // 1、删数据
         List<String> recipeCodes=request.getSubParams().stream().map(e -> e.getRecipeCode()).collect(Collectors.toList());
@@ -208,16 +210,22 @@ class NoPayStrategyImpl extends BaseOfflineToOnlineService implements IOfflineTo
             // 2、线下转线上
             OfflineToOnlineReqVO offlineToOnlineReqVO = obtainOfflineToOnlineReqVO(request.getMpiId(), sub.getRecipeCode(), request.getOrganId(), request.getCardId(), sub.getStartTime(),sub.getEndTime());
             OfflineToOnlineResVO offlineToOnlineResVO = offlineToOnline(offlineToOnlineReqVO);
-            res.add(offlineToOnlineResVO);
-
+            if(null!=offlineToOnlineResVO.getRecipe()){
+                res.add(offlineToOnlineResVO);
+            };
         });
+        //res.stream().filter(a->null!=a.getRecipe())
         LOGGER.info("batchOfflineToOnline recipeIds:{}", JSONUtils.toString(res));
         //部分处方线下转线上成功
         if (res.size() != request.getSubParams().size()) {
             throw new DAOException(609, "抱歉，无法查找到对应的处方单数据");
         }
         //存在已失效处方
-        List<Recipe> recipes = recipeDAO.findRecipeByRecipeIdAndClinicOrgan(request.getOrganId(), res.stream().map(e -> e.getRecipe().getRecipeId()).collect(Collectors.toList()));
+        List<Integer> recipeIds=res.stream().filter(a->null!=a.getRecipe()).map(e -> e.getRecipe().getRecipeId()).collect(Collectors.toList());
+        if(CollectionUtils.isEmpty(recipeIds)){
+            return res;
+        }
+        List<Recipe> recipes = recipeDAO.findRecipeByRecipeIdAndClinicOrgan(request.getOrganId(), recipeIds);
         if (CollectionUtils.isNotEmpty(recipes) && recipes.size() > 0) {
             LOGGER.info("batchOfflineToOnline 存在已失效处方");
             throw new DAOException(600, "处方单过期已失效");
