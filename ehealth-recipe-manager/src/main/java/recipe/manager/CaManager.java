@@ -26,6 +26,7 @@ import recipe.constant.CaConstant;
 import recipe.dao.RecipeParameterDao;
 import recipe.dao.sign.SignDoctorRecipeInfoDAO;
 import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.status.SignEnum;
 import recipe.util.ByteUtils;
 import recipe.util.DateConversion;
 import recipe.util.RedisClient;
@@ -470,7 +471,8 @@ public class CaManager extends BaseManager {
     }
 
     /**
-     * 获取快捷狗咬ca方式
+     * 获取快捷购药ca方式
+     *
      * @param recipe
      * @return
      */
@@ -486,7 +488,6 @@ public class CaManager extends BaseManager {
                     return ca;
                 }
             }
-
         }
         return ca;
     }
@@ -506,8 +507,9 @@ public class CaManager extends BaseManager {
         recipe.setCheckDateYs(new Date());
         recipe.setCheckOrgan(doctorDTO.getOrgan());
         recipe.setCheckFlag(1);
+        recipe.setCheckerSignState(SignEnum.SIGN_STATE_SUBMIT.getType());
         recipeDAO.update(recipe);
-        //掉用药师签名
+        //调用药师签名
         recipeAuditClient.caSignChecker(recipe);
     }
 }

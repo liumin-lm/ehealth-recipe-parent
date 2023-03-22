@@ -62,10 +62,7 @@ import recipe.core.api.patient.IOfflineRecipeBusinessService;
 import recipe.core.api.patient.IPatientBusinessService;
 import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
-import recipe.enumerate.status.RecipeAuditStateEnum;
-import recipe.enumerate.status.RecipeSourceTypeEnum;
-import recipe.enumerate.status.RecipeStateEnum;
-import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.status.*;
 import recipe.enumerate.type.*;
 import recipe.hisservice.RecipeToHisService;
 import recipe.manager.*;
@@ -916,34 +913,48 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
     @Override
     public void fastRecipeCa(Integer recipeId) {
         Recipe recipe = recipeManager.getRecipeById(recipeId);
-        LOGGER.info("esignRecipeCa recipe:{}", JSON.toJSONString(recipe));
-        String ca=caManager.obtainFastRecipeCaParam(recipe);
-        if(!CaConstant.ESIGN.equals(ca)){
-             fastRecipeOtherCa(recipe);
-        }else{
-             esignRecipeCa(recipeId);
+        LOGGER.info("fastRecipeCa esignRecipeCa recipe:{}", JSON.toJSONString(recipe));
+        String ca = caManager.obtainFastRecipeCaParam(recipe);
+        if (CaConstant.ESIGN.equals(ca)) {
+            esignRecipeCa(recipeId);
+        } else {
+            fastRecipeOtherCa(recipe);
         }
-
     }
 
     private void fastRecipeOtherCa(Recipe recipe) {
-        LOGGER.info("fastRecipeOtherCa param:{}",recipe.getRecipeId());
-        CaSealRequestTO requestSealTO = createPdfFactory.queryPdfByte(recipe.getRecipeId(),true);
+        LOGGER.info("fastRecipeOtherCa param:{}", recipe.getRecipeId());
+        CaSealRequestTO requestSealTO = createPdfFactory.queryPdfByte(recipe.getRecipeId(), true);
         RecipeServiceEsignExt.updateInitRecipePDF(true, recipe, requestSealTO.getPdfBase64Str());
+        stateManager.updateDoctorSignState(recipe.getRecipeId(), SignEnum.SIGN_STATE_SUBMIT);
         caManager.oldCommonCASign(requestSealTO, recipe);
     }
 
     @Override
     @LogRecord
     public Integer esignRecipeCa(Integer recipeId) {
-        LOGGER.info("esignRecipeCa param:{}",recipeId);
         try {
             Recipe recipe = recipeManager.getRecipeById(recipeId);
             LOGGER.info("esignRecipeCa recipe:{}", JSON.toJSONString(recipe));
-            createPdfFactory.queryPdfOssId(recipe);
-            createPdfFactory.updateCheckNamePdfESign(recipeId, null);
+            //1.医生签名
+            stateManager.updateDoctorSignState(recipeId, SignEnum.SIGN_STATE_SUBMIT);
+            Boolean doctorSignResult = createPdfFactory.queryPdfOssId(recipe);
+            if (doctorSignResult) {
+                stateManager.updateDoctorSignState(recipeId, SignEnum.SIGN_STATE_ORDER);
+            } else {
+                stateManager.updateDoctorSignState(recipeId, SignEnum.SIGN_STATE_AUDIT);
+            }
+
+            //2.药师签名
+            stateManager.updateCheckerSignState(recipeId, SignEnum.SIGN_STATE_SUBMIT);
+            Boolean checkerSignResult = createPdfFactory.updateCheckNamePdfESign(recipeId, null);
             //药师审核通过后，重新根据药师的pdf生成签名图片
             createPdfFactory.updatePdfToImg(recipe.getRecipeId(), SignImageTypeEnum.SIGN_IMAGE_TYPE_CHEMIST.getType());
+            if (checkerSignResult) {
+                stateManager.updateCheckerSignState(recipeId, SignEnum.SIGN_STATE_ORDER);
+            } else {
+                stateManager.updateCheckerSignState(recipeId, SignEnum.SIGN_STATE_AUDIT);
+            }
         } catch (Exception e) {
             LOGGER.error("esignRecipeCa error", e);
         }

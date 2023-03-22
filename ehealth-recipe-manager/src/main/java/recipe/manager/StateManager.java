@@ -268,6 +268,21 @@ public class StateManager extends BaseManager {
     }
 
     /**
+     * 更改医生签名状态
+     * @param recipeId
+     * @param doctorSignState
+     * @return
+     */
+    @LogRecord
+    public Boolean updateDoctorSignState(Integer recipeId, SignEnum doctorSignState) {
+        Recipe updateRecipe = new Recipe();
+        updateRecipe.setRecipeId(recipeId);
+        updateRecipe.setDoctorSignState(doctorSignState.getType());
+        recipeDAO.updateNonNullFieldByPrimaryKey(updateRecipe);
+        return true;
+    }
+
+    /**
      * 兼容修改老状态
      *
      * @param recipeId
