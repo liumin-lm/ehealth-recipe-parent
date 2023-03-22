@@ -94,13 +94,17 @@ public class CaManager extends BaseManager {
      */
     @LogRecord
     public void setCaPassWord(Integer clinicOrgan, Integer doctor, String caPassword) {
-        //将密码放到redis中
-        IConfigurationCenterUtilsService configurationService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
-        String thirdCASign = (String) configurationService.getConfiguration(clinicOrgan, THIRD_CA_SIGN);
-        if (CA_TYPE_SHANXI.equals(thirdCASign)) {
-            redisClient.set(SHANXI_CA_PASSWORD + clinicOrgan + doctor, caPassword);
-        } else {
-            redisClient.set("caPassword", caPassword);
+        try {
+            //将密码放到redis中
+            IConfigurationCenterUtilsService configurationService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
+            String thirdCASign = (String) configurationService.getConfiguration(clinicOrgan, THIRD_CA_SIGN);
+            if (CA_TYPE_SHANXI.equals(thirdCASign)) {
+                redisClient.set(SHANXI_CA_PASSWORD + clinicOrgan + doctor, caPassword);
+            } else {
+                redisClient.set("caPassword", caPassword);
+            }
+        } catch (Exception e) {
+            logger.error("setCaPassWord error", e);
         }
     }
 

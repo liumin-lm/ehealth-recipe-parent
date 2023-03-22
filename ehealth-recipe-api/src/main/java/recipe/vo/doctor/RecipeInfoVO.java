@@ -72,16 +72,6 @@ public class RecipeInfoVO {
      * 老常用方id
      */
     private Integer commonRecipeId;
-    /**
-     * 1 平台，2互联网
-     */
-    private Integer type;
-
-    /**
-     * pc，ios ，Android
-     */
-    private String source;
-
     private String recipeCode;
 
     @Override
