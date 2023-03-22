@@ -14,7 +14,6 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
-import ctd.dictionary.DictionaryController;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import eh.entity.base.Scratchable;
@@ -463,10 +462,12 @@ public class PlatformCreatePdfServiceImpl extends BaseCreatePdf implements Creat
         }
         try {
             if (tcmRecipeList.get(0).contains("4")) {
-                list.add(new RecipeLabelDTO(recipeJsonObject.getString("usePathwaysTextConfig"), "tcmUsePathways", DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(detail.getUsePathways())));
+                String usePathways = detail.getUsePathwaysTextFromHis() != null ? detail.getUsePathwaysTextFromHis() : DictionaryUtil.getDictionary("eh.cdr.dictionary.UsePathways", detail.getUsePathways());
+                list.add(new RecipeLabelDTO(recipeJsonObject.getString("usePathwaysTextConfig"), "tcmUsePathways", usePathways));
             }
             if (tcmRecipeList.get(0).contains("5")) {
-                list.add(new RecipeLabelDTO(recipeJsonObject.getString("usingRateTextConfig"), "tcmUsingRate", DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(detail.getUsingRate())));
+                String usingRate = detail.getUsingRateTextFromHis() != null ? detail.getUsingRateTextFromHis() : DictionaryUtil.getDictionary("eh.cdr.dictionary.UsingRate", detail.getUsingRate());
+                list.add(new RecipeLabelDTO(recipeJsonObject.getString("usingRateTextConfig"), "tcmUsingRate", usingRate));
             }
         } catch (Exception e) {
             logger.error("用药途径 用药频率有误");
@@ -511,8 +512,10 @@ public class PlatformCreatePdfServiceImpl extends BaseCreatePdf implements Creat
         Recipedetail detail = recipeDetails.get(0);
         list.add(new RecipeLabelDTO("天数", "tcmUseDay", getUseDays(detail.getUseDaysB(), detail.getUseDays())));
         try {
-            list.add(new RecipeLabelDTO("用药途径", "tcmUsePathways", DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(detail.getUsePathways())));
-            list.add(new RecipeLabelDTO("用药频次", "tcmUsingRate", DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(detail.getUsingRate())));
+            String usePathways = detail.getUsePathwaysTextFromHis() != null ? detail.getUsePathwaysTextFromHis() : DictionaryUtil.getDictionary("eh.cdr.dictionary.UsePathways", detail.getUsePathways());
+            list.add(new RecipeLabelDTO("用药途径", "tcmUsePathways", usePathways));
+            String usingRate = detail.getUsingRateTextFromHis() != null ? detail.getUsingRateTextFromHis() : DictionaryUtil.getDictionary("eh.cdr.dictionary.UsingRate", detail.getUsingRate());
+            list.add(new RecipeLabelDTO("用药频次", "tcmUsingRate", usingRate));
         } catch (Exception e) {
             logger.error("用药途径 用药频率有误");
         }

@@ -67,6 +67,7 @@ import recipe.enumerate.type.*;
 import recipe.hisservice.RecipeToHisService;
 import recipe.manager.*;
 import recipe.service.common.RecipeCacheService;
+import recipe.util.DictionaryUtil;
 import recipe.util.RedisClient;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.patient.*;
@@ -1050,6 +1051,18 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         LOGGER.info("hideRecipeDetail 药品类型：{} 需要隐方的类型:{}", returnRecipe.getRecipeType(), hideRecipeDetail);
         if (org.apache.commons.collections.CollectionUtils.isNotEmpty(hideRecipeDetail) && hideRecipeDetail.contains(returnRecipe.getRecipeType().toString()) && PayFlagEnum.NOPAY.getType().equals(returnRecipe.getPayFlag())) {
             patientRecipeDetailResVO.setIsHiddenRecipeDetail(true);
+        }
+
+        patientRecipeDetailResVO.setSubStateText(RecipeStateEnum.getRecipeStateEnum(returnRecipe.getSubState()).getName());
+        if (Objects.nonNull(returnRecipe.getDepart())) {
+            patientRecipeDetailResVO.setDepartName(DictionaryUtil.getDictionary("eh.base.dictionary.Depart", returnRecipe.getDepart()));
+        }else {
+//            patientRecipeDetailResVO.setDepartName(returnRecipe.getDepartName());
+        }
+        if (Objects.nonNull(returnRecipe.getDepart())) {
+            patientRecipeDetailResVO.setDoctorName(DictionaryUtil.getDictionary("eh.base.dictionary.Doctor", returnRecipe.getDoctor()));
+        }else {
+            patientRecipeDetailResVO.setDoctorName(returnRecipe.getDoctorName());
         }
 
         Integer secrecyRecipe = 0;
