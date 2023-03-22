@@ -1002,7 +1002,7 @@ public class OfflineRecipeClient extends BaseClient {
             //date 20200222 杭州市互联网添加字段
             item.setDrugID(detail.getDrugId());
             //date 20200701 预校验添加平台药品医嘱ID
-            item.setOrderID(detail.getRecipeDetailId().toString());
+            item.setOrderID(String.valueOf(detail.getRecipeDetailId()));
             // 黄河医院 剂型名称
             item.setDrugForm(detail.getDrugForm());
             //超量编码

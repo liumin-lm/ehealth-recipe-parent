@@ -11,10 +11,7 @@ import com.ngari.patient.service.DepartmentService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
-import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
-import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailResVO;
-import com.ngari.recipe.offlinetoonline.model.FindHisRecipeListVO;
-import com.ngari.recipe.offlinetoonline.model.SettleForOfflineToOnlineVO;
+import com.ngari.recipe.offlinetoonline.model.*;
 import com.ngari.recipe.recipe.constant.RecipeTypeEnum;
 import com.ngari.recipe.recipe.model.MergeRecipeVO;
 import com.ngari.recipe.recipe.model.RecipeBean;
@@ -159,6 +156,36 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
     }
 
     @Override
+    public OfflineToOnlineResVO offlineToOnline(OfflineToOnlineReqVO request) {
+        logger.info("OfflineToOnlineService offlineToOnline request:{}", JSONUtils.toString(request));
+        try {
+            IOfflineToOnlineStrategy offlineToOnlineStrategy = offlineToOnlineFactory.getFactoryService(request.getStatus());
+            return offlineToOnlineStrategy.offlineToOnline(request);
+        } catch (DAOException e) {
+            logger.error("OfflineToOnlineService offlineToOnline error", e);
+            throw new DAOException(e.getCode(), e.getMessage());
+        } catch (Exception e) {
+            logger.error("OfflineToOnlineService offlineToOnline error", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
+    }
+
+    @Override
+    public List<OfflineToOnlineResVO> batchOfflineToOnline(BatchOfflineToOnlineReqVO request) {
+        logger.info("OfflineToOnlineService batchOfflineToOnline request:{}", JSONUtils.toString(request));
+        try {
+            IOfflineToOnlineStrategy offlineToOnlineStrategy = offlineToOnlineFactory.getFactoryService(request.getStatus());
+            return offlineToOnlineStrategy.batchOfflineToOnline(request);
+        } catch (DAOException e) {
+            logger.error("OfflineToOnlineService batchOfflineToOnline error", e);
+            throw new DAOException(e.getCode(), e.getMessage());
+        } catch (Exception e) {
+            logger.error("OfflineToOnlineService batchOfflineToOnline error", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
+    }
+
+    @Override
     public List<String> getCardType(Integer organId) {
         //卡类型 1 表示身份证  2 表示就诊卡  3 表示就诊卡
         //根据运营平台配置  如果配置了就诊卡 医保卡（根据卡类型进行查询）； 如果都不配（默认使用身份证查询）
@@ -211,9 +238,7 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
                 }
             }
         }
-        if (null != request.getTimeQuantum()) {
-//            request.setTimeQuantum(request.getTimeQuantum());
-        } else {
+        if (null == request.getTimeQuantum()){
             request.setTimeQuantum(6);
         }
         logger.info("OfflineToOnlineService obtainFindHisRecipeDetailParam req:{}", JSONUtils.toString(request));

@@ -1,4 +1,4 @@
-package recipe.vo.patient;
+package com.ngari.recipe.dto;
 
 import ctd.schema.annotation.ItemProperty;
 import lombok.Data;
@@ -6,14 +6,9 @@ import lombok.Data;
 import java.io.Serializable;
 import java.util.Date;
 
-/**
- * @description：患者端 处方详情入参
- * @author： whf
- * @date： 2023-03-16 9:51
- */
 @Data
-public class PatientRecipeDetailReqVO implements Serializable {
-    private static final long serialVersionUID = 5540590420559633388L;
+public class PatientRecipeDetailReqDTO implements Serializable {
+    private static final long serialVersionUID = -5990026917301549956L;
 
     @ItemProperty(alias = "机构id")
     private Integer organId;
@@ -35,5 +30,4 @@ public class PatientRecipeDetailReqVO implements Serializable {
 
     @ItemProperty(alias = "结束时间")
     private Date endTime;
-
 }

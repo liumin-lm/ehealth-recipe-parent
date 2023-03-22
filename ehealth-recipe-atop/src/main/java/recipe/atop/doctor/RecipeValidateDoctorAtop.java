@@ -146,7 +146,14 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
         validateAtop(validateDetailVO.getRecipeBean(), validateDetailVO.getRecipeExtendBean(), validateDetailVO.getRecipeDetails());
         validateAtop(validateDetailVO.getRecipeBean().getRecipeId());
         DoSignRecipeDTO doSignRecipe = offlineRecipeBusinessService.hisRecipeCheck(validateDetailVO);
+        if (null == doSignRecipe) {
+            doSignRecipe = new DoSignRecipeDTO();
+            doSignRecipe.setSignResult(true);
+            doSignRecipe.setCanContinueFlag("0");
+            return doSignRecipe;
+        }
         enterpriseBusinessService.checkRecipeGiveDeliveryMsg(doSignRecipe, validateDetailVO.getRecipeBean());
+        doSignRecipe.setMap(null);
         return doSignRecipe;
     }
 
@@ -307,15 +314,7 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
         if (ValidateUtil.integerIsEmpty(clinicId)) {
             return true;
         }
-        try {
-            return recipeBusinessService.validateOpenRecipeNumber(clinicId, organId, recipeId);
-        } catch (DAOException e1) {
-            logger.error("RecipeValidateDoctorAtop validateOpenRecipeNumber error", e1);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
-        } catch (Exception e) {
-            logger.error("RecipeValidateDoctorAtop validateOpenRecipeNumber error e", e);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
-        }
+        return recipeBusinessService.validateOpenRecipeNumber(clinicId, organId, recipeId);
     }
 
     /**

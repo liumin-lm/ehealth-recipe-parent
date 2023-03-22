@@ -53,4 +53,6 @@ public class PatientRecipeListReqDTO implements Serializable {
 
     @ItemProperty(alias = "列表查询处方状态")
     private List<Integer> recipeState;
+    @ItemProperty(alias = "列表查询处方状态")
+    private List<Integer> bussSource;
 }

@@ -5,10 +5,7 @@ import com.ngari.his.recipe.mode.RecipeInfoTO;
 import com.ngari.recipe.dto.DoSignRecipeDTO;
 import com.ngari.recipe.dto.HisRecipeDTO;
 import com.ngari.recipe.dto.RecipeInfoDTO;
-import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
-import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailResVO;
-import com.ngari.recipe.offlinetoonline.model.FindHisRecipeListVO;
-import com.ngari.recipe.offlinetoonline.model.SettleForOfflineToOnlineVO;
+import com.ngari.recipe.offlinetoonline.model.*;
 import com.ngari.recipe.recipe.model.MergeRecipeVO;
 import com.ngari.recipe.vo.OffLineRecipeDetailVO;
 import recipe.vo.doctor.ValidateDetailVO;
@@ -126,4 +123,18 @@ public interface IOfflineRecipeBusinessService {
      * @param validateDetailVO
      */
     DoSignRecipeDTO hisRecipeCheck(ValidateDetailVO validateDetailVO);
+
+    /**
+     * 线下转线上
+     * @param request
+     * @return
+     */
+    OfflineToOnlineResVO offlineToOnline(OfflineToOnlineReqVO request);
+
+    /**
+     * 批量线下转线上
+     * @param request
+     * @return
+     */
+    List<OfflineToOnlineResVO> batchOfflineToOnline(BatchOfflineToOnlineReqVO request);
 }

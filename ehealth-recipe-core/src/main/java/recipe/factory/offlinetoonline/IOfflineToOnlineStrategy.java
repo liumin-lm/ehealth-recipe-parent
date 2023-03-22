@@ -4,10 +4,7 @@ package recipe.factory.offlinetoonline;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.QueryHisRecipResTO;
 import com.ngari.patient.dto.PatientDTO;
-import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
-import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailResVO;
-import com.ngari.recipe.offlinetoonline.model.FindHisRecipeListVO;
-import com.ngari.recipe.offlinetoonline.model.SettleForOfflineToOnlineVO;
+import com.ngari.recipe.offlinetoonline.model.*;
 import com.ngari.recipe.recipe.model.MergeRecipeVO;
 import recipe.vo.patient.RecipeGiveModeButtonRes;
 
@@ -55,4 +52,18 @@ public interface IOfflineToOnlineStrategy {
     String getHandlerMode();
 
     void offlineToOnlineForRecipe(FindHisRecipeDetailReqVO request);
+
+    /**
+     * 线下转线上
+     * @param request
+     * @return
+     */
+    OfflineToOnlineResVO offlineToOnline(OfflineToOnlineReqVO request);
+
+    /**
+     * 批量线下转线上
+     * @param request
+     * @return
+     */
+    List<OfflineToOnlineResVO> batchOfflineToOnline(BatchOfflineToOnlineReqVO request);
 }
