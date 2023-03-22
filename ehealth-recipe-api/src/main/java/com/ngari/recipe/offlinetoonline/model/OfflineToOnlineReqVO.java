@@ -5,6 +5,7 @@ import ctd.schema.annotation.DesensitizationsType;
 import ctd.schema.annotation.ItemProperty;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NonNull;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -16,17 +17,20 @@ import java.util.Date;
  */
 @Data
 @Builder
+//@AllArgsConstructor
 public class OfflineToOnlineReqVO implements Serializable {
     private static final long serialVersionUID = -7727248592234567484L;
 
     /**
      * 机构
      */
+    @NonNull
     private Integer organId;
 
     /**
      * mpiId
      */
+    @NonNull
     private String mpiId;
 
 //    /**
@@ -37,6 +41,7 @@ public class OfflineToOnlineReqVO implements Serializable {
     /**
      * 处方号
      */
+    @NonNull
     private String recipeCode;
 
     /**
@@ -54,6 +59,19 @@ public class OfflineToOnlineReqVO implements Serializable {
     @ItemProperty(alias = "结束时间")
     private Date endTime;
 
+
+    public OfflineToOnlineReqVO(@NonNull Integer organId, @NonNull String mpiId, @NonNull String recipeCode, String cardId, String processState, Date startTime, Date endTime) {
+        this.organId = organId;
+        this.mpiId = mpiId;
+        this.recipeCode = recipeCode;
+        this.cardId = cardId;
+        this.processState = processState;
+        this.startTime = startTime;
+        this.endTime = endTime;
+    }
+
+    public OfflineToOnlineReqVO() {
+    }
 }
 
 

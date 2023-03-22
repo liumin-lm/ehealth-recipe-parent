@@ -184,7 +184,7 @@ class NoPayStrategyImpl extends BaseOfflineToOnlineService implements IOfflineTo
         }
 
         //4 保存数据到cdr_recipe相关表（cdr_recipe、cdr_recipeext、cdr_recipeDetail）
-        AtomicReference<Integer> recipeId=null;
+        AtomicReference<Integer> recipeId = new AtomicReference<>();
         hisRecipes.forEach(hisRecipe -> {
             recipeId.set(saveRecipeInfo(hisRecipe.getHisRecipeID()));
         });
