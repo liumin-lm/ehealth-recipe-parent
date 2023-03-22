@@ -920,6 +920,7 @@ public class HisRecipeManager extends BaseManager {
             Map<String, Object> map = offlineRecipeClient.hisRecipeCheck(recipe, recipeExtend, details, pharmacyTcmMap, organDrugMap, hisCheckRecipe);
             DoSignRecipeDTO doSignRecipeDTO = new DoSignRecipeDTO();
             doSignRecipeDTO.setMap(map);
+            doSignRecipeDTO.setRecipeId(recipe.getRecipeId());
             doSignRecipeDTO.setSignResult(true);
             doSignRecipeDTO.setCanContinueFlag("0");
             return doSignRecipeDTO;
