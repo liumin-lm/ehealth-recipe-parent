@@ -134,7 +134,7 @@ public class OfflineRecipePatientAtop extends BaseAtop {
     @RpcService
     public OfflineToOnlineResVO offlineToOnline(OfflineToOnlineReqVO request) {
         logger.info("OfflineToOnlineAtop offlineToOnline request:{}", JSONUtils.toString(request));
-        validateAtop(request, request.getOrganId(), request.getMpiId());
+        validateAtop(request, request.getOrganId(), request.getMpiid());
         try {
             OfflineToOnlineResVO res = offlineToOnlineService.offlineToOnline(request);
             logger.info("OfflineToOnlineAtop offlineToOnline res findHisRecipeDetailResVO:{}", JSONUtils.toString(res));

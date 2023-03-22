@@ -31,7 +31,7 @@ public class OfflineToOnlineReqVO implements Serializable {
      * mpiId
      */
     @NonNull
-    private String mpiId;
+    private String mpiid;
 
 //    /**
 //     * 处方cdr_his_recipe表的hisRecipeId
@@ -60,9 +60,9 @@ public class OfflineToOnlineReqVO implements Serializable {
     private Date endTime;
 
 
-    public OfflineToOnlineReqVO(@NonNull Integer organId, @NonNull String mpiId, @NonNull String recipeCode, String cardId, String processState, Date startTime, Date endTime) {
+    public OfflineToOnlineReqVO(@NonNull Integer organId, @NonNull String mpiid, @NonNull String recipeCode, String cardId, String processState, Date startTime, Date endTime) {
         this.organId = organId;
-        this.mpiId = mpiId;
+        this.mpiid = mpiid;
         this.recipeCode = recipeCode;
         this.cardId = cardId;
         this.processState = processState;

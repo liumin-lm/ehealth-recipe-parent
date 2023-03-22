@@ -247,7 +247,7 @@ public class BaseOfflineToOnlineService {
     public OfflineToOnlineReqVO obtainOfflineToOnlineReqVO(String mpiId, String recipeCode, Integer organId, String cardId, Date startTime, Date endTime) {
         LOGGER.info("BaseOfflineToOnlineService obtainOfflineToOnlineReqVO mpiId:{},recipeCode:{},organId:{},cardId:{}", mpiId, recipeCode, organId, cardId);
         OfflineToOnlineReqVO offlineToOnlineReqVO = OfflineToOnlineReqVO.builder()
-                .mpiId(mpiId)
+                .mpiid(mpiId)
                 .recipeCode(recipeCode)
                 .organId(organId)
                 .cardId(cardId)

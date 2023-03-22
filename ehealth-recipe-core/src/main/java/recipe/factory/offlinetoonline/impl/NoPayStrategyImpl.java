@@ -161,7 +161,7 @@ class NoPayStrategyImpl extends BaseOfflineToOnlineService implements IOfflineTo
         LOGGER.info("offlineToOnlineForRecipe request:{}", JSONUtils.toString(request));
         OfflineToOnlineResVO res=new OfflineToOnlineResVO();
         //1 获取his数据
-        PatientDTO patientDTO = hisRecipeManager.getPatientBeanByMpiId(request.getMpiId());
+        PatientDTO patientDTO = hisRecipeManager.getPatientBeanByMpiId(request.getMpiid());
         if (null == patientDTO) {
             throw new DAOException(609, "患者信息不存在");
         }
@@ -202,9 +202,9 @@ class NoPayStrategyImpl extends BaseOfflineToOnlineService implements IOfflineTo
         List<OfflineToOnlineResVO> res=new ArrayList<>();
         LOGGER.info("NoPayServiceImpl batchOfflineToOnline request = {}", JSONUtils.toString(request));
         // 1、删数据
-        List<String> recipeCodes=request.getOfflineToOnlineReqs().stream().map(e -> e.getRecipeCode()).collect(Collectors.toList());
+        List<String> recipeCodes=request.getSubParams().stream().map(e -> e.getRecipeCode()).collect(Collectors.toList());
         hisRecipeManager.deleteRecipeByRecipeCodes(request.getOrganId().toString(), recipeCodes);
-        request.getOfflineToOnlineReqs().forEach(sub -> {
+        request.getSubParams().forEach(sub -> {
             // 2、线下转线上
             OfflineToOnlineReqVO offlineToOnlineReqVO = obtainOfflineToOnlineReqVO(request.getMpiId(), sub.getRecipeCode(), request.getOrganId(), request.getCardId(), sub.getStartTime(),sub.getEndTime());
             OfflineToOnlineResVO offlineToOnlineResVO = offlineToOnline(offlineToOnlineReqVO);
@@ -213,7 +213,7 @@ class NoPayStrategyImpl extends BaseOfflineToOnlineService implements IOfflineTo
         });
         LOGGER.info("batchOfflineToOnline recipeIds:{}", JSONUtils.toString(res));
         //部分处方线下转线上成功
-        if (res.size() != request.getOfflineToOnlineReqs().size()) {
+        if (res.size() != request.getSubParams().size()) {
             throw new DAOException(609, "抱歉，无法查找到对应的处方单数据");
         }
         //存在已失效处方

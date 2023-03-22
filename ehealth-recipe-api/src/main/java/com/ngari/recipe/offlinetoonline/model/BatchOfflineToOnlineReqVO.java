@@ -19,7 +19,7 @@ import java.util.List;
 public class BatchOfflineToOnlineReqVO implements Serializable {
     private static final long serialVersionUID = -7727248592234567484L;
 
-    List<SubBatchOfflineToOnlineReqVO> offlineToOnlineReqs;
+    List<SubBatchOfflineToOnlineReqVO> subParams;
 
     /**
      * 机构
@@ -45,7 +45,7 @@ public class BatchOfflineToOnlineReqVO implements Serializable {
         /**
          * 处方cdr_his_recipe表的hisRecipeId
          */
-        private Integer hisRecipeId;
+//        private Integer hisRecipeId;
 
         /**
          * 处方号
