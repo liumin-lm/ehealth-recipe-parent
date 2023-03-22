@@ -27,10 +27,7 @@ import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.DepListBean;
-import com.ngari.recipe.dto.GiveModeButtonDTO;
-import com.ngari.recipe.dto.GiveModeShowButtonDTO;
-import com.ngari.recipe.dto.RecipeDTO;
-import com.ngari.recipe.dto.RecipeInfoDTO;
+import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.GiveModeButtonBean;
 import com.ngari.recipe.recipe.model.RankShiftList;
@@ -130,6 +127,8 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
     private StateManager stateManager;
     @Autowired
     private CaManager caManager;
+    @Autowired
+    private HisRecipeManager  hisRecipeManager;
 
     /**
      * 根据取药方式过滤药企
@@ -1011,6 +1010,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         }
         if(Objects.isNull(recipe) && StringUtils.isNotEmpty(patientRecipeDetailReq.getRecipeCode()) && Objects.nonNull(patientRecipeDetailReq.getOrganId())){
             // 获取线下处方
+            recipe = hisRecipeManager.getHisRecipeInfoDTO(BeanCopyUtils.copyProperties(patientRecipeDetailReq, PatientRecipeDetailReqDTO::new));
             recipeBusType = 2;
         }
         if (Objects.isNull(recipe)){
