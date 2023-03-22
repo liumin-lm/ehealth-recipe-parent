@@ -169,12 +169,12 @@ class NoPayStrategyImpl extends BaseOfflineToOnlineService implements IOfflineTo
         if (null == hisRecipeInfos || CollectionUtils.isEmpty(hisRecipeInfos.getData())) {
             return res;
         }
-        try {
+//        try {
             //2 更新数据校验
             hisRecipeInfoCheck(hisRecipeInfos.getData(), patientDTO);
-        } catch (Exception e) {
-            LOGGER.error("queryHisRecipeInfo hisRecipeInfoCheck error ", e);
-        }
+//        } catch (Exception e) {
+//            LOGGER.error("queryHisRecipeInfo hisRecipeInfoCheck error ", e);
+//        }
         List<HisRecipe> hisRecipes = new ArrayList<>();
         try {
             //3 保存数据到cdr_his_recipe相关表（cdr_his_recipe、cdr_his_recipeExt、cdr_his_recipedetail）
