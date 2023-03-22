@@ -94,19 +94,22 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
     /**
      * 处方签名
      *
-     * @param recipeInfoVO
+     * @param recipeId 处方id
+     * @param type     1 平台，2互联网
      * @return
      */
     @RpcService
-    public Integer signRecipe(RecipeInfoVO recipeInfoVO) {
-        validateAtop(recipeInfoVO, recipeInfoVO.getRecipeBean(), recipeInfoVO.getRecipeExtendBean(), recipeInfoVO.getRecipeDetails()
-                , recipeInfoVO.getType(), recipeInfoVO.getSource());
-        RecipeBean recipeBean = recipeInfoVO.getRecipeBean();
+    public Integer signRecipe(Integer recipeId, Integer type) {
+        validateAtop(recipeId, type);
+        RecipeDTO recipeDTO = recipeBusinessService.getRecipeDTO(recipeId);
+        logger.info("WriteRecipeDoctorAtop signRecipe recipeDTO={}", JSON.toJSONString(recipeDTO));
+        validateAtop(recipeDTO, recipeDTO.getRecipe(), recipeDTO.getRecipeExtend(), recipeDTO.getRecipeDetails());
+        Recipe recipeBean = recipeDTO.getRecipe();
         recipeBean.setSignDate(new Date());
         validateAtop(recipeBean.getClinicOrgan(), recipeBean.getRecipeId(), recipeBean.getDoctor(), recipeBean.getRecipeSupportGiveMode());
-        List<RecipeDetailBean> recipeDetails = recipeInfoVO.getRecipeDetails();
+        List<Recipedetail> recipeDetails = recipeDTO.getRecipeDetails();
         recipeDetails.forEach(a -> validateAtop(a.getRecipeId(), a.getRecipeDetailId()));
-        return recipeBusinessService.signRecipe(recipeInfoVO);
+        return recipeBusinessService.signRecipe(recipeDTO, type);
     }
 
     /**

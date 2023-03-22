@@ -463,10 +463,11 @@ public interface IRecipeBusinessService {
     /**
      * 处方签名
      *
-     * @param recipeInfoVO
+     * @param recipeDTO 处方数据
+     * @param type      1 平台，2互联网
      * @return
      */
-    Integer signRecipe(RecipeInfoVO recipeInfoVO);
+    Integer signRecipe(RecipeDTO recipeDTO, Integer type);
     
     /**
      * 医生端获取列表接口
