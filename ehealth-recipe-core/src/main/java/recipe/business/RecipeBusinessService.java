@@ -1698,5 +1698,10 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     public RecipeDTO getRecipeDTO(Integer recipeId) {
         return recipeManager.getSuperRecipeDTO(recipeId);
     }
+
+    @Override
+    public void sendCardMessage(CardMessageVO cardMessageVO) {
+
+    }
 }
 

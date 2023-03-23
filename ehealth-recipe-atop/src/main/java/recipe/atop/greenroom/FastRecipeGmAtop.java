@@ -2,6 +2,7 @@ package recipe.atop.greenroom;
 
 import com.google.common.collect.Lists;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
+import com.ngari.recipe.recipe.model.CardMessageVO;
 import com.ngari.recipe.vo.FastRecipeReq;
 import com.ngari.recipe.entity.FastRecipe;
 import com.ngari.recipe.entity.FastRecipeDetail;
@@ -17,6 +18,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.core.api.IFastRecipeBusinessService;
+import recipe.core.api.IRecipeBusinessService;
 import recipe.vo.doctor.RecipeInfoVO;
 
 import java.util.List;
@@ -34,9 +36,10 @@ public class FastRecipeGmAtop extends BaseAtop {
 
     @Autowired
     IFastRecipeBusinessService fastRecipeService;
-
     @Autowired
     private IConfigurationCenterUtilsService configService;
+    @Autowired
+    private IRecipeBusinessService recipeBusinessService;
 
     /**
      * 快捷购药 开处方
@@ -230,5 +233,15 @@ public class FastRecipeGmAtop extends BaseAtop {
     public Boolean updateFastRecipeSalePriceAndTotalMoney(List<Integer> fastRecipeIdList) {
         validateAtop(fastRecipeIdList);
         return fastRecipeService.updateFastRecipeSalePriceAndTotalMoney(fastRecipeIdList);
+    }
+
+    /**
+     * 医生端推送快捷购药卡片消息
+     * @param cardMessageVO
+     */
+    @RpcService
+    public void sendCardMessage(CardMessageVO cardMessageVO) {
+        validateAtop(cardMessageVO, cardMessageVO.getFastRecipeIds(), cardMessageVO.getDoctorId());
+        recipeBusinessService.sendCardMessage(cardMessageVO);
     }
 }

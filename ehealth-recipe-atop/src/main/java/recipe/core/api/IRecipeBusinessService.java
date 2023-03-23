@@ -509,4 +509,10 @@ public interface IRecipeBusinessService {
      */
     RecipeDTO getRecipeDTO(Integer recipeId);
 
+    /**
+     * 推送快捷购药卡片消息
+     * @param cardMessageVO
+     */
+    void sendCardMessage(CardMessageVO cardMessageVO);
+
 }
