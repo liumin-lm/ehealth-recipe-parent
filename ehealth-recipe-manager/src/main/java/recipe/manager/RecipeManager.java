@@ -187,6 +187,21 @@ public class RecipeManager extends BaseManager {
 
 
     /**
+     * 获取处方信息
+     *
+     * @param recipeCode
+     * @param clinicOrgan
+     * @return
+     */
+    public Recipe getByRecipeCodeAndClinicOrganAndMpiid(String recipeCode, Integer clinicOrgan,String mpiid) {
+        logger.info("RecipeManager getByRecipeCodeAndClinicOrgan param recipeCode:{},clinicOrgan:{}", recipeCode, clinicOrgan);
+        Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrganAndMpiid(recipeCode, clinicOrgan,mpiid);
+        logger.info("RecipeManager getByRecipeCodeAndClinicOrgan res recipe:{}", JSONUtils.toString(recipe));
+        return recipe;
+    }
+
+
+    /**
      * 查询处方信息
      *
      * @param recipeId
