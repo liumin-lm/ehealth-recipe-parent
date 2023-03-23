@@ -8,6 +8,7 @@ import com.ngari.recipe.dto.RecipeDetailDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.vo.CaseHistoryVO;
 import ctd.persistence.exception.DAOException;
@@ -139,20 +140,21 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
     /**
      * his处方 预校验
      *
-     * @param validateDetailVO
+     * @param recipeId 处方id
      */
     @RpcService
-    public DoSignRecipeDTO hisRecipeCheck(ValidateDetailVO validateDetailVO) {
-        validateAtop(validateDetailVO.getRecipeBean(), validateDetailVO.getRecipeExtendBean(), validateDetailVO.getRecipeDetails());
-        validateAtop(validateDetailVO.getRecipeBean().getRecipeId());
-        DoSignRecipeDTO doSignRecipe = offlineRecipeBusinessService.hisRecipeCheck(validateDetailVO);
+    public DoSignRecipeDTO hisRecipeCheck(Integer recipeId) {
+        validateAtop(recipeId);
+        RecipeDTO recipeDTO = recipeBusinessService.getRecipeDTO(recipeId);
+        validateAtop(recipeDTO.getRecipe(), recipeDTO.getRecipeExtend(), recipeDTO.getRecipeDetails());
+        DoSignRecipeDTO doSignRecipe = offlineRecipeBusinessService.hisRecipeCheck(recipeDTO);
         if (null == doSignRecipe) {
             doSignRecipe = new DoSignRecipeDTO();
             doSignRecipe.setSignResult(true);
             doSignRecipe.setCanContinueFlag("0");
             return doSignRecipe;
         }
-        enterpriseBusinessService.checkRecipeGiveDeliveryMsg(doSignRecipe, validateDetailVO.getRecipeBean());
+        enterpriseBusinessService.checkRecipeGiveDeliveryMsg(doSignRecipe, ObjectCopyUtils.convert(recipeDTO.getRecipe(), RecipeBean.class));
         doSignRecipe.setMap(null);
         return doSignRecipe;
     }

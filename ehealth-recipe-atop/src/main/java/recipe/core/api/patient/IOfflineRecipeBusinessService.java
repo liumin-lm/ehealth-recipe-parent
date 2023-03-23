@@ -4,11 +4,11 @@ import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.RecipeInfoTO;
 import com.ngari.recipe.dto.DoSignRecipeDTO;
 import com.ngari.recipe.dto.HisRecipeDTO;
+import com.ngari.recipe.dto.RecipeDTO;
 import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.offlinetoonline.model.*;
 import com.ngari.recipe.recipe.model.MergeRecipeVO;
 import com.ngari.recipe.vo.OffLineRecipeDetailVO;
-import recipe.vo.doctor.ValidateDetailVO;
 import recipe.vo.patient.PatientRecipeListReqVO;
 import recipe.vo.patient.PatientRecipeListResVo;
 import recipe.vo.patient.RecipeGiveModeButtonRes;
@@ -120,9 +120,9 @@ public interface IOfflineRecipeBusinessService {
     /**
      * his处方 预校验
      *
-     * @param validateDetailVO
+     * @param recipeDTO
      */
-    DoSignRecipeDTO hisRecipeCheck(ValidateDetailVO validateDetailVO);
+    DoSignRecipeDTO hisRecipeCheck(RecipeDTO recipeDTO);
 
     /**
      * 线下转线上

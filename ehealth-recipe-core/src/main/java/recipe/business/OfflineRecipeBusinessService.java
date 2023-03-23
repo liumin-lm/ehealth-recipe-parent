@@ -55,7 +55,6 @@ import recipe.util.DictionaryUtil;
 import recipe.util.MapValueUtil;
 import recipe.util.ObjectCopyUtils;
 import recipe.vo.doctor.RecipeInfoVO;
-import recipe.vo.doctor.ValidateDetailVO;
 import recipe.vo.patient.PatientRecipeListReqVO;
 import recipe.vo.patient.PatientRecipeListResVo;
 import recipe.vo.patient.RecipeDetailForRecipeListResVo;
@@ -473,16 +472,19 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
     }
 
     @Override
-    public DoSignRecipeDTO hisRecipeCheck(ValidateDetailVO validateDetailVO) {
-        recipeDetailValidateTool.validateMedicalChineDrugNumber(validateDetailVO.getRecipeBean(), validateDetailVO.getRecipeExtendBean(), validateDetailVO.getRecipeDetails());
+    public DoSignRecipeDTO hisRecipeCheck(RecipeDTO recipeDTO) {
+        Recipe recipe = recipeDTO.getRecipe();
+        recipeDetailValidateTool.validateMedicalChineDrugNumber(
+                ObjectCopyUtils.convert(recipe, RecipeBean.class),
+                ObjectCopyUtils.convert(recipeDTO.getRecipeExtend(), RecipeExtendBean.class),
+                ObjectCopyUtils.convert(recipeDTO.getRecipeDetails(), RecipeDetailBean.class));
         //处方与校验
-        Boolean isDefaultGiveModeToHos = configurationClient.getValueBooleanCatch(validateDetailVO.getRecipeBean().getClinicOrgan(), "hisRecipeCheckFlag", false);
+        Boolean isDefaultGiveModeToHos = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "hisRecipeCheckFlag", false);
         if (!isDefaultGiveModeToHos) {
             return null;
         }
-        Recipe recipe = ObjectCopyUtils.convert(validateDetailVO.getRecipeBean(), Recipe.class);
-        RecipeExtend recipeExtend = ObjectCopyUtils.convert(validateDetailVO.getRecipeExtendBean(), RecipeExtend.class);
-        List<Recipedetail> details = ObjectCopyUtils.convert(validateDetailVO.getRecipeDetails(), Recipedetail.class);
+        RecipeExtend recipeExtend = recipeDTO.getRecipeExtend();
+        List<Recipedetail> details = recipeDTO.getRecipeDetails();
         Map<Integer, PharmacyTcm> pharmacyTcmMap = pharmacyManager.pharmacyIdMap(recipe.getClinicOrgan());
         List<Integer> drugIds = details.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
         Map<String, OrganDrugList> organDrugMap = organDrugListManager.getOrganDrugByIdAndCode(recipe.getClinicOrgan(), drugIds);
