@@ -98,4 +98,15 @@ public class SmsClient extends BaseClient {
         smsInfoBean.setOrganId(recipe.getClinicOrgan());
         this.pushMsgData2OnsExtendValue(smsInfoBean);
     }
+
+
+    public void refuseSendDrugNotice(Recipe recipe) {
+        SmsInfoBean smsInfoBean = new SmsInfoBean();
+        smsInfoBean.setBusType("refuseSendDrugNotice");
+        smsInfoBean.setSmsType("refuseSendDrugNotice");
+        smsInfoBean.setBusId(recipe.getRecipeId());
+        smsInfoBean.setOrganId(recipe.getClinicOrgan());
+        logger.info("SmsClient refuseSendDrugNotice smsInfo={}", JSON.toJSONString(smsInfoBean));
+        this.pushMsgData2OnsExtendValue(smsInfoBean);
+    }
 }

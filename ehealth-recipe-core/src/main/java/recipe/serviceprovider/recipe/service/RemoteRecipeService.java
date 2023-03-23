@@ -360,6 +360,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                 recipe.setStatus(recipeStatusReqTO.getStatus());
                 recipeDAO.update(recipe);
                 stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_REFUSE_ORDER);
+                //通知医生处方作废
+                smsClient.refuseSendDrugNotice(recipe);
                 return true;
             }
             RecipeStateEnum recipeProcessStateDispensing = null;
