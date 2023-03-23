@@ -259,6 +259,9 @@ public class RecipeExtendBean implements Serializable {
     @ItemProperty(alias = "快捷购药购买份数")
     private Integer fastRecipeNum;
 
+    @ItemProperty(alias = "快捷购药分享医生")
+    private Integer fastRecipeShareDoctor;
+
 
     /**
      * his订单编号(邵逸夫)
@@ -983,5 +986,13 @@ public class RecipeExtendBean implements Serializable {
 
     public void setDecoctionExhibitionFlag(Integer decoctionExhibitionFlag) {
         this.decoctionExhibitionFlag = decoctionExhibitionFlag;
+    }
+
+    public Integer getFastRecipeShareDoctor() {
+        return fastRecipeShareDoctor;
+    }
+
+    public void setFastRecipeShareDoctor(Integer fastRecipeShareDoctor) {
+        this.fastRecipeShareDoctor = fastRecipeShareDoctor;
     }
 }

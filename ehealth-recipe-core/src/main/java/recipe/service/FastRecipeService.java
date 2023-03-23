@@ -273,6 +273,7 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
             recipeExtendBean.setDeliveryCode(fastRecipe.getDeliveryCode());
             recipeExtendBean.setDoctorIsDecoction(fastRecipe.getDoctorIsDecoction());
             recipeExtendBean.setMouldId(recipeInfoVO.getMouldId());
+            recipeExtendBean.setFastRecipeShareDoctor(recipeInfoVO.getFastRecipeShareDoctor());
 
             int buyNum = ValidateUtil.nullOrZeroInteger(recipeInfoVO.getBuyNum()) ? 1 : recipeInfoVO.getBuyNum();
             recipeExtendBean.setFastRecipeNum(buyNum);
