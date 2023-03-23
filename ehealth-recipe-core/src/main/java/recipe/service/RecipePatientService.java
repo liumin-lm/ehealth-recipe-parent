@@ -1088,10 +1088,12 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
                     patientRecipeDetailForDetailResVO.setMedicalInsuranceDrugFlag(0);
                 }
                 OrganDrugList organDrugList1 = organDrugListMap.get(recipeDetail.getOrganDrugCode() + recipedetail.getDrugId());
-                patientRecipeDetailForDetailResVO.setTargetedDrugType(organDrugList1.getTargetedDrugType());
-                patientRecipeDetailForDetailResVO.setAntiTumorDrugFlag(organDrugList1.getAntiTumorDrugFlag());
-                patientRecipeDetailForDetailResVO.setAntibioticsDrugLevel(organDrugList1.getAntiTumorDrugLevel());
-                patientRecipeDetailForDetailResVO.setNationalStandardDrugFlag(organDrugList1.getNationalStandardDrugFlag());
+                if (Objects.nonNull(organDrugList1)) {
+                    patientRecipeDetailForDetailResVO.setTargetedDrugType(organDrugList1.getTargetedDrugType());
+                    patientRecipeDetailForDetailResVO.setAntiTumorDrugFlag(organDrugList1.getAntiTumorDrugFlag());
+                    patientRecipeDetailForDetailResVO.setAntibioticsDrugLevel(organDrugList1.getAntiTumorDrugLevel());
+                    patientRecipeDetailForDetailResVO.setNationalStandardDrugFlag(organDrugList1.getNationalStandardDrugFlag());
+                }
 
                 patientRecipeDetailForDetailResVOS.add(patientRecipeDetailForDetailResVO);
             }
