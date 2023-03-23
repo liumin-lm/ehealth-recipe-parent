@@ -30,7 +30,10 @@ import recipe.util.ValidateUtil;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.doctor.ValidateDetailVO;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -105,7 +108,6 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
         logger.info("WriteRecipeDoctorAtop signRecipe recipeDTO={}", JSON.toJSONString(recipeDTO));
         validateAtop(recipeDTO, recipeDTO.getRecipe(), recipeDTO.getRecipeExtend(), recipeDTO.getRecipeDetails());
         Recipe recipeBean = recipeDTO.getRecipe();
-        recipeBean.setSignDate(new Date());
         validateAtop(recipeBean.getClinicOrgan(), recipeBean.getRecipeId(), recipeBean.getDoctor(), recipeBean.getRecipeSupportGiveMode());
         List<Recipedetail> recipeDetails = recipeDTO.getRecipeDetails();
         recipeDetails.forEach(a -> validateAtop(a.getRecipeId(), a.getRecipeDetailId()));
