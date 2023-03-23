@@ -981,6 +981,7 @@ public class HisRecipeManager extends BaseManager {
         recipe.setOrganDiseaseName(hisRecipeResTO.getDiseaseName());
         recipe.setSignDate(hisRecipeResTO.getCreateDate());
         recipe.setRecipeSourceType(RecipeSourceTypeEnum.OFFLINE_RECIPE.getType());
+        recipe.setAppointDepartName(hisRecipeResTO.getDepartName());
         //设置复诊单
         recipe.setBussSource(BussSourceTypeEnum.BUSSSOURCE_NO.getType());
         if (!BussSourceTypeEnum.BUSSSOURCE_NO.getType().equals(hisRecipeResTO.getRevisitType())) {
