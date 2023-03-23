@@ -947,16 +947,18 @@ public class HisRecipeManager extends BaseManager {
         if (Objects.isNull(patient)) {
             return null;
         }
-        HisResponseTO<List<QueryHisRecipResTO>> hisResponseTO = queryData(patientRecipeDetailReq.getOrganId(),patient ,null,1,null,patientRecipeDetailReq.getStartTime(),patientRecipeDetailReq.getEndTime());
+        OfflineRecipePayFlagEnum offlineRecipePayFlagEnum = OfflineRecipePayFlagEnum.getByState(patientRecipeDetailReq.getProcessState());
+        HisResponseTO<List<QueryHisRecipResTO>> hisResponseTO = queryData(patientRecipeDetailReq.getOrganId(),patient ,null,offlineRecipePayFlagEnum.getType(),null,patientRecipeDetailReq.getStartTime(),patientRecipeDetailReq.getEndTime());
         if (null == hisResponseTO || CollectionUtils.isEmpty(hisResponseTO.getData())) {
             return null;
         }
+
         RecipeInfoDTO recipeInfoDTO = new RecipeInfoDTO();
         List<QueryHisRecipResTO> hisRecipeResTOList = hisResponseTO.getData();
         QueryHisRecipResTO hisRecipeResTO = hisRecipeResTOList.get(0);
         RecipeExtend recipeExtend = new RecipeExtend();
         recipeExtend = getRecipeExtendFromHisRecipe(hisRecipeResTO, recipeExtend);
-        Recipe recipe = getRecipeFromHisRecipe(hisRecipeResTO, patient, recipeExtend, 1);
+        Recipe recipe = getRecipeFromHisRecipe(hisRecipeResTO, patient, recipeExtend, offlineRecipePayFlagEnum);
         List<Recipedetail> recipeDetails = getRecipeDetailsFromHisRecipe(hisRecipeResTO);
         recipeInfoDTO.setRecipe(recipe);
         recipeInfoDTO.setRecipeExtend(recipeExtend);
@@ -970,10 +972,10 @@ public class HisRecipeManager extends BaseManager {
      * @param hisRecipeResTO
      * @param patient
      * @param recipeExtend
-     * @param flag
+     * @param offlineRecipePayFlagEnum
      * @return
      */
-    public Recipe getRecipeFromHisRecipe(QueryHisRecipResTO hisRecipeResTO, PatientDTO patient, RecipeExtend recipeExtend, Integer flag) {
+    public Recipe getRecipeFromHisRecipe(QueryHisRecipResTO hisRecipeResTO, PatientDTO patient, RecipeExtend recipeExtend, OfflineRecipePayFlagEnum offlineRecipePayFlagEnum) {
         Recipe recipe = ObjectCopyUtils.convert(hisRecipeResTO, Recipe.class);
         recipe.setMpiid(patient.getMpiId());
         recipe.setOrganDiseaseName(hisRecipeResTO.getDiseaseName());
@@ -997,7 +999,6 @@ public class HisRecipeManager extends BaseManager {
             recipe.setBussSource(BussSourceTypeEnum.BUSSSOURCE_OUTPATIENT.getType());
         }
         //设置处方状态
-        OfflineRecipePayFlagEnum offlineRecipePayFlagEnum = OfflineRecipePayFlagEnum.getByType(flag);
         recipe.setProcessState(offlineRecipePayFlagEnum.getState());
         recipe.setPayFlag(offlineRecipePayFlagEnum.getPayFlag());
         //设置处方单靶向药
