@@ -964,6 +964,8 @@ public class HisRecipeManager extends BaseManager {
         recipeInfoDTO.setRecipeExtend(recipeExtend);
         recipeInfoDTO.setRecipeDetails(recipeDetails);
         recipeInfoDTO.setPatientBean(ObjectCopyUtils.convert(patient, com.ngari.recipe.dto.PatientDTO.class));
+        recipeInfoDTO.setShowText(hisRecipeResTO.getShowText());
+        recipeInfoDTO.setGiveModeText("");
         return recipeInfoDTO;
     }
 

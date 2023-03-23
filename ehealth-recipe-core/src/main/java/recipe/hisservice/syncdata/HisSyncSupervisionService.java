@@ -1385,6 +1385,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             req.setGenderCode(patientDTO.getPatientSex());
             req.setBirthdate(patientDTO.getBirthday());
             req.setNation(patientDTO.getNation());
+            req.setMpiId(patientDTO.getMpiId());
         }
         req.setVisitNo(String.valueOf(recipe.getClinicId()));
         req.setAccountNo(order.getTradeNo());
@@ -1627,6 +1628,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         PatientDTO patientDto = patientService.getPatientDTOByMpiId(mpiId);
         if (patientDto != null) {
             patient = new PatientTO();
+            patient.setMpiId(mpiId);
             patient.setPatientName(patientDto.getPatientName());
             patient.setPatientSex(patientDto.getPatientSex());
             patient.setBirthday(patientDto.getBirthday());
