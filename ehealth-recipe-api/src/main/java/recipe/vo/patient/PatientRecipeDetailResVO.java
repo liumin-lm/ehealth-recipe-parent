@@ -127,6 +127,9 @@ public class PatientRecipeDetailResVO implements Serializable {
     @ItemProperty(alias = "审核模式")
     private Integer reviewType;
 
+    @ItemProperty(alias = "处方流转模式")
+    private String recipeMode;
+
     /******************************** 以下数据来源 recipeExt ****************************/
 
     @ItemProperty(alias = "是否长处方")
