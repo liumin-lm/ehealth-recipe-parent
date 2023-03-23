@@ -41,7 +41,7 @@ public enum RecipeStateEnum {
     /**
      * 处方子状态:待购药
      */
-    SUB_ORDER_READY_SUBMIT_ORDER(31, "等待患者前往下单支付", ""),
+    SUB_ORDER_READY_SUBMIT_ORDER(31, "等待下单支付", ""),
     SUB_ORDER_HAD_SUBMIT_ORDER(32, "已提交订单", ""),
     SUB_ORDER_CANCEL_ORDER(33, "取消订单", ""),
 
