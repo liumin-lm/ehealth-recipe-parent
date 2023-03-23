@@ -948,7 +948,7 @@ public class HisRecipeManager extends BaseManager {
             return null;
         }
         OfflineRecipePayFlagEnum offlineRecipePayFlagEnum = OfflineRecipePayFlagEnum.getByState(patientRecipeDetailReq.getProcessState());
-        HisResponseTO<List<QueryHisRecipResTO>> hisResponseTO = queryData(patientRecipeDetailReq.getOrganId(),patient ,null,offlineRecipePayFlagEnum.getType(),null,patientRecipeDetailReq.getStartTime(),patientRecipeDetailReq.getEndTime());
+        HisResponseTO<List<QueryHisRecipResTO>> hisResponseTO = queryData(patientRecipeDetailReq.getOrganId(), patient ,null, offlineRecipePayFlagEnum.getType(),null,patientRecipeDetailReq.getStartTime(),patientRecipeDetailReq.getEndTime());
         if (null == hisResponseTO || CollectionUtils.isEmpty(hisResponseTO.getData())) {
             return null;
         }
