@@ -1057,7 +1057,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         if (Objects.nonNull(returnRecipe.getDepart())) {
             patientRecipeDetailResVO.setDepartName(DictionaryUtil.getDictionary("eh.base.dictionary.Depart", returnRecipe.getDepart()));
         }else {
-//            patientRecipeDetailResVO.setDepartName(returnRecipe.getDepartName());
+            patientRecipeDetailResVO.setDepartName(returnRecipe.getAppointDepartName());
         }
         if (Objects.nonNull(returnRecipe.getDepart())) {
             patientRecipeDetailResVO.setDoctorName(DictionaryUtil.getDictionary("eh.base.dictionary.Doctor", returnRecipe.getDoctor()));
