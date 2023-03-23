@@ -1116,6 +1116,8 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         patientRecipeDetailResVO.setShowThirdOrder(showThirdOrder);
         String recipeInfoBottomText = configurationClient.getValueCatch(returnRecipe.getClinicOrgan(), "RecipeInfoBottomText", "");
         patientRecipeDetailResVO.setBottomText(recipeInfoBottomText);
+        patientRecipeDetailResVO.setGiveModeText(recipe.getGiveModeText());
+        patientRecipeDetailResVO.setShowText(recipe.getShowText());
         return patientRecipeDetailResVO;
     }
 
