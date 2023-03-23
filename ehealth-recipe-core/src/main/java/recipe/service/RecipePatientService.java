@@ -1019,6 +1019,10 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         Integer recipeBusType = 1;
         if (Objects.nonNull(patientRecipeDetailReq.getRecipeId())) {
              recipe = recipeManager.getRecipeInfoDTO(patientRecipeDetailReq.getRecipeId());
+             if(Objects.isNull(recipe) && RecipeSourceTypeEnum.OFFLINE_RECIPE.equals(recipe.getRecipe().getRecipeSourceType())){
+                 // 线下转线上的处方 进入详情页 需要查看处方有没有变动
+
+             }
         }
         if(Objects.isNull(recipe) && StringUtils.isNotEmpty(patientRecipeDetailReq.getRecipeCode()) && Objects.nonNull(patientRecipeDetailReq.getOrganId())){
             // 获取线下处方
