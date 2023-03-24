@@ -914,9 +914,9 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             req.setOriginalBussSource(recipe.getBussSource());
             if (!RecipeBussConstant.BUSS_SOURCE_NONE.equals(recipe.getBussSource())) {
                 if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipe.getBussSource())) {
-                    req.setBussSource("4");
+                    req.setBussSource(4);
                 } else {
-                    req.setBussSource("1");
+                    req.setBussSource(1);
                 }
             }
 
@@ -1486,9 +1486,9 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         //字段取值同开方上传接口
         if (!RecipeBussConstant.BUSS_SOURCE_NONE.equals(recipe.getBussSource())) {
             if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipe.getBussSource())) {
-                req.setBussSource("4");
+                req.setBussSource(4);
             } else {
-                req.setBussSource("1");
+                req.setBussSource(1);
             }
         }
         //医保金额
@@ -1820,9 +1820,9 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 req.setOriginalBussSource(recipe.getBussSource());
                 if (!RecipeBussConstant.BUSS_SOURCE_NONE.equals(recipe.getBussSource())) {
                     if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipe.getBussSource())) {
-                        req.setBussSource("4");
+                        req.setBussSource(4);
                     } else {
-                        req.setBussSource("1");
+                        req.setBussSource(1);
                     }
                 }
                 //门诊号
