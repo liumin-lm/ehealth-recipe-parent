@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSON;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
-import com.google.common.collect.Lists;
 import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.common.dto.CheckRequestCommonOrderItemDTO;
 import com.ngari.common.dto.CheckRequestCommonOrderPageDTO;
@@ -26,9 +25,9 @@ import com.ngari.patient.service.OrganService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.platform.recipe.mode.InvoiceInfoResTO;
 import com.ngari.recipe.common.RecipeResultBean;
-import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.offlinetoonline.model.CheckRecipePayStateReqVO;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import com.ngari.recipe.vo.LogisticsMergeVO;
@@ -46,7 +45,6 @@ import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
-import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import easypay.entity.vo.param.bus.HlwTbParamReq;
 import easypay.entity.vo.param.bus.MedicalPreSettleQueryReq;
@@ -1759,6 +1757,11 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
 
     }
 
+    /**
+     * 只有0的时候才能取消订单
+     * @param orderId
+     * @return
+     */
     @Override
     public Integer checkOrderPayState(Integer orderId){
         RecipeOrder recipeOrder = recipeOrderDAO.getByOrderId(orderId);
@@ -1778,6 +1781,61 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
         }
         return payQuery;
     }
+
+    /**
+     * 只有0的时候才能继续向下走
+     * 合并下三个单 线下支付一单 跳订单详情页
+     * @param
+     * @return
+     */
+    @Override
+    public Integer checkRecipePayState(CheckRecipePayStateReqVO req){
+        Integer payQuery =0;
+//        Recipe recipe=recipeDAO.getByRecipeCodeAndClinicOrgan(req.getRecipeCode(),req.getOrganId());
+//        if (recipe==null){
+//            //需要查询是否在线下已经支付 没时间包方法了 （TODO 查线下可统一写个manage）
+//            Integer query = recipeHisService.getRecipeSinglePayStatusQuery(recipeId);
+//            if (query != null && (query == eh.cdr.constant.RecipeStatusConstant.HAVE_PAY || query == eh.cdr.constant.RecipeStatusConstant.FINISH)) {
+//                payQuery = 2;
+//            }
+//            return payQuery;
+//        }
+//        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+//        if(recipeOrder==null){
+//            //需要查询是否在线下已经支付 没时间包方法了 （TODO 查线下可统一写个manage）
+//            List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
+//            for (Integer recipeId : recipeIdList) {
+//                Integer query = recipeHisService.getRecipeSinglePayStatusQuery(recipeId);
+//                if (query != null && (query == eh.cdr.constant.RecipeStatusConstant.HAVE_PAY || query == eh.cdr.constant.RecipeStatusConstant.FINISH)) {
+//                    payQuery = 2;
+//                }
+//            }
+//            return payQuery;
+//        }
+//
+//            //先查线上 再查线下
+//            if(new Integer(1).equals(recipeOrder.getPayFlag())){
+//                payQuery = 2;
+//            }
+//            if (StringUtils.isEmpty(recipeOrder.getOutTradeNo())) {
+//                return 0;
+//            }
+//            payQuery = payClient.payQuery(recipeOrder.getOrderId());
+//            // 需要查询是否在线下已经支付 没时间包方法了 （TODO 查线下可统一写个manage）
+//            if (new Integer(0).equals(payQuery)) {
+//                List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
+//                for (Integer recipeId : recipeIdList) {
+//                    Integer query = recipeHisService.getRecipeSinglePayStatusQuery(recipeId);
+//                    if (query != null && (query == eh.cdr.constant.RecipeStatusConstant.HAVE_PAY || query == eh.cdr.constant.RecipeStatusConstant.FINISH)) {
+//                        payQuery = 2;
+//                    }
+//                }
+//            }
+//
+
+        return payQuery;
+    }
+
 
     @Override
     public List<OrderPharmacyVO> getPharmacyByOrderCode(String orderCode) {

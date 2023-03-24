@@ -124,7 +124,7 @@ public class HisRecipeManager extends BaseManager {
      * @return
      */
     @LogRecord
-    public HisResponseTO<List<QueryHisRecipResTO>> queryHisRecipeData(Integer organId, PatientDTO patientDTO, Integer timeQuantum, Integer flag, String recipeCode) {
+    public HisResponseTO<List<QueryHisRecipResTO>> queryHisRecipeData(Integer organId, PatientDTO patientDTO, Integer timeQuantum, Integer flag, String recipeCode,Date startDate,Date endDate) {
         LOGGER.info("HisRecipeManager queryHisRecipeData param organId:{},patientDTO:{},timeQuantum:{},flag:{},recipeCode:{}", organId, JSONUtils.toString(patientDTO), timeQuantum, flag, recipeCode);
         HisResponseTO<List<QueryHisRecipResTO>> responseTo = new HisResponseTO<List<QueryHisRecipResTO>>();
         if (HisRecipeConstant.HISRECIPESTATUS_NOIDEAL.equals(flag)) {
@@ -134,10 +134,10 @@ public class HisRecipeManager extends BaseManager {
         } else if (HisRecipeConstant.HISRECIPESTATUS_ALREADYIDEAL.equals(flag)) {
             List<QueryHisRecipResTO> queryHisRecipResToList = new ArrayList<>();
             Future<HisResponseTO<List<QueryHisRecipResTO>>> hisTask1 = GlobalEventExecFactory.instance().getExecutor().submit(() -> {
-                return offlineRecipeClient.queryData(organId, patientDTO, timeQuantum, HisRecipeConstant.HISRECIPESTATUS_ALREADYIDEAL, recipeCode,null,null);
+                return offlineRecipeClient.queryData(organId, patientDTO, timeQuantum, HisRecipeConstant.HISRECIPESTATUS_ALREADYIDEAL, recipeCode,startDate,endDate);
             });
             Future<HisResponseTO<List<QueryHisRecipResTO>>> hisTask2 = GlobalEventExecFactory.instance().getExecutor().submit(() -> {
-                return offlineRecipeClient.queryData(organId, patientDTO, timeQuantum, HisRecipeConstant.HISRECIPESTATUS_EXPIRED, recipeCode,null,null);
+                return offlineRecipeClient.queryData(organId, patientDTO, timeQuantum, HisRecipeConstant.HISRECIPESTATUS_EXPIRED, recipeCode,startDate,endDate);
             });
             try {
                 HisResponseTO<List<QueryHisRecipResTO>> hisResponseTO1 = hisTask1.get(60000, TimeUnit.MILLISECONDS);
@@ -1043,7 +1043,6 @@ public class HisRecipeManager extends BaseManager {
      * @return
      */
     private List<RecipeDTO> covertRecipeDTOFromQueryHisRecipResTO(List<QueryHisRecipResTO> queryHisRecipResTOs, PatientDTO patient, Integer flag) {
-        //PatientRecipeListResVo
         if (CollectionUtils.isEmpty(queryHisRecipResTOs)) {
             return Collections.emptyList();
         }
@@ -1051,6 +1050,7 @@ public class HisRecipeManager extends BaseManager {
         queryHisRecipResTOs.forEach(a -> {
             RecipeDTO recipeDTO = new RecipeDTO();
             RecipeBean recipe = ObjectCopyUtils.convert(a, RecipeBean.class);
+            recipe.setClinicOrgan(a.getClinicOrgan());
             RecipeExtendBean recipeExt = ObjectCopyUtils.convert(a, RecipeExtendBean.class);
             List<RecipeDetailBean> recipeDetailBeans = ObjectCopyUtils.convert(a.getDrugList(), RecipeDetailBean.class);
             Recipe dbRecipe=recipeManager.getByRecipeCodeAndClinicOrganAndMpiid(a.getRecipeCode(),a.getClinicOrgan(),patient.getMpiId());

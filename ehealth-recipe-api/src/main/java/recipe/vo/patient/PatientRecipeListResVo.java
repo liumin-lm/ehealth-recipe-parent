@@ -25,7 +25,7 @@ public class PatientRecipeListResVo implements Serializable {
     @ItemProperty(alias = "订单编号")
     private String orderCode;
 
-    @ItemProperty(alias = "开处方来源 1问诊 2复诊(在线续方) 3网络门诊")
+    @ItemProperty(alias = "开处方来源 1问诊 2复诊(在线续方) 3网络门诊 5 门诊处方")
     private Integer bussSource;
 
     @ItemProperty(alias = "就诊序号(对应来源的业务id)")
@@ -70,6 +70,11 @@ public class PatientRecipeListResVo implements Serializable {
 
     @ItemProperty(alias = "支付标志")
     private Integer payFlag;
+
+    @ItemProperty(alias = "开方机构")
+    @Dictionary(id = "eh.base.dictionary.Organ")
+    private Integer clinicOrgan;
+
 
     /******************************** 以下数据来源 recipeExt ****************************/
     @ItemProperty(alias = "大病类型")

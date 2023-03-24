@@ -35,7 +35,7 @@ public class BatchOfflineToOnlineReqVO implements Serializable {
     @Desensitizations(type = DesensitizationsType.HEALTHCARD)
     private String cardId;
 
-    private String processState;
+    private Integer processState;
 
 }
 

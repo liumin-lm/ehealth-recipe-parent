@@ -6,7 +6,6 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.ngari.base.BaseAPI;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.base.PatientBaseInfo;
@@ -27,7 +26,10 @@ import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.DepListBean;
-import com.ngari.recipe.dto.*;
+import com.ngari.recipe.dto.GiveModeButtonDTO;
+import com.ngari.recipe.dto.GiveModeShowButtonDTO;
+import com.ngari.recipe.dto.PatientRecipeDetailReqDTO;
+import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.offlinetoonline.model.OfflineToOnlineReqVO;
 import com.ngari.recipe.offlinetoonline.model.OfflineToOnlineResVO;
@@ -74,7 +76,10 @@ import recipe.service.common.RecipeCacheService;
 import recipe.util.DictionaryUtil;
 import recipe.util.RedisClient;
 import recipe.vo.doctor.RecipeInfoVO;
-import recipe.vo.patient.*;
+import recipe.vo.patient.PatientRecipeDetailForDetailResVO;
+import recipe.vo.patient.PatientRecipeDetailReqVO;
+import recipe.vo.patient.PatientRecipeDetailResVO;
+import recipe.vo.patient.ReadyRecipeVO;
 
 import javax.annotation.Nullable;
 import java.math.BigDecimal;
@@ -1027,34 +1032,41 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
              recipe = recipeManager.getRecipeInfoDTO(patientRecipeDetailReq.getRecipeId());
             Recipe recipeRecipe = recipe.getRecipe();
             if(Objects.isNull(recipe) && RecipeSourceTypeEnum.OFFLINE_RECIPE.equals(recipeRecipe.getRecipeSourceType()) && RecipeStateEnum.PROCESS_STATE_ORDER.getType().equals(recipeRecipe.getProcessState())){
-                 // 线下转线上的处方 待下单的处方 进入详情页 需要查看处方有没有变动
-                 IOfflineToOnlineStrategy offlineToOnlineStrategy = offlineToOnlineFactory.getFactoryService(OfflineToOnlineEnum.OFFLINE_TO_ONLINE_NO_PAY.getName());
-                 OfflineToOnlineReqVO request = new OfflineToOnlineReqVO();
-                 request.setMpiid(recipeRecipe.getMpiid());
-                 request.setOrganId(recipeRecipe.getClinicOrgan());
-                 request.setProcessState(recipeRecipe.getProcessState().toString());
-                 request.setCardId(recipe.getRecipeExtend().getCardNo());
-                 request.setRecipeCode(recipeRecipe.getRecipeCode());
-                 request.setStartTime(patientRecipeDetailReq.getStartTime());
-                 request.setEndTime(patientRecipeDetailReq.getEndTime());
-
-                OfflineToOnlineResVO offlineToOnlineResVO = offlineToOnlineStrategy.offlineToOnline(request);
-                if (Objects.nonNull(offlineToOnlineResVO.getRecipe()) && Objects.nonNull(offlineToOnlineResVO.getRecipe().getRecipeId())) {
-                    recipe = recipeManager.getRecipeInfoDTO(offlineToOnlineResVO.getRecipe().getRecipeId());
-                }
-
+                recipe = getRecipeInfoDTO(patientRecipeDetailReq, recipe, recipeRecipe);
             }
         }
         if(Objects.isNull(recipe) && StringUtils.isNotEmpty(patientRecipeDetailReq.getRecipeCode()) && Objects.nonNull(patientRecipeDetailReq.getOrganId())){
             // 获取线下处方
             recipe = hisRecipeManager.getHisRecipeInfoDTO(BeanCopyUtils.copyProperties(patientRecipeDetailReq, PatientRecipeDetailReqDTO::new));
-            recipeBusType = 2;
+            if (Objects.isNull(recipe) && BussSourceTypeEnum.BUSSSOURCE_REVISIT.getType().equals(patientRecipeDetailReq.getBussSource()) && RecipeStateEnum.PROCESS_STATE_ORDER.getType().equals(patientRecipeDetailReq.getProcessState())) {
+                recipe = getRecipeInfoDTO(patientRecipeDetailReq, recipe, recipe.getRecipe());
+            }
         }
+
         if (Objects.isNull(recipe)){
             throw new DAOException("未查询到相关处方信息");
         }
         PatientRecipeDetailResVO patientRecipeDetailResVO = coverPatientRecipeDetailResVO(recipe,recipeBusType);
         return patientRecipeDetailResVO;
+    }
+
+    private RecipeInfoDTO getRecipeInfoDTO(PatientRecipeDetailReqVO patientRecipeDetailReq, RecipeInfoDTO recipe, Recipe recipeRecipe) {
+        // 线下转线上的处方 待下单的处方 进入详情页 需要查看处方有没有变动
+        IOfflineToOnlineStrategy offlineToOnlineStrategy = offlineToOnlineFactory.getFactoryService(OfflineToOnlineEnum.OFFLINE_TO_ONLINE_NO_PAY.getName());
+        OfflineToOnlineReqVO request = new OfflineToOnlineReqVO();
+        request.setMpiid(recipeRecipe.getMpiid());
+        request.setOrganId(recipeRecipe.getClinicOrgan());
+        request.setProcessState(recipeRecipe.getProcessState());
+        request.setCardId(recipe.getRecipeExtend().getCardNo());
+        request.setRecipeCode(recipeRecipe.getRecipeCode());
+        request.setStartTime(patientRecipeDetailReq.getStartTime());
+        request.setEndTime(patientRecipeDetailReq.getEndTime());
+
+        OfflineToOnlineResVO offlineToOnlineResVO = offlineToOnlineStrategy.offlineToOnline(request);
+        if (Objects.nonNull(offlineToOnlineResVO.getRecipe()) && Objects.nonNull(offlineToOnlineResVO.getRecipe().getRecipeId())) {
+           recipe = recipeManager.getRecipeInfoDTO(offlineToOnlineResVO.getRecipe().getRecipeId());
+        }
+        return recipe;
     }
 
     /**

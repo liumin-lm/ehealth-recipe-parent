@@ -896,6 +896,68 @@ public class RecipeHisService extends RecipeBaseService {
         return backInfo;
     }
 
+
+    /**
+     * 单个处方查询
+     *
+     * @param recipeId
+     * @return
+     */
+    @RpcService
+    public String obtainRecipePayState(Integer recipeId) {
+        String backInfo = "";
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        if (null == recipe) {
+            return "处方不存在";
+        }
+        if (skipHis(recipe)) {
+            return backInfo;
+        }
+
+        if (isHisEnable(recipe.getClinicOrgan())) {
+            RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
+            //RecipeListQueryReqTO request = new RecipeListQueryReqTO(recipe.getRecipeCode(), recipe.getClinicOrgan());
+            //TODO DINGXX  设置患者姓名
+            List<RecipeListQueryReqTO> requestList = new ArrayList<>();
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+            RecipeListQueryReqTO recipeListQueryReqTO = new RecipeListQueryReqTO();
+            recipeListQueryReqTO.setOrganID((null != recipe.getClinicOrgan()) ? Integer.toString(recipe.getClinicOrgan()) : null);
+            recipeListQueryReqTO.setCardNo(recipeExtend.getCardNo());
+            recipeListQueryReqTO.setCardType(recipeExtend.getCardType());
+            recipeListQueryReqTO.setPatientName(recipe.getPatientName());
+            recipeListQueryReqTO.setPatientId(recipe.getPatientID());
+            recipeListQueryReqTO.setRegisterId(recipeExtend.getRegisterID());
+            recipeListQueryReqTO.setRecipeNo(recipe.getRecipeCode());
+            PatientDTO patientDTO = patientService.getPatientBeanByMpiId(recipe.getMpiid());
+            if (patientDTO != null) {
+                recipeListQueryReqTO.setCertID(patientDTO.getIdcard());
+                recipeListQueryReqTO.setCertificate(patientDTO.getCertificate());
+                recipeListQueryReqTO.setCertificateType(patientDTO.getCertificateType());
+            }
+            recipeListQueryReqTO.setSignDate(recipe.getSignDate());
+            requestList.add(recipeListQueryReqTO);
+            Integer status = service.listSingleQuery(requestList);
+            //审核通过的处方才能点击
+            if (!Integer.valueOf(RecipeStatusConstant.CHECK_PASS).equals(status)) {
+                LOGGER.error("recipeSingleQuery recipeId=" + recipeId + " not check pass status!");
+                if (null == status) {
+                    backInfo = "医院接口异常，请稍后再试！";
+                } else {
+                    backInfo = "处方单已处理！";
+                }
+            }
+        } else {
+            LOGGER.error("recipeSingleQuery 医院HIS未启用[organId:" + recipe.getClinicOrgan() + ",recipeId:" + recipeId + "]");
+            backInfo = "医院系统维护中！";
+
+        }
+
+        return backInfo;
+    }
+
+
     /**
      * 从医院HIS获取药品信息
      *

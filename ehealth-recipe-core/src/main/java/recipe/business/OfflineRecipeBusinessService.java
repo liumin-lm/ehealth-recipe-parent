@@ -46,6 +46,7 @@ import recipe.drugTool.validate.RecipeDetailValidateTool;
 import recipe.enumerate.status.OfflineToOnlineEnum;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.WriteHisEnum;
+import recipe.enumerate.type.OfflineRecipePayFlagEnum;
 import recipe.enumerate.type.PayFlagEnum;
 import recipe.factory.offlinetoonline.IOfflineToOnlineStrategy;
 import recipe.factory.offlinetoonline.OfflineToOnlineFactory;
@@ -113,7 +114,7 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
             // 1、公共参数获取
             PatientDTO patientDTO = obtainPatientInfo(request);
             // 2、获取his数据
-            HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos = hisRecipeManager.queryHisRecipeData(request.getOrganId(), patientDTO, request.getTimeQuantum(), OfflineToOnlineEnum.getOfflineToOnlineType(request.getStatus()), null);
+            HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos = hisRecipeManager.queryHisRecipeData(request.getOrganId(), patientDTO, request.getTimeQuantum(), OfflineToOnlineEnum.getOfflineToOnlineType(request.getStatus()), null,null,null);
             // 3、待处理、进行中、已处理线下处方列表服务差异化实现
             IOfflineToOnlineStrategy offlineToOnlineStrategy = offlineToOnlineFactory.getFactoryService(request.getStatus());
             List<MergeRecipeVO> res = offlineToOnlineStrategy.findHisRecipeList(hisRecipeInfos, patientDTO, request);
@@ -155,10 +156,12 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
     }
 
     @Override
-    public OfflineToOnlineResVO offlineToOnline(OfflineToOnlineReqVO request) {
+    public OfflineToOnlineResVO offlineToOnline(OfflineToOnlineReqVO request){
         logger.info("OfflineToOnlineService offlineToOnline request:{}", JSONUtils.toString(request));
         try {
-            IOfflineToOnlineStrategy offlineToOnlineStrategy = offlineToOnlineFactory.getFactoryService(OfflineToOnlineEnum.OFFLINE_TO_ONLINE_NO_PAY.getName());
+
+            // 3、待处理、进行中、已处理线下处方服务差异化实现
+            IOfflineToOnlineStrategy offlineToOnlineStrategy = offlineToOnlineFactory.getFactoryService(OfflineToOnlineEnum.getOfflineToOnlineEnum(request.getProcessState()).getName());
             return offlineToOnlineStrategy.offlineToOnline(request);
         } catch (DAOException e) {
             logger.error("OfflineToOnlineService offlineToOnline error", e);
@@ -173,7 +176,7 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
     public List<OfflineToOnlineResVO> batchOfflineToOnline(BatchOfflineToOnlineReqVO request) {
         logger.info("OfflineToOnlineService batchOfflineToOnline request:{}", JSONUtils.toString(request));
         try {
-            IOfflineToOnlineStrategy offlineToOnlineStrategy = offlineToOnlineFactory.getFactoryService(OfflineToOnlineEnum.OFFLINE_TO_ONLINE_NO_PAY.getName());
+            IOfflineToOnlineStrategy offlineToOnlineStrategy = offlineToOnlineFactory.getFactoryService(OfflineRecipePayFlagEnum.getByState(request.getProcessState()).getHisState());
             return offlineToOnlineStrategy.batchOfflineToOnline(request);
         } catch (DAOException e) {
             logger.error("OfflineToOnlineService batchOfflineToOnline error", e);
@@ -538,6 +541,7 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
             patientRecipeListResVo.setBussSource(recipeBean.getBussSource());
             patientRecipeListResVo.setClinicId(recipeBean.getClinicId());
             patientRecipeListResVo.setDepart(recipeBean.getDepart());
+            patientRecipeListResVo.setClinicOrgan(recipeBean.getClinicOrgan());
             if (Objects.nonNull(recipeBean.getDepart())) {
                 patientRecipeListResVo.setDepartName(DictionaryUtil.getDictionary("eh.base.dictionary.Depart", recipeBean.getDepart()));
             }else {

@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.dto.RecipeFeeDTO;
 import com.ngari.recipe.dto.ShoppingCartDetailDTO;
 import com.ngari.recipe.dto.SkipThirdDTO;
+import com.ngari.recipe.offlinetoonline.model.CheckRecipePayStateReqVO;
 import com.ngari.recipe.recipe.model.SkipThirdReqVO;
 import com.ngari.recipe.vo.LogisticsMergeVO;
 import com.ngari.recipe.vo.PreOrderInfoReqVO;
@@ -18,7 +19,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.common.CommonConstant;
 import recipe.constant.ErrorCode;
-import recipe.constant.ParameterConstant;
 import recipe.core.api.IOrganBusinessService;
 import recipe.core.api.patient.IOfflineRecipeBusinessService;
 import recipe.core.api.patient.IRecipeOrderBusinessService;
@@ -325,6 +325,17 @@ public class RecipeOrderPatientAtop extends BaseAtop {
     public Integer checkOrderPayState(Integer orderId){
         validateAtop(orderId);
         return recipeOrderService.checkOrderPayState(orderId);
+    }
+
+    /**
+     * 校验处方是否在支付中,已支付
+     * @param
+     * @return
+     */
+    @RpcService
+    public Integer checkRecipePayState(CheckRecipePayStateReqVO req){
+        validateAtop(req.getRecipeCode(),req.getOrganId(),req.getMpiid());
+        return recipeOrderService.checkRecipePayState(req);
     }
 
     /**
