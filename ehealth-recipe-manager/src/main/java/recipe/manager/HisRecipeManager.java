@@ -1033,7 +1033,12 @@ public class HisRecipeManager extends BaseManager {
      */
     public List<Recipedetail> getRecipeDetailsFromHisRecipe(QueryHisRecipResTO hisRecipeResTO) {
         List<RecipeDetailTO> recipeDetailTOList = hisRecipeResTO.getDrugList();
-        List<Recipedetail> recipeDetails = ObjectCopyUtils.convert(recipeDetailTOList, Recipedetail.class);
+        List<Recipedetail> recipeDetails = new ArrayList<>();
+        recipeDetailTOList.forEach(recipeDetailTO -> {
+            Recipedetail recipeDetail = ObjectCopyUtils.convert(recipeDetailTO, Recipedetail.class);
+            recipeDetail.setOrganDrugCode(recipeDetailTO.getDrugCode());
+            recipeDetails.add(recipeDetail);
+        });
         return recipeDetails;
     }
 
