@@ -166,7 +166,7 @@ class NoPayStrategyImpl extends BaseOfflineToOnlineService implements IOfflineTo
             throw new DAOException(609, "患者信息不存在");
         }
         patientDTO.setCardId(StringUtils.isNotEmpty(request.getCardId()) ? request.getCardId() : patientDTO.getCardId());
-        HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos = hisRecipeManager.queryHisRecipeData(request.getOrganId(), patientDTO, null, OfflineToOnlineEnum.getOfflineToOnlineEnum(request.getProcessState()).getType(), null,null,null);
+        HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos = hisRecipeManager.queryHisRecipeData(request.getOrganId(), patientDTO, null, OfflineToOnlineEnum.getOfflineToOnlineEnum(request.getProcessState()).getType(), request.getRecipeCode(),request.getStartTime(),request.getEndTime());
         if (null == hisRecipeInfos || CollectionUtils.isEmpty(hisRecipeInfos.getData())) {
             return res;
         }
