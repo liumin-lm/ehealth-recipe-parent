@@ -158,7 +158,7 @@ public class OfflineRecipePatientAtop extends BaseAtop {
     @RpcService
     public List<OfflineToOnlineResVO> batchOfflineToOnline(BatchOfflineToOnlineReqVO request) {
         logger.info("OfflineToOnlineAtop batchOfflineToOnline request:{}", JSONUtils.toString(request));
-        validateAtop(request, request.getOrganId(), request.getMpiId());
+        validateAtop(request, request.getOrganId(), request.getMpiid());
         try {
             List<OfflineToOnlineResVO> res = offlineToOnlineService.batchOfflineToOnline(request);
             logger.info("OfflineToOnlineAtop batchOfflineToOnline res findHisRecipeDetailResVO:{}", JSONUtils.toString(res));
@@ -172,6 +172,6 @@ public class OfflineRecipePatientAtop extends BaseAtop {
         }
     }
 
-    //TODO 校验线下和线上是否已支付
+    //TODO 校验线下和线上是否已支付 
 
 }

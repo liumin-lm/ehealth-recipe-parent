@@ -27,7 +27,7 @@ public class BatchOfflineToOnlineReqVO implements Serializable {
     /**
      * mpiId
      */
-    private String mpiId;
+    private String mpiid;
 
     /**
      * 卡片号

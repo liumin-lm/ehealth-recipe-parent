@@ -24,6 +24,9 @@ public class RegulationRecipeIndicatorsDTO implements Serializable {
     private String hosName;//	院区名称
     private String mpiId;
     private String bussID;//	互联网医院复诊记录Id
+    @ItemProperty(alias = "开处方来源(业务原始数据) 1问诊 2复诊(在线续方) 3网络门诊 5门诊 ")
+    private Integer  originalBussSource;
+    @ItemProperty(alias = "处方来源标记   1 问诊  4 复诊")
     private String bussSource;// 处方来源标记   1 问诊  4 复诊
     private String patientNumber;//门诊号
     private String originalDiagnosis;//上次就诊诊断名称
@@ -1111,5 +1114,13 @@ public class RegulationRecipeIndicatorsDTO implements Serializable {
 
     public void setDoctorCACertBase64(String doctorCACertBase64) {
         this.doctorCACertBase64 = doctorCACertBase64;
+    }
+
+    public Integer getOriginalBussSource() {
+        return originalBussSource;
+    }
+
+    public void setOriginalBussSource(Integer originalBussSource) {
+        this.originalBussSource = originalBussSource;
     }
 }
