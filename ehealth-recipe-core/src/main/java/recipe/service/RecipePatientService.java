@@ -1127,11 +1127,13 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         patientRecipeDetailResVO.setSecrecyRecipe(secrecyRecipe);
         if (RecipeBusinessTypeEnum.BUSINESS_RECIPE_REVISIT.getType().equals(returnRecipe.getBussSource())) {
             RevisitExDTO revisitExDTO = revisitClient.getByClinicId(returnRecipe.getClinicId());
-            if(Objects.nonNull(revisitExDTO.getOrderNumStartTime())){
+            if(Objects.nonNull(revisitExDTO) && Objects.nonNull(revisitExDTO.getOrderNumStartTime())){
                 patientRecipeDetailResVO.setVisitTime(revisitExDTO.getOrderNumStartTime());
             }else {
                 RevisitBean revisit = revisitClient.getRevisitByClinicId(returnRecipe.getClinicId());
-                patientRecipeDetailResVO.setVisitTime(revisit.getPaymentDate());
+                if(Objects.nonNull(revisit)) {
+                    patientRecipeDetailResVO.setVisitTime(revisit.getPaymentDate());
+                }
             }
 
         }
