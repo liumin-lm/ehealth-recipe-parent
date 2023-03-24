@@ -71,6 +71,11 @@ public class PatientRecipeListResVo implements Serializable {
     @ItemProperty(alias = "支付标志")
     private Integer payFlag;
 
+    @ItemProperty(alias = "开方机构")
+    @Dictionary(id = "eh.base.dictionary.Organ")
+    private Integer clinicOrgan;
+
+
     /******************************** 以下数据来源 recipeExt ****************************/
     @ItemProperty(alias = "大病类型")
     private String illnessType;
