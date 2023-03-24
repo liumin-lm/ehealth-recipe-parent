@@ -30,6 +30,7 @@ import com.ngari.recipe.drugsenterprise.model.DepListBean;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.offlinetoonline.model.OfflineToOnlineReqVO;
+import com.ngari.recipe.offlinetoonline.model.OfflineToOnlineResVO;
 import com.ngari.recipe.recipe.model.GiveModeButtonBean;
 import com.ngari.recipe.recipe.model.RankShiftList;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
@@ -1037,9 +1038,12 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
                  request.setStartTime(patientRecipeDetailReq.getStartTime());
                  request.setEndTime(patientRecipeDetailReq.getEndTime());
 
-                 offlineToOnlineStrategy.offlineToOnline(request);
+                OfflineToOnlineResVO offlineToOnlineResVO = offlineToOnlineStrategy.offlineToOnline(request);
+                if (Objects.nonNull(offlineToOnlineResVO.getRecipe()) && Objects.nonNull(offlineToOnlineResVO.getRecipe().getRecipeId())) {
+                    recipe = recipeManager.getRecipeInfoDTO(offlineToOnlineResVO.getRecipe().getRecipeId());
+                }
 
-             }
+            }
         }
         if(Objects.isNull(recipe) && StringUtils.isNotEmpty(patientRecipeDetailReq.getRecipeCode()) && Objects.nonNull(patientRecipeDetailReq.getOrganId())){
             // 获取线下处方
