@@ -3668,13 +3668,13 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder();
-                hql.append("select distinct r from Recipe r");
+                hql.append("select r from Recipe r");
                 if (0 == searchFlag) {
                     hql.append(" where r.doctorName like :searchString ");
                 } else if (2 == searchFlag) {
                     hql.append(" where r.patientName like :searchString ");
                 } else if (3 == searchFlag) {
-                    hql.append(" where r.recipeId like :searchString ");
+                    hql.append(" where CAST(r.recipeId as string) like :searchString ");
                 } else {
                     throw new DAOException(ErrorCode.SERVICE_ERROR, "searchFlag is invalid");
                 }
