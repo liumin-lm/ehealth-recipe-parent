@@ -89,9 +89,14 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
      * @return
      */
     @RpcService
-    public RecipeDTO stagingRecipeAndGet(RecipeInfoVO recipeInfoVO) {
+    public RecipeInfoVO stagingRecipeAndGet(RecipeInfoVO recipeInfoVO) {
         Integer recipeId = stagingRecipe(recipeInfoVO);
-        return recipeBusinessService.getRecipeDTO(recipeId);
+        RecipeDTO recipeDTO = recipeBusinessService.getRecipeDTO(recipeId);
+        RecipeInfoVO recipeInfo = new RecipeInfoVO();
+        recipeInfo.setRecipeBean(ObjectCopyUtils.convert(recipeDTO.getRecipe(), RecipeBean.class));
+        recipeInfo.setRecipeExtendBean(ObjectCopyUtils.convert(recipeDTO.getRecipeExtend(), RecipeExtendBean.class));
+        recipeInfo.setRecipeDetails(ObjectCopyUtils.convert(recipeDTO.getRecipeDetails(), RecipeDetailBean.class));
+        return recipeInfo;
     }
 
     /**
