@@ -1534,6 +1534,7 @@ public class RecipeManager extends BaseManager {
                     break;
             }
             req.setRecipeState(recipeState);
+            req.setBussSource(bussSource);
             List<Recipe> recipes = recipeDAO.findPatientRecipeList(req);
             if (CollectionUtils.isEmpty(recipes)) {
                 return Collections.emptyList();

@@ -208,7 +208,7 @@ class NoPayStrategyImpl extends BaseOfflineToOnlineService implements IOfflineTo
         hisRecipeManager.deleteRecipeByRecipeCodes(request.getOrganId().toString(), recipeCodes);
         request.getSubParams().forEach(sub -> {
             // 2、线下转线上
-            OfflineToOnlineReqVO offlineToOnlineReqVO = obtainOfflineToOnlineReqVO(request.getMpiId(), sub.getRecipeCode(), request.getOrganId(), request.getCardId(), sub.getStartTime(),sub.getEndTime());
+            OfflineToOnlineReqVO offlineToOnlineReqVO = obtainOfflineToOnlineReqVO(request.getMpiid(), sub.getRecipeCode(), request.getOrganId(), request.getCardId(), sub.getStartTime(),sub.getEndTime());
             OfflineToOnlineResVO offlineToOnlineResVO = offlineToOnline(offlineToOnlineReqVO);
             if(null!=offlineToOnlineResVO.getRecipe()){
                 res.add(offlineToOnlineResVO);
