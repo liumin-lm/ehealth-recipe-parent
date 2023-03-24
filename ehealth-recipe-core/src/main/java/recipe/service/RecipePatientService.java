@@ -1040,6 +1040,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
             recipe = hisRecipeManager.getHisRecipeInfoDTO(BeanCopyUtils.copyProperties(patientRecipeDetailReq, PatientRecipeDetailReqDTO::new));
             if (Objects.isNull(recipe) && BussSourceTypeEnum.BUSSSOURCE_REVISIT.getType().equals(patientRecipeDetailReq.getBussSource()) && RecipeStateEnum.PROCESS_STATE_ORDER.getType().equals(patientRecipeDetailReq.getProcessState())) {
                 recipe = getRecipeInfoDTO(patientRecipeDetailReq, recipe, recipe.getRecipe());
+                recipe.setRecipeBusType(1);
             }
         }
 
