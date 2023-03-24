@@ -57,16 +57,20 @@ import recipe.audit.auditmode.AuditModeContext;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
+import recipe.caNew.AbstractCaProcessType;
+import recipe.caNew.CaAfterProcessType;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.*;
 import recipe.common.OnsConfig;
 import recipe.constant.ErrorCode;
+import recipe.constant.HisBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.constant.ReviewTypeConstant;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.dao.*;
 import recipe.enumerate.status.*;
 import recipe.enumerate.type.*;
+import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.QueryRecipeService;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.manager.*;
@@ -75,6 +79,7 @@ import recipe.purchase.CommonOrder;
 import recipe.service.*;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.serviceprovider.recipeorder.service.RemoteRecipeOrderService;
+import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.*;
 import recipe.vo.PageGenericsVO;
 import recipe.vo.doctor.DoctorRecipeListReqVO;
@@ -171,8 +176,8 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     private OrganAndDrugsepRelationDAO drugsDepRelationDAO;
     @Autowired
     private RevisitClient revisitClient;
-    @Autowired
-    private HisRecipeManager hisRecipeManager;
+    @Resource
+    private CaAfterProcessType caAfterProcessType;
 
     /**
      * 获取线下门诊处方诊断信息
@@ -295,7 +300,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         Integer openRecipeNumber = configurationClient.getValueCatch(organId, "openRecipeNumber", 999);
         logger.info("RecipeBusinessService validateOpenRecipeNumber openRecipeNumber={}", openRecipeNumber);
         if (ValidateUtil.integerIsEmpty(openRecipeNumber)) {
-            throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR, "开方张数0已超出医院限定范围，不能继续开方。");
+            throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR, "一次就诊最多开具【0】张处方，本次就诊已达上限，无法开具新处方");
         }
         //查询当前复诊存在的有效处方单
         List<Integer> recipeIds = recipeManager.findRecipeByClinicId(clinicId, recipeId, RecipeStatusEnum.RECIPE_REPEAT_COUNT);
@@ -304,7 +309,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         }
         logger.info("RecipeBusinessService validateOpenRecipeNumber recipeCount={}", recipeIds.size());
         if (recipeIds.size() >= openRecipeNumber) {
-            throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR, "开方张数已超出医院限定范围，不能继续开方。");
+            throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR, "一次就诊最多开具【" + openRecipeNumber + "】张处方，本次就诊已达上限，无法开具新处方");
         }
         return true;
     }
@@ -1517,6 +1522,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         return recipeDAO.get(recipeId);
     }
 
+
     @Override
     public Integer stagingRecipe(RecipeInfoVO recipeInfoVO) {
         // recipe 信息
@@ -1529,6 +1535,39 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         recipeDetailManager.saveRecipeDetails(recipeDetails, recipe);
         // 修改状态
         stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_SUBMIT, RecipeStateEnum.SUB_SUBMIT_TEMPORARY);
+        //不知道干什么的一句话
+        caManager.setCaPassWord(recipe.getClinicOrgan(), recipe.getDoctor(), recipeInfoVO.getRecipeBean().getCaPassword());
+        return recipe.getRecipeId();
+    }
+
+    @Override
+    public Integer signRecipe(RecipeDTO recipeDTO, Integer type) {
+        Recipe recipe = recipeDTO.getRecipe();
+        boolean isWriteHis = recipeManager.recipeWriteHis(recipe.getRecipeId());
+        if (isWriteHis) {
+            return recipe.getRecipeId();
+        }
+        /**平台**/
+        if (Integer.valueOf(1).equals(type)) {
+            RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
+            List<RecipeDetailBean> detailBeanList = ObjectCopyUtils.convert(recipeDTO.getRecipeDetails(), RecipeDetailBean.class);
+            AbstractCaProcessType.getCaProcessFactory(recipe.getClinicOrgan()).signCABeforeRecipeFunction(recipeBean, detailBeanList);
+            // 处方失效时间处理
+            recipeManager.handleRecipeInvalidTime(recipe.getClinicOrgan(), recipe.getRecipeId(), recipe.getSignDate());
+        } else {
+            /**互联网**/
+            //MQ推送处方开成功消息 - 发送HIS处方开具消息
+            offlineRecipeClient.recipeStatusToHis(HisMqRequestInit.initRecipeStatusToHisReq(recipe, HisBussConstant.TOHIS_RECIPE_STATUS_ADD));
+            //处方开完后发送聊天界面消息 -医院确认中
+            revisitManager.sendRecipeMsg(recipe.getClinicId(), recipe.getBussSource());
+        }
+        //数据通知
+        RecipeBusiThreadPool.execute(() -> {
+            //健康卡数据上传
+            patientClient.cardDataUpload(recipe.getClinicOrgan(), recipe.getMpiid());
+            //通知复诊——添加处方追溯数据
+            revisitManager.saveRevisitTracesList(recipeDAO.get(recipe.getRecipeId()));
+        });
         return recipe.getRecipeId();
     }
 
@@ -1571,6 +1610,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
                     if (Objects.nonNull(organDrugList)) {
                         recipeDetailBean.setSkinTestDrugFlag(organDrugList.getSkinTestDrugFlag());
                         recipeDetailBean.setTargetedDrugType(organDrugList.getTargetedDrugType());
+                        recipeDetailBean.setUseDoseAndUnitRelation(RecipeUtil.defaultUseDose(organDrugList));
                     }
                 });
                 recipeInfoVO.setRecipeDetails(recipeDetailBeans);
@@ -1648,10 +1688,20 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     @Override
     public RecipeDTO getRecipeInfoByRecipeId(Integer recipeId) {
         RecipeDTO recipeDTO = recipeManager.getRecipeDTO(recipeId);
-        if(null!=recipeDTO.getRecipe() && StringUtils.isNotEmpty(recipeDTO.getRecipe().getOrderCode())){
+        if (null != recipeDTO.getRecipe() && StringUtils.isNotEmpty(recipeDTO.getRecipe().getOrderCode())) {
             recipeDTO.setRecipeOrder(recipeOrderDAO.getByOrderCode(recipeDTO.getRecipe().getOrderCode()));
         }
         return recipeDTO;
+    }
+
+    @Override
+    public RecipeDTO getRecipeDTO(Integer recipeId) {
+        return recipeManager.getSuperRecipeDTO(recipeId);
+    }
+
+    @Override
+    public void sendCardMessage(CardMessageVO cardMessageVO) {
+
     }
 }
 

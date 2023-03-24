@@ -3,6 +3,8 @@ package recipe.core.api.patient;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.recipe.vo.*;
 import recipe.vo.doctor.RecipeInfoVO;
+import recipe.vo.patient.PatientRecipeDetailReqVO;
+import recipe.vo.patient.PatientRecipeDetailResVO;
 import recipe.vo.patient.ReadyRecipeVO;
 
 import java.util.List;
@@ -84,4 +86,11 @@ public interface IPatientBusinessService {
      * @return
      */
     ReadyRecipeVO getReadyRecipeFlag(Integer orderId);
+
+    /**
+     * 获取处方详情
+     * @param patientRecipeDetailReq
+     * @return
+     */
+    PatientRecipeDetailResVO patientRecipeDetail(PatientRecipeDetailReqVO patientRecipeDetailReq);
 }

@@ -2,22 +2,19 @@ package recipe.core.api.patient;
 
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.RecipeInfoTO;
+import com.ngari.recipe.dto.DoSignRecipeDTO;
 import com.ngari.recipe.dto.HisRecipeDTO;
+import com.ngari.recipe.dto.RecipeDTO;
 import com.ngari.recipe.dto.RecipeInfoDTO;
-import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
-import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailResVO;
-import com.ngari.recipe.offlinetoonline.model.FindHisRecipeListVO;
-import com.ngari.recipe.offlinetoonline.model.SettleForOfflineToOnlineVO;
+import com.ngari.recipe.offlinetoonline.model.*;
 import com.ngari.recipe.recipe.model.MergeRecipeVO;
 import com.ngari.recipe.vo.OffLineRecipeDetailVO;
-import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.patient.PatientRecipeListReqVO;
 import recipe.vo.patient.PatientRecipeListResVo;
 import recipe.vo.patient.RecipeGiveModeButtonRes;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 
 /**
  * @Author liumin
@@ -119,4 +116,25 @@ public interface IOfflineRecipeBusinessService {
      * @return
      */
     List<List<PatientRecipeListResVo>> patientRecipeList(PatientRecipeListReqVO patientRecipeListReq);
+
+    /**
+     * his处方 预校验
+     *
+     * @param recipeDTO
+     */
+    DoSignRecipeDTO hisRecipeCheck(RecipeDTO recipeDTO);
+
+    /**
+     * 线下转线上
+     * @param request
+     * @return
+     */
+    OfflineToOnlineResVO offlineToOnline(OfflineToOnlineReqVO request);
+
+    /**
+     * 批量线下转线上
+     * @param request
+     * @return
+     */
+    List<OfflineToOnlineResVO> batchOfflineToOnline(BatchOfflineToOnlineReqVO request);
 }

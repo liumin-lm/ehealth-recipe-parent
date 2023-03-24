@@ -1385,6 +1385,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             req.setGenderCode(patientDTO.getPatientSex());
             req.setBirthdate(patientDTO.getBirthday());
             req.setNation(patientDTO.getNation());
+            req.setMpiId(patientDTO.getMpiId());
         }
         req.setVisitNo(String.valueOf(recipe.getClinicId()));
         req.setAccountNo(order.getTradeNo());
@@ -1395,6 +1396,22 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         req.setOrgName(recipe.getOrganName());
         req.setRcdDatetime(new Date());
         req.setPayTypeCode("07"); //详见医疗费用分类代码表
+
+        List<Recipe> recipeList = recipeDAO.findByClinicId(recipe.getClinicId());
+        //处方数
+        if(CollectionUtils.isNotEmpty(recipeList)){
+            req.setRecipeCount(recipeList.size());
+        }
+        //处方类型
+        req.setRecipeType(recipe.getRecipeType());
+        //挂号费
+        req.setRegisterFee(order.getRegisterFee());
+        //订单总费用
+        req.setOrderTotalFee(order.getTotalFee());
+        //其他费用
+        req.setOtherFee(order.getOtherFee());
+        //配送费
+        req.setExpressFee(order.getExpressFee());
 
         List<RegulationCostDetailReq> items = new ArrayList<>();
         //取处方单明细
@@ -1611,6 +1628,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         PatientDTO patientDto = patientService.getPatientDTOByMpiId(mpiId);
         if (patientDto != null) {
             patient = new PatientTO();
+            patient.setMpiId(mpiId);
             patient.setPatientName(patientDto.getPatientName());
             patient.setPatientSex(patientDto.getPatientSex());
             patient.setBirthday(patientDto.getBirthday());

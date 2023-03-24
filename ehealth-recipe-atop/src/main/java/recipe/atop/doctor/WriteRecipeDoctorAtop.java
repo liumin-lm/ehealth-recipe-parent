@@ -83,6 +83,38 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
     }
 
     /**
+     * 暂存并返回处方详情
+     *
+     * @param recipeInfoVO
+     * @return
+     */
+    @RpcService
+    public RecipeDTO stagingRecipeAndGet(RecipeInfoVO recipeInfoVO) {
+        Integer recipeId = stagingRecipe(recipeInfoVO);
+        return recipeBusinessService.getRecipeDTO(recipeId);
+    }
+
+    /**
+     * 处方签名
+     *
+     * @param recipeId 处方id
+     * @param type     1 平台，2互联网
+     * @return
+     */
+    @RpcService
+    public Integer signRecipe(Integer recipeId, Integer type) {
+        validateAtop(recipeId, type);
+        RecipeDTO recipeDTO = recipeBusinessService.getRecipeDTO(recipeId);
+        logger.info("WriteRecipeDoctorAtop signRecipe recipeDTO={}", JSON.toJSONString(recipeDTO));
+        validateAtop(recipeDTO, recipeDTO.getRecipe(), recipeDTO.getRecipeExtend(), recipeDTO.getRecipeDetails());
+        Recipe recipeBean = recipeDTO.getRecipe();
+        validateAtop(recipeBean.getClinicOrgan(), recipeBean.getRecipeId(), recipeBean.getDoctor(), recipeBean.getRecipeSupportGiveMode());
+        List<Recipedetail> recipeDetails = recipeDTO.getRecipeDetails();
+        recipeDetails.forEach(a -> validateAtop(a.getRecipeId(), a.getRecipeDetailId()));
+        return recipeBusinessService.signRecipe(recipeDTO, type);
+    }
+
+    /**
      * 处方拆方
      *
      * @param recipeInfoVO

@@ -1,14 +1,7 @@
-package recipe.bussutil;
+package recipe.util;
 
-import com.ngari.recipe.entity.DrugsEnterprise;
-import ctd.persistence.DAOFactory;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import recipe.constant.CacheConstant;
-import recipe.dao.OrganAndDrugsepRelationDAO;
-import recipe.util.RedisClient;
-
-import java.util.List;
 
 /**
  * @author： 0184/yu_yun
@@ -52,26 +45,16 @@ public class UsingRateFilter {
     }
 
     /**
-     * 根据平台的字典编码，匹配第三方的值，一般用于平台处方写入其他平台使用---杭州市互联网
+     * 根据平台的字典编码，匹配医院的值，一般用于平台处方写入HIS使用
      * @param organId
      * @param field
      * @return
      */
-    public static String filterNgariByMedical(int organId, String field){
+    public static String usePathwaysFilter(int organId, String field){
         if (StringUtils.isEmpty(field)){
             return "";
         }
-        String val = RedisClient.instance().hget(CacheConstant.KEY_MEDICAL_NGARI_USINGRATE + organId, field);
-        if (StringUtils.isEmpty(val)){
-            OrganAndDrugsepRelationDAO dao = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
-            List<DrugsEnterprise> enterprises = dao.findDrugsEnterpriseByOrganIdAndStatus(organId, 1);
-            if (CollectionUtils.isNotEmpty(enterprises)){
-                if ("hzInternet".equals(enterprises.get(0).getCallSys())){
-                    val = RedisClient.instance().hget(CacheConstant.KEY_MEDICAL_NGARI_USINGRATE + "hzInternet", field);
-                    return StringUtils.isEmpty(val) ? field : val;
-                }
-            }
-        }
+        String val = RedisClient.instance().hget(CacheConstant.KEY_NGARI_USEPATHWAYS + organId, field);
         /**
          * 查不到的原因
          * 1 因为field有可能在平台没有新增，则返回实际值

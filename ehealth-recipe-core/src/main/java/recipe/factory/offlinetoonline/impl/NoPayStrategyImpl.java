@@ -8,12 +8,10 @@ import com.ngari.recipe.dto.GiveModeButtonDTO;
 import com.ngari.recipe.dto.GroupRecipeConfDTO;
 import com.ngari.recipe.entity.HisRecipe;
 import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
-import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailResVO;
-import com.ngari.recipe.offlinetoonline.model.FindHisRecipeListVO;
-import com.ngari.recipe.offlinetoonline.model.SettleForOfflineToOnlineVO;
+import com.ngari.recipe.offlinetoonline.model.*;
 import com.ngari.recipe.recipe.model.HisRecipeVO;
 import com.ngari.recipe.recipe.model.MergeRecipeVO;
+import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
@@ -22,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.dao.RecipeDAO;
 import recipe.enumerate.status.OfflineToOnlineEnum;
 import recipe.factory.offlinetoonline.IOfflineToOnlineStrategy;
 import recipe.manager.GroupRecipeManager;
@@ -32,6 +31,7 @@ import recipe.vo.patient.RecipeGiveModeButtonRes;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 /**
@@ -45,13 +45,16 @@ class NoPayStrategyImpl extends BaseOfflineToOnlineService implements IOfflineTo
     private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
-    HisRecipeManager hisRecipeManager;
+    private HisRecipeManager hisRecipeManager;
 
     @Autowired
-    RecipeManager recipeManager;
+    private RecipeManager recipeManager;
 
     @Autowired
-    GroupRecipeManager groupRecipeManager;
+    private GroupRecipeManager groupRecipeManager;
+
+    @Autowired
+    private RecipeDAO recipeDAO;
 
 
     @Override
@@ -151,6 +154,84 @@ class NoPayStrategyImpl extends BaseOfflineToOnlineService implements IOfflineTo
         });
         return;
 
+    }
+
+    @Override
+    public OfflineToOnlineResVO offlineToOnline(OfflineToOnlineReqVO request) {
+        LOGGER.info("offlineToOnlineForRecipe request:{}", JSONUtils.toString(request));
+        OfflineToOnlineResVO res=new OfflineToOnlineResVO();
+        //1 获取his数据
+        PatientDTO patientDTO = hisRecipeManager.getPatientBeanByMpiId(request.getMpiid());
+        if (null == patientDTO) {
+            throw new DAOException(609, "患者信息不存在");
+        }
+        HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos = hisRecipeManager.queryData(request.getOrganId(), patientDTO, null, OfflineToOnlineEnum.OFFLINE_TO_ONLINE_NO_PAY.getType(), request.getRecipeCode(),request.getStartTime(),request.getEndTime());
+        if (null == hisRecipeInfos || CollectionUtils.isEmpty(hisRecipeInfos.getData())) {
+            return res;
+        }
+//        try {
+            //2 更新数据校验
+            hisRecipeInfoCheck(hisRecipeInfos.getData(), patientDTO);
+//        } catch (Exception e) {
+//            LOGGER.error("queryHisRecipeInfo hisRecipeInfoCheck error ", e);
+//        }
+        List<HisRecipe> hisRecipes = new ArrayList<>();
+        try {
+            //3 保存数据到cdr_his_recipe相关表（cdr_his_recipe、cdr_his_recipeExt、cdr_his_recipedetail）
+            hisRecipes = saveHisRecipeInfo(hisRecipeInfos, patientDTO, OfflineToOnlineEnum.OFFLINE_TO_ONLINE_NO_PAY.getType());
+        } catch (Exception e) {
+            LOGGER.error("queryHisRecipeInfo saveHisRecipeInfo error ", e);
+        }
+
+        //4 保存数据到cdr_recipe相关表（cdr_recipe、cdr_recipeext、cdr_recipeDetail）
+        AtomicReference<Integer> recipeId = new AtomicReference<>();
+        hisRecipes.forEach(hisRecipe -> {
+            recipeId.set(saveRecipeInfo(hisRecipe.getHisRecipeID()));
+        });
+        //5 返回出参
+        RecipeBean recipeBean=new RecipeBean();
+        if(null!=recipeId.get()){
+            recipeBean.setRecipeId(recipeId.get());
+            res.setRecipe(recipeBean);
+        }
+        return res;
+
+    }
+
+
+    @Override
+    public List<OfflineToOnlineResVO> batchOfflineToOnline(BatchOfflineToOnlineReqVO request) {
+        List<OfflineToOnlineResVO> res=new ArrayList<OfflineToOnlineResVO>();
+        LOGGER.info("NoPayServiceImpl batchOfflineToOnline request = {}", JSONUtils.toString(request));
+        // 1、删数据
+        List<String> recipeCodes=request.getSubParams().stream().map(e -> e.getRecipeCode()).collect(Collectors.toList());
+        hisRecipeManager.deleteRecipeByRecipeCodes(request.getOrganId().toString(), recipeCodes);
+        request.getSubParams().forEach(sub -> {
+            // 2、线下转线上
+            OfflineToOnlineReqVO offlineToOnlineReqVO = obtainOfflineToOnlineReqVO(request.getMpiId(), sub.getRecipeCode(), request.getOrganId(), request.getCardId(), sub.getStartTime(),sub.getEndTime());
+            OfflineToOnlineResVO offlineToOnlineResVO = offlineToOnline(offlineToOnlineReqVO);
+            if(null!=offlineToOnlineResVO.getRecipe()){
+                res.add(offlineToOnlineResVO);
+            };
+        });
+        //res.stream().filter(a->null!=a.getRecipe())
+        LOGGER.info("batchOfflineToOnline recipeIds:{}", JSONUtils.toString(res));
+        //部分处方线下转线上成功
+        if (res.size() != request.getSubParams().size()) {
+            throw new DAOException(609, "抱歉，无法查找到对应的处方单数据");
+        }
+        //存在已失效处方
+        List<Integer> recipeIds=res.stream().filter(a->null!=a.getRecipe()).map(e -> e.getRecipe().getRecipeId()).collect(Collectors.toList());
+        if(CollectionUtils.isEmpty(recipeIds)){
+            return res;
+        }
+        List<Recipe> recipes = recipeDAO.findRecipeByRecipeIdAndClinicOrgan(request.getOrganId(), recipeIds);
+        if (CollectionUtils.isNotEmpty(recipes) && recipes.size() > 0) {
+            LOGGER.info("batchOfflineToOnline 存在已失效处方");
+            throw new DAOException(600, "处方单过期已失效");
+        }
+        LOGGER.info("NoPayServiceImpl settleForOfflineToOnline res:{}", JSONUtils.toString(res));
+        return res;
     }
 
     /**

@@ -360,6 +360,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                 recipe.setStatus(recipeStatusReqTO.getStatus());
                 recipeDAO.update(recipe);
                 stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_REFUSE_ORDER);
+                //通知医生处方作废
+                smsClient.refuseSendDrugNotice(recipe);
                 return true;
             }
             RecipeStateEnum recipeProcessStateDispensing = null;
@@ -499,9 +501,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @RpcService
     public QueryResult<RecipesQueryResVO> findRecipesByInfo2(RecipesQueryVO recipesQueryVO) {
         if (recipesQueryVO.getOrganId() != null) {
-            if (!OpSecurityUtil.isAuthorisedOrgan(recipesQueryVO.getOrganId())) {
-                return null;
-            }
+            OpSecurityUtil.isAuthorisedOrgan(recipesQueryVO.getOrganId());
         }
         UserRoleToken urt = UserRoleToken.getCurrent();
         String manageUnit = urt.getManageUnit();
@@ -518,7 +518,6 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         QueryResult<Recipe> recipeListResult = recipeDAO.findRecipesByInfoV2(recipesQueryVO);
         List<Recipe> recipeList=recipeListResult.getItems();
         LOGGER.info("findRecipesByInfo recipeListResult:{}", JSONUtils.toString(recipeListResult));
-
 
         //组装返回参数
         List<RecipesQueryResVO> resList = Lists.newArrayList();
@@ -1850,26 +1849,36 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         RecipeMsgService.batchSendMsg(recipe1, RecipeStatusConstant.CHECK_NOT_PASSYS_REACHPAY);
     }
 
+    /**
+     * 审方列表页面搜索接口
+     *
+     * @param organs       机构id
+     * @param searchFlag   检索类型  0-开方医生 1-审方医生 2-患者姓名 3-处方单号  4-科室名称
+     * @param searchString 检索内容
+     * @param start
+     * @param limit
+     * @return
+     */
     @Override
     public List<RecipeBean> searchRecipe(Set<Integer> organs, Integer searchFlag, String searchString, Integer start, Integer limit) {
-        List<Recipe> recipes = Collections.EMPTY_LIST;
+        LOGGER.info("searchRecipe organs = {}, searchFlag = {}, searchString = {}", JSON.toJSONString(organs), searchFlag, searchString);
+        List<Recipe> recipes = new ArrayList<>();
         if (4 == searchFlag) {
             if (StringUtils.isNoneBlank(searchString)) {
                 DepartmentService departService = ApplicationUtils.getBasicService(DepartmentService.class);
                 List<Integer> departIds = departService.findIdsByName(searchString);
-                recipes = recipeDAO.searchRecipeByDepartName(organs, searchFlag, searchString, departIds, start, limit);
+                recipes = recipeDAO.searchRecipeByDepartName(organs, searchString, departIds, start, limit);
             }
         } else {
             recipes = recipeDAO.searchRecipe(organs, searchFlag, searchString, start, limit);
         }
         //转换前端的展示实体类
-        List<RecipeBean> recipeBeans = changBean(recipes, RecipeBean.class);
-        return recipeBeans;
+        return changBean(recipes, RecipeBean.class);
     }
 
     @Override
     public List<RecipeBean> findByRecipeAndOrganId(List<Integer> recipeIds, Set<Integer> organIds) {
-        List<Recipe> recipes = null;
+        List<Recipe> recipes;
         if (CollectionUtils.isNotEmpty(organIds)) {
             recipes = recipeDAO.findByRecipeAndOrganId(recipeIds, organIds);
         } else {
@@ -2281,6 +2290,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         stateManager.updateStatus(recipeId, RecipeStatusEnum.RECIPE_STATUS_SIGN_SUCCESS_CODE_DOC, SignEnum.SIGN_STATE_ORDER);
         stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_SUBMIT, RecipeStateEnum.NONE);
         createPdfFactory.updateDoctorNamePdf(recipe, resultVo.getPdfBase64());
+        //进行药师签名！！！
         caManager.caSignChecker(recipe);
     }
 

@@ -1,12 +1,14 @@
 package recipe.atop.doctor;
 
 import com.alibaba.fastjson.JSON;
+import com.ngari.recipe.dto.DoSignRecipeDTO;
 import com.ngari.recipe.dto.EnterpriseStock;
 import com.ngari.recipe.dto.RecipeDTO;
 import com.ngari.recipe.dto.RecipeDetailDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.vo.CaseHistoryVO;
 import ctd.persistence.exception.DAOException;
@@ -22,6 +24,7 @@ import recipe.core.api.IRecipeBusinessService;
 import recipe.core.api.IRecipeDetailBusinessService;
 import recipe.core.api.IRevisitBusinessService;
 import recipe.core.api.IStockBusinessService;
+import recipe.core.api.patient.IOfflineRecipeBusinessService;
 import recipe.enumerate.type.RecipeDrugFormTypeEnum;
 import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.util.ObjectCopyUtils;
@@ -51,6 +54,9 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
     private IRecipeBusinessService recipeBusinessService;
     @Autowired
     private IStockBusinessService iStockBusinessService;
+    @Autowired
+    private IOfflineRecipeBusinessService offlineRecipeBusinessService;
+
     /**
      * 长处方标识 0 不是
      */
@@ -98,6 +104,93 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
         return validateDetail;
     }
 
+
+    /**
+     * 拆方校验
+     *
+     * @param validateDetailVO
+     */
+    @RpcService
+    public String validateSplitRecipe(ValidateDetailVO validateDetailVO) {
+        validateAtop(validateDetailVO, validateDetailVO.getRecipeBean(), validateDetailVO.getRecipeExtendBean(), validateDetailVO.getRecipeDetails());
+        if (RecipeUtil.isTcmType(validateDetailVO.getRecipeBean().getRecipeType())) {
+            return null;
+        }
+        //判断数量
+        if (validateDetailVO.getRecipeDetails().size() > 5) {
+            return "因为【处方的药品数量>5个】，需要进行拆分，请确认";
+        }
+        String msg = recipeDetailService.validateSplitRecipe(validateDetailVO);
+        if (StringUtils.isNotEmpty(msg)) {
+            return msg;
+        }
+        RecipeDTO recipeDTO = new RecipeDTO();
+        recipeDTO.setRecipe(ObjectCopyUtils.convert(validateDetailVO.getRecipeBean(), Recipe.class));
+        recipeDTO.setRecipeDetails(ObjectCopyUtils.convert(validateDetailVO.getRecipeDetails(), Recipedetail.class));
+        recipeDTO.setRecipeExtend(ObjectCopyUtils.convert(validateDetailVO.getRecipeExtendBean(), RecipeExtend.class));
+        List<EnterpriseStock> result = iStockBusinessService.stockList(recipeDTO);
+        boolean stock = result.stream().anyMatch(EnterpriseStock::getStock);
+        //查看库存是否满足
+        if (!stock) {
+            return "因为【无一个供药方可以供应所有药品】，需要进行拆分，请确认";
+        }
+        return null;
+    }
+
+    /**
+     * his处方 预校验
+     *
+     * @param recipeId 处方id
+     */
+    @RpcService
+    public DoSignRecipeDTO hisRecipeCheck(Integer recipeId) {
+        validateAtop(recipeId);
+        RecipeDTO recipeDTO = recipeBusinessService.getRecipeDTO(recipeId);
+        logger.info("RecipeValidateDoctorAtop hisRecipeCheck recipeDTO={}", JSON.toJSONString(recipeDTO));
+        validateAtop(recipeDTO.getRecipe(), recipeDTO.getRecipeExtend(), recipeDTO.getRecipeDetails());
+        DoSignRecipeDTO doSignRecipe = offlineRecipeBusinessService.hisRecipeCheck(recipeDTO);
+        if (null == doSignRecipe) {
+            doSignRecipe = new DoSignRecipeDTO();
+            doSignRecipe.setSignResult(true);
+            doSignRecipe.setCanContinueFlag("0");
+            return doSignRecipe;
+        }
+        enterpriseBusinessService.checkRecipeGiveDeliveryMsg(doSignRecipe, ObjectCopyUtils.convert(recipeDTO.getRecipe(), RecipeBean.class));
+        doSignRecipe.setMap(null);
+        return doSignRecipe;
+    }
+
+    /**
+     * 校验his 药品规则，靶向药，大病医保，抗肿瘤药物等
+     *
+     * @param validateDetailVO 药品信息
+     * @return
+     */
+    @RpcService
+    public List<RecipeDetailBean> validateHisDrugRule(ValidateDetailVO validateDetailVO) {
+        logger.info("RecipeValidateDoctorAtop validateHisDrugRule validateDetailVO ：{}", JSONUtils.toString(validateDetailVO));
+        validateAtop(validateDetailVO, validateDetailVO.getRecipeDetails(), validateDetailVO.getVersion(), validateDetailVO.getRecipeBean(), validateDetailVO.getRecipeExtendBean());
+        List<RecipeDetailDTO> recipeDetailDTO = ObjectCopyUtils.convert(validateDetailVO.getRecipeDetails(), RecipeDetailDTO.class);
+        recipeDetailDTO.forEach(a -> a.setValidateHisStatus(0));
+        if (validateDetailVO.getVersion().equals(1)) {
+            return ObjectCopyUtils.convert(recipeDetailDTO, RecipeDetailBean.class);
+        }
+        Recipe recipe = ObjectCopyUtils.convert(validateDetailVO.getRecipeBean(), Recipe.class);
+        validateAtop(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getDepart());
+        // 校验his 药品规则，靶向药，大病医保，抗肿瘤药物等
+        List<RecipeDetailDTO> recipeDetail = recipeDetailDTO.stream().filter(a -> !ValidateUtil.integerIsEmpty(a.getDrugId())).collect(Collectors.toList());
+        List<RecipeDetailDTO> result = recipeDetailService.validateHisDrugRule(recipe, recipeDetail, validateDetailVO.getRecipeExtendBean().getRegisterID(), validateDetailVO.getDbType());
+        //返回数据处理
+        List<RecipeDetailDTO> recipeDetailLose = recipeDetailDTO.stream().filter(a -> ValidateUtil.integerIsEmpty(a.getDrugId())).collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(recipeDetailLose)) {
+            recipeDetailLose.forEach(a -> {
+                a.setValidateHisStatus(-1);
+                a.setValidateHisStatusText("不在可开方目录或者对应药房内");
+            });
+            result.addAll(recipeDetailLose);
+        }
+        return ObjectCopyUtils.convert(result, RecipeDetailBean.class);
+    }
 
     /**
      * 复杂逻辑配置项处理
@@ -224,47 +317,7 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
         if (ValidateUtil.integerIsEmpty(clinicId)) {
             return true;
         }
-        try {
-            return recipeBusinessService.validateOpenRecipeNumber(clinicId, organId, recipeId);
-        } catch (DAOException e1) {
-            logger.error("RecipeValidateDoctorAtop validateOpenRecipeNumber error", e1);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
-        } catch (Exception e) {
-            logger.error("RecipeValidateDoctorAtop validateOpenRecipeNumber error e", e);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
-        }
-    }
-
-    /**
-     * 校验his 药品规则，靶向药，大病医保，抗肿瘤药物等
-     *
-     * @param validateDetailVO 药品信息
-     * @return
-     */
-    @RpcService
-    public List<RecipeDetailBean> validateHisDrugRule(ValidateDetailVO validateDetailVO) {
-        logger.info("RecipeValidateDoctorAtop validateHisDrugRule validateDetailVO ：{}", JSONUtils.toString(validateDetailVO));
-        validateAtop(validateDetailVO, validateDetailVO.getRecipeDetails(), validateDetailVO.getVersion(), validateDetailVO.getRecipeBean(), validateDetailVO.getRecipeExtendBean());
-        List<RecipeDetailDTO> recipeDetailDTO = ObjectCopyUtils.convert(validateDetailVO.getRecipeDetails(), RecipeDetailDTO.class);
-        recipeDetailDTO.forEach(a -> a.setValidateHisStatus(0));
-        if (validateDetailVO.getVersion().equals(1)) {
-            return ObjectCopyUtils.convert(recipeDetailDTO, RecipeDetailBean.class);
-        }
-        Recipe recipe = ObjectCopyUtils.convert(validateDetailVO.getRecipeBean(), Recipe.class);
-        validateAtop(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getDepart());
-        // 校验his 药品规则，靶向药，大病医保，抗肿瘤药物等
-        List<RecipeDetailDTO> recipeDetail = recipeDetailDTO.stream().filter(a -> !ValidateUtil.integerIsEmpty(a.getDrugId())).collect(Collectors.toList());
-        List<RecipeDetailDTO> result = recipeDetailService.validateHisDrugRule(recipe, recipeDetail, validateDetailVO.getRecipeExtendBean().getRegisterID(), validateDetailVO.getDbType());
-        //返回数据处理
-        List<RecipeDetailDTO> recipeDetailLose = recipeDetailDTO.stream().filter(a -> ValidateUtil.integerIsEmpty(a.getDrugId())).collect(Collectors.toList());
-        if (CollectionUtils.isNotEmpty(recipeDetailLose)) {
-            recipeDetailLose.forEach(a -> {
-                a.setValidateHisStatus(-1);
-                a.setValidateHisStatusText("不在可开方目录或者对应药房内");
-            });
-            result.addAll(recipeDetailLose);
-        }
-        return ObjectCopyUtils.convert(result, RecipeDetailBean.class);
+        return recipeBusinessService.validateOpenRecipeNumber(clinicId, organId, recipeId);
     }
 
     /**
@@ -293,35 +346,4 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
     }
 
 
-    /**
-     * 拆方校验
-     *
-     * @param validateDetailVO
-     */
-    @RpcService
-    public String validateSplitRecipe(ValidateDetailVO validateDetailVO) {
-        validateAtop(validateDetailVO, validateDetailVO.getRecipeBean(), validateDetailVO.getRecipeExtendBean(), validateDetailVO.getRecipeDetails());
-        if (RecipeUtil.isTcmType(validateDetailVO.getRecipeBean().getRecipeType())) {
-            return null;
-        }
-        //判断数量
-        if (validateDetailVO.getRecipeDetails().size() > 5) {
-            return "因为【处方的药品数量>5个】，需要进行拆分，请确认";
-        }
-        String msg = recipeDetailService.validateSplitRecipe(validateDetailVO);
-        if (StringUtils.isNotEmpty(msg)) {
-            return msg;
-        }
-        RecipeDTO recipeDTO = new RecipeDTO();
-        recipeDTO.setRecipe(ObjectCopyUtils.convert(validateDetailVO.getRecipeBean(), Recipe.class));
-        recipeDTO.setRecipeDetails(ObjectCopyUtils.convert(validateDetailVO.getRecipeDetails(), Recipedetail.class));
-        recipeDTO.setRecipeExtend(ObjectCopyUtils.convert(validateDetailVO.getRecipeExtendBean(), RecipeExtend.class));
-        List<EnterpriseStock> result = iStockBusinessService.stockList(recipeDTO);
-        boolean stock = result.stream().anyMatch(EnterpriseStock::getStock);
-        //查看库存是否满足
-        if (!stock) {
-            return "因为【无一个供药方可以供应所有药品】，需要进行拆分，请确认";
-        }
-        return null;
-    }
 }

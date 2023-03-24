@@ -9,6 +9,8 @@ import com.ngari.base.currentuserinfo.model.SimpleWxAccountBean;
 import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
 import com.ngari.base.device.model.DeviceBean;
 import com.ngari.base.device.service.IDeviceService;
+import com.ngari.base.healthcard.model.CardUploadDTO;
+import com.ngari.base.healthcard.service.IWholesomeService;
 import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.common.mode.HisResponseTO;
@@ -74,6 +76,8 @@ public class PatientClient extends BaseClient {
     private IDeviceService deviceService;
     @Autowired
     private IPatientHisService patientHisService;
+    @Autowired
+    private IWholesomeService iWholesomeService;
 
     /**
      * 类加载排序
@@ -467,6 +471,26 @@ public class PatientClient extends BaseClient {
         logger.info("PatientClient remindPatientTakeMedicine medicineRemindTOList:{}.", JSON.toJSONString(medicineRemindTOList));
         medicineRemindService.createMedicineRemind(medicineRemindTOList);
         return true;
+    }
+
+    /**
+     * 健康卡数据上传
+     *
+     * @param organId
+     * @param mpiid
+     */
+    public void cardDataUpload(int organId, String mpiid) {
+        logger.info("PatientClient cardDataUpload. organId={}, mpiid={}", organId, mpiid);
+        try {
+            CardUploadDTO cardUploadDTO = new CardUploadDTO();
+            cardUploadDTO.setOrganId(organId);
+            cardUploadDTO.setMpiId(mpiid);
+            cardUploadDTO.setScene("010106");
+            logger.info("PatientClient cardDataUpload. cardUploadDTO:{}", JSON.toJSONString(cardUploadDTO));
+            iWholesomeService.cardDataUpload(cardUploadDTO);
+        } catch (Exception e) {
+            logger.error("PatientClient cardDataUpload error", e);
+        }
     }
 
     /**

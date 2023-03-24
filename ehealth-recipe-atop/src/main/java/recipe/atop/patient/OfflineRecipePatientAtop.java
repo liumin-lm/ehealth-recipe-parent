@@ -1,9 +1,6 @@
 package recipe.atop.patient;
 
-import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
-import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailResVO;
-import com.ngari.recipe.offlinetoonline.model.FindHisRecipeListVO;
-import com.ngari.recipe.offlinetoonline.model.SettleForOfflineToOnlineVO;
+import com.ngari.recipe.offlinetoonline.model.*;
 import com.ngari.recipe.recipe.model.MergeRecipeVO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
@@ -128,5 +125,53 @@ public class OfflineRecipePatientAtop extends BaseAtop {
 
     }
 
+    /**
+     * 线下转线上
+     *
+     * @param request
+     * @return
+     */
+    @RpcService
+    public OfflineToOnlineResVO offlineToOnline(OfflineToOnlineReqVO request) {
+        logger.info("OfflineToOnlineAtop offlineToOnline request:{}", JSONUtils.toString(request));
+        validateAtop(request, request.getOrganId(), request.getMpiid());
+        try {
+            OfflineToOnlineResVO res = offlineToOnlineService.offlineToOnline(request);
+            logger.info("OfflineToOnlineAtop offlineToOnline res findHisRecipeDetailResVO:{}", JSONUtils.toString(res));
+            return res;
+        } catch (DAOException e) {
+            logger.error("OfflineToOnlineAtop findHisRecipeDetail error", e);
+            throw new DAOException(e.getCode(), e.getMessage());
+        } catch (Exception e) {
+            logger.error("OfflineToOnlineAtop findHisRecipeDetail error", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
+    }
+
+
+    /**
+     * 线下转线上
+     *
+     * @param request
+     * @return
+     */
+    @RpcService
+    public List<OfflineToOnlineResVO> batchOfflineToOnline(BatchOfflineToOnlineReqVO request) {
+        logger.info("OfflineToOnlineAtop batchOfflineToOnline request:{}", JSONUtils.toString(request));
+        validateAtop(request, request.getOrganId(), request.getMpiId());
+        try {
+            List<OfflineToOnlineResVO> res = offlineToOnlineService.batchOfflineToOnline(request);
+            logger.info("OfflineToOnlineAtop batchOfflineToOnline res findHisRecipeDetailResVO:{}", JSONUtils.toString(res));
+            return res;
+        } catch (DAOException e) {
+            logger.error("OfflineToOnlineAtop findHisRecipeDetail error", e);
+            throw new DAOException(e.getCode(), e.getMessage());
+        } catch (Exception e) {
+            logger.error("OfflineToOnlineAtop findHisRecipeDetail error", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
+    }
+
+    //TODO 校验线下和线上是否已支付
 
 }

@@ -1,7 +1,5 @@
 package recipe.business;
 
-import com.google.common.collect.Lists;
-import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.QueryHisRecipResTO;
@@ -12,16 +10,13 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.DepartmentService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.dto.*;
-import com.ngari.recipe.entity.HisRecipe;
-import com.ngari.recipe.entity.PharmacyTcm;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeExtend;
-import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
-import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailResVO;
-import com.ngari.recipe.offlinetoonline.model.FindHisRecipeListVO;
-import com.ngari.recipe.offlinetoonline.model.SettleForOfflineToOnlineVO;
+import com.ngari.recipe.entity.*;
+import com.ngari.recipe.offlinetoonline.model.*;
 import com.ngari.recipe.recipe.constant.RecipeTypeEnum;
-import com.ngari.recipe.recipe.model.*;
+import com.ngari.recipe.recipe.model.MergeRecipeVO;
+import com.ngari.recipe.recipe.model.RecipeBean;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import com.ngari.recipe.vo.OffLineRecipeDetailVO;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
@@ -30,7 +25,6 @@ import ctd.util.event.GlobalEventExecFactory;
 import eh.utils.BeanCopyUtils;
 import ngari.openapi.util.JSONUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.time.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,10 +36,13 @@ import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.client.OfflineRecipeClient;
 import recipe.common.CommonConstant;
 import recipe.constant.ErrorCode;
+import recipe.constant.HisErrorCodeEnum;
 import recipe.core.api.patient.IOfflineRecipeBusinessService;
+import recipe.dao.OrganAndDrugsepRelationDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeParameterDao;
+import recipe.drugTool.validate.RecipeDetailValidateTool;
 import recipe.enumerate.status.OfflineToOnlineEnum;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.WriteHisEnum;
@@ -53,7 +50,6 @@ import recipe.enumerate.type.PayFlagEnum;
 import recipe.factory.offlinetoonline.IOfflineToOnlineStrategy;
 import recipe.factory.offlinetoonline.OfflineToOnlineFactory;
 import recipe.manager.*;
-import recipe.service.RecipeListService;
 import recipe.service.RecipeLogService;
 import recipe.util.DictionaryUtil;
 import recipe.util.MapValueUtil;
@@ -105,9 +101,10 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
     @Autowired
     private RecipeParameterDao recipeParameterDao;
     @Autowired
-    private ICurrentUserInfoService currentUserInfoService;
+    private RecipeDetailValidateTool recipeDetailValidateTool;
     @Autowired
-    private RecipeListService recipeListService;
+    private OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO;
+
 
     @Override
     public List<MergeRecipeVO> findHisRecipeList(FindHisRecipeListVO request) {
@@ -155,6 +152,36 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
         List<RecipeGiveModeButtonRes> result = offlineToOnlineStrategy.settleForOfflineToOnline(request);
         logger.info("OfflineToOnlineService settleForOfflineToOnline res:{}", JSONUtils.toString(result));
         return result;
+    }
+
+    @Override
+    public OfflineToOnlineResVO offlineToOnline(OfflineToOnlineReqVO request) {
+        logger.info("OfflineToOnlineService offlineToOnline request:{}", JSONUtils.toString(request));
+        try {
+            IOfflineToOnlineStrategy offlineToOnlineStrategy = offlineToOnlineFactory.getFactoryService(OfflineToOnlineEnum.OFFLINE_TO_ONLINE_NO_PAY.getName());
+            return offlineToOnlineStrategy.offlineToOnline(request);
+        } catch (DAOException e) {
+            logger.error("OfflineToOnlineService offlineToOnline error", e);
+            throw new DAOException(e.getCode(), e.getMessage());
+        } catch (Exception e) {
+            logger.error("OfflineToOnlineService offlineToOnline error", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
+    }
+
+    @Override
+    public List<OfflineToOnlineResVO> batchOfflineToOnline(BatchOfflineToOnlineReqVO request) {
+        logger.info("OfflineToOnlineService batchOfflineToOnline request:{}", JSONUtils.toString(request));
+        try {
+            IOfflineToOnlineStrategy offlineToOnlineStrategy = offlineToOnlineFactory.getFactoryService(OfflineToOnlineEnum.OFFLINE_TO_ONLINE_NO_PAY.getName());
+            return offlineToOnlineStrategy.batchOfflineToOnline(request);
+        } catch (DAOException e) {
+            logger.error("OfflineToOnlineService batchOfflineToOnline error", e);
+            throw new DAOException(e.getCode(), e.getMessage());
+        } catch (Exception e) {
+            logger.error("OfflineToOnlineService batchOfflineToOnline error", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
     }
 
     @Override
@@ -210,9 +237,7 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
                 }
             }
         }
-        if (null != request.getTimeQuantum()) {
-//            request.setTimeQuantum(request.getTimeQuantum());
-        } else {
+        if (null == request.getTimeQuantum()){
             request.setTimeQuantum(6);
         }
         logger.info("OfflineToOnlineService obtainFindHisRecipeDetailParam req:{}", JSONUtils.toString(request));
@@ -369,8 +394,19 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
             }
             logger.info("RecipeBusinessService pushRecipe end recipeId:{}", recipeId);
             return result;
+        } catch (DAOException de) {
+            logger.error("RecipeBusinessService pushRecipe DAOException, sysType={}, recipeId:{}", sysType, recipeId, de);
+            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "当前处方推送his失败:" + de.getMessage());
+            String msg;
+            if (HisErrorCodeEnum.HIS_CODE_ERROR.getCode() == de.getCode()) {
+                msg = de.getMessage();
+            } else {
+                msg = configurationClient.getValueCatch(recipe.getClinicOrgan(), "pushHisRecipeResultMsg", "当前处方推送his失败");
+            }
+            stateManager.updateWriteHisState(recipeId, WriteHisEnum.WRITE_HIS_STATE_AUDIT);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, msg);
         } catch (Exception e) {
-            logger.error("RecipeBusinessService pushRecipe error,sysType={},recipeId:{}", sysType, recipeId, e);
+            logger.error("RecipeBusinessService pushRecipe Exception, sysType={}, recipeId:{}", sysType, recipeId, e);
             RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "当前处方推送his失败:" + e.getMessage());
             String msg = configurationClient.getValueCatch(recipe.getClinicOrgan(), "pushHisRecipeResultMsg", "当前处方推送his失败");
             stateManager.updateWriteHisState(recipeId, WriteHisEnum.WRITE_HIS_STATE_AUDIT);
@@ -427,7 +463,7 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
         List<List<com.ngari.platform.recipe.mode.RecipeDTO>> hisRecipeList = super.futureTaskCallbackBeanList(futureTasks, 15000);
         //去重返回 组装线上 线下数据
         Set<RecipeInfoVO> recipeInfoVOS = recipeList(recipeList, hisRecipeList);
-        if(CollectionUtils.isEmpty(recipeInfoVOS)){
+        if (CollectionUtils.isEmpty(recipeInfoVOS)) {
             return new ArrayList<>();
         }
         // 组装返回 给前端的数据
@@ -435,8 +471,29 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
         return list;
     }
 
+    @Override
+    public DoSignRecipeDTO hisRecipeCheck(RecipeDTO recipeDTO) {
+        Recipe recipe = recipeDTO.getRecipe();
+        recipeDetailValidateTool.validateMedicalChineDrugNumber(
+                ObjectCopyUtils.convert(recipe, RecipeBean.class),
+                ObjectCopyUtils.convert(recipeDTO.getRecipeExtend(), RecipeExtendBean.class),
+                ObjectCopyUtils.convert(recipeDTO.getRecipeDetails(), RecipeDetailBean.class));
+        //处方与校验
+        Boolean isDefaultGiveModeToHos = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "hisRecipeCheckFlag", false);
+        if (!isDefaultGiveModeToHos) {
+            return null;
+        }
+        RecipeExtend recipeExtend = recipeDTO.getRecipeExtend();
+        List<Recipedetail> details = recipeDTO.getRecipeDetails();
+        Map<Integer, PharmacyTcm> pharmacyTcmMap = pharmacyManager.pharmacyIdMap(recipe.getClinicOrgan());
+        List<Integer> drugIds = details.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
+        Map<String, OrganDrugList> organDrugMap = organDrugListManager.getOrganDrugByIdAndCode(recipe.getClinicOrgan(), drugIds);
+        return hisRecipeManager.hisRecipeCheck(recipe, recipeExtend, details, pharmacyTcmMap, organDrugMap);
+    }
+
     /**
      * 组装返回 给前端的数据
+     *
      * @param recipeInfoVOS
      * @return
      */

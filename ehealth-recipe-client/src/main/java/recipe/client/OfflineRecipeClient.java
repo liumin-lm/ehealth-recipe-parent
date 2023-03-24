@@ -5,6 +5,7 @@ import com.github.rholder.retry.Retryer;
 import com.github.rholder.retry.RetryerBuilder;
 import com.github.rholder.retry.StopStrategies;
 import com.github.rholder.retry.WaitStrategies;
+import com.google.common.collect.Lists;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.recipe.mode.EmrDetailValueDTO;
@@ -16,8 +17,8 @@ import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.EmploymentService;
 import com.ngari.patient.utils.ObjectCopyUtils;
-import com.ngari.platform.recipe.mode.*;
 import com.ngari.platform.recipe.mode.RecipeDTO;
+import com.ngari.platform.recipe.mode.*;
 import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.DrugSpecificationInfoDTO;
 import com.ngari.recipe.dto.EmrDetailDTO;
@@ -25,8 +26,10 @@ import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import com.ngari.revisit.common.model.RevisitExDTO;
+import ctd.net.broadcast.MQHelper;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
+import eh.msg.constant.MqConstant;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -35,9 +38,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import recipe.aop.LogRecord;
 import recipe.common.CommonConstant;
+import recipe.common.OnsConfig;
 import recipe.constant.ErrorCode;
 import recipe.enumerate.type.RecipeTypeEnum;
+import recipe.util.ByteUtils;
 import recipe.util.DateConversion;
+import recipe.util.UsingRateFilter;
 import recipe.util.ValidateUtil;
 
 import java.util.*;
@@ -652,7 +658,7 @@ public class OfflineRecipeClient extends BaseClient {
     }
 
     private RecipeInfoDTO recipeInfoDTO(HisResponseTO<com.ngari.platform.recipe.mode.RecipeDTO> hisResponse, RecipeTherapy recipeTherapy) throws Exception {
-        com.ngari.platform.recipe.mode.RecipeDTO hisResponseData = getResponse(hisResponse);
+        com.ngari.platform.recipe.mode.RecipeDTO hisResponseData = getResponseMsg(hisResponse);
         RecipeInfoDTO recipeInfoDTO = new RecipeInfoDTO();
         recipeInfoDTO.setRecipe(ObjectCopyUtils.convert(hisResponseData.getRecipeBean(), Recipe.class));
         recipeInfoDTO.setRecipeExtend(ObjectCopyUtils.convert(hisResponseData.getRecipeExtendBean(), RecipeExtend.class));
@@ -882,9 +888,153 @@ public class OfflineRecipeClient extends BaseClient {
         try {
             HisResponseTO<List<MedicalReimbursementTypeResTO>> medicalReimbursementTypeOfDrugs = recipeHisService.getMedicalReimbursementTypeOfDrugs(recipeDTO);
             return getResponse(medicalReimbursementTypeOfDrugs);
-        }catch (Exception e){
+        } catch (Exception e) {
             logger.error("DrugClient validateMedicalReimbursementTypeOfDrugs hisResponse", e);
         }
         return new ArrayList<>();
     }
+
+    /**
+     * his处方 预校验
+     *
+     * @param recipe
+     * @param recipeExtend
+     * @param details
+     * @param pharmacyTcmMap
+     * @param organDrugMap
+     * @param hisCheckRecipeReqTO
+     * @return
+     */
+    public Map<String, Object> hisRecipeCheck(Recipe recipe, RecipeExtend recipeExtend, List<Recipedetail> details,
+                                              Map<Integer, PharmacyTcm> pharmacyTcmMap, Map<String, OrganDrugList> organDrugMap,
+                                              HisCheckRecipeReqTO hisCheckRecipeReqTO) {
+        hisCheckRecipeReqTO.setClinicOrgan(recipe.getClinicOrgan());
+        hisCheckRecipeReqTO.setCopyNum(recipe.getCopyNum());
+        hisCheckRecipeReqTO.setRecipeDrugForm(recipe.getRecipeDrugForm());
+        hisCheckRecipeReqTO.setRecipeID(recipe.getRecipeId().toString());
+        hisCheckRecipeReqTO.setPlatRecipeID(recipe.getRecipeId());
+        hisCheckRecipeReqTO.setPatientId(recipe.getPatientID());
+        hisCheckRecipeReqTO.setCommonRecipeCode(recipe.getCommonRecipeCode());
+        hisCheckRecipeReqTO.setDoctorName(recipe.getDoctorName());
+        //处方数量
+        hisCheckRecipeReqTO.setRecipeNum("1");
+        //开单时间
+        hisCheckRecipeReqTO.setRecipeDate(DateConversion.formatDateTimeWithSec(recipe.getSignDate()));
+        //处方类别
+        hisCheckRecipeReqTO.setRecipeType(String.valueOf(recipe.getRecipeType()));
+        //处方金额
+        hisCheckRecipeReqTO.setRecipePrice(recipe.getTotalMoney());
+        //添加诊断
+        if (StringUtils.isNotEmpty(recipe.getOrganDiseaseId()) && StringUtils.isNotEmpty(recipe.getOrganDiseaseName())) {
+            List<DiseaseInfo> diseaseInfos = new ArrayList<>();
+            String[] diseaseIds = recipe.getOrganDiseaseId().split(ByteUtils.SEMI_COLON_EN);
+            String[] diseaseNames = recipe.getOrganDiseaseName().split(ByteUtils.SEMI_COLON_EN);
+            for (int i = 0; i < diseaseIds.length; i++) {
+                DiseaseInfo diseaseInfo = new DiseaseInfo();
+                diseaseInfo.setDiseaseCode(diseaseIds[i]);
+                diseaseInfo.setDiseaseName(diseaseNames[i]);
+                diseaseInfos.add(diseaseInfo);
+            }
+            hisCheckRecipeReqTO.setIcdCode(recipe.getOrganDiseaseId());
+            hisCheckRecipeReqTO.setIcdName(recipe.getOrganDiseaseName());
+            hisCheckRecipeReqTO.setDiseaseInfo(diseaseInfos);
+        }
+        if (null != recipe.getBussSource() && 2 == recipe.getBussSource()) {
+            hisCheckRecipeReqTO.setRevisitId(recipe.getClinicId());
+            hisCheckRecipeReqTO.setClinicID(recipeExtend.getRegisterID());
+        }
+        //终端是否为自助机
+        hisCheckRecipeReqTO.setSelfServiceMachineFlag(new Integer(1).equals(recipeExtend.getTerminalType()));
+        hisCheckRecipeReqTO.setTerminalType(recipeExtend.getTerminalType());
+        hisCheckRecipeReqTO.setIsLongRecipe(recipeExtend.getIsLongRecipe());
+        hisCheckRecipeReqTO.setTerminalId(recipeExtend.getTerminalId());
+
+        //orderList
+        List<RecipeOrderItemTO> list = Lists.newArrayList();
+        for (Recipedetail detail : details) {
+            RecipeOrderItemTO item = new RecipeOrderItemTO();
+            PharmacyTcm pharmacyTcm = pharmacyTcmMap.get(detail.getPharmacyId());
+            if (null != pharmacyTcm) {
+                item.setPharmacyCode(pharmacyTcm.getPharmacyCode());
+                item.setPharmacyName(pharmacyTcm.getPharmacyName());
+            }
+            OrganDrugList organDrug = organDrugMap.get(detail.getDrugId() + detail.getOrganDrugCode());
+            if (organDrug != null) {
+                item.setDrugManf(organDrug.getProducer());
+                //药品产地编码
+                item.setManfCode(organDrug.getProducerCode());
+                //药品单价
+                item.setPrice(organDrug.getSalePrice());
+                //机构药品编码
+                item.setDrugItemCode(organDrug.getDrugItemCode());
+            }
+            if (StringUtils.isNotEmpty(detail.getUseDoseStr())) {
+                item.setDosage(detail.getUseDoseStr());
+            } else {
+                item.setDosage((null != detail.getUseDose()) ? Double.toString(detail.getUseDose()) : null);
+            }
+            item.setDrcode(detail.getOrganDrugCode());
+            item.setDrname(detail.getDrugName());
+            //频次
+            item.setFrequency(UsingRateFilter.filterNgari(recipe.getClinicOrgan(), detail.getUsingRate()));
+            //用法
+            item.setAdmission(UsingRateFilter.usePathwaysFilter(recipe.getClinicOrgan(), detail.getUsePathways()));
+            //用药天数
+            item.setUseDays(Integer.toString(detail.getUseDays()));
+            //剂量单位
+            item.setDrunit(detail.getUseDoseUnit());
+            // 开药数量
+            item.setTotalDose((null != detail.getUseTotalDose()) ? Double.toString(detail.getUseTotalDose()) : null);
+            //机构用法代码
+            item.setOrganUsePathways(detail.getOrganUsePathways());
+            //机构频次代码
+            item.setOrganUsingRate(detail.getOrganUsingRate());
+            //药品单位
+            item.setUnit(detail.getDrugUnit());
+            //药品规格
+            item.setDrModel(detail.getDrugSpec());
+            //药品包装
+            item.setPack(String.valueOf(detail.getPack()));
+            //药品包装单位
+            item.setPackUnit(detail.getDrugUnit());
+            //备注
+            item.setRemark(detail.getMemo());
+            //date 20200222 杭州市互联网添加字段
+            item.setDrugID(detail.getDrugId());
+            //date 20200701 预校验添加平台药品医嘱ID
+            item.setOrderID(String.valueOf(detail.getRecipeDetailId()));
+            // 黄河医院 剂型名称
+            item.setDrugForm(detail.getDrugForm());
+            //超量编码
+            item.setSuperScalarCode(detail.getSuperScalarCode());
+            //超量原因
+            item.setSuperScalarName(detail.getSuperScalarName());
+            list.add(item);
+        }
+        hisCheckRecipeReqTO.setOrderList(list);
+        HisResponseTO hisResult = recipeHisService.hisCheckRecipe(hisCheckRecipeReqTO);
+        if (null == hisResult) {
+            throw new DAOException(ErrorCode.SERVICE_FAIL, "预校验his返回结果null");
+        }
+        if (!"200".equals(hisResult.getMsgCode())) {
+            throw new DAOException(ErrorCode.SERVICE_FAIL, hisResult.getMsg());
+        }
+        Map<String, Object> map = (Map<String, Object>) hisResult.getData();
+        if (!"1".equals(map.get("checkResult"))) {
+            throw new DAOException(ErrorCode.SERVICE_FAIL, String.valueOf(map.get("resultMark")));
+        }
+        return map;
+    }
+
+    /**
+     * 发送HIS处方状态
+     *
+     * @param notice
+     */
+    @LogRecord
+    public void recipeStatusToHis(NoticeHisRecipeInfoReq notice) {
+        MQHelper.getMqPublisher().publish(OnsConfig.hisCdrinfo, notice, MqConstant.HIS_CDRINFO_TAG_TO_HIS,
+                notice.getOrganizeCode() + "-" + notice.getRecipeID());
+    }
+
 }

@@ -3,6 +3,7 @@ package com.ngari.recipe.dto;
 import lombok.*;
 
 import java.io.Serializable;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -37,4 +38,7 @@ public class DoSignRecipeDTO implements Serializable {
      * 处方支持的购药方式的文本,逗号分隔
      */
     private Set<String> recipeSupportGiveModeText;
+
+
+    private Map<String, Object> map;
 }

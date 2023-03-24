@@ -91,27 +91,6 @@ public class CommonRecipeManager extends BaseManager {
     }
 
     /**
-     * 刷新常用方校验状态
-     *
-     * @param commonDrugList 常用方药品
-     */
-    public void refreshCommonValidateStatus(List<CommonRecipeDrug> commonDrugList) {
-        CommonRecipe commonRecipe = new CommonRecipe();
-        for (CommonRecipeDrug a : commonDrugList) {
-            commonRecipe.setCommonRecipeId(a.getCommonRecipeId());
-            CommonRecipeDrug drug = new CommonRecipeDrug();
-            drug.setId(a.getId());
-            drug.setValidateStatus(a.getValidateStatus());
-            commonRecipeDrugDAO.updateNonNullFieldByPrimaryKey(drug);
-        }
-        boolean expired = commonDrugList.stream().anyMatch(a -> a.getValidateStatus().equals(1));
-        boolean notPerfect = commonDrugList.stream().anyMatch(a -> a.getValidateStatus().equals(2));
-        Integer validateStatus = expired ? 1 : (notPerfect ? 2 : 0);
-        commonRecipe.setValidateStatus(validateStatus);
-        commonRecipeDAO.updateNonNullFieldByPrimaryKey(commonRecipe);
-    }
-
-    /**
      * 删除常用方信息
      *
      * @param commonRecipeId 常用方id

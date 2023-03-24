@@ -22,7 +22,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.bussutil.UsePathwaysFilter;
-import recipe.bussutil.UsingRateFilter;
 import recipe.constant.PayConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeSystemConstant;
@@ -31,6 +30,7 @@ import recipe.dao.DrugListDAO;
 import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.util.DateConversion;
+import recipe.util.UsingRateFilter;
 
 import javax.annotation.Nullable;
 import java.math.BigDecimal;

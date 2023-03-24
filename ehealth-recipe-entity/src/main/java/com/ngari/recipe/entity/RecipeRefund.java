@@ -63,7 +63,7 @@ public class RecipeRefund implements Serializable {
     @ItemProperty(alias = "审核时间")
     private Date checkTime;
 
-    @ItemProperty(alias = "审核时间")
+    @ItemProperty(alias = "申请退费时间")
     private Date applyTime;
 
     @ItemProperty(alias = "前一节点")

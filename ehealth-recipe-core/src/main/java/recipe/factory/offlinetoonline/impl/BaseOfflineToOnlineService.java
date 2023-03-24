@@ -20,6 +20,7 @@ import com.ngari.recipe.dto.GroupRecipeConfDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailResVO;
+import com.ngari.recipe.offlinetoonline.model.OfflineToOnlineReqVO;
 import com.ngari.recipe.offlinetoonline.model.SettleForOfflineToOnlineVO;
 import com.ngari.recipe.recipe.model.HisRecipeVO;
 import com.ngari.recipe.recipe.model.MergeRecipeVO;
@@ -59,6 +60,7 @@ import recipe.factory.offlinetoonline.IOfflineToOnlineStrategy;
 import recipe.factory.offlinetoonline.OfflineToOnlineFactory;
 import recipe.manager.*;
 import recipe.service.RecipeService;
+import recipe.util.RecipeBusiThreadPool;
 import recipe.util.RecipeUtil;
 import recipe.vo.patient.RecipeGiveModeButtonRes;
 
@@ -71,6 +73,7 @@ import java.util.stream.Collectors;
 /**
  * @author 刘敏
  * @date 2021\6\30
+ * 线下转线上通用服务类
  */
 @Service
 public class BaseOfflineToOnlineService {
@@ -229,6 +232,30 @@ public class BaseOfflineToOnlineService {
                 .build();
         LOGGER.info("BaseOfflineToOnlineService getFindHisRecipeDetailParam res:{}", findHisRecipeDetailReqVO);
         return findHisRecipeDetailReqVO;
+    }
+
+    /**
+     * 获取obtainOfflineToOnlineReqVO
+     * @param mpiId
+     * @param recipeCode
+     * @param organId
+     * @param cardId
+     * @param startTime
+     * @param endTime
+     * @return
+     */
+    public OfflineToOnlineReqVO obtainOfflineToOnlineReqVO(String mpiId, String recipeCode, Integer organId, String cardId, Date startTime, Date endTime) {
+        LOGGER.info("BaseOfflineToOnlineService obtainOfflineToOnlineReqVO mpiId:{},recipeCode:{},organId:{},cardId:{}", mpiId, recipeCode, organId, cardId);
+        OfflineToOnlineReqVO offlineToOnlineReqVO = OfflineToOnlineReqVO.builder()
+                .mpiid(mpiId)
+                .recipeCode(recipeCode)
+                .organId(organId)
+                .cardId(cardId)
+                .startTime(startTime)
+                .endTime(endTime)
+                .build();
+        LOGGER.info("BaseOfflineToOnlineService obtainOfflineToOnlineReqVO res:{}", offlineToOnlineReqVO);
+        return offlineToOnlineReqVO;
     }
 
     /**
@@ -1375,17 +1402,20 @@ public class BaseOfflineToOnlineService {
     private void createRecipePdf(Recipe recipe){
         try {
             LOGGER.info("BaseOfflineToOnlineService createRecipePdf recipe={}",JSONUtils.toString(recipe));
-            Boolean isCreateRecipePdf = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "isCreateRecipePdf",false);
-            if (!isCreateRecipePdf) {
-                return;
-            }
-            //医生
-            createPdfFactory.updateDoctorNamePdf(recipe, null);
-            //药师
-            createPdfFactory.updateCheckNamePdf(recipe.getRecipeId());
-            createPdfFactory.updatePdfToImg(recipe.getRecipeId(), SignImageTypeEnum.SIGN_IMAGE_TYPE_CHEMIST.getType());
-            LOGGER.info("BaseOfflineToOnlineService createRecipePdf 方法结束");
-        }catch (Exception e){
+//            Boolean isCreateRecipePdf = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "isCreateRecipePdf",false);
+//            if (!isCreateRecipePdf) {
+//                return;
+//            }
+            RecipeBusiThreadPool.execute(() -> {
+                //医生
+                createPdfFactory.updateDoctorNamePdf(recipe, null);
+                //药师
+                createPdfFactory.updateCheckNamePdf(recipe.getRecipeId());
+                //图片
+                createPdfFactory.updatePdfToImg(recipe.getRecipeId(), SignImageTypeEnum.SIGN_IMAGE_TYPE_CHEMIST.getType());
+                LOGGER.info("BaseOfflineToOnlineService createRecipePdf 方法结束");
+            });
+         }catch (Exception e){
             LOGGER.error("createRecipePdf 线上转线上生成处方笺失败", e);
         }
     }

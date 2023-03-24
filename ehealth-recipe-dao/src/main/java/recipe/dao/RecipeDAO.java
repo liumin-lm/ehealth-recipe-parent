@@ -234,6 +234,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     @DAOMethod(sql = "from Recipe where recipeCode=:recipeCode and clinicOrgan=:clinicOrgan")
     public abstract Recipe getByRecipeCodeAndClinicOrganWithAll(@DAOParam("recipeCode") String recipeCode, @DAOParam("clinicOrgan") Integer clinicOrgan);
 
+    @DAOMethod(sql = "from Recipe where recipeCode=:recipeCode and clinicOrgan=:clinicOrgan and mpiid=:mpiid")
+    public abstract Recipe getByRecipeCodeAndClinicOrganAndMpiid(@DAOParam("recipeCode") String recipeCode, @DAOParam("clinicOrgan") Integer clinicOrgan,@DAOParam("mpiid") String mpiid);
+
     @DAOMethod(sql = "from Recipe where recipeCode in (:recipeCodeList) and clinicOrgan=:clinicOrgan")
     public abstract List<Recipe> findByRecipeCodeAndClinicOrgan(@DAOParam("recipeCodeList") List<String> recipeCodeList, @DAOParam("clinicOrgan") Integer clinicOrgan);
 
@@ -1303,10 +1306,8 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
                 Date bDate = recipesQueryVO.getBDate();
                 Date eDate = recipesQueryVO.getEDate();
-
 
                 // 查询总记录数
                 SQLQuery sqlQuery = ss.createSQLQuery(sbHqlCount.toString());
@@ -1322,7 +1323,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 query.setMaxResults(recipesQueryVO.getLimit());
                 List<Recipe> recipeList = query.list();
 
-                setResult(new QueryResult<Recipe>(total, query.getFirstResult(), query.getMaxResults(), recipeList));
+                setResult(new QueryResult<>(total, query.getFirstResult(), query.getMaxResults(), recipeList));
             }
         };
         HibernateSessionTemplate.instance().execute(action);
@@ -1707,6 +1708,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
             case 3:
                 //发药时间
                 hql.append(" and o.dispensingTime BETWEEN :startTime" + " and :endTime ");
+                break;
+            case 4:
+                //配送时间
+                hql.append(" and r.startSendDate BETWEEN :startTime" + " and :endTime ");
                 break;
             default:
                 break;
@@ -3620,29 +3625,28 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      *
      * @param organs
      * @param searchString
-     * @param searchFlag   1-审方医生 2-患者姓名 3-处方号
      * @param start
      * @param limit
      * @return
      * @author zhongzx
      */
-    public List<Recipe> searchRecipeByDepartName(final Set<Integer> organs, final Integer searchFlag, final String searchString, final List<Integer> departIds, final Integer start, final Integer limit) {
+    public List<Recipe> searchRecipeByDepartName(final Set<Integer> organs, final String searchString, final List<Integer> departIds, final Integer start, final Integer limit) {
         HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder();
-                hql.append("select distinct r from Recipe r");
-                hql.append(" where  (r.checkDateYs is not null or r.status = 8)");
+                hql.append("select r from Recipe r ");
+                hql.append("where (r.checkDateYs is not null or r.status = 8) ");
                 hql.append("and r.clinicOrgan in (:organs) ");
                 if (CollectionUtils.isNotEmpty(departIds)) {
-                    hql.append(" and (  r.appointDepartName LIKE :searchString or r.depart in (:departIds) )");
+                    hql.append("and (r.appointDepartName LIKE :searchString or r.depart in (:departIds)) ");
                 } else {
-                    hql.append("  and r.appointDepartName LIKE :searchString ");
+                    hql.append("and r.appointDepartName LIKE :searchString ");
                 }
-                hql.append("  order by r.signDate desc");
+                hql.append("order by r.signDate desc ");
 
                 Query q = ss.createQuery(hql.toString());
-                q.setParameter("searchString", "%" + searchString + "%");
+                q.setParameter("searchString", searchString + "%");
                 q.setParameterList("organs", organs);
                 if (CollectionUtils.isNotEmpty(departIds)) {
                     q.setParameterList("departIds", departIds);
@@ -3664,13 +3668,13 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder();
-                hql.append("select distinct r from Recipe r");
+                hql.append("select r from Recipe r");
                 if (0 == searchFlag) {
-                    hql.append(" where r.doctorName like:searchString ");
+                    hql.append(" where r.doctorName like :searchString ");
                 } else if (2 == searchFlag) {
-                    hql.append(" where r.patientName like:searchString ");
+                    hql.append(" where r.patientName like :searchString ");
                 } else if (3 == searchFlag) {
-                    hql.append(" where r.recipeId =:searchString ");
+                    hql.append(" where CAST(r.recipeId as string) like :searchString ");
                 } else {
                     throw new DAOException(ErrorCode.SERVICE_ERROR, "searchFlag is invalid");
                 }
@@ -3678,15 +3682,15 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
 
                 Query q = ss.createQuery(hql.toString());
                 if (3 == searchFlag) {
-                    Integer recipeId = null;
+                    int recipeId;
                     try {
                         recipeId = Integer.parseInt(searchString);
                     } catch (NumberFormatException e) {
                         recipeId = -1;
                     }
-                    q.setParameter("searchString", recipeId);
+                    q.setParameter("searchString", recipeId + "%");
                 } else {
-                    q.setParameter("searchString", "%" + searchString + "%");
+                    q.setParameter("searchString", searchString + "%");
                 }
                 q.setParameterList("organs", organs);
                 if (null != start && null != limit) {
@@ -5017,6 +5021,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder("SELECT * FROM cdr_recipe WHERE ClinicOrgan =  :organId ");
                 hql.append(" AND MPIID = :mpiId  ");
+                hql.append(" AND bussSource in (:bussSource)  ");
                 hql.append(" AND SignDate BETWEEN :startTime AND :endTime ");
                 hql.append(" AND process_state IN ( :recipeState)  ");
                 hql.append(" AND recipeSourceType IN ( 1,2)  ");
@@ -5027,6 +5032,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 q.setParameter("startTime", req.getStartTime());
                 q.setParameter("endTime", req.getEndTime());
                 q.setParameterList("recipeState", req.getRecipeState());
+                q.setParameterList("bussSource", req.getBussSource());
 
                 setResult(q.list());
             }

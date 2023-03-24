@@ -12,7 +12,10 @@ import com.ngari.recipe.dto.AttachSealPicDTO;
 import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.dto.RecipeLabelDTO;
 import com.ngari.recipe.dto.SignImgNode;
-import com.ngari.recipe.entity.*;
+import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeExtend;
+import com.ngari.recipe.entity.RecipeOrder;
+import com.ngari.recipe.entity.Recipedetail;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.annotation.DesensitizationsType;
 import ctd.util.DesensitizationsUtil;
@@ -27,7 +30,6 @@ import recipe.bussutil.WordToPdfBean;
 import recipe.constant.ErrorCode;
 import recipe.constant.OperationConstant;
 import recipe.constant.birthdayToAgeConstant;
-import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.enumerate.type.DrugBelongTypeEnum;
@@ -44,7 +46,6 @@ import java.io.InputStream;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static recipe.constant.OperationConstant.*;
 import static recipe.util.ByteUtils.DOT_EN;
@@ -77,8 +78,6 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
     private CaManager caManager;
     @Autowired
     private RecipeDetailDAO recipeDetailDAO;
-    @Autowired
-    private OrganDrugListDAO organDrugListDAO;
 
     @Override
     public byte[] queryPdfByte(Recipe recipe) throws Exception {
@@ -250,24 +249,12 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
         Integer recipeId = recipe.getRecipeId();
         logger.info("CustomCreatePdfServiceImpl updateCodePdf  recipeId={}", recipeId);
         List<CoOrdinateVO> coOrdinateList = new LinkedList<>();
-//        CoOrdinateVO patientId = redisManager.getPdfCoords(recipe.getRecipeId(), "recipe.patientID");
-//        if (null != patientId && !Integer.valueOf(2).equals(recipe.getBussSource())) {
-//            patientId.setValue(recipe.getPatientID());
-//            coOrdinateList.add(patientId);
-//        }
         CoOrdinateVO recipeCode = redisManager.getPdfCoords(recipeId, "recipe.recipeCode");
         if (null != recipeCode) {
             recipeCode.setValue(recipe.getRecipeCode());
             recipeCode.setRepeatWrite(true);
             coOrdinateList.add(recipeCode);
         }
-//        //病历号
-//        CoOrdinateVO medicalRecordNumber = redisManager.getPdfCoords(recipeId, "recipeExtend.medicalRecordNumber");
-//        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
-//        if (null != medicalRecordNumber && StringUtils.isNotEmpty(recipeExtend.getMedicalRecordNumber())) {
-//            medicalRecordNumber.setValue(recipeExtend.getMedicalRecordNumber());
-//            coOrdinateList.add(medicalRecordNumber);
-//        }
         CoOrdinateVO barcode = redisManager.getPdfCoords(recipe.getRecipeId(), OP_BARCODE_ALL);
         if (null != barcode) {
             barcode.setValue(barcode(recipe));
@@ -548,21 +535,19 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
             return null;
         }
         List<RecipeLabelDTO> list = new LinkedList<>();
-        //List<String> drugCodeList = recipeDetails.stream().filter(recipeDetail -> StringUtils.isNotEmpty(recipeDetail.getOrganDrugCode())).map(Recipedetail::getOrganDrugCode).collect(Collectors.toList());
-        //List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugCodes(recipe.getClinicOrgan(), drugCodeList);
-        //Map<String, List<OrganDrugList>> organDrugListMap = organDrugList.stream().collect(Collectors.groupingBy(OrganDrugList::getOrganDrugCode));
         Recipedetail recipeDetail = recipeDetails.get(0);
 
         for (int i = 0; i < recipeDetails.size(); i++) {
             String drugShowName = RecipeUtil.drugChineShowName(recipeDetails.get(i));
             list.add(new RecipeLabelDTO("药品名称", "recipeDetail.drugName_" + i, drugShowName));
-            //List<OrganDrugList> organDrugLists = organDrugListMap.get(recipeDetails.get(0).getOrganDrugCode());
-            list.add(new RecipeLabelDTO("医保类别", "recipeDetail.medicalInsuranceCategory_"+i,recipeDetails.get(i).getMedicalInsuranceCategory()));
+            list.add(new RecipeLabelDTO("医保类别", "recipeDetail.medicalInsuranceCategory_" + i, recipeDetails.get(i).getMedicalInsuranceCategory()));
         }
         list.add(new RecipeLabelDTO("药房", "recipeDetail.pharmacyName", recipeDetail.getPharmacyName()));
         list.add(new RecipeLabelDTO("天数", "recipeDetail.useDays", getUseDays(recipeDetail.getUseDaysB(), recipeDetail.getUseDays())));
-        list.add(new RecipeLabelDTO("用药途径", "recipeDetail.usePathways", DictionaryUtil.getDictionary("eh.cdr.dictionary.UsePathways", recipeDetail.getUsePathways())));
-        list.add(new RecipeLabelDTO("用药频次", "recipeDetail.usingRate", DictionaryUtil.getDictionary("eh.cdr.dictionary.UsingRate", recipeDetail.getUsingRate())));
+        String usePathways = recipeDetail.getUsePathwaysTextFromHis() != null ? recipeDetail.getUsePathwaysTextFromHis() : DictionaryUtil.getDictionary("eh.cdr.dictionary.UsePathways", recipeDetail.getUsePathways());
+        list.add(new RecipeLabelDTO("用药途径", "recipeDetail.usePathways", usePathways));
+        String usingRate = recipeDetail.getUsingRateTextFromHis() != null ? recipeDetail.getUsingRateTextFromHis() : DictionaryUtil.getDictionary("eh.cdr.dictionary.UsingRate", recipeDetail.getUsingRate());
+        list.add(new RecipeLabelDTO("用药频次", "recipeDetail.usingRate", usingRate));
         list.add(new RecipeLabelDTO("帖数", "recipeDetail.copyNum", recipe.getCopyNum() + "帖"));
         list.add(new RecipeLabelDTO("嘱托", "recipeDetail.recipeMemo", ByteUtils.objValueOfString(recipe.getRecipeMemo())));
         list.add(new RecipeLabelDTO("煎法", "recipeDetail.decoctionText", ByteUtils.objValueOfString(recipeExtend.getDecoctionText())));
@@ -584,17 +569,13 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
      */
     private Map<String, Object> createMedicinePDF(RecipeInfoDTO recipeInfoDTO) {
         List<Recipedetail> recipeDetails = recipeInfoDTO.getRecipeDetails();
-        Recipe recipe = recipeInfoDTO.getRecipe();
+
         if (CollectionUtils.isEmpty(recipeDetails)) {
             return null;
         }
         logger.info("createMedicinePDF recipeInfoDTO:{}",JsonUtil.toString(recipeInfoDTO));
-        //List<String> drugCodeList = recipeDetails.stream().filter(recipeDetail -> StringUtils.isNotEmpty(recipeDetail.getOrganDrugCode())).map(Recipedetail::getOrganDrugCode).collect(Collectors.toList());
-        //List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugCodes(recipe.getClinicOrgan(), drugCodeList);
-        //Map<String, List<OrganDrugList>> organDrugListMap = organDrugList.stream().collect(Collectors.groupingBy(OrganDrugList::getOrganDrugCode));
         List<RecipeLabelDTO> list = new LinkedList<>();
         Recipedetail recipedetail = recipeDetails.get(0);
-
         for (int i = 0; i < recipeDetails.size(); i++) {
             Recipedetail detail = recipeDetails.get(i);
             list.add(new RecipeLabelDTO("药品名称", "recipeDetail.drugName_" + i, detail.getDrugName()));
@@ -607,7 +588,8 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
             list.add(new RecipeLabelDTO("每次用量", "recipeDetail.useDose_" + i, "Sig: 每次 " + useDose));
             String usingRate = detail.getUsingRateTextFromHis() != null ? detail.getUsingRateTextFromHis() : DictionaryUtil.getDictionary("eh.cdr.dictionary.UsingRate", detail.getUsingRate());
             list.add(new RecipeLabelDTO("用药频次", "recipeDetail.usingRate_" + i, usingRate));
-            list.add(new RecipeLabelDTO("用药途径", "recipeDetail.usePathways_" + i, DictionaryUtil.getDictionary("eh.cdr.dictionary.UsePathways", detail.getUsePathways())));
+            String usePathways = detail.getUsePathwaysTextFromHis() != null ? detail.getUsePathwaysTextFromHis() : DictionaryUtil.getDictionary("eh.cdr.dictionary.UsePathways", detail.getUsePathways());
+            list.add(new RecipeLabelDTO("用药途径", "recipeDetail.usePathways_" + i, usePathways));
             list.add(new RecipeLabelDTO("用药天数", "recipeDetail.useDays_" + i, getUseDays(detail.getUseDaysB(), detail.getUseDays())));
             list.add(new RecipeLabelDTO("嘱托", "recipeDetail.memo_" + i, StringUtils.isNotEmpty(detail.getMemo()) ? "嘱托：" + detail.getMemo() : ""));
             if (Objects.nonNull(detail.getSalePrice())) {
@@ -616,8 +598,7 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
             if (Objects.nonNull(detail.getDrugCost())) {
                 list.add(new RecipeLabelDTO("单药品总价（西药）", "recipeDetail.drugCost_" + i, detail.getDrugCost().stripTrailingZeros().toPlainString() + "元"));
             }
-            //List<OrganDrugList> organDrugLists = organDrugListMap.get(recipedetail.getOrganDrugCode());
-            list.add(new RecipeLabelDTO("医保类别", "recipeDetail.medicalInsuranceCategory_"+i,detail.getMedicalInsuranceCategory() ));
+            list.add(new RecipeLabelDTO("医保类别", "recipeDetail.medicalInsuranceCategory_" + i, detail.getMedicalInsuranceCategory()));
         }
         list.add(new RecipeLabelDTO("药房", "recipeDetail.pharmacyName", recipedetail.getPharmacyName()));
         logger.info("CreateRecipePdfUtil createMedicinePDF list :{} ", JSON.toJSONString(list));

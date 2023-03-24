@@ -110,14 +110,14 @@ public class CreatePdfFactory {
      * @param recipe
      * @return
      */
-    public void queryPdfOssId(Recipe recipe) {
+    public Boolean queryPdfOssId(Recipe recipe) {
         logger.info("CreatePdfFactory queryPdfOssId recipe:{}", recipe.getRecipeId());
         CreatePdfService createPdfService = createPdfService(recipe);
         try {
             byte[] data = createPdfService.queryPdfOssId(recipe);
             if (null == data) {
                 RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "获取pdf_oss_id格式生成null");
-                return;
+                return false;
             }
             data = createPdfService.tcmContraindicationTypePdf(data, recipe);
             String fileId = CreateRecipePdfUtil.signFileByte(data, "recipe_" + recipe.getRecipeId() + ".pdf");
@@ -127,9 +127,11 @@ public class CreatePdfFactory {
             recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
             caManager.saveESignResult(recipe, true);
             logger.info("CreatePdfFactory queryPdfOssId recipeUpdate ={}", JSON.toJSONString(recipeUpdate));
+            return true;
         } catch (Exception e) {
             logger.error("CreatePdfFactory queryPdfOssId 使用平台医生部分pdf的,生成失败 recipe:{}", recipe.getRecipeId(), e);
             RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "获取pdf_oss_id格式生成失败");
+            return false;
         }
     }
 
@@ -283,13 +285,13 @@ public class CreatePdfFactory {
      *
      * @param recipeId
      */
-    public void updateCheckNamePdfESign(Integer recipeId, Integer checker) {
+    public Boolean updateCheckNamePdfESign(Integer recipeId, Integer checker) {
         logger.info("CreatePdfFactory updateCheckNamePdfEsign recipeId:{}", recipeId);
         Recipe recipe = validate(recipeId);
         CreatePdfService createPdfService = createPdfService(recipe);
         boolean usePlatform = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "recipeUsePlatformCAPDF", true);
         if (!usePlatform) {
-            return;
+            return false;
         }
         // todo 下载签名文件
         byte[] chemistSignFileByte = CreateRecipePdfUtil.signFileByte(recipe.getSignFile());
@@ -310,7 +312,7 @@ public class CreatePdfFactory {
             byte[] data = createPdfService.updateCheckNamePdfEsign(recipeId, pdfEsign);
             if (null == data) {
                 RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "药师E签宝签名部分生成null");
-                return;
+                return false;
             }
             String fileId = CreateRecipePdfUtil.signFileByte(data, "recipecheck" + recipe.getRecipeId() + ".pdf");
             Recipe recipeUpdate = new Recipe();
@@ -320,9 +322,11 @@ public class CreatePdfFactory {
             recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
             caManager.saveESignResult(recipe, false);
             logger.info("CreatePdfFactory updateCheckNamePdfEsign  recipeUpdate ={}", JSON.toJSONString(recipeUpdate));
+            return true;
         } catch (Exception e) {
             logger.error("CreatePdfFactory updateCheckNamePdfEsign  recipe: {}", recipe.getRecipeId(), e);
             RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "药师E签宝签名部分生成失败");
+            return false;
         }
     }
 

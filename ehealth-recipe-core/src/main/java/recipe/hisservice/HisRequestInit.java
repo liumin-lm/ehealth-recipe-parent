@@ -44,7 +44,6 @@ import recipe.ApplicationUtils;
 import recipe.bean.CheckYsInfoBean;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.UsePathwaysFilter;
-import recipe.bussutil.UsingRateFilter;
 import recipe.client.DepartClient;
 import recipe.client.DocIndexClient;
 import recipe.client.IConfigurationClient;
@@ -64,6 +63,7 @@ import recipe.manager.EnterpriseManager;
 import recipe.manager.RecipeOrderPayFlowManager;
 import recipe.util.ByteUtils;
 import recipe.util.DateConversion;
+import recipe.util.UsingRateFilter;
 import recipe.util.ValidateUtil;
 
 import java.math.BigDecimal;

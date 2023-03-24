@@ -6,6 +6,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.ngari.base.BaseAPI;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.base.PatientBaseInfo;
@@ -26,12 +27,13 @@ import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.DepListBean;
-import com.ngari.recipe.dto.GiveModeButtonDTO;
-import com.ngari.recipe.dto.GiveModeShowButtonDTO;
+import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.recipe.model.GiveModeButtonBean;
 import com.ngari.recipe.recipe.model.RankShiftList;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.vo.*;
+import com.ngari.revisit.RevisitBean;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
@@ -41,6 +43,7 @@ import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import eh.utils.BeanCopyUtils;
 import eh.utils.ValidateUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -59,17 +62,15 @@ import recipe.core.api.patient.IOfflineRecipeBusinessService;
 import recipe.core.api.patient.IPatientBusinessService;
 import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
-import recipe.enumerate.status.RecipeAuditStateEnum;
-import recipe.enumerate.status.RecipeSourceTypeEnum;
-import recipe.enumerate.status.RecipeStateEnum;
-import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.status.*;
 import recipe.enumerate.type.*;
 import recipe.hisservice.RecipeToHisService;
 import recipe.manager.*;
 import recipe.service.common.RecipeCacheService;
+import recipe.util.DictionaryUtil;
 import recipe.util.RedisClient;
 import recipe.vo.doctor.RecipeInfoVO;
-import recipe.vo.patient.ReadyRecipeVO;
+import recipe.vo.patient.*;
 
 import javax.annotation.Nullable;
 import java.math.BigDecimal;
@@ -124,6 +125,8 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
     private StateManager stateManager;
     @Autowired
     private CaManager caManager;
+    @Autowired
+    private HisRecipeManager  hisRecipeManager;
 
     /**
      * 根据取药方式过滤药企
@@ -911,34 +914,48 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
     @Override
     public void fastRecipeCa(Integer recipeId) {
         Recipe recipe = recipeManager.getRecipeById(recipeId);
-        LOGGER.info("esignRecipeCa recipe:{}", JSON.toJSONString(recipe));
-        String ca=caManager.obtainFastRecipeCaParam(recipe);
-        if(!CaConstant.ESIGN.equals(ca)){
-             fastRecipeOtherCa(recipe);
-        }else{
-             esignRecipeCa(recipeId);
+        LOGGER.info("fastRecipeCa esignRecipeCa recipe:{}", JSON.toJSONString(recipe));
+        String ca = caManager.obtainFastRecipeCaParam(recipe);
+        if (CaConstant.ESIGN.equals(ca)) {
+            esignRecipeCa(recipeId);
+        } else {
+            fastRecipeOtherCa(recipe);
         }
-
     }
 
     private void fastRecipeOtherCa(Recipe recipe) {
-        LOGGER.info("fastRecipeOtherCa param:{}",recipe.getRecipeId());
-        CaSealRequestTO requestSealTO = createPdfFactory.queryPdfByte(recipe.getRecipeId(),true);
+        LOGGER.info("fastRecipeOtherCa param:{}", recipe.getRecipeId());
+        CaSealRequestTO requestSealTO = createPdfFactory.queryPdfByte(recipe.getRecipeId(), true);
         RecipeServiceEsignExt.updateInitRecipePDF(true, recipe, requestSealTO.getPdfBase64Str());
+        stateManager.updateDoctorSignState(recipe.getRecipeId(), SignEnum.SIGN_STATE_SUBMIT);
         caManager.oldCommonCASign(requestSealTO, recipe);
     }
 
     @Override
     @LogRecord
     public Integer esignRecipeCa(Integer recipeId) {
-        LOGGER.info("esignRecipeCa param:{}",recipeId);
         try {
             Recipe recipe = recipeManager.getRecipeById(recipeId);
             LOGGER.info("esignRecipeCa recipe:{}", JSON.toJSONString(recipe));
-            createPdfFactory.queryPdfOssId(recipe);
-            createPdfFactory.updateCheckNamePdfESign(recipeId, null);
+            //1.医生签名
+            stateManager.updateDoctorSignState(recipeId, SignEnum.SIGN_STATE_SUBMIT);
+            Boolean doctorSignResult = createPdfFactory.queryPdfOssId(recipe);
+            if (doctorSignResult) {
+                stateManager.updateDoctorSignState(recipeId, SignEnum.SIGN_STATE_ORDER);
+            } else {
+                stateManager.updateDoctorSignState(recipeId, SignEnum.SIGN_STATE_AUDIT);
+            }
+
+            //2.药师签名
+            stateManager.updateCheckerSignState(recipeId, SignEnum.SIGN_STATE_SUBMIT);
+            Boolean checkerSignResult = createPdfFactory.updateCheckNamePdfESign(recipeId, null);
             //药师审核通过后，重新根据药师的pdf生成签名图片
             createPdfFactory.updatePdfToImg(recipe.getRecipeId(), SignImageTypeEnum.SIGN_IMAGE_TYPE_CHEMIST.getType());
+            if (checkerSignResult) {
+                stateManager.updateCheckerSignState(recipeId, SignEnum.SIGN_STATE_ORDER);
+            } else {
+                stateManager.updateCheckerSignState(recipeId, SignEnum.SIGN_STATE_AUDIT);
+            }
         } catch (Exception e) {
             LOGGER.error("esignRecipeCa error", e);
         }
@@ -994,6 +1011,216 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
             readyRecipeVO.setHaveRecipe(false);
         }
         return readyRecipeVO;
+    }
+
+    @Override
+    public PatientRecipeDetailResVO patientRecipeDetail(PatientRecipeDetailReqVO patientRecipeDetailReq) {
+        RecipeInfoDTO recipe = null;
+        Integer recipeBusType = 1;
+        if (Objects.nonNull(patientRecipeDetailReq.getRecipeId())) {
+             recipe = recipeManager.getRecipeInfoDTO(patientRecipeDetailReq.getRecipeId());
+             if(Objects.isNull(recipe) && RecipeSourceTypeEnum.OFFLINE_RECIPE.equals(recipe.getRecipe().getRecipeSourceType())){
+                 // 线下转线上的处方 进入详情页 需要查看处方有没有变动
+
+             }
+        }
+        if(Objects.isNull(recipe) && StringUtils.isNotEmpty(patientRecipeDetailReq.getRecipeCode()) && Objects.nonNull(patientRecipeDetailReq.getOrganId())){
+            // 获取线下处方
+            recipe = hisRecipeManager.getHisRecipeInfoDTO(BeanCopyUtils.copyProperties(patientRecipeDetailReq, PatientRecipeDetailReqDTO::new));
+            recipeBusType = 2;
+        }
+        if (Objects.isNull(recipe)){
+            throw new DAOException("未查询到相关处方信息");
+        }
+        PatientRecipeDetailResVO patientRecipeDetailResVO = coverPatientRecipeDetailResVO(recipe,recipeBusType);
+        return patientRecipeDetailResVO;
+    }
+
+    /**
+     * 转换详情出参
+     * @param recipe
+     * @return
+     */
+    private PatientRecipeDetailResVO coverPatientRecipeDetailResVO(RecipeInfoDTO recipe,Integer recipeBusType) {
+        PatientRecipeDetailResVO patientRecipeDetailResVO = new PatientRecipeDetailResVO();
+        Recipe returnRecipe = recipe.getRecipe();
+        BeanCopyUtils.copy(returnRecipe,patientRecipeDetailResVO);
+        BeanCopyUtils.copy(recipe.getRecipeExtend(),patientRecipeDetailResVO);
+        List<Recipedetail> recipeDetails = recipe.getRecipeDetails();
+        Recipedetail recipedetail = recipeDetails.get(0);
+        patientRecipeDetailResVO.setPharmacyId(recipedetail.getPharmacyId());
+        patientRecipeDetailResVO.setPharmacyName(recipedetail.getPharmacyName());
+        patientRecipeDetailResVO.setRecipeBusType(recipeBusType);
+        List<String> hideRecipeDetail = configurationClient.getValueListCatch(returnRecipe.getClinicOrgan(), "hideRecipeDetail", null);
+        LOGGER.info("hideRecipeDetail 药品类型：{} 需要隐方的类型:{}", returnRecipe.getRecipeType(), hideRecipeDetail);
+        if (org.apache.commons.collections.CollectionUtils.isNotEmpty(hideRecipeDetail) && hideRecipeDetail.contains(returnRecipe.getRecipeType().toString()) && PayFlagEnum.NOPAY.getType().equals(returnRecipe.getPayFlag())) {
+            patientRecipeDetailResVO.setIsHiddenRecipeDetail(true);
+        }
+
+        patientRecipeDetailResVO.setSubStateText(RecipeStateEnum.getRecipeStateEnum(returnRecipe.getSubState()).getName());
+        if (Objects.nonNull(returnRecipe.getDepart())) {
+            patientRecipeDetailResVO.setDepartName(DictionaryUtil.getDictionary("eh.base.dictionary.Depart", returnRecipe.getDepart()));
+        }else {
+            patientRecipeDetailResVO.setDepartName(returnRecipe.getAppointDepartName());
+        }
+        if (Objects.nonNull(returnRecipe.getDepart())) {
+            patientRecipeDetailResVO.setDoctorName(DictionaryUtil.getDictionary("eh.base.dictionary.Doctor", returnRecipe.getDoctor()));
+        }else {
+            patientRecipeDetailResVO.setDoctorName(returnRecipe.getDoctorName());
+        }
+
+        Integer secrecyRecipe = 0;
+        List<PatientRecipeDetailForDetailResVO> patientRecipeDetailForDetailResVOS = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(recipeDetails)) {
+            List<String> organDrugCodes = recipeDetails.stream().map(Recipedetail::getOrganDrugCode).collect(Collectors.toList());
+            List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugCodes(returnRecipe.getClinicOrgan(), organDrugCodes);
+            if (CollectionUtils.isEmpty(organDrugList)) {
+                organDrugList = new LinkedList<>();
+            }
+            Map<String, OrganDrugList> organDrugListMap = organDrugList.stream().collect(Collectors.toMap(k -> k.getOrganDrugCode() + k.getDrugId(), a -> a, (k1, k2) -> k1));
+
+            for (Recipedetail recipeDetail : recipeDetails) {
+                PatientRecipeDetailForDetailResVO patientRecipeDetailForDetailResVO = new PatientRecipeDetailForDetailResVO();
+                BeanCopyUtils.copy(recipeDetail, patientRecipeDetailForDetailResVO);
+                if (new Integer(3).equals(recipeDetail.getType())) {
+                    secrecyRecipe = 1;
+                }
+                if (recipeDetail.getDrugMedicalFlag() != null && recipeDetail.getDrugMedicalFlag() >= 0) {
+                    //医保限定药标识 0 否  1 是
+                    patientRecipeDetailForDetailResVO.setMedicalInsuranceDrugFlag(1);
+                } else {
+                    patientRecipeDetailForDetailResVO.setMedicalInsuranceDrugFlag(0);
+                }
+                OrganDrugList organDrugList1 = organDrugListMap.get(recipeDetail.getOrganDrugCode() + recipedetail.getDrugId());
+                if (Objects.nonNull(organDrugList1)) {
+                    patientRecipeDetailForDetailResVO.setTargetedDrugType(organDrugList1.getTargetedDrugType());
+                    patientRecipeDetailForDetailResVO.setAntiTumorDrugFlag(organDrugList1.getAntiTumorDrugFlag());
+                    patientRecipeDetailForDetailResVO.setAntibioticsDrugLevel(organDrugList1.getAntiTumorDrugLevel());
+                    patientRecipeDetailForDetailResVO.setNationalStandardDrugFlag(organDrugList1.getNationalStandardDrugFlag());
+                }
+
+                patientRecipeDetailForDetailResVOS.add(patientRecipeDetailForDetailResVO);
+            }
+        }
+        patientRecipeDetailResVO.setRecipeDetail(patientRecipeDetailForDetailResVOS);
+        patientRecipeDetailResVO.setSecrecyRecipe(secrecyRecipe);
+        if (RecipeBusinessTypeEnum.BUSINESS_RECIPE_REVISIT.getType().equals(returnRecipe.getBussSource())) {
+            RevisitExDTO revisitExDTO = revisitClient.getByClinicId(returnRecipe.getClinicId());
+            if(Objects.nonNull(revisitExDTO.getOrderNumStartTime())){
+                patientRecipeDetailResVO.setVisitTime(revisitExDTO.getOrderNumStartTime());
+            }else {
+                RevisitBean revisit = revisitClient.getRevisitByClinicId(returnRecipe.getClinicId());
+                patientRecipeDetailResVO.setVisitTime(revisit.getPaymentDate());
+            }
+
+        }
+        boolean downConfig = getDownConfig(returnRecipe, recipe.getRecipeOrder());
+        patientRecipeDetailResVO.setIsDownload(downConfig);
+        GiveModeButtonBean showThirdOrder = getShowThirdOrder(returnRecipe);
+        patientRecipeDetailResVO.setShowThirdOrder(showThirdOrder);
+        String recipeInfoBottomText = configurationClient.getValueCatch(returnRecipe.getClinicOrgan(), "RecipeInfoBottomText", "");
+        patientRecipeDetailResVO.setBottomText(recipeInfoBottomText);
+        patientRecipeDetailResVO.setGiveModeText(recipe.getGiveModeText());
+        patientRecipeDetailResVO.setShowText(recipe.getShowText());
+        return patientRecipeDetailResVO;
+    }
+
+    /**
+     * 获取跳转第三方查看订单信息
+     * @param recipe
+     * @return
+     */
+    private GiveModeButtonBean getShowThirdOrder(Recipe recipe) {
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        //设置第三方订单跳转的按钮
+        Integer enterpriseId = recipe.getEnterpriseId();
+        if (null == enterpriseId) {
+            return null;
+        }
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(enterpriseId);
+        if (null == drugsEnterprise.getOrderType() || new Integer(1).equals(drugsEnterprise.getOrderType())) {
+            return null;
+        }
+
+        if (RecipeStateEnum.PROCESS_STATE_DISPENSING.getType().equals(recipe.getProcessState()) ||
+                RecipeStateEnum.PROCESS_STATE_DISTRIBUTION.getType().equals(recipe.getProcessState()) ||
+                RecipeStateEnum.PROCESS_STATE_DONE.getType().equals(recipe.getProcessState()) ||
+                RecipeStateEnum.PROCESS_STATE_ORDER.getType().equals(recipe.getProcessState()) ||
+                RecipeStateEnum.PROCESS_STATE_CANCELLATION.getType().equals(recipe.getProcessState()) ) {
+            //orderType=0表示订单在第三方生成
+            GiveModeButtonBean giveModeButton = new GiveModeButtonBean();
+            giveModeButton.setButtonSkipType("3");
+            giveModeButton.setShowButtonName("查看订单");
+            giveModeButton.setShowButtonKey("supportThirdOrder");
+            return giveModeButton;
+        }
+        return null;
+    }
+
+    /**
+     * 获取是否展示下载处方笺
+     * @param recipe
+     * @param order
+     * @return
+     */
+    public boolean getDownConfig(Recipe recipe, RecipeOrder order) {
+        //互联网的不需要下载处方笺
+        if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())) {
+            return false;
+        }
+        Boolean isDownload = false;
+        //获取配置项
+        Integer downloadPrescription = configurationClient.getValueCatchReturnInteger(recipe.getClinicOrgan(), "downloadPrescription", 0);
+        //date 2020/1/9
+        //逻辑修改成：如果是下载处方购药方式的，无需判断配不配置【患者展示下载处方笺】
+        //非下载处方的购药方式，只有配置了【患者展示下载处方笺】才判断是否展示下载按钮
+        if (RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE.equals(recipe.getGiveMode())) {
+            isDownload = canDown(recipe, order,Lists.newArrayList(RecipeStateEnum.PROCESS_STATE_ORDER.getType(),RecipeStateEnum.PROCESS_STATE_DONE.getType()), true);
+        } else {
+            if (null != downloadPrescription) {
+                if (new Integer(1).equals(downloadPrescription)) {
+                    ArrayList<Integer> list = Lists.newArrayList(RecipeStateEnum.PROCESS_STATE_ORDER.getType(), RecipeStateEnum.PROCESS_STATE_DONE.getType(), RecipeStateEnum.PROCESS_STATE_DISTRIBUTION.getType(), RecipeStateEnum.PROCESS_STATE_DISPENSING.getType());
+                    isDownload = canDown(recipe, order, list, false);
+                } else {
+                    //没有配置则不会展示下载按钮
+                    isDownload = false;
+                }
+            }
+        }
+        return isDownload;
+    }
+
+    /**
+     * 获取是否下载处方
+     * @param recipe
+     * @param order
+     * @param status
+     * @param isDownLoad
+     * @return
+     */
+    private boolean canDown(Recipe recipe, RecipeOrder order, List<Integer> status, Boolean isDownLoad) {
+        boolean isDownload = false;
+        //后置的时候判断处方的状态是一些状态的时候是展示按钮的
+        if (ReviewTypeConstant.Postposition_Check == recipe.getReviewType()) {
+            if (status.contains(recipe.getProcessState())) {
+                isDownload = true;
+            }
+        } else if (ReviewTypeConstant.Not_Need_Check == recipe.getReviewType() && RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE.equals(recipe.getGiveMode()) && !RecipeStateEnum.PROCESS_STATE_DONE.getType().equals( recipe.getProcessState())) {
+            //这里当是不需审核，且选择的下载处方的购药方式的时候，没有产生订单，直接判断没有选定购药方式
+            if (1 == recipe.getChooseFlag()) {
+                isDownload = true;
+            }
+        } else {
+            //如果实际金额为0则判断有没有关联ordercode，实际金额不为0则判断是否已经支付,展示下载处方签，
+            //当下载处方购药时，已完成处方不展示下载处方签
+            if (null != recipe.getOrderCode() && null != order && !(isDownLoad && RecipeStateEnum.PROCESS_STATE_DONE.getType().equals( recipe.getProcessState()))) {
+                if (0 == order.getActualPrice() || (0 < order.getActualPrice() && 1 == recipe.getPayFlag())) {
+                    isDownload = true;
+                }
+
+            }
+        }
+        return isDownload;
     }
 
     /**

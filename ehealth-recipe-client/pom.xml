@@ -5,7 +5,7 @@
     <parent>
         <groupId>ngari</groupId>
         <artifactId>ehealth-recipe-parent</artifactId>
-        <version>5.3.2.0.master-SNAPSHOT</version>
+        <version>5.3.3.0.master-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
@@ -140,6 +140,11 @@
             <groupId>ngari</groupId>
             <artifactId>easy-pay-entity</artifactId>
             <version>${ngari.easypay.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>ngari</groupId>
+            <artifactId>ngari-broadcast-support</artifactId>
+            <version>${ngari.framework.version}</version>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>

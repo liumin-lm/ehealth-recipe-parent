@@ -37,5 +37,13 @@ public class RecipeInfoDTO extends RecipeDTO implements Serializable {
      * 收费项
      */
     private ChargeItemDTO chargeItemDTO;
+    /**
+     * 发药方式
+     */
+    private String giveModeText;
+    /**
+     * 线下处方温馨提示
+     */
+    private String showText;
 
 }
