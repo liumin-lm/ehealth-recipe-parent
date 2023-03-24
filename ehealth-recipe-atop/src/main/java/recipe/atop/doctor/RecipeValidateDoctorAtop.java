@@ -146,6 +146,7 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
     public DoSignRecipeDTO hisRecipeCheck(Integer recipeId) {
         validateAtop(recipeId);
         RecipeDTO recipeDTO = recipeBusinessService.getRecipeDTO(recipeId);
+        logger.info("RecipeValidateDoctorAtop hisRecipeCheck recipeDTO={}", JSON.toJSONString(recipeDTO));
         validateAtop(recipeDTO.getRecipe(), recipeDTO.getRecipeExtend(), recipeDTO.getRecipeDetails());
         DoSignRecipeDTO doSignRecipe = offlineRecipeBusinessService.hisRecipeCheck(recipeDTO);
         if (null == doSignRecipe) {
