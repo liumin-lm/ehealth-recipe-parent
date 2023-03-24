@@ -1043,7 +1043,6 @@ public class HisRecipeManager extends BaseManager {
      * @return
      */
     private List<RecipeDTO> covertRecipeDTOFromQueryHisRecipResTO(List<QueryHisRecipResTO> queryHisRecipResTOs, PatientDTO patient, Integer flag) {
-        //PatientRecipeListResVo
         if (CollectionUtils.isEmpty(queryHisRecipResTOs)) {
             return Collections.emptyList();
         }
@@ -1051,6 +1050,7 @@ public class HisRecipeManager extends BaseManager {
         queryHisRecipResTOs.forEach(a -> {
             RecipeDTO recipeDTO = new RecipeDTO();
             RecipeBean recipe = ObjectCopyUtils.convert(a, RecipeBean.class);
+            recipe.setClinicOrgan(a.getClinicOrgan());
             RecipeExtendBean recipeExt = ObjectCopyUtils.convert(a, RecipeExtendBean.class);
             List<RecipeDetailBean> recipeDetailBeans = ObjectCopyUtils.convert(a.getDrugList(), RecipeDetailBean.class);
             Recipe dbRecipe=recipeManager.getByRecipeCodeAndClinicOrganAndMpiid(a.getRecipeCode(),a.getClinicOrgan(),patient.getMpiId());

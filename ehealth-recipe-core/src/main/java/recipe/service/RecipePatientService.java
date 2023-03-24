@@ -1043,16 +1043,16 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
                  request.setStartTime(patientRecipeDetailReq.getStartTime());
                  request.setEndTime(patientRecipeDetailReq.getEndTime());
 
-                OfflineToOnlineResVO offlineToOnlineResVO = offlineToOnlineStrategy.offlineToOnline(request);
-                if (Objects.nonNull(offlineToOnlineResVO.getRecipe()) && Objects.nonNull(offlineToOnlineResVO.getRecipe().getRecipeId())) {
+                 OfflineToOnlineResVO offlineToOnlineResVO = offlineToOnlineStrategy.offlineToOnline(request);
+                 if (Objects.nonNull(offlineToOnlineResVO.getRecipe()) && Objects.nonNull(offlineToOnlineResVO.getRecipe().getRecipeId())) {
                     recipe = recipeManager.getRecipeInfoDTO(offlineToOnlineResVO.getRecipe().getRecipeId());
-                }
-
+                 }
             }
         }
         if(Objects.isNull(recipe) && StringUtils.isNotEmpty(patientRecipeDetailReq.getRecipeCode()) && Objects.nonNull(patientRecipeDetailReq.getOrganId())){
             // 获取线下处方
             recipe = hisRecipeManager.getHisRecipeInfoDTO(BeanCopyUtils.copyProperties(patientRecipeDetailReq, PatientRecipeDetailReqDTO::new));
+
             recipeBusType = 2;
         }
         if (Objects.isNull(recipe)){
