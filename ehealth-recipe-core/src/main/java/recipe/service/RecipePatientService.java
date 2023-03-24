@@ -1151,7 +1151,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
             }
 
         }
-        boolean downConfig = getDownConfig(returnRecipe, recipe.getRecipeOrder());
+        boolean downConfig = getDownConfig(returnRecipe, recipe.getRecipeOrder(),recipeBusType);
         patientRecipeDetailResVO.setIsDownload(downConfig);
         GiveModeButtonBean showThirdOrder = getShowThirdOrder(returnRecipe);
         patientRecipeDetailResVO.setShowThirdOrder(showThirdOrder);
@@ -1200,11 +1200,8 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
      * @param order
      * @return
      */
-    public boolean getDownConfig(Recipe recipe, RecipeOrder order) {
-        //互联网的不需要下载处方笺
-        if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())) {
-            return false;
-        }
+    public boolean getDownConfig(Recipe recipe, RecipeOrder order, Integer recipeBusType) {
+
         Boolean isDownload = false;
         //获取配置项
         Integer downloadPrescription = configurationClient.getValueCatchReturnInteger(recipe.getClinicOrgan(), "downloadPrescription", 0);
@@ -1212,16 +1209,11 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         //逻辑修改成：如果是下载处方购药方式的，无需判断配不配置【患者展示下载处方笺】
         //非下载处方的购药方式，只有配置了【患者展示下载处方笺】才判断是否展示下载按钮
         if (RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE.equals(recipe.getGiveMode())) {
-            isDownload = canDown(recipe, order,Lists.newArrayList(RecipeStateEnum.PROCESS_STATE_ORDER.getType(),RecipeStateEnum.PROCESS_STATE_DONE.getType()), true);
+            isDownload = canDown(recipe, order, Lists.newArrayList(RecipeStateEnum.PROCESS_STATE_ORDER.getType(), RecipeStateEnum.PROCESS_STATE_DONE.getType()), true);
         } else {
-            if (null != downloadPrescription) {
-                if (new Integer(1).equals(downloadPrescription)) {
-                    ArrayList<Integer> list = Lists.newArrayList(RecipeStateEnum.PROCESS_STATE_ORDER.getType(), RecipeStateEnum.PROCESS_STATE_DONE.getType(), RecipeStateEnum.PROCESS_STATE_DISTRIBUTION.getType(), RecipeStateEnum.PROCESS_STATE_DISPENSING.getType());
-                    isDownload = canDown(recipe, order, list, false);
-                } else {
-                    //没有配置则不会展示下载按钮
-                    isDownload = false;
-                }
+            ArrayList<Integer> list = Lists.newArrayList(RecipeStateEnum.PROCESS_STATE_MEDICINE.getType(), RecipeStateEnum.PROCESS_STATE_DONE.getType(), RecipeStateEnum.PROCESS_STATE_DISTRIBUTION.getType(), RecipeStateEnum.PROCESS_STATE_DISPENSING.getType());
+            if (new Integer(1).equals(downloadPrescription) && new Integer(1).equals(recipeBusType) && list.contains(recipe.getProcessState())) {
+                isDownload = true;
             }
         }
         return isDownload;
