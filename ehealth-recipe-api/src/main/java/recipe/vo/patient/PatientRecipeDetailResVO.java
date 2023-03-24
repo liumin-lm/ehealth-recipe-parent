@@ -205,6 +205,9 @@ public class PatientRecipeDetailResVO implements Serializable {
     @ItemProperty(alias = "用药医嘱(药师审方)")
     private String drugEntrustment;
 
+    @ItemProperty(alias = "开处方页面病种选择开关标识")
+    private Integer recipeChooseChronicDisease;
+
     /******************************** 以下数据来源 recipedetail ****************************/
     @ItemProperty(alias = "药房id主键")
     private Integer pharmacyId;
