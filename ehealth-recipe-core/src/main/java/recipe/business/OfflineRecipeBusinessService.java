@@ -541,6 +541,7 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
             patientRecipeListResVo.setBussSource(recipeBean.getBussSource());
             patientRecipeListResVo.setClinicId(recipeBean.getClinicId());
             patientRecipeListResVo.setDepart(recipeBean.getDepart());
+            patientRecipeListResVo.setClinicOrgan(recipeBean.getClinicOrgan());
             if (Objects.nonNull(recipeBean.getDepart())) {
                 patientRecipeListResVo.setDepartName(DictionaryUtil.getDictionary("eh.base.dictionary.Depart", recipeBean.getDepart()));
             }else {

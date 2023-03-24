@@ -562,6 +562,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
 
             if (recipe.getClinicId() != null) {
                 req.setBussID(recipe.getClinicId().toString());
+                req.setOriginalBussSource(recipe.getBussSource());
                 //处方来源 1-问诊 4复诊
                 if (!RecipeBussConstant.BUSS_SOURCE_NONE.equals(recipe.getBussSource())) {
                     if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipe.getBussSource())) {
@@ -910,7 +911,14 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             req.setRecipeUniqueID(recipe.getRecipeCode());
             req.setRecipeCode(recipe.getRecipeCode());
             req.setRecipeType(recipe.getRecipeType());
-            req.setBussSource(recipe.getBussSource());
+            req.setOriginalBussSource(recipe.getBussSource());
+            if (!RecipeBussConstant.BUSS_SOURCE_NONE.equals(recipe.getBussSource())) {
+                if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipe.getBussSource())) {
+                    req.setBussSource(4);
+                } else {
+                    req.setBussSource(1);
+                }
+            }
 
             if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
                 order = orderDAO.getByOrderCode(recipe.getOrderCode());
@@ -1474,6 +1482,15 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         req.setDoctor(getRegulationBusDocReq(recipe.getDoctor(), recipe.getClinicOrgan(), recipe.getDepart()));
         //复诊id
         req.setBussID(recipe.getClinicId() != null ? recipe.getClinicId().toString() : null);
+        req.setOriginalBussSource(recipe.getBussSource());
+        //字段取值同开方上传接口
+        if (!RecipeBussConstant.BUSS_SOURCE_NONE.equals(recipe.getBussSource())) {
+            if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipe.getBussSource())) {
+                req.setBussSource(4);
+            } else {
+                req.setBussSource(1);
+            }
+        }
         //医保金额
         req.setFundAmount(order.getFundAmount());
         //自费金额
@@ -1800,9 +1817,14 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 req.setGiveMode(recipe.getGiveMode());
                 req.setRecipeCode(recipe.getRecipeCode());
                 req.setRecipeType(recipe.getRecipeType());
-                req.setBussSource(recipe.getBussSource());
-
-
+                req.setOriginalBussSource(recipe.getBussSource());
+                if (!RecipeBussConstant.BUSS_SOURCE_NONE.equals(recipe.getBussSource())) {
+                    if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipe.getBussSource())) {
+                        req.setBussSource(4);
+                    } else {
+                        req.setBussSource(1);
+                    }
+                }
                 //门诊号
                 req.setPatientID(recipe.getPatientID());
                 //计费时间
