@@ -27,6 +27,9 @@ public class PatientRecipeDetailReqVO implements Serializable {
     @ItemProperty(alias = "处方业务查询来源 1 线上  2 线下 3 院内门诊")
     private Integer recipeBusType;
 
+    @ItemProperty(alias = "开处方来源 1问诊 2复诊(在线续方) 3网络门诊 0或者5 线下门诊")
+    private Integer bussSource;
+
     @ItemProperty(alias = "主索引（患者编号）")
     private String mpiid;
 
