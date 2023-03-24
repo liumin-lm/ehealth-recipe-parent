@@ -45,5 +45,9 @@ public class RecipeInfoDTO extends RecipeDTO implements Serializable {
      * 线下处方温馨提示
      */
     private String showText;
+    /**
+     * 处方所属类型 1 线上 2 线下
+     */
+    private String recipeBusType;
 
 }
