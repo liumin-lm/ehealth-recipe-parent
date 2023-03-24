@@ -17,7 +17,6 @@ import java.util.Date;
  */
 @Data
 @Builder
-//@AllArgsConstructor
 public class OfflineToOnlineReqVO implements Serializable {
     private static final long serialVersionUID = -7727248592234567484L;
 
@@ -51,7 +50,7 @@ public class OfflineToOnlineReqVO implements Serializable {
     private String cardId;
 
 
-    private String processState;
+    private Integer processState;
 
     @ItemProperty(alias = "开始时间")
     private Date startTime;
@@ -60,7 +59,7 @@ public class OfflineToOnlineReqVO implements Serializable {
     private Date endTime;
 
 
-    public OfflineToOnlineReqVO(@NonNull Integer organId, @NonNull String mpiid, @NonNull String recipeCode, String cardId, String processState, Date startTime, Date endTime) {
+    public OfflineToOnlineReqVO(@NonNull Integer organId, @NonNull String mpiid, @NonNull String recipeCode, String cardId, Integer processState, Date startTime, Date endTime) {
         this.organId = organId;
         this.mpiid = mpiid;
         this.recipeCode = recipeCode;

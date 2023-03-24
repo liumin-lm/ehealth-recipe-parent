@@ -58,7 +58,7 @@ public interface IOfflineToOnlineStrategy {
      * @param request
      * @return
      */
-    OfflineToOnlineResVO offlineToOnline(OfflineToOnlineReqVO request);
+    OfflineToOnlineResVO offlineToOnline( OfflineToOnlineReqVO request);
 
     /**
      * 批量线下转线上
@@ -66,4 +66,5 @@ public interface IOfflineToOnlineStrategy {
      * @return
      */
     List<OfflineToOnlineResVO> batchOfflineToOnline(BatchOfflineToOnlineReqVO request);
+
 }
