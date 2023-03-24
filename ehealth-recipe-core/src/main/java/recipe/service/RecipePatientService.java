@@ -1042,6 +1042,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
                 recipe = getRecipeInfoDTO(patientRecipeDetailReq, recipe, recipe.getRecipe());
                 recipe.setRecipeBusType(1);
             }
+            recipeBusType = recipe.getRecipeBusType();
         }
 
         if (Objects.isNull(recipe)){
