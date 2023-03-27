@@ -54,7 +54,7 @@ public abstract class PatientOptionalDrugDAO extends HibernateSupportDelegateDAO
                         vo.setDrugId(objs[1] == null ? null : (Integer) objs[1]);
                         vo.setOrganDrugCode(objs[2] == null ? null : objs[2] + "");
                         vo.setOrganId(objs[3] == null ? null : (Integer) objs[3]);
-                        vo.setPatientDrugNum(objs[4] == null ? null : (Integer) objs[4]);
+                        vo.setPatientDrugNum(objs[4] == null ? null : Integer.valueOf(String.valueOf(objs[4])));
                         vo.setClinicId(objs[5] == null ? null : (Integer) objs[5]);
                         vo.setCreateTime(objs[6] == null ? null : (Date) objs[6]);
                         vo.setModifiedTime(objs[7] == null ? null : (Date) objs[7]);
