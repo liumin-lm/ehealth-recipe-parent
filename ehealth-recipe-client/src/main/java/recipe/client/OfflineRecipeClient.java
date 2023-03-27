@@ -258,8 +258,11 @@ public class OfflineRecipeClient extends BaseClient {
             HisResponseTO<com.ngari.platform.recipe.mode.RecipeDTO> hisResponse = recipeHisService.patientPushRecipe(recipeDTO);
             logger.info("OfflineRecipeClient patientPushRecipe hisResponse：{}", JSON.toJSONString(hisResponse));
             return recipeInfoDTO(hisResponse, recipePdfDTO.getRecipeTherapy());
+        } catch (DAOException e) {
+            logger.error("OfflineRecipeClient offlineCommonRecipe DAOException", e);
+            throw e;
         } catch (Exception e) {
-            logger.error("OfflineRecipeClient offlineCommonRecipe hisResponse", e);
+            logger.error("OfflineRecipeClient offlineCommonRecipe Exception", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
     }
