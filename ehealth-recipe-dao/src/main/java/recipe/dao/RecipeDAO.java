@@ -1649,6 +1649,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         hql.append(" LEFT JOIN cdr_recipe_ext re ON r.RecipeID = re.recipeId ");
         hql.append(" where (r.recipeSourceType in (1,2) or r.recipeSourceType is null) ");
         hql.append(" and (r.delete_flag = 0 or r.delete_flag  is null)");
+        hql.append(" and r.process_state != 0 ");
         return generateRecipeOderWhereHQLforStatistics(hql,recipesQueryVO);
     }
 
@@ -1663,6 +1664,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         hql.append(" LEFT JOIN cdr_recipe_ext re ON r.RecipeID = re.recipeId ");
         hql.append(" where (r.recipeSourceType in (1,2) or r.recipeSourceType is null) ");
         hql.append(" and (r.delete_flag = 0 or r.delete_flag  is null)");
+        hql.append(" and r.process_state != 0 ");
         return generateRecipeOderWhereHQLforStatistics(hql,recipesQueryVO);
     }
 
