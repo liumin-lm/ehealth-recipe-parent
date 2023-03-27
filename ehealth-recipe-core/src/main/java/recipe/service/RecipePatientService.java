@@ -26,10 +26,7 @@ import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.DepListBean;
-import com.ngari.recipe.dto.GiveModeButtonDTO;
-import com.ngari.recipe.dto.GiveModeShowButtonDTO;
-import com.ngari.recipe.dto.PatientRecipeDetailReqDTO;
-import com.ngari.recipe.dto.RecipeInfoDTO;
+import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.offlinetoonline.model.OfflineToOnlineReqVO;
 import com.ngari.recipe.offlinetoonline.model.OfflineToOnlineResVO;
@@ -107,8 +104,6 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
     @Autowired
     private RecipeManager recipeManager;
     @Autowired
-    private OrganDrugListManager organDrugListManager;
-    @Autowired
     private RecipeDetailManager recipeDetailManager;
     @Autowired
     private CreatePdfFactory createPdfFactory;
@@ -138,6 +133,8 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
     private HisRecipeManager  hisRecipeManager;
     @Autowired
     private OfflineToOnlineFactory offlineToOnlineFactory;
+    @Autowired
+    private OrganClient organClient;
 
     /**
      * 根据取药方式过滤药企
@@ -1107,6 +1104,10 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
             patientRecipeDetailResVO.setDoctorName(DictionaryUtil.getDictionary("eh.base.dictionary.Doctor", returnRecipe.getDoctor()));
         }else {
             patientRecipeDetailResVO.setDoctorName(returnRecipe.getDoctorName());
+        }
+        if (Objects.nonNull(returnRecipe.getClinicOrgan())) {
+            OrganDTO organDTO = organClient.organDTO(returnRecipe.getClinicOrgan());
+            patientRecipeDetailResVO.setOrganName(organDTO.getName());
         }
 
         Integer secrecyRecipe = 0;
