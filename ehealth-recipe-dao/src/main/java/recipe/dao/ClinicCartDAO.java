@@ -65,6 +65,9 @@ public abstract class ClinicCartDAO extends HibernateSupportDelegateDAO<ClinicCa
                 if (Objects.nonNull(clinicCartVO.getWorkType())) {
                     hql.append(" AND workType = :workType");
                 }
+                if (Objects.nonNull(clinicCartVO.getPharmacyCode())) {
+                    hql.append(" AND pharmacyCode = :pharmacyCode");
+                }
                 hql.append(" order by id desc");
                 Query query = ss.createQuery(hql.toString());
 
@@ -82,6 +85,9 @@ public abstract class ClinicCartDAO extends HibernateSupportDelegateDAO<ClinicCa
                 }
                 if (Objects.nonNull(clinicCartVO.getWorkType())) {
                     query.setParameter("workType", clinicCartVO.getWorkType());
+                }
+                if (Objects.nonNull(clinicCartVO.getPharmacyCode())) {
+                    query.setParameter("pharmacyCode", clinicCartVO.getPharmacyCode());
                 }
                 setResult(query.list());
             }
