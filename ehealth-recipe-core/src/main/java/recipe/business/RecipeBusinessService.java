@@ -327,7 +327,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     @Override
     public List<PatientOptionalDrugVO> findPatientOptionalDrugDTO(Integer clinicId) {
         logger.info("RecipeBusinessService findPatientOptionalDrugDTO req clinicId= {}", JSON.toJSONString(clinicId));
-        List<PatientOptionalDrug> patientOptionalDrugs = patientOptionalDrugDAO.findPatientOptionalDrugByClinicId(clinicId);
+        List<PatientOptionalDrug> patientOptionalDrugs = patientOptionalDrugDAO.findPatientOptionalDrugByClinicIdV1(clinicId);
         if (CollectionUtils.isEmpty(patientOptionalDrugs)) {
             logger.info("RecipeBusinessService findPatientOptionalDrugDTO 返回值为空 patientOptionalDrugs= {}", JSON.toJSONString(patientOptionalDrugs));
             return Lists.newArrayList();
