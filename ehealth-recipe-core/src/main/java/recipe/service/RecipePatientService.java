@@ -1038,7 +1038,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         if(Objects.isNull(recipe) && StringUtils.isNotEmpty(patientRecipeDetailReq.getRecipeCode()) && Objects.nonNull(patientRecipeDetailReq.getOrganId())){
             Recipe dbRecipe = recipeManager.getByRecipeCodeAndClinicOrgan(patientRecipeDetailReq.getRecipeCode(), patientRecipeDetailReq.getOrganId());
             if (Objects.nonNull(dbRecipe)) {
-                recipe = recipeManager.getRecipeInfoDTO(patientRecipeDetailReq.getRecipeId());
+                recipe = recipeManager.getRecipeInfoDTO(dbRecipe.getRecipeId());
             } else {
                 // 获取线下处方
                 recipe = hisRecipeManager.getHisRecipeInfoDTO(BeanCopyUtils.copyProperties(patientRecipeDetailReq, PatientRecipeDetailReqDTO::new));
