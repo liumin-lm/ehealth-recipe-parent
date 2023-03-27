@@ -35,7 +35,7 @@ public abstract class PatientOptionalDrugDAO extends HibernateSupportDelegateDAO
     public abstract List<PatientOptionalDrug> findPatientOptionalDrugByClinicId(@DAOParam("clinicId") Integer clinicId);
 
 
-    public List<PatientOptionalDrug> findPatientOptionalDrugByClinicIdV1(Integer clinicId) {
+    public List<PatientOptionalDrug> findPatientOptionalDrugByClinicIdV1(@DAOParam("clinicId") Integer clinicId) {
         HibernateStatelessResultAction<List<PatientOptionalDrug>> action = new AbstractHibernateStatelessResultAction<List<PatientOptionalDrug>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
