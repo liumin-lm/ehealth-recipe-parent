@@ -200,6 +200,10 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
             recipeExtendBean.setAppointEnterpriseType(fastRecipe.getAppointEnterpriseType());
             recipeExtendBean.setDeliveryCode(fastRecipe.getDeliveryCode());
             recipeExtendBean.setMouldId(recipeInfoVO.getMouldId());
+            recipeExtendBean.setFastRecipeShareDoctor(recipeInfoVO.getFastRecipeShareDoctor());
+            recipeExtendBean.setFastRecipeShareDepartName(recipeInfoVO.getFastRecipeShareDepartName());
+            recipeExtendBean.setFastRecipeShareDepart(recipeInfoVO.getFastRecipeShareDepart());
+            recipeExtendBean.setFastRecipeShareDepartName(recipeInfoVO.getFastRecipeShareDepartName());
             recipeBean.setRecipeExtend(recipeExtendBean);
             recipeExtendBean.setFastRecipeNum(buyNum);
             //3.recipe参数设置
@@ -274,6 +278,10 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
             recipeExtendBean.setDoctorIsDecoction(fastRecipe.getDoctorIsDecoction());
             recipeExtendBean.setMouldId(recipeInfoVO.getMouldId());
             recipeExtendBean.setFastRecipeShareDoctor(recipeInfoVO.getFastRecipeShareDoctor());
+            recipeExtendBean.setFastRecipeShareDoctor(recipeInfoVO.getFastRecipeShareDoctor());
+            recipeExtendBean.setFastRecipeShareDepartName(recipeInfoVO.getFastRecipeShareDepartName());
+            recipeExtendBean.setFastRecipeShareDepart(recipeInfoVO.getFastRecipeShareDepart());
+            recipeExtendBean.setFastRecipeShareDepartName(recipeInfoVO.getFastRecipeShareDepartName());
 
             int buyNum = ValidateUtil.nullOrZeroInteger(recipeInfoVO.getBuyNum()) ? 1 : recipeInfoVO.getBuyNum();
             recipeExtendBean.setFastRecipeNum(buyNum);

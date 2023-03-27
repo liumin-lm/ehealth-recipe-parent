@@ -289,6 +289,15 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "快捷购药分享医生")
     private Integer fastRecipeShareDoctor;
 
+    @ItemProperty(alias = "快捷购药分享医生名称")
+    private String fastRecipeShareDoctorName;
+
+    @ItemProperty(alias = "快捷购药分享科室代码")
+    private String fastRecipeShareDepart;
+
+    @ItemProperty(alias = "快捷购药分享科室名称")
+    private String fastRecipeShareDepartName;
+
     @ItemProperty(alias = "快捷购药购买份数")
     private Integer fastRecipeNum;
 
@@ -1134,6 +1143,33 @@ public class RecipeExtend implements Serializable {
 
     public void setFastRecipeShareDoctor(Integer fastRecipeShareDoctor) {
         this.fastRecipeShareDoctor = fastRecipeShareDoctor;
+    }
+
+    @Column(name = "fast_recipe_share_doctor_name")
+    public String getFastRecipeShareDoctorName() {
+        return fastRecipeShareDoctorName;
+    }
+
+    public void setFastRecipeShareDoctorName(String fastRecipeShareDoctorName) {
+        this.fastRecipeShareDoctorName = fastRecipeShareDoctorName;
+    }
+
+    @Column(name = "fast_recipe_share_depart")
+    public String getFastRecipeShareDepart() {
+        return fastRecipeShareDepart;
+    }
+
+    public void setFastRecipeShareDepart(String fastRecipeShareDepart) {
+        this.fastRecipeShareDepart = fastRecipeShareDepart;
+    }
+
+    @Column(name = "fast_recipe_share_depart_name")
+    public String getFastRecipeShareDepartName() {
+        return fastRecipeShareDepartName;
+    }
+
+    public void setFastRecipeShareDepartName(String fastRecipeShareDepartName) {
+        this.fastRecipeShareDepartName = fastRecipeShareDepartName;
     }
 
     @Column(name = "fast_recipe_num")

@@ -262,6 +262,14 @@ public class RecipeExtendBean implements Serializable {
     @ItemProperty(alias = "快捷购药分享医生")
     private Integer fastRecipeShareDoctor;
 
+    @ItemProperty(alias = "快捷购药分享医生名称")
+    private String fastRecipeShareDoctorName;
+
+    @ItemProperty(alias = "快捷购药分享科室代码")
+    private String fastRecipeShareDepart;
+
+    @ItemProperty(alias = "快捷购药分享科室名称")
+    private String fastRecipeShareDepartName;
 
     /**
      * his订单编号(邵逸夫)
@@ -994,5 +1002,29 @@ public class RecipeExtendBean implements Serializable {
 
     public void setFastRecipeShareDoctor(Integer fastRecipeShareDoctor) {
         this.fastRecipeShareDoctor = fastRecipeShareDoctor;
+    }
+
+    public String getFastRecipeShareDoctorName() {
+        return fastRecipeShareDoctorName;
+    }
+
+    public void setFastRecipeShareDoctorName(String fastRecipeShareDoctorName) {
+        this.fastRecipeShareDoctorName = fastRecipeShareDoctorName;
+    }
+
+    public String getFastRecipeShareDepart() {
+        return fastRecipeShareDepart;
+    }
+
+    public void setFastRecipeShareDepart(String fastRecipeShareDepart) {
+        this.fastRecipeShareDepart = fastRecipeShareDepart;
+    }
+
+    public String getFastRecipeShareDepartName() {
+        return fastRecipeShareDepartName;
+    }
+
+    public void setFastRecipeShareDepartName(String fastRecipeShareDepartName) {
+        this.fastRecipeShareDepartName = fastRecipeShareDepartName;
     }
 }
