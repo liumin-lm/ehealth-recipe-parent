@@ -1029,20 +1029,25 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         RecipeInfoDTO recipe = null;
         Integer recipeBusType = 1;
         if (Objects.nonNull(patientRecipeDetailReq.getRecipeId())) {
-             recipe = recipeManager.getRecipeInfoDTO(patientRecipeDetailReq.getRecipeId());
+            recipe = recipeManager.getRecipeInfoDTO(patientRecipeDetailReq.getRecipeId());
             Recipe recipeRecipe = recipe.getRecipe();
             if(Objects.isNull(recipe) && RecipeSourceTypeEnum.OFFLINE_RECIPE.equals(recipeRecipe.getRecipeSourceType()) && RecipeStateEnum.PROCESS_STATE_ORDER.getType().equals(recipeRecipe.getProcessState())){
                 recipe = getRecipeInfoDTO(patientRecipeDetailReq, recipe, recipeRecipe);
             }
         }
         if(Objects.isNull(recipe) && StringUtils.isNotEmpty(patientRecipeDetailReq.getRecipeCode()) && Objects.nonNull(patientRecipeDetailReq.getOrganId())){
-            // 获取线下处方
-            recipe = hisRecipeManager.getHisRecipeInfoDTO(BeanCopyUtils.copyProperties(patientRecipeDetailReq, PatientRecipeDetailReqDTO::new));
-            if (Objects.isNull(recipe) && BussSourceTypeEnum.BUSSSOURCE_REVISIT.getType().equals(patientRecipeDetailReq.getBussSource()) && RecipeStateEnum.PROCESS_STATE_ORDER.getType().equals(patientRecipeDetailReq.getProcessState())) {
-                recipe = getRecipeInfoDTO(patientRecipeDetailReq, recipe, recipe.getRecipe());
-                recipe.setRecipeBusType(1);
+            Recipe dbRecipe = recipeManager.getByRecipeCodeAndClinicOrgan(patientRecipeDetailReq.getRecipeCode(), patientRecipeDetailReq.getOrganId());
+            if (Objects.nonNull(dbRecipe)) {
+                recipe = recipeManager.getRecipeInfoDTO(patientRecipeDetailReq.getRecipeId());
+            } else {
+                // 获取线下处方
+                recipe = hisRecipeManager.getHisRecipeInfoDTO(BeanCopyUtils.copyProperties(patientRecipeDetailReq, PatientRecipeDetailReqDTO::new));
+                if (Objects.isNull(recipe) && BussSourceTypeEnum.BUSSSOURCE_REVISIT.getType().equals(patientRecipeDetailReq.getBussSource()) && RecipeStateEnum.PROCESS_STATE_ORDER.getType().equals(patientRecipeDetailReq.getProcessState())) {
+                    recipe = getRecipeInfoDTO(patientRecipeDetailReq, recipe, recipe.getRecipe());
+                    recipe.setRecipeBusType(1);
+                }
+                recipeBusType = recipe.getRecipeBusType();
             }
-            recipeBusType = recipe.getRecipeBusType();
         }
 
         if (Objects.isNull(recipe)){
