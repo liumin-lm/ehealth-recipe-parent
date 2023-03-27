@@ -938,6 +938,7 @@ public class HisRecipeManager extends BaseManager {
      * @param patientRecipeDetailReq
      * @return
      */
+    @LogRecord
     public RecipeInfoDTO getHisRecipeInfoDTO (PatientRecipeDetailReqDTO patientRecipeDetailReq){
         if (StringUtils.isEmpty(patientRecipeDetailReq.getMpiid()) || StringUtils.isEmpty(patientRecipeDetailReq.getRecipeCode())) {
             return null;
