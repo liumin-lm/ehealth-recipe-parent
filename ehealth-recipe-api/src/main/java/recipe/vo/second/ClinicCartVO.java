@@ -54,4 +54,10 @@ public class ClinicCartVO {
 
     @ItemProperty(alias = "库存")
     private Integer stockNum;
+
+    @ItemProperty(alias = "药房编码")
+    private String pharmacyCode;
+
+    @ItemProperty(alias = "药房名称")
+    private String pharmacyName;
 }
