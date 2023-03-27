@@ -137,4 +137,11 @@ public interface IOfflineRecipeBusinessService {
      * @return
      */
     List<OfflineToOnlineResVO> batchOfflineToOnline(BatchOfflineToOnlineReqVO request);
+
+    /**
+     * 获取本人是否已经转到过线上
+     * @param req
+     * @return
+     */
+    Integer obtainExistFlagOwn(checkForOrderBeforeReqVo req);
 }

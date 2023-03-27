@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.dto.RecipeFeeDTO;
 import com.ngari.recipe.dto.ShoppingCartDetailDTO;
 import com.ngari.recipe.dto.SkipThirdDTO;
-import com.ngari.recipe.offlinetoonline.model.CheckRecipePayStateReqVO;
 import com.ngari.recipe.recipe.model.SkipThirdReqVO;
 import com.ngari.recipe.vo.LogisticsMergeVO;
 import com.ngari.recipe.vo.PreOrderInfoReqVO;
@@ -327,16 +326,6 @@ public class RecipeOrderPatientAtop extends BaseAtop {
         return recipeOrderService.checkOrderPayState(orderId);
     }
 
-    /**
-     * 校验处方是否在支付中,已支付
-     * @param
-     * @return
-     */
-    @RpcService
-    public Integer checkRecipePayState(CheckRecipePayStateReqVO req){
-        validateAtop(req.getRecipeCode(),req.getOrganId(),req.getMpiid());
-        return recipeOrderService.checkRecipePayState(req);
-    }
 
     /**
      * 获取复诊提醒时间

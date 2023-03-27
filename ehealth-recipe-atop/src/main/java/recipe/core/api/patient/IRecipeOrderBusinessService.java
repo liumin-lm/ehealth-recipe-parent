@@ -6,7 +6,7 @@ import com.ngari.common.dto.SyncOrderVO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.RecipeOrder;
-import com.ngari.recipe.offlinetoonline.model.CheckRecipePayStateReqVO;
+import com.ngari.recipe.offlinetoonline.model.checkForOrderBeforeReqVo;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.vo.LogisticsMergeVO;
 import com.ngari.recipe.vo.PreOrderInfoReqVO;
@@ -300,7 +300,7 @@ public interface IRecipeOrderBusinessService {
      */
     Integer checkOrderPayState(Integer orderId);
 
-    Integer checkRecipePayState(CheckRecipePayStateReqVO req);
+    Integer checkRecipePayState(checkForOrderBeforeReqVo req);
 
     /**
      * 运营平台-药品订单-更新是否打印发药清单和快递面单

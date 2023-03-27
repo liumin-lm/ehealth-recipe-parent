@@ -1592,4 +1592,16 @@ public class RecipeManager extends BaseManager {
             MQHelper.getMqPublisher().publish(OnsConfig.recipeDelayTopic, String.valueOf(recipeId), RecipeSystemConstant.RECIPE_INVALID_TOPIC_TAG, String.valueOf(recipeId), millSecond);
         }
     }
+
+    /**
+     * 获取就诊人本人处方
+     * @param organId
+     * @param recipeCode
+     * @param mpiid
+     * @return
+     */
+    public Recipe obtainRecipeOwn(Integer organId, String recipeCode, String mpiid) {
+        Recipe recipe=recipeDAO.getByHisRecipeCodeAndClinicOrganAndMpiid(mpiid,recipeCode,organId);
+        return recipe;
+    }
 }
