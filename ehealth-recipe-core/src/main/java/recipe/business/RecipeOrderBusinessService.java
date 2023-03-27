@@ -60,6 +60,7 @@ import org.apache.curator.shaded.com.google.common.collect.Maps;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.ApplicationUtils;
+import recipe.aop.LogRecord;
 import recipe.bean.RecipePayModeSupportBean;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.*;
@@ -1789,6 +1790,7 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
      * @return
      */
     @Override
+    @LogRecord
     public Integer checkRecipePayState(checkForOrderBeforeReqVo req){
         //默认能向下走 不阻塞流程
         Integer payQuery =0;
