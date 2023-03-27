@@ -50,6 +50,7 @@ public class CaClient extends BaseClient {
         }
     }
 
+    @LogRecord
     public void saveCaSignResult(CaSignResultBean caSignResult){
         try {
             String thirdCASign = getThirdCASign(caSignResult.getOrganId());
