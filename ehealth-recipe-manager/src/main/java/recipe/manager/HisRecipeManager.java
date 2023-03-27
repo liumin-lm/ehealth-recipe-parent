@@ -987,6 +987,7 @@ public class HisRecipeManager extends BaseManager {
         recipe.setSignDate(hisRecipeResTO.getCreateDate());
         recipe.setRecipeSourceType(RecipeSourceTypeEnum.OFFLINE_RECIPE.getType());
         recipe.setAppointDepartName(hisRecipeResTO.getDepartName());
+        recipe.setTotalMoney(hisRecipeResTO.getRecipeFee());
         //设置复诊单
         recipe.setBussSource(BussSourceTypeEnum.BUSSSOURCE_NO.getType());
         if (!BussSourceTypeEnum.BUSSSOURCE_NO.getType().equals(hisRecipeResTO.getRevisitType())) {
@@ -1041,6 +1042,9 @@ public class HisRecipeManager extends BaseManager {
         recipeDetailTOList.forEach(recipeDetailTO -> {
             Recipedetail recipeDetail = ObjectCopyUtils.convert(recipeDetailTO, Recipedetail.class);
             recipeDetail.setOrganDrugCode(recipeDetailTO.getDrugCode());
+            if (Objects.nonNull(recipeDetailTO.getUseTotalDose())) {
+                recipeDetail.setUseTotalDose(recipeDetailTO.getUseTotalDose().doubleValue());
+            }
             recipeDetails.add(recipeDetail);
         });
         return recipeDetails;
