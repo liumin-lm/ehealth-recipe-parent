@@ -1022,6 +1022,8 @@ public class HisRecipeManager extends BaseManager {
     public RecipeExtend getRecipeExtendFromHisRecipe(QueryHisRecipResTO hisRecipeResTO, RecipeExtend recipeExtend) {
         recipeExtend = ObjectCopyUtils.convert(hisRecipeResTO, RecipeExtend.class);
         recipeExtend.setRegisterID(hisRecipeResTO.getRegisteredId());
+        recipeExtend.setCardType(hisRecipeResTO.getCardTypeCode());
+        recipeExtend.setCardNo(hisRecipeResTO.getCardNo());
         return recipeExtend;
     }
 
