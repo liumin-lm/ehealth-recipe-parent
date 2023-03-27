@@ -1363,7 +1363,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
 
                     RegulationOutpatientPayReq req = getRegulationOutpatientPayReq(payFlag, refundNo, recipeIds, order, recipe);
 
-                    LOGGER.info("调用regulation接口，上传处方缴费信息1，req = {}，payFlag = {}", JSONUtils.toString(req), payFlag);
+                    LOGGER.info("调用regulation接口，上传处方缴费信息，req = {}，payFlag = {}", JSONUtils.toString(req), payFlag);
                     IRegulationService regulationService = AppDomainContext.getBean("his.regulationService", IRegulationService.class);
                     HisResponseTO hisResponseTO = regulationService.uploadOutpatientPay(recipe.getClinicOrgan(), req);
                     LOGGER.info("调用regulation接口，上传处方缴费信息，res = {}，payFlag = {}", JSONUtils.toString(hisResponseTO), payFlag);
