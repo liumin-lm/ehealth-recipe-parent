@@ -40,7 +40,7 @@ public abstract class PatientOptionalDrugDAO extends HibernateSupportDelegateDAO
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder();
-                hql.append("select id,drug_id organ_drug_code ,organ_id ,SUM(patient_drug_num) as patient_drug_num ,clinic_id ,create_time ,modified_time from patient_optional_drug where clinic_id =:clinicId");
+                hql.append("select id,drug_id, organ_drug_code ,organ_id ,SUM(patient_drug_num) as patient_drug_num ,clinic_id ,create_time ,modified_time from patient_optional_drug where clinic_id =:clinicId ");
                 hql.append("group by organ_drug_code");
                 Query q = ss.createSQLQuery(hql.toString());
                 q.setParameter("clinicId", clinicId);
