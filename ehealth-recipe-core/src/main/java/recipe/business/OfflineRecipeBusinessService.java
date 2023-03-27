@@ -411,7 +411,7 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
             logger.error("RecipeBusinessService pushRecipe DAOException, sysType={}, recipeId:{}", sysType, recipeId, de);
             RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "当前处方推送his失败:" + de.getMessage());
             String msg;
-            if (HisErrorCodeEnum.HIS_CODE_ERROR.getCode() == de.getCode()) {
+            if (HisErrorCodeEnum.HIS_CODE_ERROR.getCode() == de.getCode() && StringUtils.isNotEmpty(de.getMessage())) {
                 msg = de.getMessage();
             } else {
                 msg = configurationClient.getValueCatch(recipe.getClinicOrgan(), "pushHisRecipeResultMsg", "当前处方推送his失败");
