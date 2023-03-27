@@ -671,7 +671,6 @@ public class HisRecipeManager extends BaseManager {
         return hisRecipe;
     }
 
-
     /**
      * 推送处方给his
      *

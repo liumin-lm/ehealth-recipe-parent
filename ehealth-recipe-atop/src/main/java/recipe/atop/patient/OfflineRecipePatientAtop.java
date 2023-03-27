@@ -172,6 +172,20 @@ public class OfflineRecipePatientAtop extends BaseAtop {
         }
     }
 
-    //TODO 校验线下和线上是否已支付 
+    /**
+     * 线下处方校验
+     * @param
+     * @return
+     */
+    @RpcService
+    public CheckForOrderBeforeResVo checkForOrderBefore(checkForOrderBeforeReqVo req){
+        validateAtop(req.getRecipeCode(),req.getOrganId(),req.getMpiid());
+        CheckForOrderBeforeResVo res=new CheckForOrderBeforeResVo();
+        //1、获取线上线下缴费状态
+        res.setPayFlag(recipeOrderService.checkRecipePayState(req));
+        //2、获取存在状态
+        res.setExistFlag(offlineToOnlineService.obtainExistFlagOwn(req));
+        return res;
+    }
 
 }

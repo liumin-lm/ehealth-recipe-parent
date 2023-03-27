@@ -164,6 +164,11 @@ public class PayClient extends BaseClient {
         return tradeStatus;
     }
 
+    /**
+     * 没有查到支付状态也是向下走
+     * @param orderId
+     * @return
+     */
     public Integer payQuery(Integer orderId){
         logger.info("PayClient payQuery orderId:{}", orderId);
         try {

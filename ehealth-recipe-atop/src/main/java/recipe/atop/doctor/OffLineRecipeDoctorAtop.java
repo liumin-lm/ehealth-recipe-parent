@@ -54,6 +54,8 @@ public class OffLineRecipeDoctorAtop extends BaseAtop {
         validateAtop(mpiId, clinicOrgan, recipeCode);
         return offlineRecipeBusinessService.getHisRecipeDetail(mpiId, clinicOrgan, recipeCode ,createDate);
     }
+
+
     /**
      * 根据处方code 获取线下处方详情
      *

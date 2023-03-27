@@ -188,6 +188,16 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
     }
 
     @Override
+    public Integer obtainExistFlagOwn(checkForOrderBeforeReqVo req) {
+        Recipe recipe=recipeManager.obtainRecipeOwn(req.getOrganId(),req.getRecipeCode(),req.getMpiid());
+        if(null==recipe){
+            return 0;
+        }else{
+            return 1;
+        }
+    }
+
+    @Override
     public List<String> getCardType(Integer organId) {
         //卡类型 1 表示身份证  2 表示就诊卡  3 表示就诊卡
         //根据运营平台配置  如果配置了就诊卡 医保卡（根据卡类型进行查询）； 如果都不配（默认使用身份证查询）
