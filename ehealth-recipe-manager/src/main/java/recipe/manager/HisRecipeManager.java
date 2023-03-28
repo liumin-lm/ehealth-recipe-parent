@@ -940,20 +940,19 @@ public class HisRecipeManager extends BaseManager {
      */
     @LogRecord
     public RecipeInfoDTO getHisRecipeInfoDTO (PatientRecipeDetailReqDTO patientRecipeDetailReq){
+        RecipeInfoDTO recipeInfoDTO = new RecipeInfoDTO();
         if (StringUtils.isEmpty(patientRecipeDetailReq.getMpiid()) || StringUtils.isEmpty(patientRecipeDetailReq.getRecipeCode())) {
-            return null;
+            return recipeInfoDTO;
         }
         PatientDTO patient = patientClient.getPatient(patientRecipeDetailReq.getMpiid());
         if (Objects.isNull(patient)) {
-            return null;
+            return recipeInfoDTO;
         }
         OfflineRecipePayFlagEnum offlineRecipePayFlagEnum = OfflineRecipePayFlagEnum.getByState(patientRecipeDetailReq.getProcessState());
         HisResponseTO<List<QueryHisRecipResTO>> hisResponseTO = queryData(patientRecipeDetailReq.getOrganId(), patient ,null, offlineRecipePayFlagEnum.getType(),patientRecipeDetailReq.getRecipeCode(),patientRecipeDetailReq.getStartTime(),patientRecipeDetailReq.getEndTime());
         if (null == hisResponseTO || CollectionUtils.isEmpty(hisResponseTO.getData())) {
-            return null;
+            return recipeInfoDTO;
         }
-
-        RecipeInfoDTO recipeInfoDTO = new RecipeInfoDTO();
         List<QueryHisRecipResTO> hisRecipeResTOList = hisResponseTO.getData();
         QueryHisRecipResTO hisRecipeResTO = hisRecipeResTOList.get(0);
         RecipeExtend recipeExtend = new RecipeExtend();
