@@ -987,6 +987,7 @@ public class HisRecipeManager extends BaseManager {
         recipe.setRecipeSourceType(RecipeSourceTypeEnum.OFFLINE_RECIPE.getType());
         recipe.setAppointDepartName(hisRecipeResTO.getDepartName());
         recipe.setTotalMoney(hisRecipeResTO.getRecipeFee());
+        recipe.setPatientID(hisRecipeResTO.getPatientNumber());
         //设置复诊单
         recipe.setBussSource(BussSourceTypeEnum.BUSSSOURCE_NO.getType());
         if (!BussSourceTypeEnum.BUSSSOURCE_NO.getType().equals(hisRecipeResTO.getRevisitType())) {
@@ -1046,6 +1047,9 @@ public class HisRecipeManager extends BaseManager {
             }
             recipeDetail.setUsePathwaysTextFromHis(recipeDetailTO.getUsePathwaysText());
             recipeDetail.setUsingRateTextFromHis(recipeDetailTO.getUsingRateText());
+            if (StringUtils.isNotEmpty(recipeDetailTO.getUseDose())) {
+                recipeDetail.setUseDose(Double.parseDouble(recipeDetailTO.getUseDose()));
+            }
             recipeDetails.add(recipeDetail);
         });
         return recipeDetails;
