@@ -686,7 +686,9 @@ public class RecipeHisService extends RecipeBaseService {
             List<RecipeListQueryReqTO> requestList = new ArrayList<>();
             for (String recipeCode : recipeCodes) {
                 Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeCode, organId);
-                if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
+                // 到院自取 线上支付的 已支付的 需要查询取药状态
+                Boolean toHosFlag = PayFlagEnum.PAYED.getType().equals(recipe.getPayFlag()) && GiveModeEnum.GIVE_MODE_HOSPITAL_DRUG.getType().equals(recipe.getGiveMode());
+                if (!toHosFlag && StringUtils.isNotEmpty(recipe.getOrderCode())) {
                     RecipeOrder order = orderDAO.getByOrderCode(recipe.getOrderCode());
                     if (Objects.nonNull(order)) {
                         Integer payQuery = payClient.payQuery(order.getOrderId());

@@ -35,6 +35,12 @@ public abstract class PatientOptionalDrugDAO extends HibernateSupportDelegateDAO
     public abstract List<PatientOptionalDrug> findPatientOptionalDrugByClinicId(@DAOParam("clinicId") Integer clinicId);
 
 
+    /**
+     * 206278 APP需可以支持直接查询药品信息、直接选择医生进行便捷开方
+     *
+     * @param clinicId
+     * @return
+     */
     public List<PatientOptionalDrug> findPatientOptionalDrugByClinicIdV1(@DAOParam("clinicId") Integer clinicId) {
         HibernateStatelessResultAction<List<PatientOptionalDrug>> action = new AbstractHibernateStatelessResultAction<List<PatientOptionalDrug>>() {
             @Override
