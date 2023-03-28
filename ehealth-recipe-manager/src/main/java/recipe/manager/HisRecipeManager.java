@@ -1044,6 +1044,8 @@ public class HisRecipeManager extends BaseManager {
             if (Objects.nonNull(recipeDetailTO.getUseTotalDose())) {
                 recipeDetail.setUseTotalDose(recipeDetailTO.getUseTotalDose().doubleValue());
             }
+            recipeDetail.setUsePathwaysTextFromHis(recipeDetailTO.getUsePathwaysText());
+            recipeDetail.setUsingRateTextFromHis(recipeDetailTO.getUsingRateText());
             recipeDetails.add(recipeDetail);
         });
         return recipeDetails;
