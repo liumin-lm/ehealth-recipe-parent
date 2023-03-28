@@ -58,7 +58,6 @@ import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.caNew.AbstractCaProcessType;
-import recipe.caNew.CaAfterProcessType;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.*;
 import recipe.common.OnsConfig;
@@ -176,8 +175,6 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     private OrganAndDrugsepRelationDAO drugsDepRelationDAO;
     @Autowired
     private RevisitClient revisitClient;
-    @Resource
-    private CaAfterProcessType caAfterProcessType;
 
     /**
      * 获取线下门诊处方诊断信息
@@ -1570,6 +1567,8 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             patientClient.cardDataUpload(recipe.getClinicOrgan(), recipe.getMpiid());
             //通知复诊——添加处方追溯数据
             revisitManager.saveRevisitTracesList(recipe);
+            //保存常用药
+            drugManager.saveCommonDrug(recipe.getRecipeId());
         });
         return recipe.getRecipeId();
     }
