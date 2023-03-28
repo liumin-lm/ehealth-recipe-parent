@@ -190,11 +190,7 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
     @Override
     public Integer obtainExistFlagOwn(checkForOrderBeforeReqVo req) {
         Recipe recipe=recipeManager.obtainRecipeOwn(req.getOrganId(),req.getRecipeCode(),req.getMpiid());
-        if(null==recipe){
-            return 0;
-        }else{
-            return 1;
-        }
+        return (recipe != null) ? 1 : 0;
     }
 
     @Override
