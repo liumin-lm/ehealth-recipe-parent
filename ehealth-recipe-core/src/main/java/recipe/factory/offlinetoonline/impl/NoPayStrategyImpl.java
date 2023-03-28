@@ -210,11 +210,13 @@ class NoPayStrategyImpl extends BaseOfflineToOnlineService implements IOfflineTo
             OfflineToOnlineReqVO offlineToOnlineReqVO = obtainOfflineToOnlineReqVO(request.getMpiid(), sub.getRecipeCode(), request.getOrganId(), request.getCardId(), sub.getStartTime(),sub.getEndTime());
             OfflineToOnlineResVO offlineToOnlineResVO = offlineToOnline(offlineToOnlineReqVO);
             if(null!=offlineToOnlineResVO.getRecipe()){
+                // 3. 构造返回结果
                 res.add(offlineToOnlineResVO);
             };
         });
         //res.stream().filter(a->null!=a.getRecipe())
         LOGGER.info("batchOfflineToOnline recipeIds:{}", JSONUtils.toString(res));
+        // 4. 检查结果
         //部分处方线下转线上成功
         if (res.size() != request.getSubParams().size()) {
             throw new DAOException(609, "抱歉，无法查找到对应的处方单数据");
