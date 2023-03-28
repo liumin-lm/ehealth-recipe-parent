@@ -332,5 +332,6 @@ public class ConsultClient extends BaseClient {
             extend.setRegisterID(StringUtils.isNotEmpty(consult.getRegistrationNumber()) ? consult.getRegistrationNumber() : extend.getRegisterID());
             extend.setSeries(consult.getSeries());
         }
+        consultExService.updateRecipeIdByConsultId(recipe.getRecipeId(), recipe.getClinicId());
     }
 }
