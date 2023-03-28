@@ -1566,7 +1566,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             //健康卡数据上传
             patientClient.cardDataUpload(recipe.getClinicOrgan(), recipe.getMpiid());
             //通知复诊——添加处方追溯数据
-            revisitManager.saveRevisitTracesList(recipeDAO.get(recipe.getRecipeId()));
+            revisitManager.saveRevisitTracesList(recipe);
         });
         return recipe.getRecipeId();
     }
