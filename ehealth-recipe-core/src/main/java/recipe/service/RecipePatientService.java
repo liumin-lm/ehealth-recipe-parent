@@ -1028,12 +1028,13 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         if (Objects.nonNull(patientRecipeDetailReq.getRecipeId())) {
             recipe = recipeManager.getRecipeInfoDTO(patientRecipeDetailReq.getRecipeId());
             Recipe recipeRecipe = recipe.getRecipe();
-            if(Objects.isNull(recipe) && RecipeSourceTypeEnum.OFFLINE_RECIPE.equals(recipeRecipe.getRecipeSourceType()) && RecipeStateEnum.PROCESS_STATE_ORDER.getType().equals(recipeRecipe.getProcessState())){
+            if(Objects.nonNull(recipeRecipe) && RecipeSourceTypeEnum.OFFLINE_RECIPE.getType().equals(recipeRecipe.getRecipeSourceType())
+                    && RecipeStateEnum.PROCESS_STATE_ORDER.getType().equals(recipeRecipe.getProcessState())){
                 recipe = getRecipeInfoDTO(patientRecipeDetailReq, recipe, recipeRecipe);
             }
         }
         if(Objects.isNull(recipe) && StringUtils.isNotEmpty(patientRecipeDetailReq.getRecipeCode()) && Objects.nonNull(patientRecipeDetailReq.getOrganId())){
-            Recipe dbRecipe = recipeManager.getByRecipeCodeAndClinicOrgan(patientRecipeDetailReq.getRecipeCode(), patientRecipeDetailReq.getOrganId());
+            Recipe dbRecipe = recipeManager.getByRecipeCodeAndClinicOrganAndMpiid(patientRecipeDetailReq.getRecipeCode(), patientRecipeDetailReq.getOrganId(), patientRecipeDetailReq.getMpiid());
             if (Objects.nonNull(dbRecipe)) {
                 recipe = recipeManager.getRecipeInfoDTO(dbRecipe.getRecipeId());
             } else {
@@ -1047,11 +1048,8 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
             }
         }
 
-        if (Objects.isNull(recipe)){
-            throw new DAOException("未查询到相关处方信息");
-        }
-        PatientRecipeDetailResVO patientRecipeDetailResVO = coverPatientRecipeDetailResVO(recipe,recipeBusType);
-        return patientRecipeDetailResVO;
+        Optional.ofNullable(recipe).orElseThrow(() -> new DAOException("未查询到相关处方信息"));
+        return coverPatientRecipeDetailResVO(recipe,recipeBusType);
     }
 
     private RecipeInfoDTO getRecipeInfoDTO(PatientRecipeDetailReqVO patientRecipeDetailReq, RecipeInfoDTO recipe, Recipe recipeRecipe) {
