@@ -671,7 +671,6 @@ public class HisRecipeManager extends BaseManager {
         return hisRecipe;
     }
 
-
     /**
      * 推送处方给his
      *
@@ -939,21 +938,21 @@ public class HisRecipeManager extends BaseManager {
      * @param patientRecipeDetailReq
      * @return
      */
+    @LogRecord
     public RecipeInfoDTO getHisRecipeInfoDTO (PatientRecipeDetailReqDTO patientRecipeDetailReq){
+        RecipeInfoDTO recipeInfoDTO = new RecipeInfoDTO();
         if (StringUtils.isEmpty(patientRecipeDetailReq.getMpiid()) || StringUtils.isEmpty(patientRecipeDetailReq.getRecipeCode())) {
-            return null;
+            return recipeInfoDTO;
         }
         PatientDTO patient = patientClient.getPatient(patientRecipeDetailReq.getMpiid());
         if (Objects.isNull(patient)) {
-            return null;
+            return recipeInfoDTO;
         }
         OfflineRecipePayFlagEnum offlineRecipePayFlagEnum = OfflineRecipePayFlagEnum.getByState(patientRecipeDetailReq.getProcessState());
         HisResponseTO<List<QueryHisRecipResTO>> hisResponseTO = queryData(patientRecipeDetailReq.getOrganId(), patient ,null, offlineRecipePayFlagEnum.getType(),patientRecipeDetailReq.getRecipeCode(),patientRecipeDetailReq.getStartTime(),patientRecipeDetailReq.getEndTime());
         if (null == hisResponseTO || CollectionUtils.isEmpty(hisResponseTO.getData())) {
-            return null;
+            return recipeInfoDTO;
         }
-
-        RecipeInfoDTO recipeInfoDTO = new RecipeInfoDTO();
         List<QueryHisRecipResTO> hisRecipeResTOList = hisResponseTO.getData();
         QueryHisRecipResTO hisRecipeResTO = hisRecipeResTOList.get(0);
         RecipeExtend recipeExtend = new RecipeExtend();
@@ -965,7 +964,9 @@ public class HisRecipeManager extends BaseManager {
         recipeInfoDTO.setRecipeDetails(recipeDetails);
         recipeInfoDTO.setPatientBean(ObjectCopyUtils.convert(patient, com.ngari.recipe.dto.PatientDTO.class));
         recipeInfoDTO.setShowText(hisRecipeResTO.getShowText());
-        recipeInfoDTO.setGiveModeText("");
+        if (Objects.nonNull(recipe.getGiveMode())) {
+            recipeInfoDTO.setGiveModeText(GiveModeEnum.getGiveModeName(recipe.getGiveMode()));
+        }
         recipeInfoDTO.setRecipeBusType(2);
         return recipeInfoDTO;
     }
@@ -985,6 +986,7 @@ public class HisRecipeManager extends BaseManager {
         recipe.setSignDate(hisRecipeResTO.getCreateDate());
         recipe.setRecipeSourceType(RecipeSourceTypeEnum.OFFLINE_RECIPE.getType());
         recipe.setAppointDepartName(hisRecipeResTO.getDepartName());
+        recipe.setTotalMoney(hisRecipeResTO.getRecipeFee());
         //设置复诊单
         recipe.setBussSource(BussSourceTypeEnum.BUSSSOURCE_NO.getType());
         if (!BussSourceTypeEnum.BUSSSOURCE_NO.getType().equals(hisRecipeResTO.getRevisitType())) {
@@ -1023,6 +1025,8 @@ public class HisRecipeManager extends BaseManager {
     public RecipeExtend getRecipeExtendFromHisRecipe(QueryHisRecipResTO hisRecipeResTO, RecipeExtend recipeExtend) {
         recipeExtend = ObjectCopyUtils.convert(hisRecipeResTO, RecipeExtend.class);
         recipeExtend.setRegisterID(hisRecipeResTO.getRegisteredId());
+        recipeExtend.setCardType(hisRecipeResTO.getCardTypeCode());
+        recipeExtend.setCardNo(hisRecipeResTO.getCardNo());
         return recipeExtend;
     }
 
@@ -1033,7 +1037,15 @@ public class HisRecipeManager extends BaseManager {
      */
     public List<Recipedetail> getRecipeDetailsFromHisRecipe(QueryHisRecipResTO hisRecipeResTO) {
         List<RecipeDetailTO> recipeDetailTOList = hisRecipeResTO.getDrugList();
-        List<Recipedetail> recipeDetails = ObjectCopyUtils.convert(recipeDetailTOList, Recipedetail.class);
+        List<Recipedetail> recipeDetails = new ArrayList<>();
+        recipeDetailTOList.forEach(recipeDetailTO -> {
+            Recipedetail recipeDetail = ObjectCopyUtils.convert(recipeDetailTO, Recipedetail.class);
+            recipeDetail.setOrganDrugCode(recipeDetailTO.getDrugCode());
+            if (Objects.nonNull(recipeDetailTO.getUseTotalDose())) {
+                recipeDetail.setUseTotalDose(recipeDetailTO.getUseTotalDose().doubleValue());
+            }
+            recipeDetails.add(recipeDetail);
+        });
         return recipeDetails;
     }
 

@@ -31,7 +31,7 @@ public class ClinicCartVO {
     @ItemProperty(alias = "项目详情说明")
     private String itemDetail;
 
-    @ItemProperty(alias = "项目类型：1：药品，2：检查，3：检验")
+    @ItemProperty(alias = "项目类型：1：药品，2：检查，3：检验，4：药方，5：线下药品")
     private Integer itemType;
 
     @ItemProperty(alias = "项目数量，处方为药品数量")
@@ -43,7 +43,7 @@ public class ClinicCartVO {
     @ItemProperty(alias = "删除标识，0：正常，1：删除")
     private Integer deleteFlag;
 
-    @ItemProperty(alias = "业务场景, 方便门诊:1, 便捷购药:2")
+    @ItemProperty(alias = "业务场景, 方便门诊:1, 便捷购药:2，线下药品：3")
     private Integer workType;
 
     @ItemProperty(alias = "项目价格")
@@ -54,4 +54,10 @@ public class ClinicCartVO {
 
     @ItemProperty(alias = "库存")
     private Integer stockNum;
+
+    @ItemProperty(alias = "药房编码")
+    private String pharmacyCode;
+
+    @ItemProperty(alias = "药房名称")
+    private String pharmacyName;
 }

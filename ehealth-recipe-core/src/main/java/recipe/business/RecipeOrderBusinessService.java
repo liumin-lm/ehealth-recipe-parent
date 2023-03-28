@@ -27,7 +27,7 @@ import com.ngari.platform.recipe.mode.InvoiceInfoResTO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
-import com.ngari.recipe.offlinetoonline.model.CheckRecipePayStateReqVO;
+import com.ngari.recipe.offlinetoonline.model.checkForOrderBeforeReqVo;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import com.ngari.recipe.vo.LogisticsMergeVO;
@@ -60,6 +60,7 @@ import org.apache.curator.shaded.com.google.common.collect.Maps;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.ApplicationUtils;
+import recipe.aop.LogRecord;
 import recipe.bean.RecipePayModeSupportBean;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.*;
@@ -1783,56 +1784,59 @@ public class RecipeOrderBusinessService extends BaseService implements IRecipeOr
     }
 
     /**
-     * 只有0的时候才能继续向下走
+     * 只有0的时候才能继续向下走 表示没有支付
      * 合并下三个单 线下支付一单 跳订单详情页
      * @param
      * @return
      */
     @Override
-    public Integer checkRecipePayState(CheckRecipePayStateReqVO req){
+    @LogRecord
+    public Integer checkRecipePayState(checkForOrderBeforeReqVo req){
+        //默认能向下走 不阻塞流程
         Integer payQuery =0;
-//        Recipe recipe=recipeDAO.getByRecipeCodeAndClinicOrgan(req.getRecipeCode(),req.getOrganId());
-//        if (recipe==null){
-//            //需要查询是否在线下已经支付 没时间包方法了 （TODO 查线下可统一写个manage）
-//            Integer query = recipeHisService.getRecipeSinglePayStatusQuery(recipeId);
-//            if (query != null && (query == eh.cdr.constant.RecipeStatusConstant.HAVE_PAY || query == eh.cdr.constant.RecipeStatusConstant.FINISH)) {
-//                payQuery = 2;
-//            }
-//            return payQuery;
-//        }
-//        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
-//        if(recipeOrder==null){
-//            //需要查询是否在线下已经支付 没时间包方法了 （TODO 查线下可统一写个manage）
-//            List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
-//            for (Integer recipeId : recipeIdList) {
-//                Integer query = recipeHisService.getRecipeSinglePayStatusQuery(recipeId);
-//                if (query != null && (query == eh.cdr.constant.RecipeStatusConstant.HAVE_PAY || query == eh.cdr.constant.RecipeStatusConstant.FINISH)) {
-//                    payQuery = 2;
-//                }
-//            }
-//            return payQuery;
-//        }
-//
-//            //先查线上 再查线下
-//            if(new Integer(1).equals(recipeOrder.getPayFlag())){
-//                payQuery = 2;
-//            }
-//            if (StringUtils.isEmpty(recipeOrder.getOutTradeNo())) {
-//                return 0;
-//            }
-//            payQuery = payClient.payQuery(recipeOrder.getOrderId());
-//            // 需要查询是否在线下已经支付 没时间包方法了 （TODO 查线下可统一写个manage）
-//            if (new Integer(0).equals(payQuery)) {
-//                List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
-//                for (Integer recipeId : recipeIdList) {
-//                    Integer query = recipeHisService.getRecipeSinglePayStatusQuery(recipeId);
-//                    if (query != null && (query == eh.cdr.constant.RecipeStatusConstant.HAVE_PAY || query == eh.cdr.constant.RecipeStatusConstant.FINISH)) {
-//                        payQuery = 2;
-//                    }
-//                }
-//            }
-//
+        try {
+            Recipe recipe=recipeDAO.getByRecipeCodeAndClinicOrgan(req.getRecipeCode(),req.getOrganId());
+            if (recipe==null){
+                //需要查询是否在线下已经支付 没时间包方法了 （TODO 查线下可统一写个manage）
+                Integer query = recipeHisService.getRecipeSinglePayStatusQueryForHisRecipe(req);
+                if (query != null && (query == eh.cdr.constant.RecipeStatusConstant.HAVE_PAY || query == eh.cdr.constant.RecipeStatusConstant.FINISH)) {
+                    payQuery = 2;
+                }
+                return payQuery;
+            }
+            RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+            if(recipeOrder==null){
+                //需要查询是否在线下已经支付 没时间包方法了 （TODO 查线下可统一写个manage）
+                Integer query = recipeHisService.getRecipeSinglePayStatusQueryForHisRecipe(req);
+                if (query != null && (query == eh.cdr.constant.RecipeStatusConstant.HAVE_PAY || query == eh.cdr.constant.RecipeStatusConstant.FINISH)) {
+                    payQuery = 2;
+                }
+                return payQuery;
+            }
 
+            //先查线上 再查线下
+            if(new Integer(1).equals(recipeOrder.getPayFlag())){
+                payQuery = 2;
+                return payQuery;
+            }
+            if (StringUtils.isEmpty(recipeOrder.getOutTradeNo())) {
+                return 0;
+            }
+            payQuery = payClient.payQuery(recipeOrder.getOrderId());
+            // 需要查询是否在线下已经支付 没时间包方法了 （TODO 查线下可统一写个manage）
+            if (new Integer(0).equals(payQuery)) {
+                List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
+                for (Integer recipeId : recipeIdList) {
+                    Integer query = recipeHisService.getRecipeSinglePayStatusQuery(recipeId);
+                    if (query != null && (query == eh.cdr.constant.RecipeStatusConstant.HAVE_PAY || query == eh.cdr.constant.RecipeStatusConstant.FINISH)) {
+                        payQuery = 2;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            logger.error("checkRecipePayState error",e);
+        }
         return payQuery;
     }
 

@@ -188,6 +188,16 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
     }
 
     @Override
+    public Integer obtainExistFlagOwn(checkForOrderBeforeReqVo req) {
+        Recipe recipe=recipeManager.obtainRecipeOwn(req.getOrganId(),req.getRecipeCode(),req.getMpiid());
+        if(null==recipe){
+            return 0;
+        }else{
+            return 1;
+        }
+    }
+
+    @Override
     public List<String> getCardType(Integer organId) {
         //卡类型 1 表示身份证  2 表示就诊卡  3 表示就诊卡
         //根据运营平台配置  如果配置了就诊卡 医保卡（根据卡类型进行查询）； 如果都不配（默认使用身份证查询）
@@ -401,9 +411,12 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
             logger.error("RecipeBusinessService pushRecipe DAOException, sysType={}, recipeId:{}", sysType, recipeId, de);
             RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "当前处方推送his失败:" + de.getMessage());
             String msg;
-            if (HisErrorCodeEnum.HIS_CODE_ERROR.getCode() == de.getCode()) {
+            if (HisErrorCodeEnum.HIS_CODE_ERROR.getCode() == de.getCode() && StringUtils.isNotEmpty(de.getMessage())) {
+                //1.his返回失败原因，展示his返回的失败原因
                 msg = de.getMessage();
             } else {
+                //2.his没有返回失败原因，配置项没有配置文案，患者推送his失败后提示“当前处方推送his失败”
+                //3.his没有返回失败原因，配置项配置了文案，患者推送his失败后提示的是配置的文案内容
                 msg = configurationClient.getValueCatch(recipe.getClinicOrgan(), "pushHisRecipeResultMsg", "当前处方推送his失败");
             }
             stateManager.updateWriteHisState(recipeId, WriteHisEnum.WRITE_HIS_STATE_AUDIT);

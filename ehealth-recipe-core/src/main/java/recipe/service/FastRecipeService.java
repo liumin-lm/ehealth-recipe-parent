@@ -109,7 +109,7 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
     @Override
     public List<Integer> fastRecipeSaveRecipeList(List<RecipeInfoVO> recipeInfoVOList) {
         //快捷购药开方流程模式： "0":"自动开方流程", "1":"手动开方流程"
-        Integer fastRecipeMode = configurationClient.getValueCatchReturnInteger(recipeInfoVOList.get(0).getRecipeBean().getClinicOrgan(), "fastRecipeMode", 0);
+        Integer fastRecipeMode = configurationClient.getValueCatch(recipeInfoVOList.get(0).getRecipeBean().getClinicOrgan(), "fastRecipeMode", 0);
         List<Integer> resultList;
         if (Integer.valueOf("1").equals(fastRecipeMode)) {
             //医生手动开方流程，调用处方暂存接口
@@ -200,6 +200,8 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
             recipeExtendBean.setAppointEnterpriseType(fastRecipe.getAppointEnterpriseType());
             recipeExtendBean.setDeliveryCode(fastRecipe.getDeliveryCode());
             recipeExtendBean.setMouldId(recipeInfoVO.getMouldId());
+            recipeExtendBean.setFastRecipeShareDoctor(recipeInfoVO.getFastRecipeShareDoctor());
+            recipeExtendBean.setFastRecipeShareDepart(recipeInfoVO.getFastRecipeShareDepart());
             recipeBean.setRecipeExtend(recipeExtendBean);
             recipeExtendBean.setFastRecipeNum(buyNum);
             //3.recipe参数设置
@@ -274,6 +276,8 @@ public class FastRecipeService extends BaseService implements IFastRecipeBusines
             recipeExtendBean.setDoctorIsDecoction(fastRecipe.getDoctorIsDecoction());
             recipeExtendBean.setMouldId(recipeInfoVO.getMouldId());
             recipeExtendBean.setFastRecipeShareDoctor(recipeInfoVO.getFastRecipeShareDoctor());
+            recipeExtendBean.setFastRecipeShareDoctor(recipeInfoVO.getFastRecipeShareDoctor());
+            recipeExtendBean.setFastRecipeShareDepart(recipeInfoVO.getFastRecipeShareDepart());
 
             int buyNum = ValidateUtil.nullOrZeroInteger(recipeInfoVO.getBuyNum()) ? 1 : recipeInfoVO.getBuyNum();
             recipeExtendBean.setFastRecipeNum(buyNum);

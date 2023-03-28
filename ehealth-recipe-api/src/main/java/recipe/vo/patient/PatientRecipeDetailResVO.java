@@ -1,10 +1,7 @@
 package recipe.vo.patient;
 
 import com.ngari.recipe.recipe.model.GiveModeButtonBean;
-import ctd.schema.annotation.Dictionary;
-import ctd.schema.annotation.FileToken;
-import ctd.schema.annotation.ItemProperty;
-import ctd.schema.annotation.Schema;
+import ctd.schema.annotation.*;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -131,6 +128,12 @@ public class PatientRecipeDetailResVO implements Serializable {
     private String recipeMode;
 
     /******************************** 以下数据来源 recipeExt ****************************/
+    @ItemProperty(alias = "HIS处方关联的卡类型")
+    private String cardType;
+
+    @ItemProperty(alias = "HIS处方关联的卡号")
+    @Desensitizations(type = DesensitizationsType.HEALTHCARD)
+    private String cardNo;
 
     @ItemProperty(alias = "是否长处方")
     private String isLongRecipe;
@@ -207,6 +210,9 @@ public class PatientRecipeDetailResVO implements Serializable {
 
     @ItemProperty(alias = "开处方页面病种选择开关标识")
     private Integer recipeChooseChronicDisease;
+
+    @ItemProperty(alias = "并发症")
+    private String complication;
 
     /******************************** 以下数据来源 recipedetail ****************************/
     @ItemProperty(alias = "药房id主键")

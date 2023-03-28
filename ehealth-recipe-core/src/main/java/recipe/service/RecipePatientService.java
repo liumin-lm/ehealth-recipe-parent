@@ -26,10 +26,7 @@ import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.DepListBean;
-import com.ngari.recipe.dto.GiveModeButtonDTO;
-import com.ngari.recipe.dto.GiveModeShowButtonDTO;
-import com.ngari.recipe.dto.PatientRecipeDetailReqDTO;
-import com.ngari.recipe.dto.RecipeInfoDTO;
+import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.offlinetoonline.model.OfflineToOnlineReqVO;
 import com.ngari.recipe.offlinetoonline.model.OfflineToOnlineResVO;
@@ -107,8 +104,6 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
     @Autowired
     private RecipeManager recipeManager;
     @Autowired
-    private OrganDrugListManager organDrugListManager;
-    @Autowired
     private RecipeDetailManager recipeDetailManager;
     @Autowired
     private CreatePdfFactory createPdfFactory;
@@ -138,6 +133,8 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
     private HisRecipeManager  hisRecipeManager;
     @Autowired
     private OfflineToOnlineFactory offlineToOnlineFactory;
+    @Autowired
+    private OrganClient organClient;
 
     /**
      * 根据取药方式过滤药企
@@ -1029,27 +1026,30 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         RecipeInfoDTO recipe = null;
         Integer recipeBusType = 1;
         if (Objects.nonNull(patientRecipeDetailReq.getRecipeId())) {
-             recipe = recipeManager.getRecipeInfoDTO(patientRecipeDetailReq.getRecipeId());
+            recipe = recipeManager.getRecipeInfoDTO(patientRecipeDetailReq.getRecipeId());
             Recipe recipeRecipe = recipe.getRecipe();
-            if(Objects.isNull(recipe) && RecipeSourceTypeEnum.OFFLINE_RECIPE.equals(recipeRecipe.getRecipeSourceType()) && RecipeStateEnum.PROCESS_STATE_ORDER.getType().equals(recipeRecipe.getProcessState())){
+            if(Objects.nonNull(recipeRecipe) && RecipeSourceTypeEnum.OFFLINE_RECIPE.getType().equals(recipeRecipe.getRecipeSourceType())
+                    && RecipeStateEnum.PROCESS_STATE_ORDER.getType().equals(recipeRecipe.getProcessState())){
                 recipe = getRecipeInfoDTO(patientRecipeDetailReq, recipe, recipeRecipe);
             }
         }
-        if(Objects.isNull(recipe) && StringUtils.isNotEmpty(patientRecipeDetailReq.getRecipeCode()) && Objects.nonNull(patientRecipeDetailReq.getOrganId())){
-            // 获取线下处方
-            recipe = hisRecipeManager.getHisRecipeInfoDTO(BeanCopyUtils.copyProperties(patientRecipeDetailReq, PatientRecipeDetailReqDTO::new));
-            if (Objects.isNull(recipe) && BussSourceTypeEnum.BUSSSOURCE_REVISIT.getType().equals(patientRecipeDetailReq.getBussSource()) && RecipeStateEnum.PROCESS_STATE_ORDER.getType().equals(patientRecipeDetailReq.getProcessState())) {
-                recipe = getRecipeInfoDTO(patientRecipeDetailReq, recipe, recipe.getRecipe());
-                recipe.setRecipeBusType(1);
+        if ((Objects.isNull(recipe) || Objects.isNull(recipe.getRecipe())) && StringUtils.isNotEmpty(patientRecipeDetailReq.getRecipeCode()) && Objects.nonNull(patientRecipeDetailReq.getOrganId())) {
+            Recipe dbRecipe = recipeManager.getByRecipeCodeAndClinicOrganAndMpiid(patientRecipeDetailReq.getRecipeCode(), patientRecipeDetailReq.getOrganId(), patientRecipeDetailReq.getMpiid());
+            if (Objects.nonNull(dbRecipe)) {
+                recipe = recipeManager.getRecipeInfoDTO(dbRecipe.getRecipeId());
+            } else {
+                // 获取线下处方
+                recipe = hisRecipeManager.getHisRecipeInfoDTO(BeanCopyUtils.copyProperties(patientRecipeDetailReq, PatientRecipeDetailReqDTO::new));
+                if (BussSourceTypeEnum.BUSSSOURCE_REVISIT.getType().equals(patientRecipeDetailReq.getBussSource()) && RecipeStateEnum.PROCESS_STATE_ORDER.getType().equals(patientRecipeDetailReq.getProcessState())) {
+                    recipe = getRecipeInfoDTO(patientRecipeDetailReq, recipe, recipe.getRecipe());
+                    recipe.setRecipeBusType(1);
+                }
+                recipeBusType = recipe.getRecipeBusType();
             }
-            recipeBusType = recipe.getRecipeBusType();
         }
 
-        if (Objects.isNull(recipe)){
-            throw new DAOException("未查询到相关处方信息");
-        }
-        PatientRecipeDetailResVO patientRecipeDetailResVO = coverPatientRecipeDetailResVO(recipe,recipeBusType);
-        return patientRecipeDetailResVO;
+        Optional.ofNullable(recipe).orElseThrow(() -> new DAOException("未查询到相关处方信息"));
+        return coverPatientRecipeDetailResVO(recipe,recipeBusType);
     }
 
     private RecipeInfoDTO getRecipeInfoDTO(PatientRecipeDetailReqVO patientRecipeDetailReq, RecipeInfoDTO recipe, Recipe recipeRecipe) {
@@ -1102,6 +1102,10 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
             patientRecipeDetailResVO.setDoctorName(DictionaryUtil.getDictionary("eh.base.dictionary.Doctor", returnRecipe.getDoctor()));
         }else {
             patientRecipeDetailResVO.setDoctorName(returnRecipe.getDoctorName());
+        }
+        if (Objects.nonNull(returnRecipe.getClinicOrgan())) {
+            OrganDTO organDTO = organClient.organDTO(returnRecipe.getClinicOrgan());
+            patientRecipeDetailResVO.setOrganName(organDTO.getName());
         }
 
         Integer secrecyRecipe = 0;

@@ -33,6 +33,7 @@ import com.ngari.recipe.dto.EmrDetailDTO;
 import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.SyncEinvoiceNumberDTO;
+import com.ngari.recipe.offlinetoonline.model.checkForOrderBeforeReqVo;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipe.service.IRecipeService;
 import com.ngari.revisit.RevisitAPI;
@@ -685,7 +686,9 @@ public class RecipeHisService extends RecipeBaseService {
             List<RecipeListQueryReqTO> requestList = new ArrayList<>();
             for (String recipeCode : recipeCodes) {
                 Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeCode, organId);
-                if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
+                // 到院自取 线上支付的 已支付的 需要查询取药状态
+                Boolean toHosFlag = PayFlagEnum.PAYED.getType().equals(recipe.getPayFlag()) && GiveModeEnum.GIVE_MODE_HOSPITAL_DRUG.getType().equals(recipe.getGiveMode());
+                if (!toHosFlag && StringUtils.isNotEmpty(recipe.getOrderCode())) {
                     RecipeOrder order = orderDAO.getByOrderCode(recipe.getOrderCode());
                     if (Objects.nonNull(order)) {
                         Integer payQuery = payClient.payQuery(order.getOrderId());
@@ -834,6 +837,41 @@ public class RecipeHisService extends RecipeBaseService {
             return null;
         }
 
+    }
+
+    /**
+     * 单个处方查询更新状态forHisRecipe
+     *
+     * @param
+     * @return
+     */
+    public Integer getRecipeSinglePayStatusQueryForHisRecipe(checkForOrderBeforeReqVo req) {
+        RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
+        List<RecipeListQueryReqTO> requestList = new ArrayList<>();
+        RecipeListQueryReqTO recipeListQueryReqTO = new RecipeListQueryReqTO();
+        PatientDTO patientDTO = patientService.getPatientBeanByMpiId(req.getMpiid());
+        recipeListQueryReqTO.setOrganID((null != req.getOrganId()) ? Integer.toString(req.getOrganId()) : null);
+        recipeListQueryReqTO.setCardNo(req.getCardId());
+        recipeListQueryReqTO.setCardType(req.getCardType());
+        recipeListQueryReqTO.setRegisterId(req.getRegisterId());
+        recipeListQueryReqTO.setRecipeNo(req.getRecipeCode());
+        if (patientDTO != null) {
+            recipeListQueryReqTO.setPatientName(patientDTO.getPatientName());
+            recipeListQueryReqTO.setPatientId(patientDTO.getPatId());
+            recipeListQueryReqTO.setCertID(patientDTO.getIdcard());
+            recipeListQueryReqTO.setCertificate(patientDTO.getCertificate());
+            recipeListQueryReqTO.setCertificateType(patientDTO.getCertificateType());
+            if(StringUtils.isEmpty(recipeListQueryReqTO.getCardType())){
+                recipeListQueryReqTO.setCardType(null==patientDTO.getCardType()?"": String.valueOf(patientDTO.getCardType()));
+            }
+            if(StringUtils.isEmpty(recipeListQueryReqTO.getCardNo())){
+                recipeListQueryReqTO.setCardNo(patientDTO.getCardId());
+            }
+        }
+        recipeListQueryReqTO.setSignDate(req.getSignDate());
+        requestList.add(recipeListQueryReqTO);
+        Integer status = service.listSingleQuery(requestList);
+        return status;
     }
 
     /**

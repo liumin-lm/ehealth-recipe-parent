@@ -250,11 +250,7 @@ public class OrderFeeService implements IRecipeOrderRefundService {
             orderRefundInfoVO.setApplyReason(patientRefundList.get(0).getReason());
             orderRefundInfoVO.setApplyTime(DateConversion.getDateFormatter(patientRefundList.get(0).getApplyTime(), DateConversion.DEFAULT_DATE_TIME));
         }
-        if (RecipeOrderStatusEnum.ORDER_STATUS_HAS_DRUG.getType().equals(recipeOrder.getStatus())) {
-            orderRefundInfoVO.setOrderStatusText(RecipeOrderStatusEnum.ORDER_STATUS_READY_GET_DRUG.getName());
-        } else {
-            orderRefundInfoVO.setOrderStatusText(RecipeOrderStatusEnum.getOrderStatus(recipeOrder.getStatus()));
-        }
+        orderRefundInfoVO.setOrderStatusText(OrderStateEnum.getOrderStateEnum(recipeOrder.getSubState()).getName());
         List<RecipeExtend> recipeExtendList = recipeExtendDAO.queryRecipeExtendByRecipeIds(recipeIdList);
         Map<Integer, RecipeExtend> recipeExtendMap = recipeExtendList.stream().collect(Collectors.toMap(RecipeExtend::getRecipeId, a -> a, (k1, k2) -> k1));
         // 是否医院结算药企

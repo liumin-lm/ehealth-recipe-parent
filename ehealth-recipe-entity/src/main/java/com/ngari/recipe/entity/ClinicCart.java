@@ -61,6 +61,12 @@ public class ClinicCart implements Serializable {
     @ItemProperty(alias = "贴数")
     private Integer copyNum;
 
+    @ItemProperty(alias = "药房编码")
+    private String pharmacyCode;
+
+    @ItemProperty(alias = "药房名称")
+    private String pharmacyName;
+
     @Id
     @GeneratedValue(strategy = IDENTITY)
     @Column(name = "id", nullable = false)
@@ -180,4 +186,21 @@ public class ClinicCart implements Serializable {
         this.copyNum = copyNum;
     }
 
+    @Column(name = "pharmacy_code")
+    public String getPharmacyCode() {
+        return pharmacyCode;
+    }
+
+    public void setPharmacyCode(String pharmacyCode) {
+        this.pharmacyCode = pharmacyCode;
+    }
+
+    @Column(name = "pharmacy_name")
+    public String getPharmacyName() {
+        return pharmacyName;
+    }
+
+    public void setPharmacyName(String pharmacyName) {
+        this.pharmacyName = pharmacyName;
+    }
 }

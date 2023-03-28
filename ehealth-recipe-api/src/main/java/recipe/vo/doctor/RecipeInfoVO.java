@@ -77,6 +77,10 @@ public class RecipeInfoVO {
      * 快捷购药分享医生
      */
     private Integer fastRecipeShareDoctor;
+    /**
+     * 快捷购药分享科室代码
+     */
+    private String fastRecipeShareDepart;
 
     @Override
     public boolean equals(Object o) {

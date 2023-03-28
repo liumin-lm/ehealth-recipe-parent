@@ -327,7 +327,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     @Override
     public List<PatientOptionalDrugVO> findPatientOptionalDrugDTO(Integer clinicId) {
         logger.info("RecipeBusinessService findPatientOptionalDrugDTO req clinicId= {}", JSON.toJSONString(clinicId));
-        List<PatientOptionalDrug> patientOptionalDrugs = patientOptionalDrugDAO.findPatientOptionalDrugByClinicId(clinicId);
+        List<PatientOptionalDrug> patientOptionalDrugs = patientOptionalDrugDAO.findPatientOptionalDrugByClinicIdV1(clinicId);
         if (CollectionUtils.isEmpty(patientOptionalDrugs)) {
             logger.info("RecipeBusinessService findPatientOptionalDrugDTO 返回值为空 patientOptionalDrugs= {}", JSON.toJSONString(patientOptionalDrugs));
             return Lists.newArrayList();
@@ -1566,7 +1566,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             //健康卡数据上传
             patientClient.cardDataUpload(recipe.getClinicOrgan(), recipe.getMpiid());
             //通知复诊——添加处方追溯数据
-            revisitManager.saveRevisitTracesList(recipeDAO.get(recipe.getRecipeId()));
+            revisitManager.saveRevisitTracesList(recipe);
         });
         return recipe.getRecipeId();
     }
