@@ -23,7 +23,6 @@ import com.ngari.recipe.vo.HospitalDrugListVO;
 import com.ngari.recipe.vo.SearchDrugReqVO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
-import eh.entity.base.UsingRate;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -44,6 +43,7 @@ import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.manager.DrugManager;
 import recipe.manager.HisRecipeManager;
 import recipe.manager.OrganDrugListManager;
+import recipe.manager.PharmacyManager;
 import recipe.util.MapValueUtil;
 import recipe.vo.greenroom.OrganConfigVO;
 import recipe.vo.greenroom.OrganDrugListSyncFieldVo;
@@ -95,6 +95,8 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
     private MedicationSyncConfigDAO medicationSyncConfigDAO;
     @Autowired
     private RecipeParameterDao recipeParameterDao;
+    @Autowired
+    private PharmacyTcmDAO pharmacyTcmDAO;
 
     @Override
     public List<PatientDrugWithEsDTO> findDrugWithEsByPatient(SearchDrugReqVO searchDrugReqVo) {
@@ -764,14 +766,22 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
         List<com.ngari.platform.recipe.mode.OrganDrugListBean> organDrugListBeans = drugClient.findHisDrugList(request, organList);
         List<String> organDrugCodes = organDrugListBeans.stream().map(com.ngari.platform.recipe.mode.OrganDrugListBean::getOrganDrugCode).collect(Collectors.toList());
         if (CollectionUtils.isEmpty(organDrugCodes)) {
-            return new ArrayList<>();
+            return Collections.emptyList();
         }
         List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugCodes(hisDrugInfoReqVO.getOrganId(), organDrugCodes);
         Map<String, OrganDrugList> organDrugListMap = organDrugLists.stream().collect(Collectors.toMap(OrganDrugList::getOrganDrugCode, a -> a, (k1, k2) -> k1));
         organDrugListBeans.forEach(organDrugListBean -> {
             OrganDrugList organDrugList = organDrugListMap.get(organDrugListBean.getOrganDrugCode());
+            PharmacyTcm pharmacyTcm = null;
+            if (StringUtils.isNotEmpty(organDrugListBean.getPharmacy())) {
+                pharmacyTcm = pharmacyTcmDAO.getByOrganIdAndCode(hisDrugInfoReqVO.getOrganId(), organDrugListBean.getPharmacy());
+            }
             if (Objects.nonNull(organDrugList)) {
-                organDrugListBean.setDrugId(organDrugList.getDrugId());
+                String hisPharmacyCode = Objects.isNull(pharmacyTcm)?"":pharmacyTcm.getPharmacyId().toString();
+                String pharmacyCode = StringUtils.isEmpty(organDrugList.getPharmacy())?"":organDrugList.getPharmacy();
+                if (pharmacyCode.contains(hisPharmacyCode)) {
+                    organDrugListBean.setDrugId(organDrugList.getDrugId());
+                }
             }
         });
         return ObjectCopyUtils.convert(organDrugListBeans, OrganDrugListBean.class);
