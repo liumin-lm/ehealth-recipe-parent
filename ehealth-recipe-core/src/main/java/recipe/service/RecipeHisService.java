@@ -716,6 +716,8 @@ public class RecipeHisService extends RecipeBaseService {
                 recipeListQueryReqTO.setPatientName(recipe.getPatientName());
                 recipeListQueryReqTO.setPatientId(recipe.getPatientID());
                 recipeListQueryReqTO.setRegisterId(recipeExtend == null ? null : recipeExtend.getRegisterID());
+                recipeListQueryReqTO.setChargeId(recipeExtend == null ? null : recipeExtend.getChargeId());
+                recipeListQueryReqTO.setChargeItemCode(recipeExtend == null ? null : recipeExtend.getChargeItemCode());
                 recipeListQueryReqTO.setRecipeNo(recipe.getRecipeCode());
                 requestList.add(recipeListQueryReqTO);
             }
