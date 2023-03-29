@@ -31,6 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
+import recipe.aop.LogRecord;
 import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.client.OfflineRecipeClient;
@@ -616,6 +617,7 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
      * @param hisRecipeList 线下处方列表
      * @return
      */
+    @LogRecord
     private Set<RecipeInfoVO> recipeList(List<RecipeInfoDTO> recipeList, List<List<com.ngari.platform.recipe.mode.RecipeDTO>> hisRecipeList) {
         Set<RecipeInfoVO> set = new HashSet<>();
         recipeList.forEach(a -> {
