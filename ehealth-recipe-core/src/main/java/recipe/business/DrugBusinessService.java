@@ -772,17 +772,17 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
         }
         Map<String, PharmacyTcm> pharmacyMap = pharmacyTcmList.stream().collect(Collectors.toMap(PharmacyTcm::getPharmacyCode, a -> a, (k1, k2) -> k1));
         organDrugListBeans.forEach(organDrugListBean -> {
-            List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndOrganDrugCodeAndPharmacy(hisDrugInfoReqVO.getOrganId(), organDrugListBean.getOrganDrugCode(), organDrugListBean.getPharmacy());
-            OrganDrugList organDrugList = null;
-            if (CollectionUtils.isNotEmpty(organDrugLists)) {
-                organDrugList = organDrugLists.get(0);
-            }
             PharmacyTcm pharmacyTcm = null;
             if (StringUtils.isNotEmpty(organDrugListBean.getPharmacy())) {
                 pharmacyTcm = pharmacyMap.get(organDrugListBean.getPharmacy());
             }
+            String hisPharmacyCode = Objects.isNull(pharmacyTcm)?"202303291730":pharmacyTcm.getPharmacyId().toString();
+            List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndOrganDrugCodeAndPharmacy(hisDrugInfoReqVO.getOrganId(), organDrugListBean.getOrganDrugCode(), hisPharmacyCode);
+            OrganDrugList organDrugList = null;
+            if (CollectionUtils.isNotEmpty(organDrugLists)) {
+                organDrugList = organDrugLists.get(0);
+            }
             if (Objects.nonNull(organDrugList)) {
-                String hisPharmacyCode = Objects.isNull(pharmacyTcm)?"":pharmacyTcm.getPharmacyId().toString();
                 String pharmacyCode = StringUtils.isEmpty(organDrugList.getPharmacy())?"":organDrugList.getPharmacy();
                 if (pharmacyCode.contains(hisPharmacyCode)) {
                     organDrugListBean.setDrugId(organDrugList.getDrugId());
