@@ -1203,7 +1203,7 @@ public class HisRecipeService {
             recipe.setDepart(appointDepartDTO.getDepartId());
         } else {
             LOGGER.info("HisRecipeService saveRecipeFromHisRecipe 无法查询到挂号科室:{}.", hisRecipe.getDepartCode());
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "挂号科室维护错误");
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "开方科室缺失，无法在线下单！");
         }
         EmploymentService employmentService = BasicAPI.getService(EmploymentService.class);
         if (StringUtils.isNotEmpty(hisRecipe.getDoctorCode())) {
@@ -1212,7 +1212,7 @@ public class HisRecipeService {
                 recipe.setDoctor(employmentDTO.getDoctorId());
             } else {
                 LOGGER.error("请确认医院的医生工号和纳里维护的是否一致:" + hisRecipe.getDoctorCode());
-                throw new DAOException(ErrorCode.SERVICE_ERROR, "医生工号维护错误");
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "开方医生缺失，无法在线下单！");
             }
         }
 
@@ -1302,7 +1302,7 @@ public class HisRecipeService {
             LOGGER.info("Arrays.asList(hisRecipeDetail.getDrugCode()):" + hisRecipeDetail.getDrugCode());
             List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugCodes(hisRecipe.getClinicOrgan(), Arrays.asList(hisRecipeDetail.getDrugCode()));
             if (CollectionUtils.isEmpty(organDrugLists)) {
-                throw new DAOException(ErrorCode.SERVICE_ERROR, "处方中的药品信息未维护到线上平台药品目录");
+                throw new DAOException(ErrorCode.SERVICE_ERROR, hisRecipeDetail.getDrugName()+"缺失，无法在线下单！");
             }
             Recipedetail recipedetail = new Recipedetail();
             recipedetail.setRecipeId(recipeId);

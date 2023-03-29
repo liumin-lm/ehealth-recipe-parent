@@ -825,7 +825,7 @@ public class BaseOfflineToOnlineService {
             if (CollectionUtils.isEmpty(organDrugLists)) {
                 LOGGER.info("处方中的药品信息未维护到线上平台药品目录:{},{},{}", hisRecipe.getRecipeCode(), hisRecipeDetail.getDrugCode(), hisRecipe.getClinicOrgan());
                 hisRecipeManager.deleteSetRecipeCode(hisRecipe.getClinicOrgan(), recipeCodes);
-                throw new DAOException(ErrorCode.SERVICE_ERROR, "处方中的药品信息未维护到线上平台药品目录");
+                throw new DAOException(ErrorCode.SERVICE_ERROR, hisRecipeDetail.getDrugName()+"缺失，无法在线下单！");
             }
             if (new Integer("1").equals(organDrugLists.get(0).getTargetedDrugType())) {
                 targetedDrugType = 1;
