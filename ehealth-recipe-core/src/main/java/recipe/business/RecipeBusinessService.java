@@ -58,7 +58,6 @@ import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.caNew.AbstractCaProcessType;
-import recipe.caNew.CaAfterProcessType;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.*;
 import recipe.common.OnsConfig;
@@ -176,8 +175,6 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     private OrganAndDrugsepRelationDAO drugsDepRelationDAO;
     @Autowired
     private RevisitClient revisitClient;
-    @Resource
-    private CaAfterProcessType caAfterProcessType;
 
     /**
      * 获取线下门诊处方诊断信息
@@ -1556,6 +1553,9 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             recipeManager.handleRecipeInvalidTime(recipe.getClinicOrgan(), recipe.getRecipeId(), recipe.getSignDate());
         } else {
             /**互联网**/
+            stateManager.updateWriteHisState(recipe.getRecipeId(), WriteHisEnum.WRITE_HIS_STATE_SUBMIT);
+            stateManager.updateStatus(recipe.getRecipeId(), RecipeStatusEnum.RECIPE_STATUS_CHECKING_HOS, SignEnum.NONE);
+            stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_SUBMIT, RecipeStateEnum.NONE);
             //MQ推送处方开成功消息 - 发送HIS处方开具消息
             offlineRecipeClient.recipeStatusToHis(HisMqRequestInit.initRecipeStatusToHisReq(recipe, HisBussConstant.TOHIS_RECIPE_STATUS_ADD));
             //处方开完后发送聊天界面消息 -医院确认中
@@ -1567,6 +1567,8 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             patientClient.cardDataUpload(recipe.getClinicOrgan(), recipe.getMpiid());
             //通知复诊——添加处方追溯数据
             revisitManager.saveRevisitTracesList(recipe);
+            //保存常用药
+            drugManager.saveCommonDrug(recipe.getRecipeId());
         });
         return recipe.getRecipeId();
     }

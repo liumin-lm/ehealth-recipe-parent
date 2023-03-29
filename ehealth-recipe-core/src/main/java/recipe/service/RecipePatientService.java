@@ -1028,6 +1028,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         if (Objects.nonNull(patientRecipeDetailReq.getRecipeId())) {
             recipe = recipeManager.getRecipeInfoDTO(patientRecipeDetailReq.getRecipeId());
             Recipe recipeRecipe = recipe.getRecipe();
+            // 如果是线下处方且处方状态为待下单，则需要转换为线上处方
             if(Objects.nonNull(recipeRecipe) && RecipeSourceTypeEnum.OFFLINE_RECIPE.getType().equals(recipeRecipe.getRecipeSourceType())
                     && RecipeStateEnum.PROCESS_STATE_ORDER.getType().equals(recipeRecipe.getProcessState())){
                 recipe = getRecipeInfoDTO(patientRecipeDetailReq, recipe, recipeRecipe);
@@ -1038,7 +1039,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
             if (Objects.nonNull(dbRecipe)) {
                 recipe = recipeManager.getRecipeInfoDTO(dbRecipe.getRecipeId());
             } else {
-                // 获取线下处方
+                // 如果没有找到线上处方，则获取线下处方
                 recipe = hisRecipeManager.getHisRecipeInfoDTO(BeanCopyUtils.copyProperties(patientRecipeDetailReq, PatientRecipeDetailReqDTO::new));
                 if (BussSourceTypeEnum.BUSSSOURCE_REVISIT.getType().equals(patientRecipeDetailReq.getBussSource()) && RecipeStateEnum.PROCESS_STATE_ORDER.getType().equals(patientRecipeDetailReq.getProcessState())) {
                     recipe = getRecipeInfoDTO(patientRecipeDetailReq, recipe, recipe.getRecipe());
