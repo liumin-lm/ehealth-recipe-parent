@@ -1554,6 +1554,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         } else {
             /**互联网**/
             recipeManager.updateRecipeZJJGPT(recipe.getRecipeId());
+            //更新状态
             stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_SUBMIT, RecipeStateEnum.NONE);
             //MQ推送处方开成功消息 - 发送HIS处方开具消息
             offlineRecipeClient.recipeStatusToHis(HisMqRequestInit.initRecipeStatusToHisReq(recipe, HisBussConstant.TOHIS_RECIPE_STATUS_ADD));
