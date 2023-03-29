@@ -42,6 +42,10 @@ public class RecipeGiveModeButtonRes {
      */
     private String jumpType;
 
+    private String appId;
+
+    private String skipUrl;
+
 
     public RecipeGiveModeButtonRes(String giveModeKey,String giveModeText) {
         super();
