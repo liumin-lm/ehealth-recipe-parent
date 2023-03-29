@@ -191,6 +191,7 @@ class NoPayStrategyImpl extends BaseOfflineToOnlineService implements IOfflineTo
         RecipeBean recipeBean=new RecipeBean();
         if(null!=recipeId.get()){
             recipeBean.setRecipeId(recipeId.get());
+            recipeBean.setRecipeCode(request.getRecipeCode());
             res.setRecipe(recipeBean);
         }
         return res;
