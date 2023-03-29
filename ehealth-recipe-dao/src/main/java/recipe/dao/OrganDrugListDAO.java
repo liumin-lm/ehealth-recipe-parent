@@ -401,6 +401,29 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
         return action.getResult();
     }
 
+    public List<OrganDrugList> findByOrganIdAndOrganDrugCodeAndPharmacy(final int organId, final String organDrugCode, final String pharmacy) {
+        HibernateStatelessResultAction<List<OrganDrugList>> action = new AbstractHibernateStatelessResultAction<List<OrganDrugList>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder("from OrganDrugList where organDrugCode=:organDrugCode and organId=:organId ");
+                if (!StringUtils.isEmpty(pharmacy)) {
+                    hql.append(" and pharmacy like :pharmacy ");
+                }
+
+                Query query = ss.createQuery(String.valueOf(hql));
+
+                query.setParameter("organDrugCode", organDrugCode);
+                query.setParameter("organId", organId);
+                if (!StringUtils.isEmpty(pharmacy)) {
+                    query.setParameter("organId", "%" + pharmacy + "%");
+                }
+                setResult(query.list());
+            }
+        };
+        HibernateSessionTemplate.instance().executeReadOnly(action);
+        return action.getResult();
+    }
+
     /**
      * 通过机构id及药品id更新药品价格
      *
