@@ -133,7 +133,13 @@ public class RecipeToHisService {
                                 BigDecimal totalMoney = new BigDecimal(0.00);
                                 if (recipeFee.compareTo(BigDecimal.ZERO) > 0) {
                                     Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(rep.getRecipeNo(), organId);
+                                    if(null==recipe){
+                                        return busStatus;
+                                    }
                                     RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+                                    if(null==recipeOrder){
+                                        return busStatus;
+                                    }
                                     if (null != recipeOrder && !"111".equals(recipeOrder.getWxPayWay())) {
                                         Map<String, Object> map = new HashMap<>();
                                         map.put("recipeFee", recipeFee);
@@ -157,6 +163,83 @@ public class RecipeToHisService {
         return null;
     }
 
+
+    /**
+     * 查询线下处方支付状态
+     * @param request
+     * @return
+     */
+    public Integer listSingleQueryForHisRecipe(List<RecipeListQueryReqTO> request) {
+        IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
+        LOGGER.info("listQuery request by listSingleQuery={}", JSONUtils.toString(request));
+        try {
+            RecipeListQueryResTO response = hisService.listQuery(request);
+            LOGGER.info("listQuery response by listSingleQuery={}", JSONUtils.toString(response));
+            Integer busStatus = null;
+            //有可能前置机没实现这个接口 返回null 保证流程走通
+            if (null == response || CollectionUtils.isEmpty(response.getData())) {
+                return RecipeStatusConstant.CHECK_PASS;
+            }
+            if (null == response.getMsgCode()) {
+                return busStatus;
+            }
+
+            List<QueryRepTO> list = response.getData();
+            if (StringUtils.isNotEmpty(response.getOrganID()) && CollectionUtils.isNotEmpty(list)) {
+                List<String> payList = new ArrayList<>();
+                List<String> finishList = new ArrayList<>();
+
+                QueryRepTO rep = list.get(0);
+                if (null != rep) {
+                    Integer organId = Integer.valueOf(response.getOrganID());
+                    Integer isPay = StringUtils.isEmpty(rep.getIsPay()) ? Integer.valueOf(0) : Integer.valueOf(rep.getIsPay());
+                    Integer recipeStatus = StringUtils.isEmpty(rep.getRecipeStatus()) ? Integer.valueOf(0) : Integer.valueOf(rep.getRecipeStatus());
+                    Integer phStatus = StringUtils.isEmpty(rep.getPhStatus()) ? Integer.valueOf(0) : Integer.valueOf(rep.getPhStatus());
+
+                    if (recipeStatus == 1) {
+                        busStatus = RecipeStatusConstant.CHECK_PASS;
+
+                        if (isPay == 1) {
+                            if (phStatus == 0) {
+                                //有效的处方单已支付 未发药 为已支付状态
+                                busStatus = RecipeStatusConstant.HAVE_PAY;
+                                payList.add(rep.getRecipeNo());
+                                HisCallBackService.havePayRecipesFromHis(payList, organId);
+                            } else if (phStatus == 1) {
+                                //有效的处方单已支付 已发药 为已完成状态
+                                busStatus = RecipeStatusConstant.FINISH;
+                                finishList.add(rep.getRecipeNo());
+                                HisCallBackService.finishRecipesFromHis(finishList, organId);
+                            }
+                            //已支付的处方单,将线下处方支付的金额覆盖线上的处方金额
+                            if (StringUtils.isNotEmpty(rep.getAmount())) {
+                                BigDecimal recipeFee = new BigDecimal(rep.getAmount());
+                                BigDecimal totalMoney = new BigDecimal(0.00);
+                                if (recipeFee.compareTo(BigDecimal.ZERO) > 0) {
+                                    Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(rep.getRecipeNo(), organId);
+                                    RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+                                    if (null != recipeOrder && !"111".equals(recipeOrder.getWxPayWay())) {
+                                        Map<String, Object> map = new HashMap<>();
+                                        map.put("recipeFee", recipeFee);
+                                        totalMoney = totalMoney
+                                                .add(null == recipeOrder.getAuditFee() ? BigDecimal.ZERO : recipeOrder.getAuditFee())
+                                                .add(recipeFee);
+                                        map.put("totalFee", totalMoney);
+                                        map.put("actualPrice", totalMoney.doubleValue());
+                                        recipeOrderDAO.updateByOrdeCode(recipe.getOrderCode(), map);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return busStatus;
+        } catch (Exception e) {
+            LOGGER.error("listSingleQuery error ", e);
+        }
+        return null;
+    }
     /**
      * @param request
      */

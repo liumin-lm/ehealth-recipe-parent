@@ -938,21 +938,21 @@ public class HisRecipeManager extends BaseManager {
      * @param patientRecipeDetailReq
      * @return
      */
+    @LogRecord
     public RecipeInfoDTO getHisRecipeInfoDTO (PatientRecipeDetailReqDTO patientRecipeDetailReq){
+        RecipeInfoDTO recipeInfoDTO = new RecipeInfoDTO();
         if (StringUtils.isEmpty(patientRecipeDetailReq.getMpiid()) || StringUtils.isEmpty(patientRecipeDetailReq.getRecipeCode())) {
-            return null;
+            return recipeInfoDTO;
         }
         PatientDTO patient = patientClient.getPatient(patientRecipeDetailReq.getMpiid());
         if (Objects.isNull(patient)) {
-            return null;
+            return recipeInfoDTO;
         }
         OfflineRecipePayFlagEnum offlineRecipePayFlagEnum = OfflineRecipePayFlagEnum.getByState(patientRecipeDetailReq.getProcessState());
         HisResponseTO<List<QueryHisRecipResTO>> hisResponseTO = queryData(patientRecipeDetailReq.getOrganId(), patient ,null, offlineRecipePayFlagEnum.getType(),patientRecipeDetailReq.getRecipeCode(),patientRecipeDetailReq.getStartTime(),patientRecipeDetailReq.getEndTime());
         if (null == hisResponseTO || CollectionUtils.isEmpty(hisResponseTO.getData())) {
-            return null;
+            return recipeInfoDTO;
         }
-
-        RecipeInfoDTO recipeInfoDTO = new RecipeInfoDTO();
         List<QueryHisRecipResTO> hisRecipeResTOList = hisResponseTO.getData();
         QueryHisRecipResTO hisRecipeResTO = hisRecipeResTOList.get(0);
         RecipeExtend recipeExtend = new RecipeExtend();
@@ -986,6 +986,8 @@ public class HisRecipeManager extends BaseManager {
         recipe.setSignDate(hisRecipeResTO.getCreateDate());
         recipe.setRecipeSourceType(RecipeSourceTypeEnum.OFFLINE_RECIPE.getType());
         recipe.setAppointDepartName(hisRecipeResTO.getDepartName());
+        recipe.setTotalMoney(hisRecipeResTO.getRecipeFee());
+        recipe.setPatientID(hisRecipeResTO.getPatientNumber());
         //设置复诊单
         recipe.setBussSource(BussSourceTypeEnum.BUSSSOURCE_NO.getType());
         if (!BussSourceTypeEnum.BUSSSOURCE_NO.getType().equals(hisRecipeResTO.getRevisitType())) {
@@ -1040,6 +1042,14 @@ public class HisRecipeManager extends BaseManager {
         recipeDetailTOList.forEach(recipeDetailTO -> {
             Recipedetail recipeDetail = ObjectCopyUtils.convert(recipeDetailTO, Recipedetail.class);
             recipeDetail.setOrganDrugCode(recipeDetailTO.getDrugCode());
+            if (Objects.nonNull(recipeDetailTO.getUseTotalDose())) {
+                recipeDetail.setUseTotalDose(recipeDetailTO.getUseTotalDose().doubleValue());
+            }
+            recipeDetail.setUsePathwaysTextFromHis(recipeDetailTO.getUsePathwaysText());
+            recipeDetail.setUsingRateTextFromHis(recipeDetailTO.getUsingRateText());
+            if (StringUtils.isNotEmpty(recipeDetailTO.getUseDose())) {
+                recipeDetail.setUseDose(Double.parseDouble(recipeDetailTO.getUseDose()));
+            }
             recipeDetails.add(recipeDetail);
         });
         return recipeDetails;
@@ -1107,10 +1117,11 @@ public class HisRecipeManager extends BaseManager {
                 List<OrganDrugList> organDrugLists = organDrugListMap.get(b.getDrugCode());
                 if (CollectionUtils.isEmpty(organDrugLists)) {
                     logger.info("处方中的药品信息未维护到线上平台药品目录:{},{},{}", recipe.getRecipeCode(), b.getDrugCode(), recipe.getClinicOrgan());
-                }
-                if (new Integer("1").equals(organDrugLists.get(0).getTargetedDrugType())) {
-                    targetedDrugType.set(1);
-                    return;
+                }else{
+                    if (new Integer("1").equals(organDrugLists.get(0).getTargetedDrugType())) {
+                        targetedDrugType.set(1);
+                        return;
+                    }
                 }
             });
             recipe.setTargetedDrugType(targetedDrugType.get());

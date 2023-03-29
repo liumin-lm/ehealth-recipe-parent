@@ -211,6 +211,9 @@ public class PatientRecipeDetailResVO implements Serializable {
     @ItemProperty(alias = "开处方页面病种选择开关标识")
     private Integer recipeChooseChronicDisease;
 
+    @ItemProperty(alias = "并发症")
+    private String complication;
+
     /******************************** 以下数据来源 recipedetail ****************************/
     @ItemProperty(alias = "药房id主键")
     private Integer pharmacyId;

@@ -45,6 +45,7 @@ import recipe.business.CaBusinessService;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.XstreamUtil;
 import recipe.caNew.pdf.CreatePdfFactory;
+import recipe.client.IConfigurationClient;
 import recipe.common.UrlConfig;
 import recipe.constant.CARecipeTypeConstant;
 import recipe.constant.RecipeStatusConstant;
@@ -56,6 +57,7 @@ import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.status.SignEnum;
 import recipe.manager.EmrRecipeManager;
 import recipe.manager.StateManager;
+import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.ByteUtils;
 import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
@@ -93,11 +95,13 @@ public class RecipeCAService {
     @Autowired
     private StateManager stateManager;
 
+    @Autowired
+    protected IConfigurationClient configurationClient;
+
     @RpcService
     public CommonSignRequest packageCAFromRecipe(Integer recipeId, Integer doctorId, Boolean isDoctor) {
         LOGGER.info("packageCAFromRecipe recipeId：{},doctorId:{},isDoctor:{}", recipeId, doctorId, isDoctor);
         CommonSignRequest caRequest = new CommonSignRequest();
-        Map<String, Object> esignMap = new HashMap<>();
         try {
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
             RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
@@ -118,47 +122,59 @@ public class RecipeCAService {
             caRequest.setBusstype(isDoctor ? CARecipeTypeConstant.CA_RECIPE_DOC : CARecipeTypeConstant.CA_RECIPE_PHA);
             caRequest.setMpiid(recipe.getMpiid());
             caRequest.setCreateTime(recipe.getCreateDate() == null ? "" : recipe.getCreateDate().getTime() + "");
-            //2.首先组装易签保用的签名签章数据
-            esignMap.put("isDoctor", isDoctor);
-            esignMap.put("checker", doctorId);
 
-            if (isDoctor) {
-                //医生的组装
-                String fileName = "recipe_" + recipeId + ".pdf";
-                recipe.setSignDate(DateTime.now().toDate());
-                if (RecipeUtil.isTcmType(recipe.getRecipeType())) {
-                    //中药pdf参数
-                    esignMap = RecipeServiceSub.createParamMapForChineseMedicine(recipe, details, fileName);
+            Map<String, Object> esignMap = new HashMap<>();
+            // 是否返回EsignMap
+            Boolean getEsignMapFlag = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "getEsignMapFlag", false);
+            if(getEsignMapFlag){
+                //2.首先组装易签保用的签名签章数据
+                esignMap.put("isDoctor", isDoctor);
+                esignMap.put("checker", doctorId);
+
+                if (isDoctor) {
+                    //医生的组装
+                    String fileName = "recipe_" + recipeId + ".pdf";
+                    recipe.setSignDate(DateTime.now().toDate());
+                    if (RecipeUtil.isTcmType(recipe.getRecipeType())) {
+                        //中药pdf参数
+                        esignMap = RecipeServiceSub.createParamMapForChineseMedicine(recipe, details, fileName);
+                    } else {
+                        esignMap = RecipeServiceSub.createParamMap(recipe, details, fileName);
+                        esignMap.put("recipeImgId", recipeId);
+                    }
                 } else {
-                    esignMap = RecipeServiceSub.createParamMap(recipe, details, fileName);
-                    esignMap.put("recipeImgId", recipeId);
+                    //药师的组装
+                    esignMap.put("fileName", "recipecheck_" + recipeId + ".pdf");
+                    esignMap.put("recipeSignFileId", recipe.getSignFile());
+                    if (RecipeUtil.isTcmType(recipe.getRecipeType())) {
+                        esignMap.put("templateType", "tcm");
+                    } else {
+                        esignMap.put("templateType", "wm");
+                    }
+                    // 添加机构id
+                    esignMap.put("organId", recipe.getClinicOrgan());
                 }
-            } else {
-                //药师的组装
-                esignMap.put("fileName", "recipecheck_" + recipeId + ".pdf");
-                esignMap.put("recipeSignFileId", recipe.getSignFile());
-                if (RecipeUtil.isTcmType(recipe.getRecipeType())) {
-                    esignMap.put("templateType", "tcm");
-                } else {
-                    esignMap.put("templateType", "wm");
-                }
-                // 添加机构id
-                esignMap.put("organId", recipe.getClinicOrgan());
             }
-
             caRequest.setEsignMap(esignMap);
 
-            //3.在组装通用的签名签章数据
-            //获取签章pdf数据。签名原文
-            CaSealRequestTO requestSealTO = createPdfFactory.queryPdfByte(recipeId,isDoctor);
-            if (null == requestSealTO) {
-                LOGGER.warn("当前CA组装【pdf】和【签章数据】信息返回空，中断当前CA");
-                return null;
+            // 是否同步生成pdf false为异步生成
+            caRequest.setPdfPath("");
+            Boolean getCaPdfSynchronizationFlag = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "getCaPdfSynchronizationFlag", false);
+            if(getCaPdfSynchronizationFlag){
+                //同步生成
+                CaSealRequestTO requestSealTO=createCaPdf(caRequest,recipe,isDoctor);
+                if (null == requestSealTO) {
+                    //原来pdf生成失败，会中断，现在会继续，但是无pdf数据
+                    LOGGER.warn("当前CA组装【pdf】和【签章数据】信息返回空，中断当前CA");
+                    return null;
+                }
+            }else{
+                //异步生成
+                RecipeBusiThreadPool.execute(() -> {
+                    createCaPdf(caRequest,recipe,isDoctor);
+                });
             }
 
-            /*****添加pdf覆盖逻辑*****/
-            /*之前设置在CA组装请求的时候将处方pdf更新上去，现在将生成的时机放置在CA结果回调上*/
-            RecipeServiceEsignExt.updateInitRecipePDF(isDoctor, recipe, requestSealTO.getPdfBase64Str());
             //4.最后组装业务单独请求的扩展数据
             /*** 这个taskCode是SDK签名的时候的签名原文，之后对接的时候需要根据业务组装成对应业务的签名对象****/
             caRequest.setBussData(JSONUtils.toString(recipe));
@@ -167,11 +183,7 @@ public class RecipeCAService {
                 caRequest.setBussData(getBussDataFromCQ(recipeId, isDoctor));
             }
             caRequest.setExtendMap(obtainExtendMap(recipe));
-            if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
-                caRequest.setPdfPath(UrlConfig.fileViewUrl + recipe.getChemistSignFile() + "?token=" + FileAuth.instance().createToken(recipe.getChemistSignFile(), VALID_TIME_SECOND));
-            } else if (StringUtils.isNotEmpty(recipe.getSignFile())) {
-                caRequest.setPdfPath(UrlConfig.fileViewUrl + recipe.getSignFile() + "?token=" + FileAuth.instance().createToken(recipe.getSignFile(), VALID_TIME_SECOND));
-            }
+
         } catch (Exception e) {
             LOGGER.warn("当前处方CA数据组装失败返回空，{}", e);
         }
@@ -179,6 +191,32 @@ public class RecipeCAService {
         return caRequest;
     }
 
+    /**
+     * 获取签名数据时生成pdf
+     * @param caRequest
+     * @param recipe
+     * @param isDoctor
+     */
+    private CaSealRequestTO createCaPdf(CommonSignRequest caRequest,Recipe recipe,Boolean isDoctor){
+        //3.在组装通用的签名签章数据
+        //获取签章pdf数据。签名原文
+        CaSealRequestTO requestSealTO = createPdfFactory.queryPdfByte(recipe.getRecipeId(),isDoctor);
+        if (null == requestSealTO) {
+            //原来pdf生成失败，会中断，现在会继续，但是无pdf数据
+            LOGGER.warn("当前CA组装【pdf】和【签章数据】信息返回空，中断当前CA");
+            return null;
+        }
+        /*****添加pdf覆盖逻辑*****/
+                 /*之前设置在CA组装请求的时候将处方pdf更新上去，现在将生成的时机放置在CA结果回调上*/
+        RecipeServiceEsignExt.updateInitRecipePDF(isDoctor, recipe, requestSealTO.getPdfBase64Str());
+
+        if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
+            caRequest.setPdfPath(UrlConfig.fileViewUrl + recipe.getChemistSignFile() + "?token=" + FileAuth.instance().createToken(recipe.getChemistSignFile(), VALID_TIME_SECOND));
+        } else if (StringUtils.isNotEmpty(recipe.getSignFile())) {
+            caRequest.setPdfPath(UrlConfig.fileViewUrl + recipe.getSignFile() + "?token=" + FileAuth.instance().createToken(recipe.getSignFile(), VALID_TIME_SECOND));
+        }
+        return requestSealTO;
+    }
     /**
      * 获取ExtendMap
      *

@@ -351,6 +351,7 @@ public class RevisitClient extends BaseClient {
         if (null != hosRecord) {
             extend.setSideCourtYardType(hosRecord.getType());
         }
+        revisitExService.updateRecipeIdByConsultId(recipe.getClinicId(), recipe.getRecipeId());
     }
 }
 

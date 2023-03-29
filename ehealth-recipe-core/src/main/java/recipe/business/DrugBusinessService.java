@@ -1,5 +1,6 @@
 package recipe.business;
 
+import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.miscellany.mode.HospitalInformationRequestTO;
@@ -12,10 +13,7 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.HospitalDrugListDTO;
 import com.ngari.platform.recipe.mode.HospitalDrugListReqDTO;
 import com.ngari.recipe.drug.model.*;
-import com.ngari.recipe.dto.DrugInfoDTO;
-import com.ngari.recipe.dto.DrugSpecificationInfoDTO;
-import com.ngari.recipe.dto.PatientDrugWithEsDTO;
-import com.ngari.recipe.dto.RecipeInfoDTO;
+import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.vo.DrugSaleStrategyVO;
 import com.ngari.recipe.vo.HospitalDrugListReqVO;
@@ -23,7 +21,6 @@ import com.ngari.recipe.vo.HospitalDrugListVO;
 import com.ngari.recipe.vo.SearchDrugReqVO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
-import eh.entity.base.UsingRate;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -95,6 +92,8 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
     private MedicationSyncConfigDAO medicationSyncConfigDAO;
     @Autowired
     private RecipeParameterDao recipeParameterDao;
+    @Autowired
+    private PharmacyTcmDAO pharmacyTcmDAO;
 
     @Override
     public List<PatientDrugWithEsDTO> findDrugWithEsByPatient(SearchDrugReqVO searchDrugReqVo) {
@@ -764,17 +763,35 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
         List<com.ngari.platform.recipe.mode.OrganDrugListBean> organDrugListBeans = drugClient.findHisDrugList(request, organList);
         List<String> organDrugCodes = organDrugListBeans.stream().map(com.ngari.platform.recipe.mode.OrganDrugListBean::getOrganDrugCode).collect(Collectors.toList());
         if (CollectionUtils.isEmpty(organDrugCodes)) {
-            return new ArrayList<>();
+            return Collections.emptyList();
         }
         List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugCodes(hisDrugInfoReqVO.getOrganId(), organDrugCodes);
         Map<String, OrganDrugList> organDrugListMap = organDrugLists.stream().collect(Collectors.toMap(OrganDrugList::getOrganDrugCode, a -> a, (k1, k2) -> k1));
+        Set<String> pharmacyCodeSet = organDrugListBeans.stream().map(com.ngari.platform.recipe.mode.OrganDrugListBean::getPharmacy).collect(Collectors.toSet());
+        List<PharmacyTcm> pharmacyTcmList = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(pharmacyCodeSet)) {
+            pharmacyTcmList = pharmacyTcmDAO.findByOrganIdAndCodes(hisDrugInfoReqVO.getOrganId(), pharmacyCodeSet);
+        }
+        Map<String, PharmacyTcm> pharmacyMap = pharmacyTcmList.stream().collect(Collectors.toMap(PharmacyTcm::getPharmacyCode, a -> a, (k1, k2) -> k1));
         organDrugListBeans.forEach(organDrugListBean -> {
             OrganDrugList organDrugList = organDrugListMap.get(organDrugListBean.getOrganDrugCode());
+            PharmacyTcm pharmacyTcm = null;
+            if (StringUtils.isNotEmpty(organDrugListBean.getPharmacy())) {
+                pharmacyTcm = pharmacyMap.get(organDrugListBean.getPharmacy());
+            }
             if (Objects.nonNull(organDrugList)) {
-                organDrugListBean.setDrugId(organDrugList.getDrugId());
+                String hisPharmacyCode = Objects.isNull(pharmacyTcm)?"":pharmacyTcm.getPharmacyId().toString();
+                String pharmacyCode = StringUtils.isEmpty(organDrugList.getPharmacy())?"":organDrugList.getPharmacy();
+                if (pharmacyCode.contains(hisPharmacyCode)) {
+                    organDrugListBean.setDrugId(organDrugList.getDrugId());
+                }
             }
         });
-        return ObjectCopyUtils.convert(organDrugListBeans, OrganDrugListBean.class);
+        List<OrganDrugListBean> organDrugListBeanList = ObjectCopyUtils.convert(organDrugListBeans, OrganDrugListBean.class);
+        organDrugListBeanList = organDrugListBeanList.stream()
+                .sorted(Comparator.comparing(OrganDrugListBean::getDrugId, Comparator.nullsLast(Comparator.reverseOrder())))
+                .collect(Collectors.toList());
+        return organDrugListBeanList;
     }
 
     @Override

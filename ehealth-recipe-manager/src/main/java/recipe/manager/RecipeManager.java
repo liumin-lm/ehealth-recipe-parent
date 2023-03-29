@@ -1601,7 +1601,24 @@ public class RecipeManager extends BaseManager {
      * @return
      */
     public Recipe obtainRecipeOwn(Integer organId, String recipeCode, String mpiid) {
-        Recipe recipe=recipeDAO.getByHisRecipeCodeAndClinicOrganAndMpiid(mpiid,recipeCode,organId);
+        Recipe recipe = recipeDAO.getByHisRecipeCodeAndClinicOrganAndMpiid(mpiid, recipeCode, organId);
         return recipe;
+    }
+
+    /**
+     * 个性化更新浙江省互联网处方数据
+     *
+     * @param recipeId
+     */
+    @LogRecord
+    public void updateRecipeZJJGPT(Integer recipeId) {
+        Recipe updateRecipe = new Recipe();
+        updateRecipe.setRecipeId(recipeId);
+        //生成处方编号，不需要通过HIS去产生
+        updateRecipe.setRecipeMode(RecipeBussConstant.RECIPEMODE_ZJJGPT);
+        updateRecipe.setRecipeCode("ngari" + recipeId);
+        updateRecipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_CHECKING_HOS.getType());
+        recipeDAO.updateNonNullFieldByPrimaryKey(updateRecipe);
+        updateRecipe.setWriteHisState(WriteHisEnum.WRITE_HIS_STATE_SUBMIT.getType());
     }
 }
