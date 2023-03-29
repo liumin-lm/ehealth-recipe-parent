@@ -43,7 +43,6 @@ import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.manager.DrugManager;
 import recipe.manager.HisRecipeManager;
 import recipe.manager.OrganDrugListManager;
-import recipe.manager.PharmacyManager;
 import recipe.util.MapValueUtil;
 import recipe.vo.greenroom.OrganConfigVO;
 import recipe.vo.greenroom.OrganDrugListSyncFieldVo;
@@ -770,11 +769,17 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
         }
         List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugCodes(hisDrugInfoReqVO.getOrganId(), organDrugCodes);
         Map<String, OrganDrugList> organDrugListMap = organDrugLists.stream().collect(Collectors.toMap(OrganDrugList::getOrganDrugCode, a -> a, (k1, k2) -> k1));
+        Set<String> pharmacyCodeSet = organDrugListBeans.stream().map(com.ngari.platform.recipe.mode.OrganDrugListBean::getPharmacy).collect(Collectors.toSet());
+        List<PharmacyTcm> pharmacyTcmList = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(pharmacyCodeSet)) {
+            pharmacyTcmList = pharmacyTcmDAO.findByOrganIdAndCodes(hisDrugInfoReqVO.getOrganId(), pharmacyCodeSet);
+        }
+        Map<String, PharmacyTcm> pharmacyMap = pharmacyTcmList.stream().collect(Collectors.toMap(PharmacyTcm::getPharmacyCode, a -> a, (k1, k2) -> k1));
         organDrugListBeans.forEach(organDrugListBean -> {
             OrganDrugList organDrugList = organDrugListMap.get(organDrugListBean.getOrganDrugCode());
             PharmacyTcm pharmacyTcm = null;
             if (StringUtils.isNotEmpty(organDrugListBean.getPharmacy())) {
-                pharmacyTcm = pharmacyTcmDAO.getByOrganIdAndCode(hisDrugInfoReqVO.getOrganId(), organDrugListBean.getPharmacy());
+                pharmacyTcm = pharmacyMap.get(organDrugListBean.getPharmacy());
             }
             if (Objects.nonNull(organDrugList)) {
                 String hisPharmacyCode = Objects.isNull(pharmacyTcm)?"":pharmacyTcm.getPharmacyId().toString();

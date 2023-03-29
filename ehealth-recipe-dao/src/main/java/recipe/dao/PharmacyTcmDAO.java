@@ -18,6 +18,7 @@ import org.hibernate.StatelessSession;
 import org.springframework.util.ObjectUtils;
 import recipe.constant.ErrorCode;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -94,8 +95,8 @@ public abstract class PharmacyTcmDAO extends HibernateSupportDelegateDAO<Pharmac
      * @param organId
      * @return
      */
-    @DAOMethod(sql = "from PharmacyTcm where organId=:organId and pharmacyCode=:pharmacyCode order by sort ASC " ,limit =0)
-    public abstract PharmacyTcm getByOrganIdAndCode(@DAOParam("organId") Integer organId,@DAOParam("pharmacyCode") String pharmacyCode);
+    @DAOMethod(sql = "from PharmacyTcm where organId=:organId and pharmacyCode in (:pharmacyCode) order by sort ASC " ,limit =0)
+    public abstract List<PharmacyTcm> findByOrganIdAndCodes(@DAOParam("organId") Integer organId,@DAOParam("pharmacyCode") Collection<String> pharmacyCode);
 
     /**
      * 通过orgsnId获取
