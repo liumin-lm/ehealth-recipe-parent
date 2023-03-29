@@ -45,6 +45,7 @@ import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.core.api.IStockBusinessService;
 import recipe.dao.*;
+import recipe.enumerate.status.GiveModeEnum;
 import recipe.enumerate.type.PayFlagEnum;
 import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.enumerate.type.StockCheckSourceTypeEnum;
@@ -236,6 +237,9 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         DrugEnterpriseResult result = getServiceByRecipeId(recipeId);
         DrugsEnterprise enterprise = result.getDrugsEnterprise();
+        if (GiveModeEnum.GIVE_MODE_HOSPITAL_DRUG.getType().equals(recipe.getGiveMode()) && Objects.isNull(recipe.getEnterpriseId())) {
+            return true;
+        }
         if (Objects.isNull(enterprise)) {
             throw new DAOException("未找到对应药企！");
         }
