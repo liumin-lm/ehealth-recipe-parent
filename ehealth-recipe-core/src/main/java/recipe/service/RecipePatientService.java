@@ -1131,7 +1131,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
                 } else {
                     patientRecipeDetailForDetailResVO.setMedicalInsuranceDrugFlag(0);
                 }
-                OrganDrugList organDrugList1 = organDrugListMap.get(recipeDetail.getOrganDrugCode() + recipedetail.getDrugId());
+                OrganDrugList organDrugList1 = organDrugListMap.get(recipeDetail.getOrganDrugCode() + recipeDetail.getDrugId());
                 if (Objects.nonNull(organDrugList1)) {
                     patientRecipeDetailForDetailResVO.setTargetedDrugType(organDrugList1.getTargetedDrugType());
                     patientRecipeDetailForDetailResVO.setAntiTumorDrugFlag(organDrugList1.getAntiTumorDrugFlag());
