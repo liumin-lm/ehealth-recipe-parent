@@ -415,7 +415,7 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                 query.setParameter("organDrugCode", organDrugCode);
                 query.setParameter("organId", organId);
                 if (!StringUtils.isEmpty(pharmacy)) {
-                    query.setParameter("organId", "%" + pharmacy + "%");
+                    query.setParameter("pharmacy", "%" + pharmacy + "%");
                 }
                 setResult(query.list());
             }
