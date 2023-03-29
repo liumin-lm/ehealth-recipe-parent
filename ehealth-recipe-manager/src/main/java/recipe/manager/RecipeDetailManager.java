@@ -340,6 +340,7 @@ public class RecipeDetailManager extends BaseManager {
         drugUnitdoseAndUnitMap.put("unitDoseForSmallUnit", unitDoseForSmallUnit);
         drugUnitdoseAndUnitMap.put("unitForSmallUnit", unitForSmallUnit);
         detail.setDrugUnitdoseAndUnit(JSONUtils.toString(drugUnitdoseAndUnitMap));
+        detail.setMemo("无特殊煎法".equals(detail.getMemo()) ? "" : detail.getMemo());
         //设置药品频次途径-处方药品默认数据
         drugClient.setRecipeDetail(detail, usePathwaysMap, usingRateMap);
     }
