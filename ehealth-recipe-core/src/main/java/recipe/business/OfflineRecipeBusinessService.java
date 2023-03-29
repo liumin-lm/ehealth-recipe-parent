@@ -479,7 +479,7 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
             return new ArrayList<>();
         }
         // 组装返回 给前端的数据
-        List<List<PatientRecipeListResVo>> list = convertRecipeList(recipeInfoVOS);
+        List<List<PatientRecipeListResVo>> list = convertRecipeList(recipeInfoVOS,req.getOrganId());
         return list;
     }
 
@@ -509,9 +509,9 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
      * @param recipeInfoVOS
      * @return
      */
-    private List<List<PatientRecipeListResVo>> convertRecipeList(Set<RecipeInfoVO> recipeInfoVOS) {
+    private List<List<PatientRecipeListResVo>> convertRecipeList(Set<RecipeInfoVO> recipeInfoVOS,Integer organId) {
         List<List<PatientRecipeListResVo>> result = new ArrayList<>();
-        List<PatientRecipeListResVo> patientRecipeListResVos = recipeInfoVOSCoverPatientRecipeListResVo(recipeInfoVOS);
+        List<PatientRecipeListResVo> patientRecipeListResVos = recipeInfoVOSCoverPatientRecipeListResVo(recipeInfoVOS,organId);
         // 根据创建时间排序
         List<PatientRecipeListResVo> recipeListResVos = patientRecipeListResVos.stream().sorted(Comparator.comparing(PatientRecipeListResVo::getSignDate).reversed()).collect(Collectors.toList());
         // 同一挂号序号的放在同一组内 挂号序号为空,单独成组
@@ -536,9 +536,9 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
         return result;
     }
 
-    private List<PatientRecipeListResVo> recipeInfoVOSCoverPatientRecipeListResVo(Set<RecipeInfoVO> recipeInfoVOS) {
+    private List<PatientRecipeListResVo> recipeInfoVOSCoverPatientRecipeListResVo(Set<RecipeInfoVO> recipeInfoVOS,Integer organId) {
         RecipeBean recipe = recipeInfoVOS.iterator().next().getRecipeBean();
-        List<String> hideRecipeDetail = configurationClient.getValueListCatch(recipe.getClinicOrgan(), "hideRecipeDetail", null);
+        List<String> hideRecipeDetail = configurationClient.getValueListCatch(organId, "hideRecipeDetail", null);
         LOGGER.info("hideRecipeDetail 药品类型：{} 需要隐方的类型:{}", recipe.getRecipeType(), hideRecipeDetail);
         List<PatientRecipeListResVo> patientRecipeListResVos = recipeInfoVOS.stream().map(recipeInfoVO -> {
             PatientRecipeListResVo patientRecipeListResVo = new PatientRecipeListResVo();

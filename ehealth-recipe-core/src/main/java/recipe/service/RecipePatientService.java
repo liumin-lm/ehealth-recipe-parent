@@ -1050,7 +1050,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         }
 
         Optional.ofNullable(recipe).orElseThrow(() -> new DAOException("未查询到相关处方信息"));
-        return coverPatientRecipeDetailResVO(recipe,recipeBusType);
+        return coverPatientRecipeDetailResVO(recipe,recipeBusType,patientRecipeDetailReq.getOrganId());
     }
 
     private RecipeInfoDTO getRecipeInfoDTO(PatientRecipeDetailReqVO patientRecipeDetailReq, RecipeInfoDTO recipe, Recipe recipeRecipe) {
@@ -1077,7 +1077,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
      * @param recipe
      * @return
      */
-    private PatientRecipeDetailResVO coverPatientRecipeDetailResVO(RecipeInfoDTO recipe,Integer recipeBusType) {
+    private PatientRecipeDetailResVO coverPatientRecipeDetailResVO(RecipeInfoDTO recipe,Integer recipeBusType,Integer organId) {
         PatientRecipeDetailResVO patientRecipeDetailResVO = new PatientRecipeDetailResVO();
         Recipe returnRecipe = recipe.getRecipe();
         BeanCopyUtils.copy(returnRecipe,patientRecipeDetailResVO);
@@ -1087,7 +1087,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         patientRecipeDetailResVO.setPharmacyId(recipedetail.getPharmacyId());
         patientRecipeDetailResVO.setPharmacyName(recipedetail.getPharmacyName());
         patientRecipeDetailResVO.setRecipeBusType(recipeBusType);
-        List<String> hideRecipeDetail = configurationClient.getValueListCatch(returnRecipe.getClinicOrgan(), "hideRecipeDetail", null);
+        List<String> hideRecipeDetail = configurationClient.getValueListCatch(organId, "hideRecipeDetail", null);
         LOGGER.info("hideRecipeDetail 药品类型：{} 需要隐方的类型:{}", returnRecipe.getRecipeType(), hideRecipeDetail);
         if (org.apache.commons.collections.CollectionUtils.isNotEmpty(hideRecipeDetail) && hideRecipeDetail.contains(returnRecipe.getRecipeType().toString()) && PayFlagEnum.NOPAY.getType().equals(returnRecipe.getPayFlag())) {
             patientRecipeDetailResVO.setIsHiddenRecipeDetail(true);
