@@ -1553,7 +1553,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             recipeManager.handleRecipeInvalidTime(recipe.getClinicOrgan(), recipe.getRecipeId(), recipe.getSignDate());
         } else {
             /**互联网**/
-            recipeManager.updateRecipeModeZJJGPT(recipe.getRecipeId());
+            recipeManager.updateRecipeZJJGPT(recipe.getRecipeId());
             stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_SUBMIT, RecipeStateEnum.NONE);
             //MQ推送处方开成功消息 - 发送HIS处方开具消息
             offlineRecipeClient.recipeStatusToHis(HisMqRequestInit.initRecipeStatusToHisReq(recipe, HisBussConstant.TOHIS_RECIPE_STATUS_ADD));

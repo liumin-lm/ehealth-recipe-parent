@@ -1611,7 +1611,7 @@ public class RecipeManager extends BaseManager {
      * @param recipeId
      */
     @LogRecord
-    public void updateRecipeModeZJJGPT(Integer recipeId) {
+    public void updateRecipeZJJGPT(Integer recipeId) {
         Recipe updateRecipe = new Recipe();
         updateRecipe.setRecipeId(recipeId);
         //生成处方编号，不需要通过HIS去产生
