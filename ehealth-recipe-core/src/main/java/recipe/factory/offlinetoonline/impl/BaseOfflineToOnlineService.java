@@ -1115,7 +1115,7 @@ public class BaseOfflineToOnlineService {
         if (CollectionUtils.isEmpty(queryHisRecipResToList)) {
             return hisRecipes;
         }
-        LOGGER.info("saveHisRecipeInfo queryHisRecipResTOList:" + JSONUtils.toString(queryHisRecipResToList));
+        LOGGER.info("saveHisRecipeInfo queryHisRecipeResTOList:" + JSONUtils.toString(queryHisRecipResToList));
         for (QueryHisRecipResTO queryHisRecipResTo : queryHisRecipResToList) {
             HisRecipe hisRecipe1 = hisRecipeDao.getHisRecipeByRecipeCodeAndClinicOrgan(queryHisRecipResTo.getClinicOrgan(), queryHisRecipResTo.getRecipeCode());
             //数据库不存在处方信息，则新增

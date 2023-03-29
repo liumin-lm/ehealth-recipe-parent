@@ -13,10 +13,7 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.HospitalDrugListDTO;
 import com.ngari.platform.recipe.mode.HospitalDrugListReqDTO;
 import com.ngari.recipe.drug.model.*;
-import com.ngari.recipe.dto.DrugInfoDTO;
-import com.ngari.recipe.dto.DrugSpecificationInfoDTO;
-import com.ngari.recipe.dto.PatientDrugWithEsDTO;
-import com.ngari.recipe.dto.RecipeInfoDTO;
+import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.vo.DrugSaleStrategyVO;
 import com.ngari.recipe.vo.HospitalDrugListReqVO;
@@ -790,7 +787,11 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
                 }
             }
         });
-        return ObjectCopyUtils.convert(organDrugListBeans, OrganDrugListBean.class);
+        List<OrganDrugListBean> organDrugListBeanList = ObjectCopyUtils.convert(organDrugListBeans, OrganDrugListBean.class);
+        organDrugListBeanList = organDrugListBeanList.stream()
+                .sorted(Comparator.comparing(OrganDrugListBean::getDrugId, Comparator.nullsLast(Comparator.reverseOrder())))
+                .collect(Collectors.toList());
+        return organDrugListBeanList;
     }
 
     @Override
