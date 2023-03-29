@@ -6138,6 +6138,8 @@ public class RecipeService extends RecipeBaseService {
             return;
         }
         button.setJumpType(giveModeButtonBeans.get(0).getButtonSkipType());
+        button.setAppId(giveModeButtonBeans.get(0).getAppId());
+        button.setSkipUrl(giveModeButtonBeans.get(0).getSkipUrl());
         boolean buttonFlag = false;
         if (RecipeSupportGiveModeEnum.DOWNLOAD_RECIPE.getText().equals(giveModeButtonBeans.get(0).getShowButtonKey())) {
             if (size.equals(1)) {
