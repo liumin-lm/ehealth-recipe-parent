@@ -1117,10 +1117,11 @@ public class HisRecipeManager extends BaseManager {
                 List<OrganDrugList> organDrugLists = organDrugListMap.get(b.getDrugCode());
                 if (CollectionUtils.isEmpty(organDrugLists)) {
                     logger.info("处方中的药品信息未维护到线上平台药品目录:{},{},{}", recipe.getRecipeCode(), b.getDrugCode(), recipe.getClinicOrgan());
-                }
-                if (new Integer("1").equals(organDrugLists.get(0).getTargetedDrugType())) {
-                    targetedDrugType.set(1);
-                    return;
+                }else{
+                    if (new Integer("1").equals(organDrugLists.get(0).getTargetedDrugType())) {
+                        targetedDrugType.set(1);
+                        return;
+                    }
                 }
             });
             recipe.setTargetedDrugType(targetedDrugType.get());
