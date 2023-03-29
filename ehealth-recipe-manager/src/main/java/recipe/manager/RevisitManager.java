@@ -137,7 +137,7 @@ public class RevisitManager extends BaseManager {
      * @return
      */
     public WriteDrugRecipeReqTO getWriteDrugRecipeReqTO(com.ngari.recipe.dto.PatientDTO patient, Integer organId, Integer doctorId) {
-        logger.info("RevisitManager writeDrugRecipeReqTO patient={},organId={},doctorId={}", JSONUtils.toString(patient), JSONUtils.toString(organId), JSONUtils.toString(doctorId));
+        logger.info("RevisitManager1 writeDrugRecipeReqTO patient={},organId={},doctorId={}", JSONUtils.toString(patient), JSONUtils.toString(organId), JSONUtils.toString(doctorId));
         List<HealthCardDTO> healthCardDTOList = new ArrayList<>();
         //出参对象
         WriteDrugRecipeReqTO writeDrugRecipeReqTo = new WriteDrugRecipeReqTO();
