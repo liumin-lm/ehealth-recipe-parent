@@ -771,14 +771,11 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
         List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugCodes(hisDrugInfoReqVO.getOrganId(), organDrugCodes);
         Map<String, OrganDrugList> organDrugListMap = organDrugLists.stream().collect(Collectors.toMap(OrganDrugList::getOrganDrugCode, a -> a, (k1, k2) -> k1));
         Set<String> pharmacyCodeSet = organDrugListBeans.stream().map(com.ngari.platform.recipe.mode.OrganDrugListBean::getPharmacy).collect(Collectors.toSet());
-        logger.info("findHisDrugList pharmacyCodeSet:{}", JSON.toJSONString(pharmacyCodeSet));
         List<PharmacyTcm> pharmacyTcmList = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(pharmacyCodeSet)) {
             pharmacyTcmList = pharmacyTcmDAO.findByOrganIdAndCodes(hisDrugInfoReqVO.getOrganId(), pharmacyCodeSet);
-            logger.info("findHisDrugList pharmacyTcmList:{}", JSON.toJSONString(pharmacyTcmList));
         }
         Map<String, PharmacyTcm> pharmacyMap = pharmacyTcmList.stream().collect(Collectors.toMap(PharmacyTcm::getPharmacyCode, a -> a, (k1, k2) -> k1));
-        logger.info("findHisDrugList pharmacyMap:{}", JSON.toJSONString(pharmacyMap));
         organDrugListBeans.forEach(organDrugListBean -> {
             OrganDrugList organDrugList = organDrugListMap.get(organDrugListBean.getOrganDrugCode());
             PharmacyTcm pharmacyTcm = null;
