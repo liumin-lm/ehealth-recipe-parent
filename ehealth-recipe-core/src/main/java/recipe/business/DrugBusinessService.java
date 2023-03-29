@@ -778,13 +778,16 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
         logger.info("findHisDrugList pharmacyMap:{}", JSON.toJSONString(pharmacyMap));
         organDrugListBeans.forEach(organDrugListBean -> {
             OrganDrugList organDrugList = organDrugListMap.get(organDrugListBean.getOrganDrugCode());
+            logger.info("findHisDrugList organDrugList:{}", JSON.toJSONString(organDrugList));
             PharmacyTcm pharmacyTcm = null;
             if (StringUtils.isNotEmpty(organDrugListBean.getPharmacy())) {
                 pharmacyTcm = pharmacyMap.get(organDrugListBean.getPharmacy());
             }
+            logger.info("findHisDrugList pharmacyTcm:{}", JSON.toJSONString(pharmacyTcm));
             if (Objects.nonNull(organDrugList)) {
                 String hisPharmacyCode = Objects.isNull(pharmacyTcm)?"":pharmacyTcm.getPharmacyId().toString();
                 String pharmacyCode = StringUtils.isEmpty(organDrugList.getPharmacy())?"":organDrugList.getPharmacy();
+                logger.info("findHisDrugList hisPharmacyCode:{},pharmacyCode:{}", hisPharmacyCode, pharmacyCode);
                 if (pharmacyCode.contains(hisPharmacyCode)) {
                     organDrugListBean.setDrugId(organDrugList.getDrugId());
                 }
