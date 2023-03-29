@@ -40,6 +40,8 @@ public class BaseService {
     protected RecipeDetailManager recipeDetailManager;
     @Resource
     protected CaManager caManager;
+    @Resource
+    protected DrugManager drugManager;
 
     protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
