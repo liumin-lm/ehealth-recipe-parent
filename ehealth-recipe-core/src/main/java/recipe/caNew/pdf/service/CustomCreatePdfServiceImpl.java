@@ -25,6 +25,7 @@ import org.bouncycastle.util.encoders.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import recipe.aop.LogRecord;
 import recipe.bussutil.CreateRecipePdfUtil;
 import recipe.bussutil.WordToPdfBean;
 import recipe.constant.ErrorCode;
@@ -144,6 +145,7 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
     }
 
     @Override
+    @LogRecord
     public byte[] tcmContraindicationTypePdf(byte[] data, Recipe recipe) throws Exception {
         List<Recipedetail> recipedetail = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
         boolean tcmContraindicationType = recipedetail.stream().allMatch(a -> ValidateUtil.integerIsEmpty(a.getTcmContraindicationType()));
