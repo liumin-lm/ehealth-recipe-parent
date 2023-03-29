@@ -773,7 +773,10 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
         Map<String, PharmacyTcm> pharmacyMap = pharmacyTcmList.stream().collect(Collectors.toMap(PharmacyTcm::getPharmacyCode, a -> a, (k1, k2) -> k1));
         organDrugListBeans.forEach(organDrugListBean -> {
             List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugCodes(hisDrugInfoReqVO.getOrganId(), Arrays.asList(organDrugListBean.getOrganDrugCode()));
-            OrganDrugList organDrugList = organDrugLists.get(0);
+            OrganDrugList organDrugList = null;
+            if (CollectionUtils.isNotEmpty(organDrugLists)) {
+                organDrugList = organDrugLists.get(0);
+            }
             PharmacyTcm pharmacyTcm = null;
             if (StringUtils.isNotEmpty(organDrugListBean.getPharmacy())) {
                 pharmacyTcm = pharmacyMap.get(organDrugListBean.getPharmacy());
@@ -790,7 +793,6 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
         organDrugListBeanList = organDrugListBeanList.stream()
                 .sorted(Comparator.comparing(OrganDrugListBean::getDrugId, Comparator.nullsLast(Comparator.reverseOrder())))
                 .collect(Collectors.toList());
-        //如果你和朋友一起去南京玩两天，你应该如何安排？
         return organDrugListBeanList;
     }
 
